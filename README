@@ -1,39 +1,30 @@
+General informations:
 
-1. Pre-requisities:
+midPoint is a tool that synchronizes several identity repositories, manages them
+and makes them available in unified form. It belongs to the user provisioning 
+category of the enterprise identity management field. The basic features include:
 
-1. MySQL server.
-2. Tomcat server 6.0
-3. mysql-connector-java-5.1.13.jar in <tomcat>/lib/  (version is just example)
-4. get sources of midpoint via SVN or binary version of WAR
-5. Initialize MYSQL content
-6. Deploy compiled or downloaded war in to Tomcat
-
-
-
-2. Compile sources.
- 
-2.1 Building sources with test require MySQL connection.
-
-   mvn install
-
-2.2 Building sources without tests (required if you not have mysql setup - test\
-are failing without mysql).
-
-   mvn install -DskipTests=true
-
-2.3 Compiled war
-
-is  located in following place:
-
-	gui/admin-gui/target/idm.war
+   - User provisioning and deprovisioning
+   - Identity synchronization
+   - Identity management process automation
+   - Management of identity-related parts of the enterprise security policy
+   - Support for security auditing and reporting
 
 
-3. Mysql content
+For more information please go to:
 
-need to run script located in:
-./repo/repo-db-impl/src/main/scripts/create_openidm_tables_mysql.sql
+  http://wiki.evolveum.com/display/midPoint
 
-2. Comments
 
-build system tested with:
-maven 2.2.1
+For bugtracking system please go to:
+
+  http://jira.evolveum.com/
+
+
+Latest source from our SVN repository using the URL:
+
+  https://svn.evolveum.com/midpoint/trunk
+
+
+This project is developed under open source license CDDL v1.0. You may get copy
+of licence in legal/CDDLv1.0.txt.
