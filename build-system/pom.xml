@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum -->
+<!-- -->
+<!-- The contents of this file are subject to the terms -->
+<!-- of the Common Development and Distribution License -->
+<!-- (the License). You may not use this file except in -->
+<!-- compliance with the License. -->
+<!-- -->
+<!-- You can obtain a copy of the License at -->
+<!-- http://www.opensource.org/licenses/cddl1 or -->
+<!-- CDDLv1.0.txt file in the source code distribution. -->
+<!-- See the License for the specific language governing -->
+<!-- permission and limitations under the License. -->
+<!-- -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by -->
+<!-- your own identifying information: -->
+<!-- -->
+<!-- Portions Copyrighted 2011 [name of copyright owner] -->
+<!-- Portions Copyrighted 2010 Forgerock -->
+<!-- -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>parent</artifactId>
+    <packaging>pom</packaging>
+    <name>midPoint Super pom</name>
+    <description>Super POM for all projects</description>
+    <url>http://</url>
+    <parent>
+        <groupId>com.evolveum.midpoint</groupId>
+        <artifactId>project</artifactId>
+        <version>1.7-SNAPSHOT</version>
+    </parent>
+    <properties>
+        <!-- Build system options -->
+        <project.source.version>1.6</project.source.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <verbose.jaxb2>false</verbose.jaxb2>
+        <verbose.jaxws>false</verbose.jaxws>
+        <!-- Dependencies global versions -->
+        <midpoint.version>1.7-SNAPSHOT</midpoint.version>
+        <basex.version>6.6</basex.version>
+        <commons.io.version>2.0.1</commons.io.version>
+        <commons.lang.version>2.6</commons.lang.version>
+        <el.version>2.2</el.version>
+        <icefaces.version>2.0.1</icefaces.version>
+        <icepush.version>2.0.1</icepush.version>
+        <jsf.version>2.1.0</jsf.version>
+        <junit.version>4.8.2</junit.version>
+        <mockito.version>1.8.5</mockito.version>
+        <selenium.version>1.0.1</selenium.version>
+        <slf4j.version>1.6.1</slf4j.version>
+        <spring.version>3.0.5.RELEASE</spring.version>
+        <spring.security.version>3.0.5.RELEASE</spring.security.version>
+        <xml.resolver.version>1.2</xml.resolver.version>
+        <mysql.connector.version>5.1.13</mysql.connector.version>
+        <dbunit.version>2.4.7</dbunit.version>
+        <jaxb.version>2.2.3</jaxb.version>
+    </properties>
+    <organization>
+        <name>Evolveum</name>
+        <url>http://www.evolveum.com</url>
+    </organization>
+    <licenses>
+        <license>
+            <name>CDDL v1.0</name>
+            <url>http://www.sun.com/cddl/cddl.html</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+    <issueManagement>
+        <system>Atlassian JIRA</system>
+        <url>http://jira.evolveum.com/</url>
+    </issueManagement>
+    <scm>
+        <connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
+        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://fisheye.evolveum.com/midpoint/</url>
+    </scm>
+    <profiles>
+        <profile>
+            <id>default</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <configuration>
+                            <source>${project.source.version}</source>
+                            <target>${project.source.version}</target>
+                            <fork>true</fork>
+                            <meminitial>128m</meminitial>
+                            <maxmem>1024m</maxmem>
+                            <showDeprecation>true</showDeprecation>
+                           <showWarnings>true</showWarnings>
+                            <!--verbose>true</verbose> <showWarnings>false</showWarnings -->
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <configuration>
+                            <encoding>${project.build.sourceEncoding}</encoding>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>test-jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>buildnumber-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>create</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <doCheck>false</doCheck>
+                            <doUpdate>false</doUpdate>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <configuration>
+                            <archive>
+                                <manifestEntries>
+                                    <Version-Number>${project.version}</Version-Number>
+                                    <SCM-Revision>${buildNumber}</SCM-Revision>
+                                    <Organization>Evolveum</Organization>
+                                    <Organization-URL>http://www.evolveum.com</Organization-URL>
+                                    <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+                                    <License>CDDL v1.0</License>
+                                    <License-URL>http://www.sun.com/cddl/cddl.html</License-URL>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </plugin>
+                    <!--plugin> <groupId>org.apache.maven.plugins</groupId> 
+                        <artifactId>maven-checkstyle-plugin</artifactId>
+                        <version>2.4</version> <configuration> <configLocation>http:///svn/coding-rules/CheckStyle-rules.xml</configLocation>
+                        <includeTestSourceDirectory>false</includeTestSourceDirectory> 
+                        </configuration>
+                        </plugin -->
+                    <plugin>
+                        <groupId>org.mortbay.jetty</groupId>
+                        <artifactId>jetty-maven-plugin</artifactId>
+                        <version>7.0.1.v20091125</version>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>2.8.1</version>
+                        <configuration>
+                            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+            <reporting>
+                <plugins>
+                    <!--plugin> <groupId>org.apache.maven.plugins</groupId> 
+                        <artifactId>maven-checkstyle-plugin</artifactId>
+                        <version>2.4</version> <configuration> <configLocation>http://svn/coding-rules/CheckStyle-rules.xml</configLocation>
+                        <includeTestSourceDirectory>false</includeTestSourceDirectory> 
+                        </configuration>
+                        </plugin -->
+                </plugins>
+            </reporting>
+        </profile>
+    </profiles>
+</project>

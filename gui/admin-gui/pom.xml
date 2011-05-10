@@ -1,0 +1,254 @@
+<?xml version="1.0" ?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Peter Prochazka               -->
+<!--                                                         -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>midPoint User Interface - Admin web gui</name>
+    <groupId>com.evolveum.midpoint.gui</groupId>
+    <artifactId>admin-gui</artifactId>
+    <packaging>war</packaging>
+    <parent>
+        <artifactId>gui</artifactId>
+        <groupId>com.evolveum.midpoint</groupId>
+        <version>1.7-SNAPSHOT</version>
+    </parent>
+    <build>
+        <finalName>idm</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.2</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/lib/icf-connectors</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>false</overWriteSnapshots>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                            <includeGroupIds>org.identityconnectors</includeGroupIds>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <organization>
+        <name>Evolveum</name>
+        <url>http://www.evolveum.com</url>
+    </organization>
+    <licenses>
+        <license>
+            <name>CDDL v1.0</name>
+            <url>http://www.sun.com/cddl/cddl.html</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+        </license>
+    </licenses>
+    <issueManagement>
+        <system>Atlassian JIRA</system>
+        <url>http://jira.evolveum.com/</url>
+    </issueManagement>
+    <scm>
+        <connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
+        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
+        <tag>HEAD</tag>
+        <url>https://fisheye.evolveum.com/midpoint/</url>
+    </scm>
+    <repositories>
+        <repository>
+            <id>evolveum</id>
+            <name>repo</name>
+            <url>http://repo.evolveum.com/repo</url>
+        </repository>
+        <!-- <repository>
+            <id>org.springframework.maven.milestone</id>
+            <name>Spring Maven Milestone Repository</name>
+            <url>http://maven.springframework.org/milestone</url>
+        </repository> -->
+    </repositories>
+    <properties>
+    	<!-- <spring.security.version>3.1.0.RC2</spring.security.version> -->
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-db-impl</artifactId>
+            <version>${midpoint.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-impl</artifactId>
+            <version>${midpoint.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.provisioning</groupId>
+            <!-- TODO need to switch to api -->
+            <artifactId>provisioning-impl</artifactId>
+            <version>${midpoint.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.el</groupId>
+            <artifactId>el-api</artifactId>
+            <version>${el.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.web</groupId>
+            <artifactId>el-impl</artifactId>
+            <version>${el.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+            <version>1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.icefaces</groupId>
+            <artifactId>icefaces-compat</artifactId>
+            <version>${icefaces.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.icefaces</groupId>
+            <artifactId>icefaces-ace</artifactId>
+            <version>${icefaces.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.icepush</groupId>
+            <artifactId>icepush</artifactId>
+            <version>${icepush.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.faces</groupId>
+            <artifactId>jsf-api</artifactId>
+            <version>${jsf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.faces</groupId>
+            <artifactId>jsf-impl</artifactId>
+            <version>${jsf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>servlet-api</artifactId>
+            <version>2.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-config</artifactId>
+            <version>${spring.security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-web</artifactId>
+            <version>${spring.security.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>jsr250-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.2</version>
+        </dependency>
+        <!-- Test -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.seleniumhq.selenium.client-drivers</groupId>
+            <artifactId>selenium-java-client-driver</artifactId>
+            <version>${selenium.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Dependencies to connectors, just to add to good place in WAR -->
+        <dependency>
+            <groupId>org.identityconnectors</groupId>
+            <artifactId>org.identityconnectors.ldap</artifactId>
+            <version>1.0.5754openidm</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.identityconnectors</groupId>
+            <artifactId>org.identityconnectors.databasetable</artifactId>
+            <version>1.1.4958</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.identityconnectors</groupId>
+            <artifactId>org.identityconnectors.db2</artifactId>
+            <version>1.0.4828</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.identityconnectors</groupId>
+            <artifactId>org.identityconnectors.flat</artifactId>
+            <version>1.1.1503</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.identityconnectors</groupId>
+            <artifactId>org.identityconnectors.flatfile</artifactId>
+            <version>1.0.2838</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.identityconnectors</groupId>
+            <artifactId>org.identityconnectors.mysqluser</artifactId>
+            <version>1.1.4900</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.identityconnectors</groupId>
+            <artifactId>org.identityconnectors.spml</artifactId>
+            <version>1.0.4828</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>

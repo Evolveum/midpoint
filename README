@@ -1,0 +1,39 @@
+
+1. Pre-requisities:
+
+1. MySQL server.
+2. Tomcat server 6.0
+3. mysql-connector-java-5.1.13.jar in <tomcat>/lib/  (version is just example)
+4. get sources of midpoint via SVN or binary version of WAR
+5. Initialize MYSQL content
+6. Deploy compiled or downloaded war in to Tomcat
+
+
+
+2. Compile sources.
+ 
+2.1 Building sources with test require MySQL connection.
+
+   mvn install
+
+2.2 Building sources without tests (required if you not have mysql setup - test\
+are failing without mysql).
+
+   mvn install -DskipTests=true
+
+2.3 Compiled war
+
+is  located in following place:
+
+	gui/admin-gui/target/idm.war
+
+
+3. Mysql content
+
+need to run script located in:
+./repo/repo-db-impl/src/main/scripts/create_openidm_tables_mysql.sql
+
+2. Comments
+
+build system tested with:
+maven 2.2.1
