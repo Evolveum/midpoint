@@ -95,7 +95,6 @@ public class Language implements Serializable {
 				this.currentLocale = locale;
 
 				FacesContext.getCurrentInstance().getViewRoot().setLocale(this.currentLocale);
-				// refresh();
 			} else {
 				throw new RuntimeException("Can't find resource bundle for locale '" + locale + "'.");
 			}
@@ -103,17 +102,6 @@ public class Language implements Serializable {
 			ex.printStackTrace();
 		}
 		logger.trace("setCurrentLocale::end");
-	}
-
-	@Deprecated
-	public void refresh() {
-		FacesContext context = FacesContext.getCurrentInstance();
-		Application application = context.getApplication();
-		ViewHandler viewHandler = application.getViewHandler();
-
-		UIViewRoot viewRoot = viewHandler.createView(context, context.getViewRoot().getViewId());
-		context.setViewRoot(viewRoot);
-		context.renderResponse();
 	}
 
 	public void setCurrentLanguage(final String locale) {

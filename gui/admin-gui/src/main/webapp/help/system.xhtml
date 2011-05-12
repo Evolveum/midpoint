@@ -9,19 +9,18 @@
 
 	<ui:define name="admin-content">
 		<div id="admin-content" style="width: 50%">
-
 			<h1>midPoint Software and other Versions</h1>
 			These values where collected during the build phase and might be different on the machine where midPoint is
 			deployed!
 			<h2>midPoint Version</h2>
 			This build is based on the Revision
 			<ice:outputLabel value="#{lang.messages['midPointRevision']}" />
-			of the midPoint subversion repository at: <br /> <a href="https://midpoint.evolveum.com">https://midpoint.evolveum.com</a>
+			of the midPoint subversion repository at: <br /> <a href="https://svn.evolveum.com/midpoint">https://svn.evolveum.com/midpoint</a>
 
-			<h2>Other Versions and Values</h2>
-			<ice:panelGrid columns="2" cellpadding="2" cellspacing="2">
-				<ice:outputText value="Property" />
-				<ice:outputText value="Value" />
+			<h2>Basic system properties</h2>
+			<ice:panelGrid columns="2" cellpadding="3" cellspacing="3">
+				<ice:outputText value="Property" style="font-weight: bold;" />
+				<ice:outputText value="Value" style="font-weight: bold;" />
 
 				<c:forEach var="item" items="#{about.items}">
 					<ice:outputText value="#{item.property}" />
