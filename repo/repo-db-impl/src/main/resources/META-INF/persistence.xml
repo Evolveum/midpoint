@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+<!-- NEED CLEANUP -->
+<persistence version="1.0" xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <persistence-unit name="openidm-repository-pu" transaction-type="RESOURCE_LOCAL">
+    <provider>org.hibernate.ejb.HibernatePersistence</provider>
+    <non-jta-data-source/>
+    <class>com.evolveum.midpoint.model.Account</class>
+    <class>com.evolveum.midpoint.model.BooleanProperty</class>
+    <class>com.evolveum.midpoint.model.DateProperty</class>
+    <class>com.evolveum.midpoint.model.GenericEntityBase</class>
+    <class>com.evolveum.midpoint.model.IntegerProperty</class>
+    <class>com.evolveum.midpoint.model.Resource</class>
+    <class>com.evolveum.midpoint.model.ResourceState</class>
+    <class>com.evolveum.midpoint.model.SimpleDomainObject</class>
+    <class>com.evolveum.midpoint.model.StringProperty</class>
+    <class>com.evolveum.midpoint.model.User</class>
+    <class>com.evolveum.midpoint.model.ResourceAccessConfiguration</class>
+    <class>com.evolveum.midpoint.model.ResourceObjectShadow</class>
+    <class>com.evolveum.midpoint.model.UserTemplate</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+    <properties>
+      <property name="hibernate.hbm2ddl.auto" value="update"/>
+      <property name="hibernate.ejb.interceptor" value="com.evolveum.midpoint.model.GeneratedEntityInterceptor"/>
+    </properties>
+  </persistence-unit>
+  <persistence-unit name="openidm-repository-pu-test" transaction-type="RESOURCE_LOCAL">
+    <class>com.evolveum.midpoint.model.Account</class>
+    <class>com.evolveum.midpoint.model.BooleanProperty</class>
+    <class>com.evolveum.midpoint.model.DateProperty</class>
+    <class>com.evolveum.midpoint.model.GenericEntityBase</class>
+    <class>com.evolveum.midpoint.model.IntegerProperty</class>
+    <class>com.evolveum.midpoint.model.Resource</class>
+    <class>com.evolveum.midpoint.model.ResourceState</class>
+    <class>com.evolveum.midpoint.model.SimpleDomainObject</class>
+    <class>com.evolveum.midpoint.model.StringProperty</class>
+    <class>com.evolveum.midpoint.model.User</class>
+    <class>com.evolveum.midpoint.model.ResourceAccessConfiguration</class>
+    <class>com.evolveum.midpoint.model.ResourceObjectShadow</class>
+    <class>com.evolveum.midpoint.model.UserTemplate</class>
+    <exclude-unlisted-classes>true</exclude-unlisted-classes>
+    <properties>
+      <property name="hibernate.show_sql" value="true"/>
+      <property name="hibernate.connection.driver_class" value="com.mysql.jdbc.Driver"/>
+      <property name="hibernate.connection.password" value="J3dnu_42_cIzmU_s_PL0ch0U_P0drazk0U"/>
+      <property name="hibernate.connection.url" value="jdbc:mysql://localhost:3306/midPoint?useUnicode=true&amp;characterEncoding=UTF-8&amp;characterSetResults=UTF-8"/>
+      <property name="hibernate.connection.username" value="MIDPOINT_PROXY"/>
+      <property name="hibernate.hbm2ddl.auto" value="update"/>
+      <property name="hibernate.max_fetch_depth" value="5"/>
+      <property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5Dialect"/>
+      <property name="hibernate.ejb.interceptor" value="com.evolveum.midpoint.model.GeneratedEntityInterceptor"/>
+    </properties>
+  </persistence-unit>
+</persistence>
