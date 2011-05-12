@@ -65,6 +65,8 @@ public class AutoFormTag extends ComponentHandler {
 			grid.setValueExpression(AutoForm.ATTR_BEAN, bean.getValueExpression(ctx, List.class));
 		}
 		grid.setValueExpression(AutoForm.ATTR_EDITABLE, editable.getValueExpression(ctx, Boolean.class));
-		grid.setValueExpression(AutoForm.ATTR_INDEX, index.getValueExpression(ctx, Integer.class));
+		if (index != null) {
+			grid.setValueExpression(AutoForm.ATTR_INDEX, index.getValueExpression(ctx, Integer.class));
+		}
 	}
 }

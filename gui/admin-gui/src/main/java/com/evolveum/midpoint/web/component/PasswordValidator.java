@@ -33,6 +33,8 @@ import javax.faces.validator.FacesValidator;
 import javax.faces.validator.Validator;
 import javax.faces.validator.ValidatorException;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * 
  * @author Vilo Repan
@@ -64,7 +66,7 @@ public class PasswordValidator implements Validator {
 		}
 		String password2 = (String) comp.getValue();
 
-		boolean equal = password1 == null ? password2 == null : password1.equals(password2);
+		boolean equal = StringUtils.isNotEmpty(password1) ? (StringUtils.isEmpty(password2)? false : password1.equals(password2) ) : (StringUtils.isEmpty(password2) ? true : false);
 		if (!equal) {
 			throw createMessage("Please check password fields.", "Passwords doesn't match.");
 		}

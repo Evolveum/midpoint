@@ -22,13 +22,16 @@
 
 package com.evolveum.midpoint.web.model;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Katuska
  */
-public class DiagnosticMessageDto {
+public class DiagnosticMessageDto implements Serializable {
 
-    private String message;
+	private static final long serialVersionUID = 7568834241228899775L;
+	private String message;
     private String details;
     private String timestamp;
 

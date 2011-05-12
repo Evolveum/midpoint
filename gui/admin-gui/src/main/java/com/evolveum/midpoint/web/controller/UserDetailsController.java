@@ -179,7 +179,8 @@ public class UserDetailsController implements Serializable {
 				FacesUtils.addErrorMessage(message.toString());
 			}
 		} else {
-			this.user = user;
+			//here we know that setter's parameter user is null
+			this.user = null;
 		}
 	}
 

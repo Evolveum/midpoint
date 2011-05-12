@@ -22,13 +22,16 @@
 
 package com.evolveum.midpoint.web.dto;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Katuska
  */
-public class GuiTestResultDto {
+public class GuiTestResultDto implements Serializable {
 
-    private String configurationValidation;
+	private static final long serialVersionUID = -11744078835543869L;
+	private String configurationValidation;
     private String connectionInitialization;
     private String connectorConnection;
     private String connectionSanity;

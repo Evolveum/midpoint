@@ -31,9 +31,9 @@ import java.io.Serializable;
  */
 public class ObjectStage implements Serializable {
 
-    // TODO
+	private static final long serialVersionUID = 3135310115198604007L;
 
-    // temporary ... stage JAXB object should be here instead
+	//TODO: temporary ... stage JAXB object should be here instead
     transient ObjectType object;
 
     public ObjectType getObject()

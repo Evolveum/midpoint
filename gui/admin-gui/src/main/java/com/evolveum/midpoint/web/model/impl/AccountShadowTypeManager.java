@@ -63,7 +63,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class AccountShadowTypeManager implements AccountShadowManager, Serializable {
 
-    private static final Trace TRACE = TraceManager.getTrace(AccountShadowTypeManager.class);
+	private static final long serialVersionUID = 4540270042561861862L;
+	private static final Trace TRACE = TraceManager.getTrace(AccountShadowTypeManager.class);
     private Class constructAccountShadowType;
 
     public AccountShadowTypeManager(Class constructAccountShadowType) {

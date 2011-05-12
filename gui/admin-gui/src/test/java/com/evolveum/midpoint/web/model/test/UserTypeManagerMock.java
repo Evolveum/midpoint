@@ -74,7 +74,9 @@ public class UserTypeManagerMock implements UserManager {
         try {
             lookupUser = (UserDto) constructUserType.newInstance();
         } catch (InstantiationException ex) {
+        	throw new RuntimeException(ex);
         } catch (IllegalAccessException ex) {
+        	throw new RuntimeException(ex);
         }
         for (UserDto user : userTypeList.values()) {
             if (oid.equals(user.getOid())) {

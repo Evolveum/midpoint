@@ -45,7 +45,7 @@ public class LoginController implements Serializable {
 
 	private static final long serialVersionUID = 4748884787908138803L;
 	@Autowired(required=true)
-	private AuthenticationManager authenticationManager;
+	private transient AuthenticationManager authenticationManager;
 	private String userName;
 	private String password;
 

@@ -59,7 +59,7 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 	static final String ATTR_INDEX = "index";
 	private static final int GRID_COLUMNS_COUNT = 5;
 	// children
-	private HtmlPanelGrid grid;
+	private transient HtmlPanelGrid grid;
 
 	public AutoForm() {
 		printMessage("constructor");

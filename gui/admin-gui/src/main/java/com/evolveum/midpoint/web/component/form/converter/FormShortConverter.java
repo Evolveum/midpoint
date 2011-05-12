@@ -47,6 +47,6 @@ public class FormShortConverter extends FormIntegerConverter {
             return null;
         }
 
-        return new Short(number.shortValue());
+        return Short.valueOf(number.shortValue());
     }
 }

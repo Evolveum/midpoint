@@ -22,14 +22,16 @@
 
 package com.evolveum.midpoint.web.model;
 
+import java.io.Serializable;
+
 /**
  *
  * @author Katuska
  */
-public class TaskStatusDto {
-
+public class TaskStatusDto implements Serializable {
     
-    private String finishTime;
+	private static final long serialVersionUID = -5358337966691482206L;
+	private String finishTime;
     private String lastStatus;
     private DiagnosticMessageDto lastError;
     private String name;

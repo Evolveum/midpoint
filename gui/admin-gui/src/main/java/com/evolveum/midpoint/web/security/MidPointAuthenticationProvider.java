@@ -122,7 +122,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 		Credentials credentials = user.getCredentials();
 		if (credentials.getFailedLogins() >= maxFailedLogins) {
-			long lockedTill = credentials.getLastFailedLoginAttempt() + (loginTimeout * 60000);
+			long lockedTill = credentials.getLastFailedLoginAttempt() + (60000L * loginTimeout );
 			if (lockedTill > System.currentTimeMillis()) {
 				long time = (lockedTill - System.currentTimeMillis()) / 60000;
 				throw new BadCredentialsException("User is locked, please wait " + time + " minute(s)");

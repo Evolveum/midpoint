@@ -61,7 +61,8 @@ import org.w3c.dom.Element;
 public class UserTypeManager implements UserManager, Serializable {
 
 	private static final long serialVersionUID = -3457278299468312767L;
-	private static final Trace TRACE = TraceManager.getTrace(UserTypeManager.class);
+	private static final Trace TRACE = TraceManager
+			.getTrace(UserTypeManager.class);
 	private Class constructUserType;
 
 	@Autowired(required = true)
@@ -95,46 +96,56 @@ public class UserTypeManager implements UserManager, Serializable {
 
 		try { // Call Web Service Operation
 			ObjectContainerType userContainer = new ObjectContainerType();
-			userContainer.setObject((UserType) newObject.getStage().getObject());
+			userContainer
+					.setObject((UserType) newObject.getStage().getObject());
 			java.lang.String result = model.addObject(userContainer);
 			return result;
 		} catch (FaultMessage fault) {
-			throw new WebModelException(fault.getFaultInfo().getMessage(), "Web Service Error");
+			throw new WebModelException(fault.getFaultInfo().getMessage(),
+					"Web Service Error");
 		}
 
 	}
 
 	@Override
-	public Set<PropertyChange> submit(UserDto changedObject) throws WebModelException {
+	public Set<PropertyChange> submit(UserDto changedObject)
+			throws WebModelException {
 		Validate.notNull(changedObject);
 
-		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
+		UserDto oldUser = get(changedObject.getOid(),
+				Utils.getResolveResourceList());
 
 		try { // Call Web Service Operation
-			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
-					changedObject.getXmlObject());
-			if (changes != null && changes.getOid() != null && changes.getPropertyModification().size() > 0) {
+			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(
+					oldUser.getXmlObject(), changedObject.getXmlObject());
+			if (changes != null && changes.getOid() != null
+					&& changes.getPropertyModification().size() > 0) {
 				model.modifyObject(changes);
 			}
 
-			// TODO: finish this
-			Set<PropertyChange> set = new HashSet<PropertyChange>();
-			List<PropertyModificationType> modifications = changes.getPropertyModification();
-			for (PropertyModificationType modification : modifications) {
-				Set<Object> values = new HashSet<Object>();
-				if (modification.getValue() != null) {
-					values.addAll(modification.getValue().getAny());
+			Set<PropertyChange> set = null;
+			if (null != changes) {
+				// TODO: finish this
+				set = new HashSet<PropertyChange>();
+				List<PropertyModificationType> modifications = changes
+						.getPropertyModification();
+				for (PropertyModificationType modification : modifications) {
+					Set<Object> values = new HashSet<Object>();
+					if (modification.getValue() != null) {
+						values.addAll(modification.getValue().getAny());
+					}
+					set.add(new PropertyChange(createQName(modification
+							.getPath()), getChangeType(modification
+							.getModificationType()), values));
 				}
-				set.add(new PropertyChange(createQName(modification.getPath()), getChangeType(modification
-						.getModificationType()), values));
-			}
-
+			} 
 			return set;
 		} catch (FaultMessage fault) {
 			throw new WebModelException(fault.getFaultInfo().getMessage(),
 					"[Web Service Error] Submit user failed.");
 		} catch (DiffException ex) {
-			throw new WebModelException(ex.getMessage(), "[Diff Error] Submit user failed.");
+			throw new WebModelException(ex.getMessage(),
+					"[Diff Error] Submit user failed.");
 		}
 	}
 
@@ -146,24 +157,27 @@ public class UserTypeManager implements UserManager, Serializable {
 		return new QName(namespace, element.getLocalName(), element.getPrefix());
 	}
 
-	private PropertyChange.ChangeType getChangeType(PropertyModificationTypeType type) {
+	private PropertyChange.ChangeType getChangeType(
+			PropertyModificationTypeType type) {
 		if (type == null) {
 			return null;
 		}
 		switch (type) {
-			case add:
-				return PropertyChange.ChangeType.ADD;
-			case delete:
-				return PropertyChange.ChangeType.DELETE;
-			case replace:
-				return PropertyChange.ChangeType.REPLACE;
-			default:
-				throw new IllegalArgumentException("Unknown change type '" + type + "'.");
+		case add:
+			return PropertyChange.ChangeType.ADD;
+		case delete:
+			return PropertyChange.ChangeType.DELETE;
+		case replace:
+			return PropertyChange.ChangeType.REPLACE;
+		default:
+			throw new IllegalArgumentException("Unknown change type '" + type
+					+ "'.");
 		}
 	}
 
 	@Override
-	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
+	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid,
+			List<String> properties) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -172,7 +186,8 @@ public class UserTypeManager implements UserManager, Serializable {
 		try { // Call Web Service Operation
 				// TODO: more reasonable handling of paging info
 			PagingType paging = new PagingType();
-			ObjectListType result = model.listObjects(Utils.getObjectType("UserType"), paging);
+			ObjectListType result = model.listObjects(
+					Utils.getObjectType("UserType"), paging);
 
 			List<ObjectType> users = result.getObject();
 			List<UserDto> guiUsers = new ArrayList<UserDto>();
@@ -200,7 +215,8 @@ public class UserTypeManager implements UserManager, Serializable {
 	}
 
 	@Override
-	public UserDto get(String oid, PropertyReferenceListType resolve) throws WebModelException {
+	public UserDto get(String oid, PropertyReferenceListType resolve)
+			throws WebModelException {
 		TRACE.info("oid = {}", new Object[] { oid });
 		Validate.notNull(oid);
 
@@ -216,15 +232,19 @@ public class UserTypeManager implements UserManager, Serializable {
 		} catch (FaultMessage ex) {
 			TRACE.error("User lookup for oid = {}", oid);
 			TRACE.error("Exception was: ", ex);
-			throw new WebModelException(ex.getFaultInfo().getMessage(), "Failed to get user with oid " + oid,
-					ex);
+			throw new WebModelException(ex.getFaultInfo().getMessage(),
+					"Failed to get user with oid " + oid, ex);
 		} catch (IllegalAccessException ex) {
-			TRACE.error("Class or its nullary constructor is not accessible: {}", ex);
-			throw new WebModelException("Class or its nullary constructor is not accessible",
+			TRACE.error(
+					"Class or its nullary constructor is not accessible: {}",
+					ex);
+			throw new WebModelException(
+					"Class or its nullary constructor is not accessible",
 					"Internal Error", ex);
 		} catch (InstantiationException ex) {
 			TRACE.error("Instantiation failed: {}", ex);
-			throw new WebModelException("Instantiation failed", "Internal Error", ex);
+			throw new WebModelException("Instantiation failed",
+					"Internal Error", ex);
 		} catch (RuntimeException ex) {
 			// We want to catch also runtime exceptions here. These are severe
 			// internal errors (bugs) or system errors (out of memory). But
@@ -237,22 +257,25 @@ public class UserTypeManager implements UserManager, Serializable {
 	}
 
 	@Override
-	public AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException {
+	public AccountShadowDto addAccount(UserDto userDto, String resourceOid)
+			throws WebModelException {
 		AccountShadowDto accountShadowDto = new AccountShadowDto();
 		AccountShadowType accountShadowType = new AccountShadowType();
 		accountShadowType.setAttributes(new Attributes());
 		// TODO: workaround, till we switch to staging
 		// ResourceTypeManager rtm = new
 		// ResourceTypeManager(GuiResourceDto.class);
-		ResourceTypeManager rtm = (ResourceTypeManager) objectTypeCatalog.getObjectManager(ResourceDto.class,
-				GuiResourceDto.class);
+		ResourceTypeManager rtm = (ResourceTypeManager) objectTypeCatalog
+				.getObjectManager(ResourceDto.class, GuiResourceDto.class);
 		ResourceDto resourceDto;
 		try {
 			resourceDto = rtm.get(resourceOid, new PropertyReferenceListType());
 		} catch (Exception ex) {
-			throw new WebModelException(ex.getMessage(), "User - add account failed.");
+			throw new WebModelException(ex.getMessage(),
+					"User - add account failed.");
 		}
-		accountShadowType.setResource((ResourceType) resourceDto.getXmlObject());
+		accountShadowType
+				.setResource((ResourceType) resourceDto.getXmlObject());
 
 		accountShadowDto.setXmlObject(accountShadowType);
 		// TODO: account is set to user not here, but in method where we are
@@ -269,17 +292,20 @@ public class UserTypeManager implements UserManager, Serializable {
 	}
 
 	@Override
-	public Collection<UserDto> list(PagingDto pagingDto) throws WebModelException {
+	public Collection<UserDto> list(PagingDto pagingDto)
+			throws WebModelException {
 		try { // Call Web Service Operation
 				// TODO: more reasonable handling of paging info
 			PagingType paging = new PagingType();
 
-			PropertyReferenceType propertyReferenceType = Utils.fillPropertyReference(pagingDto.getOrderBy());
+			PropertyReferenceType propertyReferenceType = Utils
+					.fillPropertyReference(pagingDto.getOrderBy());
 			paging.setOrderBy(propertyReferenceType);
 			paging.setOffset(BigInteger.valueOf(pagingDto.getOffset()));
 			paging.setMaxSize(BigInteger.valueOf(pagingDto.getMaxSize()));
 			paging.setOrderDirection(paging.getOrderDirection());
-			ObjectListType result = model.listObjects(Utils.getObjectType("UserType"), paging);
+			ObjectListType result = model.listObjects(
+					Utils.getObjectType("UserType"), paging);
 
 			List<ObjectType> users = result.getObject();
 			List<UserDto> guiUsers = new ArrayList<UserDto>();
@@ -294,7 +320,8 @@ public class UserTypeManager implements UserManager, Serializable {
 			return guiUsers;
 		} catch (FaultMessage ex) {
 
-			throw new WebModelException(ex.getMessage(), "[Web Service Error] list user failed");
+			throw new WebModelException(ex.getMessage(),
+					"[Web Service Error] list user failed");
 		} catch (InstantiationException ex) {
 
 			throw new WebModelException(ex.getMessage(), "Instatiation failed.");

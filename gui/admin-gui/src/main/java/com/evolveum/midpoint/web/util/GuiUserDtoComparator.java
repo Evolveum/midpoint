@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.web.util;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 import org.apache.commons.lang.StringUtils;
@@ -32,8 +33,10 @@ import com.evolveum.midpoint.web.dto.GuiUserDto;
  * 
  * @author lazyman
  */
-public class GuiUserDtoComparator implements Comparator<GuiUserDto> {
+public class GuiUserDtoComparator implements Comparator<GuiUserDto>, Serializable {
 
+	private static final long serialVersionUID = 3362224931050518444L;
+	
 	private boolean ascending;
 	private String attribute;
 
