@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+    elementFormDefault="qualified">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            This is supposed to be "standard" resource schema. Good resource
+            connectors/adapter/whatever will (hopefully) follow it and define
+            sub-types based on abstract supertypes in this schema. Some examples
+            of this are provided at the end of the document.
+            
+            This schema is considered dynamic. It means that the concrete schema
+            of a specific resource will be only available in run-time. As this
+            schema will not be available in build-time, JAX-B and similar tools
+            cannot be used on it. Therefore the components that need to
+            understand it must parse it in run-time and dynamically interpret
+            it.
+
+            The schema is using custom annotations to express facets of the
+            resource schema that XSD does not support, such as readability/
+            writability of attribute, reference target types, etc.
+
+            Recommended namespace prefix: r
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:simpleType name="flagList">
+        <xsd:annotation>
+            <xsd:documentation>
+                Simple space separated value list to hold some flag values.
+                This does not have any special meaning or restriction
+                by default.
+
+                This element is supposed to be used as ANNOTATION in
+                resource schema.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:list itemType="xsd:string"/>
+    </xsd:simpleType>
+
+    <xsd:complexType name="AttributeReferenceType">
+        <xsd:attribute name="ref" type="xsd:QName">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Refers to resource attribute name. The refered resource
+                    attribute should be a property (see Identity Schema).
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:complexType name="ClassifiedAttributeType">
+        <xsd:complexContent>
+            <xsd:extension xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" base="tns:AttributeReferenceType">
+                <xsd:all>
+                    <xsd:element name="encryption">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                True: it uses One-Way algorithm
+                                False: Default
+                            </xsd:documentation>
+                        </xsd:annotation>
+                        <xsd:simpleType>
+                            <xsd:restriction base="xsd:string">
+                                <xsd:enumeration value="HASH">
+                                    <xsd:annotation>
+                                        <xsd:documentation>One-Way </xsd:documentation>
+                                    </xsd:annotation>
+                                </xsd:enumeration>
+                                <xsd:enumeration value="NONE">
+                                    <xsd:annotation>
+                                        <xsd:documentation>No Encryption</xsd:documentation>
+                                    </xsd:annotation>
+                                </xsd:enumeration>
+                                <xsd:enumeration value="SYMMETRIC">
+                                    <xsd:annotation>
+                                        <xsd:documentation>Symmetric Encryption</xsd:documentation>
+                                    </xsd:annotation>
+                                </xsd:enumeration>
+                            </xsd:restriction>
+                        </xsd:simpleType>
+                    </xsd:element>
+                    <xsd:element name="classificationLevel" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Top Secret
+                                The highest level of classification of material
+                                on a business level. Such material would cause
+                                "exceptionally grave damage" to business if
+                                made publicly available.
+
+                                Secret
+                                Such material would cause "grave damage" to
+                                business if it were publicly available.
+
+                                Confidential
+                                Such material would cause "damage" or be
+                                "prejudicial" to business if publicly available.
+
+                                Restricted
+                                Such material would cause "undesirable effects"
+                                if publicly available. Some countries do not
+                                have such a classification.
+
+                                Unclassified
+                                Technically not a classification level, but is
+                                used for government documents that do not
+                                have a classification listed above.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:all>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="nativeAttributeName" type="xsd:string"/>
+
+    <xsd:complexType name="ObjectClassReferenceType">
+        <xsd:attribute name="ref" type="xsd:QName">
+            <xsd:annotation>
+                <xsd:documentation>                    
+                    Refers to resource attribute name. The refered resource
+                    attribute should be a property (see Identity Schema).
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:element name="identifier" type="tns:AttributeReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                        Specifies which resource attribute (property) is
+                        identifier of a specific resource object type.
+                        If there is no secondaryIdentifier then this
+                        attribute (property) will be used when object is
+                        created.
+
+                        This element is supposed to be used as ANNOTATION in
+                        resource schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="secondaryIdentifier" type="tns:AttributeReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                        Specifies which resource attribute (property) is
+                        secondaryIdentifier of a specific resource object
+                        type when the identifier is null. This required when
+                        the identifier is generated after creation.
+
+                        This element is supposed to be used as ANNOTATION in
+                        resource schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="compositeIdentifier" type="tns:AttributeReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                        Specifies which resource attributes (properties) can
+                        identify the specific resource object. identifier or
+                        compositeIdentifier must be specified but the
+                        identifier always overrides the compositeIdentifier.
+
+                        This element is supposed to be used as ANNOTATION in
+                        resource schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="displayName" type="tns:AttributeReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                        Specifies which resource attribute (property) to use as
+                        a title for a defined resource object type. It must be
+                        of type xsd:string.
+                        If not present defaults to identifier.
+
+                        This element is supposed to be used as ANNOTATION in
+                        resource schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="descriptionAttribute" type="tns:AttributeReferenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                        Specifies which resource attribute (property) to use as
+                        a description for a defined resource object type.
+                        It must be of type xsd:string.
+                        If not present defaults to name
+
+                        This element is supposed to be used as ANNOTATION in
+                        resource schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="classifiedAttribute" type="tns:ClassifiedAttributeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                        Specifies which resource attribute (property) must be
+                        en
+
+                        This element is supposed to be used as ANNOTATION in
+                        resource schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="attributeFlag" type="tns:flagList">
+        <xsd:annotation>
+            <xsd:documentation>
+                        Specifies which resource attribute (property) to use as
+                        a description for a defined resource object type.
+                        It must be of type xsd:string.
+                        If not present defaults to name
+
+                        This element is supposed to be used as ANNOTATION in
+                        resource schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="ObjectClassAttributeType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AttributeReferenceType">
+                <xsd:all>
+                    <xsd:element name="discriminatorFormula" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Calculates the value of the objectClass attribute.
+                                example: inetOrgPerson AND organizationalPerson
+                                AND person
+
+                                This element is supposed to be used as ANNOTATION in
+                                resource schema.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:all>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="objectClassAttribute" type="tns:ObjectClassAttributeType"></xsd:element>
+
+    <xsd:complexType name="OperationType">
+        <xsd:sequence>
+            <xsd:element name="readAttribute" type="tns:AttributeReferenceType" minOccurs="0"></xsd:element>
+            <xsd:element name="writeAttribute" type="tns:AttributeReferenceType" minOccurs="0"></xsd:element>
+            <xsd:element name="valueFormula" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Formula to calculate the value of the writeAttribute
+                        when this action is executed. Usefull at
+                        Activation/Deactivation or Enable/Disable
+
+                        This element is supposed to be used as ANNOTATION in
+                        resource schema.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="action" type="xsd:string" use="required"/>
+    </xsd:complexType>
+
+    <xsd:element name="operation" type="tns:OperationType"></xsd:element>
+
+    <xsd:element name="container" type="xsd:boolean"></xsd:element>
+
+    <xsd:element name="resourceObjectReference">
+        <xsd:annotation>
+            <xsd:documentation>
+                        Contains specification (QName) of a XSD type that is the
+                        type of reference target objects.
+
+
+                        It is used as an annnotation for attribute types that
+                        point to resource objects, such as group members lists,
+                        role lists, etc. The clients can use this annotation to
+                        detect that the attribute points to a different object
+                        and follow the reference or display it appropriatelly.
+
+                        This element is supposed to be used as ANNOTATION in
+                        resource schema.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="targetObjectClass" type="tns:ObjectClassReferenceType"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="nativeObjectClass" type="xsd:string"/>
+
+    <xsd:complexType name="AccountTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+               TODO
+
+               XSD ANNOTATION
+
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:attribute name="default" type="xsd:boolean" default="false">
+            <xsd:annotation>
+                <xsd:documentation>
+                                                    Specifies whether this
+                                                    account type is the default
+                                                    account type for the resource.
+                                                    Only one account type can be default.
+                                                    Setting this flag for more than one
+                                                    type is an error.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:element name="accountType" type="tns:AccountTypeType"/>
+
+    <xsd:complexType name="ResourceObjectClass" abstract="true">
+        <xsd:annotation>
+            <xsd:documentation>
+                Common supertype for all resource objects. This may not be
+                strictly necessary, but may come useful and it is not any
+                extra weight to the system.
+
+                TODO: More details
+
+                Any non-abstract subtype of this type should have following
+                XSD annotations:
+                    identifier - mandatory
+                    displayName - optional
+
+                Question: How to define shchema for these annotations?
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:complexType>
+
+<!-- Following definitions are to be considered only examples for now.
+     These will be moved to a seprate namespace later, cleaned up and ligned
+     with existing common terminology and/or connectors. -->
+
+    <xsd:element name="objects">
+        <xsd:annotation>
+            <xsd:documentation>
+                This element is just for testing and examples. Will be removed.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element name="object" type="tns:ResourceObjectClass" minOccurs="0" maxOccurs="unbounded"/>
+            </xsd:sequence>
+        </xsd:complexType>
+    </xsd:element>
+
+</xsd:schema>
+
+
+
+

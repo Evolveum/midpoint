@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+
+<com:object oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xsi:type="com:ResourceType" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:com="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+    <com:name>Localhost OpenDJ</com:name>
+    <com:type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</com:type>
+    <com:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</com:namespace>
+                    <!--com:namespace>http://midpoint.evolveum.com/schema/resources/instances/ldap/localhostOpenDS</com:namespace-->
+    <com:resourceAccessConfigurationRef type="com:ResourceAccessConfigurationType" oid="acf6bd6d-d3ee-4756-bf94-22c2f5168f63"/>
+    <com:schema>
+        <xsd:schema xmlns:xns0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xns1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+            <xsd:complexType name="__ACCOUNT__">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <identifier ref="xns1:uid" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <secondaryIdentifier ref="xns1:name" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <compositeIdentifier ref="xns0:sn" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <displayName ref="xns0:description" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <descriptionAttribute ref="xns0:description" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <nativeObjectClass ref="__ACCOUNT__" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <accountType default="true" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+                <xsd:complexContent>
+                    <xsd:extension xmlns:null="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" base="null:ResourceObjectClass">
+                        <xsd:sequence>
+                            <xsd:element minOccurs="0" name="description" type="xsd:string"/>
+                            <xsd:element name="sn" type="xsd:string">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <attributeFlag xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">NOT_UPDATEABLE</attributeFlag>
+                                        <nativeAttributeName xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">sn</nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element ref="xns1:__PASSWORD__">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <attributeFlag xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">PASSWORD</attributeFlag>
+                                        <classifiedAttribute xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">
+                                            <encryption>HASH</encryption>
+                                            <classificationLevel>password</classificationLevel>
+                                        </classifiedAttribute>
+                                        <nativeAttributeName xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__PASSWORD__</nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="groups" type="xsd:string"/>
+                            <xsd:element ref="xns1:__UID__">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <attributeFlag xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">NOT_UPDATEABLE</attributeFlag>
+                                        <nativeAttributeName xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__UID__</nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element minOccurs="0" name="custom" type="xsd:string">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <attributeFlag xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">IGNORE_ATTRIBUTE</attributeFlag>
+                                        <help xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">This attribute part of the SchemaHandling</help>
+                                        <nativeAttributeName xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">custom</nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element ref="xns1:__NAME__"/>
+                            <xsd:element minOccurs="0" name="fullName" type="xsd:string"/>
+                            <xsd:element minOccurs="0" name="givenName" type="xsd:string"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+            <xsd:complexType name="__GROUP__">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <identifier ref="xns1:uid" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <secondaryIdentifier ref="xns1:name" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <displayName ref="xns0:description" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <descriptionAttribute ref="xns0:description" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <nativeObjectClass ref="__GROUP__" xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <container xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+                <xsd:complexContent>
+                    <xsd:extension xmlns:null="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" base="null:ResourceObjectClass">
+                        <xsd:sequence>
+                            <xsd:element minOccurs="0" name="description" type="xsd:string"/>
+                            <xsd:element ref="xns1:__UID__">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <attributeFlag xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">NOT_UPDATEABLE</attributeFlag>
+                                        <nativeAttributeName xmlns="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__UID__</nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element ref="xns1:__NAME__"/>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+        </xsd:schema>
+    </com:schema>
+    <com:schemaHandling>
+        <com:accountType objectClass="ns99:AccountObjectClass" default="true">
+            <com:name>Default Account</com:name>
+        </com:accountType>
+    </com:schemaHandling>
+    <configuration xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+        <icci:ConnectorConfiguration xmlns:icci="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd">
+            <icci:ConnectorRef connectorName="org.identityconnectors.ldap.LdapConnector" bundleVersion="1.0.5531" bundleName="org.identityconnectors.ldap">
+                <icci:ConnectorHostRef>/configuration/connectorHost[@oid='1234']/configuration</icci:ConnectorHostRef>
+            </icci:ConnectorRef>
+            <icci:BundleProperties>
+                <iccldap:port xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">1389</iccldap:port>
+                <iccldap:host xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">localhost</iccldap:host>
+                <iccldap:baseContexts xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">dc=example,dc=com</iccldap:baseContexts>
+                <iccldap:principal xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">cn=directory manager</iccldap:principal>
+                <iccldap:credentials xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">qwe123</iccldap:credentials>
+            </icci:BundleProperties>
+            <icci:PoolConfigOption maxWait="0" maxObjects="12" maxIdle="6000" minIdle="98745" minEvictTimeMillis="0"/>
+            <icci:OperationTimeouts>
+                <icci:OperationTimeout timeout="50000" name="create"/>
+                <icci:OperationTimeout timeout="50000" name="update"/>
+                <icci:OperationTimeout timeout="50000" name="delete"/>
+                <icci:OperationTimeout timeout="50000" name="test"/>
+                <icci:OperationTimeout timeout="50000" name="scriptOnConnector"/>
+                <icci:OperationTimeout timeout="50000" name="scriptOnResource"/>
+                <icci:OperationTimeout timeout="50000" name="get"/>
+                <icci:OperationTimeout timeout="50000" name="authenticate"/>
+                <icci:OperationTimeout timeout="50000" name="search"/>
+                <icci:OperationTimeout timeout="50000" name="validate"/>
+                <icci:OperationTimeout timeout="50000" name="sync"/>
+                <icci:OperationTimeout timeout="50000" name="schema"/>
+            </icci:OperationTimeouts>
+        </icci:ConnectorConfiguration>
+    </configuration>
+</com:object>

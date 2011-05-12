@@ -1,0 +1,277 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+<dataset>
+    <table name="Objects">
+        <column>uuid</column>
+        <column>version</column>
+        <column>repomod</column>
+        <column>dtype</column>
+        <row>
+            <value>aae7be60-df56-11df-8608-0002a5d5c51b</value>
+            <value>0</value>
+            <value>2010-08-25 09:38:20.0</value>
+            <value>Resource</value>
+        </row>
+        <row>
+            <value>97fa8fd2-0462-42c9-9ca0-e2d317c3d93f </value>
+            <value>0</value>
+            <value>2010-08-25 09:38:20.0</value>
+            <value>ResourceState</value>
+        </row>
+
+    </table>
+    <table name="Resources">
+        <column>uuid</column>
+        <column>name</column>
+        <column>namespace</column>
+        <column>type</column>
+        <row>
+            <value>aae7be60-df56-11df-8608-0002a5d5c51b</value>
+            <value>Localhost HSQLDB</value>
+            <value>http://midpoint.evolveum.com/xml/ns/public/resource/instances/aae7be60-df56-11df-8608-0002a5d5c51b</value>
+            <value>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</value>
+        </row>
+
+    </table>
+
+    <table name="ResourcesStates">
+        <column>uuid</column>
+        <column>name</column>
+        <column>state</column>
+        <column>resource_uuid</column>
+        <row>
+            <value>97fa8fd2-0462-42c9-9ca0-e2d317c3d93f </value>
+            <value>Localhost HSQLDB state </value>
+            <value><![CDATA[<c:syncToken xmlns:c="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
+                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:type="xsd:integer" xmlns:xsd="http://www.w3.org/2001/XMLSchema">1</c:syncToken>]]></value>
+            <value>aae7be60-df56-11df-8608-0002a5d5c51b</value>
+        </row>
+
+    </table>
+
+    <table name="Objects_Properties">
+        <column>property_index</column>
+        <column>property_type</column>
+        <column>object_uuid</column>
+        <column>property_uuid</column>
+
+        <row>
+            <value>0</value>
+            <value>S</value>
+            <value>aae7be60-df56-11df-8608-0002a5d5c51b</value>
+            <value>de2186f8-0404-474f-baef-f57217f3a7b4</value>
+        </row>
+
+        <row>
+            <value>1</value>
+            <value>S</value>
+            <value>aae7be60-df56-11df-8608-0002a5d5c51b</value>
+            <value>83406060-7f67-4a86-a1f5-630de3bf29df</value>
+        </row>
+  
+        <row>
+            <value>2</value>
+            <value>S</value>
+            <value>aae7be60-df56-11df-8608-0002a5d5c51b</value>
+            <value>d669be65-103c-4790-a564-ba366bea197c</value>
+        </row>
+
+    </table>
+
+
+
+
+
+    <table name="StringProperties">
+        <column>uuid</column>
+        <column>attrname</column>
+        <column>value</column>
+        <row>
+            <value>de2186f8-0404-474f-baef-f57217f3a7b4</value>
+            <value>schema</value>
+            <value><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"
+targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/aae7be60-df56-11df-8608-0002a5d5c51b"
+ xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+xmlns:xns0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/aae7be60-df56-11df-8608-0002a5d5c51b"
+xmlns:xns1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+            <xsd:complexType name="Account">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <r:identifier xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" ref="xns1:__UID__"/>
+                        <r:secondaryIdentifier xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" ref="xns1:__NAME__"/>
+                        <r:compositeIdentifier xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" ref="xns0:sn"/>
+                        <r:displayName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" ref="xns0:description"/>
+                        <r:descriptionAttribute xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" ref="xns0:description"/>
+                        <r:nativeObjectClass xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__ACCOUNT__</r:nativeObjectClass>
+                        <r:accountType default="true" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+                <xsd:complexContent>
+                    <xsd:extension base="r:ResourceObjectClass" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">
+                        <xsd:sequence>
+                            <xsd:element ref="xns1:__NAME__">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__NAME__</r:nativeAttributeName>
+                                        <r:attributeDisplayName>Some custom name</r:attributeDisplayName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element minOccurs="0" name="ATTR1" type="xsd:string">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <r:help xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">DESCRIPTION_NAME_HELP_KEY</r:help>
+                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">ATTR1</r:nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element ref="xns1:__PASSWORD__">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <r:attributeFlag xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">PASSWORD</r:attributeFlag>
+                                        <r:classifiedAttribute xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">
+                                            <r:encryption>HASH</r:encryption>
+                                            <r:classificationLevel>password</r:classificationLevel>
+                                        </r:classifiedAttribute>
+                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__PASSWORD__</r:nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element name="sn" type="xsd:string">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">sn</r:nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element name="cn" type="xsd:string">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">cn</r:nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="groups" type="xsd:string">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">groups</r:nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element minOccurs="0" name="custom" type="xsd:string">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <r:attributeFlag xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">IGNORE_ATTRIBUTE</r:attributeFlag>
+                                        <r:help xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">This attribute part of the SchemaHandling</r:help>
+                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">custom</r:nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element ref="xns1:__UID__">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <r:attributeFlag xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">NOT_UPDATEABLE</r:attributeFlag>
+                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__UID__</r:nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element minOccurs="0" name="givenName" type="xsd:string">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">givenName</r:nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                            <xsd:element minOccurs="0" name="fullName" type="xsd:string">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <r:help xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">DISPLAY_NAME_HELP_KEY</r:help>
+                                        <r:nativeAttributeName xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">fullName</r:nativeAttributeName>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+        </xsd:schema>]]>
+            </value>
+
+        </row>
+        <row>
+            <value>83406060-7f67-4a86-a1f5-630de3bf29df</value>
+            <value>schemaHandling</value>
+            <value><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+            <c:schemaHandling xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" />
+            ]]>
+            </value>
+
+        </row>
+        <row>
+            <value>d669be65-103c-4790-a564-ba366bea197c</value>
+            <value>configuration</value>
+            <value><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+    <c:configuration xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+        <ns2:ConnectorConfiguration xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd">
+            <ns2:ConnectorRef bundleName="org.identityconnectors.databasetable" bundleVersion="1.1.4958" connectorName="org.identityconnectors.databasetable.DatabaseTableConnector">
+                <ns2:ConnectorHostRef>/configuration/connectorHost[@oid='1234']/configuration</ns2:ConnectorHostRef>
+            </ns2:ConnectorRef>
+            <ns2:BundleProperties>
+                <iccldap:jdbcDriver xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector/1.1.4958">org.apache.derby.jdbc.EmbeddedDriver</iccldap:jdbcDriver>
+                <iccldap:jdbcUrlTemplate xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector/1.1.4958">jdbc:derby:target/testdb</iccldap:jdbcUrlTemplate>
+                <iccldap:table xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector/1.1.4958">account</iccldap:table>
+                <iccldap:keyColumn xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector/1.1.4958">id</iccldap:keyColumn>
+                <iccldap:passwordColumn xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector/1.1.4958">password</iccldap:passwordColumn>
+                <iccldap:changeLogColumn xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector/1.1.4958">changelog</iccldap:changeLogColumn>
+            </ns2:BundleProperties>
+            <ns2:PoolConfigOption minEvictTimeMillis="5000" minIdle="5" maxIdle="30" maxObjects="120" maxWait="5000"/>
+            <ns2:OperationTimeouts>
+                <ns2:OperationTimeout name="create" timeout="50000"/>
+                <ns2:OperationTimeout name="update" timeout="50000"/>
+                <ns2:OperationTimeout name="delete" timeout="50000"/>
+                <ns2:OperationTimeout name="test" timeout="50000"/>
+                <ns2:OperationTimeout name="scriptOnConnector" timeout="50000"/>
+                <ns2:OperationTimeout name="scriptOnResource" timeout="50000"/>
+                <ns2:OperationTimeout name="get" timeout="50000"/>
+                <ns2:OperationTimeout name="authenticate" timeout="50000"/>
+                <ns2:OperationTimeout name="search" timeout="50000"/>
+                <ns2:OperationTimeout name="validate" timeout="50000"/>
+                <ns2:OperationTimeout name="sync" timeout="50000"/>
+                <ns2:OperationTimeout name="schema" timeout="50000"/>
+            </ns2:OperationTimeouts>
+        </ns2:ConnectorConfiguration>
+    </c:configuration> ]]>
+            </value>
+
+        </row>
+
+
+    </table>
+
+
+  
+</dataset>

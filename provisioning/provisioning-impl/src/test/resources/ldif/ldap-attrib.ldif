@@ -1,0 +1,47 @@
+dn: dc=evolveum,dc=com
+objectclass: dcObject
+objectclass: organization
+o: evolveum
+dc: evolveum
+
+dn: ou=People,dc=evolveum,dc=com
+objectclass: top
+objectclass: organizationalUnit
+ou: People
+
+dn: uid=jduke,ou=People,dc=evolveum,dc=com
+objectclass: top
+objectclass: uidObject
+objectclass: person
+objectclass: inetOrgPerson
+uid: jduke
+cn: Java Duke
+sn: Duke
+userPassword: theduke
+mail: theduke@somecastle.man
+employeeType:  Active
+employeeNumber: 007
+
+dn: uid=123456,ou=People,dc=evolveum,dc=com
+objectclass: top
+objectclass: uidObject
+objectclass: person
+objectclass: inetOrgPerson
+uid: 123456
+cn: John Smith
+sn: Duke
+userPassword: theduke
+mail: theduke@somecastle.man
+employeeType:  Active
+employeeNumber: 007
+
+dn: uid=jbond,ou=People,dc=evolveum,dc=com
+objectClass: person
+objectClass: organizationalPerson
+objectClass: inetOrgPerson
+objectClass: top
+cn: James Bond
+givenName: James
+sn: Bond
+uid: jbond
+userPassword:: PasswOrd

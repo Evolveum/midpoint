@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:rep="http://midpoint.evolveum.com/xml/ns/public/repository/repository-1.wsdl" xmlns:com="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <rep:addObject>
+            <objectContainer>
+                <com:object oid="acf6bd6d-d3ee-4756-bf94-22c2f5168f63" xsi:type="com:ResourceAccessConfigurationType" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                    <com:name>Identity Connector Integration</com:name>
+                    <com:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</com:namespace>
+                    <com:schema>
+                        <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd">
+                            <xsd:annotation>
+                                <xsd:documentation>Identity Connector configuration schema.
+
+            Intended to be used in the &lt;configuration> element in
+            the Resource.
+
+            TODO
+
+            Recommended namespace prefix: icc
+                                </xsd:documentation>
+                            </xsd:annotation>
+                            <xsd:element name="ConnectorConfiguration">
+                                <xsd:annotation>
+                                    <xsd:documentation>Identity Connector Bundle Connector Configuration
+                Required part of ICF Resources
+                                    </xsd:documentation>
+                                </xsd:annotation>
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element ref="tns:ConnectorRef"/>
+                                        <xsd:element ref="tns:BundleProperties"/>
+                                        <xsd:element ref="tns:PoolConfigOption" minOccurs="0"/>
+                                        <xsd:element ref="tns:OperationTimeouts" minOccurs="0"/>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="ConnectorRef">
+                                <xsd:annotation>
+                                    <xsd:documentation>Identity Connector Bundle Connector Reference
+                Required part of ICF Resources
+                                    </xsd:documentation>
+                                </xsd:annotation>
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="ConnectorHostRef" type="xsd:string" minOccurs="0">
+                                            <xsd:annotation>
+                                                <xsd:documentation>XPath expression selecting the property. It may select
+                    multiple properties. But it must not be used to select
+                    XML constructs inside a property, unless such property is
+                    in itself an object.
+
+                    The root of the path is assumed to be the element of the
+                    top-most ObjectType. The path should be absolute,
+                    starting with leading slash ("/"). If the leading slash is
+                    not present, it should be assumed, but warning message
+                    should be logged in such case.
+
+                    Good examples:
+                    /fullName
+                    /extension/foobar
+                    /account/name
+                    /account[@oid='1234']/name
+                    /account/attribute/ldap:cn
+
+                    Bad examples:
+                    /extension/shoppingPreferences/tShirt (tShirt is not property, shoppingPreferences is)
+                    /extension (extension is not property, it is rather container of properties)
+                                                </xsd:documentation>
+                                            </xsd:annotation>
+                                        </xsd:element>
+                                    </xsd:sequence>
+                                    <xsd:attribute name="bundleName" type="xsd:string" use="required"/>
+                                    <xsd:attribute name="bundleVersion" type="xsd:string" use="required"/>
+                                    <xsd:attribute name="connectorName" type="xsd:string" use="required"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="BundleProperties">
+                                <xsd:annotation>
+                                    <xsd:documentation>Resource configuration (hostname, port, ...).
+                                Specific for each resource type.
+                                TODO
+
+                                This element belongs to ResourceType and should
+                                not be used elsewhere.
+                                This is a top-level element to make the implementation
+                                (JAXB marshall/unmarshall) easier.
+                                    </xsd:documentation>
+                                </xsd:annotation>
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="PoolConfigOption">
+                                <xsd:annotation>
+                                    <xsd:documentation>Identity Connector Bundle Connector Reference
+                Required part of ICF Resources
+                                    </xsd:documentation>
+                                </xsd:annotation>
+                                <xsd:complexType>
+                                    <xsd:attribute name="minEvictTimeMillis" type="xsd:long"/>
+                                    <xsd:attribute name="minIdle" type="xsd:int"/>
+                                    <xsd:attribute name="maxIdle" type="xsd:int"/>
+                                    <xsd:attribute name="maxObjects" type="xsd:int"/>
+                                    <xsd:attribute name="maxWait" type="xsd:long"/>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:element name="OperationTimeouts">
+                                <xsd:complexType>
+                                    <xsd:sequence>
+                                        <xsd:element name="OperationTimeout" maxOccurs="unbounded" minOccurs="0">
+                                            <xsd:complexType>
+                                                <xsd:attribute name="name" type="tns:OperationType" use="required"/>
+                                                <xsd:attribute name="timeout" type="xsd:int" use="required"/>
+                                            </xsd:complexType>
+                                        </xsd:element>
+                                    </xsd:sequence>
+                                </xsd:complexType>
+                            </xsd:element>
+                            <xsd:simpleType name="OperationType">
+                                <xsd:restriction base="xsd:string">
+                                    <xsd:enumeration value="create">
+                                        <xsd:annotation>
+                                            <xsd:documentation>CreateApiOp.class</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:enumeration>
+                                    <xsd:enumeration value="update">
+                                        <xsd:annotation>
+                                            <xsd:documentation>UpdateApiOp.class</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:enumeration>
+                                    <xsd:enumeration value="delete">
+                                        <xsd:annotation>
+                                            <xsd:documentation>DeleteApiOp.class</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:enumeration>
+                                    <xsd:enumeration value="test">
+                                        <xsd:annotation>
+                                            <xsd:documentation>TestApiOp.class</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:enumeration>
+                                    <xsd:enumeration value="scriptOnConnector">
+                                        <xsd:annotation>
+                                            <xsd:documentation>ScriptOnConnectorApiOp.class</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:enumeration>
+                                    <xsd:enumeration value="scriptOnResource">
+                                        <xsd:annotation>
+                                            <xsd:documentation>ScriptOnResourceApiOp.class</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:enumeration>
+                                    <xsd:enumeration value="get">
+                                        <xsd:annotation>
+                                            <xsd:documentation>GetApiOp.class</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:enumeration>
+                                    <xsd:enumeration value="authenticate">
+                                        <xsd:annotation>
+                                            <xsd:documentation>AuthenticationApiOp.class</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:enumeration>
+                                    <xsd:enumeration value="search">
+                                        <xsd:annotation>
+                                            <xsd:documentation>SearchApiOp.class</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:enumeration>
+                                    <xsd:enumeration value="validate">
+                                        <xsd:annotation>
+                                            <xsd:documentation>ValidateApiOp.class</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:enumeration>
+                                    <xsd:enumeration value="sync">
+                                        <xsd:annotation>
+                                            <xsd:documentation>SyncApiOp.class</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:enumeration>
+                                    <xsd:enumeration value="schema">
+                                        <xsd:annotation>
+                                            <xsd:documentation>SchemaApiOp.class</xsd:documentation>
+                                        </xsd:annotation>
+                                    </xsd:enumeration>
+                                </xsd:restriction>
+                            </xsd:simpleType>
+                     <!--TODO more like this-->
+                            <xsd:simpleType name="GuardedStringType">
+                                <xsd:annotation>
+                                    <xsd:documentation>TODO</xsd:documentation>
+                                </xsd:annotation>
+                                <xsd:restriction base="xsd:string"></xsd:restriction>
+                            </xsd:simpleType>
+                        </xsd:schema>
+                    </com:schema>
+                    <com:schemaHandling/>
+                    <com:configuration/>
+                </com:object>
+            </objectContainer>
+        </rep:addObject>
+    </soapenv:Body>
+</soapenv:Envelope>
