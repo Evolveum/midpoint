@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted 2011 [name of copyright owner]"
+ * Portions Copyrighted 2011 ForgeRock Inc.
+ * -->
+
+<definitions name="repository"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/repository/repository-1.wsdl"
+    xmlns="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:abs="http://midpoint.evolveum.com/xml/ns/public/repository/repository-1.wsdl"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/repository/repository-1.wsdl"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+    <import namespace="http://midpoint.evolveum.com/xml/ns/public/repository/repository-1.wsdl" location="../../public/repository/repository-1.wsdl"/>
+    <service name="repositoryService">
+        <port name="repositoryPort" binding="abs:repositoryBinding">
+            <!-- http://localhost:${HttpDefaultPort}/repositoryService/RepositoryService
+            <soap:address location="http://localhost:${HttpDefaultPort}/repositoryService/RepositoryService"/>
+            <soap:address location="REPLACE_WITH_ACTUAL_URL"/>
+            <soap:address location="http://localhost:8080/repositoryService/RepositoryService"/-->
+            <soap:address location="http://localhost:${HttpDefaultPort}/repositoryService/repositoryPort"/>
+        </port>
+    </service>
+</definitions>
+
+
+

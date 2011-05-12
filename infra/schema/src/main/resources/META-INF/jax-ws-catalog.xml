@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
+    <system systemId="http://localhost:8080/repositoryService/RepositoryService?wsdl" uri="wsdl/xml/ns/private/repository/repositoryWrapper.wsdl"/>
+    <system systemId="http://localhost:8080/modelService/ModelService?wsdl" uri="wsdl/xml/ns/private/model/modelWrapper.wsdl"/>
+    <system systemId="http://localhost:8080/modelService/PasswordService?wsdl" uri="wsdl/xml/ns/private/model/passwordWrapper.wsdl"/>
+    <system systemId="http://localhost:8080/stagingService/StagingService?wsdl" uri="wsdl/xml/ns/private/model/stagingWrapper.wsdl"/>
+    <system systemId="http://localhost:8080/provisioningService/ProvisioningService?wsdl" uri="wsdl/xml/ns/private/provisioning/provisioningWrapper.wsdl"/>
+    <system systemId="http://localhost:8080/resourceObjectChangeListenerService/resourceObjectChangeListenerPort?wsdl" uri="wsdl/xml/ns/private/provisioning/resourceObjectChangeListenerWrapper.wsdl"/>
+    <system systemId="http://localhost:8080/cycleManagementService/CycleManagementService?wsdl" uri="wsdl/xml/ns/private/model/cycleManagementWrapper.wsdl"/>
+    <!--rewriteSystem systemIdStartString="http://midpoint.evolveum.com/xml/" rewritePrefix="main/resources/xml/"/-->
+    <nextCatalog catalog="catalog.xml"/>
+</catalog>

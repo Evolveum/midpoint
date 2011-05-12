@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted 2011 [name of copyright owner]"
+ * Portions Copyrighted 2011 ForgeRock Inc.
+ * -->
+
+<definitions name="cycleManagement" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"
+    xmlns="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+
+    <documentation>
+
+        Cycle Management Interface.
+
+        Cycles are long-running repeating activities in midPoint. They take care
+        of things such as regular synchronization polling, reconciliation,
+        cleanup, etc.
+
+        They are in fact threads of processes. They are called cycles to avoid
+        confusion with business processes (e.g. BPEL) or OS processes.
+
+    </documentation>
+
+
+    <types>
+        <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl">
+
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" schemaLocation="../common/common-1.xsd"/>
+
+        </xsd:schema>
+    </types>
+
+    <message name="listCyclesRequest">
+        <part name="empty" type="c:EmptyType"/>
+    </message>
+    <message name="listCyclesResponse">
+        <part name="list" type="c:CycleListType"/>
+    </message>
+
+    <message name="startCycleRequest">
+        <part name="name" type="xsd:string"/>
+    </message>
+    <message name="startCycleResponse">
+        <part name="empty" type="c:EmptyType"/>
+    </message>
+
+    <message name="stopCycleRequest">
+        <part name="name" type="xsd:string"/>
+    </message>
+    <message name="stopCycleResponse">
+        <part name="empty" type="c:EmptyType"/>
+    </message>
+
+    <message name="initRequest">
+        <part name="empty" type="c:EmptyType"/>
+    </message>
+    <message name="initResponse">
+        <part name="empty" type="c:EmptyType"/>
+    </message>
+
+    <message name="shutdownRequest">
+        <part name="empty" type="c:EmptyType"/>
+    </message>
+    <message name="shutdownResponse">
+        <part name="empty" type="c:EmptyType"/>
+    </message>
+
+    <message name="FaultMessage">
+        <part name="fault" element="c:fault"/>
+    </message>
+
+    <portType name="cycleManagementPortType">
+
+        <operation name="listCycles">
+            <documentation>
+                List all cycles that are known to the system.
+
+                Faults:
+                  any SystemFaultType
+            </documentation>
+            <input name="listCyclesInput" message="tns:listCyclesRequest"/>
+            <output name="listCyclesOutput" message="tns:listCyclesResponse"/>
+            <fault name="fault" message="tns:FaultMessage">
+                <documentation>
+                    This is all wrong. Specific fault types should be there.
+                    But because of Netbeans/JAXWS bug we need to do this ugliness.
+                    Please see the list of fault types in operation documentation.
+                </documentation>
+            </fault>
+        </operation>
+
+        <operation name="startCycle">
+            <documentation>
+                Start specified cycle.
+
+                Faults:
+                  any SystemFaultType
+            </documentation>
+            <input name="startCycleInput" message="tns:startCycleRequest"/>
+            <output name="startCycleOutput" message="tns:startCycleResponse"/>
+            <fault name="fault" message="tns:FaultMessage">
+                <documentation>
+                    This is all wrong. Specific fault types should be there.
+                    But because of Netbeans/JAXWS bug we need to do this ugliness.
+                    Please see the list of fault types in operation documentation.
+                </documentation>
+            </fault>
+        </operation>
+
+        <operation name="stopCycle">
+            <documentation>
+                Stop specified cycle.
+
+                Faults:
+                  any SystemFaultType
+            </documentation>
+            <input name="stopCycleInput" message="tns:stopCycleRequest"/>
+            <output name="stopCycleOutput" message="tns:stopCycleResponse"/>
+            <fault name="fault" message="tns:FaultMessage">
+                <documentation>
+                    This is all wrong. Specific fault types should be there.
+                    But because of Netbeans/JAXWS bug we need to do this ugliness.
+                    Please see the list of fault types in operation documentation.
+                </documentation>
+            </fault>
+        </operation>
+
+        <operation name="init">
+            <documentation>
+                Initialize the cycle management. Start all cycles that are set
+                to start automatically.
+
+                Faults:
+                  any SystemFaultType
+            </documentation>
+            <input name="initInput" message="tns:initRequest"/>
+            <output name="initOutput" message="tns:initResponse"/>
+            <fault name="fault" message="tns:FaultMessage">
+                <documentation>
+                    This is all wrong. Specific fault types should be there.
+                    But because of Netbeans/JAXWS bug we need to do this ugliness.
+                    Please see the list of fault types in operation documentation.
+                </documentation>
+            </fault>
+        </operation>
+
+
+        <operation name="shutdown">
+            <documentation>
+                Shut down the cycle management. All started cycles should be
+                gratiously stopped.
+
+                Faults:
+                  any SystemFaultType
+            </documentation>
+            <input name="shutdownInput" message="tns:shutdownRequest"/>
+            <output name="shutdownOutput" message="tns:shutdownResponse"/>
+            <fault name="fault" message="tns:FaultMessage">
+                <documentation>
+                    This is all wrong. Specific fault types should be there.
+                    But because of Netbeans/JAXWS bug we need to do this ugliness.
+                    Please see the list of fault types in operation documentation.
+                </documentation>
+            </fault>
+        </operation>
+
+    </portType>
+
+    <binding name="cycleManagementBinding" type="tns:cycleManagementPortType">
+        <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <operation name="listCycles">
+            <soap:operation/>
+            <input name="listCyclesInput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"/>
+            </input>
+            <output name="listCyclesOutput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="startCycle">
+            <soap:operation/>
+            <input name="startCycleInput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"/>
+            </input>
+            <output name="startCycleOutput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="stopCycle">
+            <soap:operation/>
+            <input name="stopCycleInput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"/>
+            </input>
+            <output name="stopCycleOutput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="init">
+            <soap:operation/>
+            <input name="initInput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"/>
+            </input>
+            <output name="initOutput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="shutdown">
+            <soap:operation/>
+            <input name="shutdownInput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"/>
+            </input>
+            <output name="shutdownOutput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+
+    </binding>
+
+</definitions>
+
+

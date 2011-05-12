@@ -1,0 +1,5 @@
+
+                               declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                               declare namespace ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/9d1e4520-0cdc-11e0-81e0-0800200c9a66";
+                               $i:user/i:extension/ri:foobar
+                           

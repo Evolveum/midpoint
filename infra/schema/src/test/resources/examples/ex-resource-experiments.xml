@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+
+
+
+<i:objects  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
+   xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
+   xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
+   xmlns:icc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
+   xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.x"
+   xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
+   xmlns:ldap="http://foo/"
+   xmlns:ux4="http://foo/"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
+   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/resource/resource-schema-1.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/resource/idconnector/resource-schema-1.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/resource/idconnector/configuration-1.xsd'>
+
+    <i:resource oid="c0c010c0-d34d-b33f-f00d-333111111111">
+        <c:name>Localhost OpenDJ</c:name>
+        <i:type>http://midpoint.evolveum.com/xml/ns/resource/1#ICResource</i:type>
+        <i:namespace>http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ</i:namespace>
+        <i:schema>
+            <!-- Resource schema here -->
+        </i:schema>
+        <i:schemaHandling>
+            <!-- Schema handling here -->
+        </i:schemaHandling>
+        <i:configuration>
+            <i:connectorTypeRef oid="c0c010c0-d34d-b33f-f00d-555111111111"/>
+            <i:connectorHostRef oid="c0c010c0-d34d-b33f-f00d-666111111111"/>
+            <i:connectorHostRef oid="c0c010c0-d34d-b33f-f00d-666111111112"/>
+            <i:activationMethod>
+                <i:accountDisable>
+                    <i:attribute ref="dj:ds-pwp-account-disabled">
+                        <i:value>true</i:value>
+                    </i:attribute>
+                </i:accountDisable>
+                <i:accountEnable>
+                    <attribute ref="dj:ds-pwp-account-disabled">
+                        <value xsi:nil="true"/>
+                    </attribute>
+                </i:accountEnable>
+            </i:activationMethod>
+            <iccldap:configuration>
+                    <iccldap:port>1389</iccldap:port>
+                    <iccldap:host>localhost</iccldap:host>
+                    <iccldap:baseContexts>dc=example,dc=com</iccldap:baseContexts>
+                    <iccldap:principal>cn=directory manager</iccldap:principal>
+                    <!-- Cleartext for now. Enrypt later -->
+                    <iccldap:credentials>secret</iccldap:credentials>
+            </iccldap:configuration>
+        </i:configuration>
+    </i:resource>
+
+    <i:connectorType oid="c0c010c0-d34d-b33f-f00d-555111111111">
+        <c:name>ICF LDAP Connector</c:name>
+        <i:schema>
+            <xsd:schema tagetNamespace=".. iccldap: ..">
+                <xsd:element name="configuration" type="ConfigurationType"/>
+                <xsd:complexType name="ConfigurationType">
+                    <xsd:sequence>
+                        <!-- ... -->
+                        <xsd:element name="host" type="xsd:string"/>
+                        <xsd:element name="baseContexts" type="xsd:string" maxOccurs="unbounded"/>
+                        <!-- ... -->
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:schema>
+        </i:schema>
+        <i:configurationElement ref="iccldap:configuration"/>
+        <i:configuration>
+            <icc:bundleName>org.identityconnectors.ldap</icc:bundleName>
+            <icc:bundleVersion>1.0.5531</icc:bundleVersion>
+            <icc:connectorName>org.identityconnectors.ldap.LdapConnector</icc:connectorName>
+        </i:configuration>
+    </i:connectorType>
+
+    <i:connectorHost oid="c0c010c0-d34d-b33f-f00d-666111111111">
+        <c:name>My Cool Connector Host in DMZ, host 1 of the cluster</c:name>
+        <i:host>host1.dmz.whatever.com</i:host>
+        <!-- .... -->
+        <!-- connector-specific things, somehow ... -->
+    </i:connectorHost>
+
+    <i:connectorHost oid="c0c010c0-d34d-b33f-f00d-666111111112">
+        <c:name>My Cool Connector Host in DMZ, host 2 of the cluster</c:name>
+        <i:host>host2.dmz.whatever.com</i:host>
+        <!-- .... -->
+        <!-- connector-specific things, somehow ... -->
+    </i:connectorHost>
+
+</i:objects>

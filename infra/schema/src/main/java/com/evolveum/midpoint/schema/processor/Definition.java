@@ -1,0 +1,182 @@
+/*
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2010 Forgerock
+ */
+
+package com.evolveum.midpoint.schema.processor;
+
+import javax.xml.namespace.QName;
+
+/**
+ * Abstract definition in the schema.
+ * 
+ * This is supposed to be a superclass for all definitions. It defines common
+ * properties for all definitions.
+ * 
+ * The definitions represent data structures of the schema. Therefore instances
+ * of Java objects from this class represent specific <em>definitions</em> from
+ * the schema, not specific properties or objects. E.g the definitions does not
+ * have any value.
+ * 
+ * To transform definition to a real property or object use the explicit
+ * instantiate() methods provided in the definition classes. E.g. the
+ * instantiate() method will create instance of Property using appropriate
+ * PropertyDefinition.
+ * 
+ * The convenience methods in Schema are using this abstract class to find
+ * appropriate definitions easily.
+ * 
+ * @author Radovan Semancik
+ * 
+ */
+public abstract class Definition {
+
+	private QName name;
+	private QName defaultName;
+	private QName typeName;
+	private String displayName;
+	private String help;
+
+	// TODO: annotations
+
+	Definition(QName name, QName defaultName, QName typeName) {
+		if (name == null) {
+			throw new IllegalArgumentException("Name can't be null.");
+		}
+		if (typeName == null) {
+			throw new IllegalArgumentException("Type name can't be null.");
+		}
+		this.name = name;
+		this.defaultName = defaultName;
+		this.typeName = typeName;
+	}
+
+	/**
+	 * Returns name of the defined entity.
+	 * 
+	 * The name is a name of the entity instance if it is fixed by the schema.
+	 * E.g. it may be a name of the property in the container that cannot be
+	 * changed.
+	 * 
+	 * The name corresponds to the XML element name in the XML representation of
+	 * the schema. It does NOT correspond to a XSD type name.
+	 * 
+	 * If name is not set the null value is returned.
+	 * 
+	 * @return the name name of the entity or null.
+	 */
+	public QName getName() {
+		return name;
+	}
+
+	/**
+	 * Returns default name for the defined entity.
+	 * 
+	 * The default name is the name that the entity usually takes, but a name
+	 * that is not fixed by the schema.
+	 * 
+	 * The name corresponds to the XML element name in the XML representation of
+	 * the schema. It does NOT correspond to a XSD type name.
+	 * 
+	 * For example the default name may be the element name that is usually used
+	 * for a specific object (e.g. "user"), while the same object may be
+	 * represented using other names that resolve to the same type.
+	 * 
+	 * In XML representation it corresponds to "defaultElement" XSD annotation.
+	 * 
+	 * @return the defaultName
+	 */
+	public QName getDefaultName() {
+		return defaultName;
+	}
+
+	/**
+	 * Returns the name of the definition type.
+	 * 
+	 * Returns a name of the type for this definition.
+	 * 
+	 * In XML representation that corresponds to the name of the XSD type.
+	 * 
+	 * @return the typeName
+	 */
+	public QName getTypeName() {
+		return typeName;
+	}
+
+	/**
+	 * Returns either name (if specified) or default name.
+	 * 
+	 * Convenience method.
+	 * 
+	 * @return name or default name
+	 */
+	public QName getNameOrDefaultName() {
+		if (name != null) {
+			return name;
+		}
+		return defaultName;
+	}
+
+	/**
+	 * Returns display name.
+	 * 
+	 * Specifies the printable name of the object class or attribute. It must
+	 * contain a printable string. It may also contain a key to catalog file.
+	 * 
+	 * Returns null if no display name is set.
+	 * 
+	 * Corresponds to "displayName" XSD annotation.
+	 * 
+	 * @return display name string or catalog key
+	 */
+	public String getDisplayName() {
+		return displayName;
+	}
+	
+	void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
+
+	/**
+	 * Returns help string.
+	 * 
+	 * Specifies the help text or a key to catalog file for a help text. The
+	 * help text may be displayed in any suitable way by the GUI. It should
+	 * explain the meaning of an attribute or object class.
+	 * 
+	 * Returns null if no help string is set.
+	 * 
+	 * Corresponds to "help" XSD annotation.
+	 * 
+	 * @return help string or catalog key
+	 */
+	public String getHelp() {
+		return help;
+	}
+	
+	void setHelp(String help) {
+		this.help = help;
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + ":" + getName();
+	}
+}
