@@ -336,7 +336,7 @@ public class RepositoryServiceTest {
     @Test
     public void testListObjectDoesNotExist() {
         try {
-            ObjectListType objectListType = repositoryService.listObjects("Abcd", new PagingType());
+            repositoryService.listObjects("Abcd", new PagingType());
         } catch (FaultMessage ex) {
             if (ex.getFaultInfo() instanceof IllegalArgumentFaultType) {
                 return;
@@ -400,7 +400,7 @@ public class RepositoryServiceTest {
     @Test
     public void testListResourceDoesNotExistObjectShadows() {
         try {
-            ResourceObjectShadowListType result = repositoryService.listResourceObjectShadows("00000000-0000-0000-0000-000000000000", Utils.getObjectType("AccountType"));
+            repositoryService.listResourceObjectShadows("00000000-0000-0000-0000-000000000000", Utils.getObjectType("AccountType"));
         } catch (FaultMessage ex) {
             if (ex.getFaultInfo() instanceof ObjectNotFoundFaultType) {
                 return;

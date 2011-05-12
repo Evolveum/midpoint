@@ -94,15 +94,15 @@ public class RepositoryService implements RepositoryPortType {
             objectType.setExtension(extension);
         }
 
-        String propertyName = property.getPropertyName();
-        Element element;
-        if (propertyName.contains(":")) {
-            String namespace = propertyName.substring(0, propertyName.lastIndexOf(":"));
-            String localName = propertyName.substring(propertyName.lastIndexOf(":") + 1);
-            element = DOMUtil.getDocument().createElementNS(namespace, localName);
-        } else {
-            element = DOMUtil.getDocument().createElement(propertyName);
-        }
+//        String propertyName = property.getPropertyName();
+//        Element element;
+//        if (propertyName.contains(":")) {
+//            String namespace = propertyName.substring(0, propertyName.lastIndexOf(":"));
+//            String localName = propertyName.substring(propertyName.lastIndexOf(":") + 1);
+//            element = DOMUtil.getDocument().createElementNS(namespace, localName);
+//        } else {
+//            element = DOMUtil.getDocument().createElement(propertyName);
+//        }
         Document doc = DOMUtil.parseDocument((String) property.getPropertyValue());
         extension.getAny().add((Element) doc.getFirstChild());
         //extension.getAny().add(element);

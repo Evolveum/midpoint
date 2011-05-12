@@ -223,7 +223,7 @@ public class RepositorySearchTest {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
-		ObjectListType objectList = repositoryService.searchObjects(query, new PagingType());
+		repositoryService.searchObjects(query, new PagingType());
 
 	}
 
