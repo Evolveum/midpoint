@@ -107,7 +107,7 @@ public class BaseXDatabaseFactoryTest {
             assertNotNull(out.getObject());
             port.deleteObject(oid);
             try {
-            	out = port.getObject(oid, new PropertyReferenceListType());
+            	port.getObject(oid, new PropertyReferenceListType());
             	assertTrue(false);
             } catch (FaultMessage fault) {
             	// This is expected

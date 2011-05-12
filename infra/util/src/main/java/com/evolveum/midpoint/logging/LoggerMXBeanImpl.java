@@ -248,11 +248,11 @@ public class LoggerMXBeanImpl implements LoggerMXBean {
     }
 
     private void updateAppender(org.apache.log4j.Logger logger) {  	
-        Appender appender = logger.getAppender(APPENDER_NAME);
-        if (appender == null) {
+//        Appender appender = logger.getAppender(APPENDER_NAME);
+//        if (appender == null) {
 //            appender = new ConsoleAppender(new PatternLayout(getLogPattern()));
 //            appender.setName(APPENDER_NAME);
 //            logger.addAppender(appender);
-        }
+//        }
     }
 }

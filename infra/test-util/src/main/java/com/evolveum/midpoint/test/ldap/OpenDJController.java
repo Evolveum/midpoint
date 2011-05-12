@@ -341,7 +341,7 @@ public class OpenDJController {
         // There is most likely just one anyway.
         // TODO: improve that later
 
-        Attribute attr = attributes.get(0);
+        //Attribute attr = attributes.get(0);
         Set<String> result = new HashSet<String>();
 
 

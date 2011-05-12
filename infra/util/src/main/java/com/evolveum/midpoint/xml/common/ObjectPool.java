@@ -58,15 +58,15 @@ public abstract class ObjectPool<T> {
 		locked.clear();
 		unlocked.clear();
 		for (T pooled : disposeList) {
-			disposeObject(pooled);
+			pooled = null;
 		}
 		
 		disposeList.clear();
 	}
 	
-	protected void disposeObject(T pooled) {
-		pooled = null;
-	}
+//	protected void disposeObject(T pooled) {
+//		pooled = null;
+//	}
 
 	/**
 	 * Creates a new pool member.
