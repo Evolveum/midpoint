@@ -224,7 +224,7 @@ public final class ResourceObject extends PropertyContainer {
 	 */
 	public boolean isAccountType() {
 		ResourceObjectDefinition definition = getDefinition();
-		return definition == null ? null : definition.isAccountType();
+		return (definition != null ? definition.isAccountType() : null);
 	}
 
 	/**
@@ -250,8 +250,8 @@ public final class ResourceObject extends PropertyContainer {
 	 */
 	public boolean isDefaultAccountType() {
 		ResourceObjectDefinition definition = getDefinition();
-		return definition == null ? null : definition
-				.isDefaultAccountType();
+		return (definition != null ?  definition
+				.isDefaultAccountType() : null);
 	}
 
 
