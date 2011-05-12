@@ -109,7 +109,7 @@ public class ProvisioningServiceMysqlTest {
     public void syncronizeWithoutStateObject() throws Exception {
         addDataToDB(new XmlDataSet(new FileReader(new File("src/test/resources/test-dataset_withoutstate.xml"))));
         //GIVEN
-        OperationalResultType opResult = new OperationalResultType();
+        //OperationalResultType opResult = new OperationalResultType();
         ProvisioningService service = new ProvisioningService();
 
         ResourceObjectChangeListenerPortType roclpt = mock(ResourceObjectChangeListenerPortType.class);
@@ -146,7 +146,7 @@ public class ProvisioningServiceMysqlTest {
     public void syncronizeWithThePreviousStateObject() throws Exception {
         addDataToDB(new XmlDataSet(new FileReader(new File("src/test/resources/test-dataset.xml"))));
         //GIVEN
-        OperationalResultType opResult = new OperationalResultType();
+        //OperationalResultType opResult = new OperationalResultType();
         ProvisioningService service = new ProvisioningService();
 
         ResourceObjectChangeListenerPortType roclpt = mock(ResourceObjectChangeListenerPortType.class);

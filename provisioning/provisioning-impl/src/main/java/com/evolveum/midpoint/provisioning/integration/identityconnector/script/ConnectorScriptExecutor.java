@@ -47,8 +47,8 @@ public class ConnectorScriptExecutor {
         String method = "execute";
 
         ScriptContextBuilder builder = script.getScriptContextBuilder();
-        String scriptLanguage = builder.getScriptLanguage();
-        String actionName = script.getActionName();
+        //String scriptLanguage = builder.getScriptLanguage();
+        //String actionName = script.getActionName();
         String execMode = script.getExecMode();
         //log("execute", "Executing " + scriptLanguage + " resource action '" + actionName + "'");
 

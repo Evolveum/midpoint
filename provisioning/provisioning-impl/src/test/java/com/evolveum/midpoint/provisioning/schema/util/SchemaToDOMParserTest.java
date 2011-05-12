@@ -31,6 +31,7 @@ import com.sun.org.apache.xml.internal.serialize.XMLSerializer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
+import java.io.Serializable;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -143,7 +144,7 @@ public class SchemaToDOMParserTest {
         }
     }
 
-    private class OperationComparator implements Comparator<Operation> {
+    private static class OperationComparator implements Comparator<Operation> {
 
         @Override
         public int compare(Operation o1, Operation o2) {
@@ -151,7 +152,7 @@ public class SchemaToDOMParserTest {
         }
     }
 
-    private class AttrDefComparator implements Comparator<ResourceAttributeDefinition> {
+    private static class AttrDefComparator implements Comparator<ResourceAttributeDefinition> {
 
         @Override
         public int compare(ResourceAttributeDefinition a1, ResourceAttributeDefinition a2) {
@@ -159,7 +160,7 @@ public class SchemaToDOMParserTest {
         }
     }
 
-    private class ObjDefComparator implements Comparator<ResourceObjectDefinition> {
+    private static class ObjDefComparator implements Comparator<ResourceObjectDefinition> {
 
         @Override
         public int compare(ResourceObjectDefinition def1, ResourceObjectDefinition def2) {

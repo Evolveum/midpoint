@@ -306,9 +306,10 @@ public class ResourceUtils {
     }
 
     private ResourceAttributeDefinition createResourceAttribute(AttributeInfo info, String resourceNamespace) {
-        ResourceAttributeDefinition attribute = new ResourceAttributeDefinition(new QName(resourceNamespace, info.getName()));
+    	QName attributeQName = new QName(resourceNamespace, info.getName());
+        ResourceAttributeDefinition attribute = new ResourceAttributeDefinition(attributeQName);
 
-        if (ATTRIBUTE_PASSWORD.equals(info.getName())) {
+        if (ATTRIBUTE_PASSWORD.equals(attributeQName)) {
             attribute.setType(new QName(NS_ICF_RESOURCE, "password"));
         } else {
             attribute.setType(translateClassName(info.getType()));

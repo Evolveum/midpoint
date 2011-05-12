@@ -72,8 +72,9 @@ public abstract class ResourceConnector<C> {
             }
         }
         //TODO: Fix the SchemaHandling part
-        if (null != resourceType.getSchemaHandling()) {
-        }
+        //if (null != resourceType.getSchemaHandling()) {
+        	schemaHandling = resourceType.getSchemaHandling();
+       // }
         _resourceSchema = parser.getSchema(resourceSchema, schemaHandling);
         this._resource = resourceType;
     }

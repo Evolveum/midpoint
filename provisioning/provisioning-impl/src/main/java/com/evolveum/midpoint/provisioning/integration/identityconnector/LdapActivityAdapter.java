@@ -40,7 +40,7 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 public class LdapActivityAdapter {
  
     public void preConvertAttributes(ConnectorFacade connector, ResourceObject resourceObject, Set<Attribute> attributes) {
-        QName activationName = new QName(SchemaConstants.NS_C,"activation");
+        //QName activationName = new QName(SchemaConstants.NS_C,"activation");
         //TODO the following part is under development. Currently the tests of provisioning is failed
         //if the implementations is turned on. It should be fixed
 

@@ -127,7 +127,7 @@ public class ResourceObjectShadowCache {
 
         if (shadow==null) {
             // We have to create new object
-            Holder holder = new Holder(new OperationalResultType());
+            //Holder holder = new Holder(new OperationalResultType());
             ObjectContainerType oct = new ObjectContainerType();
             // Account-only for now, more generic later
             shadow = new AccountShadowType();

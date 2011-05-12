@@ -110,7 +110,7 @@ public class ConnectorScriptBuilder {
 
     public static List<ConnectorScript> buildAll(ResourceType connector, ResourceObjectShadowType shadow, String defExecMode, String operation, String timing)
             throws MidPointException {
-        ConnectorScriptBuilder connCtxBuilder = new ConnectorScriptBuilder(connector, defExecMode);
+        //ConnectorScriptBuilder connCtxBuilder = new ConnectorScriptBuilder(connector, defExecMode);
         List connScripts = new ArrayList();
 //        for (ResourceAction resAction: findResourceAction(shadow,operation,timing)) {
 //            connCtxBuilder.setResourceAction(resAction);

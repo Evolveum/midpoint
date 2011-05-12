@@ -68,7 +68,7 @@ public class BasicConverterFactory implements ConverterFactory {
                 return converter;
             }
         }
-        String msg = "There is no converter registerd to " + targetClass.getCanonicalName() + " from " + null != value ? value.getClass().getCanonicalName() : "null";
+        String msg = "There is no converter registered to " + ((null != targetClass) ? targetClass.getCanonicalName() : null) + " from " + null != value ? value.getClass().getCanonicalName() : "null";
         TRACE.error(msg);
         throw new NoSuchConverterException(msg);
     }

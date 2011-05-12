@@ -409,7 +409,7 @@ public class ConnectorUtil {
 		ConnectorInfo connectorInfo = null;
 		if (connectorRef != null) {
 			// TODO: GET the configuration from RAC
-			String connectorHostId = connectorRef.getConnectorHostRef();
+			//String connectorHostId = connectorRef.getConnectorHostRef();
 
 			String bundleName = connectorRef.getBundleName();
 			String bundleVersion = connectorRef.getBundleVersion();

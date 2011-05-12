@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage
  */
 public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
 
-    private static JAXBContext ctx;
+    private JAXBContext ctx;
     private RepositoryPortType repositoryPort;
     protected static OpenDJUtil djUtil = new OpenDJUtil();
 

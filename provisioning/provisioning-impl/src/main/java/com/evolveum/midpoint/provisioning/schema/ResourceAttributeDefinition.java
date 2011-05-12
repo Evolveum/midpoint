@@ -328,7 +328,7 @@ public class ResourceAttributeDefinition {
         classifiedAttributeInfo.classificationLevel = classificationLevel;
     }
 
-    public class ClassifiedAttributeInfo {
+    public static class ClassifiedAttributeInfo {
 
         /**
          * http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd#ClassifiedAttributeType

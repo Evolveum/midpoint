@@ -131,7 +131,7 @@ public class ObjectValueWriterTest {
                 return null;
             }
         });
-        PrefixResolver resolver = new PrefixResolverDefault(doc);
+        //PrefixResolver resolver = new PrefixResolverDefault(doc);
 
 
         XPathExpression expr = xpath.compile("//root/icc:__UID__/text()");
