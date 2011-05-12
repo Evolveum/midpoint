@@ -2,8 +2,8 @@ dn: dc=example,dc=com
 objectclass: dcObject
 objectclass: organization
 objectclass: top
-o: evolveum
-dc: evolveum
+o: example
+dc: example 
 
 dn: ou=Groups,dc=example,dc=com
 objectClass: organizationalunit
