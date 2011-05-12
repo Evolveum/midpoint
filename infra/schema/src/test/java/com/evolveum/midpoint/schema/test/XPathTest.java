@@ -158,7 +158,7 @@ public class XPathTest {
         File file = new File("src/test/resources/xpath/data.xml");
         Document doc = builder.parse(file);
 
-        NodeList childNodes = doc.getChildNodes();
+        //NodeList childNodes = doc.getChildNodes();
 
         NodeList rootNodes = doc.getElementsByTagName("root");
         Node rootNode = rootNodes.item(0);
@@ -181,6 +181,8 @@ public class XPathTest {
 
         List<XPathSegment> segments = xpath.toSegments();
 
+        assertNotNull(segments);
+        
         System.out.println("XXXX: " + xpath);
 
         // TODO
@@ -198,7 +200,7 @@ public class XPathTest {
         File file = new File("src/test/resources/xpath/data.xml");
         Document doc = builder.parse(file);
 
-        NodeList childNodes = doc.getChildNodes();
+        //NodeList childNodes = doc.getChildNodes();
 
         NodeList rootNodes = doc.getElementsByTagName("root");
         Node rootNode = rootNodes.item(0);

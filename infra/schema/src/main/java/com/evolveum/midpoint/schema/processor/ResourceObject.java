@@ -223,7 +223,8 @@ public final class ResourceObject extends PropertyContainer {
 	 * @return true if the definition should be used as account type.
 	 */
 	public boolean isAccountType() {
-		return getDefinition() == null ? null : getDefinition().isAccountType();
+		ResourceObjectDefinition definition = getDefinition();
+		return definition == null ? null : definition.isAccountType();
 	}
 
 	/**
@@ -248,7 +249,8 @@ public final class ResourceObject extends PropertyContainer {
 	 *             if more than one default account is suggested in the schema.
 	 */
 	public boolean isDefaultAccountType() {
-		return getDefinition() == null ? null : getDefinition()
+		ResourceObjectDefinition definition = getDefinition();
+		return definition == null ? null : definition
 				.isDefaultAccountType();
 	}
 
