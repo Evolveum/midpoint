@@ -78,9 +78,9 @@
             <version>${midpoint.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.forgerock.openidm</groupId>
+            <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj</artifactId>
-            <version>2.4-BETA1</version>
+            <version>2.4.2</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -101,6 +101,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>${junit.version}</version>
+        </dependency>
+        <dependency>
+        	<groupId>com.sleepycat</groupId>
+        	<artifactId>je</artifactId>
+        	<version>4.1.10</version>
+        	<type>jar</type>
         </dependency>
     </dependencies>
 </project>

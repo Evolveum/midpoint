@@ -482,17 +482,6 @@ ds-cfg-ldif-directory: config/auto-process-ldif
 ds-cfg-poll-interval: 5 seconds
 cn: LDIF Connection Handler
 
-dn: cn=SNMP Connection Handler,cn=Connection Handlers,cn=config
-objectClass: ds-cfg-snmp-connection-handler
-objectClass: top
-objectClass: ds-cfg-connection-handler
-ds-cfg-enabled: false
-ds-cfg-java-class: org.opends.server.snmp.SNMPConnectionHandler
-ds-cfg-trap-port: 162
-ds-cfg-listen-address: 0.0.0.0
-ds-cfg-listen-port: 161
-cn: SNMP Connection Handler
-
 dn: cn=Crypto Manager,cn=config
 objectClass: top
 objectClass: ds-cfg-crypto-manager
