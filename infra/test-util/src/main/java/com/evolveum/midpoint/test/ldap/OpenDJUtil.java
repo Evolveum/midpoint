@@ -47,7 +47,7 @@ public class OpenDJUtil {
 
     private String admin = "cn=Directory Manager";
 
-    private String adminPw = "password";
+    private String adminPw = "secret";
 
     public static final String code_id = "$Id$";
 
