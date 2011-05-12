@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+<object xsi:type="AccountShadowType" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <name>janko</name>
+    <resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" version="2">
+        <name>Localhost OpenDJ</name>
+        <type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</type>
+        <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
+        <configuration>
+        </configuration>
+        <schema>
+            <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                <xsd:complexType name="Account">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <r:identifier ref="ids:__UID__"/>
+                            <r:secondaryIdentifier ref="ids:__NAME__"/>
+                            <r:displayName ref="ri:description"/>
+                            <r:descriptionAttribute ref="ri:description"/>
+                            <r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
+                            <r:accountType default="true"/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:complexContent>
+                        <xsd:extension base="r:ResourceObjectClass">
+                            <xsd:sequence>
+                                <xsd:element ref="ids:__NAME__">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <r:nativeAttributeName>__NAME__</r:nativeAttributeName>
+                                            <r:attributeDisplayName>DN</r:attributeDisplayName>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element minOccurs="0" name="description" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <r:help>DESCRIPTION_NAME_HELP_KEY</r:help>
+                                            <r:nativeAttributeName>description</r:nativeAttributeName>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element ref="ids:__PASSWORD__">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <r:attributeFlag>PASSWORD</r:attributeFlag>
+                                            <r:classifiedAttribute>
+                                                <r:encryption>HASH</r:encryption>
+                                                <r:classificationLevel>password</r:classificationLevel>
+                                            </r:classifiedAttribute>
+                                            <r:nativeAttributeName>__PASSWORD__</r:nativeAttributeName>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element name="sn" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <r:nativeAttributeName>sn</r:nativeAttributeName>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element name="cn" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <r:nativeAttributeName>cn</r:nativeAttributeName>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element minOccurs="0" ref="ids:__UID__">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
+                                            <r:nativeAttributeName>__UID__</r:nativeAttributeName>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element minOccurs="0" name="givenName" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <r:nativeAttributeName>givenName</r:nativeAttributeName>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element minOccurs="0" name="title" type="xsd:string"/>
+                                                                <xsd:element minOccurs="0" name="l" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <r:nativeAttributeName>l</r:nativeAttributeName>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element minOccurs="0" name="mail" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <r:nativeAttributeName>mail</r:nativeAttributeName>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                            </xsd:sequence>
+                        </xsd:extension>
+                    </xsd:complexContent>
+                </xsd:complexType>
+                <xsd:complexType name="Group">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <r:identifier ref="ids:__UID__"/>
+                            <r:secondaryIdentifier ref="ids:__NAME__"/>
+                            <r:displayName ref="ri:description"/>
+                            <r:descriptionAttribute ref="ri:description"/>
+                            <r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
+                            <r:container/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:complexContent>
+                        <xsd:extension base="r:ResourceObjectClass">
+                            <xsd:sequence>
+                                <xsd:element ref="ids:__NAME__">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <r:nativeAttributeName>__NAME__</r:nativeAttributeName>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element minOccurs="0" name="description" type="xsd:string">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <r:help>DESCRIPTION_NAME_HELP_KEY</r:help>
+                                            <r:nativeAttributeName>description</r:nativeAttributeName>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                                <xsd:element ref="ids:__UID__">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
+                                            <r:nativeAttributeName>__UID__</r:nativeAttributeName>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:element>
+                            </xsd:sequence>
+                        </xsd:extension>
+                    </xsd:complexContent>
+                </xsd:complexType>
+            </xsd:schema>
+        </schema>
+
+        <schemaHandling xmlns:my="http://myself.me/schemas/whatever" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+            <accountType default="true">
+                <name>Default Account</name>
+               <objectClass>ri:Account</objectClass>
+                <!-- Definition of description attribute handling. -->
+                <!-- This attribute is using a lookup table to translate the values
+                     valid for user to a values valid for the resource account. -->
+                <i:attribute ref="ri:l">
+                    <!-- Outbound expression definition. This expression is using
+                         a configuration object (set into an XPath variable) to
+                         translate values. -->
+                    <i:outbound>
+                        <!-- Definition of extra variable for the XPath expression.
+                             The variable will appear as "$my:config" in the Xpath
+                             expression below. It will contain the content of XML
+                             object stored by OID c0c010c0-d34d-b33f-f00d-999111111111. -->
+                        <i:variable name="my:config">
+                            <i:objectRef oid="c0c010c0-d34d-b33f-f00d-999111111111"/>
+                        </i:variable>
+                        <!-- Example of setting a variable to a string value. -->
+                        <i:variable name="my:defaultLocation">
+                            <i:value>middle of nowhere</i:value>
+                        </i:variable>
+                        <!-- The expression itself. It translates the value of
+                             user's attribute "locality" (expressed as $i:user/i:locality)
+                             using a lookup table defined in the configuration object
+                             in the $my:config variable specified above. -->
+                        <i:valueExpression>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            declare namespace my="http://myself.me/schemas/whatever";
+                            if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
+                                $my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]
+                            else
+                                $my:defaultLocation
+                        </i:valueExpression>
+                    </i:outbound>
+                </i:attribute>
+                <i:attribute ref="ri:mail">
+                    <c:name>E-Mail</c:name>
+                    <c:access>create</c:access>
+                    <c:access>read</c:access>
+                    <c:access>update</c:access>
+                    <i:inbound>
+                        <i:target>
+                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                            $i:user/i:eMailAddress
+                        </i:target>
+                    </i:inbound>
+                </i:attribute>
+
+            </accountType>
+        </schemaHandling>
+    </resource>
+    <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
+    <attributes>
+        <vr1:__NAME__ xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">uid=janko nemenny,ou=people,dc=example,dc=com</vr1:__NAME__>
+    </attributes>
+</object>

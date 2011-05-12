@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+<c:object xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+   xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
+   xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd"
+   xmlns:mi6="http://mi6.gov.uk/schema/"
+   xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+   xsi:type="c:ResourceType"
+   xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
+   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../ns/public/common/common-1.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd ../ns/public/resource/resource-schema-1.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../ns/public/resource/idconnector/resource-schema-1.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../ns/public/resource/idconnector/configuration-1.xsd'>    
+    <c:name>add-resource-correct</c:name>
+    <type>http://midpoint.evolveum.com/xml/ns/resource/ldap/1#LdapResource</type>
+    <namespace>http://mi6.gov.uk/schema/</namespace>
+    <schema>
+        <xsd:schema targetNamespace="http://mi6.gov.uk/schema/">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/resource/ldap/1#"/>
+            <xsd:complexType name="Mi6PersonObjectClass">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <r:identifier ref="ldap:dn"/>
+                        <r:displayName ref="ldap:uid"/>
+                        <r:nativeObjectClass>mi6Person</r:nativeObjectClass>
+                    </xsd:appinfo>
+                </xsd:annotation>
+                <xsd:complexContent>
+                    <xsd:extension base="ldap:InetOrgPersonObjectClass">
+                        <xsd:sequence>
+                            <xsd:element name="mi6Licence" type="xsd:string">
+                                <xsd:annotation>
+                                    <xsd:appinfo>
+                                        <c:name>Agent's Licence</c:name>
+                                        <c:access>read</c:access>
+                                    </xsd:appinfo>
+                                </xsd:annotation>
+                            </xsd:element>
+                        </xsd:sequence>
+                    </xsd:extension>
+                </xsd:complexContent>
+            </xsd:complexType>
+        </xsd:schema>
+    </schema>
+</c:object>

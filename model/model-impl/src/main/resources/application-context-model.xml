@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:jee="http://www.springframework.org/schema/jee"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:ws= "http://jax-ws.dev.java.net/spring/core"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="
+     http://www.springframework.org/schema/jee
+     http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
+     http://www.springframework.org/schema/beans
+     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+     http://www.springframework.org/schema/context
+     http://www.springframework.org/schema/context/spring-context-3.0.xsd
+     http://www.springframework.org/schema/aop
+     http://www.springframework.org/schema/aop/spring-aop-3.0.xsd
+     http://jax-ws.dev.java.net/spring/core
+     https://jax-ws.dev.java.net/spring/core.xsd
+     http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd"
+     default-lazy-init="false"
+     default-autowire="byName"
+     >
+
+   <!-- enabling annotation driven configuration /-->
+    <context:annotation-config/>
+    <context:component-scan base-package="com.evolveum.midpoint.model"/>
+
+    <!-- <bean id="ModelLoggerMXBean" class="com.evolveum.midpoint.logging.LoggerMXBeanImpl" lazy-init="false" scope="singleton">
+        <constructor-arg type="java.lang.String" value="Model" />
+        <constructor-arg type="java.lang.String" value="com.evolveum.midpoint.model" />
+    </bean>
+
+    <bean id="exporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false" />
+    <bean id="loggerExporter" class="com.evolveum.midpoint.logging.LoggerMXBeanExporter">
+        <property name="exporter" ref="exporter" />
+        <property name="beans">
+            <map>
+                <entry key="openidm:name=ModelLogger" value-ref="ModelLoggerBean" />
+            </map>
+        </property>
+    </bean>
+
+    <bean id="ModelLoggerBean" class="com.evolveum.midpoint.logging.LoggerMXBeanExporter$LoggerBean">
+        <constructor-arg type="java.lang.String" value="application-context-model.xml" />
+        <constructor-arg type="java.lang.String" value="ModelLoggerMXBean" />
+    </bean>-->
+
+    <bean id="actionManager" class="com.evolveum.midpoint.model.action.ActionManagerImpl">
+        <property name="actionMapping">
+            <map>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.action.AddUserAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.action.ModifyUserAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.action.LinkAccountAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.action.UnlinkAccountAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#deleteAccount">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.action.DeleteAccountAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#disableAccount">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.action.DisableAccountAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.action.AddAccountAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#deleteUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.action.DeleteUserAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyPassword">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.action.ModifyPasswordAction</value>
+                </entry>
+            </map>
+        </property>
+        <property name="model" >
+            <ref bean="modelService"/>
+        </property>
+        <property name="provisioning" >
+            <ref bean="provisioningService"/>
+        </property>
+        <property name="schemaHandling" >
+            <ref bean="schemaHandling"/>
+        </property>
+    </bean>
+
+    <bean id="filterManager" class="com.evolveum.midpoint.model.filter.FilterManagerImpl">
+        <property name="filterMapping">
+            <map>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#emptyFilter">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.filter.EmptyFilter</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.filter.PatternFilter</value>
+                </entry>
+            </map>
+        </property>
+    </bean>
+</beans>
