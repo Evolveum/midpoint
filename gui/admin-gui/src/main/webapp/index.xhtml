@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component" template="/resources/templates/admin-template.xhtml">
+
+	<ui:define name="title">#{lang.messages['welcome.title']}</ui:define>
+	<ui:define name="content-title">#{lang.messages['welcome.title']}</ui:define>
+
+	<ui:define name="admin-content">
+		<ice:form>
+			<div id="admin-content" style="width: 50%">
+				<h1>Welcome to Evolveum midPoint</h1>
+				<hr />
+				<h1>Common Tasks</h1>
+				<ul>
+					<li><ice:commandLink action="#{userList.fillTableList}"
+							value="#{lang.messages['user.type.list.link']}" /></li>
+					<li><ice:commandLink action="/account/createUser" value="#{lang.messages['user.type.create.link']}" />
+					</li>
+				</ul>
+			</div>
+		</ice:form>
+	</ui:define>
+</ui:composition>

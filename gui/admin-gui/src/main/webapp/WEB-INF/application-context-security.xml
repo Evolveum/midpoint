@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum -->
+<!-- -->
+<!-- The contents of this file are subject to the terms -->
+<!-- of the Common Development and Distribution License -->
+<!-- (the License). You may not use this file except in -->
+<!-- compliance with the License. -->
+<!-- -->
+<!-- You can obtain a copy of the License at -->
+<!-- http://www.opensource.org/licenses/cddl1 or -->
+<!-- CDDLv1.0.txt file in the source code distribution. -->
+<!-- See the License for the specific language governing -->
+<!-- permission and limitations under the License. -->
+<!-- -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by -->
+<!-- your own identifying information: -->
+<!-- -->
+<!-- Portions Copyrighted 2011 [name of copyright owner] -->
+<!-- Portions Copyrighted 2010 Forgerock -->
+<!-- -->
+
+<beans:beans xmlns="http://www.springframework.org/schema/security" xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+             http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd">
+
+	<global-method-security secured-annotations="enabled" jsr250-annotations="enabled" />
+
+	<http use-expressions="true" entry-point-ref="authenticationEntryPoint" auto-config="false">
+		<custom-filter ref="sessionManagementFilter" before="SESSION_MANAGEMENT_FILTER" />
+
+		<intercept-url pattern="/" access="permitAll" />
+		<intercept-url pattern="/favicon.ico" access="permitAll" />
+		<intercept-url pattern="/resources/css/**" access="permitAll" />
+		<intercept-url pattern="/resources/images/**" access="permitAll" />
+		<intercept-url pattern="/javax.faces.resource/**" access="permitAll" />
+		<intercept-url pattern="/login.iface" access="permitAll" />
+		<intercept-url pattern="/**" access="isAuthenticated()" />
+
+		<form-login login-processing-url="/j_spring_security_check" login-page="/login.iface"
+			authentication-failure-url="/login.iface" />
+
+		<logout logout-url="/j_spring_security_logout" logout-success-url="/login.iface" invalidate-session="true" />
+
+		<!-- Uncomment to limit the number of sessions a user can have -->
+		<session-management>
+			<concurrency-control max-sessions="1" error-if-maximum-exceeded="false" />
+		</session-management>
+
+	</http>
+
+	<beans:bean id="authenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
+		<beans:property name="loginFormUrl" value="/login.iface" />
+	</beans:bean>
+	<beans:bean id="sessionManagementFilter" class="org.springframework.security.web.session.SessionManagementFilter">
+		<beans:constructor-arg name="securityContextRepository" ref="httpSessionSecurityContextRepository" />
+		<beans:property name="invalidSessionUrl" value="/login.iface" />
+		<beans:property name="redirectStrategy" ref="jsfRedirectStrategy" />
+	</beans:bean>
+
+	<beans:bean id="jsfRedirectStrategy" class="com.evolveum.midpoint.web.security.MidPointRedirectStrategy" />
+	<beans:bean id="httpSessionSecurityContextRepository" class="org.springframework.security.web.context.HttpSessionSecurityContextRepository" />
+
+	<beans:bean id="midPointAuthenticationProvider" class="com.evolveum.midpoint.web.security.MidPointAuthenticationProvider">
+		<beans:property name="loginTimeout">
+			<beans:value type="java.lang.Integer">15</beans:value>
+		</beans:property>
+		<beans:property name="maxFailedLogins">
+			<beans:value type="java.lang.Integer">3</beans:value>
+		</beans:property>
+	</beans:bean>
+
+	<authentication-manager alias="authenticationManager">
+		<authentication-provider ref='midPointAuthenticationProvider' />
+	</authentication-manager>
+
+	<beans:bean id="loggerListener" class="org.springframework.security.authentication.event.LoggerListener" />
+</beans:beans>

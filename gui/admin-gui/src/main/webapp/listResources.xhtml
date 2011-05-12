@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<ui:composition template="resources/templates/admin-template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:prefs="http://java.sun.com/jsf/composite/components/preferences"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">#{lang.messages['user.type.list.title']}</ui:define>
+	<ui:define name="content-title">#{lang.messages['user.type.list.title']}</ui:define>
+
+	<ui:define name="admin-content">
+		<ice:panelGroup>
+			<ice:form id="admin-content">
+				<ice:panelGrid column="1">
+					<ice:panelGrid columns="4">
+
+						<idm:button action="#{resourceTypeController.listAccounts}" id="listAccountsButton"
+							buttonType="positive" value="List accounts" img="/resources/images/list.png" />
+						<idm:button action="#{resourceTypeController.testConnection}" id="testConnectionButton"
+							buttonType="positive" value="Test connection" img="/resources/images/connect.png" />
+						<idm:button action="#{resourceTypeController.importFromResource}" id="ImportFromResourceButton"
+							buttonType="positive" value="Import from resource" img="/resources/images/cog.png" />
+						<idm:button action="#{resourceTypeController.getImportStatus}" id="ImportStatusButton"
+							buttonType="positive" value="Import status" img="/resources/images/cog.png" />
+					</ice:panelGrid>
+
+					<ui:remove>
+						<ice:panelGroup styleClass="buttonsPosition">
+							<idm:button action="/account/createUser" id="addButton" buttonType="positive" value="Add user"
+								img="/resources/images/user_add.png" />
+
+							<ui:remove>
+								<idm:button action="/account/deleteUser" buttonType="negative" value="Delete user" id="deleteButton"
+									img="/resources/images/user_delete.png" />
+							</ui:remove>
+
+							<ice:panelGrid columns="3" styleClass="searchOidPosition">
+
+								<ice:outputText value="#{msg['user.type.userID']}" />
+								<ice:inputText value="#{userList.searchOid}" immediate="true" />
+
+								<idm:button actionListener="#{userList.searchUser}" value="#{msg['user.type.search.button']}"
+									id="searchButton" img="/resources/images/magnifier.png" />
+							</ice:panelGrid>
+						</ice:panelGroup>
+
+
+						<ice:panelGroup>
+							<ice:outputText value="Users per page: " />
+							<ice:inputText value="#{userList.rowsCount}" />
+							<ice:commandButton value="OK" action="#{userList.list}" />
+							<ice:panelGrid columns="4" styleClass="pagingPosition">
+								<idm:button img="resources/css/evolveum/css-images/arrow-first.gif" value="First"
+									action="#{userList.listFirst}" />
+								<idm:button img="resources/css/evolveum/css-images/arrow-previous.gif" value="Previous"
+									action="#{userList.listPrevious}" />
+								<idm:button img="resources/css/evolveum/css-images/arrow-next.gif" value="Next"
+									action="#{userList.listNext}" />
+								<idm:button img="resources/css/evolveum/css-images/arrow-last.gif" value="Last"
+									action="#{userList.listLast}" />
+
+							</ice:panelGrid>
+						</ice:panelGroup>
+					</ui:remove>
+
+					<ice:dataTable id="resourceTable" value="#{resourceTypeController.resources}" var="item"
+						columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2" resizable="true">
+						<ice:column>
+
+							<ice:rowSelector id="selected" value="#{item.selected}"
+								selectionListener="#{resourceTypeController.resourceSelectionListener}" styleClass="selectedRow" />
+
+							<f:facet name="header">
+
+								<ice:outputText id="resourceOid" value="#{msg['user.type.oid']}" />
+
+							</f:facet>
+
+
+							<ice:outputText id="oid" value="#{item.oid}" />
+						</ice:column>
+
+						<ice:column>
+							<f:facet name="header">
+
+
+								<ice:outputText id="resourceName" value="#{msg['user.type.name']}" />
+
+							</f:facet>
+
+
+							<ice:outputText id="name" value="#{item.name}" />
+						</ice:column>
+
+
+
+						<ice:column>
+							<f:facet name="header">
+
+								<ice:outputText id="resourceConnector" value="Used connector" />
+
+							</f:facet>
+							<ice:outputText id="connector" value="#{item.connectorUsed}" />
+						</ice:column>
+
+						<ice:column>
+							<f:facet name="header">
+
+								<ice:outputText id="connectorVersion" value="Connector #{msg['user.type.version']}" />
+
+							</f:facet>
+							<ice:outputText id="version" value="#{item.connectorVersion}" />
+						</ice:column>
+					</ice:dataTable>
+
+
+					<ui:remove>
+						<!--<ice:panelGroup>
+                            <center>
+                                <ice:dataPaginator for="userTable"
+                                                   paginator="true"
+                                                   paginatorMaxPages="6"
+
+                                                   pageIndexVar="#{userList.pageIndex}"
+                                                   >
+                                    <f:facet name="first">
+                                        <ice:graphicImage url="resources/css/evolveum/css-images/arrow-first.gif"
+                                                          style="border: 0px;"/>
+                                    </f:facet>
+                                    <f:facet name="last">
+                                        <ice:graphicImage url="resources/css/evolveum/css-images/arrow-last.gif"
+                                                          style="border: 0px;"/>
+                                    </f:facet>
+                                    <f:facet name="previous">
+                                        <ice:graphicImage url="resources/css/evolveum/css-images/arrow-previous.gif"
+                                                          style="border: 0px;"/>
+                                    </f:facet>
+                                    <f:facet name="next">
+                                        <ice:graphicImage url="resources/css/evolveum/css-images/arrow-next.gif"
+                                                          style="border: 0px;"/>
+                                    </f:facet>
+
+                                </ice:dataPaginator>
+                            </center>
+                        </ice:panelGroup>-->
+					</ui:remove>
+				</ice:panelGrid>
+			</ice:form>
+		</ice:panelGroup>
+	</ui:define>
+</ui:composition>

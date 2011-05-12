@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:ice="http://www.icesoft.com/icefaces/component">
+    <head>
+        <title>Show Customer</title>
+    </head>
+    <body>
+<ui:composition template="/resources/templates/login-template.xhtml">
+
+    <ui:define name="title">#{lang.messages['login.legend']}</ui:define>
+    <ui:define name="content-title">#{lang.messages['login.legend']}</ui:define>
+
+    <ui:define name="main-block">
+        
+        <ice:form id="loginForm" partialSubmit="false">
+            <a href="http://www.evolveum.com/strategy.html"><img id="loginImage" alt="top-box-openplatform" src="/idm/resources/images/long-top-box-openplatform.png"/></a>
+            <ice:panelGrid columns="2" cellpadding="5px;">
+                <f:facet name="header">
+                    <h:messages errorClass="error" infoClass="info" globalOnly="true" layout="table" />
+                </f:facet>
+                <ice:outputLabel styleClass="text" for="userName" value="#{lang.messages['login.username']}:"/>
+                <ice:panelGroup>
+                    <ice:inputText id="userName"
+                                   value="#{loginController.userName}"
+                                   required="true"
+                                   requiredMessage="#{lang.messages['field.required']}"/>
+                    <h:message  for="userName" errorClass="error"/>
+                </ice:panelGroup>
+                <ice:outputLabel styleClass="text" for="password" value="#{lang.messages['login.password']}:" />
+                <ice:panelGroup>
+                    <ice:inputSecret id="password"
+                                     value="#{loginController.password}"
+                                     required="true"
+                                     requiredMessage="#{lang.messages['field.required']}"/>
+                    <h:message for="password" errorClass="error"/>
+                </ice:panelGroup>
+                <f:facet name="footer">
+                    <ice:panelGroup styleClass="text">
+                        <ice:commandButton id="loginButton" type="submit" action="#{loginController.login}" value="#{lang.messages['login.action']}" />
+                        <br/><small>ROLE_USER: administrator/secret</small>
+                    </ice:panelGroup>
+                </f:facet>
+            </ice:panelGrid>
+        </ice:form>
+    </ui:define>
+</ui:composition>
+    </body>
+</html>

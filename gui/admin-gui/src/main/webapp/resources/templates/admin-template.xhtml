@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:prefs="http://java.sun.com/jsf/composite/components/preferences"
+	xmlns:ice="http://www.icesoft.com/icefaces/component" template="/resources/templates/page-template.xhtml">
+
+	<ui:define name="header">
+		<ice:outputLink styleClass="text" style="margin: 0 5px 0 20px; float: right"
+			value="#{facesContext.externalContext.requestContextPath}/j_spring_security_logout"
+			rendered="#{security.isUserLoggedIn}">#{lang.messages['logout.title']}</ice:outputLink>
+
+		<ice:outputLabel styleClass="text" style="font-size: 10pt; font-weight: bold; float: right" value="#{security.shortUserName}" />
+
+		<ice:outputLabel styleClass="text" style="font-size: 10pt; float: right; padding-right: 5px;"
+			value="#{lang.messages['header.loggedInAs']}" />
+
+		<ice:graphicImage style="width: 500px; position: static; margin-left: 250px"
+			value="/resources/images/quick-hack-logo.png" alt="OpenIDM" />
+	</ui:define>
+
+
+	<ui:define name="main-block">
+		<ui:insert name="menu">
+			<ui:include src="./menu.xhtml" />
+		</ui:insert>			
+		<ui:insert name="admin-content">
+			<ice:outputText id="admin-content" style="font-size: 14pt">From Admin Template</ice:outputText>
+		</ui:insert>
+	</ui:define>
+
+</ui:composition>

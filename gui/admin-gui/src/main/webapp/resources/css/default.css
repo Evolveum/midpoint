@@ -1,0 +1,45 @@
+#container.nav-left #nav {border-right: 1px solid #808080;}
+#container.nav-right #nav {border-left: 1px solid #808080;}
+#secondary-nav
+{
+	top: 0;
+	right: 8px;
+	position: absolute;
+	padding: 5px 7px;
+}
+#secondary-nav LI
+{
+	list-style: none;
+	display: inline;
+	padding: 0 1px 0 6px;
+}
+#secondary-nav LI
+{
+	border-left: 1px solid #5D5D5D;
+}
+#secondary-nav LI.first
+{
+	border-left: none;
+}
+#secondary-nav A, #secondary-nav A:visited
+{
+	color: #5D5D5D;
+	background-color: transparent;
+	text-decoration: none;
+}
+#secondary-nav A:hover
+{
+	color: #F8ED37;
+	background-color: transparent;
+}
+
+
+#copyright {
+    font-family:verdana;
+    font-size:0.8em;
+    line-height:1.3em;
+    position:relative;
+    text-align:center;
+    top:8px;
+    color:#525252;
+}

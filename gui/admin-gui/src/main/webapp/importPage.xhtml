@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<ui:composition template="resources/templates/admin-template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:ace="http://www.icefaces.org/icefaces/components"
+	xmlns:prefs="http://java.sun.com/jsf/composite/components/preferences"
+	xmlns:comp="http://java.sun.com/jsf/composite/components/comp"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">
+        #{msg['user.type.debug.pages.title']}
+    </ui:define>
+
+	<ui:define name="admin-content">
+		<ice:panelGroup id="admin-content">
+			<ice:form id="fileEntry">
+				<ice:selectBooleanCheckbox value="#{import.overwrite}" />
+				<ice:outputText value="Overwrite existing object" />
+				<ice:panelGrid columns="2">
+					<ace:fileEntry id="fileEntryComp" fileEntryListener="#{import.uploadFile}" />
+					<ice:panelGroup>
+						<h:commandButton value="Upload" />
+					</ice:panelGroup>
+				</ice:panelGrid>
+				<ice:panelGrid columns="1">
+					<ice:panelGroup>
+						<idm:button value="#{msg['button.add']}" action="#{import.addObjects}" img="/resources/images/add.png" />
+
+					</ice:panelGroup>
+					<ice:panelGroup>
+						<idm:inputSyntaxTextArea immediate="true" partialSubmit="true" id="code" cols="140" rows="100"
+							value="#{import.xmlObject}" />
+					</ice:panelGroup>
+				</ice:panelGrid>
+			</ice:form>
+		</ice:panelGroup>
+	</ui:define>
+</ui:composition>
+
+
+

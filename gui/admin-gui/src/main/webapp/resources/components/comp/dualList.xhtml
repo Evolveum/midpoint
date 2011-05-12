@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ice="http://www.icesoft.com/icefaces/component"
+      xmlns:composite="http://java.sun.com/jsf/composite">
+
+    <composite:interface>
+        <composite:attribute name="bean" required="true" />
+        <composite:attribute name="listWidth" default="200px" />
+        <composite:attribute name="listHeight" default="150px" />
+        <composite:attribute name="styleClass" />
+        <composite:attribute name="partialSubmit" default="true" />
+    </composite:interface>
+
+    <composite:implementation>
+        <ice:panelGrid columns="3">
+            <ice:selectManyMenu style="height:#{cc.attrs.listHeight}; width:#{cc.attrs.listWidth}; float: left;"
+                                value="#{cc.attrs.bean.selectedLeftItems}"
+                                partialSubmit="#{cc.attrs.partialSubmit}">
+                <f:selectItems value="#{cc.attrs.bean.leftItems}"/>
+            </ice:selectManyMenu>
+            <ice:panelGrid columns="1">
+                <ice:commandButton value="&gt;" immediate="#{cc.attrs.partialSubmit}"
+                                   actionListener="#{cc.attrs.bean.moveRight}"
+                                   style="width: 100%" />
+                <ice:commandButton value="&lt;"  immediate="#{cc.attrs.partialSubmit}"
+                                   actionListener="#{cc.attrs.bean.moveLeft}"
+                                   style="width: 100%" />
+                <ice:commandButton value="&gt;&gt;" immediate="#{cc.attrs.partialSubmit}"
+                                   actionListener="#{cc.attrs.bean.moveAllRight}"
+                                   style="width: 100%" />
+                <ice:commandButton value="&lt;&lt;" immediate="#{cc.attrs.partialSubmit}"
+                                   actionListener="#{cc.attrs.bean.moveAllLeft}"
+                                   style="width: 100%" />
+                </ice:panelGrid>
+            <ice:selectManyMenu style="height:#{cc.attrs.listHeight}; width:#{cc.attrs.listWidth};"
+                                value="#{cc.attrs.bean.selectedRightItems}"
+                                partialSubmit="#{cc.attrs.partialSubmit}">
+                <f:selectItems value="#{cc.attrs.bean.rightItems}"/>
+            </ice:selectManyMenu>
+        </ice:panelGrid>
+    </composite:implementation>
+</html>

@@ -1,0 +1,58 @@
+body {
+  
+  
+}
+
+h1 {
+    font-size: 22pt;
+}
+
+.underline {
+    border-bottom: 3px solid #C44;
+}
+
+h2 {
+    font-size: 14pt;
+}
+
+h3 {
+    font-size: 12pt;
+}
+
+p.rel {
+    padding-left: 2em;
+    text-indent: -2em;
+}
+
+div.border {
+  
+}
+
+code {
+    font-family: courier, monospace;
+    font-size: 90%;
+    color: #144;
+}
+
+pre.code {
+    margin: 1.1em 12px;
+    border: 1px solid #CCCCCC;
+    color: black;
+    padding: .4em;
+    font-family: courier, monospace;
+}
+
+.warn {
+    color: #C00;
+}
+
+.CodeMirror-line-numbers {
+    width: 2.2em;
+    color: #aaa;
+    background-color: #eee;
+    text-align: right;
+    padding-right: .3em;
+    font-size: 10pt;
+    font-family: monospace;
+    padding-top: .4em;
+}

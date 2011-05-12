@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<ui:composition template="resources/templates/admin-template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:prefs="http://java.sun.com/jsf/composite/components/preferences"
+	xmlns:comp="http://java.sun.com/jsf/composite/components/comp"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">
+        #{lang.messages['user.type.debug.pages.title']}
+    </ui:define>
+
+	<ui:define name="admin-content">
+		<ice:panelGroup id="admin-content">
+			<ice:form>
+				<ice:panelGrid columns="1" style="width: 100%;">
+					<ice:outputText value="Expression" />
+					<ice:inputTextarea style="width: 100%;" rows="10" value="#{xpathDebugPageController.expresion}" />
+					<ice:panelGroup>
+						<ice:outputText value="Return type: " />
+						<ice:selectOneMenu id="selectReturnType" style="width: auto;" partialSubmit="true" immediate="true"
+							value="#{xpathDebugPageController.returnType}">
+							<f:selectItems id="selectedReturnType" value="#{xpathDebugPageController.returnTypeList}" />
+						</ice:selectOneMenu>						
+					</ice:panelGroup>
+					<ice:panelGrid columns="3">
+						<ice:panelGroup>
+							<ice:outputText value="Variable name" />
+						</ice:panelGroup>
+						<ice:panelGroup>
+							<ice:outputText value="Type" />
+						</ice:panelGroup>
+						<ice:panelGroup>
+							<ice:outputText value="Value" />
+						</ice:panelGroup>
+
+						<ice:panelGroup>
+							<ice:inputText value="#{xpathDebugPageController.variable1.variableName}" />
+						</ice:panelGroup>
+						<ice:panelGroup>
+							<ice:selectOneMenu id="selectType" style="width: auto;" partialSubmit="true" immediate="true"
+								value="#{xpathDebugPageController.variable1.type}">
+								<f:selectItems id="selectedType" value="#{xpathDebugPageController.type}" />
+							</ice:selectOneMenu>
+						</ice:panelGroup>
+						<ice:panelGroup>
+							<ice:inputText value="#{xpathDebugPageController.variable1.value}" />
+						</ice:panelGroup>
+
+						<ice:panelGroup>
+							<ice:inputText value="#{xpathDebugPageController.variable2.variableName}" />
+						</ice:panelGroup>
+						<ice:panelGroup>
+							<ice:selectOneMenu id="selectType2" style="width: auto;" partialSubmit="true" immediate="true"
+								value="#{xpathDebugPageController.variable2.type}">
+								<f:selectItems id="selectedType2" value="#{xpathDebugPageController.type}" />
+							</ice:selectOneMenu>
+						</ice:panelGroup>
+						<ice:panelGroup>
+							<ice:inputText value="#{xpathDebugPageController.variable2.value}" />
+						</ice:panelGroup>
+
+
+						<ice:panelGroup>
+							<ice:inputText value="#{xpathDebugPageController.variable3.variableName}" />
+						</ice:panelGroup>
+
+						<ice:panelGroup>
+							<ice:selectOneMenu id="selectType3" style="width: auto;" partialSubmit="true"
+								value="#{xpathDebugPageController.variable3.type}">
+								<f:selectItems id="selectedType3" value="#{xpathDebugPageController.type}" />
+							</ice:selectOneMenu>
+						</ice:panelGroup>
+						<ice:panelGroup>
+							<ice:inputText value="#{xpathDebugPageController.variable3.value}" />
+						</ice:panelGroup>
+
+						<ice:panelGroup>
+							<ice:inputText value="#{xpathDebugPageController.variable4.variableName}" />
+						</ice:panelGroup>
+						<ice:panelGroup>
+							<ice:selectOneMenu id="selectType4" style="width: auto;" partialSubmit="true"
+								value="#{xpathDebugPageController.variable4.type}">
+								<f:selectItems id="selectedType4" value="#{xpathDebugPageController.type}" />
+							</ice:selectOneMenu>
+						</ice:panelGroup>
+						<ice:panelGroup>
+							<ice:inputText value="#{xpathDebugPageController.variable4.value}" />
+						</ice:panelGroup>
+					</ice:panelGrid>
+					<idm:button action="#{xpathDebugPageController.evaluate}" id="evaluateButton"
+							value="#{lang.messages['page.config.xpath.evaluate']}" img="/resources/images/calculator.png" />
+				</ice:panelGrid>
+			</ice:form>
+			<ice:panelGroup>
+				<ice:outputText value="#{xpathDebugPageController.result}" />
+			</ice:panelGroup>
+		</ice:panelGroup>
+	</ui:define>
+</ui:composition>
+

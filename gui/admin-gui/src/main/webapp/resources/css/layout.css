@@ -1,0 +1,46 @@
+/*------ color and font definition ------*/
+body {
+    margin: 0px 0px 0px 0px;
+    background-color: white;
+    font-family: 'Lucida Sans Unicode', 'Lucida Grande', sans-serif;
+    color: #000000;
+}
+#page {
+    font-size:0.8em;
+}
+
+#top {
+    background-color: #333333;
+    color: gray;
+    position: relative;
+    padding: .5em;
+}
+#top #title {
+    margin:20px;
+    margin-right: 300px;
+}
+
+
+#preferences {
+    float:right;
+}
+
+
+#container {
+}
+
+#navigation {
+}
+
+#content {
+    padding: 1em;
+    display: block;
+    float: none;
+}
+
+#footer {
+    position: relative;
+    background-color: white;
+    padding: 5px;
+    clear: both;
+}

@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
+	template="../resources/templates/admin-template.xhtml">
+
+	<ui:define name="title">
+        Versions
+    </ui:define>
+
+	<ui:define name="admin-content">
+		<div id="admin-content" style="width: 50%">
+
+			<h1>midPoint Software and other Versions</h1>
+			These values where collected during the build phase and might be different on the machine where midPoint is
+			deployed!
+			<h2>midPoint Version</h2>
+			This build is based on the Revision
+			<ice:outputLabel value="#{lang.messages['midPointRevision']}" />
+			of the midPoint subversion repository at: <br /> <a href="https://midpoint.evolveum.com">https://midpoint.evolveum.com</a>
+
+			<h2>Other Versions and Values</h2>
+			<ice:panelGrid columns="2" cellpadding="2" cellspacing="2">
+				<ice:outputText value="Property" />
+				<ice:outputText value="Value" />
+
+				<c:forEach var="item" items="#{about.items}">
+					<ice:outputText value="#{item.property}" />
+					<ice:outputText value="#{item.value}" />
+				</c:forEach>
+			</ice:panelGrid>
+		</div>
+	</ui:define>
+</ui:composition>

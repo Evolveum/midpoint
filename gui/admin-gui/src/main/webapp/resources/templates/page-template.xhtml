@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:prefs="http://java.sun.com/jsf/composite/components/preferences"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ice="http://www.icesoft.com/icefaces/component">
+
+    <f:view locale="#{lang.currentLocale}" contentType="text/html; charset=utf-8">
+
+    <h:head>
+        <title><ui:insert name="title">OpenIDM - #{title}</ui:insert></title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <ice:outputStyle href="/resources/css/xp/xp.css"/>
+        <ice:outputStyle href="/resources/css/style.css"/>
+        <ice:outputStyle href="/resources/css/evolveum/evolveum.css"/>
+        <!--ui:insert name="extraHeaders" /-->
+    </h:head>
+
+    <h:body>       
+        <div id="header">
+            <ui:insert name="header">Default header</ui:insert>
+        </div>
+        
+        <ice:messages id="ICEMessages" errorClass="messages-red" infoClass="messages-green"  />
+
+        <div id="main-block">
+            <ui:insert name="main-block">Default content Page template</ui:insert>
+        </div>
+        <div id="copyright">
+            This space for rent. 2011. All rights reserved.
+        </div>
+    </h:body>
+
+    </f:view>
+</html>

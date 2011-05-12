@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<ui:composition template="/resources/templates/admin-template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:prefs="http://java.sun.com/jsf/composite/components/preferences"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/" xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+	<ui:define name="title">#{lang.messages['user.type.list.title']}</ui:define>
+	<ui:define name="content-title">#{lang.messages['user.type.list.title']}</ui:define>
+
+	<ui:define name="admin-content">
+		<ice:form id="admin-content">
+			<ice:panelGroup>
+				<h2>#{trace.module.name}</h2>
+				<ice:panelGrid columns="4" cellpadding="2" cellspacing="2">
+					<ice:selectOneMenu value="#{trace.module.level}">
+						<f:selectItems value="#{trace.logLevels}" />
+					</ice:selectOneMenu>
+					<ice:outputText value="Log pattern: " />
+					<ice:inputText value="#{trace.module.logPattern}" size="40" />
+				</ice:panelGrid>
+				<ice:panelGrid columns="4" cellpadding="2" cellspacing="2">
+					<c:forEach items="#{trace.module.items}" var="item" varStatus="status">
+						<ice:inputText size="60" value="#{item.packageName}" />
+						<ice:selectOneMenu value="#{item.level}">
+							<f:selectItems value="#{trace.logLevels}" />
+						</ice:selectOneMenu>
+
+						<c:choose value="#{module.itemsSize}">
+							<c:when test="#{module.itemsSize != 1}">
+								<idm:button actionListener="#{trace.deleteTrace}" buttonType="negative" action="trace" value="Delete"
+									img="/resources/images/table_delete.png">
+									<f:param name="itemId" value="#{item.id}" />
+								</idm:button>
+							</c:when>
+							<c:otherwise>
+								<ice:outputText value="" />
+							</c:otherwise>
+						</c:choose>
+
+						<c:choose value="#{status.last}">
+							<c:when test="#{status.last == true}">
+								<idm:button actionListener="#{trace.addTrace}" action="trace" buttonType="positive" value="Add"
+									img="/resources/images/table_add.png" />
+							</c:when>
+							<c:otherwise>
+								<ice:outputText value="" />
+							</c:otherwise>
+						</c:choose>
+					</c:forEach>
+				</ice:panelGrid>
+			</ice:panelGroup>
+
+			<idm:button action="#{trace.refreshPerformed}" value="Refresh"
+				img="/resources/images/arrow_rotate_clockwise.png" />
+			<idm:button action="#{trace.savePerformed}" buttonType="positive" value="Save"
+				img="/resources/images/save.png" />
+		</ice:form>
+	</ui:define>
+</ui:composition>

@@ -1,0 +1,143 @@
+#page, #login {
+    margin: 40px auto;
+    width: 70%;
+}
+
+#top {
+    position: relative;
+    background-color: white;
+    color: gray;
+    padding: 5px;
+    margin: 0px 0px 10px 0px;
+}
+
+#top #preferences {
+    float:right;
+}
+
+#top #title {
+    margin:20px;
+    margin-right: 300px;
+}
+
+#container {
+    line-height: 130%;
+}
+
+#footer {
+    position: relative;
+    background-color: white;
+    padding: 5px;
+    margin: 10px 0px 0px 0px;
+    clear: both;
+}
+
+#left {
+    float: left;
+    background-color: #ece3a5;
+    padding: 5px;
+    width: 150px;
+}
+
+#right {
+    float: right;
+    background-color: #ece3a5;
+    padding: 5px;
+    width: 150px;
+}
+
+.center_content {
+    position: relative;
+    background-color: white;
+    padding: 5px;
+}
+
+.left_content {
+    background-color: #dddddd;
+    padding: 5px;
+    margin-left: 170px;
+}
+
+.right_content {
+    background-color: #dddddd;
+    padding: 5px;
+    margin: 0px 170px 0px 170px;
+}
+
+#top a:link, #top a:visited {
+  color: white;
+  font-weight : bold;
+  text-decoration: none;
+}
+
+#top a:link:hover, #top a:visited:hover  {
+  color: black;
+  font-weight : bold;
+  text-decoration : underline;
+}
+
+#page, #login {
+    margin: 40px auto;
+    width: 90%;
+}
+
+#top #preferences {
+    float:right;
+}
+
+#top #title {
+    margin:20px;
+    margin-right: 300px;
+}
+#login{
+    width:270px;
+    padding:20px;
+}
+
+#content {
+    padding: 1em;
+    display: block;
+    float: none;
+}
+
+#container.nav-left #nav {
+    float: left;
+}
+
+#container.nav-left #content {
+    margin-left: 200px;
+}
+
+#container.nav-right #nav {
+    float: right;
+}
+
+#container.nav-right #content {
+    margin-right: 200px;
+}
+
+
+#nav {width: 160px;margin: 0;}
+
+#container.nav-left #nav {float: left;}
+#container.nav-left #content {margin-left: 200px;}
+#container.nav-right #nav {float: right;}
+#container.nav-right #content {margin-right: 200px;}
+form {margin:0;padding:0;display:inline;}
+#content h2 { margin: 0 0 .5em 0; }
+#top h1 { padding: 0; margin: 0; }
+#nav h3{margin:0px;padding:10px;}
+#nav ul ul{margin:10px;}
+#nav ul ul li{padding:5px;}
+#nav ul{list-style-image:none;list-style-position:outside;list-style-type:none;margin:0;padding:0;}
+#login h4{margin:0px;padding:0px;}
+#content-title{text-decoration:underline;font-weight: bold;margin-bottom: 35px;}
+#copyright {
+    font-family:verdana;
+    font-size:0.8em;
+    line-height:1.3em;
+    position:relative;
+    text-align:center;
+    top:8px;
+    color:#525252;
+}

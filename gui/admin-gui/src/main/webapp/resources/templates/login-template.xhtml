@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:mg="http://at.irian/mygourmet">
+    <head>
+        <title>Show Customer</title>
+    </head>
+    <body>
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:prefs="http://java.sun.com/jsf/composite/components/preferences"
+                xmlns:ice="http://www.icesoft.com/icefaces/component"
+                template="/resources/templates/page-template.xhtml">
+
+    <ui:define name="header">
+        <ui:insert name="language-preferences">
+            <ice:graphicImage style="width: 500px" value="/resources/images/quick-hack-logo.png" alt="OpenIDM" />
+            <div id="language-preferences">
+                <ice:form>
+                    <prefs:language/>
+                </ice:form>
+            </div>
+        </ui:insert>
+    </ui:define>
+
+    <ui:define name="main-block">
+        <ui:insert name="main-block">Default content login template</ui:insert>
+    </ui:define>
+</ui:composition>
+        </body>
+</html>

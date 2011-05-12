@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ice="http://www.icesoft.com/icefaces/component"
+      xmlns:composite="http://java.sun.com/jsf/composite">
+
+    <composite:interface />
+
+    <composite:implementation>
+        #{lang.messages['app.language']}:
+            <ui:repeat value="#{lang.supportedLocales}" var="locale">
+                <ice:commandLink immediate="true">
+                    <ice:graphicImage value="/resources/images/flag/#{locale.language}.png" alt="#{locale.language}" style="border:0px; margin-left:3px; margin-right:3px;"/>
+                    <f:setPropertyActionListener target="#{lang.currentLanguage}" value="#{locale.language}_#{locale.country}_#{locale.variant}" />
+                </ice:commandLink>
+            </ui:repeat>
+    </composite:implementation>
+</html>

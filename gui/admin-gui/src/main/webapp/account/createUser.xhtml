@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<ui:composition template="/resources/templates/admin-template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:prefs="http://java.sun.com/jsf/composite/components/preferences"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/"
+	xmlns:user="http://java.sun.com/jsf/composite/components/user">
+
+	<ui:define name="title">#{lang.messages['user.type.create.title']}</ui:define>
+	<ui:define name="content-title">#{lang.messages['user.type.create.title']}</ui:define>
+
+	<ui:define name="admin-content">
+		<f:facet name="header">
+			<h:messages errorClass="error" infoClass="info" globalOnly="true" layout="table" />
+		</f:facet>
+		<ice:form id="admin-content">
+			<ice:panelGrid columns="2" id="admin-content" style="background-color: #DDDDDD">
+				<ice:panelGroup>
+					<ice:outputLabel value="#{msg['user.type.name']}" />
+					<span style="color: red;">*</span>
+				</ice:panelGroup>
+				<ice:panelGroup>
+					<ice:inputText id="name" value="#{create.user.name}" required="true"
+						requiredMessage="#{msg['field.required']}" />
+					<ice:message for="familyName" errorClass="error" />
+				</ice:panelGroup>
+
+				<ice:panelGroup>
+					<ice:outputLabel value="#{msg['user.type.givenName']}" />
+					<span style="color: red;">*</span>
+				</ice:panelGroup>
+				<ice:panelGroup>
+					<ice:inputText id="givenName" value="#{create.user.givenName}" required="true"
+						requiredMessage="#{msg['field.required']}" />
+					<ice:message for="givenName" errorClass="error" />
+				</ice:panelGroup>
+
+				<ice:panelGroup>
+					<ice:outputLabel value="#{msg['user.type.familyName']}" />
+					<span style="color: red;">*</span>
+				</ice:panelGroup>
+				<ice:panelGroup>
+					<ice:inputText id="familyName" value="#{create.user.familyName}" required="true"
+						requiredMessage="#{msg['field.required']}" />
+					<ice:message for="familyName" errorClass="error" />
+				</ice:panelGroup>
+
+				<ice:panelGroup>
+					<ice:outputLabel value="#{msg['user.type.fullName']}" />
+					<span style="color: red;">*</span>
+				</ice:panelGroup>
+				<ice:panelGroup>
+					<ice:inputText id="fullName" value="#{create.user.fullName}" required="true"
+						requiredMessage="#{msg['field.required']}" />
+					<ice:message for="fullName" errorClass="error" />
+				</ice:panelGroup>
+
+				<ice:outputLabel value="#{msg['user.type.email']}" />
+				<ice:panelGroup>
+					<ice:inputText id="email" value="#{create.user.email}" />
+				</ice:panelGroup>
+
+				<ice:outputLabel value="#{msg['user.type.locality']}" />
+				<ice:panelGroup>
+					<ice:inputText id="locality" value="#{create.user.locality}" />
+				</ice:panelGroup>
+
+				<ice:panelGroup>
+					<ice:outputLabel value="#{msg['user.type.password1']}" />
+					<span style="color: red;">*</span>
+				</ice:panelGroup>
+				<ice:panelGroup>
+					<ice:inputSecret id="password1" value="#{create.user.password1}" required="true"
+						requiredMessage="#{msg['field.required']}">
+						<f:validator validatorId="PasswordValidator" />
+						<f:attribute name="otherComponentId" value="password2" />
+					</ice:inputSecret>
+					<ice:message for="password1" errorClass="error" />
+				</ice:panelGroup>
+
+				<ice:panelGroup>
+					<ice:outputLabel value="#{msg['user.type.password2']}" />
+					<span style="color: red;">*</span>
+				</ice:panelGroup>
+				<ice:panelGroup>
+					<ice:inputSecret id="password2" immediate="true" value="#{create.user.password2}" required="true"
+						requiredMessage="#{msg['field.required']}" />
+					<ice:message for="password2" errorClass="error" />
+				</ice:panelGroup>
+
+				<ice:outputLabel value="#{msg['user.type.enabled']}" />
+				<ice:panelGroup>
+					<ice:selectBooleanCheckbox id="enabled" value="#{create.user.enabled}" required="true"
+						requiredMessage="#{msg['field.required']}" />
+					<ice:message for="enabled" errorClass="error" />
+				</ice:panelGroup>
+
+				<ice:outputLabel value="#{msg['user.type.webAccessEnabled']}" />
+				<ice:panelGroup>
+					<ice:selectBooleanCheckbox id="webAccessEnabled" value="#{create.user.webAccessEnabled}" required="true"
+						requiredMessage="#{msg['field.required']}" />
+					<ice:message for="webAccessEnabled" errorClass="error" />
+				</ice:panelGroup>
+
+				<f:facet name="footer">
+					<ice:panelGroup>
+						<idm:button action="#{userList.fillTableList}" value="#{lang.messages['user.type.cancel.button']}"
+							img="/resources/images/door_in.png" id="cancelCreateUser" immediate="true" />
+
+						<idm:button action="#{create.create}" id="createUser" buttonType="positive"
+							value="#{lang.messages['user.type.create.button']}" img="/resources/images/user_add.png" />
+					</ice:panelGroup>
+				</f:facet>
+			</ice:panelGrid>
+		</ice:form>
+	</ui:define>
+</ui:composition>

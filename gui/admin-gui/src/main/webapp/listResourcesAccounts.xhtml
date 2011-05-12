@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+To change this template, choose Tools | Templates
+and open the template in the editor.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<ui:composition template="resources/templates/admin-template.xhtml"
+                xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:ice="http://www.icesoft.com/icefaces/component"
+                xmlns:prefs="http://java.sun.com/jsf/composite/components/preferences"
+                xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/"
+                >
+
+    <ui:define name="title">#{lang.messages['user.type.list.title']}</ui:define>
+    <ui:define name="content-title">#{lang.messages['user.type.list.title']}</ui:define>
+
+    <ui:define name="admin-content">
+        <ice:panelGroup>
+            <ice:form id="admin-content">
+                <ice:panelGrid column="1">
+                    <ice:panelGroup>
+                        <idm:button action="#{resourceTypeController.backPerformed}"
+                            value="#{msg['button.back']}"
+                            img="/resources/images/door_in.png" />
+                    </ice:panelGroup>
+
+                    <ice:panelGrid columns="2" width="400px">
+                        <ice:outputText id="resourceOid" value="#{msg['user.type.oid']}: "/>
+                        <ice:panelGroup>
+                            <ice:outputText  value="#{resourceTypeController.resourceDto.oid} "/>
+                        </ice:panelGroup>
+                        <ice:outputText id="resourceName" value="#{msg['user.type.name']}: "/>
+                        <ice:panelGroup>
+                            <ice:outputText  value="#{resourceTypeController.resourceDto.name} "/>
+                        </ice:panelGroup>
+                       
+                        <ice:outputText id="resourceConnector" value="Used connector: "/>
+                        <ice:panelGroup>
+                            <ice:outputText  value="#{resourceTypeController.resourceDto.connectorUsed}"/>
+                        </ice:panelGroup>
+                         <ice:outputText id="resourceConnectorVersion" value="Connector #{msg['user.type.version']}: "/>
+                        <ice:panelGroup>
+                            <ice:outputText  value="#{resourceTypeController.resourceDto.connectorVersion}"/>
+                        </ice:panelGroup>
+                    </ice:panelGrid>
+                
+                    <ice:dataTable id="userTable"
+
+                                   value="#{resourceTypeController.accounts}"
+                                   var="account"
+
+                                   columnClasses="iceDatTblCol1"
+                                   rowClasses="iceDatTblRow1 iceDatTblRow2"
+                                   columnWidths="230px, 100px, 100px, 170px, 100px, 100px, 150px"
+                                   resizable="true"
+                                   >
+
+                        <ice:column>
+
+                            <f:facet name="header">
+
+                                <ice:outputText id="accountOid" value="#{msg['user.type.oid']}"/>
+
+                            </f:facet>
+
+
+                            <ice:outputText id="oid"
+                                            value="#{account.oid}" />
+                        </ice:column>
+
+                        <ice:column>
+                            <f:facet name="header">
+
+                                <ice:outputText id="accountName" value="#{msg['user.type.name']}"/>
+
+                            </f:facet>
+
+
+                            <ice:outputText id="name"
+                                            value="#{account.name}"
+                                            />
+                        </ice:column>
+
+                        <ice:column>
+                            <f:facet name="header">
+
+                                <ice:outputText id="accountVersion" value="#{msg['user.type.version']}"/>
+
+                            </f:facet>
+
+
+                            <ice:outputText id="version"
+                                            value="#{account.version}"
+                                            />
+                        </ice:column>
+
+
+
+                    </ice:dataTable>
+                   
+                </ice:panelGrid>
+            </ice:form>
+        </ice:panelGroup>
+    </ui:define>
+</ui:composition>
