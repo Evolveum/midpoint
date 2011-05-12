@@ -87,7 +87,7 @@ public class PatchXml extends XPathUtil {
                     throw new PatchException(ex);
                 }
                 if (null == parentNodes || parentNodes.getLength() != 1) {
-                    logger.error("XPath '{}' matches incorrect number of nodes (actual match was {})", xpathUtil.getXPath(), parentNodes.getLength());
+                    logger.error("XPath '{}' matches incorrect number of nodes (actual match was {})", xpathUtil.getXPath(), (parentNodes != null ? parentNodes.getLength() : 0));
                     throw new PatchException("XPath matches incorrect number of nodes");
                 }
                 Node parentNode = parentNodes.item(0);

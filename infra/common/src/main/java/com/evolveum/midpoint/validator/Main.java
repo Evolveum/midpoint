@@ -71,7 +71,9 @@ public class Main {
             System.out.println("File not found " + ex);
         } finally {
             try {
-                fis.close();
+            	if (null != fis) {
+            		fis.close();
+            	}
             } catch (IOException ex) {
                 System.out.println("Error closing the file " + ex);
             }

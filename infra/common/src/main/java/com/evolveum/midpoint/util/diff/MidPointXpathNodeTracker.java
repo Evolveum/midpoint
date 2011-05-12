@@ -243,7 +243,7 @@ public class MidPointXpathNodeTracker extends XpathNodeTracker {
         }
 
         public Integer toInteger() {
-            return new Integer(value);
+            return Integer.valueOf(value);
         }
     }
 
@@ -257,7 +257,7 @@ public class MidPointXpathNodeTracker extends XpathNodeTracker {
         private String currentValue, currentAttribute;
         private Map nodeReferenceMap;
         private boolean trackNodeReferences = false;
-        private Integer nodeReferenceLookup = null;
+        //private Integer nodeReferenceLookup = null;
         private String oid;
 
         private Int lookup(String value) {
@@ -282,7 +282,7 @@ public class MidPointXpathNodeTracker extends XpathNodeTracker {
                     nodeReferenceMap.put(visited, occurrence.toInteger());
                 }
             } else {
-                nodeReferenceLookup = (Integer) nodeReferenceMap.get(visited);
+                //nodeReferenceLookup = (Integer) nodeReferenceMap.get(visited);
             }
             currentValue = value;
 
@@ -315,12 +315,6 @@ public class MidPointXpathNodeTracker extends XpathNodeTracker {
                 return;
             }
             buf.append(XPATH_SEPARATOR).append(currentValue);
-
-//            if (null == oid) {
-//                int value = nodeReferenceLookup == null
-//                        ? lookup(currentValue).getValue() : nodeReferenceLookup.intValue();
-//                buf.append(XPATH_NODE_INDEX_START).append(value).append(XPATH_NODE_INDEX_END);
-//            } else {
 
             if (null != oid) {
                 buf.append(XPATH_NODE_INDEX_START).append("@").append(MidPointConstants.ATTR_OID_NAME).append("=\"").append(oid).append("\"").append(XPATH_NODE_INDEX_END);

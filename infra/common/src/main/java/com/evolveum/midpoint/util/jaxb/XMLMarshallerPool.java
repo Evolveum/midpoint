@@ -39,8 +39,7 @@ import javax.xml.bind.JAXBException;
  */
 public class XMLMarshallerPool extends ObjectPool<XMLMarshaller> {
 
-    public static final String code_id = "$Id$";
-    private Logger logger = Logger.getLogger(XMLMarshallerPool.class.getName());
+    private static final Logger logger = Logger.getLogger(XMLMarshallerPool.class.getName());
 
     public XMLMarshallerPool() {
         super();
