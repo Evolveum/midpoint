@@ -1,15 +1,15 @@
-dn: dc=evolveum,dc=com
+dn: dc=example,dc=com
 objectclass: dcObject
 objectclass: organization
-o: evolveum
-dc: evolveum
+o: example
+dc: example
 
-dn: ou=People,dc=evolveum,dc=com
+dn: ou=People,dc=example,dc=com
 objectclass: top
 objectclass: organizationalUnit
 ou: People
 
-dn: uid=jduke,ou=People,dc=evolveum,dc=com
+dn: uid=jduke,ou=People,dc=example,dc=com
 objectclass: top
 objectclass: uidObject
 objectclass: person
@@ -22,7 +22,7 @@ mail: theduke@somecastle.man
 employeeType:  Active
 employeeNumber: 007
 
-dn: uid=123456,ou=People,dc=evolveum,dc=com
+dn: uid=123456,ou=People,dc=example,dc=com
 objectclass: top
 objectclass: uidObject
 objectclass: person
@@ -35,7 +35,7 @@ mail: theduke@somecastle.man
 employeeType:  Active
 employeeNumber: 007
 
-dn: uid=jbond,ou=People,dc=evolveum,dc=com
+dn: uid=jbond,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson

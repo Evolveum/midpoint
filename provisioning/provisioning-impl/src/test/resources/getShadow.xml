@@ -27,6 +27,6 @@ xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b
     <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
     <c:objectClass>dj:Account</c:objectClass>
     <c:attributes>
-        <ics:__UID__>uid=ahoi,ou=People,dc=evolveum,dc=com</ics:__UID__>
+        <ics:__UID__>uid=ahoi,ou=People,dc=example,dc=com</ics:__UID__>
     </c:attributes>
 </c:account>

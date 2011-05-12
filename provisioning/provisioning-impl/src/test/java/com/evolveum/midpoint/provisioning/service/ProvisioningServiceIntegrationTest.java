@@ -103,7 +103,7 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
 
         service.setRepositoryPort(repositoryPort);
 
-        assertTrue(new OpenDJUtil().ldapCompare("givenName: James", "uid=jbond,ou=People,dc=evolveum,dc=com"));
+        assertTrue(new OpenDJUtil().ldapCompare("givenName: James", "uid=jbond,ou=People,dc=example,dc=com"));
 
         // TODO: Handle scripts
         ScriptsType scripts = new ScriptsType();
@@ -112,8 +112,8 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
         service.modifyObject(oct, scripts, new Holder<OperationalResultType>(opResult));
 
         //THEN
-        assertTrue(djUtil.existsDN("uid=jbond,ou=People,dc=evolveum,dc=com"));
-        assertTrue(new OpenDJUtil().ldapCompare("givenName: newGivenName", "uid=jbond,ou=People,dc=evolveum,dc=com"));
+        assertTrue(djUtil.existsDN("uid=jbond,ou=People,dc=example,dc=com"));
+        assertTrue(new OpenDJUtil().ldapCompare("givenName: newGivenName", "uid=jbond,ou=People,dc=example,dc=com"));
     }
 
     @Test
@@ -130,7 +130,7 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
 
         service.setRepositoryPort(repositoryPort);
 
-        assertTrue(new OpenDJUtil().ldapCompare("givenName: James", "uid=jbond,ou=People,dc=evolveum,dc=com"));
+        assertTrue(new OpenDJUtil().ldapCompare("givenName: James", "uid=jbond,ou=People,dc=example,dc=com"));
 
         // TODO: Handle scripts
         InputStream sin = getClass().getResourceAsStream("/script.xml");
@@ -141,8 +141,8 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
         service.modifyObject(oct, scripts, new Holder<OperationalResultType>(opResult));
 
         //THEN
-        assertTrue(djUtil.existsDN("uid=jbond,ou=People,dc=evolveum,dc=com"));
-        assertTrue(new OpenDJUtil().ldapCompare("givenName: newGivenName", "uid=jbond,ou=People,dc=evolveum,dc=com"));
+        assertTrue(djUtil.existsDN("uid=jbond,ou=People,dc=example,dc=com"));
+        assertTrue(new OpenDJUtil().ldapCompare("givenName: newGivenName", "uid=jbond,ou=People,dc=example,dc=com"));
     }
 
     @Test
@@ -158,7 +158,7 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
 
         service.setRepositoryPort(repositoryPort);
 
-        assertTrue(new OpenDJUtil().ldapCompare("givenName: James", "uid=jbond,ou=People,dc=evolveum,dc=com"));
+        assertTrue(new OpenDJUtil().ldapCompare("givenName: James", "uid=jbond,ou=People,dc=example,dc=com"));
 
         // TODO: Handle scripts
         ScriptsType scripts = new ScriptsType();
@@ -167,8 +167,8 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
         service.modifyObject(oct, scripts, new Holder<OperationalResultType>(opResult));
 
         //THEN
-        assertTrue(djUtil.existsDN("uid=jbond,ou=People,dc=evolveum,dc=com"));
-        //assertTrue(new OpenDJUtil().ldapCompare("givenName: newGivenName", "uid=jbond,ou=People,dc=evolveum,dc=com"));
+        assertTrue(djUtil.existsDN("uid=jbond,ou=People,dc=example,dc=com"));
+        //assertTrue(new OpenDJUtil().ldapCompare("givenName: newGivenName", "uid=jbond,ou=People,dc=example,dc=com"));
     }
 
     @Test
@@ -184,7 +184,7 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
 
         service.setRepositoryPort(repositoryPort);
 
-        assertTrue(new OpenDJUtil().ldapCompare("givenName: James", "uid=jbond,ou=People,dc=evolveum,dc=com"));
+        assertTrue(new OpenDJUtil().ldapCompare("givenName: James", "uid=jbond,ou=People,dc=example,dc=com"));
 
         // TODO: Handle scripts
         ScriptsType scripts = new ScriptsType();
@@ -193,8 +193,8 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
         service.modifyObject(oct, scripts, new Holder<OperationalResultType>(opResult));
 
         //THEN
-        assertTrue(djUtil.existsDN("uid=jbond,ou=People,dc=evolveum,dc=com"));
-        //assertTrue(new OpenDJUtil().ldapCompare("givenName: newGivenName", "uid=jbond,ou=People,dc=evolveum,dc=com"));
+        assertTrue(djUtil.existsDN("uid=jbond,ou=People,dc=example,dc=com"));
+        //assertTrue(new OpenDJUtil().ldapCompare("givenName: newGivenName", "uid=jbond,ou=People,dc=example,dc=com"));
     }
 
     @Test
@@ -214,7 +214,7 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
         assertNotNull(resource);
         service.setRepositoryPort(repositoryPort);
 
-        assertFalse(djUtil.existsDN("uid=ahoi,ou=People,dc=evolveum,dc=com"));
+        assertFalse(djUtil.existsDN("uid=ahoi,ou=People,dc=example,dc=com"));
 
         // TODO: Handle scripts
         ScriptsType scripts = new ScriptsType();
@@ -226,7 +226,7 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
         ObjectContainerType accountContainer = repositoryPort.getObject(result, new PropertyReferenceListType());
         assertNotNull(accountContainer.getObject());
 
-        assertTrue(djUtil.existsDN("uid=ahoi,ou=People,dc=evolveum,dc=com"));
+        assertTrue(djUtil.existsDN("uid=ahoi,ou=People,dc=example,dc=com"));
         //TODO more assetions
     }
 
@@ -247,7 +247,7 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
         assertNotNull(resource);
         service.setRepositoryPort(repositoryPort);
 
-        assertFalse(djUtil.existsDN("cn=Test,ou=People,dc=evolveum,dc=com"));
+        assertFalse(djUtil.existsDN("cn=Test,ou=People,dc=example,dc=com"));
 
         // TODO: Handle scripts
         ScriptsType scripts = new ScriptsType();
@@ -259,7 +259,7 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
         ObjectContainerType accountContainer = repositoryPort.getObject(result, new PropertyReferenceListType());
         assertNotNull(accountContainer.getObject());
 
-        assertTrue(djUtil.existsDN("cn=Test,ou=People,dc=evolveum,dc=com"));
+        assertTrue(djUtil.existsDN("cn=Test,ou=People,dc=example,dc=com"));
         //TODO more assetions
     }
 
@@ -279,7 +279,7 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
         ScriptsType scripts = new ScriptsType();
 
         //still exists
-        assertTrue(djUtil.existsDN("uid=jbond,ou=People,dc=evolveum,dc=com"));
+        assertTrue(djUtil.existsDN("uid=jbond,ou=People,dc=example,dc=com"));
 
         //WHEN
         service.deleteObject(SampleObjects.ACCOUNTSHADOWTYPE_OPENDJ_JBOND.getOID(), scripts, new Holder<OperationalResultType>(opResult));
@@ -294,13 +294,13 @@ public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
 
         //deleted
         InternalSearchOperation op = controller.getInternalConnection().processSearch(
-                "dc=evolveum,dc=com",
+                "dc=example,dc=com",
                 SearchScope.WHOLE_SUBTREE,
                 "(uid=jbond)");
 
         assertEquals(0, op.getEntriesSent());
 
-        assertFalse(djUtil.existsDN("uid=jbond,ou=People,dc=evolveum,dc=com"));
+        assertFalse(djUtil.existsDN("uid=jbond,ou=People,dc=example,dc=com"));
 
     }
 

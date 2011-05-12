@@ -35,7 +35,7 @@ oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
             <ns2:BundleProperties>
                 <iccldap:port xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">10389</iccldap:port>
                 <iccldap:host xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">localhost</iccldap:host>
-                <iccldap:baseContexts xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">dc=evolveum,dc=com</iccldap:baseContexts>
+                <iccldap:baseContexts xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">dc=example,dc=com</iccldap:baseContexts>
                 <iccldap:principal xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">cn=directory manager</iccldap:principal>
                 <iccldap:credentials xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">password</iccldap:credentials>
                 <iccldap:vlvSortAttribute xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">uid</iccldap:vlvSortAttribute>

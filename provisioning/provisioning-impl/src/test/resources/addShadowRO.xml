@@ -27,10 +27,10 @@
     <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
     <c:objectClass>dj:Group</c:objectClass>
     <c:attributes>
-        <ics:__NAME__>cn=Test,ou=People,dc=evolveum,dc=com</ics:__NAME__>
-        <ics:__UID__>cn=Test,ou=People,dc=evolveum,dc=com</ics:__UID__>
-        <!--ics:__NAME__>cn=Test,ou=Groups,dc=evolveum,dc=com</ics:__NAME__>
-        <ics:__UID__>cn=Test,ou=Groups,dc=evolveum,dc=com</ics:__UID__-->
+        <ics:__NAME__>cn=Test,ou=People,dc=example,dc=com</ics:__NAME__>
+        <ics:__UID__>cn=Test,ou=People,dc=example,dc=com</ics:__UID__>
+        <!--ics:__NAME__>cn=Test,ou=Groups,dc=example,dc=com</ics:__NAME__>
+        <ics:__UID__>cn=Test,ou=Groups,dc=example,dc=com</ics:__UID__-->
         <dj:description>Test LDAP Group</dj:description>
     </c:attributes>
 </c:object>

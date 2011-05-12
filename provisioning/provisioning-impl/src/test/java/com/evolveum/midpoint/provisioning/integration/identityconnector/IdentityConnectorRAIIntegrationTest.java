@@ -87,7 +87,7 @@ public class IdentityConnectorRAIIntegrationTest extends OpenDJUnitTestAdapter {
 //            "--trustAll",
 //            "--onlyReplicationServer1",
 //            "--replicationPort1", "8989",
-//            "--baseDN", "dc=evolveum,dc=com",
+//            "--baseDN", "dc=example,dc=com",
 //            "--no-prompt",
 //            "--adminUID", "admin2",
 //            "--adminPassword", "password2"
@@ -227,7 +227,7 @@ public class IdentityConnectorRAIIntegrationTest extends OpenDJUnitTestAdapter {
         Assert.assertNotNull(ro);
         ResourceAttribute attr = ro.getValue(ResourceUtils.ATTRIBUTE_NAME);
 
-        Assert.assertEquals("uid=jbond,ou=People,dc=evolveum,dc=com",
+        Assert.assertEquals("uid=jbond,ou=People,dc=example,dc=com",
                 attr.getSingleJavaValue(String.class));
 
         //check if the attribute is changed
@@ -238,7 +238,7 @@ public class IdentityConnectorRAIIntegrationTest extends OpenDJUnitTestAdapter {
         attributes.add(
                 "givenName");
         InternalSearchOperation op = controller.getInternalConnection().processSearch(
-                "dc=evolveum,dc=com",
+                "dc=example,dc=com",
                 SearchScope.WHOLE_SUBTREE,
                 DereferencePolicy.NEVER_DEREF_ALIASES,
                 100,
