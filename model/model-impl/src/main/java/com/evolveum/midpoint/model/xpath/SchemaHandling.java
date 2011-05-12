@@ -711,10 +711,15 @@ public class SchemaHandling extends XPathUtil {
         Validate.notNull(user, "user is null");
         Validate.notNull(resourceObjectShadow, "resourceObjectShadow is null");
 
-        AccountShadowType accountShadow = (AccountShadowType) resourceObjectShadow;
-        evaluateAndApplyOutboundExpressionValues(user, accountShadow, resource);
+        if (resourceObjectShadow instanceof AccountShadowType) {
+        	AccountShadowType accountShadow = (AccountShadowType) resourceObjectShadow;
+        	evaluateAndApplyOutboundExpressionValues(user, accountShadow, resource);
 
-        return accountShadow;
+        	return accountShadow;
+        } else {
+        	throw new SchemaHandlingException("Parameter resourceObjectShadow is instance of unsupported subclass: " + resourceObjectShadow.getClass());
+        } 
+        
     }
 
     public boolean confirmUser(UserType user, ResourceObjectShadowType resourceObjectShadow, ExpressionHolder expression) {
@@ -724,7 +729,7 @@ public class SchemaHandling extends XPathUtil {
 
         Map<QName, Variable> variables = getDefaultXPathVariables(user, resourceObjectShadow);
         String confirmed = evaluateExpression(variables, expression);
-        return new Boolean(confirmed);
+        return Boolean.valueOf(confirmed);
     }
 
     public String evaluateCorrelationExpression(ResourceObjectShadowType resourceObjectShadow, ExpressionHolder expression) {

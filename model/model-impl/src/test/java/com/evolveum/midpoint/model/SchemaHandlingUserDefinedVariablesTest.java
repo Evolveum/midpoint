@@ -92,7 +92,7 @@ public class SchemaHandlingUserDefinedVariablesTest {
     public void testApplyOutboundSchemaHandlingWithUserDefinedVariablesOnAccount() throws Exception {
         final String myConfigOid = "c0c010c0-d34d-b33f-f00d-999111111111";
         try {
-            GenericObjectType myConfig = (GenericObjectType) addObjectToRepo("src/test/resources/generic-object-my-config.xml");
+//            GenericObjectType myConfig = (GenericObjectType) addObjectToRepo("src/test/resources/generic-object-my-config.xml");
 
             JAXBElement<AccountShadowType> accountJaxb = (JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File("src/test/resources/account-resource-schema-handling-custom-variables.xml"));
             JAXBElement<UserType> userJaxb = (JAXBElement<UserType>) JAXBUtil.unmarshal(new File("src/test/resources/user-new.xml"));

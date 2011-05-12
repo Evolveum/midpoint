@@ -60,8 +60,8 @@ public class ModelGetImportStatusTest {
     ProvisioningPortType provisioningService;
     @Autowired(required = true)
     RepositoryPortType repositoryService;
-    @Autowired(required = true)
-    SchemaHandling schemaHandling;
+//    @Autowired(required = true)
+//    SchemaHandling schemaHandling;
 
     @Before
     public void before() {

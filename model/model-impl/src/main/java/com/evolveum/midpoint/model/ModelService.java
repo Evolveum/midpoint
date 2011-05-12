@@ -823,7 +823,7 @@ public class ModelService implements ModelPortType {
 	}
 
 	private void updateUserAccounts(UserType user, String accountOid) throws FaultMessage {
-		logger.trace("updateUserAccounts::begin - {}, {}", user.getOid(), accountOid);
+		logger.trace("updateUserAccounts::begin - {}, {}", (null != user ? user.getOid() : null), accountOid);
 		if (user == null) {
 			throw createFaultMessage("User object is null, skipping account updates.",
 					IllegalArgumentFaultType.class, false, null, null);

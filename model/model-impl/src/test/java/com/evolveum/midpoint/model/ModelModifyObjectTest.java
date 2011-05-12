@@ -64,8 +64,8 @@ public class ModelModifyObjectTest {
     ProvisioningPortType provisioningService;
     @Autowired(required = true)
     RepositoryPortType repositoryService;
-    @Autowired(required = true)
-    SchemaHandling schemaHandling;
+//    @Autowired(required = true)
+//    SchemaHandling schemaHandling;
 
     @Before
     public void before() {
@@ -109,9 +109,9 @@ public class ModelModifyObjectTest {
     @Test
     @SuppressWarnings("unchecked")
     public void correctModifyUser() throws JAXBException {
-        final String oid = "1";
-        ObjectModificationType modification = ((JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(
-                new File(TEST_FOLDER, "modify-user-correct.xml"))).getValue();
+//        final String oid = "1";
+//        ObjectModificationType modification = ((JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(
+//                new File(TEST_FOLDER, "modify-user-correct.xml"))).getValue();
         fail("not implemented yet.");
     }
 }

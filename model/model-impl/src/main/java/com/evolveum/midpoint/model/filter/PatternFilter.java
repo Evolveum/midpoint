@@ -128,7 +128,7 @@ public class PatternFilter extends AbstractFilter {
 
 
 
-    class Replace {
+    static private class Replace {
 
         private String replacement;
 

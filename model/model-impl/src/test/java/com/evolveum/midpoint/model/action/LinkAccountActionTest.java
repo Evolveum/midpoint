@@ -78,8 +78,8 @@ public class LinkAccountActionTest {
     private RepositoryPortType repositoryService;
     @Autowired(required = true)
     private ResourceAccessInterface rai;
-    @Autowired(required = true)
-    private ProvisioningPortType provisioningService;
+//    @Autowired(required = true)
+//    private ProvisioningPortType provisioningService;
 
     public LinkAccountActionTest() {
     }
@@ -138,7 +138,7 @@ public class LinkAccountActionTest {
             //create additional change
             ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-add.xml");
             //adding objects to repo
-            UserType userType = (UserType) addObjectToRepo("src/test/resources/user.xml");
+//            UserType userType = (UserType) addObjectToRepo("src/test/resources/user.xml");
             ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());
             AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change.getShadow());
 

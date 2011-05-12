@@ -83,11 +83,11 @@ public class PasswordServiceTest {
     @Ignore
     public void testChangePassword() {
         System.out.println("changePassword");
-        PasswordChangeRequestType pcrt = null;
-        PasswordService instance = new PasswordService();
-        PasswordChangeResponseType expResult = null;
-        PasswordChangeResponseType result = instance.changePassword(pcrt);
-        assertEquals(expResult, result);
+//        PasswordChangeRequestType pcrt = null;
+//        PasswordService instance = new PasswordService();
+//        PasswordChangeResponseType expResult = null;
+//        PasswordChangeResponseType result = instance.changePassword(pcrt);
+//        assertEquals(expResult, result);
         fail("The test case is a prototype.");
     }
 

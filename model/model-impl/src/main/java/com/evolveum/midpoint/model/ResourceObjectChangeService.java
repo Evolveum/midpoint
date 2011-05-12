@@ -546,7 +546,7 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
         ADD, DELETE, MODIFY;
     }
 
-    private class SituationState {
+    private static class SituationState {
 
         UserType user;
         SynchronizationSituationType situation;

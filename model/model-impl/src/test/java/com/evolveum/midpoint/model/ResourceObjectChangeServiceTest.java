@@ -90,8 +90,8 @@ public class ResourceObjectChangeServiceTest {
     private RepositoryPortType repositoryService;
     @Autowired(required = true)
     private ResourceAccessInterface rai;
-    @Autowired(required = true)
-    private ProvisioningPortType provisioningService;
+//    @Autowired(required = true)
+//    private ProvisioningPortType provisioningService;
 
     public ResourceObjectChangeServiceTest() {
     }
@@ -168,8 +168,8 @@ public class ResourceObjectChangeServiceTest {
             //prepare objects used by tests in the repo
             ResourceType resource = (ResourceType) addObjectToRepo("src/test/resources/resource-password-change.xml");
             AccountShadowType accountShadowOrigin = (AccountShadowType) addObjectToRepo("src/test/resources/account-origin-password-change.xml");
-            AccountShadowType accountShadowTarget = (AccountShadowType) addObjectToRepo("src/test/resources/account-target-password-change.xml");
-            UserType user = (UserType) addObjectToRepo("src/test/resources/user-password-change.xml");
+//            AccountShadowType accountShadowTarget = (AccountShadowType) addObjectToRepo("src/test/resources/account-target-password-change.xml");
+//            UserType user = (UserType) addObjectToRepo("src/test/resources/user-password-change.xml");
 
             //setup provisioning mock
             BaseResourceIntegration bri = new BaseResourceIntegration(resource);
