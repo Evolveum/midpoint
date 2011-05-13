@@ -48,7 +48,6 @@ import com.evolveum.midpoint.validator.Validator;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
@@ -86,8 +85,18 @@ public class ImportController implements Serializable {
 			objectContainer.setObject(object);
 			try {
 				if (overwrite) {
-					if (repositoryService.getObject(object.getOid(), new PropertyReferenceListType()) != null) {
+					try {
 						repositoryService.deleteObject(object.getOid());
+					} catch (FaultMessage ex) {
+						StringBuilder message = new StringBuilder();
+						message.append("Warning: Couldn't delete object '");
+						message.append(object.getName());
+						message.append("' with oid '");
+						message.append(object.getOid());
+						message.append("', reason: ");
+						message.append(ex.getMessage());
+						message.append(". It will be only added, not replaced.");
+						FacesUtils.addErrorMessage(message.toString());
 					}
 				}
 				repositoryService.addObject(objectContainer);
