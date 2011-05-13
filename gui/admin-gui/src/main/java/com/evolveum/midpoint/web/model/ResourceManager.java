@@ -25,13 +25,13 @@ package com.evolveum.midpoint.web.model;
 import java.util.List;
 
 /**
- *
+ * 
  * TODO
- *
+ * 
  * @author semancik
  */
 public interface ResourceManager extends ObjectManager<ResourceDto> {
 
-    List<ResourceObjectShadowDto> listObjectShadows(String oid, Class resourceObjectShadowType);
+	List<ResourceObjectShadowDto> listObjectShadows(String oid, Class<?> resourceObjectShadowType);
 
 }

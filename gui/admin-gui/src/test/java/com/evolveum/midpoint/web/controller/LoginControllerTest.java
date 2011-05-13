@@ -31,7 +31,7 @@ public class LoginControllerTest {
 	public void nullUsername() {
 		controller.setUserName(null);
 		controller.setPassword("qwe123");
-		
+		//TODO: remove ignore on test and fix it
 		assertNull(controller.login());
 	}
 }

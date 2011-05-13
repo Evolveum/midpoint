@@ -31,31 +31,35 @@ import java.util.Set;
  * Provides unified access to the business logic, model, repository or anything
  * else that may be "down there". The Goal is to isolate GUI from deployment
  * changes and changes in business logic.
- *
+ * 
  * This interface is supposed to support many object types. ObjectTypeCatalog
  * provides instances of ObjectManagers. ObjectManagers can manipulate
  * individual object types.
- *
+ * 
  * DRAFT: this is the very first and quite simple version.
- *
+ * 
  * @author semancik
  */
-public interface ObjectTypeCatalog extends Serializable{
+public interface ObjectTypeCatalog extends Serializable {
 
-    /**
-     * Retuns list of supported object types (in form of Java classes).
-     *
-     * @return list of supported object types (in form of Java classes)
-     */
-    Set<Class> listSupportedObjectTypes();
+	/**
+	 * Retuns list of supported object types (in form of Java classes).
+	 * 
+	 * @return list of supported object types (in form of Java classes)
+	 */
+	Set<Class> listSupportedObjectTypes();
 
-    /**
-     *  Returns instance of ObjectManager appropriate for specified class.
-     * @param <T> stadard object type (in form of Java classes)
-     * @param <C> custom DTO class
-     * @param type custom DTO class
-     * @return
-     */
-    <T extends ObjectDto, C extends T> ObjectManager<T> getObjectManager(Class<T> managerType, Class<C> dtoType);
-
+	/**
+	 * Returns instance of ObjectManager appropriate for specified class.
+	 * 
+	 * @param <T>
+	 *            stadard object type (in form of Java classes)
+	 * @param <C>
+	 *            custom DTO class
+	 * @param type
+	 *            custom DTO class
+	 * @return
+	 */
+	<T extends ObjectDto, C extends T> ObjectManager<T> getObjectManager(Class<T> managerType,
+			Class<C> dtoType);
 }

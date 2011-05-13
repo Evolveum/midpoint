@@ -31,35 +31,29 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang.Validate;
 
-/**
- * End user entity.
- *
- * @author $author$
- * @version $Revision$ $Date$
- * @since 1.0.0
- */
 public class ObjectTypeCatalogImpl implements ObjectTypeCatalog {
 
-    private Map<Class<? extends ObjectType>, ObjectManager> supportedObjectManagers = new HashMap<Class<? extends ObjectType>, ObjectManager>();
+	private static final long serialVersionUID = -8993202087773409957L;
+	private Map<Class<? extends ObjectType>, ObjectManager> supportedObjectManagers = new HashMap<Class<? extends ObjectType>, ObjectManager>();
 
-    @Override
-    public Set<Class> listSupportedObjectTypes() {
-        Set supportedObjectTypes = supportedObjectManagers.keySet();
-        return supportedObjectTypes;
-    }
+	@Override
+	public Set<Class> listSupportedObjectTypes() {
+		Set supportedObjectTypes = supportedObjectManagers.keySet();
+		return supportedObjectTypes;
+	}
 
-    public <T extends ObjectType> void add(Class<T> type, ObjectManager objectManager) {
-        supportedObjectManagers.put(type, objectManager);
-    }
+	public <T extends ObjectType> void add(Class<T> type, ObjectManager<?> objectManager) {
+		supportedObjectManagers.put(type, objectManager);
+	}
 
-    public void setSupportedObjectManagers(Map<Class<? extends ObjectType>, ObjectManager> objectManagers) {
-        Validate.notNull(objectManagers);
-        supportedObjectManagers = objectManagers;
-    }
+	public void setSupportedObjectManagers(Map<Class<? extends ObjectType>, ObjectManager> objectManagers) {
+		Validate.notNull(objectManagers);
+		supportedObjectManagers = objectManagers;
+	}
 
-    @Override
-    public <T extends ObjectDto, C extends T> ObjectManager<T> getObjectManager(Class<T> managerType, Class<C> dtoType) {
-                return supportedObjectManagers.get(dtoType);
-    }
-
+	@Override
+	public <T extends ObjectDto, C extends T> ObjectManager<T> getObjectManager(Class<T> managerType,
+			Class<C> dtoType) {
+		return supportedObjectManagers.get(dtoType);
+	}
 }

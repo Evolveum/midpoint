@@ -53,12 +53,12 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 
 	private static final long serialVersionUID = 8238616310118713517L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceTypeManager.class);
-	private Class constructResourceType;
+	private Class<?> constructResourceType;
 
 	@Autowired(required = true)
 	private transient ModelPortType model;
 
-	public ResourceTypeManager(Class constructResourceType) {
+	public ResourceTypeManager(Class<?> constructResourceType) {
 		this.constructResourceType = constructResourceType;
 	}
 
@@ -160,7 +160,7 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 	}
 
 	@Override
-	public List<ResourceObjectShadowDto> listObjectShadows(String oid, Class resourceObjectShadowType) {
+	public List<ResourceObjectShadowDto> listObjectShadows(String oid, Class<?> resourceObjectShadowType) {
 		Validate.notNull(oid);
 		try {
 			ResourceObjectShadowListType resourceObjectShadowListType = model.listResourceObjectShadows(oid,

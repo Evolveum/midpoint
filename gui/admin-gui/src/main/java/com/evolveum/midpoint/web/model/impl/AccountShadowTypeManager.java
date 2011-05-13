@@ -54,144 +54,139 @@ import java.util.Set;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
-/**
- * End user entity.
- *
- * @author $author$
- * @version $Revision$ $Date$
- * @since 1.0.0
- */
 public class AccountShadowTypeManager implements AccountShadowManager, Serializable {
 
 	private static final long serialVersionUID = 4540270042561861862L;
 	private static final Trace TRACE = TraceManager.getTrace(AccountShadowTypeManager.class);
-    private Class constructAccountShadowType;
+	private Class<?> constructAccountShadowType;
 
-    public AccountShadowTypeManager(Class constructAccountShadowType) {
-        this.constructAccountShadowType = constructAccountShadowType;
-    }
+	public AccountShadowTypeManager(Class<?> constructAccountShadowType) {
+		this.constructAccountShadowType = constructAccountShadowType;
+	}
 
-    @Autowired
-    private transient ModelPortType port;
-    
-    @Override
-    public Collection<AccountShadowDto> list() {
+	@Autowired
+	private transient ModelPortType port;
 
-        try { // Call Web Service Operation
-            // TODO: more reasonable handling of paging info
-            PagingType paging = new PagingType();
-            ObjectListType result = port.listObjects(Utils.getObjectType("AccountType"),paging);
-            List<ObjectType> objects = result.getObject();
-            Collection<AccountShadowDto> items = new ArrayList<AccountShadowDto>(objects.size());
-            for (Object o : objects) {
-                AccountShadowType accountType = (AccountShadowType) o;
-                items.add((new AccountShadowDto(accountType)));
-            }
-            return items;
-        } catch (Exception ex) {
-            TRACE.error("List accounts failed");
-            TRACE.error("Exception was: ", ex);
-            return null;
-        }
+	@Override
+	public Collection<AccountShadowDto> list() {
 
-    }
+		try { // Call Web Service Operation
+				// TODO: more reasonable handling of paging info
+			PagingType paging = new PagingType();
+			ObjectListType result = port.listObjects(Utils.getObjectType("AccountType"), paging);
+			List<ObjectType> objects = result.getObject();
+			Collection<AccountShadowDto> items = new ArrayList<AccountShadowDto>(objects.size());
+			for (Object o : objects) {
+				AccountShadowType accountType = (AccountShadowType) o;
+				items.add((new AccountShadowDto(accountType)));
+			}
+			return items;
+		} catch (Exception ex) {
+			TRACE.error("List accounts failed");
+			TRACE.error("Exception was: ", ex);
+			return null;
+		}
 
-    @Override
-    public AccountShadowDto get(String oid, PropertyReferenceListType resolve) throws WebModelException {
-        TRACE.info("oid = {}", new Object[]{oid});
-        Validate.notNull(oid);
-        try { // Call Web Service Operation
-            ObjectContainerType result = port.getObject(oid, resolve);
-            ObjectStage stage = new ObjectStage();
-            stage.setObject(result.getObject());
+	}
 
-            AccountShadowDto accountShadowDto = (AccountShadowDto) constructAccountShadowType.newInstance();
-            accountShadowDto.setStage(stage);
+	@Override
+	public AccountShadowDto get(String oid, PropertyReferenceListType resolve) throws WebModelException {
+		TRACE.info("oid = {}", new Object[] { oid });
+		Validate.notNull(oid);
+		try { // Call Web Service Operation
+			ObjectContainerType result = port.getObject(oid, resolve);
+			ObjectStage stage = new ObjectStage();
+			stage.setObject(result.getObject());
 
-            return accountShadowDto;
-        } catch (FaultMessage ex) {
-            TRACE.error("Account lookup for oid = {} failed", oid);
-            TRACE.error("Exception was: ", ex);
-            throw new WebModelException(ex.getMessage(), "Failed to get account with oid " + oid);
-        } catch (InstantiationException ex) {
-            TRACE.error("Instantiation failed: {}", ex);
-            return null;
-        } catch (IllegalAccessException ex) {
-            TRACE.error("Class or its nullary constructor is not accessible: {}", ex);
-            return null;
-        }
-    }
+			AccountShadowDto accountShadowDto = (AccountShadowDto) constructAccountShadowType.newInstance();
+			accountShadowDto.setStage(stage);
 
-    @Override
-    public String add(AccountShadowDto accountShadowDto) throws WebModelException {
-        Validate.notNull(accountShadowDto);
+			return accountShadowDto;
+		} catch (FaultMessage ex) {
+			TRACE.error("Account lookup for oid = {} failed", oid);
+			TRACE.error("Exception was: ", ex);
+			throw new WebModelException(ex.getMessage(), "Failed to get account with oid " + oid);
+		} catch (InstantiationException ex) {
+			TRACE.error("Instantiation failed: {}", ex);
+			return null;
+		} catch (IllegalAccessException ex) {
+			TRACE.error("Class or its nullary constructor is not accessible: {}", ex);
+			return null;
+		}
+	}
 
-        try { // Call Web Service Operation
-            ObjectContainerType objectContainer = new ObjectContainerType();
-            objectContainer.setObject(accountShadowDto.getXmlObject());
-            String result = port.addObject(objectContainer);
-            return result;
-        } catch (FaultMessage ex) {
-            throw new WebModelException(ex.getMessage(), "[Web Service Error] Add account failed");
-        }
+	@Override
+	public String add(AccountShadowDto accountShadowDto) throws WebModelException {
+		Validate.notNull(accountShadowDto);
 
-    }
+		try { // Call Web Service Operation
+			ObjectContainerType objectContainer = new ObjectContainerType();
+			objectContainer.setObject(accountShadowDto.getXmlObject());
+			String result = port.addObject(objectContainer);
+			return result;
+		} catch (FaultMessage ex) {
+			throw new WebModelException(ex.getMessage(), "[Web Service Error] Add account failed");
+		}
 
-    @Override
-    public void delete(String oid) throws WebModelException {
-        TRACE.info("oid = {}", new Object[]{oid});
-        Validate.notNull(oid);
+	}
 
-        try { // Call Web Service Operation
-            port.deleteObject(oid);
-        } catch (FaultMessage ex) {
-            throw new WebModelException(ex.getMessage(), "[Web Service Error] Delete account failed.");
-        }
-    }
+	@Override
+	public void delete(String oid) throws WebModelException {
+		TRACE.info("oid = {}", new Object[] { oid });
+		Validate.notNull(oid);
 
-    @Override
-    public UserType listOwner(String oid) throws WebModelException {
-        Validate.notNull(oid);
+		try { // Call Web Service Operation
+			port.deleteObject(oid);
+		} catch (FaultMessage ex) {
+			throw new WebModelException(ex.getMessage(), "[Web Service Error] Delete account failed.");
+		}
+	}
 
-        try {
-            UserContainerType userContainerType = port.listAccountShadowOwner(oid);
-            UserType userType = userContainerType.getUser();
-            return userType;
-        } catch (FaultMessage ex) {
-            throw new WebModelException(ex.getMessage(), "[Web Service Error] List owner failed.");
-        }
-    }
+	@Override
+	public UserType listOwner(String oid) throws WebModelException {
+		Validate.notNull(oid);
 
-    @Override
-    public AccountShadowDto create() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+		try {
+			UserContainerType userContainerType = port.listAccountShadowOwner(oid);
+			UserType userType = userContainerType.getUser();
+			return userType;
+		} catch (FaultMessage ex) {
+			throw new WebModelException(ex.getMessage(), "[Web Service Error] List owner failed.");
+		}
+	}
 
-    @Override
-    public Set<PropertyChange> submit(AccountShadowDto changedObject) throws WebModelException {
-        AccountShadowDto oldObject = get(changedObject.getOid(), Utils.getResolveResourceList());
-        try {
-            ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(), changedObject.getXmlObject());
-            if (changes != null && changes.getOid() != null) {
-                port.modifyObject(changes);
-            }
-        } catch (FaultMessage ex) {
-            throw new WebModelException(ex.getMessage(), "[Web Service Error] Submit account failed (Model service call failed)");
-        } catch (DiffException ex) {
-            throw new WebModelException(ex.getMessage(), "Submit account failed (XML Diff failed)");
-        }
+	@Override
+	public AccountShadowDto create() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-        //TODO: convert changes to GUI changes
-        return null;
-    }
+	@Override
+	public Set<PropertyChange> submit(AccountShadowDto changedObject) throws WebModelException {
+		AccountShadowDto oldObject = get(changedObject.getOid(), Utils.getResolveResourceList());
+		try {
+			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),
+					changedObject.getXmlObject());
+			if (changes != null && changes.getOid() != null) {
+				port.modifyObject(changes);
+			}
+		} catch (FaultMessage ex) {
+			throw new WebModelException(ex.getMessage(),
+					"[Web Service Error] Submit account failed (Model service call failed)");
+		} catch (DiffException ex) {
+			throw new WebModelException(ex.getMessage(), "Submit account failed (XML Diff failed)");
+		}
 
-    @Override
-    public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+		// TODO: convert changes to GUI changes
+		return null;
+	}
 
-    @Override
-    public Collection<UserDto> list(PagingDto pagingDto) throws WebModelException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+	@Override
+	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Collection<UserDto> list(PagingDto pagingDto) throws WebModelException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }
