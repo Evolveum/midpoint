@@ -22,11 +22,15 @@
 
 package com.evolveum.midpoint.web.util;
 
+import java.util.ResourceBundle;
+
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FaultType;
 
 /**
@@ -35,9 +39,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.FaultType;
  */
 public abstract class FacesUtils {
 
+	private static final Trace TRACE = TraceManager.getTrace(FacesUtils.class);
+
 	public static String getBundleKey(String bundleName, String key) {
-		return FacesContext.getCurrentInstance().getApplication()
-				.getResourceBundle(FacesContext.getCurrentInstance(), bundleName).getString(key);
+		ResourceBundle bundle = FacesContext.getCurrentInstance().getApplication()
+				.getResourceBundle(FacesContext.getCurrentInstance(), bundleName);
+
+		if (bundle == null) {
+			TRACE.warn("Couldn't get resource bundle '" + bundleName + "' and look for key '" + key + "'.");
+			return "!" + key + "!";
+		}
+
+		return bundle.getString(key);
 	}
 
 	public static void addSuccessMessage(String msg) {
@@ -75,8 +88,8 @@ public abstract class FacesUtils {
 		if (!StringUtils.isEmpty(faultMessage)) {
 			return faultMessage;
 		}
-		
-		StringBuilder builder = new StringBuilder();		
+
+		StringBuilder builder = new StringBuilder();
 		builder.append(faultMessage);
 
 		boolean messageAdded = false;

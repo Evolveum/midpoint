@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.model.test;
+package com.evolveum.midpoint.web.test;
 
 import com.evolveum.midpoint.util.Utils;
 import com.evolveum.midpoint.web.model.AccountShadowDto;

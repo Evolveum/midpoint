@@ -54,10 +54,16 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 	private int maxFailedLogins;
 
 	public void setLoginTimeout(int loginTimeout) {
+		if (loginTimeout < 0) {
+			loginTimeout = 0;
+		}
 		this.loginTimeout = loginTimeout;
 	}
 
 	public void setMaxFailedLogins(int maxFailedLogins) {
+		if (maxFailedLogins < 0) {
+			maxFailedLogins = 0;
+		}
 		this.maxFailedLogins = maxFailedLogins;
 	}
 
@@ -76,8 +82,8 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		} catch (BadCredentialsException ex) {
 			throw ex;
 		} catch (Exception ex) {
-			TRACE.error("Can't get user with username '{}'. Unknown error occured, reason {}.",
-					new Object[] { authentication.getPrincipal(), ex.getMessage() });
+			TRACE.error("Can't get user with username '{}'. Unknown error occured, reason {}.", new Object[] {
+					authentication.getPrincipal(), ex.getMessage() });
 			TRACE.debug("Can't authenticate user '{}'.", new Object[] { authentication.getPrincipal() }, ex);
 			throw new AuthenticationServiceException(
 					"Currently we are unable to process your request. Kindly try again later.");
@@ -107,7 +113,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		if (UsernamePasswordAuthenticationToken.class.equals(authentication)) {
 			return true;
 		}
-		
+
 		return false;
 	}
 
@@ -122,7 +128,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 		Credentials credentials = user.getCredentials();
 		if (credentials.getFailedLogins() >= maxFailedLogins) {
-			long lockedTill = credentials.getLastFailedLoginAttempt() + (60000L * loginTimeout );
+			long lockedTill = credentials.getLastFailedLoginAttempt() + (60000L * loginTimeout);
 			if (lockedTill > System.currentTimeMillis()) {
 				long time = (lockedTill - System.currentTimeMillis()) / 60000;
 				throw new BadCredentialsException("User is locked, please wait " + time + " minute(s)");

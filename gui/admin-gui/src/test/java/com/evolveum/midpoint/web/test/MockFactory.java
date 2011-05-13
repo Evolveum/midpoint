@@ -20,20 +20,19 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.model.test;
+package com.evolveum.midpoint.web.test;
 
 import org.mockito.Mockito;
 
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
- *
+ * 
  * @author sleepwalker
  */
 public class MockFactory {
 
-    public static ModelPortType createModelPortType() {
-        return Mockito.mock(ModelPortType.class);
-    }
-
+	public static ModelPortType createModelPortType() {
+		return Mockito.mock(ModelPortType.class);
+	}
 }

@@ -47,16 +47,15 @@
 	<!-- Scans for application @Components to deploy -->
 	<context:component-scan base-package="com.evolveum.midpoint.web" />
 
-	<bean id="guiUserDtoManager" class="com.evolveum.midpoint.web.model.test.UserTypeManagerMock" scope="singleton">
+	<bean id="guiUserDtoManager" class="com.evolveum.midpoint.web.test.UserTypeManagerMock" scope="singleton">
 		<constructor-arg name="constructUserType" value="com.evolveum.midpoint.web.dto.GuiUserDto" />
 	</bean>
 
-	<bean id="guiAccountShadowDtoManager" class="com.evolveum.midpoint.web.model.test.AccountShadowTypeManagerMock"
-		scope="singleton">
+	<bean id="guiAccountShadowDtoManager" class="com.evolveum.midpoint.web.test.AccountShadowTypeManagerMock" scope="singleton">
 		<constructor-arg name="constructAccountShadowType" value="com.evolveum.midpoint.web.dto.GuiAccountShadowDto" />
 	</bean>
 
-	<bean id="guiResourceDtoManager" class="com.evolveum.midpoint.web.model.test.ResourceTypeManagerMock" scope="singleton">
+	<bean id="guiResourceDtoManager" class="com.evolveum.midpoint.web.test.ResourceTypeManagerMock" scope="singleton">
 		<constructor-arg name="constructResourceType" value="com.evolveum.midpoint.web.dto.GuiResourceDto" />
 	</bean>
 
@@ -98,7 +97,5 @@
 		</property>
 	</bean>
 
-	<bean name="modelService" class="com.evolveum.midpoint.web.model.test.MockFactory" factory-method="createModelPortType" />
-
-
+	<bean name="modelService" class="com.evolveum.midpoint.web.test.MockFactory" factory-method="createModelPortType" />
 </beans>
