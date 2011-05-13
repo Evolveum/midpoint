@@ -53,6 +53,13 @@
         <tag>HEAD</tag>
         <url>https://fisheye.evolveum.com/midpoint/</url>
     </scm>
+    <repositories>
+        <repository>
+            <id>evolveum</id>
+            <name>repo</name>
+            <url>http://repo.evolveum.com/repo</url>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>xmlunit</groupId>
