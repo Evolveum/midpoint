@@ -1,33 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2011 Evolveum                             -->
-<!--                                                         -->
-<!-- The contents of this file are subject to the terms      -->
-<!-- of the Common Development and Distribution License      -->
-<!-- (the License). You may not use this file except in      -->
-<!-- compliance with the License.                            -->
-<!--                                                         -->
-<!-- You can obtain a copy of the License at                 -->
-<!-- http://www.opensource.org/licenses/cddl1 or             -->
-<!-- CDDLv1.0.txt file in the source code distribution.      -->
-<!-- See the License for the specific language governing     -->
-<!-- permission and limitations under the License.           -->
-<!--                                                         -->
+<!-- Copyright (c) 2011 Evolveum -->
+<!-- -->
+<!-- The contents of this file are subject to the terms -->
+<!-- of the Common Development and Distribution License -->
+<!-- (the License). You may not use this file except in -->
+<!-- compliance with the License. -->
+<!-- -->
+<!-- You can obtain a copy of the License at -->
+<!-- http://www.opensource.org/licenses/cddl1 or -->
+<!-- CDDLv1.0.txt file in the source code distribution. -->
+<!-- See the License for the specific language governing -->
+<!-- permission and limitations under the License. -->
+<!-- -->
 <!-- If applicable, add the following below the CDDL Header, -->
-<!-- with the fields enclosed by brackets [] replaced by     -->
-<!-- your own identifying information:                       -->
-<!--                                                         -->
-<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
-<!--                                                         -->
-<beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:jee="http://www.springframework.org/schema/jee"
-    xmlns:aop="http://www.springframework.org/schema/aop"
-    xmlns:context="http://www.springframework.org/schema/context"
-    xmlns:tx="http://www.springframework.org/schema/tx"
-    xmlns:ws= "http://jax-ws.dev.java.net/spring/core"
-    xmlns:wss="http://jax-ws.dev.java.net/spring/servlet"
-    xsi:schemaLocation="
+<!-- with the fields enclosed by brackets [] replaced by -->
+<!-- your own identifying information: -->
+<!-- -->
+<!-- Portions Copyrighted 2011 [name of copyright owner] -->
+<!-- Portions Copyrighted 2010 Forgerock -->
+<!-- -->
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:jee="http://www.springframework.org/schema/jee" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:ws="http://jax-ws.dev.java.net/spring/core" xmlns:wss="http://jax-ws.dev.java.net/spring/servlet"
+	xsi:schemaLocation="
      http://www.springframework.org/schema/jee
      http://www.springframework.org/schema/jee/spring-jee-3.0.xsd
      http://www.springframework.org/schema/beans
@@ -42,63 +38,67 @@
      http://jax-ws.dev.java.net/spring/core.xsd
      http://jax-ws.dev.java.net/spring/servlet
      http://jax-ws.dev.java.net/spring/servlet.xsd"
-     default-lazy-init="false">
+	default-lazy-init="false">
 
-    <!-- Activates annotation-based bean configuration -->
-    <context:annotation-config />
-    <!-- needed is for @Configurable -->
-    <!--context:spring-configured/-->
-    <!-- Scans for application @Components to deploy -->
-    <context:component-scan base-package="com.evolveum.midpoint.web"/>
+	<!-- Activates annotation-based bean configuration -->
+	<context:annotation-config />
+	<!-- needed is for @Configurable -->
+	<!--context:spring-configured/ -->
+	<!-- Scans for application @Components to deploy -->
+	<context:component-scan base-package="com.evolveum.midpoint.web" />
 
-    <bean id="guiUserDtoManager" class="com.evolveum.midpoint.web.model.test.UserTypeManagerMock" scope="singleton">
-        <constructor-arg name="constructUserType" value="com.evolveum.midpoint.web.dto.GuiUserDto"/>
-    </bean>
+	<bean id="guiUserDtoManager" class="com.evolveum.midpoint.web.model.test.UserTypeManagerMock" scope="singleton">
+		<constructor-arg name="constructUserType" value="com.evolveum.midpoint.web.dto.GuiUserDto" />
+	</bean>
 
-    <bean id="guiAccountShadowDtoManager" class="com.evolveum.midpoint.web.model.test.AccountShadowTypeManagerMock" scope="singleton">
-        <constructor-arg name="constructAccountShadowType" value="com.evolveum.midpoint.web.dto.GuiAccountShadowDto"/>
-    </bean>
+	<bean id="guiAccountShadowDtoManager" class="com.evolveum.midpoint.web.model.test.AccountShadowTypeManagerMock"
+		scope="singleton">
+		<constructor-arg name="constructAccountShadowType" value="com.evolveum.midpoint.web.dto.GuiAccountShadowDto" />
+	</bean>
 
-    <bean id="guiResourceDtoManager" class="com.evolveum.midpoint.web.model.test.ResourceTypeManagerMock" scope="singleton">
-        <constructor-arg name="constructResourceType" value="com.evolveum.midpoint.web.dto.GuiResourceDto"/>
-    </bean>
+	<bean id="guiResourceDtoManager" class="com.evolveum.midpoint.web.model.test.ResourceTypeManagerMock" scope="singleton">
+		<constructor-arg name="constructResourceType" value="com.evolveum.midpoint.web.dto.GuiResourceDto" />
+	</bean>
 
-    <bean id="objectTypeCatalog" class="com.evolveum.midpoint.web.model.impl.ObjectTypeCatalogImpl" scope="singleton">
-        <property name="supportedObjectManagers">
-            <map>
-                <entry>
-                    <key>
-                        <value>com.evolveum.midpoint.web.dto.GuiUserDto</value>
-                    </key>
-                    <ref bean="guiUserDtoManager"/>
-                </entry>
-                <entry>
-                    <key>
-                        <value>com.evolveum.midpoint.web.dto.GuiAccountShadowDto</value>
-                    </key>
-                    <ref bean="guiAccountShadowDtoManager"/>
-                </entry>
-                <entry>
-                    <key>
-                        <value>com.evolveum.midpoint.web.dto.GuiResourceDto</value>
-                    </key>
-                    <ref bean="guiResourceDtoManager"/>
-                </entry>
-            </map>
-        </property>
-    </bean>
+	<bean id="objectTypeCatalog" class="com.evolveum.midpoint.web.model.impl.ObjectTypeCatalogImpl" scope="singleton">
+		<property name="supportedObjectManagers">
+			<map>
+				<entry>
+					<key>
+						<value>com.evolveum.midpoint.web.dto.GuiUserDto</value>
+					</key>
+					<ref bean="guiUserDtoManager" />
+				</entry>
+				<entry>
+					<key>
+						<value>com.evolveum.midpoint.web.dto.GuiAccountShadowDto</value>
+					</key>
+					<ref bean="guiAccountShadowDtoManager" />
+				</entry>
+				<entry>
+					<key>
+						<value>com.evolveum.midpoint.web.dto.GuiResourceDto</value>
+					</key>
+					<ref bean="guiResourceDtoManager" />
+				</entry>
+			</map>
+		</property>
+	</bean>
 
-    <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
-        <property name="scopes">
-            <map>
-                <entry key="session">
-                    <bean class="com.gridpulse.xandria.translator.MockSessionScope"/>
-                </entry>
-            </map>
-        </property>
-    </bean>
-    
-    <bean name="modelService" class="com.evolveum.midpoint.web.model.test.MockFactory" factory-method="createModelPortType" />
-    
+	<bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+		<property name="scopes">
+			<map>
+				<entry key="session">
+					<bean class="com.evolveum.midpoint.web.test.MockSessionScope" />
+				</entry>
+				<entry key="request">
+					<bean class="com.evolveum.midpoint.web.test.MockRequestScope" />
+				</entry>
+			</map>
+		</property>
+	</bean>
+
+	<bean name="modelService" class="com.evolveum.midpoint.web.model.test.MockFactory" factory-method="createModelPortType" />
+
 
 </beans>

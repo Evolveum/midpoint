@@ -65,7 +65,7 @@ public class ImportController implements Serializable {
 	private String xmlObject;
 	private boolean overwrite = false;
 	@Autowired(required = true)
-	transient RepositoryPortType repositoryService;
+	private transient RepositoryPortType repositoryService;
 
 	public String setImportPage() {
 		xmlObject = "";

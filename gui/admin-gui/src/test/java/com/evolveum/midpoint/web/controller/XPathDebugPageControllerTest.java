@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.test;
+package com.evolveum.midpoint.web.controller;
 
 import com.evolveum.midpoint.web.controller.XPathDebugPageController;
 import com.evolveum.midpoint.web.util.XPathVariables;
