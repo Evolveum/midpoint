@@ -44,7 +44,7 @@ import org.springframework.stereotype.Controller;
 public class LoginController implements Serializable {
 
 	private static final long serialVersionUID = 4748884787908138803L;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private transient AuthenticationManager authenticationManager;
 	private String userName;
 	private String password;
@@ -72,8 +72,12 @@ public class LoginController implements Serializable {
 			Authentication result = authenticationManager.authenticate(request);
 			SecurityContextHolder.getContext().setAuthentication(result);
 		} catch (AuthenticationException ex) {
-			String loginFailedMessage = FacesUtils.getBundleKey("msg", "login.failed");
-			FacesUtils.addErrorMessage(loginFailedMessage);
+			Object extra = ex.getExtraInformation();
+			if (extra instanceof Object[]) {
+				FacesUtils.addErrorMessage(FacesUtils.getBundleKey("msg", ex.getMessage(), (Object[]) extra));
+			} else {
+				FacesUtils.addErrorMessage(FacesUtils.getBundleKey("msg", ex.getMessage()));
+			}
 			return null;
 		}
 

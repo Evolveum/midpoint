@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.web.util;
 
+import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
 import javax.faces.application.FacesMessage;
@@ -41,6 +42,15 @@ public abstract class FacesUtils {
 
 	private static final Trace TRACE = TraceManager.getTrace(FacesUtils.class);
 
+	public static String getBundleKey(String bundleName, String key, Object[] arguments) {
+		if (arguments == null) {
+			return getBundleKey(bundleName, key);
+		}
+		
+		MessageFormat format = new MessageFormat(getBundleKey(bundleName, key));
+		return format.format(arguments);
+	}
+	
 	public static String getBundleKey(String bundleName, String key) {
 		ResourceBundle bundle = FacesContext.getCurrentInstance().getApplication()
 				.getResourceBundle(FacesContext.getCurrentInstance(), bundleName);
@@ -48,7 +58,7 @@ public abstract class FacesUtils {
 		if (bundle == null) {
 			TRACE.warn("Couldn't get resource bundle '" + bundleName + "' and look for key '" + key + "'.");
 			return "!" + key + "!";
-		}
+		}		
 
 		return bundle.getString(key);
 	}

@@ -71,7 +71,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 	public Authentication authenticate(Authentication authentication) throws AuthenticationException {
 		if (StringUtils.isBlank((String) authentication.getPrincipal())
 				|| StringUtils.isBlank((String) authentication.getCredentials())) {
-			throw new BadCredentialsException("Invalid username/password");
+			throw new BadCredentialsException("web.security.provider.invalid");
 		}
 
 		PrincipalUser user = null;
@@ -80,13 +80,20 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 			user = userManagerService.getUser((String) authentication.getPrincipal());
 			authenticateUser(user, (String) authentication.getCredentials());
 		} catch (BadCredentialsException ex) {
+			if (user != null) {
+				Credentials credentials = user.getCredentials();
+				credentials.addFailedLogin();
+				credentials.setLastFailedLoginAttempt(System.currentTimeMillis());
+
+				userManagerService.updateUser(user);
+			}
+
 			throw ex;
 		} catch (Exception ex) {
 			TRACE.error("Can't get user with username '{}'. Unknown error occured, reason {}.", new Object[] {
 					authentication.getPrincipal(), ex.getMessage() });
 			TRACE.debug("Can't authenticate user '{}'.", new Object[] { authentication.getPrincipal() }, ex);
-			throw new AuthenticationServiceException(
-					"Currently we are unable to process your request. Kindly try again later.");
+			throw new AuthenticationServiceException("web.security.provider.unavailable");
 		}
 
 		if (user != null) {
@@ -101,7 +108,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 			// grantedAuthorities.add(authority);
 			// }
 		} else {
-			throw new BadCredentialsException("Invalid username/password");
+			throw new BadCredentialsException("web.security.provider.invalid");
 		}
 
 		return new UsernamePasswordAuthenticationToken(user, authentication.getCredentials(),
@@ -119,11 +126,11 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 	private void authenticateUser(PrincipalUser user, String password) throws BadCredentialsException {
 		if (user == null) {
-			throw new BadCredentialsException("Invalid username/password.");
+			throw new BadCredentialsException("web.security.provider.invalid");
 		}
 
 		if (!user.isEnabled()) {
-			throw new BadCredentialsException("User is disabled.");
+			throw new BadCredentialsException("web.security.provider.disabled");
 		}
 
 		Credentials credentials = user.getCredentials();
@@ -131,13 +138,13 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 			long lockedTill = credentials.getLastFailedLoginAttempt() + (60000L * loginTimeout);
 			if (lockedTill > System.currentTimeMillis()) {
 				long time = (lockedTill - System.currentTimeMillis()) / 60000;
-				throw new BadCredentialsException("User is locked, please wait " + time + " minute(s)");
+				throw new BadCredentialsException("web.security.provider.locked", new Object[] { time });
 			}
 		}
 
 		String pwd = credentials.getPassword();
 		if (pwd == null) {
-			throw new BadCredentialsException("User doesn't have defined password.");
+			throw new BadCredentialsException("web.security.provider.password.bad");
 		}
 
 		String encodedPwd = null;
@@ -148,7 +155,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		}
 
 		if (encodedPwd == null || encodedPwd.isEmpty()) {
-			throw new BadCredentialsException("Couldn't authenticate user, reason: couldn't encode password.");
+			throw new BadCredentialsException("web.security.provider.password.encoding");
 		}
 
 		if (encodedPwd.equals(pwd)) {
@@ -159,6 +166,6 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 			return;
 		}
 
-		throw new BadCredentialsException("Invalid username/password.");
+		throw new BadCredentialsException("web.security.provider.invalid");
 	}
 }

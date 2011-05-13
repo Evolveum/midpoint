@@ -74,6 +74,4 @@
 	<authentication-manager alias="authenticationManager">
 		<authentication-provider ref='midPointAuthenticationProvider' />
 	</authentication-manager>
-
-	<beans:bean id="loggerListener" class="org.springframework.security.authentication.event.LoggerListener" />
 </beans:beans>
