@@ -23,6 +23,7 @@
 package com.evolveum.midpoint.web.security;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
@@ -49,7 +50,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 	private static final Trace TRACE = TraceManager.getTrace(MidPointAuthenticationProvider.class);
 	@Autowired
-	private UserDetailsService userManagerService;
+	UserDetailsService userManagerService;
 	private int loginTimeout;
 	private int maxFailedLogins;
 
@@ -134,10 +135,14 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 		}
 
 		Credentials credentials = user.getCredentials();
-		if (credentials.getFailedLogins() >= maxFailedLogins) {
-			long lockedTill = credentials.getLastFailedLoginAttempt() + (60000L * loginTimeout);
+		if (maxFailedLogins > 0 && credentials.getFailedLogins() >= maxFailedLogins) {
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTimeInMillis(credentials.getLastFailedLoginAttempt());
+			calendar.add(Calendar.MINUTE, loginTimeout);
+			long lockedTill = calendar.getTimeInMillis();
+
 			if (lockedTill > System.currentTimeMillis()) {
-				long time = (lockedTill - System.currentTimeMillis()) / 60000;
+				long time = (lockedTill - System.currentTimeMillis()) / 60000L;
 				throw new BadCredentialsException("web.security.provider.locked", new Object[] { time });
 			}
 		}

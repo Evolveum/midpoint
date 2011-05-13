@@ -25,6 +25,7 @@ package com.evolveum.midpoint.web.util;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
+import javax.faces.application.Application;
 import javax.faces.application.FacesMessage;
 import javax.faces.context.FacesContext;
 
@@ -46,19 +47,29 @@ public abstract class FacesUtils {
 		if (arguments == null) {
 			return getBundleKey(bundleName, key);
 		}
-		
+
 		MessageFormat format = new MessageFormat(getBundleKey(bundleName, key));
 		return format.format(arguments);
 	}
-	
+
 	public static String getBundleKey(String bundleName, String key) {
-		ResourceBundle bundle = FacesContext.getCurrentInstance().getApplication()
-				.getResourceBundle(FacesContext.getCurrentInstance(), bundleName);
+		Application application = FacesContext.getCurrentInstance().getApplication();
+
+		ResourceBundle bundle = null;
+		try {
+			bundle = ResourceBundle.getBundle(application.getMessageBundle(), FacesContext
+					.getCurrentInstance().getViewRoot().getLocale());
+			// ResourceBundle bundle =
+			// application.getResourceBundle(FacesContext.getCurrentInstance(),
+			// bundleName);
+		} catch (Exception ex) {
+			TRACE.warn("Couldn't get resource bundle '" + bundleName + "', reason: " + ex.getMessage());
+		}
 
 		if (bundle == null) {
-			TRACE.warn("Couldn't get resource bundle '" + bundleName + "' and look for key '" + key + "'.");
+			TRACE.warn("Couldn't find key '" + key + "'.");
 			return "!" + key + "!";
-		}		
+		}
 
 		return bundle.getString(key);
 	}
