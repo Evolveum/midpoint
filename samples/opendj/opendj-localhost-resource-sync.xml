@@ -474,7 +474,7 @@ This resource definition contains also definition to enable synchronization.
                     <c:path>.</c:path>
                     <c:valueExpression ref="c:name">
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                        declare namespace dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ";
+                        declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                         $i:account/i:attributes/dj:uid
                         </c:valueExpression>
                 </c:equal>
