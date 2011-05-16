@@ -948,10 +948,18 @@ public class ProvisioningService implements ProvisioningPortType {
 
                     SynchronizationResult changeCollection = rai.synchronize(syncToken, result, rad);
 
+                    if (changeCollection.getChanges().isEmpty()) {
+                    	// FIXME: This should be debug, not info
+                    	logger.info("Synchronization (OID:{}) detected no changes",resource.getOid());
+                    }
 
                     for (SynchronizationResult.Change changeWrapper : changeCollection.getChanges()) {
-
+                    	
                         ObjectChangeType change = changeWrapper.getChange();
+
+                        // FIXME: This should be debug, not info
+                    	logger.info("Synchronization (OID:{}) detected change: {}",resource.getOid(),DebugUtil.prettyPrint(change));
+
                         ObjectChangeAdditionType newChange = new ObjectChangeAdditionType();
 
                         ResourceObjectShadowChangeDescriptionType roscdt = new ResourceObjectShadowChangeDescriptionType();
