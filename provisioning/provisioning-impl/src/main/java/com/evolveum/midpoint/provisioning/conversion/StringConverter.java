@@ -57,6 +57,9 @@ public class StringConverter implements Converter {
 
     @Override
     public Object convertToJava(Node node) {
+    	if (node==null) {
+    		return null;
+    	}
         return node.getTextContent();
     }
 
