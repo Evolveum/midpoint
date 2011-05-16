@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.Provisio
  */
 public class SynchronizationProcessManager {
 
-    private static final String THREAD_NAME = "openidm-synchronization";
+    private static final String THREAD_NAME = "midpoint-synchronization";
 
     private SynchronizationProcess thread;
     private ProvisioningPortType provisioningService;
