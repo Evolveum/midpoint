@@ -4,3 +4,18 @@ Known Issues
 
 Synchronization reaction "addAccount" does not work (MID-103)
 
+There is a JAXB issue that is causing problems if a content of an QName is
+not well qualified, e.g. if it does not have a proper namespace prefix. The
+sympotoms are that midPoint seems to think that a part of an object is not
+there although it is there. E.g. the problem may appear as following log
+message:
+Account construction in user template
+(OID:c0c010c0-d34d-b33f-f00d-777111111111) must have resource or resourceRef
+defined.
+The solution is to double-check that all QNames are valid. In this case the
+problem was caused by this:
+<i:resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112"
+type="ResourceType"/>
+which should correctly be defined with an "i" prefix as:
+<i:resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112"
+type="i:ResourceType"/>
