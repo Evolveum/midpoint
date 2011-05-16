@@ -1,0 +1,62 @@
+#
+# Copyright (c) 2011 Evolveum                             
+#                                                         
+# The contents of this file are subject to the terms      
+# of the Common Development and Distribution License      
+# (the License). You may not use this file except in      
+# compliance with the License.                            
+#                                                         
+# You can obtain a copy of the License at                 
+# http://www.opensource.org/licenses/cddl1 or             
+# CDDLv1.0.txt file in the source code distribution.      
+# See the License for the specific language governing     
+# permission and limitations under the License.           
+#                                                         
+# If applicable, add the following below the CDDL Header, 
+# with the fields enclosed by brackets [] replaced by     
+# your own identifying information:                       
+#                                                         
+# Portions Copyrighted 2011 [name of copyright owner]         
+#
+
+#
+# This is an import LDIF file intended to create a basic structure
+# for "example.com" organization. It is used as an example and in
+# testing.
+#
+
+dn: dc=example,dc=com
+objectclass: top
+objectclass: domain
+dc: example
+
+dn: ou=Groups, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: Groups
+
+dn: ou=People, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: People
+aci: (targetattr="*")(version 3.0; acl "IDM Access"; allow (all)
+  userdn="ldap:///uid=idm,ou=Administrators,dc=example,dc=com";)
+
+dn: ou=Administrators, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: Administrators
+
+dn: uid=idm, ou=Administrators,dc=example,dc=com
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: idm
+cn: IDM Administrator
+sn: IDM Administrator
+description: Special LDAP acccount used by the IDM
+  to access the LDAP data.
+ou: Administrators
+userPassword: secret
+ds-privilege-name: unindexed-search
