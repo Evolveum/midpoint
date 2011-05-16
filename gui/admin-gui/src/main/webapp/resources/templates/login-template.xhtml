@@ -3,8 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:f="http://java.sun.com/jsf/core"
       xmlns:h="http://java.sun.com/jsf/html"
-      xmlns:ui="http://java.sun.com/jsf/facelets"
-      xmlns:mg="http://at.irian/mygourmet">
+      xmlns:ui="http://java.sun.com/jsf/facelets">
     <head>
         <title>Show Customer</title>
     </head>
@@ -13,7 +12,7 @@
                 xmlns:ui="http://java.sun.com/jsf/facelets"
                 xmlns:h="http://java.sun.com/jsf/html"
                 xmlns:f="http://java.sun.com/jsf/core"
-                xmlns:prefs="http://java.sun.com/jsf/composite/components/preferences"
+                xmlns:comp="http://java.sun.com/jsf/composite/components"
                 xmlns:ice="http://www.icesoft.com/icefaces/component"
                 template="/resources/templates/page-template.xhtml">
 
@@ -22,7 +21,7 @@
             <ice:graphicImage style="width: 500px" value="/resources/images/quick-hack-logo.png" alt="OpenIDM" />
             <div id="language-preferences">
                 <ice:form>
-                    <prefs:language/>
+                    <comp:language/>
                 </ice:form>
             </div>
         </ui:insert>
