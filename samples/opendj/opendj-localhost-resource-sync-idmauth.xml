@@ -30,6 +30,8 @@ for use with a stock OpenDJ and OpenDS servers.
 
 This resource definition contains also definition to enable synchronization.
 
+This definition assumes that IDM is AUTHORITATIVE source of all information.
+
 -->
 
 <c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
@@ -444,7 +446,7 @@ This resource definition contains also definition to enable synchronization.
                 <i:credentials>
                     <i:outboundPassword>true</i:outboundPassword>
                     <i:randomPasswordLength>4</i:randomPasswordLength>
-                </i:credentials>                
+                </i:credentials>
             </c:accountType>
         </c:schemaHandling>
 
@@ -484,9 +486,9 @@ This resource definition contains also definition to enable synchronization.
                  always return at most one match, the confirmation rule is not needed. -->
 
             <!-- Following section describes reactions to a situations.
-                 The setting here assumes that this resource is authoritative,
-                 therefore all accounts created on the resource should be
-                 reflected as new users in IDM.
+                 The setting here assumes that IDM is authoritative,
+                 therefore all accounts created on the resource should be deleted and all
+                 missing account should be re-created.
                  See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
              -->
             <i:reaction>
@@ -495,29 +497,23 @@ This resource definition contains also definition to enable synchronization.
             </i:reaction>
             <i:reaction>
                 <i:situation>deleted</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>missing</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>found</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#deleteAccount"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>unassigned</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#deleteAccount"/>
             </i:reaction>
             <i:reaction>
                 <i:situation>unmatched</i:situation>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
-                    <!-- Reference to the User Template is here. If the user would be
-                         created as a result of this action, it will be created according
-                         to this template. -->
-                    <i:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
-                </i:action>
-                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#deleteAccount"/>
             </i:reaction>
 
         </i:synchronization>
