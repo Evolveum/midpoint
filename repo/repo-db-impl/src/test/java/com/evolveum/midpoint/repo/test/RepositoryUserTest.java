@@ -136,7 +136,7 @@ public class RepositoryUserTest {
             		oidTest = true;
             	}
             }
-            assertTrue( oidTest == true );
+            assertTrue( oidTest );
             assertEquals( actualSize + 1 ,objects.getObject().size() );
             
         } finally {

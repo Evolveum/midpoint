@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.jaxb.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -66,13 +67,13 @@ import static org.junit.Assert.*;
 		"../../../../../application-context-repository-test.xml" })
 public class RepositoryResourceTest {
 
-    org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RepositoryResourceTest.class);
+	org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RepositoryResourceTest.class);
 
 	@Autowired(required = true)
 	private RepositoryPortType repositoryService;
-    @Autowired(required = true)
-    private DataSource dataSource;
-	
+	@Autowired(required = true)
+	private DataSource dataSource;
+
 	public RepositoryPortType getRepositoryService() {
 		return repositoryService;
 	}
@@ -81,13 +82,13 @@ public class RepositoryResourceTest {
 		this.repositoryService = repositoryService;
 	}
 
-    public DataSource getDataSource() {
-        return dataSource;
-    }
+	public DataSource getDataSource() {
+		return dataSource;
+	}
 
-    public void setDataSource(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
+	public void setDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
 
 	public RepositoryResourceTest() {
 	}
@@ -102,47 +103,62 @@ public class RepositoryResourceTest {
 
 	@Before
 	public void setUp() {
-        addDataToDB("src/test/resources/empty-dataset.xml");
+		addDataToDB("src/test/resources/empty-dataset.xml");
 	}
 
 	@After
 	public void tearDown() {
 	}
-	
-    private void addDataToDB(String filename) {
-        try {
-            Connection con = DataSourceUtils.getConnection(getDataSource());
-            IDatabaseConnection connection = new DatabaseConnection(con);
-            // initialize your dataset here
-            IDataSet dataSet = new FlatXmlDataSet(new File(filename));
-            try {
-                DatabaseOperation.CLEAN_INSERT.execute(connection, dataSet);
-            } finally {
-                connection.close();
-                con.close();
-            }
-        } catch (Exception ex) {
-            logger.info("[RepositoryServiceTest] AddDataToDb failed");
-            logger.info("Exception was {}", ex);
-        }
-    }
+
+	private void addDataToDB(String filename) {
+		try {
+			Connection con = DataSourceUtils.getConnection(getDataSource());
+			IDatabaseConnection connection = new DatabaseConnection(con);
+			// initialize your dataset here
+			IDataSet dataSet = new FlatXmlDataSet(new File(filename));
+			try {
+				DatabaseOperation.CLEAN_INSERT.execute(connection, dataSet);
+			} finally {
+				connection.close();
+				con.close();
+			}
+		} catch (Exception ex) {
+			logger.info("[RepositoryServiceTest] AddDataToDb failed");
+			logger.info("Exception was {}", ex);
+		}
+	}
 
 	@Test
 	public void testResource() throws Exception {
 		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
 			ObjectContainerType objectContainer = new ObjectContainerType();
+			ObjectListType objects = repositoryService.listObjects(QNameUtil.qNameToUri(SchemaConstants.I_RESOURCE_TYPE), new PagingType());
+			int oldSize = objects.getObject().size();
+			
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
 			objectContainer.setObject(resource);
 			repositoryService.addObject(objectContainer);
 			ObjectContainerType retrievedObjectContainer = repositoryService.getObject(resourceOid,
 					new PropertyReferenceListType());
+			
 			assertEquals(resource.getOid(), ((ResourceType) (retrievedObjectContainer.getObject())).getOid());
-			ObjectListType objects = repositoryService.listObjects(
+			
+			objects = repositoryService.listObjects(
 					QNameUtil.qNameToUri(SchemaConstants.I_RESOURCE_TYPE), new PagingType());
-			assertEquals(1, objects.getObject().size());
-			assertEquals(resourceOid, objects.getObject().get(0).getOid());
+			
+			assertEquals(oldSize + 1 , objects.getObject().size());
+
+			boolean oidTest = false;
+			for ( ObjectType o: objects.getObject()) {
+				if ( resourceOid.equals(o.getOid())) {
+					oidTest = true;
+				}
+			}
+			assertTrue(oidTest);
+			
+			
 		} finally {
 			repositoryService.deleteObject(resourceOid);
 		}
@@ -153,6 +169,7 @@ public class RepositoryResourceTest {
 		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
 			ObjectContainerType objectContainer = new ObjectContainerType();
+
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
 			objectContainer.setObject(resource);
