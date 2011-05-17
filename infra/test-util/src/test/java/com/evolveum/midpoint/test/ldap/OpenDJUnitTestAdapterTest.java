@@ -39,7 +39,7 @@ public class OpenDJUnitTestAdapterTest extends OpenDJUnitTestAdapter {
 
     @BeforeClass
     public static void init() throws Exception {
-        dbTemplateDir = "src/main/resources/test-data/opendj.template";
+        //dbTemplateDir = "src/main/resources/test-data/opendj.template";
         startACleanDJ();
     }
 
