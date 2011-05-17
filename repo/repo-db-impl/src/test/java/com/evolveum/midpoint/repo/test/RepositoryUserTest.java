@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
@@ -98,11 +99,20 @@ public class RepositoryUserTest {
     @Test
     public void testUser() throws Exception {
         String oid = "c0c010c0-d34d-b33f-f00d-111111111111";
-        try {
+        try {     
+            PagingType pagingType = new PagingType();
+            pagingType.setMaxSize(BigInteger.valueOf(5));
+            pagingType.setOffset(BigInteger.valueOf(-1));
+            pagingType.setOrderBy(Utils.fillPropertyReference("name"));
+            pagingType.setOrderDirection(OrderDirectionType.ASCENDING);
+            ObjectListType objects = repositoryService.listObjects(QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE), pagingType);
+            int actualSize = objects.getObject().size();
+            
             ObjectContainerType objectContainer = new ObjectContainerType();
             UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File("src/test/resources/user.xml"))).getValue();
             objectContainer.setObject(user);
             repositoryService.addObject(objectContainer);
+            
             ObjectContainerType retrievedObjectContainer = repositoryService.getObject(oid, new PropertyReferenceListType());
             assertEquals(user.getOid(), ((UserType) (retrievedObjectContainer.getObject())).getOid());
             assertEquals(1, ((UserType) (retrievedObjectContainer.getObject())).getAdditionalNames().size());
@@ -117,15 +127,18 @@ public class RepositoryUserTest {
             assertEquals(user.getGivenName(), ((UserType) (retrievedObjectContainer.getObject())).getGivenName());
             assertEquals(user.getHonorificPrefix(), ((UserType) (retrievedObjectContainer.getObject())).getHonorificPrefix());
             assertEquals(user.getHonorificSuffix(), ((UserType) (retrievedObjectContainer.getObject())).getHonorificSuffix());
-
-            PagingType pagingType = new PagingType();
-            pagingType.setMaxSize(BigInteger.valueOf(5));
-            pagingType.setOffset(BigInteger.valueOf(-1));
-            pagingType.setOrderBy(Utils.fillPropertyReference("name"));
-            pagingType.setOrderDirection(OrderDirectionType.ASCENDING);
-            ObjectListType objects = repositoryService.listObjects(QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE), pagingType);
-            assertEquals(1, objects.getObject().size());
-            assertEquals(oid, objects.getObject().get(0).getOid());
+            
+            objects = repositoryService.listObjects(QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE), pagingType);
+            boolean oidTest = false;
+                        
+            for ( ObjectType o : objects.getObject()) {
+            	if ( oid.equals(o.getOid())) {
+            		oidTest = true;
+            	}
+            }
+            assertTrue( oidTest == true );
+            assertEquals( actualSize + 1 ,objects.getObject().size() );
+            
         } finally {
             repositoryService.deleteObject(oid);
         }
