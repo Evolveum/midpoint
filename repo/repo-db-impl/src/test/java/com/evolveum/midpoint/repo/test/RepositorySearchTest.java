@@ -125,7 +125,7 @@ public class RepositorySearchTest {
 				con.close();
 			}
 		} catch (Exception ex) {
-			throw new RuntimeException("Failed to load test data to DB");
+			throw new RuntimeException("Failed to load test data to DB",ex);
 		}
 	}
 
