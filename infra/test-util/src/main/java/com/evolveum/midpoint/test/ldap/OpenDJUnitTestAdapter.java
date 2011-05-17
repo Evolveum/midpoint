@@ -23,35 +23,113 @@
 package com.evolveum.midpoint.test.ldap;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Enumeration;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 /**
  * Sample Class Doc
- *
+ * 
  * @author $author$
  * @version $Revision$ $Date$
  * @since 1.0.0
  */
 public class OpenDJUnitTestAdapter {
 
-    protected static File ldapDataDir = new File("target/test-data/opendj");
+	protected static String ldapDataDir = "target/test-data/opendj";
 
-    protected static File dbTemplateDir = new File("../../infra/test-util/src/main/resources/test-data/opendj.template");
+	protected static String ldapTmpDir = "target/tmp-data";
 
-    protected static OpenDJController controller;
+	protected static String dbTemplateDir = "test-data/opendj.template";
 
-    public OpenDJUnitTestAdapter() {
-    }
-   
+	protected static OpenDJController controller;
 
-    public static void startACleanDJ() throws Exception {
-        if (controller == null) {
-            controller = new OpenDJController(ldapDataDir, dbTemplateDir);
-        }
-        controller.refreshFromTemplate();
-        controller.start();
-    }
+	public OpenDJUnitTestAdapter() {
+	}
 
-    public static void stopDJ() throws Exception {
-        controller.stop();
-    }
+	private static File extractTemplate() {
+		System.out.println("--- Extraction ----");
+		String u = ClassLoader.getSystemResource(dbTemplateDir).getPath();
+		System.out.println(u);
+
+		File file = new File(u);
+
+		if (file.isDirectory()) {
+			return file;
+		}
+		System.out.println("Not a directory !! expanding");
+		u = u.replace("file:", "").split("!")[0];
+
+		System.out.println(u);
+
+		JarFile jf = null;
+		try {
+			jf = new JarFile(u);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		File dst = new File(ldapTmpDir);
+		dst.mkdirs();
+
+		for (Enumeration en = jf.entries(); en.hasMoreElements();) {
+			JarEntry je = (JarEntry) en.nextElement();
+			if (je.getName().contains(dbTemplateDir)) {
+				String srcName = je.getName();
+				String dstName = srcName.replace(dbTemplateDir, "");
+				if (dstName.length() < 3)
+					continue;
+				System.out.println("++ " + srcName + " -->" + dstName + "  (" + je.getSize() + ")");
+				String newName = ldapTmpDir + dstName;
+				
+				if ( je.getSize() == 0  && newName.endsWith("/") ) {
+					new File(newName).mkdirs();
+					continue;
+				}
+				if (new File(newName).exists())
+					continue;
+				InputStream is = null;
+				try {
+					
+					OutputStream out = new FileOutputStream(newName);
+					byte buf[] = new byte[65536];
+					is = jf.getInputStream(je);
+					int len;
+					while ((len = is.read(buf)) > 0) {
+
+						out.write(buf, 0, len);
+					}
+					out.close();
+					is.close();
+
+				} catch (FileNotFoundException e) {
+					throw new IllegalStateException(e);
+
+				} catch (IOException e) {
+					throw new IllegalStateException(e);
+				}
+			}
+		}
+		System.out.println("--- Extracted ----");
+		return dst;
+	}
+
+	public static void startACleanDJ() throws Exception {
+		if (controller == null) {
+			;
+			controller = new OpenDJController(new File(ldapDataDir),
+					extractTemplate());
+		}
+		controller.refreshFromTemplate();
+		controller.start();
+	}
+
+	public static void stopDJ() throws Exception {
+		controller.stop();
+	}
 }
