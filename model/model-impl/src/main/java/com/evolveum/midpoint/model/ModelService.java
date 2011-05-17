@@ -108,10 +108,16 @@ public class ModelService implements ModelPortType {
 				result = repositoryService.addObject(objectContainer);
 			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
 				logger.error(
-						"### MODEL # Fault addObject(..): Repository WS client failed for method addObject : ",
+						"### MODEL # Fault addObject(..): Repository failed for method addObject : ",
 						ex);
 				throw createFaultMessage("Repository invocation failed (addObject)", ex.getFaultInfo(), ex,
 						null);
+			} catch (Exception ex) {
+				logger.error(
+						"### MODEL # Fault addObject(..): Repository failed for method addObject : ",
+						ex);
+				throw createFaultMessage("Repository invocation failed (addObject)", new InapplicableOperationFaultType(), ex,
+						null);				
 			}
 		}
 

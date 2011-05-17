@@ -50,6 +50,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
@@ -99,7 +101,11 @@ public class UserTypeManager implements UserManager, Serializable {
 			java.lang.String result = model.addObject(userContainer);
 			return result;
 		} catch (FaultMessage fault) {
-			throw new WebModelException(fault.getFaultInfo().getMessage(), "Web Service Error");
+			String message = fault.getFaultInfo().getMessage();
+			if (StringUtils.isEmpty(message)) {
+				message = fault.getMessage();
+			}
+			throw new WebModelException(message, "Web Service Error");
 		}
 
 	}

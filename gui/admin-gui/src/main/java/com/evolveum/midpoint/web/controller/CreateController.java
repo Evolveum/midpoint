@@ -77,14 +77,13 @@ public class CreateController implements Serializable {
 		try {
 			oid = userManager.add(user);
 		} catch (WebModelException ex) {
-			// TODO: Update the message content from thr exception
-			FacesContext.getCurrentInstance().addMessage("",
-					new FacesMessage("Failed to create user:" + ex.getTitle()));
+			// TODO: Update the message content from the exception
+			FacesUtils.addErrorMessage("Failed to create user:" + ex.getTitle() + " " + ex.getMessage());
 			TRACE.error("Failed to create user {}, exception {}", user, ex);
 			return null;
 		}
-		if (oid == null) {
-			FacesContext.getCurrentInstance().addMessage("", new FacesMessage("Failed to create user"));
+		if (oid == null) {			
+			FacesUtils.addErrorMessage("Failed to create user");
 			TRACE.error("Failed to create user {}", user);
 			return null;
 		}
