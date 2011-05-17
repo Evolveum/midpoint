@@ -48,6 +48,7 @@ import org.dbunit.database.DatabaseConnection;
 import org.dbunit.database.IDatabaseConnection;
 import org.dbunit.dataset.IDataSet;
 import org.dbunit.dataset.xml.FlatXmlDataSet;
+import org.dbunit.dataset.xml.FlatXmlDataSetBuilder;
 import org.dbunit.operation.DatabaseOperation;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -117,7 +118,12 @@ public class RepositorySearchTest {
 			Connection con = DataSourceUtils.getConnection(getDataSource());
 			IDatabaseConnection connection = new DatabaseConnection(con);
 			// initialize your dataset here
-			IDataSet dataSet = new FlatXmlDataSet(new File(filename));
+			File dsf = new File (filename);
+			
+			if ( !dsf.exists() ) throw new RuntimeException("Unable to locate file: " + filename) ;
+			
+			FlatXmlDataSetBuilder  dsb = new FlatXmlDataSetBuilder();
+			IDataSet dataSet = dsb.build(dsf);
 			try {
 				DatabaseOperation.CLEAN_INSERT.execute(connection, dataSet);
 			} finally {
