@@ -60,12 +60,12 @@
 			<idm:topMenu selected="#{template.selectedTopId}">
 				<idm:topMenuItem action="/index?faces-redirect=true" name="#{lang.messages['menu.home']}" description="Start here" />
 				<idm:topMenuItem action="#{userList.fillTableList}" name="Accounts" description="User in repository" />
-				<idm:topMenuItem action="/workItem/index?faces-redirect=true" name="Work Items" description="Requests, approving" />
+				<idm:topMenuItem action="/work/index?faces-redirect=true" name="Work Items" description="Requests, approving" />
 				<idm:topMenuItem action="/role/index?faces-redirect=true" name="Roles" description="Roles configuration" />
 				<idm:topMenuItem action="/resource/index?faces-redirect=true" name="Resources" description="Used systems" />
-				<idm:topMenuItem action="/serverTask/index?faces-redirect=true" name="Server Tasks" description="Running tasks" />
+				<idm:topMenuItem action="/server/index?faces-redirect=true" name="Server Tasks" description="Running tasks" />
 				<idm:topMenuItem action="/report/index?faces-redirect=true" name="Reports" description="Audit reports" />
-				<idm:topMenuItem action="/configuration/index?faces-redirect=true" name="#{lang.messages['menu.config']}" description="Security, logging, import" />
+				<idm:topMenuItem action="/config/index?faces-redirect=true" name="#{lang.messages['menu.config']}" description="Security, logging, import" />
 			</idm:topMenu>
 		</div>
 	</h:panelGroup>

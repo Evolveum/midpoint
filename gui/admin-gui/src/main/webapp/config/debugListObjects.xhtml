@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">#{lang.messages['page.title.list']}</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<ice:form>
+			<ice:panelPopup modal="true" autoCentre="true" visible="#{debugPagesController.showPopup}">
+				<f:facet name="header">
+					<ice:outputText value="Confirm delete" />
+				</f:facet>
+				<f:facet name="body">
+					<ice:outputText value="Do you really want to delete selected object?" />
+					<br />
+					<ice:commandButton value="Yes" action="#{debugPagesController.deleteAction}" />
+					<ice:commandButton value="No" action="#{debugPagesController.hidePopup}" />
+				</f:facet>
+			</ice:panelPopup>
+
+			<idm:button action="#{debugPagesController.backAction}" id="backButton" value="#{msg['button.back']}"
+				img="/resources/images/door_in.png" />
+			<br />
+			<br />
+
+			<ice:panelGrid columns="3">
+				<ice:outputText value="Max objects per site: " />
+				<ice:inputText value="#{debugPagesController.maxSize}" />
+				<ice:commandButton value="OK" action="#{debugPagesController.listObjects}" />
+			</ice:panelGrid>
+			<br />
+			<br />
+
+			<ice:panelGrid columns="4">
+				<idm:button action="#{debugPagesController.listFirst}" id="firstButton" value="First"
+					img="resources/images/resultset_first.png" />
+				<idm:button action="#{debugPagesController.listPrevious}" id="previousButton" value="Previous"
+					img="resources/images/resultset_previous.png" />
+				<idm:button action="#{debugPagesController.listNext}" id="nextButton" value="Next"
+					img="resources/images/resultset_next.png" />
+				<idm:button action="#{debugPagesController.listLast}" id="lastButton" value="Last"
+					img="resources/images/resultset_last.png" />
+			</ice:panelGrid>
+			<br />
+			<br />
+
+			<ice:panelGroup>
+				<ui:repeat var="item" value="#{debugPagesController.selectedObjectsList}">
+					<ice:panelGrid columns="2" width="400px">
+						<ice:outputText value="#{item.name}" />
+
+						<ice:panelGroup>
+							<ice:panelGrid columns="3" width="150px">
+								<ice:commandLink styleClass="commandLinkDebugPage" value="#{msg['button.view']}"
+									action="#{debugPagesController.viewAction}">
+									<f:setPropertyActionListener target="#{debugPagesController.id}" value="#{item.oid}" />
+								</ice:commandLink>
+
+								<ice:commandLink styleClass="commandLinkDebugPage" value="#{msg['button.edit']}"
+									action="#{debugPagesController.editAction}">
+									<f:setPropertyActionListener target="#{debugPagesController.id}" value="#{item.oid}" />
+								</ice:commandLink>
+
+								<ice:commandLink styleClass="commandLinkDebugPage" value="#{msg['button.delete']}"
+									action="#{debugPagesController.showPopup}">
+									<f:setPropertyActionListener target="#{debugPagesController.id}" value="#{item.oid}" />
+								</ice:commandLink>
+							</ice:panelGrid>
+						</ice:panelGroup>
+					</ice:panelGrid>
+				</ui:repeat>
+			</ice:panelGroup>
+		</ice:form>
+	</ui:define>
+</ui:composition>
+
