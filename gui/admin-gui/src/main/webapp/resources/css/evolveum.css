@@ -174,7 +174,7 @@ a {
 }
 
 #sidebar ul li {
-	background: url("./images.png") no-repeat 0 50%;
+	background: url("../images/images.png") no-repeat 0 50%;
 	padding: 3px 0 3px 15px;
 }
 
@@ -184,7 +184,7 @@ a {
 }
 
 #sidebar ul li:hover {
-	background: url("./images-selected.png") no-repeat 0 50%;
+	background: url("../images/images-selected.png") no-repeat 0 50%;
 }
 
 #sidebar ul li a:hover,#sidebar ul li a.selected {

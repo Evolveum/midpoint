@@ -29,6 +29,8 @@ import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.context.ResponseWriter;
 
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.icesoft.faces.component.ext.HtmlForm;
 
 /**
@@ -40,6 +42,7 @@ import com.icesoft.faces.component.ext.HtmlForm;
 public class HtmlTopMenu extends HtmlForm {
 
 	public static final String ATTR_SELECTED = "selected";
+	private static final Trace TRACE = TraceManager.getTrace(HtmlTopMenu.class);
 	private static final String STYLE_SELECTED = "selected-top";
 	private static final String STYLE_LAST = "last";
 
@@ -70,7 +73,8 @@ public class HtmlTopMenu extends HtmlForm {
 		ValueExpression selectedExpr = getValueExpression(ATTR_SELECTED);
 		String selectedId = selectedExpr == null ? null : (String) selectedExpr.getValue(context
 				.getELContext());
-
+		TRACE.debug("encodeChildren: " + selectedId);
+		
 		HtmlTopMenuItem last = null;
 		HtmlTopMenuItem selected = null;
 		Iterator<UIComponent> children = getFacetsAndChildren();
@@ -107,9 +111,12 @@ public class HtmlTopMenu extends HtmlForm {
 					styles.append(" ");
 				}
 				styles.append(STYLE_SELECTED);
-			}
+			}			
 			item.setStyleClass(styles.toString());
-			item.encodeAll(context);
+			TRACE.debug("item: " + item.getStyleClass());
+			item.encodeAll(context);			
 		}
+		
+		TRACE.debug("encodeChildren::end");
 	}
 }

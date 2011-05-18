@@ -50,7 +50,7 @@
 		</div>
 		<div class="container">
 			<div id="logo">
-				<img src="./logo.png" />
+				<ice:graphicImage value="/resources/images/logo.png" alt="Evolveum" />
 				<h1>midPoint</h1>				
 			</div>			
 		</div>
@@ -59,7 +59,7 @@
 		<div class="container">
 			<idm:topMenu selected="#{template.selectedTopId}">
 				<idm:topMenuItem action="/index?faces-redirect=true" name="#{lang.messages['menu.home']}" description="Start here" />
-				<idm:topMenuItem action="/account/index?faces-redirect=true" name="Accounts" description="User in repository" />
+				<idm:topMenuItem action="#{userList.fillTableList}" name="Accounts" description="User in repository" />
 				<idm:topMenuItem action="/workItem/index?faces-redirect=true" name="Work Items" description="Requests, approving" />
 				<idm:topMenuItem action="/role/index?faces-redirect=true" name="Roles" description="Roles configuration" />
 				<idm:topMenuItem action="/resource/index?faces-redirect=true" name="Resources" description="Used systems" />
@@ -75,9 +75,9 @@
 				<idm:leftMenu selected="#{template.selectedLeftId}">
 					<ui:insert name="menu">
 						<idm:leftMenuContainer name="Sample Menu">
-							<idm:leftMenuItem name="List Users" action="/aex?faces-redirect=true" />
-							<idm:leftMenuItem name="Find Users" action="/indsex?faces-redirect=true" />
-							<idm:leftMenuItem name="Create Users" action="/index?faces-redirect=true" />
+							<idm:leftMenuItem name="Sample Menu Item 1" action="/a" />
+							<idm:leftMenuItem name="Sample Menu Item 2" action="/b" />
+							<idm:leftMenuItem name="Sample Menu Item 3" action="/c" />
 						</idm:leftMenuContainer>
 					</ui:insert>
 				</idm:leftMenu>		
@@ -98,6 +98,7 @@
 					<hr />
 					DEPRECATED ***delete after menu cleanup***
 					<ice:outputStyle href="/resources/css/xp/xp.css"/>
+					<ice:outputStyle href="/resources/css/style.css"/>
 					<ui:include src="/resources/templates/menu.xhtml" />			
 				</h:panelGroup>
 			</div>

@@ -28,6 +28,8 @@ import javax.faces.component.FacesComponent;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.icesoft.faces.component.ext.HtmlForm;
 
 /**
@@ -39,6 +41,7 @@ import com.icesoft.faces.component.ext.HtmlForm;
 public class HtmlLeftMenu extends HtmlForm {
 
 	public static final String ATTR_SELECTED = "selected";
+	private static final Trace TRACE = TraceManager.getTrace(HtmlLeftMenu.class);
 	private static final String STYLE_SELECTED = "selected";
 
 	@Override
@@ -47,34 +50,12 @@ public class HtmlLeftMenu extends HtmlForm {
 	}
 
 	@Override
-	public void encodeChildren(FacesContext context) throws IOException {
+	public void encodeChildren(FacesContext context) throws IOException {		
 		ValueExpression selectedExpr = getValueExpression(ATTR_SELECTED);
 		String selectedId = selectedExpr == null ? null : (String) selectedExpr.getValue(context
 				.getELContext());
-
-//		HtmlLeftMenuItem selected = null;
-//		Iterator<UIComponent> children = getFacetsAndChildren();
-//		outer:
-//		while (children.hasNext()) {
-//			UIComponent container = children.next();
-//			if (!(container instanceof HtmlLeftMenuContainer)) {
-//				continue;
-//			}
-//			Iterator<UIComponent> containerChildren = container.getFacetsAndChildren();
-//			while (containerChildren.hasNext()) {
-//				UIComponent item = containerChildren.next();
-//				if (!(item instanceof HtmlLeftMenuItem)) {
-//					continue;
-//				}
-//				((HtmlLeftMenuItem) item).setStyleClass("");
-//
-//				if (item.getId().equals(selectedId)) {
-//					selected = (HtmlLeftMenuItem) item;
-//					break outer;
-//				}
-//			}
-//		}
-
+		TRACE.debug("encodeChildren: " + selectedId);
+		
 		Iterator<UIComponent> children = getFacetsAndChildren();
 		while (children.hasNext()) {
 			UIComponent container = children.next();
@@ -84,6 +65,7 @@ public class HtmlLeftMenu extends HtmlForm {
 			}
 			Iterator<UIComponent> containerChildren = container.getFacetsAndChildren();
 			container.encodeBegin(context);
+			TRACE.debug("container");
 			while (containerChildren.hasNext()) {
 				UIComponent item = containerChildren.next();
 				if (!(item instanceof HtmlLeftMenuItem)) {
@@ -96,10 +78,12 @@ public class HtmlLeftMenu extends HtmlForm {
 				} else {
 					left.setStyleClass("");
 				}
-				
+				TRACE.debug("item: " + left.getStyleClass());
 				left.encodeAll(context);
 			}
 			container.encodeEnd(context);
 		}
+		
+		TRACE.debug("encodeChildren::end");
 	}
 }
