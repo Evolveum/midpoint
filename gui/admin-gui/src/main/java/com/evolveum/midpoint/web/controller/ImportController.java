@@ -59,8 +59,9 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 @Scope("session")
 public class ImportController implements Serializable {
 
+	public static final String PAGE_NAVIGATION_IMPORT = "/config/import";
 	private static final long serialVersionUID = -4206532259499809326L;
-	private static final Trace logger = TraceManager.getTrace(ImportController.class);
+	private static final Trace TRACE = TraceManager.getTrace(ImportController.class);
 	private int fileProgress;
 	private String xmlObject;
 	private boolean overwrite = false;
@@ -70,7 +71,7 @@ public class ImportController implements Serializable {
 	public String setImportPage() {
 		xmlObject = "";
 
-		return "/importPage";
+		return PAGE_NAVIGATION_IMPORT;
 	}
 
 	private void addObjectsToRepository(List<ObjectType> objects) {
@@ -105,13 +106,13 @@ public class ImportController implements Serializable {
 				String failureMesage = FacesUtils.getBundleKey("msg", "import.jaxb.failed");
 				FacesUtils.addErrorMessage(failureMesage + " " + FacesUtils.getMessageFromFault(ex));
 				FacesUtils.addErrorMessage("Failed to add object " + object.getName());
-				logger.error("Exception was: {}", ex, ex);
+				TRACE.error("Exception was: {}", ex, ex);
 			} catch (Exception ex) {
 				String failureMessage = FacesUtils.getBundleKey("msg", "import.jaxb.failed");
 				FacesUtils.addErrorMessage(failureMessage + ":" + ex.getMessage());
 				FacesUtils.addErrorMessage("Failed to add object " + object.getName());
-				logger.error("Add object failed");
-				logger.error("Exception was: {}", ex, ex);
+				TRACE.error("Add object failed");
+				TRACE.error("Exception was: {}", ex, ex);
 			}
 
 		}
@@ -133,15 +134,15 @@ public class ImportController implements Serializable {
 			FacesUtils.addErrorMessage("Couldn't load object from xml, reason: " + ex.getMessage());
 		}
 
-		return "/importPage";
+		return PAGE_NAVIGATION_IMPORT;
 	}
 
 	public void uploadFile(FileEntryEvent event) {
-		logger.info("uploadFile start");
+		TRACE.info("uploadFile start");
 		FileEntry fileEntry = (FileEntry) event.getSource();
 		FileEntryResults results = fileEntry.getResults();
 		for (FileEntryResults.FileInfo fi : results.getFiles()) {
-			logger.info("file name {}", fi.getFileName());
+			TRACE.info("file name {}", fi.getFileName());
 
 			File file = fi.getFile();
 			if (file == null || !file.exists() || !file.canRead()) {
@@ -159,7 +160,7 @@ public class ImportController implements Serializable {
 			}
 		}
 
-		logger.info("uploadFile end");
+		TRACE.info("uploadFile end");
 
 	}
 

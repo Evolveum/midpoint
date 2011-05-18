@@ -6,6 +6,8 @@
 
 	<idm:leftMenuContainer name="Debug">
 		<idm:leftMenuItem name="Debug Pages" action="#{debugPagesController.fillSelectItemList}" />
+		<idm:leftMenuItem name="XPath Debug" action="#{xpathDebugPageController.prepareXpathDebugPage}" />
+		<idm:leftMenuItem name="#{lang.messages['menu.import.page']}" action="#{import.setImportPage}" />
 		<idm:leftMenuItem name="Logging" action="/config/trace" />
 	</idm:leftMenuContainer>
 </ui:composition>

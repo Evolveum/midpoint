@@ -65,7 +65,11 @@ import org.w3c.dom.NodeList;
 @Scope("session")
 public class XPathDebugPageController implements Serializable {
 
+	public static final String PAGE_NAVIGATION_XPATH_DEBUG = "/config/xpathDebug";
 	private static final long serialVersionUID = 7295076387943631763L;
+	private static final Trace TRACE = TraceManager.getTrace(XPathDebugPageController.class);
+	@Autowired
+	private transient ModelPortType port;
 	private String expresion;
 	private List<SelectItem> type;
 	private XPathVariables variable1;
@@ -76,13 +80,6 @@ public class XPathDebugPageController implements Serializable {
 	private String returnType;
 	private List<XPathVariables> variables = new ArrayList<XPathVariables>();
 	private String result;
-	private static final Trace TRACE = TraceManager.getTrace(XPathDebugPageController.class);
-
-	@Autowired
-	private transient ModelPortType port;
-
-	public XPathDebugPageController() {
-	}
 
 	public String prepareXpathDebugPage() {
 		if (variable1 == null) {
@@ -97,7 +94,7 @@ public class XPathDebugPageController implements Serializable {
 		if (variable4 == null) {
 			variable4 = new XPathVariables();
 		}
-		return "/xpathDebugPage";
+		return PAGE_NAVIGATION_XPATH_DEBUG;
 
 	}
 
@@ -171,7 +168,7 @@ public class XPathDebugPageController implements Serializable {
 			FacesUtils.addErrorMessage("Expresion cannot be null.");
 			return null;
 		}
-		
+
 		ExpressionHolder expressionHolder = getExpressionHolderFromExpresion();
 		if (returnType.equals("Boolean")) {
 			Boolean boolResult = (Boolean) XPathUtil.evaluateExpression(getVariableValue(), expressionHolder,
