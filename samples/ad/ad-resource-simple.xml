@@ -45,17 +45,16 @@ replaced with real values.
         <c:configuration>
             <idc:ConnectorConfiguration xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
                                         xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">
-                <idc:ConnectorRef bundleName="ActiveDirectory.Connector" bundleVersion="1.0.0.5143" connectorName="Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector" connectorHost="213.81.163.194" connectorPort="8759" connectorSecret="password"/>
+                <idc:ConnectorRef bundleName="ActiveDirectory.Connector" bundleVersion="1.0.0.5143" connectorName="Org.IdentityConnectors.ActiveDirectory.ActiveDirectoryConnector" connectorHost="???.???.???.???" connectorPort="8759" connectorSecret="password"/>
                 <idc:BundleProperties>
-                    <iccldap:DirectoryAdminName>testbed</iccldap:DirectoryAdminName>
-                    <iccldap:DirectoryAdminPassword>Dejka123</iccldap:DirectoryAdminPassword>
+                    <iccldap:DirectoryAdminName>??????</iccldap:DirectoryAdminName>
+                    <iccldap:DirectoryAdminPassword>??????</iccldap:DirectoryAdminPassword>
                     <iccldap:ObjectClass>User</iccldap:ObjectClass>
                     <iccldap:Container>cn=Users,dc=testbed-domain</iccldap:Container>
                     <iccldap:CreateHomeDirectory>false</iccldap:CreateHomeDirectory>
                     <iccldap:LDAPHostName>WinServer2008Stn32</iccldap:LDAPHostName>
                     <iccldap:SearchChildDomains>false</iccldap:SearchChildDomains>
                     <iccldap:DomainName>testbed-domain</iccldap:DomainName>
-                    <!--iccldap:SearchContext></iccldap:SearchContext-->
                 </idc:BundleProperties>
                 <idc:PoolConfigOption minEvictTimeMillis="120000" minIdle="1" maxIdle="10" maxObjects="10" maxWait="150000"/>
                 <idc:OperationTimeouts>
