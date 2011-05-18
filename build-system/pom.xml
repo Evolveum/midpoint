@@ -44,20 +44,21 @@
         <basex.version>6.6</basex.version>
         <commons.io.version>2.0.1</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
+        <clover.version>3.0.5</clover.version>
+        <dbunit.version>2.4.7</dbunit.version>
         <el.version>2.2</el.version>
         <icefaces.version>2.0.1</icefaces.version>
         <icepush.version>2.0.1</icepush.version>
+        <jaxb.version>2.2.3</jaxb.version>
         <jsf.version>2.1.0</jsf.version>
         <junit.version>4.8.2</junit.version>
+        <mysql.connector.version>5.1.13</mysql.connector.version>
         <mockito.version>1.8.5</mockito.version>
         <selenium.version>1.0.1</selenium.version>
         <slf4j.version>1.6.1</slf4j.version>
         <spring.version>3.0.5.RELEASE</spring.version>
         <spring.security.version>3.0.5.RELEASE</spring.security.version>
         <xml.resolver.version>1.2</xml.resolver.version>
-        <mysql.connector.version>5.1.13</mysql.connector.version>
-        <dbunit.version>2.4.7</dbunit.version>
-        <jaxb.version>2.2.3</jaxb.version>
     </properties>
     <organization>
         <name>Evolveum</name>
@@ -198,6 +199,29 @@
                         </plugin -->
                 </plugins>
             </reporting>
+        </profile>
+        <profile>
+            <id>clover</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.atlassian.maven.plugins</groupId>
+                        <artifactId>maven-clover2-plugin</artifactId>
+                        <version>${clover.version}</version>
+                        <configuration>
+                            <targetPercentage>80%</targetPercentage>
+                            <includesTestSourceRoots>false</includesTestSourceRoots>
+                            <jdk>${project.source.version}</jdk>
+                            <generateXml>true</generateXml>
+                            <historyDir>${user.home}/clover.history/${project.artifact}</historyDir>
+                            <generateHistorical>true</generateHistorical>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
