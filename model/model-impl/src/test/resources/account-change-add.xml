@@ -28,7 +28,7 @@
    xmlns='http://default.com/whatever'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ"
+   xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-97e7-3d4f02d3e1a2"
    xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
    xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd
@@ -39,7 +39,7 @@
             <i:object xsi:type="i:AccountShadowType" oid="c0c010c0-d34d-b33f-f00d-222333444555">
                 <c:name>johny</c:name>
                 <i:resourceRef oid="ef2bc95b-76e0-48e2-97e7-3d4f02d3e1a2" type="ResourceType"/>
-                <i:objectClass>dj:AccountObjectClass</i:objectClass>
+                <i:objectClass>dj:Account</i:objectClass>
                 <i:attributes>
                   
                     <dj:uid>johny</dj:uid>
@@ -294,7 +294,7 @@
 
                 <!-- Reference to the Resoure Schema (see above) specifying
                      object class for this account type -->
-                <i:objectClass>ri:Account</i:objectClass>
+                <i:objectClass>dj:Account</i:objectClass>
 
                 <!-- Definition of __NAME__ attribute handling.
                      ICF will put entry DN into __NAME__ attribute.-->

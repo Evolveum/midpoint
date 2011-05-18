@@ -64,7 +64,7 @@ public class ResourceSchema {
     }
 
     public List<ResourceObjectDefinition> getObjectClassesCopy() {
-        return new ArrayList(getObjectClasses());
+        return new ArrayList<ResourceObjectDefinition>(getObjectClasses());
     }
     /**
      * Returns list of objectclasses in the schema.
@@ -105,6 +105,9 @@ public class ResourceSchema {
     }
 
     public ResourceObjectDefinition getObjectDefinition(QName objectType) {
+    	if (objectType == null) {
+    		throw new IllegalArgumentException("Object type qname must not be null.");
+    	}
         for (ResourceObjectDefinition def : objectclasses) {
             if (def.getQName().equals(objectType)) {
                 return def;
