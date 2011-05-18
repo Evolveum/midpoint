@@ -74,9 +74,9 @@ public class LoginController implements Serializable {
 		} catch (AuthenticationException ex) {
 			Object extra = ex.getExtraInformation();
 			if (extra instanceof Object[]) {
-				FacesUtils.addErrorMessage(FacesUtils.getBundleKey("msg", ex.getMessage(), (Object[]) extra));
+				FacesUtils.addErrorMessage(FacesUtils.translateKey(ex.getMessage(), (Object[]) extra));
 			} else {
-				FacesUtils.addErrorMessage(FacesUtils.getBundleKey("msg", ex.getMessage()));
+				FacesUtils.addErrorMessage(FacesUtils.translateKey(ex.getMessage()));
 			}
 			return null;
 		}

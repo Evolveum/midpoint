@@ -285,7 +285,7 @@ public class UserDetailsController implements Serializable {
 		} catch (SchemaParserException ex) {
 			TRACE.error("Dynamic form generator error", ex);
 			// TODO: What action should we fire in GUI if error occurs ???
-			String loginFailedMessage = FacesUtils.getBundleKey("msg", "save.failed");
+			String loginFailedMessage = FacesUtils.translateKey("save.failed");
 			FacesUtils.addErrorMessage(loginFailedMessage + " " + ex.toString());
 
 			return;
@@ -293,7 +293,7 @@ public class UserDetailsController implements Serializable {
 			TRACE.error("Web error {} : {}", ex.getTitle(), ex.getMessage());
 			// TODO: What action should we fire in GUI if error occurs ???
 			StringBuilder message = new StringBuilder();
-			message.append(FacesUtils.getBundleKey("msg", "save.failed"));
+			message.append(FacesUtils.translateKey("save.failed"));
 			message.append(" Reason: ");
 			message.append(ex.getTitle());
 			message.append(" (");
@@ -499,7 +499,7 @@ public class UserDetailsController implements Serializable {
 			}
 		} catch (WebModelException ex) {
 			StringBuilder message = new StringBuilder();
-			message.append(FacesUtils.getBundleKey("msg", "resource.list.failed"));
+			message.append(FacesUtils.translateKey("resource.list.failed"));
 			message.append(" Reason: ");
 			message.append(ex.getTitle());
 			message.append(" (");

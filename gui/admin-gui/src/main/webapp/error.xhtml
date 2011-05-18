@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">Error</ui:define>
+
+	<ui:define name="sidebar"></ui:define>
+
+	<ui:define name="content">
+		We are sorry, unknown error occured.
+		<ice:panelGrid cellpadding="5" cellspacing="5">
+			<ice:outputText value="Title" />
+			
+		</ice:panelGrid>				
+	</ui:define>
+</ui:composition>

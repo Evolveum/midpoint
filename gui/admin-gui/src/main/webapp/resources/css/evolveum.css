@@ -216,6 +216,12 @@ a {
 	border: 1px solid;
 }
 
+#messages li span.messages-info ul,#messages li span.messages-warn ul,#messages li span.messages-error ul
+	{
+	list-style: disc;
+	margin-left: 30px;
+}
+
 #messages li span.messages-info {
 	color: #4F8A10;
 	background-color: #DFF2BF;

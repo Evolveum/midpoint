@@ -33,7 +33,10 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.web.component.messages.MidPointMessage;
+import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FaultType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
 /**
  * 
@@ -43,27 +46,35 @@ public abstract class FacesUtils {
 
 	private static final Trace TRACE = TraceManager.getTrace(FacesUtils.class);
 
-	public static String getBundleKey(String bundleName, String key, Object[] arguments) {
+	public static String getRequestParameter(String name) {
+		if (StringUtils.isEmpty(name)) {
+			throw new IllegalArgumentException("Attribute name can't be null.");
+		}
+		return (String) FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
+				.get(name);
+	}
+
+	public static String translateKey(String key, Object[] arguments) {
 		if (arguments == null) {
-			return getBundleKey(bundleName, key);
+			return translateKey(key);
 		}
 
-		MessageFormat format = new MessageFormat(getBundleKey(bundleName, key));
+		MessageFormat format = new MessageFormat(translateKey(key));
 		return format.format(arguments);
 	}
 
-	public static String getBundleKey(String bundleName, String key) {
+	public static String translateKey(String key) {
+		if (key == null) {
+			throw new IllegalArgumentException("Key can't be null");
+		}
 		Application application = FacesContext.getCurrentInstance().getApplication();
 
 		ResourceBundle bundle = null;
 		try {
 			bundle = ResourceBundle.getBundle(application.getMessageBundle(), FacesContext
 					.getCurrentInstance().getViewRoot().getLocale());
-			// ResourceBundle bundle =
-			// application.getResourceBundle(FacesContext.getCurrentInstance(),
-			// bundleName);
 		} catch (Exception ex) {
-			TRACE.warn("Couldn't get resource bundle '" + bundleName + "', reason: " + ex.getMessage());
+			TRACE.warn("Couldn't get resource bundle, reason: " + ex.getMessage());
 		}
 
 		if (bundle == null) {
@@ -75,28 +86,55 @@ public abstract class FacesUtils {
 	}
 
 	public static void addWarnMessage(String msg) {
-		addMessage(FacesMessage.SEVERITY_WARN, msg);
+		addWarnMessage(msg, null);
 	}
 
 	public static void addSuccessMessage(String msg) {
-		addMessage(FacesMessage.SEVERITY_INFO, msg);
+		addSuccessMessage(msg, null);
 	}
 
 	public static void addErrorMessage(String msg) {
-		addMessage(FacesMessage.SEVERITY_ERROR, msg);
+		addErrorMessage(msg, null);
 	}
 
-	private static void addMessage(FacesMessage.Severity severity, String msg) {
-		final FacesMessage facesMsg = new FacesMessage(severity, msg, msg);
+	public static void addWarnMessage(String msg, Exception ex) {
+		addMessage(FacesMessage.SEVERITY_WARN, msg, ex);
+	}
+
+	public static void addSuccessMessage(String msg, Exception ex) {
+		addMessage(FacesMessage.SEVERITY_INFO, msg, ex);
+	}
+
+	public static void addErrorMessage(String msg, Exception ex) {
+		addMessage(FacesMessage.SEVERITY_ERROR, msg, ex);
+	}
+
+	private static void addMessage(FacesMessage.Severity severity, String msg, Exception ex) {
+		final MidPointMessage message = new MidPointMessage(severity, msg, null);
+		if (ex != null) {
+			fillExceptionMessages(message, ex);
+		}
 		FacesContext ctx = FacesContext.getCurrentInstance();
 		if (null != ctx) {
-			ctx.addMessage(null, facesMsg);
+			ctx.addMessage(null, message);
 		}
 	}
-
-	public static String getRequestParameter(String name) {
-		return (String) FacesContext.getCurrentInstance().getExternalContext().getRequestParameterMap()
-				.get(name);
+	
+	private static void fillExceptionMessages(MidPointMessage message, Throwable ex) {
+		if (ex == null ||message.getSubMessages().size() > 4) {
+			return;
+		}
+		if (ex instanceof WebModelException) {
+			WebModelException webException = (WebModelException)ex;
+			message.getSubMessages().add(webException.getTitle());
+		} else if (ex instanceof FaultMessage) {
+			FaultMessage fault = (FaultMessage)ex;
+			message.getSubMessages().add(fault.getMessage());
+		} else {
+			message.getSubMessages().add(ex.getMessage());			
+		}		
+		
+		fillExceptionMessages(message, ex.getCause());
 	}
 
 	public static String getMessageFromFault(

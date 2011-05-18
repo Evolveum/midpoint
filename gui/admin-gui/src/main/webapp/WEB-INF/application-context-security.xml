@@ -36,6 +36,7 @@
 		<intercept-url pattern="/resources/images/**" access="permitAll" />
 		<intercept-url pattern="/javax.faces.resource/**" access="permitAll" />
 		<intercept-url pattern="/login.iface" access="permitAll" />
+		<intercept-url pattern="/error.iface" access="permitAll" />
 		<intercept-url pattern="/**" access="isAuthenticated()" />
 
 		<form-login login-processing-url="/j_spring_security_check" login-page="/login.iface"
