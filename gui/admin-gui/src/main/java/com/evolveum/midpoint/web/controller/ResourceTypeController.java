@@ -69,6 +69,10 @@ import com.icesoft.faces.component.ext.RowSelectorEvent;
 @Scope("session")
 public class ResourceTypeController implements Serializable {
 
+	public static final String PAGE_NAVIGATION_TEST = "/resource/testResource";
+	public static final String PAGE_NAVIGATION_LIST = "/resource/listResources";
+	public static final String PAGE_NAVIGATION_LIST_ACCOUNTS = "/resource/listResourcesAccounts";
+	public static final String PAGE_NAVIGATION_IMPORT = "/resource/resourceImportStatus";
 	private static final long serialVersionUID = 1494194832160260941L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceTypeController.class);
 	@Autowired
@@ -86,7 +90,7 @@ public class ResourceTypeController implements Serializable {
 		}
 		resourceDto = null;
 		accounts = null;
-		return "/listResources";
+		return PAGE_NAVIGATION_LIST;
 	}
 
 	private void parseForUsedConnector(GuiResourceDto guiResource) {
@@ -144,7 +148,7 @@ public class ResourceTypeController implements Serializable {
 			TRACE.error("List accounts failed");
 			TRACE.error("Exception was: ", ex);
 		}
-		return "/listResourcesAccounts";
+		return PAGE_NAVIGATION_LIST_ACCOUNTS;
 	}
 
 	private String getResults(boolean test) {
@@ -192,7 +196,7 @@ public class ResourceTypeController implements Serializable {
 			TRACE.error("Unkonwn error during test connection on resource: " + resourceDto.getOid(), ex);
 		}
 
-		return "/testResource";
+		return PAGE_NAVIGATION_TEST;
 	}
 
 	public void importFromResource() {
@@ -291,7 +295,7 @@ public class ResourceTypeController implements Serializable {
 			TRACE.error("Getting import status failed:. Runtime error.", ex);
 		}
 
-		return "/resourceImportStatus";
+		return PAGE_NAVIGATION_IMPORT;
 	}
 
 	public void resourceSelectionListener(RowSelectorEvent event) {
@@ -339,7 +343,7 @@ public class ResourceTypeController implements Serializable {
 			return null;
 		}
 
-		return "/listResources";
+		return PAGE_NAVIGATION_LIST;
 
 	}
 

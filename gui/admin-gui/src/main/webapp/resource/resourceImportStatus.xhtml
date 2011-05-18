@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">#{lang.messages['user.type.list.title']}</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<ice:form>
+			<ice:panelGrid column="1">
+				<ice:panelGroup>
+					<idm:button action="#{resourceTypeController.backPerformed}" value="#{msg['button.back']}"
+						img="/resources/images/door_in.png" />
+					<idm:button action="#{resourceTypeController.getImportStatus}" value="Refresh"
+						img="/resources/images/arrow_rotate_clockwise.png" />
+				</ice:panelGroup>
+
+				<ice:panelGrid columns="2" width="600px">
+					<ice:outputText styleClass="heading" value="Resource: " />
+					<ice:panelGroup />
+					<ice:outputText id="resourceOid" value="#{msg['user.type.oid']}: " />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.resourceDto.oid}" />
+					</ice:panelGroup>
+					<ice:outputText id="resourceName" value="#{msg['user.type.name']}: " />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.resourceDto.name} " />
+					</ice:panelGroup>
+
+					<ice:outputText id="resourceConnector" value="Used connector: " />
+					<ice:panelGroup>
+
+						<ice:outputText value="#{resourceTypeController.resourceDto.connectorUsed}" />
+					</ice:panelGroup>
+					<ice:outputText id="resourceConnectorVersion" value="Connector #{msg['user.type.version']}: " />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.resourceDto.connectorVersion}" />
+					</ice:panelGroup>
+
+					<ice:outputText styleClass="heading" value="Import status: " />
+					<ice:panelGroup />
+
+					<ice:outputText value="Name: " />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.status.name}" />
+					</ice:panelGroup>
+
+					<ice:outputText value="Running: " />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.status.running}" />
+
+					</ice:panelGroup>
+
+					<ice:outputText value="Launch time: " />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.status.launchTime}" />
+					</ice:panelGroup>
+
+					<ice:outputText value="Finish time: " />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.status.finishTime}" />
+					</ice:panelGroup>
+
+					<ice:outputText value="Progress: " />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.status.progress}" />
+					</ice:panelGroup>
+
+					<ice:outputText value="Last status: " />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.status.lastStatus}" />
+					</ice:panelGroup>
+
+					<ice:outputText value="Number of errors: " />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.status.numberOfErrors}" />
+					</ice:panelGroup>
+
+					<ice:outputText value="Last error: " />
+					<ice:panelGroup />
+
+					<ice:outputText value="Message: " styleClass="importStatus" />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.status.lastError.message}" />
+					</ice:panelGroup>
+
+
+					<ice:outputText value="Detail: " styleClass="importStatus" />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.status.lastError.details}" />
+					</ice:panelGroup>
+
+					<ice:outputText value="Timestamp: " styleClass="importStatus" />
+					<ice:panelGroup>
+						<ice:outputText value="#{resourceTypeController.status.lastError.timestamp}" />
+					</ice:panelGroup>
+				</ice:panelGrid>
+			</ice:panelGrid>
+		</ice:form>
+	</ui:define>
+</ui:composition>
