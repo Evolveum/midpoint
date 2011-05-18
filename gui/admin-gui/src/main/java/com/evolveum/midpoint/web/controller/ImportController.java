@@ -103,12 +103,12 @@ public class ImportController implements Serializable {
 				repositoryService.addObject(objectContainer);
 				FacesUtils.addSuccessMessage("Added object: " + object.getName());
 			} catch (FaultMessage ex) {
-				String failureMesage = FacesUtils.translateKey("msg", "import.jaxb.failed");
+				String failureMesage = FacesUtils.translateKey("import.jaxb.failed");
 				FacesUtils.addErrorMessage(failureMesage + " " + FacesUtils.getMessageFromFault(ex));
 				FacesUtils.addErrorMessage("Failed to add object " + object.getName());
 				TRACE.error("Exception was: {}", ex, ex);
 			} catch (Exception ex) {
-				String failureMessage = FacesUtils.translateKey("msg", "import.jaxb.failed");
+				String failureMessage = FacesUtils.translateKey("import.jaxb.failed");
 				FacesUtils.addErrorMessage(failureMessage + ":" + ex.getMessage());
 				FacesUtils.addErrorMessage("Failed to add object " + object.getName());
 				TRACE.error("Add object failed");
@@ -121,7 +121,7 @@ public class ImportController implements Serializable {
 
 	public String addObjects() {
 		if (StringUtils.isEmpty(xmlObject)) {
-			String loginFailedMessage = FacesUtils.translateKey("msg", "import.null.failed");
+			String loginFailedMessage = FacesUtils.translateKey("import.null.failed");
 			FacesUtils.addErrorMessage(loginFailedMessage);
 			return "";
 		}
