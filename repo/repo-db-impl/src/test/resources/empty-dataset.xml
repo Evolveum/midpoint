@@ -23,6 +23,7 @@
     <Domains/>
     <Domains_Objects/>
     <Objects/>
+    <UserTemplates/>
     <BooleanProperties/>
     <DateProperties/>
     <GenericEntities/>
