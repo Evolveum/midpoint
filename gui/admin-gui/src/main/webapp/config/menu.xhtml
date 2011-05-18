@@ -4,10 +4,15 @@
 	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
+	<idm:leftMenuContainer name="Configuration">
+		<idm:leftMenuItem id="leftBasic" name="Basic Configuration" action="/config/index" />
+	</idm:leftMenuContainer>
 	<idm:leftMenuContainer name="Debug">
 		<idm:leftMenuItem id="leftDebug" name="Debug Pages" action="#{debugPagesController.fillSelectItemList}" />
-		<idm:leftMenuItem id="leftXpath" name="XPath Debug" action="#{xpathDebugPageController.prepareXpathDebugPage}" />
-		<idm:leftMenuItem id="leftImport" name="#{lang.messages['menu.import.page']}" action="#{import.setImportPage}" />
+		<idm:leftMenuItem id="leftXpath" name="XPath Debug" action="#{xpathDebugPageController.prepareXpathDebugPage}" />		
 		<idm:leftMenuItem id="leftLogging" name="Logging" action="/config/trace" />
+	</idm:leftMenuContainer>
+	<idm:leftMenuContainer name="Import And Export">
+		<idm:leftMenuItem id="leftImport" name="#{lang.messages['menu.import.page']}" action="#{import.setImportPage}" />		
 	</idm:leftMenuContainer>
 </ui:composition>

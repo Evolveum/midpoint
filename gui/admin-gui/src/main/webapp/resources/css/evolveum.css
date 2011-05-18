@@ -139,6 +139,7 @@ a {
 
 #wrapper {
 	padding: 10px 0px;
+	min-height: 400px;
 }
 
 .clear {
