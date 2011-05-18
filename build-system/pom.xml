@@ -40,7 +40,6 @@
         <verbose.jaxb2>false</verbose.jaxb2>
         <verbose.jaxws>false</verbose.jaxws>
         <!-- Dependencies global versions -->
-        <midpoint.version>1.7-SNAPSHOT</midpoint.version>
         <basex.version>6.6</basex.version>
         <commons.io.version>2.0.1</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
