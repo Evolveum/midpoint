@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:comp="http://java.sun.com/jsf/composite/components"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+	<f:view locale="#{lang.currentLocale}" contentType="text/html; charset=utf-8">
+<h:head>
+	<title>midPoint</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />	
+	<ice:outputStyle href="/resources/css/reset.css"/>
+	<ice:outputStyle href="/resources/css/evolveum.css"/>
+</h:head>
+<h:body>
+	<div id="header">
+		<div id="login-box">
+			<span>
+				<ice:outputLabel value="#{lang.messages['header.loggedInAs']}" 
+						rendered="#{security.isUserLoggedIn}"/>
+			    <em>&nbsp;
+			    	<ice:outputLabel value="#{security.shortUserName}" rendered="#{security.isUserLoggedIn}"/>
+				</em>
+			</span>
+			<span>
+				<ice:form rendered="#{not security.isUserLoggedIn}" style="display: inline;">			
+	                    #{lang.messages['app.language']}:
+		            <ui:repeat value="#{lang.supportedLocales}" var="locale">
+		                <ice:commandLink immediate="true">
+		                    <ice:graphicImage value="/resources/images/flag/#{locale.language}.png" 
+		                    	alt="#{locale.language}" styleClass="flag"/>
+		                    <f:setPropertyActionListener target="#{lang.currentLanguage}" 
+		                    	value="#{locale.language}_#{locale.country}_#{locale.variant}" />
+		                </ice:commandLink>
+		            </ui:repeat>
+	            </ice:form>
+            </span>            
+            <f:verbatim styleClass="delimiter" rendered="#{security.isUserLoggedIn}">|</f:verbatim>
+			<span>
+				<ice:outputLink rendered="#{security.isUserLoggedIn}"
+					value="#{facesContext.externalContext.requestContextPath}/j_spring_security_logout">
+					<span>#{lang.messages['logout.title']}</span>
+				</ice:outputLink>
+			</span>
+			<span class="delimiter">|</span>
+			<span class="last">
+				<ice:outputLink value="#{facesContext.externalContext.requestContextPath}/help.iface">
+					<span>Help</span>
+				</ice:outputLink>	
+			</span>		 
+		</div>
+		<div class="container">
+			<div id="logo">
+				<img src="./logo.png" />
+				<h1>midPoint</h1>				
+			</div>			
+		</div>
+	</div>
+	<h:panelGroup rendered="#{security.isUserLoggedIn}" id="nav" layout="block">
+		<div class="container">
+			<idm:topMenu selected="#{template.selectedTopId}">
+				<idm:topMenuItem action="/index?faces-redirect=true" name="#{lang.messages['menu.home']}" description="Start here" />
+				<idm:topMenuItem action="/account/index?faces-redirect=true" name="Accounts" description="User in repository" />
+				<idm:topMenuItem action="/workItem/index?faces-redirect=true" name="Work Items" description="Requests, approving" />
+				<idm:topMenuItem action="/role/index?faces-redirect=true" name="Roles" description="Roles configuration" />
+				<idm:topMenuItem action="/resource/index?faces-redirect=true" name="Resources" description="Used systems" />
+				<idm:topMenuItem action="/serverTask/index?faces-redirect=true" name="Server Tasks" description="Running tasks" />
+				<idm:topMenuItem action="/report/index?faces-redirect=true" name="Reports" description="Audit reports" />
+				<idm:topMenuItem action="/configuration/index?faces-redirect=true" name="#{lang.messages['menu.config']}" description="Security, logging, import" />
+			</idm:topMenu>
+		</div>
+	</h:panelGroup>
+	<div class="container">
+		<div id="sidebar">
+			<ui:insert name="sidebar">
+				<idm:leftMenu selected="#{template.selectedLeftId}">
+					<ui:insert name="menu">
+						<idm:leftMenuContainer name="Sample Menu">
+							<idm:leftMenuItem name="List Users" action="/aex?faces-redirect=true" />
+							<idm:leftMenuItem name="Find Users" action="/indsex?faces-redirect=true" />
+							<idm:leftMenuItem name="Create Users" action="/index?faces-redirect=true" />
+						</idm:leftMenuContainer>
+					</ui:insert>
+				</idm:leftMenu>		
+			</ui:insert>
+			<div class="clear-menu"></div>
+		</div>
+		<div id="content">
+			<div id="wrapper">
+				<h2><ui:insert name="title">Welcome</ui:insert></h2>
+				<ice:messages id="messages" errorClass="messages-error" infoClass="messages-info" 
+					fatalClass="message-fatal" warnClass="messages-warn" />
+				<ui:insert name="content">
+					sample content
+				</ui:insert>
+				
+				<!-- DELETE AFTER CLEANUP -->
+				<h:panelGroup rendered="#{security.isUserLoggedIn}" layout="block">
+					<hr />
+					DEPRECATED ***delete after menu cleanup***
+					<ice:outputStyle href="/resources/css/xp/xp.css"/>
+					<ui:include src="/resources/templates/menu.xhtml" />			
+				</h:panelGroup>
+			</div>
+		</div>
+	</div>
+	<div class="clear"></div>
+	<div id="footer">
+		<div class="container">
+			<p id="credit">&copy; Copyright Evolveum. All Rights Reserved. Theme created by lazyman.</p>
+		</div>
+	</div>
+</h:body>
+</f:view>
+</html>
