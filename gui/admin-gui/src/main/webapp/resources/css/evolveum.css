@@ -1,3 +1,6 @@
+/*
+ * Author: lazyman
+ */
 a {
 	text-decoration: none;
 }
@@ -78,7 +81,8 @@ a {
 }
 
 #top-nav a:hover,#top-nav .selected-top {
-	background: url("../images/nav-hover.png") repeat-x scroll left top transparent;
+	background: url("../images/nav-hover.png") repeat-x scroll left top
+		transparent;
 	color: #2E3324;
 	text-decoration: none;
 }

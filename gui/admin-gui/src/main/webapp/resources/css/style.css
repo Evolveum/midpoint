@@ -80,7 +80,6 @@ label em {
 }
 
 /* STANDARD */
-
 button:hover, .buttons a:hover{
     background-color:#dff4ff;
     border:1px solid #c2e1ef;
@@ -93,7 +92,6 @@ button:hover, .buttons a:hover{
 }
 
 /* POSITIVE */
-
 button.positive, .buttons a.positive{
     color:#529214;
 }
@@ -102,14 +100,13 @@ button.positive, .buttons a.positive{
     border:1px solid #C6D880;
     color:#529214;
 }
-.buttons a.positive:active{
+.buttons a.positive:active {
     background-color:#529214;
     border:1px solid #529214;
     color:#fff;
 }
 
 /* NEGATIVE */
-
 .buttons a.negative, button.negative{
     color:#d12f19;
 }
@@ -125,7 +122,6 @@ button.positive, .buttons a.positive{
 }
 
 /* REGULAR */
-
 .buttons a.regular, button.regular{
     color:#336699;
 }
