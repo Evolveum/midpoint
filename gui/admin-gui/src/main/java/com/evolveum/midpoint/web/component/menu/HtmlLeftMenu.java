@@ -28,6 +28,8 @@ import javax.faces.component.FacesComponent;
 import javax.faces.component.UIComponent;
 import javax.faces.context.FacesContext;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.icesoft.faces.component.ext.HtmlForm;
@@ -73,6 +75,10 @@ public class HtmlLeftMenu extends HtmlForm {
 					continue;
 				}
 				HtmlLeftMenuItem left = (HtmlLeftMenuItem)item;
+				if (StringUtils.isEmpty(selectedId)) {
+					selectedId = left.getId();
+				}
+				
 				if (left.getId().equals(selectedId)) {
 					left.setStyleClass(STYLE_SELECTED);
 				} else {

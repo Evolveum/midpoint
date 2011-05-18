@@ -9,7 +9,10 @@
 	<title>midPoint</title>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />	
 	<ice:outputStyle href="/resources/css/reset.css"/>
-	<ice:outputStyle href="/resources/css/evolveum.css"/>
+	<ice:outputStyle href="/resources/css/xp/xp.css"/>
+	<ice:outputStyle href="/resources/css/evolveum.css"/>		
+	<!-- REMOVE IF NOT USED -->
+	<ice:outputStyle href="/resources/css/style.css"/>
 </h:head>
 <h:body>
 	<div id="header">
@@ -58,14 +61,14 @@
 	<h:panelGroup rendered="#{security.isUserLoggedIn}" id="nav" layout="block">
 		<div class="container">
 			<idm:topMenu selected="#{template.selectedTopId}">
-				<idm:topMenuItem action="/index?faces-redirect=true" name="#{lang.messages['menu.home']}" description="Start here" />
-				<idm:topMenuItem action="#{userList.fillTableList}" name="Accounts" description="User in repository" />
-				<idm:topMenuItem action="/work/index?faces-redirect=true" name="Work Items" description="Requests, approving" />
-				<idm:topMenuItem action="/role/index?faces-redirect=true" name="Roles" description="Roles configuration" />
-				<idm:topMenuItem action="/resource/index?faces-redirect=true" name="Resources" description="Used systems" />
-				<idm:topMenuItem action="/server/index?faces-redirect=true" name="Server Tasks" description="Running tasks" />
-				<idm:topMenuItem action="/report/index?faces-redirect=true" name="Reports" description="Audit reports" />
-				<idm:topMenuItem action="/config/index?faces-redirect=true" name="#{lang.messages['menu.config']}" description="Security, logging, import" />
+				<idm:topMenuItem id="topHome" action="/index?faces-redirect=true" name="#{lang.messages['menu.home']}" description="Start here" />
+				<idm:topMenuItem id="topAccounts" action="#{userList.fillTableList}" name="Accounts" description="User in repository" />
+				<idm:topMenuItem id="topWorkItems" action="/work/index?faces-redirect=true" name="Work Items" description="Requests, approving" />
+				<idm:topMenuItem id="topRoles" action="/role/index?faces-redirect=true" name="Roles" description="Roles configuration" />
+				<idm:topMenuItem id="topResources" action="/resource/index?faces-redirect=true" name="Resources" description="Used systems" />
+				<idm:topMenuItem id="topServerTasks" action="/server/index?faces-redirect=true" name="Server Tasks" description="Running tasks" />
+				<idm:topMenuItem id="topReports" action="/report/index?faces-redirect=true" name="Reports" description="Audit reports" />
+				<idm:topMenuItem id="topConfiguration" action="/config/index?faces-redirect=true" name="#{lang.messages['menu.config']}" description="Security, logging, import" />
 			</idm:topMenu>
 		</div>
 	</h:panelGroup>
@@ -92,15 +95,6 @@
 				<ui:insert name="content">
 					sample content
 				</ui:insert>
-				
-				<!-- DELETE AFTER CLEANUP -->
-				<h:panelGroup rendered="#{security.isUserLoggedIn}" layout="block">
-					<hr />
-					DEPRECATED ***delete after menu cleanup***
-					<ice:outputStyle href="/resources/css/xp/xp.css"/>
-					<ice:outputStyle href="/resources/css/style.css"/>
-					<ui:include src="/resources/templates/menu.xhtml" />			
-				</h:panelGroup>
 			</div>
 		</div>
 	</div>
