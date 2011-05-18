@@ -138,10 +138,11 @@ public class LinkAccountActionTest {
             //create additional change
             ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-add.xml");
             //adding objects to repo
-//            UserType userType = (UserType) addObjectToRepo("src/test/resources/user.xml");
+            addObjectToRepo("src/test/resources/user.xml");
             ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());
             AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change.getShadow());
 
+            assertNotNull(resourceType);
             //setup provisioning mock
             BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
             ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
