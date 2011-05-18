@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.component.form;
+package com.evolveum.midpoint.web.component;
 
 import javax.faces.component.StateHolder;
 import javax.faces.context.FacesContext;

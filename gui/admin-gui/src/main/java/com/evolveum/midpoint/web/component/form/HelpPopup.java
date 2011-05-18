@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.web.component.form;
 
+import com.evolveum.midpoint.web.component.AbstractStateHolder;
 import com.icesoft.faces.component.ext.HtmlCommandButton;
 import com.icesoft.faces.component.ext.HtmlOutputText;
 import com.icesoft.faces.component.ext.HtmlPanelGrid;

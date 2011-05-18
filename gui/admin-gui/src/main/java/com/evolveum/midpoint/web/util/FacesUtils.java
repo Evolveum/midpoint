@@ -74,6 +74,10 @@ public abstract class FacesUtils {
 		return bundle.getString(key);
 	}
 
+	public static void addWarnMessage(String msg) {
+		addMessage(FacesMessage.SEVERITY_WARN, msg);
+	}
+
 	public static void addSuccessMessage(String msg) {
 		addMessage(FacesMessage.SEVERITY_INFO, msg);
 	}

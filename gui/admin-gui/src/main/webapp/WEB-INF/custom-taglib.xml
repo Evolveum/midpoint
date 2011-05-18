@@ -63,4 +63,38 @@
 			<renderer-type>schemaMessageRenderer</renderer-type>
 		</component>
 	</tag>
+	<tag>
+		<tag-name>topMenu</tag-name>
+		<component>
+			<component-type>HtmlTopMenu</component-type>
+			<renderer-type>com.icesoft.faces.Form</renderer-type>
+		</component>
+	</tag>
+	<tag>
+		<tag-name>topMenuItem</tag-name>
+		<component>
+			<component-type>HtmlTopMenuItem</component-type>
+			<renderer-type>com.icesoft.faces.Link</renderer-type>
+		</component>
+	</tag>
+	<tag>
+		<tag-name>leftMenu</tag-name>
+		<component>
+			<component-type>HtmlLeftMenu</component-type>
+			<renderer-type>com.icesoft.faces.Form</renderer-type>
+		</component>
+	</tag>
+	<tag>
+		<tag-name>leftMenuContainer</tag-name>
+		<component>
+			<component-type>HtmlLeftMenuContainer</component-type>
+		</component>
+	</tag>
+	<tag>
+		<tag-name>leftMenuItem</tag-name>
+		<component>
+			<component-type>HtmlLeftMenuItem</component-type>
+			<renderer-type>com.icesoft.faces.Link</renderer-type>
+		</component>
+	</tag>
 </facelet-taglib>
