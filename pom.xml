@@ -25,7 +25,7 @@
     <name>midPoint project</name>
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>project</artifactId>
-    <version>1.7-SNAPSHOT</version>
+    <version>1.8-SNAPSHOT</version>
     <packaging>pom</packaging>
     <description>Utility module to compile all of the maven based midPoint projects.</description>
     <organization>

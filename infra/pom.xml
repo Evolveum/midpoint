@@ -25,12 +25,12 @@
     <name>midPoint Infrastructure</name>
     <groupId>com.evolveum.midpoint</groupId>
     <artifactId>infra</artifactId>
-    <version>1.7-SNAPSHOT</version>
+    <version>1.8-SNAPSHOT</version>
     <packaging>pom</packaging>
     <parent>
         <artifactId>parent</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
-        <version>1.7-SNAPSHOT</version>
+        <version>1.8-SNAPSHOT</version>
     </parent>
     <organization>
         <name>Evolveum</name>
