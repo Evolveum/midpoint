@@ -1,37 +1,32 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<ui:composition template="/resources/templates/admin-template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
-	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{lang.messages['user.type.list.title']}</ui:define>
-	<ui:define name="content-title">#{lang.messages['user.type.list.title']}</ui:define>
+	<ui:define name="title">Login</ui:define>
 
-	<ui:define name="admin-content">
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
 		<ice:panelGroup>
 			<ice:form id="admin-content">
 				<ice:panelGrid column="1">
-
 					<ice:panelGroup styleClass="buttonsPosisiton">
 						<idm:button action="/account/createUser" id="addButton" buttonType="positive" value="Add user"
 							img="/resources/images/user_add.png" />
-
-						<ui:remove>
-							<idm:button action="/account/deleteUser" buttonType="negative" value="Delete user" id="deleteButton"
-								img="/resources/images/user_delete.png" />
-						</ui:remove>
-
+						<idm:button action="/account/deleteUser" buttonType="negative" value="Delete user" id="deleteButton"
+							img="/resources/images/user_delete.png" />
 						<ice:panelGrid columns="3" styleClass="searchOidPosition">
-
 							<ice:outputText value="#{msg['user.type.userID']}" />
 							<ice:inputText value="#{userList.searchOid}" immediate="true" />
-
 							<idm:button actionListener="#{userList.searchUser}" value="#{msg['user.type.search.button']}"
 								id="searchButton" img="/resources/images/magnifier.png" />
 						</ice:panelGrid>
 					</ice:panelGroup>
-
 
 					<ice:panelGroup>
 						<ice:outputText value="Users per page: " />
@@ -43,43 +38,31 @@
 								action="#{userList.listPrevious}" />
 							<idm:button img="/resources/images/resultset_next.png" value="Next" action="#{userList.listNext}" />
 							<idm:button img="/resources/images/resultset_last.png" value="Last" action="#{userList.listLast}" />
-
 						</ice:panelGrid>
 					</ice:panelGroup>
+
 					<ice:dataTable id="userTable" rows="#{userList.rowsCount}" value="#{userList.userData}" var="user"
 						sortColumn="#{userList.userList.sortColumnName}" sortAscending="#{userList.userList.ascending}"
 						columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
-						columnWidths="20px, 230px, 100px, 100px, 170px, 100px, 100px, 150px" resizable="true">
+						columnWidths="230px, 100px, 100px, 170px, 100px, 100px, 150px" resizable="true">
 						<ice:column>
-							<f:facet name="header" />
-							<ice:selectBooleanCheckbox id="selectCheckbox" />
-
+							<f:facet name="header">
+								<ice:commandSortHeader columnName="oid" arrow="true" actionListener="#{userList.sortItem}">
+									<ice:outputText id="userOid" value="#{msg['user.type.oid']}" />
+								</ice:commandSortHeader>
+							</f:facet>
+							<ice:outputText id="oid" value="#{user.oid}" />
 							<ice:rowSelector id="selected" clickAction="/account/detailUser"
 								selectionListener="#{userList.userSelectionListener}" styleClass="selectedRow" />
 						</ice:column>
 						<ice:column>
-
-							<f:facet name="header">
-								<ice:commandSortHeader columnName="oid" arrow="true" actionListener="#{userList.sortItem}">
-
-									<ice:outputText id="userOid" value="#{msg['user.type.oid']}" />
-								</ice:commandSortHeader>
-							</f:facet>
-
-
-							<ice:outputText id="oid" value="#{user.oid}" />
-						</ice:column>
-
-						<ice:column>
 							<f:facet name="header">
 								<ice:commandSortHeader columnName="givenName" arrow="true" actionListener="#{userList.sortItem}">
-
 									<ice:outputText id="userGivenName" value="#{msg['user.type.givenName']}" />
 								</ice:commandSortHeader>
 							</f:facet>
 							<ice:outputText id="givenName" value="#{user.givenName}" />
 						</ice:column>
-
 						<ice:column>
 							<f:facet name="header">
 								<ice:commandSortHeader columnName="familyName" arrow="true" actionListener="#{userList.sortItem}">
@@ -88,19 +71,14 @@
 							</f:facet>
 							<ice:outputText id="familyName" value="#{user.familyName}" />
 						</ice:column>
-
-
 						<ice:column>
 							<f:facet name="header">
 								<ice:commandSortHeader columnName="fullName" arrow="true" actionListener="#{userList.sortItem}">
-
 									<ice:outputText id="userFullName" value="#{msg['user.type.fullName']}" />
 								</ice:commandSortHeader>
 							</f:facet>
 							<ice:outputText id="fullName" value="#{user.fullName}" />
 						</ice:column>
-
-
 						<ice:column>
 							<f:facet name="header">
 								<ice:commandSortHeader columnName="name" arrow="true" actionListener="#{userList.sortItem}">
@@ -110,16 +88,6 @@
 							</f:facet>
 							<ice:outputText id="name" value="#{user.name}" />
 						</ice:column>
-						<ui:remove>
-							<ice:column>
-								<f:facet name="header">
-									<ice:commandSortHeader columnName="telNumber" arrow="true" actionListener="#{userList.sortItem}">
-										<ice:outputText id="userTelNumber" value="#{msg['user.type.telNumber']}" />
-									</ice:commandSortHeader>
-								</f:facet>
-								<ice:outputText id="telNumber" />
-							</ice:column>
-						</ui:remove>
 						<ice:column>
 							<f:facet name="header">
 								<ice:commandSortHeader columnName="email" arrow="true" actionListener="#{userList.sortItem}">

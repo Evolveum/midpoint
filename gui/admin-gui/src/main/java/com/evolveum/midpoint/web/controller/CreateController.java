@@ -24,8 +24,6 @@ package com.evolveum.midpoint.web.controller;
 
 import java.io.Serializable;
 
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,7 +93,7 @@ public class CreateController implements Serializable {
 
 		userListController.fillTableList();
 
-		return "/account/listUser";
+		return UserListController.PAGE_NAVIGATION;
 	}
 
 	public void cancel(ActionEvent evt) {

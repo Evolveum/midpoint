@@ -86,7 +86,6 @@ public class UserDetailsController implements Serializable {
 	private static final long serialVersionUID = -4537350724118181063L;
 	private static final Trace TRACE = TraceManager.getTrace(UserDetailsController.class);
 	private static final String TAB_USER = "0";
-	private static final String TAB_ACCOUNTS = "1";
 	@Autowired(required = true)
 	private ObjectTypeCatalog objectTypeCatalog;
 	private boolean editMode = false;
@@ -204,7 +203,7 @@ public class UserDetailsController implements Serializable {
 	public String backPerformed() {
 		clearController();
 
-		return "/account/listUser";
+		return UserListController.PAGE_NAVIGATION;
 	}
 
 	/**

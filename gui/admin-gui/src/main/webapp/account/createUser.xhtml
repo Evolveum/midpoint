@@ -1,19 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<ui:composition template="/resources/templates/admin-template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
-	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
 	<ui:define name="title">#{lang.messages['user.type.create.title']}</ui:define>
-	<ui:define name="content-title">#{lang.messages['user.type.create.title']}</ui:define>
 
-	<ui:define name="admin-content">
-		<f:facet name="header">
-			<h:messages errorClass="error" infoClass="info" globalOnly="true" layout="table" />
-		</f:facet>
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
 		<ice:form id="admin-content">
-			<ice:panelGrid columns="2" id="admin-content" style="background-color: #DDDDDD">
+			<ice:panelGrid columns="2" id="admin-content">
 				<ice:panelGroup>
 					<ice:outputLabel value="#{msg['user.type.name']}" />
 					<span style="color: red;">*</span>

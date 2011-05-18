@@ -47,6 +47,7 @@ import org.springframework.stereotype.Controller;
 @Scope("session")
 public class UserListController implements Serializable {
 
+	public static final String PAGE_NAVIGATION = "/account/index?faces-redirect=true";
 	private static final long serialVersionUID = -6520469747022260260L;
 	private static final Trace TRACE = TraceManager.getTrace(UserListController.class);
 	@Autowired(required = true)
@@ -200,7 +201,7 @@ public class UserListController implements Serializable {
 
 	public String fillTableList() {
 		listUsers();
-		return "/account/listUser";
+		return PAGE_NAVIGATION;
 	}
 
 	public GuiUserDtoList getUserList() {
