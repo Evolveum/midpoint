@@ -94,23 +94,20 @@
 		<servlet-class>com.icesoft.faces.webapp.CompatResourceServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
-
 	<servlet-mapping>
 		<servlet-name>Resource Servlet</servlet-name>
 		<url-pattern>/xmlhttp/*</url-pattern>
 	</servlet-mapping>
-	<!-- Faces Servlet -->
 	<servlet>
 		<servlet-name>Faces Servlet</servlet-name>
 		<servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
-
-	<!-- Faces Servlet Mapping -->
 	<servlet-mapping>
 		<servlet-name>Faces Servlet</servlet-name>
 		<url-pattern>*.iface</url-pattern>
 	</servlet-mapping>
+	
 	<session-config>
 		<session-timeout>30</session-timeout>
 	</session-config>
@@ -118,5 +115,9 @@
 		<welcome-file>index.html</welcome-file>
 		<welcome-file>index.iface</welcome-file>
 	</welcome-file-list>
+	<error-page>		
+		<exception-type>java.lang.Exception</exception-type>
+		<location>/error.iface</location>
+	</error-page>
 </web-app>
 
