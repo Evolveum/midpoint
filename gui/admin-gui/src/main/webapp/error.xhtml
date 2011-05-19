@@ -11,9 +11,19 @@
 
 	<ui:define name="content">
 		We are sorry, unknown error occured.
-		<ice:panelGrid cellpadding="5" cellspacing="5">
+		<ice:panelGrid columns="2" cellpadding="5" cellspacing="5" style="margin-top: 10px;">
 			<ice:outputText value="Title" />
-			
-		</ice:panelGrid>				
+			<ice:outputText value="Some title" />
+
+			<ice:outputText value="Description" />
+			<ice:outputText value="Some description" />
+
+			<ice:outputText value="Other" />
+			<ice:outputText value="Some other information" />
+		</ice:panelGrid>
+		<ice:form style="margin-top: 10px;">
+			<idm:button action="/index?faces-redirect=true" id="homeButton" value="Go To Home Page"
+				img="/resources/images/house.png" />
+		</ice:form>
 	</ui:define>
 </ui:composition>

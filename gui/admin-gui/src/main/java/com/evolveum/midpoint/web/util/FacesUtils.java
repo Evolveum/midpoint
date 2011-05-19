@@ -119,29 +119,47 @@ public abstract class FacesUtils {
 			ctx.addMessage(null, message);
 		}
 	}
-	
+
 	private static void fillExceptionMessages(MidPointMessage message, Throwable ex) {
-		if (ex == null ||message.getSubMessages().size() > 4) {
+		if (ex == null || message.getSubMessages().size() > 4) {
 			return;
 		}
 		if (ex instanceof WebModelException) {
-			WebModelException webException = (WebModelException)ex;
+			WebModelException webException = (WebModelException) ex;
 			message.getSubMessages().add(webException.getTitle());
 		} else if (ex instanceof FaultMessage) {
-			FaultMessage fault = (FaultMessage)ex;
-			message.getSubMessages().add(fault.getMessage());
+			FaultMessage fault = (FaultMessage) ex;
+			message.getSubMessages().add(getMessage(fault.getMessage(), fault.getFaultInfo()));
+		} else if (ex instanceof com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage) {
+			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage fault = (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage) ex;
+			message.getSubMessages().add(getMessage(fault.getMessage(), fault.getFaultInfo()));
 		} else {
-			message.getSubMessages().add(ex.getMessage());			
-		}		
-		
+			message.getSubMessages().add(ex.getMessage());
+		}
+
 		fillExceptionMessages(message, ex.getCause());
 	}
 
-	public static String getMessageFromFault(
-			com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage fault) {
+	private static String getMessage(String faultMessage, FaultType faultType) {
+		StringBuilder builder = new StringBuilder();
+		if (!StringUtils.isEmpty(faultMessage)) {
+			builder.append(faultMessage);
+		}
+		if (faultType != null && !StringUtils.isEmpty(faultType.getMessage())) {
+			if (builder.length() != 0) {
+				builder.append(" Reason: ");
+			}
+			builder.append(faultType.getMessage());
+		}
+		return builder.toString();
+	}
+
+	@Deprecated
+	public static String getMessageFromFault(FaultMessage fault) {
 		return getMessageFromFault(fault.getFaultInfo(), fault.getMessage(), fault.getCause());
 	}
 
+	@Deprecated
 	public static String getMessageFromFault(
 			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage fault) {
 		return getMessageFromFault(fault.getFaultInfo(), fault.getMessage(), fault.getCause());

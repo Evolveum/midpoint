@@ -24,12 +24,12 @@
 
 				<f:facet name="footer">
 					<div style="padding-top: 20px;">
-						<ice:commandButton id="loginButton" type="submit" action="#{loginController.login}"
-							value="#{lang.messages['login.action']}" />
-						<div>ROLE_USER: administrator/secret</div>
-					</div>
+						<idm:button action="#{loginController.login}" id="loginButton" value="#{lang.messages['login.action']}"
+							img="/resources/images/key.png" />												
+					</div>					
 				</f:facet>
 			</ice:panelGrid>
+			<div>ROLE_USER: administrator/secret</div>
 		</ice:form>
 	</ui:define>
 </ui:composition>

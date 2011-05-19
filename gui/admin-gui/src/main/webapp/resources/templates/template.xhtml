@@ -26,7 +26,7 @@
 			</span>
 			<span>
 				<ice:form rendered="#{not security.isUserLoggedIn}" style="display: inline;">			
-	                    #{lang.messages['app.language']}:
+	                    #{lang.messages['page.template.language']}:
 		            <ui:repeat value="#{lang.supportedLocales}" var="locale">
 		                <ice:commandLink immediate="true">
 		                    <ice:graphicImage value="/resources/images/flag/#{locale.language}.png" 
@@ -41,13 +41,13 @@
 			<span>
 				<ice:outputLink rendered="#{security.isUserLoggedIn}"
 					value="#{facesContext.externalContext.requestContextPath}/j_spring_security_logout">
-					<span>#{lang.messages['logout.title']}</span>
+					<span>#{lang.messages['page.template.logout']}</span>
 				</ice:outputLink>
 			</span>
 			<span class="delimiter">|</span>
 			<span class="last">
 				<ice:outputLink value="#{facesContext.externalContext.requestContextPath}/help/index.iface">
-					<span>Help</span>
+					<span>#{lang.messages['page.template.help']}</span>
 				</ice:outputLink>	
 			</span>		 
 		</div>
@@ -61,15 +61,31 @@
 	<h:panelGroup rendered="#{security.isUserLoggedIn}" id="nav" layout="block">
 		<div class="container">
 			<idm:topMenu selected="#{template.selectedTopId}">
-				<idm:topMenuItem id="topHome" action="/index?faces-redirect=true" name="#{lang.messages['menu.home']}" description="Start here" />
-				<idm:topMenuItem id="topAccounts" action="#{userList.fillTableList}" name="Accounts" description="User in repository" />
-				<idm:topMenuItem id="topWorkItems" action="/work/index?faces-redirect=true" name="Work Items" description="Requests, approving" />
-				<idm:topMenuItem id="topRoles" action="/role/index?faces-redirect=true" name="Roles" description="Roles configuration" />
-				<idm:topMenuItem id="topResources" action="/resource/index?faces-redirect=true" name="Resources" description="Used systems" />
-				<idm:topMenuItem id="topServerTasks" action="/server/index?faces-redirect=true" name="Server Tasks" description="Running tasks" />
-				<idm:topMenuItem id="topReports" action="/report/index?faces-redirect=true" name="Reports" description="Audit reports" />
-				<idm:topMenuItem id="topConfiguration" action="/config/index?faces-redirect=true" name="#{lang.messages['menu.config']}" description="Security, logging, import" />
-			</idm:topMenu>
+					<idm:topMenuItem id="topHome" action="/index?faces-redirect=true"
+						name="#{lang.messages['page.template.top.home']}"
+						description="#{lang.messages['page.template.top.description.home']" />
+					<idm:topMenuItem id="topAccounts" action="#{userList.fillTableList}"
+						name="#{lang.messages['page.template.top.accounts']"
+						description="#{lang.messages['page.template.top.description.accounts']" />
+					<idm:topMenuItem id="topWorkItems" action="/work/index?faces-redirect=true"
+						name="#{lang.messages['page.template.top.workitems']"
+						description="#{lang.messages['page.template.top.description.workitems']" />
+					<idm:topMenuItem id="topRoles" action="/role/index?faces-redirect=true"
+						name="#{lang.messages['page.template.top.roles']"
+						description="#{lang.messages['page.template.top.description.roles']" />
+					<idm:topMenuItem id="topResources" action="/resource/index?faces-redirect=true"
+						name="#{lang.messages['page.template.top.resources']"
+						description="#{lang.messages['page.template.top.description.resources']" />
+					<idm:topMenuItem id="topServerTasks" action="/server/index?faces-redirect=true"
+						name="#{lang.messages['page.template.top.servertasks']"
+						description="#{lang.messages['page.template.top.description.servertasks']" />
+					<idm:topMenuItem id="topReports" action="/report/index?faces-redirect=true"
+						name="#{lang.messages['page.template.top.reports']"
+						description="#{lang.messages['page.template.top.description.reports']" />
+					<idm:topMenuItem id="topConfiguration" action="/config/index?faces-redirect=true"
+						name="#{lang.messages['page.template.top.configuration']"
+						description="#{lang.messages['page.template.top.description.configuration']" />
+				</idm:topMenu>
 		</div>
 	</h:panelGroup>
 	<div class="container">
@@ -101,7 +117,7 @@
 	<div class="clear"></div>
 	<div id="footer">
 		<div class="container">
-			<p id="credit">&copy; Copyright Evolveum. All Rights Reserved. Theme created by lazyman.</p>
+			<p id="credit">#{lang.messages['page.template.copyright']</p>
 		</div>
 	</div>
 </h:body>
