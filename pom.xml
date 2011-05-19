@@ -48,8 +48,12 @@
         <connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
         <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
         <tag>HEAD</tag>
-        <url>https://fisheye.evolveum.com/midpoint/</url>
+        <url>https://fisheye.evolveum.com/browse/MidPoint/trunk/midpoint/</url>
     </scm>
+    <properties>
+        <!-- Build system options -->
+        <project.source.version>1.6</project.source.version>
+    </properties>
     <modules>
         <module>build-system</module>
         <module>infra</module>
@@ -58,4 +62,29 @@
         <module>model</module>
         <module>gui</module>
     </modules>
+    <profiles>
+       <profile>
+            <id>clover</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.atlassian.maven.plugins</groupId>
+                        <artifactId>maven-clover2-plugin</artifactId>
+                        <version>3.0.5</version>
+                        <configuration>
+                            <targetPercentage>80%</targetPercentage>
+                            <includesTestSourceRoots>false</includesTestSourceRoots>
+                            <jdk>${project.source.version}</jdk>
+                            <generateXml>true</generateXml>
+                            <generateHistorical>true</generateHistorical>
+                            <multiproject>true</multiproject>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

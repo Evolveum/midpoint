@@ -35,7 +35,6 @@
     </parent>
     <properties>
         <!-- Build system options -->
-        <project.source.version>1.6</project.source.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <verbose.jaxb2>false</verbose.jaxb2>
         <verbose.jaxws>false</verbose.jaxws>
@@ -198,28 +197,6 @@
                         </plugin -->
                 </plugins>
             </reporting>
-        </profile>
-        <profile>
-            <id>clover</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.atlassian.maven.plugins</groupId>
-                        <artifactId>maven-clover2-plugin</artifactId>
-                        <version>${clover.version}</version>
-                        <configuration>
-                            <targetPercentage>80%</targetPercentage>
-                            <includesTestSourceRoots>false</includesTestSourceRoots>
-                            <jdk>${project.source.version}</jdk>
-                            <generateXml>true</generateXml>
-                            <generateHistorical>true</generateHistorical>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
         </profile>
     </profiles>
 </project>
