@@ -13,5 +13,53 @@
 
 	<ui:define name="content">
 		Configuration stuff :)))
+		<idm:xmlInput id="editor" width="980" height="350" editable="true" />
+
+		<ui:remove>
+		
+		<div style="display: block; width: 980px; height: 350px;">
+		<div id="editor" style="position:absolute;width:980px;height:350px;">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;ui:composition template=&quot;/resources/templates/template.xhtml&quot; xmlns=&quot;http://www.w3.org/1999/xhtml&quot;
+	xmlns:ui=&quot;http://java.sun.com/jsf/facelets&quot; xmlns:h=&quot;http://java.sun.com/jsf/html&quot;
+	xmlns:comp=&quot;http://java.sun.com/jsf/composite/components&quot; xmlns:f=&quot;http://java.sun.com/jsf/core&quot;
+	xmlns:ice=&quot;http://www.icesoft.com/icefaces/component&quot;
+	xmlns:idm=&quot;http://midpoint.evolveum.com/xml/ns/custom-taglib/&quot;&gt;
+
+	&lt;ui:define name=&quot;title&quot;&gt;Resources&lt;/ui:define&gt;
+
+	&lt;ui:define name=&quot;menu&quot;&gt;
+		&lt;ui:include src=&quot;./menu.xhtml&quot; /&gt;
+	&lt;/ui:define&gt;
+
+	&lt;ui:define name=&quot;content&quot;&gt;
+		Resource stuff :)))
+	&lt;/ui:define&gt;
+&lt;/ui:composition&gt;
+		</div>
+		</div>		
+		<h:outputScript library="js/ace" name="ace.js" />
+		<h:outputScript library="js/ace" name="mode-xml.js" />
+		<h:outputScript library="js/ace" name="theme-eclipse.js" />
+		<!-- <style>
+#editor {	
+	position: absolute;
+	width: 980px;
+	height: 350px;
+}
+</style> -->
+
+		<!-- <script>
+			window.onload = function() {
+				var editor = ace.edit("editor");
+				editor.setTheme("ace/theme/eclipse");				
+				var XmlMode = require("ace/mode/xml").Mode;
+				editor.getSession().setMode(new XmlMode());		
+				
+				document.getElementById('editor').style.fontSize='13px';
+				editor.setReadOnly(false);
+			};
+		</script> -->
+		</ui:remove>
+		
 	</ui:define>
 </ui:composition>

@@ -97,4 +97,11 @@
 			<renderer-type>com.icesoft.faces.Link</renderer-type>
 		</component>
 	</tag>
+	<tag>
+		<tag-name>xmlInput</tag-name>
+		<component>
+			<component-type>AceXmlInput</component-type>
+			<renderer-type>AceXmlInputRenderer</renderer-type>
+		</component>
+	</tag>
 </facelet-taglib>

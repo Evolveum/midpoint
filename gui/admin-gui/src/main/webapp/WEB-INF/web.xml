@@ -115,9 +115,9 @@
 		<welcome-file>index.html</welcome-file>
 		<welcome-file>index.iface</welcome-file>
 	</welcome-file-list>
-	<error-page>		
+	<!-- <error-page>		
 		<exception-type>java.lang.Exception</exception-type>
 		<location>/error.iface</location>
-	</error-page>
+	</error-page> -->
 </web-app>
 
