@@ -63,9 +63,6 @@ public class UserListController implements Serializable {
 	private boolean showPopup = false;
 
 	public void listUsers() {
-		if (1==1) {
-			throw new NullPointerException("alskdfalskdf");
-		}
 		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
 				GuiUserDto.class);
 		UserManager userManager = (UserManager) (objectManager);

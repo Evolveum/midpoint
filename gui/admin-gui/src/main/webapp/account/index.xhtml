@@ -15,30 +15,18 @@
 		<ice:panelGroup>
 			<ice:form id="admin-content">
 				<ice:panelGrid column="1">
-					<ice:panelGroup styleClass="buttonsPosisiton">
-						<idm:button action="/account/createUser" id="addButton" buttonType="positive" value="Add user"
-							img="/resources/images/user_add.png" />
-						<idm:button action="/account/deleteUser" buttonType="negative" value="Delete user" id="deleteButton"
-							img="/resources/images/user_delete.png" />
-						<ice:panelGrid columns="3" styleClass="searchOidPosition">
-							<ice:outputText value="#{msg['user.type.userID']}" />
-							<ice:inputText value="#{userList.searchOid}" immediate="true" />
-							<idm:button actionListener="#{userList.searchUser}" value="#{msg['user.type.search.button']}"
-								id="searchButton" img="/resources/images/magnifier.png" />
-						</ice:panelGrid>
-					</ice:panelGroup>
-
 					<ice:panelGroup>
 						<ice:outputText value="Users per page: " />
 						<ice:inputText value="#{userList.rowsCount}" />
-						<ice:commandButton value="OK" action="#{userList.listFirst}" />
-						<ice:panelGrid columns="4" styleClass="pagingPosition">
-							<idm:button img="/resources/images/resultset_first.png" value="First" action="#{userList.listFirst}" />
-							<idm:button img="/resources/images/resultset_previous.png" value="Previous"
-								action="#{userList.listPrevious}" />
-							<idm:button img="/resources/images/resultset_next.png" value="Next" action="#{userList.listNext}" />
-							<idm:button img="/resources/images/resultset_last.png" value="Last" action="#{userList.listLast}" />
-						</ice:panelGrid>
+						<idm:button value="Update" action="#{userList.listFirst}" id="relistButton"
+							img="/resources/images/arrow_rotate_clockwise.png" />
+
+						<div style="width: 50px; display: inline-block;" />
+
+						<ice:outputText value="#{msg['user.type.userID']}" />
+						<ice:inputText value="#{userList.searchOid}" immediate="true" />
+						<idm:button actionListener="#{userList.searchUser}" value="#{msg['user.type.search.button']}"
+							id="searchButton" img="/resources/images/magnifier.png" />
 					</ice:panelGroup>
 
 					<ice:dataTable id="userTable" rows="#{userList.rowsCount}" value="#{userList.userData}" var="user"
@@ -82,7 +70,6 @@
 						<ice:column>
 							<f:facet name="header">
 								<ice:commandSortHeader columnName="name" arrow="true" actionListener="#{userList.sortItem}">
-
 									<ice:outputText id="userName" value="#{msg['user.type.name']}" />
 								</ice:commandSortHeader>
 							</f:facet>
@@ -97,6 +84,15 @@
 							<ice:outputText id="email" value="#{user.email}" />
 						</ice:column>
 					</ice:dataTable>
+					<ice:panelGroup styleClass="container-auto" style="text-align: center;">
+						<div style="width: auto;">
+							<idm:button img="/resources/images/resultset_first.png" value="First" action="#{userList.listFirst}" />
+							<idm:button img="/resources/images/resultset_previous.png" value="Previous"
+								action="#{userList.listPrevious}" />
+							<idm:button img="/resources/images/resultset_next.png" value="Next" action="#{userList.listNext}" />
+							<idm:button img="/resources/images/resultset_last.png" value="Last" action="#{userList.listLast}" />
+						</div>
+					</ice:panelGroup>
 				</ice:panelGrid>
 			</ice:form>
 		</ice:panelGroup>

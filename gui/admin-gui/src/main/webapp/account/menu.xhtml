@@ -5,8 +5,8 @@
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
 	<idm:leftMenuContainer name="#{lang.messages['menu.users']}">
-		<idm:leftMenuItem id="leftCreate" name="#{lang.messages['user.type.create.link']}" action="/account/createUser" />
 		<idm:leftMenuItem id="leftList" name="#{lang.messages['user.type.list.link']}" action="#{userList.fillTableList}" />
+		<idm:leftMenuItem id="leftCreate" name="#{lang.messages['user.type.create.link']}" action="/account/createUser" />		
 		<idm:leftMenuItem id="leftDelete" name="#{lang.messages['user.type.delete.link']}" action="#{userList.deleteAction}" />
 	</idm:leftMenuContainer>
 </ui:composition>
