@@ -203,7 +203,7 @@ public class UserDetailsController implements Serializable {
 	public String backPerformed() {
 		clearController();
 
-		return UserListController.PAGE_NAVIGATION;
+		return UserListController.PAGE_NAVIGATION_LIST;
 	}
 
 	/**

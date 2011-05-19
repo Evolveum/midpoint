@@ -93,7 +93,7 @@ public class CreateController implements Serializable {
 
 		userListController.fillTableList();
 
-		return UserListController.PAGE_NAVIGATION;
+		return UserListController.PAGE_NAVIGATION_LIST;
 	}
 
 	public void cancel(ActionEvent evt) {

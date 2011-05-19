@@ -5,8 +5,8 @@
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
 	<idm:leftMenuContainer name="Resources">
-		<idm:leftMenuItem id="leftResourceList" name="Resource List" action="/resource/index" />
-		<idm:leftMenuItem id="leftResourceCreate" name="Connect Resource" action="/resource/index" />		
+		<idm:leftMenuItem id="leftResourceList" name="Resource List" action="/resource/index?faces-redirect=true" />
+		<idm:leftMenuItem id="leftResourceCreate" name="Connect Resource" action="/resource/index?faces-redirect=true" />		
 		<idm:leftMenuItem id="leftResourceConfig" name="Resources Configuration" action="#{resourceTypeController.listResources}" />
 	</idm:leftMenuContainer>
 </ui:composition>

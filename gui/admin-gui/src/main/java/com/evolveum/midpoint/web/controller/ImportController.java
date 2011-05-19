@@ -59,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 @Scope("session")
 public class ImportController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_IMPORT = "/config/import";
+	public static final String PAGE_NAVIGATION_IMPORT = "/config/import?faces-redirect=true";
 	private static final long serialVersionUID = -4206532259499809326L;
 	private static final Trace TRACE = TraceManager.getTrace(ImportController.class);
 	private int fileProgress;

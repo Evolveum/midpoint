@@ -69,10 +69,10 @@ import com.icesoft.faces.component.ext.RowSelectorEvent;
 @Scope("session")
 public class ResourceTypeController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_TEST = "/resource/testResource";
-	public static final String PAGE_NAVIGATION_LIST = "/resource/listResources";
-	public static final String PAGE_NAVIGATION_LIST_ACCOUNTS = "/resource/listResourcesAccounts";
-	public static final String PAGE_NAVIGATION_IMPORT = "/resource/resourceImportStatus";
+	public static final String PAGE_NAVIGATION_TEST = "/resource/testResource?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_LIST = "/resource/listResources?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_LIST_ACCOUNTS = "/resource/listResourcesAccounts?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_IMPORT = "/resource/resourceImportStatus?faces-redirect=true";
 	private static final long serialVersionUID = 1494194832160260941L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceTypeController.class);
 	@Autowired

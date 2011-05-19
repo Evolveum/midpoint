@@ -63,9 +63,9 @@ import org.w3c.dom.Element;
 @Scope("session")
 public class DebugPagesController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_DEBUG_LIST = "/config/debugListObjects";
-	public static final String PAGE_NAVIGATION_DEBUG_MAIN = "/config/debugPagesMain";
-	public static final String PAGE_NAVIGATION_DEBUG_VIEW = "/config/debugViewEditObject";
+	public static final String PAGE_NAVIGATION_DEBUG_LIST = "/config/debugListObjects?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_DEBUG_MAIN = "/config/debugPagesMain?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_DEBUG_VIEW = "/config/debugViewEditObject?faces-redirect=true";
 	private static final long serialVersionUID = 4072813415567695627L;
 	private static final Trace logger = TraceManager.getTrace(DebugPagesController.class);
 	@Autowired(required = true)

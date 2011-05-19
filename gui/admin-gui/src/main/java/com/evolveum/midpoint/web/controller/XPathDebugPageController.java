@@ -65,7 +65,7 @@ import org.w3c.dom.NodeList;
 @Scope("session")
 public class XPathDebugPageController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_XPATH_DEBUG = "/config/xpathDebug";
+	public static final String PAGE_NAVIGATION_XPATH_DEBUG = "/config/xpathDebug?faces-redirect=true";
 	private static final long serialVersionUID = 7295076387943631763L;
 	private static final Trace TRACE = TraceManager.getTrace(XPathDebugPageController.class);
 	@Autowired

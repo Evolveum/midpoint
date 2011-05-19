@@ -25,12 +25,15 @@ package com.evolveum.midpoint.web.component.syntax;
 import com.sun.faces.renderkit.html_basic.TextareaRenderer;
 import java.io.IOException;
 
+import javax.el.ValueExpression;
 import javax.faces.application.Resource;
 import javax.faces.component.UIComponent;
 import javax.faces.component.html.HtmlInputTextarea;
 import javax.faces.context.FacesContext;
 import javax.faces.context.ResponseWriter;
 import javax.faces.render.FacesRenderer;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * 
@@ -61,6 +64,15 @@ public class InputSyntaxTextAreaRenderer extends TextareaRenderer {
 	@Override
 	public void encodeEnd(FacesContext context, UIComponent component) throws IOException {
 		super.encodeEnd(context, component);
+		
+		String width = (String) getAttributeValue(AceXmlInput.ATTR_WIDTH, context, component);
+		if (StringUtils.isEmpty(width)) {
+			width = "943";
+		}
+		String height = (String) getAttributeValue(AceXmlInput.ATTR_HEIGHT, context, component);
+		if (StringUtils.isEmpty(height)) {
+			height = "400";
+		}
 
 		ResponseWriter writer = context.getResponseWriter();
 		writer.endElement("div");
@@ -73,8 +85,12 @@ public class InputSyntaxTextAreaRenderer extends TextareaRenderer {
 		builder.append("editor = CodeMirror.fromTextArea('");
 		builder.append(clientId);
 		builder.append("', {\n");
-		builder.append("height: \"700px\",\n");
-		builder.append("width: \"600px\",\n");
+		builder.append("height: \"");
+		builder.append(height);
+		builder.append("px\",\n");
+		builder.append("width: \"");
+		builder.append(width);
+		builder.append("px\",\n");
 		builder.append("parserfile: \"");
 		builder.append("parsexml.js.iface");
 		builder.append("\",\n");
@@ -116,5 +132,14 @@ public class InputSyntaxTextAreaRenderer extends TextareaRenderer {
 
 	private Resource getResource(FacesContext context, String library, String resource) {
 		return context.getApplication().getResourceHandler().createResource(resource, library);
+	}
+
+	private Object getAttributeValue(String attribute, FacesContext context, UIComponent component) {
+		ValueExpression expr = component.getValueExpression(attribute);
+		if (expr != null) {
+			return expr.getValue(context.getELContext());
+		}
+
+		return component.getAttributes().get(attribute);
 	}
 }
