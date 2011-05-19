@@ -35,6 +35,9 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.faces.event.ActionEvent;
+import javax.faces.event.PhaseId;
+import javax.faces.event.ValueChangeEvent;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -177,17 +180,24 @@ public class UserListController implements Serializable {
 		}
 	}
 
-	public String selectAll() {
-		if (selectAll) {
-			selectAll = false;
+	public boolean isSelectAll() {
+		return selectAll;
+	}
+
+	public void setSelectAll(boolean selectAll) {
+		this.selectAll = selectAll;
+	}
+
+	public void selectAllPerformed(ValueChangeEvent event) {
+		if (event.getPhaseId() != PhaseId.INVOKE_APPLICATION) {
+			event.setPhaseId(PhaseId.INVOKE_APPLICATION);
+			event.queue();
 		} else {
-			selectAll = true;
+			boolean selectAll = ((Boolean) event.getNewValue()).booleanValue();
+			for (GuiUserDto guiUser : userList.getUsers()) {
+				guiUser.setSelected(selectAll);
+			}
 		}
-		for (GuiUserDto guiUser : userList.getUsers()) {
-			guiUser.setSelected(selectAll);
-		}
-		TRACE.info("setSelectedAll value");
-		return "/account/deleteUser";
 	}
 
 	public void sortItem(ActionEvent e) {

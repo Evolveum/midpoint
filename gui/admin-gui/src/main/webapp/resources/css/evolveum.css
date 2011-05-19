@@ -364,3 +364,7 @@ button.positive,.buttons a.positive {
 	border: 1px solid #6299c5;
 	color: #fff;
 }
+
+.button-bar {
+	padding-top: 20px;
+}

@@ -25,22 +25,22 @@
 				</f:facet>
 			</ice:panelPopup>
 			<ice:panelGrid>
-				<ice:panelGroup styleClass="buttonsPosition">
-					<ice:panelGrid columns="3" styleClass="searchOidPosition">
-						<ice:outputText value="#{msg['user.type.userID']}" />
-						<ice:inputText value="#{userList.searchOid}" immediate="true" />
-						<idm:button actionListener="#{userList.searchUser}" value="#{msg['user.type.search.button']}"
-							id="searchButton" img="/resources/images/magnifier.png" />
-					</ice:panelGrid>
+				<ice:panelGroup>					
+					<ice:outputText value="#{msg['user.type.userID']}" />
+					<ice:inputText value="#{userList.searchOid}" immediate="true" />
+					<idm:button actionListener="#{userList.searchUser}" value="#{msg['user.type.search.button']}"
+						id="searchButton" img="/resources/images/magnifier.png" />
 				</ice:panelGroup>
 
-				<ice:commandButton id="deleteAllUsers" type="submit" value="#{msg['user.type.deleteAll.button']}"
-					action="#{userList.selectAll}" />
 				<ice:dataTable id="userTable" rows="10" value="#{userList.userData}" var="user"
 					sortColumn="#{userList.userList.sortColumnName}" sortAscending="#{userList.userList.ascending}"
 					columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
-					columnWidths="auto, 230px, 100px, 100px, 170px, 100px, 100px, 150px">
+					columnWidths="auto, 240px, 100px, 100px, 170px, 100px, 150px">
 					<ice:column>
+						<f:facet name="header">
+							<ice:selectBooleanCheckbox id="deleteAllCheckbox" value="#{userList.selectAll}"
+								valueChangeListener="#{userList.selectAllPerformed}" immediate="true" partialSubmit="true" />
+						</f:facet>
 						<ice:selectBooleanCheckbox id="deleteCheckbox" value="#{user.selected}" />
 					</ice:column>
 					<ice:column>
@@ -75,14 +75,6 @@
 					</ice:column>
 					<ice:column>
 						<f:facet name="header">
-							<ice:commandSortHeader columnName="telNumber" arrow="true" actionListener="#{userList.sortItem}">
-								<ice:outputText id="userTelNumber" value="#{msg['user.type.telNumber']}" />
-							</ice:commandSortHeader>
-						</f:facet>
-						<ice:outputText id="telNumber" />
-					</ice:column>
-					<ice:column>
-						<f:facet name="header">
 							<ice:commandSortHeader columnName="email" arrow="true" actionListener="#{userList.sortItem}">
 								<ice:outputText id="userEmail" value="#{msg['user.type.email']}" />
 							</ice:commandSortHeader>
@@ -106,11 +98,11 @@
 						</f:facet>
 					</ice:dataPaginator>
 				</ice:panelGroup>
-				<ice:panelGroup style="display:block; ">
-					<idm:button action="#{userList.showConfirmDelete}" id="deleteUser" buttonType="negative"
-						value="#{lang.messages['user.type.delete.button']}" img="/resources/images/user_delete.png" />
-				</ice:panelGroup>
 			</ice:panelGrid>
+			<div class="button-bar">
+				<idm:button action="#{userList.showConfirmDelete}" id="deleteUser" buttonType="negative"
+					value="#{lang.messages['user.type.delete.button']}" img="/resources/images/user_delete.png" />
+			</div>
 		</ice:form>
 	</ui:define>
 </ui:composition>
