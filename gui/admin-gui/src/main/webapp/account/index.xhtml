@@ -16,14 +16,14 @@
 			<ice:form id="admin-content">
 				<ice:panelGrid column="1">
 					<ice:panelGroup>
-						<ice:outputText value="Users per page: " />
+						<ice:outputText value="#{lang.messages['page.account.index.rowsCount']}" />
 						<ice:inputText value="#{userList.rowsCount}" size="1" />
 						<idm:button value="#{lang.messages['page.account.index.refresh']}" action="#{userList.listFirst}"
 							id="relistButton" img="/resources/images/arrow_rotate_clockwise.png" />
 
 						<div style="width: 50px; display: inline-block;" />
 
-						<ice:outputText value="#{lang.messages['user.type.userID']}" />
+						<ice:outputText value="#{lang.messages['page.account.index.searchName']}" />
 						<ice:inputText value="#{userList.searchOid}" immediate="true" />
 						<idm:button actionListener="#{userList.searchUser}"
 							value="#{lang.messages['page.account.index.search']}" id="searchButton"

@@ -5,7 +5,7 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{lang.messages['user.type.delete.title']}</ui:define>
+	<ui:define name="title">#{lang.messages['page.account.delete.title']}</ui:define>
 
 	<ui:define name="menu">
 		<ui:include src="./menu.xhtml" />
@@ -15,27 +15,30 @@
 		<ice:form id="admin-content">
 			<ice:panelPopup modal="true" autoCentre="true" visible="#{userList.showPopup}">
 				<f:facet name="header">
-					<ice:outputText value="Confirm delete" />
+					<ice:outputText value="#{lang.messages['page.account.delete.confirm.title']}" />
 				</f:facet>
 				<f:facet name="body">
-					<ice:outputText value="Do you really want to delete selected users?" />
-					<br />
-					<ice:commandButton value="Yes" action="#{userList.deleteUsers}" />
-					<ice:commandButton value="No" action="#{userList.hideConfirmDelete}" />
+					<ice:outputText value="#{lang.messages['page.account.delete.confirm']}" />
+					<div class="button-bar">
+						<ice:commandButton value="#{lang.messages['page.account.delete.confirm.yes']}"
+							action="#{userList.deleteUsers}" />
+						<ice:commandButton value="#{lang.messages['page.account.delete.confirm.no']}"
+							action="#{userList.hideConfirmDelete}" />
+					</div>
 				</f:facet>
 			</ice:panelPopup>
 			<ice:panelGrid>
-				<ice:panelGroup>					
-					<ice:outputText value="#{msg['user.type.userID']}" />
+				<ice:panelGroup>
+					<ice:outputText value="#{lang.messages['page.account.delete.searchName']}" />
 					<ice:inputText value="#{userList.searchOid}" immediate="true" />
-					<idm:button actionListener="#{userList.searchUser}" value="#{msg['user.type.search.button']}"
+					<idm:button actionListener="#{userList.searchUser}" value="#{lang.messages['page.account.delete.search']}"
 						id="searchButton" img="/resources/images/magnifier.png" />
 				</ice:panelGroup>
 
 				<ice:dataTable id="userTable" rows="10" value="#{userList.userData}" var="user"
 					sortColumn="#{userList.userList.sortColumnName}" sortAscending="#{userList.userList.ascending}"
 					columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
-					columnWidths="auto, 240px, 100px, 100px, 170px, 100px, 150px">
+					columnWidths="auto, 120px, 120px, 120px, 200px, 150px">
 					<ice:column>
 						<f:facet name="header">
 							<ice:selectBooleanCheckbox id="deleteAllCheckbox" value="#{userList.selectAll}"
@@ -45,41 +48,35 @@
 					</ice:column>
 					<ice:column>
 						<f:facet name="header">
-							<ice:outputText id="userOid" value="#{msg['user.type.oid']}" />
-						</f:facet>
-						<ice:outputText id="oid" value="#{user.oid}" />
-					</ice:column>
-					<ice:column>
-						<f:facet name="header">
-							<ice:outputText id="userGivenName" value="#{msg['user.type.givenName']}" />
-						</f:facet>
-						<ice:outputText id="givenName" value="#{user.givenName}" />
-					</ice:column>
-					<ice:column>
-						<f:facet name="header">
-							<ice:outputText id="userFamilyName" value="#{msg['user.type.familyName']}" />
-						</f:facet>
-						<ice:outputText id="familyName" value="#{user.familyName}" />
-					</ice:column>
-					<ice:column>
-						<f:facet name="header">
-							<ice:outputText id="userFullName" value="#{msg['user.type.fullName']}" />
-						</f:facet>
-						<ice:outputText id="fullName" value="#{user.fullName}" />
-					</ice:column>
-					<ice:column>
-						<f:facet name="header">
-							<ice:outputText id="userName" value="#{msg['user.type.name']}" />
+							<ice:outputText id="userName" value="#{lang.messages['page.account.delete.table.name']}" />
 						</f:facet>
 						<ice:outputText id="name" value="#{user.name}" />
 					</ice:column>
 					<ice:column>
 						<f:facet name="header">
+							<ice:outputText id="userGivenName" value="#{lang.messages['page.account.delete.table.givenName']}" />
+						</f:facet>
+						<ice:outputText id="givenName" value="#{user.givenName}" />
+					</ice:column>
+					<ice:column>
+						<f:facet name="header">
+							<ice:outputText id="userFamilyName" value="#{lang.messages['page.account.delete.table.familyName']}" />
+						</f:facet>
+						<ice:outputText id="familyName" value="#{user.familyName}" />
+					</ice:column>
+					<ice:column>
+						<f:facet name="header">
+							<ice:outputText id="userFullName" value="#{lang.messages['page.account.delete.table.fullName']}" />
+						</f:facet>
+						<ice:outputText id="fullName" value="#{user.fullName}" />
+					</ice:column>
+					<ice:column>
+						<f:facet name="header">
 							<ice:commandSortHeader columnName="email" arrow="true" actionListener="#{userList.sortItem}">
-								<ice:outputText id="userEmail" value="#{msg['user.type.email']}" />
+								<ice:outputText id="userEmail" value="#{lang.messages['page.account.delete.table.email']}" />
 							</ice:commandSortHeader>
 						</f:facet>
-						<ice:outputText id="email" />
+						<ice:outputText id="email" value="#{user.email}"/>
 					</ice:column>
 				</ice:dataTable>
 				<ice:panelGroup>
@@ -101,7 +98,7 @@
 			</ice:panelGrid>
 			<div class="button-bar">
 				<idm:button action="#{userList.showConfirmDelete}" id="deleteUser" buttonType="negative"
-					value="#{lang.messages['user.type.delete.button']}" img="/resources/images/user_delete.png" />
+					value="#{lang.messages['page.account.delete.button.delete']}" img="/resources/images/user_delete.png" />
 			</div>
 		</ice:form>
 	</ui:define>

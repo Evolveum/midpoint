@@ -7,6 +7,6 @@
 	<idm:leftMenuContainer name="#{lang.messages['menu.users']}">
 		<idm:leftMenuItem id="leftList" name="#{lang.messages['page.account.index.title']}" action="#{userList.fillTableList}" />
 		<idm:leftMenuItem id="leftCreate" name="#{lang.messages['page.account.create.title']}" action="/account/createUser?faces-redirect=true" />		
-		<idm:leftMenuItem id="leftDelete" name="#{lang.messages['user.type.delete.link']}" action="#{userList.deleteAction}" />
+		<idm:leftMenuItem id="leftDelete" name="#{lang.messages['page.account.delete.title']}" action="#{userList.deleteAction}" />
 	</idm:leftMenuContainer>
 </ui:composition>
