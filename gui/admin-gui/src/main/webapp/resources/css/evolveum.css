@@ -208,7 +208,7 @@ a {
 }
 
 #messages {
-	margin-bottom: 20px;
+	margin-bottom: 15px;
 }
 
 #messages li span.messages-info,#messages li span.messages-warn,#messages li span.messages-error
@@ -251,6 +251,13 @@ h2 {
 	font: 22px Georgia, "Times New Roman", serif;
 	font-weight: bold;
 	padding-bottom: 10px;
+	text-transform: capitalize;	
+}
+
+h3 {
+	font: 17px Georgia, "Times New Roman", serif;
+	font-weight: bold;
+	padding-bottom: 5px;
 	text-transform: capitalize;	
 }
 

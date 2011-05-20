@@ -4,9 +4,9 @@
 	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<idm:leftMenuContainer name="Resources">
-		<idm:leftMenuItem id="leftResourceList" name="Resource List" action="/resource/index?faces-redirect=true" />
-		<idm:leftMenuItem id="leftResourceCreate" name="Connect Resource" action="/resource/index?faces-redirect=true" />		
+	<idm:leftMenuContainer name="#{lang.messages['page.template.top.resources']}">
+		<idm:leftMenuItem id="leftResourceList" name="#{lang.messages['page.resource.index.title']}" action="/resource/index?faces-redirect=true" />
+		<idm:leftMenuItem id="leftResourceCreate" name="#{lang.messages['page.resource.create.title']}" action="/resource/index?faces-redirect=true" />		
 		<idm:leftMenuItem id="leftResourceConfig" name="Resources Configuration" action="#{resourceTypeController.listResources}" />
 	</idm:leftMenuContainer>
 </ui:composition>

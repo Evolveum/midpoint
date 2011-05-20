@@ -4,8 +4,8 @@
 	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<idm:leftMenuContainer name="Configuration">
-		<idm:leftMenuItem id="leftBasic" name="Basic Configuration" action="/config/index?faces-redirect=true" />
+	<idm:leftMenuContainer name="#{lang.messages['page.template.top.configuration']}">
+		<idm:leftMenuItem id="leftBasic" name="#{lang.messages['page.config.index.title']}" action="/config/index?faces-redirect=true" />
 	</idm:leftMenuContainer>
 	<idm:leftMenuContainer name="Debug">
 		<idm:leftMenuItem id="leftDebug" name="Debug Pages" action="#{debugPagesController.fillSelectItemList}" />
