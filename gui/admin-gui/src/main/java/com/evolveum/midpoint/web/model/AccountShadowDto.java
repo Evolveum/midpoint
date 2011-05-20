@@ -24,22 +24,16 @@ package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 
-
 /**
- *
+ * 
  * @author semancik
  */
 public class AccountShadowDto extends ResourceObjectShadowDto {
 
-    public AccountShadowDto(ObjectStage stage) {
-        super(stage);
-    }
+	public AccountShadowDto(AccountShadowType object) {
+		super(object);
+	}
 
-    public AccountShadowDto(AccountShadowType object) {
-        super(object);
-    }
-
-    public AccountShadowDto() {
-    }
-
+	public AccountShadowDto() {
+	}
 }

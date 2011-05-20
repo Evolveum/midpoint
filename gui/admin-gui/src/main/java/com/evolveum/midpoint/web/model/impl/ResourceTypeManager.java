@@ -22,10 +22,18 @@
 
 package com.evolveum.midpoint.web.model.impl;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.Utils;
-import com.evolveum.midpoint.web.model.ObjectStage;
 import com.evolveum.midpoint.web.model.PagingDto;
 import com.evolveum.midpoint.web.model.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.PropertyChange;
@@ -34,16 +42,15 @@ import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.ResourceObjectShadowDto;
 import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.web.model.WebModelException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * 
@@ -73,10 +80,8 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 			Collection<ResourceDto> items = new ArrayList<ResourceDto>(objects.size());
 
 			for (ObjectType o : objects) {
-				ObjectStage stage = new ObjectStage();
-				stage.setObject(o);
 				ResourceDto resourceDto = (ResourceDto) constructResourceType.newInstance();
-				resourceDto.setStage(stage);
+				resourceDto.setXmlObject(o);
 				items.add(resourceDto);
 			}
 
@@ -94,11 +99,9 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 		Validate.notNull(oid);
 		try { // Call Web Service Operation
 			ObjectContainerType result = model.getObject(oid, resolve);
-			ObjectStage stage = new ObjectStage();
-			stage.setObject(result.getObject());
 
-			ResourceDto resourceDto = (ResourceDto) constructResourceType.newInstance();
-			resourceDto.setStage(stage);
+			ResourceDto resourceDto = (ResourceDto) constructResourceType.newInstance();			
+			resourceDto.setXmlObject(result.getObject());
 
 			return resourceDto;
 		} catch (FaultMessage ex) {
@@ -127,7 +130,7 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 
 		try { // Call Web Service Operation
 			ObjectContainerType objectContainerType = new ObjectContainerType();
-			objectContainerType.setObject(newObject.getStage().getObject());
+			objectContainerType.setObject(newObject.getXmlObject());
 			String result = model.addObject(objectContainerType);
 			return result;
 		} catch (FaultMessage ex) {

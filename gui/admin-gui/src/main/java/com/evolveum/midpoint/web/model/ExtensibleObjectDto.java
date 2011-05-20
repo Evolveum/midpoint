@@ -25,20 +25,15 @@ package com.evolveum.midpoint.web.model;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
 
 /**
- *
+ * 
  * @author semancik
  */
 public abstract class ExtensibleObjectDto extends ObjectDto {
 
-    public ExtensibleObjectDto(ObjectStage stage) {
-        super(stage);
-    }
+	public ExtensibleObjectDto(ExtensibleObjectType object) {
+		super(object);
+	}
 
-    public ExtensibleObjectDto(ExtensibleObjectType object) {
-        super(object);
-    }
-
-    public ExtensibleObjectDto() {
-    }
-
+	public ExtensibleObjectDto() {
+	}
 }

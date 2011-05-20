@@ -41,7 +41,6 @@ import com.evolveum.midpoint.web.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.dto.GuiTestResultDto;
 import com.evolveum.midpoint.web.model.AccountShadowDto;
 import com.evolveum.midpoint.web.model.DiagnosticMessageDto;
-import com.evolveum.midpoint.web.model.ObjectStage;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceDto;
 import com.evolveum.midpoint.web.model.TaskStatusDto;
@@ -128,10 +127,8 @@ public class ResourceTypeController implements Serializable {
 			accounts = new ArrayList<AccountShadowDto>();
 
 			for (ObjectType o : objects) {
-				ObjectStage stage = new ObjectStage();
-				stage.setObject(o);
 				AccountShadowDto account = new AccountShadowDto();
-				account.setStage(stage);
+				account.setXmlObject(o);
 				accounts.add(account);
 			}
 			for (AccountShadowDto account : accounts) {
@@ -323,10 +320,8 @@ public class ResourceTypeController implements Serializable {
 			resources = new ArrayList<GuiResourceDto>();
 
 			for (ObjectType o : objects) {
-				ObjectStage stage = new ObjectStage();
-				stage.setObject(o);
 				ResourceDto resource = new ResourceDto();
-				resource.setStage(stage);
+				resource.setXmlObject(o);
 				GuiResourceDto guiResource = new GuiResourceDto((ResourceType) resource.getXmlObject());
 				parseForUsedConnector(guiResource);
 				resources.add(guiResource);

@@ -22,23 +22,31 @@
 
 package com.evolveum.midpoint.web.model.impl;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.util.diff.DiffException;
 import com.evolveum.midpoint.util.Utils;
 import com.evolveum.midpoint.util.diff.CalculateXmlDiff;
+import com.evolveum.midpoint.util.diff.DiffException;
 import com.evolveum.midpoint.web.model.AccountShadowDto;
 import com.evolveum.midpoint.web.model.AccountShadowManager;
-import com.evolveum.midpoint.web.model.ObjectStage;
 import com.evolveum.midpoint.web.model.PagingDto;
 import com.evolveum.midpoint.web.model.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.PropertyChange;
 import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -46,13 +54,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class AccountShadowTypeManager implements AccountShadowManager, Serializable {
 
@@ -95,11 +96,9 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 		Validate.notNull(oid);
 		try { // Call Web Service Operation
 			ObjectContainerType result = port.getObject(oid, resolve);
-			ObjectStage stage = new ObjectStage();
-			stage.setObject(result.getObject());
 
 			AccountShadowDto accountShadowDto = (AccountShadowDto) constructAccountShadowType.newInstance();
-			accountShadowDto.setStage(stage);
+			accountShadowDto.setXmlObject(result.getObject());
 
 			return accountShadowDto;
 		} catch (FaultMessage ex) {

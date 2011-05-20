@@ -25,79 +25,77 @@ package com.evolveum.midpoint.web.dto;
 import java.io.Serializable;
 
 /**
- *
+ * 
  * @author Katuska
  */
 public class GuiTestResultDto implements Serializable {
 
 	private static final long serialVersionUID = -11744078835543869L;
 	private String configurationValidation;
-    private String connectionInitialization;
-    private String connectorConnection;
-    private String connectionSanity;
-    private String connectionSchema;
-    private String extraTestName;
-    private String extraTestResult;
+	private String connectionInitialization;
+	private String connectorConnection;
+	private String connectionSanity;
+	private String connectionSchema;
+	private String extraTestName;
+	private String extraTestResult;
 
-    public GuiTestResultDto() {
-    }
+	public GuiTestResultDto() {
+	}
 
-    
+	public String getConfigurationValidation() {
+		return configurationValidation;
+	}
 
-    public String getConfigurationValidation() {
-        return configurationValidation;
-    }
+	public void setConfigurationValidation(String configurationValidation) {
+		this.configurationValidation = configurationValidation;
+	}
 
-    public void setConfigurationValidation(String configurationValidation) {
-        this.configurationValidation = configurationValidation;
-    }
+	public String getConnectionSanity() {
+		return connectionSanity;
+	}
 
-    public String getConnectionSanity() {
-        return connectionSanity;
-    }
+	public void setConnectionSanity(String connectionSanity) {
+		this.connectionSanity = connectionSanity;
+	}
 
-    public void setConnectionSanity(String connectionSanity) {
-        this.connectionSanity = connectionSanity;
-    }
+	public String getConnectionSchema() {
+		return connectionSchema;
+	}
 
-    public String getConnectionSchema() {
-        return connectionSchema;
-    }
+	public void setConnectionSchema(String connectionSchema) {
+		this.connectionSchema = connectionSchema;
+	}
 
-    public void setConnectionSchema(String connectionSchema) {
-        this.connectionSchema = connectionSchema;
-    }
+	public String getConnectorConnection() {
+		return connectorConnection;
+	}
 
-    public String getConnectorConnection() {
-        return connectorConnection;
-    }
+	public void setConnectorConnection(String connectorConnection) {
+		this.connectorConnection = connectorConnection;
+	}
 
-    public void setConnectorConnection(String connectorConnection) {
-        this.connectorConnection = connectorConnection;
-    }
+	public String getExtraTestName() {
+		return extraTestName;
+	}
 
-    public String getExtraTestName() {
-        return extraTestName;
-    }
+	public void setExtraTestName(String extraTestName) {
+		this.extraTestName = extraTestName;
+	}
 
-    public void setExtraTestName(String extraTestName) {
-        this.extraTestName = extraTestName;
-    }
+	public String getExtraTestResult() {
+		return extraTestResult;
+	}
 
-    public String getExtraTestResult() {
-        return extraTestResult;
-    }
+	public void setExtraTestResult(String extraTestResult) {
+		this.extraTestResult = extraTestResult;
+	}
 
-    public void setExtraTestResult(String extraTestResult) {
-        this.extraTestResult = extraTestResult;
-    }
+	public String getConnectionInitialization() {
+		return connectionInitialization;
+	}
 
-    public String getConnectionInitialization() {
-        return connectionInitialization;
-    }
-
-    public void setConnectionInitialization(String connectionInitialization) {
-        this.connectionInitialization = connectionInitialization;
-    }
+	public void setConnectionInitialization(String connectionInitialization) {
+		this.connectionInitialization = connectionInitialization;
+	}
 
 }

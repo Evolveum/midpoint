@@ -41,10 +41,6 @@ public class ResourceDto extends ExtensibleObjectDto {
         super(object);
     }
 
-    public ResourceDto(ObjectStage stage) {
-        super(stage);
-    }
-
     ResourceType getResourceType() {
         return (ResourceType) getXmlObject();
     }

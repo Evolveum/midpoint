@@ -34,7 +34,6 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.ObjectManager;
-import com.evolveum.midpoint.web.model.ObjectStage;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.web.model.UserManager;
@@ -80,7 +79,7 @@ public class CreateController implements Serializable {
 			TRACE.error("Failed to create user {}, exception {}", user, ex);
 			return null;
 		}
-		if (oid == null) {			
+		if (oid == null) {
 			FacesUtils.addErrorMessage("Failed to create user");
 			TRACE.error("Failed to create user {}", user);
 			return null;
@@ -102,9 +101,7 @@ public class CreateController implements Serializable {
 
 	private void reinit() {
 		user = new GuiUserDto();
-		UserType object = new UserType();
-		user.setStage(new ObjectStage());
-		user.getStage().setObject(object);
+		user.setXmlObject(new UserType());
 		user.setVersion("1.0");
 		user.setEnabled(true);
 	}

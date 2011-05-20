@@ -22,7 +22,6 @@
 
 package com.evolveum.midpoint.web.dto;
 
-import com.evolveum.midpoint.web.model.ObjectStage;
 import com.evolveum.midpoint.web.model.ResourceDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
@@ -39,10 +38,6 @@ public class GuiResourceDto extends ResourceDto {
 
 	public GuiResourceDto(ResourceType object) {
 		super(object);
-	}
-
-	public GuiResourceDto(ObjectStage stage) {
-		super(stage);
 	}
 
 	public GuiResourceDto() {

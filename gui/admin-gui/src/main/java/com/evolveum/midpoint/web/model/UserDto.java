@@ -39,10 +39,6 @@ public class UserDto extends ExtensibleObjectDto {
         super(object);
     }
 
-    public UserDto(ObjectStage stage) {
-        super(stage);
-    }
-
     private UserType getUserType() {
         return (UserType) getXmlObject();
     }

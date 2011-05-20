@@ -22,18 +22,18 @@
 
 package com.evolveum.midpoint.web.dto;
 
+import org.apache.commons.codec.binary.Base64;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.model.ObjectStage;
 import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import org.apache.commons.codec.binary.Base64;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /**
  * 
@@ -47,10 +47,6 @@ public class GuiUserDto extends UserDto {
 	private boolean enabled = false;
 	private String password1;
 	private String password2;
-
-	public GuiUserDto(ObjectStage stage) {
-		super(stage);
-	}
 
 	public GuiUserDto(UserType object) {
 		super(object);

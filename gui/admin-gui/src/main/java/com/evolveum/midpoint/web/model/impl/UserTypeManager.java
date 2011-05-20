@@ -22,6 +22,21 @@
 
 package com.evolveum.midpoint.web.model.impl;
 
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.Utils;
@@ -29,7 +44,6 @@ import com.evolveum.midpoint.util.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.util.diff.DiffException;
 import com.evolveum.midpoint.web.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.AccountShadowDto;
-import com.evolveum.midpoint.web.model.ObjectStage;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.PagingDto;
 import com.evolveum.midpoint.web.model.PropertyAvailableValues;
@@ -38,23 +52,21 @@ import com.evolveum.midpoint.web.model.ResourceDto;
 import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.WebModelException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import java.io.Serializable;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.w3c.dom.Element;
 
 /**
  * 
@@ -97,7 +109,7 @@ public class UserTypeManager implements UserManager, Serializable {
 
 		try { // Call Web Service Operation
 			ObjectContainerType userContainer = new ObjectContainerType();
-			userContainer.setObject((UserType) newObject.getStage().getObject());
+			userContainer.setObject((UserType) newObject.getXmlObject());
 			java.lang.String result = model.addObject(userContainer);
 			return result;
 		} catch (FaultMessage fault) {
@@ -185,10 +197,8 @@ public class UserTypeManager implements UserManager, Serializable {
 			List<ObjectType> users = result.getObject();
 			List<UserDto> guiUsers = new ArrayList<UserDto>();
 			for (ObjectType userType : users) {
-				ObjectStage stage = new ObjectStage();
-				stage.setObject((UserType) userType);
 				UserDto userDto = (UserDto) constructUserType.newInstance();
-				userDto.setStage(stage);
+				userDto.setXmlObject(userType);
 				guiUsers.add(userDto);
 			}
 
@@ -292,10 +302,8 @@ public class UserTypeManager implements UserManager, Serializable {
 			List<ObjectType> users = result.getObject();
 			List<UserDto> guiUsers = new ArrayList<UserDto>();
 			for (ObjectType userType : users) {
-				ObjectStage stage = new ObjectStage();
-				stage.setObject((UserType) userType);
 				UserDto userDto = (UserDto) constructUserType.newInstance();
-				userDto.setStage(stage);
+				userDto.setXmlObject(userType);
 				guiUsers.add(userDto);
 			}
 

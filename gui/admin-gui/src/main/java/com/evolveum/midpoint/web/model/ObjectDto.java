@@ -31,11 +31,9 @@ import java.io.Serializable;
  */
 public abstract class ObjectDto implements Serializable {
 
-    private ObjectStage stage;
-    ObjectType xmlObject;
+    private ObjectType xmlObject;
 
     ObjectDto() {
-        stage = null;
         xmlObject = null;
     };
 
@@ -49,44 +47,11 @@ public abstract class ObjectDto implements Serializable {
         xmlObject = object;
     }
 
-    /**
-     * Initialize DTO using object stage.
-     * DTO initalized like this cannot be part of other DTOs.
-     * It can be submited directly.
-     * @param stage
-     */
-    ObjectDto(ObjectStage stage) {
-        this.stage = stage;
-    }
-
     public ObjectType getXmlObject() {
-        if (stage != null ) {
-            return stage.getObject();
-        }
         if (xmlObject!=null) {
             return xmlObject;
         }
         throw new IllegalStateException();
-    }
-
-    /**
-     * This method is NOT public. It must be used ONLY by this interface
-     * implementation. It MUST NOT be used by the clients of this interface.
-     * 
-     * @return
-     */
-    public ObjectStage getStage() {
-        return stage;
-    }
-
-    /**
-     * This method is NOT public. It must be used ONLY by this interface
-     * implementation. It MUST NOT be used by the clients of this interface.
-     *
-     * @param stage
-     */
-    public void setStage(ObjectStage stage) {
-        this.stage = stage;
     }
 
     /**
@@ -122,5 +87,4 @@ public abstract class ObjectDto implements Serializable {
     public void setVersion(String value) {
         getXmlObject().setVersion(value);
     }
-
 }

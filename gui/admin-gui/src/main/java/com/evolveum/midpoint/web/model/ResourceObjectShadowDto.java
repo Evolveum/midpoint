@@ -44,10 +44,6 @@ public class ResourceObjectShadowDto extends ExtensibleObjectDto {
 		super(object);
 	}
 
-	public ResourceObjectShadowDto(ObjectStage stage) {
-		super(stage);
-	}
-
 	private ResourceObjectShadowType getResourceObjectShadowType() {
 		return (ResourceObjectShadowType) getXmlObject();
 	}
