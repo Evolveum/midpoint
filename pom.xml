@@ -53,6 +53,7 @@
     <properties>
         <!-- Build system options -->
         <project.source.version>1.6</project.source.version>
+        <clover.version>3.0.5</clover.version>
     </properties>
     <modules>
         <module>build-system</module>
@@ -73,10 +74,28 @@
                     <plugin>
                         <groupId>com.atlassian.maven.plugins</groupId>
                         <artifactId>maven-clover2-plugin</artifactId>
-                        <version>3.0.5</version>
+                        <version>${clover.version}</version>
+                        <!--  executions>
+                            <execution>
+                                <id>clover</id>
+                                <goals>
+                                    <goal>setup</goal>
+                                    <goal>optimize</goal>
+                                    <goal>snapshot</goal>
+                                </goals>
+                            </execution>
+                            <execution>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>clover</goal>
+                                    <goal>log</goal>
+                                    <goal>check</goal>
+                                </goals>
+                            </execution -->
+                        </executions>
                         <configuration>
-                            <targetPercentage>80%</targetPercentage>
-                            <includesTestSourceRoots>false</includesTestSourceRoots>
+                            <targetPercentage>0%</targetPercentage>
+                            <includesTestSourceRoots>true</includesTestSourceRoots>
                             <jdk>${project.source.version}</jdk>
                             <generateXml>true</generateXml>
                             <generateHistorical>true</generateHistorical>
@@ -85,6 +104,15 @@
                     </plugin>
                 </plugins>
             </build>
+             <reporting>
+                 <plugins>
+                     <plugin>
+                         <groupId>com.atlassian.maven.plugins</groupId>
+                         <artifactId>maven-clover2-plugin</artifactId>
+                         <version>${clover.version}</version>
+                     </plugin>
+                 </plugins>
+             </reporting>
         </profile>
     </profiles>
 </project>
