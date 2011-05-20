@@ -192,6 +192,7 @@ a {
 #sidebar ul li a {
 	color: #2E3324;
 	font: 14px Arial, Helvetica, sans-serif;
+	text-transform: capitalize;
 }
 
 #sidebar ul li:hover {
@@ -250,6 +251,7 @@ h2 {
 	font: 22px Georgia, "Times New Roman", serif;
 	font-weight: bold;
 	padding-bottom: 10px;
+	text-transform: capitalize;	
 }
 
 body {
