@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.util;
+package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
 
@@ -28,7 +28,7 @@ import java.io.Serializable;
  * 
  * @author Katuska
  */
-public class XPathVariables implements Serializable {
+public class XPathVariableBean implements Serializable {
 
 	private static final long serialVersionUID = -678792251414420570L;
 	private String variableName;

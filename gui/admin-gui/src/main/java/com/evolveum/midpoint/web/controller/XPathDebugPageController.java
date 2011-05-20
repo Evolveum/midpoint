@@ -28,8 +28,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.util.XPathUtil;
 import com.evolveum.midpoint.util.jaxb.JAXBUtil;
+import com.evolveum.midpoint.web.bean.XPathVariableBean;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.web.util.XPathVariables;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -72,27 +72,27 @@ public class XPathDebugPageController implements Serializable {
 	private transient ModelPortType port;
 	private String expresion;
 	private List<SelectItem> type;
-	private XPathVariables variable1;
-	private XPathVariables variable2;
-	private XPathVariables variable3;
-	private XPathVariables variable4;
+	private XPathVariableBean variable1;
+	private XPathVariableBean variable2;
+	private XPathVariableBean variable3;
+	private XPathVariableBean variable4;
 	private List<SelectItem> returnTypeList;
 	private String returnType;
-	private List<XPathVariables> variables = new ArrayList<XPathVariables>();
+	private List<XPathVariableBean> variables = new ArrayList<XPathVariableBean>();
 	private String result;
 
 	public String prepareXpathDebugPage() {
 		if (variable1 == null) {
-			variable1 = new XPathVariables();
+			variable1 = new XPathVariableBean();
 		}
 		if (variable2 == null) {
-			variable2 = new XPathVariables();
+			variable2 = new XPathVariableBean();
 		}
 		if (variable3 == null) {
-			variable3 = new XPathVariables();
+			variable3 = new XPathVariableBean();
 		}
 		if (variable4 == null) {
-			variable4 = new XPathVariables();
+			variable4 = new XPathVariableBean();
 		}
 		return PAGE_NAVIGATION_XPATH_DEBUG;
 
@@ -132,7 +132,7 @@ public class XPathDebugPageController implements Serializable {
 		variables.add(variable3);
 		variables.add(variable4);
 		Map<QName, Variable> variableMap = new HashMap<QName, Variable>();
-		for (XPathVariables variable : variables) {
+		for (XPathVariableBean variable : variables) {
 			if (StringUtils.isNotEmpty(variable.getVariableName())) {
 				if (variable.getType().equals("Object")) {
 					try {
@@ -234,43 +234,43 @@ public class XPathDebugPageController implements Serializable {
 		this.expresion = expresion;
 	}
 
-	public XPathVariables getVariable1() {
+	public XPathVariableBean getVariable1() {
 		return variable1;
 	}
 
-	public void setVariable1(XPathVariables variable1) {
+	public void setVariable1(XPathVariableBean variable1) {
 		this.variable1 = variable1;
 	}
 
-	public XPathVariables getVariable2() {
+	public XPathVariableBean getVariable2() {
 		return variable2;
 	}
 
-	public void setVariable2(XPathVariables variable2) {
+	public void setVariable2(XPathVariableBean variable2) {
 		this.variable2 = variable2;
 	}
 
-	public XPathVariables getVariable3() {
+	public XPathVariableBean getVariable3() {
 		return variable3;
 	}
 
-	public void setVariable3(XPathVariables variable3) {
+	public void setVariable3(XPathVariableBean variable3) {
 		this.variable3 = variable3;
 	}
 
-	public XPathVariables getVariable4() {
+	public XPathVariableBean getVariable4() {
 		return variable4;
 	}
 
-	public void setVariable4(XPathVariables variable4) {
+	public void setVariable4(XPathVariableBean variable4) {
 		this.variable4 = variable4;
 	}
 
-	public List<XPathVariables> getVariables() {
+	public List<XPathVariableBean> getVariables() {
 		return variables;
 	}
 
-	public void setVariables(List<XPathVariables> variables) {
+	public void setVariables(List<XPathVariableBean> variables) {
 		this.variables = variables;
 	}
 

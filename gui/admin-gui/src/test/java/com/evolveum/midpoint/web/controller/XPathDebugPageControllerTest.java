@@ -22,8 +22,8 @@
 
 package com.evolveum.midpoint.web.controller;
 
+import com.evolveum.midpoint.web.bean.XPathVariableBean;
 import com.evolveum.midpoint.web.controller.XPathDebugPageController;
-import com.evolveum.midpoint.web.util.XPathVariables;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -70,12 +70,12 @@ public class XPathDebugPageControllerTest {
         String expression = "declare namespace x='http://xxx.com/'; concat($x:foo,' ',$x:bar)";
         xpathController.setExpresion(expression);
 
-        XPathVariables variable1 = new XPathVariables();
+        XPathVariableBean variable1 = new XPathVariableBean();
         variable1.setType("String");
         variable1.setValue("salala");
         variable1.setVariableName("x:foo");
         xpathController.setVariable1(variable1);
-        XPathVariables variable2 = new XPathVariables();
+        XPathVariableBean variable2 = new XPathVariableBean();
         variable2.setType("String");
         variable2.setValue("tralala");
         variable2.setVariableName("x:bar");
