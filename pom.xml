@@ -91,8 +91,8 @@
                                     <goal>log</goal>
                                     <goal>check</goal>
                                 </goals>
-                            </execution -->
-                        </executions>
+                            </execution>
+                        </executions-->
                         <configuration>
                             <targetPercentage>0%</targetPercentage>
                             <includesTestSourceRoots>true</includesTestSourceRoots>
