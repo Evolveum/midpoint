@@ -61,9 +61,10 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 import com.icesoft.faces.component.ext.RowSelectorEvent;
 
 /**
- * 
+ * Depreacted, break class into smaller pieces according to pages
  * @author Katuska
  */
+@Deprecated
 @Controller
 @Scope("session")
 public class ResourceTypeController implements Serializable {

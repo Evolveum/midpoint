@@ -14,14 +14,33 @@
 	<ui:define name="content">
 		<ice:panelGroup>
 			<ice:form id="admin-content">
+				<ice:panelPopup modal="true" autoCentre="true" visible="#{userList.showPopup}">
+					<f:facet name="header">
+						<ice:outputText value="#{lang.messages['page.account.index.confirm.title']}" />
+					</f:facet>
+					<f:facet name="body">
+						<ice:outputText value="#{lang.messages['page.account.index.confirm']}" />
+						<div class="button-bar">
+							<ice:commandButton value="#{lang.messages['page.account.index.confirm.yes']}"
+								action="#{userList.deleteUsers}" />
+							<ice:commandButton value="#{lang.messages['page.account.index.confirm.no']}"
+								action="#{userList.hideConfirmDelete}" />
+						</div>
+					</f:facet>
+				</ice:panelPopup>
 				<ice:panelGrid column="1">
 					<ice:panelGroup>
+						<idm:button action="#{userList.showConfirmDelete}" id="deleteUser" buttonType="negative"
+							value="#{lang.messages['page.account.index.button.delete']}" img="/resources/images/user_delete.png" />
+
+						<div style="width: 50px; display: inline-block;" />
+
 						<ice:outputText value="#{lang.messages['page.account.index.rowsCount']}" />
 						<ice:inputText value="#{userList.rowsCount}" size="1" />
 						<idm:button value="#{lang.messages['page.account.index.refresh']}" action="#{userList.listFirst}"
 							id="relistButton" img="/resources/images/arrow_rotate_clockwise.png" />
 
-						<div style="width: 50px; display: inline-block;" />
+						<div style="width: 20px; display: inline-block;" />
 
 						<ice:outputText value="#{lang.messages['page.account.index.searchName']}" />
 						<ice:inputText value="#{userList.searchOid}" immediate="true" />
@@ -33,14 +52,24 @@
 					<ice:dataTable id="userTable" rows="#{userList.rowsCount}" value="#{userList.userData}" var="user"
 						sortColumn="#{userList.userList.sortColumnName}" sortAscending="#{userList.userList.ascending}"
 						columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
-						columnWidths="120px, 120px, 120px, 200px, 150px" resizable="true">
+						columnWidths="auto, 140px, 140px, 140px, 220px, 230px" resizable="false">
+						<ice:column>
+							<f:facet name="header">
+								<ice:selectBooleanCheckbox id="deleteAllCheckbox" value="#{userList.selectAll}"
+									valueChangeListener="#{userList.selectAllPerformed}" immediate="true" partialSubmit="true" />
+							</f:facet>
+							<ice:selectBooleanCheckbox id="deleteCheckbox" value="#{user.selected}" />
+						</ice:column>
 						<ice:column>
 							<f:facet name="header">
 								<ice:commandSortHeader columnName="name" arrow="true" actionListener="#{userList.sortItem}">
 									<ice:outputText id="userName" value="#{lang.messages['page.account.index.table.name']}" />
 								</ice:commandSortHeader>
 							</f:facet>
-							<ice:outputText id="name" value="#{user.name}" />
+							<ice:commandLink styleClass="iceOutTxt" style="text-decoration: underline;" id="name"
+								value="#{user.name}" action="#{userList.showUserDetails}">
+								<f:param name="userOid" value="#{user.oid}" />
+							</ice:commandLink>
 						</ice:column>
 						<ice:column>
 							<f:facet name="header">
@@ -49,8 +78,6 @@
 								</ice:commandSortHeader>
 							</f:facet>
 							<ice:outputText id="givenName" value="#{user.givenName}" />
-							<ice:rowSelector id="selected" clickAction="/account/detailUser"
-								selectionListener="#{userList.userSelectionListener}" styleClass="selectedRow" />
 						</ice:column>
 						<ice:column>
 							<f:facet name="header">

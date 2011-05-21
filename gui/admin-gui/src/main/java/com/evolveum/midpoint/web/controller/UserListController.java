@@ -22,14 +22,6 @@
 
 package com.evolveum.midpoint.web.controller;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.web.bean.GuiUserDtoList;
-import com.evolveum.midpoint.web.dto.GuiUserDto;
-import com.evolveum.midpoint.web.model.*;
-import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
-import com.icesoft.faces.component.ext.RowSelectorEvent;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
@@ -38,9 +30,24 @@ import javax.faces.event.ActionEvent;
 import javax.faces.event.PhaseId;
 import javax.faces.event.ValueChangeEvent;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.web.bean.GuiUserDtoList;
+import com.evolveum.midpoint.web.dto.GuiUserDto;
+import com.evolveum.midpoint.web.model.ObjectManager;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.PagingDto;
+import com.evolveum.midpoint.web.model.UserDto;
+import com.evolveum.midpoint.web.model.UserManager;
+import com.evolveum.midpoint.web.model.WebModelException;
+import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 
 /**
  * 
@@ -51,9 +58,11 @@ import org.springframework.stereotype.Controller;
 public class UserListController implements Serializable {
 
 	public static final String PAGE_NAVIGATION_LIST = "/account/index?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_DETAILS = "/account/detailUser?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_DELETE = "/account/deleteUser?faces-redirect=true";
 	private static final long serialVersionUID = -6520469747022260260L;
 	private static final Trace TRACE = TraceManager.getTrace(UserListController.class);
+	private static final String PARAM_USER_OID = "userOid";
 	@Autowired(required = true)
 	private transient UserDetailsController userDetailsController;
 	@Autowired(required = true)
@@ -65,6 +74,34 @@ public class UserListController implements Serializable {
 	private int offset = 0;
 	private int rowsCount = 20;
 	private boolean showPopup = false;
+
+	public String showUserDetails() {
+		String userOid = FacesUtils.getRequestParameter(PARAM_USER_OID);
+		if (StringUtils.isEmpty(userOid)) {
+			FacesUtils.addErrorMessage("Couldn't show user details, unidentified oid.");
+			return null;
+		}
+
+		try {
+			ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
+					GuiUserDto.class);
+			UserManager userManager = (UserManager) (objectManager);
+			TRACE.info("userSelectionListener start");
+			user = (GuiUserDto) userManager.get(userOid, new PropertyReferenceListType());
+			TRACE.info("userSelectionListener end");
+
+			// TODO: handle exception
+			userDetailsController.setUser(user);
+		} catch (WebModelException ex) {
+			TRACE.error("Can't select user, WebModelException error occured, reason: " + ex.getMessage());
+			FacesUtils.addErrorMessage("Can't select user, WebModelException error occured.", ex);
+		} catch (Exception ex) {
+			TRACE.error("Can't select user, unknown error occured, reason: " + ex.getMessage());
+			FacesUtils.addErrorMessage("Can't select user, unknown error occured.", ex);
+		}
+
+		return PAGE_NAVIGATION_DETAILS;
+	}
 
 	public void listUsers() {
 		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
@@ -111,29 +148,6 @@ public class UserListController implements Serializable {
 		}
 		offset -= rowsCount;
 		listUsers();
-	}
-
-	public void userSelectionListener(RowSelectorEvent event) {
-		try {
-			ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
-					GuiUserDto.class);
-			UserManager userManager = (UserManager) (objectManager);
-			TRACE.info("userSelectionListener start");
-			String userId = userList.getUsers().get(event.getRow()).getOid();
-			user = (GuiUserDto) userManager.get(userId, new PropertyReferenceListType());
-			TRACE.info("userSelectionListener end");
-
-			// TODO: handle exception
-			userDetailsController.setUser(user);
-		} catch (WebModelException ex) {
-			TRACE.error("Can't select user, WebModelException error occured, reason: " + ex.getMessage());
-			FacesUtils.addErrorMessage("Can't select user, WebModelException error occured, reason: "
-					+ ex.getMessage());
-		} catch (Exception ex) {
-			TRACE.error("Can't select user, unknown error occured, reason: " + ex.getMessage());
-			FacesUtils
-					.addErrorMessage("Can't select user, unknown error occured, reason: " + ex.getMessage());
-		}
 	}
 
 	public void deleteUsers() {

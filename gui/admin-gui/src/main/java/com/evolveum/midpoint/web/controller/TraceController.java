@@ -53,7 +53,7 @@ import org.springframework.stereotype.Controller;
 public class TraceController implements Serializable {
 
 	private static final long serialVersionUID = 6200472992965694954L;
-	private static transient final Trace TRACE = TraceManager.getTrace(TraceController.class);
+	private static final Trace TRACE = TraceManager.getTrace(TraceController.class);
 	private static final int[] levels = { Level.ALL_INT, Level.DEBUG_INT, Level.ERROR_INT, Level.FATAL_INT,
 			Level.INFO_INT, Level.OFF_INT, Level.TRACE_INT, Level.WARN_INT };
 	private static final String JMX_QUERY = "midPoint:name=WebApplicationLogger";
