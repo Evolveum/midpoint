@@ -251,14 +251,14 @@ h2 {
 	font: 22px Georgia, "Times New Roman", serif;
 	font-weight: bold;
 	padding-bottom: 10px;
-	text-transform: capitalize;	
+	text-transform: capitalize;
 }
 
 h3 {
 	font: 17px Georgia, "Times New Roman", serif;
 	font-weight: bold;
 	padding-bottom: 5px;
-	text-transform: capitalize;	
+	text-transform: capitalize;
 }
 
 body {
@@ -376,4 +376,14 @@ button.positive,.buttons a.positive {
 
 .button-bar {
 	padding-top: 20px;
+}
+
+.required-field {
+	color: #ff3300;
+	font-weight: bold;
+}
+
+.expression-field {
+	color: #004CFF;
+	font-weight: bold;
 }

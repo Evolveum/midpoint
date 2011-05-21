@@ -5,7 +5,7 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component" xmlns:c="http://java.sun.com/jsp/jstl/core"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">Details for user '#{userDetails.user.fullName}'</ui:define>
+	<ui:define name="title">#{lang.messages['page.account.detail.title']} '#{userDetails.user.fullName}'</ui:define>
 
 	<ui:define name="menu">
 		<ui:include src="./menu.xhtml" />
@@ -13,106 +13,96 @@
 
 	<ui:define name="content">
 		<ice:form id="admin-content">
-			<ice:panelGrid columns="2">
-				<idm:button action="#{userDetails.backPerformed}" value="#{lang.messages['button.back']}"
-					img="/resources/images/door_in.png" />
-
-				<idm:button actionListener="#{userDetails.startEditMode}" value="Edit user" id="editButton"
-					img="/resources/images/user_edit.png" rendered="#{!userDetails.editMode}" immediate="true"
-					action="/account/detailUser" />
-
-				<idm:button action="#{userList.fillTableList}" actionListener="#{userDetails.savePerformed}"
-					id="saveButton" buttonType="positive" value="Save changes" img="/resources/images/user.png"
-					rendered="#{userDetails.editMode}" />
-			</ice:panelGrid>
-
-
 			<ice:panelTabSet id="icePnlTbSet" style="width: 100%;" selectedIndex="#{userDetails.selectedTab}">
+				<ice:panelTab label="#{lang.messages['page.account.detail.tab.user.title']}"
+					title="#{lang.messages['page.account.detail.tab.user.description']}">
+					<ice:panelGrid columns="2" cellpadding="5" cellspacing="5" border="0" style="font-size:14px;"
+						id="detailUserPanelGrid">
 
-				<ice:panelTab label="User" title="User in repository">
-					<ice:panelGrid columns="2" cellpadding="5" cellspacing="5" border="0" style="font-size:14px;" id="detailUserPanelGrid">
-
-						<ice:outputText value="#{msg['user.type.oid']}" />
+						<ice:outputText value="#{lang.messages['page.account.detail.tab.user.oid']}" />
 						<ice:outputText id="oid" value="#{userDetails.user.oid}" />
 
-						<ice:outputText value="#{msg['user.type.givenName']}" />
+						<ice:outputText value="#{lang.messages['page.account.detail.tab.user.givenName']}" />
 						<ice:outputText id="givenName" value="#{userDetails.user.givenName}" rendered="#{!userDetails.editMode}" />
 						<ice:inputText id="givenNameText" value="#{userDetails.user.givenName}"
 							rendered="#{userDetails.editMode}" />
 
-						<ice:outputText value="#{msg['user.type.familyName']}" />
+						<ice:outputText value="#{lang.messages['page.account.detail.tab.user.familyName']}" />
 						<ice:outputText id="familyName" value="#{userDetails.user.familyName}"
 							rendered="#{!userDetails.editMode}" />
 						<ice:inputText id="familyNameText" value="#{userDetails.user.familyName}"
 							rendered="#{userDetails.editMode}" />
 
-						<ice:outputText value="#{msg['user.type.fullName']}" />
+						<ice:outputText value="#{lang.messages['page.account.detail.tab.user.fullName']}" />
 						<ice:outputText id="fullName" value="#{userDetails.user.fullName}" rendered="#{!userDetails.editMode}" />
 						<ice:inputText id="fullNameText" value="#{userDetails.user.fullName}" rendered="#{userDetails.editMode}" />
 
-						<ice:outputText value="#{msg['user.type.name']}" />
+						<ice:outputText value="#{lang.messages['page.account.detail.tab.user.name']}" />
 						<ice:outputText id="name" value="#{userDetails.user.name}" rendered="#{!userDetails.editMode}" />
 						<ice:inputText id="nameText" value="#{userDetails.user.name}" rendered="#{userDetails.editMode}" />
 
-						<ice:outputText value="#{msg['user.type.version']}" />
+						<ice:outputText value="#{lang.messages['page.account.detail.tab.user.version']}" />
 						<ice:outputText id="version" value="#{userDetails.user.version}" />
 
-						<ice:outputLabel value="#{msg['user.type.email']}" />
+						<ice:outputLabel value="#{lang.messages['page.account.detail.tab.user.email']}" />
 						<ice:outputText id="email" rendered="#{!userDetails.editMode}" value="#{userDetails.user.email}" />
 						<ice:inputText id="emailText" value="#{userDetails.user.email}" rendered="#{userDetails.editMode}" />
 
-						<ice:outputLabel value="#{msg['user.type.locality']}" />
+						<ice:outputLabel value="#{lang.messages['page.account.detail.tab.user.locality']}" />
 						<ice:outputText id="locality" rendered="#{!userDetails.editMode}" value="#{userDetails.user.locality}" />
 						<ice:inputText id="localityText" value="#{userDetails.user.locality}" rendered="#{userDetails.editMode}" />
 
-
-						<ice:outputLabel value="#{msg['user.type.password1']}" rendered="#{userDetails.editMode}" />
+						<ice:outputLabel value="#{lang.messages['page.account.detail.tab.user.password1']}"
+							rendered="#{userDetails.editMode}" />
 						<ice:panelGroup rendered="#{userDetails.editMode}">
 							<ice:inputSecret id="password1" value="#{userDetails.user.password1}"
-								requiredMessage="#{msg['field.required']}">
+								requiredMessage="#{lang.messages['field.required']}">
 								<f:validator validatorId="PasswordValidator" />
 								<f:attribute name="otherComponentId" value="password2" />
 							</ice:inputSecret>
 							<ice:message for="password1" errorClass="error" />
 						</ice:panelGroup>
 
-						<ice:outputLabel value="#{msg['user.type.password2']}" rendered="#{userDetails.editMode}" />
+						<ice:outputLabel value="#{lang.messages['page.account.detail.tab.user.password2']}"
+							rendered="#{userDetails.editMode}" />
 						<ice:panelGroup rendered="#{userDetails.editMode}">
 							<ice:inputSecret id="password2" immediate="true" value="#{userDetails.user.password2}"
-								requiredMessage="#{msg['field.required']}" />
+								requiredMessage="#{lang.messages['field.required']}" />
 							<ice:message for="password2" errorClass="error" />
 						</ice:panelGroup>
 
-						<ice:outputLabel value="#{msg['user.type.enabled']}" rendered="#{userDetails.editMode}" />
+						<ice:outputLabel value="#{lang.messages['page.account.detail.tab.user.enabled']}"
+							rendered="#{userDetails.editMode}" />
 						<ice:panelGroup rendered="#{userDetails.editMode}">
 							<ice:selectBooleanCheckbox id="enabled" value="#{userDetails.user.enabled}" required="true"
-								requiredMessage="#{msg['field.required']}" />
+								requiredMessage="#{lang.messages['field.required']}" />
 							<ice:message for="enabled" errorClass="error" />
 						</ice:panelGroup>
 
-						<ice:outputLabel value="#{msg['user.type.webAccessEnabled']}" rendered="#{userDetails.editMode}" />
+						<ice:outputLabel value="#{lang.messages['page.account.detail.tab.user.webAccessEnabled']}"
+							rendered="#{userDetails.editMode}" />
 						<ice:panelGroup rendered="#{userDetails.editMode}">
 							<ice:selectBooleanCheckbox id="webAccessEnabled" value="#{userDetails.user.webAccessEnabled}"
-								required="true" requiredMessage="#{msg['field.required']}" />
+								required="true" requiredMessage="#{lang.messages['field.required']}" />
 							<ice:message for="webAccessEnabled" errorClass="error" />
 						</ice:panelGroup>
 					</ice:panelGrid>
 				</ice:panelTab>
-				<ice:panelTab rendered="true" label="Accounts" icon="resources/images/drive.png"
-					title="Accounts on connected resources">
+				<ice:panelTab rendered="true" label="#{lang.messages['page.account.detail.tab.accounts.title']}"
+					icon="resources/images/drive.png"
+					title="#{lang.messages['page.account.detail.tab.accounts.description']}">
 					<ice:outputText style="margin-bottom: 10px; display: block;"
-						value="This tab shows user accounts on resources." />
+						value="#{lang.messages['page.account.detail.tab.accounts.text']}" />
 					<div>
-						<span class="required-field" style="padding-right: 5px;">*</span>Required field.
+						<span class="required-field" style="padding-right: 5px;">*</span>#{lang.messages['page.account.detail.tab.accounts.required']}
 					</div>
 					<div>
-						<span class="expression-field" style="padding-right: 5px;">*</span>This field will be filled in with
-						schema handling outbound expression.
+						<span class="expression-field" style="padding-right: 5px;">*</span>#{lang.messages['page.account.detail.tab.accounts.filled']}
 					</div>
 
 					<c:forEach items="#{userDetails.accountList}" var="item" varStatus="status">
 						<ice:panelGrid columns="2" style="width: 100%;"
-							columnClasses="userDetailsResourceTableRow1,userDetailsResourceTableRow2">
+							columnClasses="userDetailsResourceTableRow1, userDetailsResourceTableRow2">
 							<ice:panelCollapsible expanded="#{item.expanded}">
 								<f:facet name="header">
 									<ice:panelGroup>
@@ -124,32 +114,49 @@
 									editable="#{userDetails.editMode}" />
 							</ice:panelCollapsible>
 							<idm:button action="/account/detailUser" actionListener="#{userDetails.removeResourcePerformed}"
-								value="Delete account" buttonType="negative" immediate="true" img="/resources/images/drive_delete.png"
-								rendered="#{userDetails.editMode}">
+								value="#{lang.messages['page.account.detail.tab.accounts.button.delete']}" buttonType="negative"
+								immediate="true" img="/resources/images/drive_delete.png" rendered="#{userDetails.editMode}">
 								<f:attribute name="beanId" value="#{item.id}" />
 							</idm:button>
 						</ice:panelGrid>
 					</c:forEach>
 					<br />
 					<ice:panelGrid id="manageAccountList" columns="3" rendered="#{userDetails.editMode}">
-						<ice:outputText value="Select resources: " />
+						<ice:outputText value="#{lang.messages['page.account.detail.tab.accounts.select']}" />
 						<ice:selectManyListbox id="selectAccount" size="3" style="min-width: 200px; width: auto;"
 							partialSubmit="true" value="#{userDetails.selectedResourceList}">
 							<f:selectItems id="selectAccountItems" value="#{userDetails.availableResourceList}" />
 						</ice:selectManyListbox>
 
 						<idm:button id="addAccountButton" action="/account/detailUser"
-							actionListener="#{userDetails.addResourcePerformed}" value="Add account" buttonType="positive"
+							actionListener="#{userDetails.addResourcePerformed}"
+							value="#{lang.messages['page.account.detail.tab.accounts.button.add']}" buttonType="positive"
 							img="/resources/images/drive_add.png" />
 					</ice:panelGrid>
 				</ice:panelTab>
 
 				<ui:remove>
-					<ice:panelTab rendered="true" label="Roles" icon="resources/images/folder_key.png" title="Roles">
+					<ice:panelTab rendered="true" label="#{lang.messages['page.account.detail.tab.roles.title']}"
+						icon="resources/images/folder_key.png"
+						title="#{lang.messages['page.account.detail.tab.roles.description']}">
 
 					</ice:panelTab>
 				</ui:remove>
 			</ice:panelTabSet>
+
+			<div class="button-bar">
+				<idm:button action="#{userDetails.backPerformed}"
+					value="#{lang.messages['page.account.detail.button.back']}" img="/resources/images/door_in.png" />
+
+				<idm:button actionListener="#{userDetails.startEditMode}"
+					value="#{lang.messages['page.account.detail.button.edit']}" id="editButton"
+					img="/resources/images/user_edit.png" rendered="#{!userDetails.editMode}" immediate="true"
+					action="/account/detailUser" />
+
+				<idm:button action="#{userList.fillTableList}" actionListener="#{userDetails.savePerformed}"
+					id="saveButton" buttonType="positive" value="#{lang.messages['page.account.detail.button.save']}"
+					img="/resources/images/user.png" rendered="#{userDetails.editMode}" />
+			</div>
 		</ice:form>
 	</ui:define>
 </ui:composition>
