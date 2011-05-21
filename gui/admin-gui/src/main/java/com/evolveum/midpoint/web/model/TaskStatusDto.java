@@ -25,92 +25,85 @@ package com.evolveum.midpoint.web.model;
 import java.io.Serializable;
 
 /**
- *
+ * 
  * @author Katuska
  */
 public class TaskStatusDto implements Serializable {
-    
+
 	private static final long serialVersionUID = -5358337966691482206L;
 	private String finishTime;
-    private String lastStatus;
-    private DiagnosticMessageDto lastError;
-    private String name;
-    private String launchTime;
-    private String numberOfErrors;
-    private String progress;
-    private String running;
+	private String lastStatus;
+	private DiagnosticMessageDto lastError;
+	private String name;
+	private String launchTime;
+	private String numberOfErrors;
+	private String progress;
+	private String running;
 
+	public TaskStatusDto() {
+	}
 
-    
-    public TaskStatusDto() {
-    }
+	public String getFinishTime() {
+		return finishTime;
+	}
 
+	public void setFinishTime(String finishTime) {
+		this.finishTime = finishTime;
+	}
 
-    
+	public DiagnosticMessageDto getLastError() {
+		return lastError;
+	}
 
-    public String getFinishTime() {
-        return finishTime;
-    }
+	public void setLastError(DiagnosticMessageDto lastError) {
+		this.lastError = lastError;
+	}
 
-    public void setFinishTime(String finishTime) {
-        this.finishTime = finishTime;
-    }
+	public String getLastStatus() {
+		return lastStatus;
+	}
 
-    public DiagnosticMessageDto getLastError() {
-        return lastError;
-    }
+	public void setLastStatus(String lastStatus) {
+		this.lastStatus = lastStatus;
+	}
 
-    public void setLastError(DiagnosticMessageDto lastError) {
-        this.lastError = lastError;
-    }
+	public String getLaunchTime() {
+		return launchTime;
+	}
 
-    public String getLastStatus() {
-        return lastStatus;
-    }
+	public void setLaunchTime(String launchTime) {
+		this.launchTime = launchTime;
+	}
 
-    public void setLastStatus(String lastStatus) {
-        this.lastStatus = lastStatus;
-    }
+	public String getName() {
+		return name;
+	}
 
-    public String getLaunchTime() {
-        return launchTime;
-    }
+	public void setName(String name) {
+		this.name = name;
+	}
 
-    public void setLaunchTime(String launchTime) {
-        this.launchTime = launchTime;
-    }
+	public String getNumberOfErrors() {
+		return numberOfErrors;
+	}
 
-    public String getName() {
-        return name;
-    }
+	public void setNumberOfErrors(String numberOfErrors) {
+		this.numberOfErrors = numberOfErrors;
+	}
 
-    public void setName(String name) {
-        this.name = name;
-    }
+	public String getProgress() {
+		return progress;
+	}
 
-    public String getNumberOfErrors() {
-        return numberOfErrors;
-    }
+	public void setProgress(String progress) {
+		this.progress = progress;
+	}
 
-    public void setNumberOfErrors(String numberOfErrors) {
-        this.numberOfErrors = numberOfErrors;
-    }
+	public String getRunning() {
+		return running;
+	}
 
-    public String getProgress() {
-        return progress;
-    }
-
-    public void setProgress(String progress) {
-        this.progress = progress;
-    }
-
-    public String getRunning() {
-        return running;
-    }
-
-    public void setRunning(String running) {
-        this.running = running;
-    }
-
-    
+	public void setRunning(String running) {
+		this.running = running;
+	}
 }

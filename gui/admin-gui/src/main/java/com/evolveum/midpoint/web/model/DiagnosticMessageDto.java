@@ -25,46 +25,40 @@ package com.evolveum.midpoint.web.model;
 import java.io.Serializable;
 
 /**
- *
+ * 
  * @author Katuska
  */
 public class DiagnosticMessageDto implements Serializable {
 
 	private static final long serialVersionUID = 7568834241228899775L;
 	private String message;
-    private String details;
-    private String timestamp;
+	private String details;
+	private String timestamp;
 
-    public DiagnosticMessageDto() {
-    }
+	public DiagnosticMessageDto() {
+	}
 
-    
+	public String getDetails() {
+		return details;
+	}
 
-    public String getDetails() {
-        return details;
-    }
+	public void setDetails(String details) {
+		this.details = details;
+	}
 
-    public void setDetails(String details) {
-        this.details = details;
-    }
+	public String getMessage() {
+		return message;
+	}
 
-    public String getMessage() {
-        return message;
-    }
+	public void setMessage(String message) {
+		this.message = message;
+	}
 
-    public void setMessage(String message) {
-        this.message = message;
-    }
+	public String getTimestamp() {
+		return timestamp;
+	}
 
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
-    }
-
-
-
-
+	public void setTimestamp(String timestamp) {
+		this.timestamp = timestamp;
+	}
 }

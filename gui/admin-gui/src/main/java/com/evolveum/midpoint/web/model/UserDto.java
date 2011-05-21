@@ -22,115 +22,120 @@
 
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+
 /**
- *
+ * 
  * @author semancik
  */
 public class UserDto extends ExtensibleObjectDto {
 
-    public UserDto() {
-    }
+	private static final long serialVersionUID = 2178456879571587946L;
 
-    public UserDto(UserType object) {
-        super(object);
-    }
+	public UserDto() {
+	}
 
-    private UserType getUserType() {
-        return (UserType) getXmlObject();
-    }
+	public UserDto(UserType object) {
+		super(object);
+	}
 
-    public String getFullName() {
-        return getUserType().getFullName();
-    }
+	private UserType getUserType() {
+		return (UserType) getXmlObject();
+	}
 
-    public void setFullName(String value) {
-        getUserType().setFullName(value);
-    }
+	public String getFullName() {
+		return getUserType().getFullName();
+	}
 
-    public String getGivenName() {
-        return getUserType().getGivenName();
-    }
+	public void setFullName(String value) {
+		getUserType().setFullName(value);
+	}
 
-    public void setGivenName(String value) {
-        getUserType().setGivenName(value);
-    }
+	public String getGivenName() {
+		return getUserType().getGivenName();
+	}
 
-    public String getFamilyName() {
-        return getUserType().getFamilyName();
-    }
+	public void setGivenName(String value) {
+		getUserType().setGivenName(value);
+	}
 
-    public void setFamilyName(String value) {
-        getUserType().setFamilyName(value);
-    }
+	public String getFamilyName() {
+		return getUserType().getFamilyName();
+	}
 
-    public void setEmail(String email) {
-        List<String> list = getUserType().getEMailAddress();
-        list.clear();
-        list.add(email);
-    }
+	public void setFamilyName(String value) {
+		getUserType().setFamilyName(value);
+	}
 
-    public String getEmail() {
-        List<String> list = getUserType().getEMailAddress();
-        if (list.size() == 0) {
-            return null;
-        }
-        return list.get(0);
-    }
+	public void setEmail(String email) {
+		List<String> list = getUserType().getEMailAddress();
+		list.clear();
+		list.add(email);
+	}
 
-    public String getHonorificPrefix() {
-        return getUserType().getHonorificPrefix();
-    }
+	public String getEmail() {
+		List<String> list = getUserType().getEMailAddress();
+		if (list.size() == 0) {
+			return null;
+		}
+		return list.get(0);
+	}
 
-    public void setHonorificPrefix(String value) {
-        getUserType().setHonorificPrefix(value);
-    }
+	public String getHonorificPrefix() {
+		return getUserType().getHonorificPrefix();
+	}
 
-    public String getHonorificSuffix() {
-        return getUserType().getHonorificSuffix();
-    }
+	public void setHonorificPrefix(String value) {
+		getUserType().setHonorificPrefix(value);
+	}
 
-    public void setHonorificSuffix(String value) {
-        getUserType().setHonorificSuffix(value);
-    }
+	public String getHonorificSuffix() {
+		return getUserType().getHonorificSuffix();
+	}
 
-    public List<AccountShadowDto> getAccount() {
-        List<AccountShadowType> accounts = getUserType().getAccount();
-        List<AccountShadowDto> accountDtos = new ArrayList<AccountShadowDto>();
+	public void setHonorificSuffix(String value) {
+		getUserType().setHonorificSuffix(value);
+	}
 
-        for (AccountShadowType account : accounts) {
-            accountDtos.add(new AccountShadowDto(account));
-        }
-        return accountDtos;
-    }
+	public List<AccountShadowDto> getAccount() {
+		List<AccountShadowType> accounts = getUserType().getAccount();
+		List<AccountShadowDto> accountDtos = new ArrayList<AccountShadowDto>();
 
-    public List<ObjectReferenceDto> getAccountRef() {
-        List<ObjectReferenceType> accountRefs = getUserType().getAccountRef();
-        List<ObjectReferenceDto> accountRefDtos = new ArrayList<ObjectReferenceDto>();
+		for (AccountShadowType account : accounts) {
+			accountDtos.add(new AccountShadowDto(account));
+		}
+		return accountDtos;
+	}
 
-        for (ObjectReferenceType ref : accountRefs) {
-            accountRefDtos.add(new ObjectReferenceDto(ref));
-        }
+	public List<ObjectReferenceDto> getAccountRef() {
+		List<ObjectReferenceType> accountRefs = getUserType().getAccountRef();
+		List<ObjectReferenceDto> accountRefDtos = new ArrayList<ObjectReferenceDto>();
 
-        return accountRefDtos;
-    }
+		for (ObjectReferenceType ref : accountRefs) {
+			accountRefDtos.add(new ObjectReferenceDto(ref));
+		}
 
-    public String getEmployeeNumber() {
-        return getUserType().getEmployeeNumber();
-    }
+		return accountRefDtos;
+	}
 
-    public void setEmployeeNumber(String value) {
-        getUserType().setEmployeeNumber(value);
-    }
+	public String getEmployeeNumber() {
+		return getUserType().getEmployeeNumber();
+	}
 
-    public String getLocality() {
-        return getUserType().getLocality();
-    }
+	public void setEmployeeNumber(String value) {
+		getUserType().setEmployeeNumber(value);
+	}
 
-    public void setLocality(String value) {
-        getUserType().setLocality(value);
-    }
+	public String getLocality() {
+		return getUserType().getLocality();
+	}
+
+	public void setLocality(String value) {
+		getUserType().setLocality(value);
+	}
 }

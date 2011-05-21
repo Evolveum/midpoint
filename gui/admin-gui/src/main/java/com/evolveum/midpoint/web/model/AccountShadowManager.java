@@ -22,22 +22,22 @@
 
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
- *
+ * 
  * @author semancik
  */
 public interface AccountShadowManager extends ObjectManager<AccountShadowDto> {
 
-    /**
-     * TODO
-     *
-     * May return null
-     * 
-     * @param oid
-     * @return
-     */
-    UserType listOwner(String oid) throws WebModelException;
+	/**
+	 * TODO
+	 * 
+	 * May return null
+	 * 
+	 * @param oid
+	 * @return
+	 */
+	UserType listOwner(String oid) throws WebModelException;
 
 }

@@ -54,5 +54,4 @@ public final class PropertyChange {
     public Set<Object> getValues() {
         return values;
     }
-
 }

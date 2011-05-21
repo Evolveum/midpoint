@@ -22,12 +22,17 @@
 
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import javax.xml.namespace.QName;
+
 import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 /**
  * 

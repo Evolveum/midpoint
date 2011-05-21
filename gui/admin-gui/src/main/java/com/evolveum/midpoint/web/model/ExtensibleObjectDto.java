@@ -30,6 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType
  */
 public abstract class ExtensibleObjectDto extends ObjectDto {
 
+	private static final long serialVersionUID = 268510980551245638L;
+
 	public ExtensibleObjectDto(ExtensibleObjectType object) {
 		super(object);
 	}

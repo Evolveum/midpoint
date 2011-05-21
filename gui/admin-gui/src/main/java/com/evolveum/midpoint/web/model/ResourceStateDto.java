@@ -30,7 +30,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceStateType;
  */
 public class ResourceStateDto extends ObjectDto {
 
-    public ResourceStateDto(ResourceStateType resourceState) {
+	private static final long serialVersionUID = -1170598753163899233L;
+
+	public ResourceStateDto(ResourceStateType resourceState) {
         super(resourceState);
     }
 }

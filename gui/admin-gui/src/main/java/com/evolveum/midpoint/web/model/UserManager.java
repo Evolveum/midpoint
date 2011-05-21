@@ -23,10 +23,10 @@
 package com.evolveum.midpoint.web.model;
 
 /**
- *
+ * 
  * @author semancik
  */
 public interface UserManager extends ObjectManager<UserDto> {
 
-    AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException;
+	AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException;
 }

@@ -25,12 +25,14 @@ package com.evolveum.midpoint.web.model;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 
 /**
- *
+ * 
  * @author Vilo Repan
  */
 public class UserTemplateDto extends ObjectDto {
 
-    public UserTemplateDto(UserTemplateType userTemplate) {
-        super(userTemplate);
-    }
+	private static final long serialVersionUID = 866533225746657448L;
+
+	public UserTemplateDto(UserTemplateType userTemplate) {
+		super(userTemplate);
+	}
 }

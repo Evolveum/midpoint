@@ -22,63 +22,61 @@
 
 package com.evolveum.midpoint.web.model;
 
+import java.io.Serializable;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 
-
 /**
- *
+ * 
  * @author Katuska
  */
-public class PagingDto {
+public class PagingDto implements Serializable {
 
-    private String orderBy;
-    private int offset;
-    private int maxSize;
-    private OrderDirectionType direction;
+	private static final long serialVersionUID = -4248588398350368853L;
+	private String orderBy;
+	private int offset;
+	private int maxSize;
+	private OrderDirectionType direction;
 
-    public PagingDto() {
-    }
+	public PagingDto() {
+	}
 
-    public PagingDto(String orderBy, int offset, int maxSize, OrderDirectionType direction) {
-        this.orderBy = orderBy;
-        this.offset = offset;
-        this.maxSize = maxSize;
-        this.direction = direction;
-    }
+	public PagingDto(String orderBy, int offset, int maxSize, OrderDirectionType direction) {
+		this.orderBy = orderBy;
+		this.offset = offset;
+		this.maxSize = maxSize;
+		this.direction = direction;
+	}
 
-    
-    
-    public OrderDirectionType getDirection() {
-        return direction;
-    }
+	public OrderDirectionType getDirection() {
+		return direction;
+	}
 
-    public void setDirection(OrderDirectionType direction) {
-        this.direction = direction;
-    }
+	public void setDirection(OrderDirectionType direction) {
+		this.direction = direction;
+	}
 
-    public int getMaxSize() {
-        return maxSize;
-    }
+	public int getMaxSize() {
+		return maxSize;
+	}
 
-    public void setMaxSize(int maxSize) {
-        this.maxSize = maxSize;
-    }
+	public void setMaxSize(int maxSize) {
+		this.maxSize = maxSize;
+	}
 
-    public int getOffset() {
-        return offset;
-    }
+	public int getOffset() {
+		return offset;
+	}
 
-    public void setOffset(int offset) {
-        this.offset = offset;
-    }
+	public void setOffset(int offset) {
+		this.offset = offset;
+	}
 
-    public String getOrderBy() {
-        return orderBy;
-    }
+	public String getOrderBy() {
+		return orderBy;
+	}
 
-    public void setOrderBy(String orderBy) {
-        this.orderBy = orderBy;
-    }
-
-
+	public void setOrderBy(String orderBy) {
+		this.orderBy = orderBy;
+	}
 }

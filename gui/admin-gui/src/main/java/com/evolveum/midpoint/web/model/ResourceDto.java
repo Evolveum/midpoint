@@ -22,101 +22,109 @@
 
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.namespace.QName;
+
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
+
 /**
- *
+ * 
  * @author semancik
  */
 public class ResourceDto extends ExtensibleObjectDto {
 
-    public ResourceDto() {
-    }
+	private static final long serialVersionUID = -2599530038158817244L;
 
-    public ResourceDto(ResourceType object) {
-        super(object);
-    }
+	public ResourceDto() {
+	}
 
-    ResourceType getResourceType() {
-        return (ResourceType) getXmlObject();
-    }
+	public ResourceDto(ResourceType object) {
+		super(object);
+	}
 
-    public String getType() {
-        return getResourceType().getType();
-    }
+	ResourceType getResourceType() {
+		return (ResourceType) getXmlObject();
+	}
 
-    public void setType(String value) {
-        getResourceType().setType(value);
-    }
+	public String getType() {
+		return getResourceType().getType();
+	}
 
-    public Element getSchema() {
-        // TODO: Make this smarter ... if possible
-        ResourceType.Schema schema = getResourceType().getSchema();
-        if (schema != null && schema.getAny().size() != 0) {
-            return (Element) getResourceType().getSchema().getAny().get(0);
-        }
+	public void setType(String value) {
+		getResourceType().setType(value);
+	}
 
-        return null;
-    }
+	public Element getSchema() {
+		// TODO: Make this smarter ... if possible
+		ResourceType.Schema schema = getResourceType().getSchema();
+		if (schema != null && schema.getAny().size() != 0) {
+			return (Element) getResourceType().getSchema().getAny().get(0);
+		}
 
-//    public ResourceType.SchemaHandling getSchemaHandling() {
-//        return getResourceType().getSchemaHandling();
-//    }
-//
-//    public void setSchemaHandling(ResourceType.SchemaHandling value) {
-//        getResourceType().setSchemaHandling(value);
-//    }
-    public List<Element> getConfiguration() {
-        return getResourceType().getConfiguration().getAny();
-    }
+		return null;
+	}
 
-    public void setConfiguration(Configuration value) {
-        // TODO
-    }
+	// public ResourceType.SchemaHandling getSchemaHandling() {
+	// return getResourceType().getSchemaHandling();
+	// }
+	//
+	// public void setSchemaHandling(ResourceType.SchemaHandling value) {
+	// getResourceType().setSchemaHandling(value);
+	// }
+	public List<Element> getConfiguration() {
+		return getResourceType().getConfiguration().getAny();
+	}
 
-    public List<AccountTypeDto> getAccountTypes() {
-        List<AccountTypeDto> accountTypeList = new ArrayList<AccountTypeDto>();
-        if (getResourceType() == null || getResourceType().getSchemaHandling() == null) {
-            return accountTypeList;
-        }
+	public void setConfiguration(Configuration value) {
+		// TODO
+	}
 
-        List<SchemaHandlingType.AccountType> list = getResourceType().getSchemaHandling().getAccountType();
-        for (SchemaHandlingType.AccountType accountType : list) {
-            accountTypeList.add(new AccountTypeDto(accountType.getName(), accountType.getObjectClass(), accountType.isDefault()));
-        }
-        return accountTypeList;
-    }
+	public List<AccountTypeDto> getAccountTypes() {
+		List<AccountTypeDto> accountTypeList = new ArrayList<AccountTypeDto>();
+		if (getResourceType() == null || getResourceType().getSchemaHandling() == null) {
+			return accountTypeList;
+		}
 
-    public String getNamespace() {
-        return ((ResourceType)getXmlObject()).getNamespace();
-    }
+		List<SchemaHandlingType.AccountType> list = getResourceType().getSchemaHandling().getAccountType();
+		for (SchemaHandlingType.AccountType accountType : list) {
+			accountTypeList.add(new AccountTypeDto(accountType.getName(), accountType.getObjectClass(),
+					accountType.isDefault()));
+		}
+		return accountTypeList;
+	}
 
-    public static class AccountTypeDto {
+	public String getNamespace() {
+		return ((ResourceType) getXmlObject()).getNamespace();
+	}
 
-        private String name;
-        private QName objectClass;
-        private boolean def;
+	public static class AccountTypeDto {
 
-        private AccountTypeDto(String name, QName objectClass, boolean def) {
-            this.name = name;
-            this.objectClass = objectClass;
-            this.def = def;
-        }
+		private String name;
+		private QName objectClass;
+		private boolean def;
 
-        public String getName() {
-            return name;
-        }
+		private AccountTypeDto(String name, QName objectClass, boolean def) {
+			this.name = name;
+			this.objectClass = objectClass;
+			this.def = def;
+		}
 
-        public QName getObjectClass() {
-            return objectClass;
-        }
+		public String getName() {
+			return name;
+		}
 
-        public boolean isDefault() {
-            return def;
-        }
-    }
+		public QName getObjectClass() {
+			return objectClass;
+		}
+
+		public boolean isDefault() {
+			return def;
+		}
+	}
 }

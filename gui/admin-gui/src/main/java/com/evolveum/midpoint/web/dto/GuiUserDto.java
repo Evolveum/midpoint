@@ -42,7 +42,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 public class GuiUserDto extends UserDto {
 
 	private static final long serialVersionUID = -8265669830268114388L;
-	private transient Trace TRACE = TraceManager.getTrace(GuiUserDto.class);
+	private static final Trace TRACE = TraceManager.getTrace(GuiUserDto.class);
 	private boolean selected;
 	private boolean enabled = false;
 	private String password1;

@@ -25,15 +25,14 @@ package com.evolveum.midpoint.web.model;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
- *
+ * 
  * @author Katuska
  */
-public class GenericObjectDto extends ObjectDto{
+public class GenericObjectDto extends ObjectDto {
 
-    public GenericObjectDto(ObjectType object) {
-        super(object);
-    }
+	private static final long serialVersionUID = -2855273139925483488L;
 
-    
-
+	public GenericObjectDto(ObjectType object) {
+		super(object);
+	}
 }

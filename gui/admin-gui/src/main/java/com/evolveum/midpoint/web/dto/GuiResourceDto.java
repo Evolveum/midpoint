@@ -22,6 +22,8 @@
 
 package com.evolveum.midpoint.web.dto;
 
+import java.io.Serializable;
+
 import com.evolveum.midpoint.web.model.ResourceDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
@@ -29,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  * 
  * @author katuska
  */
-public class GuiResourceDto extends ResourceDto {
+public class GuiResourceDto extends ResourceDto implements Serializable {
 
 	private static final long serialVersionUID = -7504862931524553291L;
 	private String connectorUsed;

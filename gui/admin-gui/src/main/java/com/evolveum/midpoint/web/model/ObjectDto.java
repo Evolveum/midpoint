@@ -22,69 +22,71 @@
 
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import java.io.Serializable;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+
 /**
- *
+ * 
  * @author semancik
  */
 public abstract class ObjectDto implements Serializable {
 
-    private ObjectType xmlObject;
+	private static final long serialVersionUID = 5319506185994423879L;
+	private ObjectType xmlObject;
 
-    ObjectDto() {
-        xmlObject = null;
-    };
+	ObjectDto() {
+		xmlObject = null;
+	};
 
-    /**
-     * Initialize DTO using XML (JAX-B) object.
-     * DTO initialized like this may only be part of other DTOs.
-     * It cannot be submited directly.
-     * @param object
-     */
-    public ObjectDto(ObjectType object) {
-        xmlObject = object;
-    }
+	/**
+	 * Initialize DTO using XML (JAX-B) object. DTO initialized like this may
+	 * only be part of other DTOs. It cannot be submited directly.
+	 * 
+	 * @param object
+	 */
+	public ObjectDto(ObjectType object) {
+		xmlObject = object;
+	}
 
-    public ObjectType getXmlObject() {
-        if (xmlObject!=null) {
-            return xmlObject;
-        }
-        throw new IllegalStateException();
-    }
+	public ObjectType getXmlObject() {
+		if (xmlObject != null) {
+			return xmlObject;
+		}
+		throw new IllegalStateException();
+	}
 
-    /**
-     * This method is NOT public. It must be used ONLY by this interface
-     * implementation. It MUST NOT be used by the clients of this interface.
-     *
-     * @param xmlObject
-     */
-    public void setXmlObject(ObjectType xmlObject) {
-        this.xmlObject = xmlObject;
-    }
+	/**
+	 * This method is NOT public. It must be used ONLY by this interface
+	 * implementation. It MUST NOT be used by the clients of this interface.
+	 * 
+	 * @param xmlObject
+	 */
+	public void setXmlObject(ObjectType xmlObject) {
+		this.xmlObject = xmlObject;
+	}
 
-    public String getName() {
-        return getXmlObject().getName();
-    }
+	public String getName() {
+		return getXmlObject().getName();
+	}
 
-    public void setName(String value) {
-        getXmlObject().setName(value);
-    }
+	public void setName(String value) {
+		getXmlObject().setName(value);
+	}
 
-    public String getOid() {
-        return getXmlObject().getOid();
-    }
+	public String getOid() {
+		return getXmlObject().getOid();
+	}
 
-    public void setOid(String value) {
-        getXmlObject().setOid(value);
-    }
+	public void setOid(String value) {
+		getXmlObject().setOid(value);
+	}
 
-    public String getVersion() {
-        return getXmlObject().getVersion();
-    }
+	public String getVersion() {
+		return getXmlObject().getVersion();
+	}
 
-    public void setVersion(String value) {
-        getXmlObject().setVersion(value);
-    }
+	public void setVersion(String value) {
+		getXmlObject().setVersion(value);
+	}
 }

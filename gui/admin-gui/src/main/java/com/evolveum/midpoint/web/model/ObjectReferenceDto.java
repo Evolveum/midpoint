@@ -22,14 +22,17 @@
 
 package com.evolveum.midpoint.web.model;
 
+import java.io.Serializable;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 
 /**
  * 
  * @author semancik
  */
-public class ObjectReferenceDto {
+public class ObjectReferenceDto implements Serializable {
 
+	private static final long serialVersionUID = 6496361232990738597L;
 	private ObjectReferenceType objectReference;
 
 	public ObjectReferenceDto(ObjectReferenceType objectReference) {
