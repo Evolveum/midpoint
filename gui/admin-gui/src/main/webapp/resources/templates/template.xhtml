@@ -73,7 +73,7 @@
 					<idm:topMenuItem id="topRoles" action="/role/index?faces-redirect=true"
 						name="#{lang.messages['page.template.top.roles']}"
 						description="#{lang.messages['page.template.top.description.roles']}" />
-					<idm:topMenuItem id="topResources" action="/resource/index?faces-redirect=true"
+					<idm:topMenuItem id="topResources" action="#{resourceList.updateController}"
 						name="#{lang.messages['page.template.top.resources']}"
 						description="#{lang.messages['page.template.top.description.resources']}" />
 					<idm:topMenuItem id="topServerTasks" action="/server/index?faces-redirect=true"

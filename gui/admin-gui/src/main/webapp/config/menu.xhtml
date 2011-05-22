@@ -7,6 +7,9 @@
 	<idm:leftMenuContainer name="#{lang.messages['page.template.top.configuration']}">
 		<idm:leftMenuItem id="leftBasic" name="#{lang.messages['page.config.index.title']}" action="/config/index?faces-redirect=true" />
 	</idm:leftMenuContainer>
+	<idm:leftMenuContainer name="Security">
+		<idm:leftMenuItem id="loginModule" name="Login Modules" />
+	</idm:leftMenuContainer>
 	<idm:leftMenuContainer name="Debug">
 		<idm:leftMenuItem id="leftDebug" name="Debug Pages" action="#{debugPagesController.fillSelectItemList}" />
 		<idm:leftMenuItem id="leftXpath" name="XPath Debug" action="#{xpathDebugPageController.prepareXpathDebugPage}" />		

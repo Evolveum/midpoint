@@ -94,10 +94,12 @@
 					<ice:outputText style="margin-bottom: 10px; display: block;"
 						value="#{lang.messages['page.account.detail.tab.accounts.text']}" />
 					<div>
-						<span class="required-field" style="padding-right: 5px;">*</span>#{lang.messages['page.account.detail.tab.accounts.required']}
+						<span class="required-field" style="padding-right: 5px;">*</span>
+						#{lang.messages['page.account.detail.tab.accounts.required']}
 					</div>
 					<div>
-						<span class="expression-field" style="padding-right: 5px;">*</span>#{lang.messages['page.account.detail.tab.accounts.filled']}
+						<span class="expression-field" style="padding-right: 5px;">*</span>
+						#{lang.messages['page.account.detail.tab.accounts.filled']}
 					</div>
 
 					<c:forEach items="#{userDetails.accountList}" var="item" varStatus="status">

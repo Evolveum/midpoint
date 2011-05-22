@@ -22,9 +22,6 @@
 
 package com.evolveum.midpoint.web.util;
 
-import java.io.Serializable;
-import java.util.Comparator;
-
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.web.dto.GuiUserDto;
@@ -33,37 +30,33 @@ import com.evolveum.midpoint.web.dto.GuiUserDto;
  * 
  * @author lazyman
  */
-public class GuiUserDtoComparator implements Comparator<GuiUserDto>, Serializable {
+public class GuiUserDtoComparator extends SortableListComparator<GuiUserDto> {
 
 	private static final long serialVersionUID = 3362224931050518444L;
-	
-	private boolean ascending;
-	private String attribute;
 
 	public GuiUserDtoComparator(String attribute, boolean ascending) {
-		this.attribute = attribute;
-		this.ascending = ascending;
+		super(attribute, ascending);
 	}
 
 	@Override
 	public int compare(GuiUserDto o1, GuiUserDto o2) {
-		if (StringUtils.isEmpty(attribute)) {
+		if (StringUtils.isEmpty(getAttribute())) {
 			return 0;
 		}
 
 		int value = 0;
-		if (attribute.equals("fullName")) {
+		if (getAttribute().equals("fullName")) {
 			value = String.CASE_INSENSITIVE_ORDER.compare(o1.getFullName(), o2.getFullName());
-		} else if (attribute.equals("givenName")) {
+		} else if (getAttribute().equals("givenName")) {
 			value = String.CASE_INSENSITIVE_ORDER.compare(o1.getGivenName(), o2.getGivenName());
-		} else if (attribute.equals("familyName")) {
+		} else if (getAttribute().equals("familyName")) {
 			value = String.CASE_INSENSITIVE_ORDER.compare(o1.getFamilyName(), o2.getFamilyName());
-		} else if (attribute.equals("oid")) {
+		} else if (getAttribute().equals("oid")) {
 			value = String.CASE_INSENSITIVE_ORDER.compare(o1.getOid(), o2.getOid());
-		} else if (attribute.equals("name")) {
+		} else if (getAttribute().equals("name")) {
 			value = String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName());
 		}
 
-		return ascending ? value : -value;
+		return isAscending() ? value : -value;
 	}
 }

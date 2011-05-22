@@ -22,12 +22,15 @@
 
 package com.evolveum.midpoint.web.util;
 
+import java.io.Serializable;
+
 /**
  * 
  * @author lazyman
  */
-public abstract class SortableList {
+public abstract class SortableList implements Serializable {
 
+	private static final long serialVersionUID = 2543170021612042446L;
 	private String sortColumnName;
 	private boolean ascending;
 
@@ -43,7 +46,7 @@ public abstract class SortableList {
 	/**
 	 * Sort the list.
 	 */
-	protected abstract void sort();
+	public abstract void sort();
 
 	/**
 	 * Is the default sortColumnName direction for the given column "ascending"
