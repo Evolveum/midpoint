@@ -17,7 +17,7 @@
 			<ice:dataTable id="resourceTable" rows="50" value="#{resourceList.resourceList}" var="item"
 				sortColumn="#{resourceList.sortColumnName}" sortAscending="#{resourceList.ascending}"
 				columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
-				columnWidths="auto, 240px, 200px, 200px, 30px, 150px" resizable="false">
+				columnWidths="auto, 240px, 270px, 150px, 30px, 120px" resizable="false">
 				<ice:column>
 					<f:facet name="header">
 						<ice:selectBooleanCheckbox id="selectAllCheckbox" value="#{resourceList.selectAll}"
@@ -43,24 +43,28 @@
 						<ice:commandSortHeader columnName="type" arrow="true" actionListener="#{resourceList.sortList}">
 							<ice:outputText id="typeTxt" value="Type" />
 						</ice:commandSortHeader>
-						<ice:outputText value="#{item.type}" />
 					</f:facet>
+					<ice:outputText value="#{item.type}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
 						<ice:commandSortHeader columnName="version" arrow="true" actionListener="#{resourceList.sortList}">
 							<ice:outputText id="versionTxt" value="Version" />
 						</ice:commandSortHeader>
-						<ice:outputText value="#{item.version}" />
 					</f:facet>
+					<ice:outputText value="#{item.version}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
 						<ice:commandSortHeader columnName="state" arrow="true" actionListener="#{resourceList.sortList}">
-							<ice:outputText id="stateTxt" value="State" />
+							<ice:outputText id="statusTxt" value="Status" />
 						</ice:commandSortHeader>
-						<ice:graphicImage />
 					</f:facet>
+					<ice:commandLink actionListener="#{resourceList.testConnection}" immediate="true"
+						style="display: block; width: 100%; text-align: center;">
+						<f:param name="resourceOid" value="#{item.oid}" />
+						<ice:graphicImage value="/resources/images/#{item.status.icon}" />
+					</ice:commandLink>
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
@@ -68,13 +72,13 @@
 						<!-- progress bar -->
 					</f:facet>
 				</ice:column>
-
-				<div class="button-bar">
-					<idm:button value="Disable" img="/resources/images/????.png" id="disableResource" immediate="true" />
-
-					<idm:button id="deleteResource" buttonType="positive" value="Delete" img="/resources/images/???.png" />
-				</div>
 			</ice:dataTable>
+
+			<div class="button-bar">
+				<idm:button value="Disable" img="/resources/images/drive_burn.png" id="disableResource" immediate="true" />
+
+				<idm:button id="deleteResource" buttonType="negative" value="Delete" img="/resources/images/drive_delete.png" />
+			</div>
 		</ice:form>
 	</ui:define>
 </ui:composition>

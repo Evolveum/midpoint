@@ -31,13 +31,18 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.bean.SortedResourceList;
+import com.evolveum.midpoint.web.bean.ResourceListItem.ConnectionStatus;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -68,13 +73,21 @@ public class ResourceListController implements Serializable {
 	public void setSelectAll(boolean selectAll) {
 		this.selectAll = selectAll;
 	}
-	
+
 	public boolean isAscending() {
 		return getResources().isAscending();
 	}
-	
+
+	public void setAscending(boolean ascending) {
+		getResources().setAscending(ascending);
+	}
+
 	public String getSortColumnName() {
 		return getResources().getSortColumnName();
+	}
+
+	public void setSortColumnName(String sortColumnName) {
+		getResources().setSortColumnName(sortColumnName);
 	}
 
 	public List<ResourceListItem> getResourceList() {
@@ -124,6 +137,16 @@ public class ResourceListController implements Serializable {
 		try {
 			ResourceTestResultType result = model.testResource(resourceOid);
 			// TODO: update connection status on resource list item
+			ResourceListItem resource = null;
+			for (ResourceListItem item : getResourceList()) {
+				if (item.getOid().equals(resourceOid)) {
+					resource = item;
+					break;
+				}
+			}
+			if (resource != null) {
+				resource.setStatus(ConnectionStatus.SUCCESS);
+			}
 		} catch (FaultMessage ex) {
 			String resourceName = resourceOid;
 			for (ResourceListItem item : getResourceList()) {
@@ -144,6 +167,7 @@ public class ResourceListController implements Serializable {
 			List<ObjectType> objects = objectList.getObject();
 
 			List<ResourceListItem> list = getResourceList();
+			list.clear();
 			for (ObjectType object : objects) {
 				list.add(createResourceListItem((ResourceType) object));
 			}
@@ -161,18 +185,33 @@ public class ResourceListController implements Serializable {
 	}
 
 	private ResourceListItem createResourceListItem(ResourceType resource) {
-		String type = "TYPE";
-		String version = "VERSION";
+		String type = getConnectorInfo("bundleName", resource);
+		String version = getConnectorInfo("bundleVersion", resource);
 
 		return new ResourceListItem(resource.getOid(), resource.getName(), type, version);
 	}
-	
+
+	private String getConnectorInfo(String name, ResourceType resource) {
+		Configuration configuration = resource.getConfiguration();
+		if (configuration != null) {
+			for (Element element : configuration.getAny()) {
+				NamedNodeMap attributes = element.getFirstChild().getAttributes();
+				Node attribute = attributes.getNamedItem(name);
+				if (attribute != null) {
+					return attribute.getTextContent();
+				}
+			}
+		}
+
+		return "Unknown";
+	}
+
 	private SortedResourceList getResources() {
 		if (resources == null) {
 			resources = new SortedResourceList();
 			resources.setSortColumnName(DEFAULT_SORT_COLUMN);
 		}
-		
+
 		return resources;
 	}
 }

@@ -22,6 +22,8 @@ package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * 
  * @author lazyman
@@ -32,7 +34,17 @@ public class ResourceListItem implements Serializable {
 	private static final long serialVersionUID = 8252381052377454312L;
 
 	public enum ConnectionStatus {
-		SUCCESS, WARNING, ERROR, NOT_TESTED;
+		SUCCESS("accept.png"), WARNING("error.png"), ERROR("exclamation.png"), NOT_TESTED("help.png");
+
+		private String icon;
+
+		private ConnectionStatus(String icon) {
+			this.icon = icon;
+		}
+
+		public String getIcon() {
+			return icon;
+		}
 	}
 
 	private boolean selected = false;
@@ -44,6 +56,9 @@ public class ResourceListItem implements Serializable {
 	private int progress;
 
 	public ResourceListItem(String oid, String name, String type, String version) {
+		if (StringUtils.isEmpty(oid)) {
+			throw new IllegalArgumentException("Oid must not be null.");
+		}
 		this.oid = oid;
 		this.name = name;
 		this.type = type;
