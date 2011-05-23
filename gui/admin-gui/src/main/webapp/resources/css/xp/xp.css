@@ -43,7 +43,7 @@
 /* make the fonts inside tables and forms == the default size of the page */
 body, table {
     font-family: Arial, Helvetica, sans-serif;
-    font-size: .95em;
+    /* font-size: .95em; */
     color: #000000;
 }
 

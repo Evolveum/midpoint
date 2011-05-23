@@ -5,7 +5,7 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{lang.messages['page.resource.index.title']}</ui:define>
+	<ui:define name="title">Details for resource ''</ui:define>
 
 	<ui:define name="menu">
 		<ui:include src="./menu.xhtml" />
@@ -13,26 +13,71 @@
 
 	<ui:define name="content">
 		<ice:form>
-		Resource details
-		
-		
-		- add link straight to debug pages to this resource
-		- test connection details
-		
-		<div class="button-bar">
-				<idm:button action="#{resourceList.updateController}"
-					value="#{lang.messages['Back']}" img="/resources/images/door_in.png" />
+			<ice:panelGrid columns="2" style="width: 100%;">
+				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
+					<f:facet name="header">
+						<h3>Resource</h3>
+					</f:facet>
+					<ice:outputLabel value="Oid" />
+					<ice:outputText value="aaa" />
+
+					<ice:outputLabel value="Name" />
+					<ice:outputText value="aaa" />
+
+					<ice:outputLabel value="Type" />
+					<ice:outputText value="aaa" />
+
+					<ice:outputLabel value="Version" />
+					<ice:outputText value="aaa" />
+				</ice:panelGrid>
+
+				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
+					<f:facet name="header">
+						<h3>Connector Details</h3>
+					</f:facet>
+					<ice:outputLabel value="Configuration validation" />
+					<ice:graphicImage value="/resources/images/accept.png" />
+
+					<ice:outputLabel value="Connection initialization" />
+					<ice:graphicImage value="/resources/images/accept.png" />
+
+					<ice:outputLabel value="Connection connection" />
+					<ice:graphicImage value="/resources/images/accept.png" />
+
+					<ice:outputLabel value="Connection sanity" />
+					<ice:graphicImage value="/resources/images/accept.png" />
+
+					<ice:outputLabel value="Connection schema" />
+					<ice:graphicImage value="/resources/images/accept.png" />
+
+					<ice:outputLabel value="Extra test name" />
+					<ice:graphicImage value="/resources/images/accept.png" />
+
+					<ice:outputLabel value="Extra test result" />
+					<ice:graphicImage value="/resources/images/accept.png" />
+				</ice:panelGrid>
+			</ice:panelGrid>
+
+			<h3>Connector Types</h3>
+			<div>***Here goes table with data types of resource***</div>
+			<div>***Unused buttons will be removed later***</div>
+
+			<ice:commandLink value="See debug pages" />
+
+			<div class="button-bar">
+				<idm:button action="#{resourceList.updateController}" value="#{lang.messages['Back']}"
+					img="/resources/images/door_in.png" />
 				<idm:button value="Disable" img="/resources/images/drive_burn.png" id="disableResource" immediate="true" />
 				<idm:button id="deleteResource" buttonType="negative" value="Delete"
 					img="/resources/images/drive_delete.png" />
-				<idm:button action="#{resourceTypeController.listAccounts}" id="listAccountsButton" buttonType="positive"
-					value="List accounts" img="/resources/images/list.png" />
+				<idm:button action="#{resourceTypeController.listAccounts}" id="listAccountsButton" value="List accounts"
+					img="/resources/images/list.png" />
 				<idm:button action="#{resourceTypeController.testConnection}" id="testConnectionButton"
-					buttonType="positive" value="Test connection" img="/resources/images/connect.png" />
+					value="Test connection" img="/resources/images/connect.png" />
 				<idm:button action="#{resourceTypeController.importFromResource}" id="ImportFromResourceButton"
-					buttonType="positive" value="Import from resource" img="/resources/images/cog.png" />
+					value="Import from resource" img="/resources/images/cog.png" />
 				<idm:button action="#{resourceTypeController.getImportStatus}" id="ImportStatusButton"
-					buttonType="positive" value="Import status" img="/resources/images/cog.png" />
+					value="Import status" img="/resources/images/cog.png" />
 			</div>
 		</ice:form>
 	</ui:define>
