@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.util.test;
+package com.evolveum.midpoint.common.test;
 
 import com.evolveum.midpoint.common.Utils;
 
