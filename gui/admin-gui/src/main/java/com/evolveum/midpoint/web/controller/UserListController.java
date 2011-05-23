@@ -58,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 public class UserListController implements Serializable {
 
 	public static final String PAGE_NAVIGATION_LIST = "/account/index?faces-redirect=true";
-	public static final String PAGE_NAVIGATION_DETAILS = "/account/detailUser?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_DETAILS = "/account/userDetails?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_DELETE = "/account/deleteUser?faces-redirect=true";
 	private static final long serialVersionUID = -6520469747022260260L;
 	private static final Trace TRACE = TraceManager.getTrace(UserListController.class);

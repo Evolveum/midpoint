@@ -45,12 +45,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  * @author lazyman
  */
-@Controller("create")
+@Controller("userCreate")
 @Scope("session")
-public class CreateController implements Serializable {
+public class UserCreateController implements Serializable {
 
 	private static final long serialVersionUID = -405498021481348879L;
-	private static final Trace TRACE = TraceManager.getTrace(CreateController.class);
+	private static final Trace TRACE = TraceManager.getTrace(UserCreateController.class);
 
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog objectTypeCatalog;
@@ -58,7 +58,7 @@ public class CreateController implements Serializable {
 	private transient UserListController userListController;
 	private GuiUserDto user; // TODO: change to better bean
 
-	public CreateController() {
+	public UserCreateController() {
 		reinit();
 	}
 
