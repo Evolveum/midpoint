@@ -20,9 +20,10 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.util;
+package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;

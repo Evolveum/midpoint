@@ -23,11 +23,11 @@
 package com.evolveum.midpoint.web.controller;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.schema.ResourceAttributeDefinition;
 import com.evolveum.midpoint.provisioning.schema.util.SchemaParserException;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Utils;
 import com.evolveum.midpoint.web.bean.AccountFormBean;
 import com.evolveum.midpoint.web.component.form.AttributeType;
 import com.evolveum.midpoint.web.component.form.FormAttribute;

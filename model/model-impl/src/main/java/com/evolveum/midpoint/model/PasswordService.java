@@ -23,6 +23,7 @@
 package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.util.ShadowUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
@@ -45,7 +46,6 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.QueryUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;

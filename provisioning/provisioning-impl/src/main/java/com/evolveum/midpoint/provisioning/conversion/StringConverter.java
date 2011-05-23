@@ -22,8 +22,8 @@
 
 package com.evolveum.midpoint.provisioning.conversion;
 
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.provisioning.util.ShadowUtil;
-import com.evolveum.midpoint.util.Utils;
 import java.util.Arrays;
 import java.util.Collection;
 import javax.xml.namespace.QName;

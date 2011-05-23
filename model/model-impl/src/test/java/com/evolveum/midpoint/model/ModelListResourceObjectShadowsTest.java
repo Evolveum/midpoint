@@ -23,11 +23,11 @@
 package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.test.util.ResourceObjectShadowTypeComparator;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
-import com.evolveum.midpoint.util.Utils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;

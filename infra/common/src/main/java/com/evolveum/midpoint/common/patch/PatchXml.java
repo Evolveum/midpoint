@@ -22,10 +22,10 @@
 
 package com.evolveum.midpoint.common.patch;
 
+import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.XPathUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;

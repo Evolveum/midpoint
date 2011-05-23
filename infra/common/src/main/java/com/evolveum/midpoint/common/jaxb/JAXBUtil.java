@@ -23,8 +23,8 @@
 package com.evolveum.midpoint.common.jaxb;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;

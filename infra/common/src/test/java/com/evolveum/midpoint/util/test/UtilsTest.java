@@ -22,7 +22,8 @@
 
 package com.evolveum.midpoint.util.test;
 
-import com.evolveum.midpoint.util.Utils;
+import com.evolveum.midpoint.common.Utils;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

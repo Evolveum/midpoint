@@ -35,8 +35,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.util.Utils;
 import com.evolveum.midpoint.web.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.dto.GuiTestResultDto;
 import com.evolveum.midpoint.web.model.AccountShadowDto;

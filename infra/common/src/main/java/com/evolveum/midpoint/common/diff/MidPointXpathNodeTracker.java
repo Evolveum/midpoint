@@ -22,7 +22,7 @@
 
 package com.evolveum.midpoint.common.diff;
 
-import com.evolveum.midpoint.util.Utils;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.util.constants.MidPointConstants;
 import java.util.ArrayList;
 import java.util.HashMap;

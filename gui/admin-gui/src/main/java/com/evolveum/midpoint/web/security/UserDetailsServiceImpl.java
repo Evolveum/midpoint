@@ -27,6 +27,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
@@ -37,7 +38,6 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.model.RepositoryException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;

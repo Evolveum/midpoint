@@ -20,10 +20,12 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.util;
+package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.util.MapXPathVariableResolver;
+import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.xml.schema.ExpressionHolder;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathType;

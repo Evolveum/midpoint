@@ -22,12 +22,12 @@
 
 package com.evolveum.midpoint.common.diff;
 
+import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.ObjectTypeUtil;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.Utils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;

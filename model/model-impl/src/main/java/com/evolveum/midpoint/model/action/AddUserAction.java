@@ -24,9 +24,9 @@ package com.evolveum.midpoint.model.action;
 
 import com.evolveum.midpoint.model.*;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;

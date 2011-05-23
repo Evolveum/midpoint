@@ -22,7 +22,7 @@
 
 package com.evolveum.midpoint.web.test;
 
-import com.evolveum.midpoint.util.Utils;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.web.model.AccountShadowDto;
 import com.evolveum.midpoint.web.model.PagingDto;
 import com.evolveum.midpoint.web.model.PropertyAvailableValues;

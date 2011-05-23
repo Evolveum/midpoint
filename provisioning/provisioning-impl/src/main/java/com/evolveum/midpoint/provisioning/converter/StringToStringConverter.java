@@ -22,7 +22,8 @@
 
 package com.evolveum.midpoint.provisioning.converter;
 
-import com.evolveum.midpoint.util.Utils;
+import com.evolveum.midpoint.common.Utils;
+
 import org.springframework.core.convert.converter.Converter;
 
 /**

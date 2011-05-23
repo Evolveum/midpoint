@@ -23,6 +23,10 @@
 package com.evolveum.midpoint.model.xpath;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.ObjectTypeUtil;
+import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
@@ -33,10 +37,6 @@ import com.evolveum.midpoint.provisioning.schema.ResourceObjectDefinition;
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
 import com.evolveum.midpoint.provisioning.schema.util.DOMToSchemaParser;
 import com.evolveum.midpoint.util.Variable;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.XPathUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;

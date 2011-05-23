@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.util;
+package com.evolveum.midpoint.common;
 
 //TODO: fix imports - to remove warning during build
 import com.evolveum.midpoint.common.diff.MidPointDifferenceListener;

@@ -23,8 +23,8 @@
 package com.evolveum.midpoint.model.filter;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.util.DebugUtil;
 import org.w3c.dom.Node;
 
 /**

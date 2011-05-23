@@ -22,10 +22,10 @@
 
 package com.evolveum.midpoint.repo.test;
 
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.model.SimpleDomainObject;
 import com.evolveum.midpoint.repo.*;
 import com.evolveum.midpoint.repo.spring.GenericDao;
-import com.evolveum.midpoint.util.Utils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;

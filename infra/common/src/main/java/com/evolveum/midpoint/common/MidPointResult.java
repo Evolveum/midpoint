@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.util;
+package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import java.util.UUID;

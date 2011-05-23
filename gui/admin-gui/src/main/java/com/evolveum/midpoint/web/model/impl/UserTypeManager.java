@@ -38,10 +38,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.util.Utils;
 import com.evolveum.midpoint.web.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.AccountShadowDto;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;

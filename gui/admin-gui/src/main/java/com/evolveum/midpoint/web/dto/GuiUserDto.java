@@ -27,8 +27,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;

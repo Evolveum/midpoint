@@ -30,6 +30,9 @@ import org.opends.server.types.SearchScope;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+
+import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import javax.xml.bind.JAXBException;
@@ -39,8 +42,6 @@ import javax.xml.bind.JAXBContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.midpoint.test.repository.BaseXDatabaseFactory;
 import com.evolveum.midpoint.test.util.SampleObjects;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import javax.xml.bind.JAXBElement;
 import static org.mockito.Mockito.*;

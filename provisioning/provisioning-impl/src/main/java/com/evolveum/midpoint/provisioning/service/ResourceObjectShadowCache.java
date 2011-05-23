@@ -22,12 +22,12 @@
 
 package com.evolveum.midpoint.provisioning.service;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.provisioning.objects.ResourceAttribute;
 import com.evolveum.midpoint.provisioning.objects.ResourceObject;
 import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
 import com.evolveum.midpoint.provisioning.util.ShadowUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.QueryUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
