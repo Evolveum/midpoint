@@ -215,6 +215,27 @@ public class UserListController implements Serializable {
 		}
 	}
 
+	public void selectPerformed(ValueChangeEvent evt) {
+		if (evt.getPhaseId() != PhaseId.INVOKE_APPLICATION) {
+			evt.setPhaseId(PhaseId.INVOKE_APPLICATION);
+			evt.queue();
+		} else {
+			boolean selected = ((Boolean) evt.getNewValue()).booleanValue();
+			if (!selected) {
+				selectAll = false;
+			} else {
+				boolean selectedAll = true;
+				for (GuiUserDto item : userList.getUsers()) {
+					if (!item.isSelected()) {
+						selectedAll = false;
+						break;
+					}
+				}
+				this.selectAll = selectedAll;
+			}
+		}
+	}
+
 	public void sortItem(ActionEvent e) {
 		userList.sort();
 	}

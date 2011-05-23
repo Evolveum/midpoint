@@ -23,7 +23,8 @@
 						<ice:selectBooleanCheckbox id="selectAllCheckbox" value="#{resourceList.selectAll}"
 							valueChangeListener="#{resourceList.selectAllPerformed}" immediate="true" partialSubmit="true" />
 					</f:facet>
-					<ice:selectBooleanCheckbox id="selectCheckbox" value="#{item.selected}" />
+					<ice:selectBooleanCheckbox id="selectCheckbox" value="#{item.selected}" partialSubmit="true"
+						immediate="true" valueChangeListener="#{resourceList.selectPerformed}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
@@ -77,7 +78,8 @@
 			<div class="button-bar">
 				<idm:button value="Disable" img="/resources/images/drive_burn.png" id="disableResource" immediate="true" />
 
-				<idm:button id="deleteResource" buttonType="negative" value="Delete" img="/resources/images/drive_delete.png" />
+				<idm:button id="deleteResource" buttonType="negative" value="Delete"
+					img="/resources/images/drive_delete.png" />
 			</div>
 		</ice:form>
 	</ui:define>

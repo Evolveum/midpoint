@@ -114,9 +114,23 @@ public class ResourceListController implements Serializable {
 
 	// TODO: if check is unchecked remove selectAll flag
 	public void selectPerformed(ValueChangeEvent evt) {
-		boolean selected = ((Boolean) evt.getNewValue()).booleanValue();
-		if (!selected) {
-			selectAll = false;
+		if (evt.getPhaseId() != PhaseId.INVOKE_APPLICATION) {
+			evt.setPhaseId(PhaseId.INVOKE_APPLICATION);
+			evt.queue();
+		} else {
+			boolean selected = ((Boolean) evt.getNewValue()).booleanValue();
+			if (!selected) {
+				selectAll = false;
+			} else {
+				boolean selectedAll = true;
+				for (ResourceListItem item : getResourceList()) {
+					if (!item.isSelected()) {
+						selectedAll = false;
+						break;
+					}
+				}
+				this.selectAll = selectedAll;
+			}
 		}
 	}
 
@@ -134,19 +148,22 @@ public class ResourceListController implements Serializable {
 			return;
 		}
 
+		ConnectionStatus status = ConnectionStatus.SUCCESS;
+		ResourceListItem resource = null;
+		for (ResourceListItem item : getResourceList()) {
+			if (item.getOid().equals(resourceOid)) {
+				resource = item;
+				break;
+			}
+		}
+		if (resource == null) {
+			FacesUtils.addErrorMessage("Resource with oid '" + resourceOid + "' not found.");
+			return;
+		}
 		try {
 			ResourceTestResultType result = model.testResource(resourceOid);
+
 			// TODO: update connection status on resource list item
-			ResourceListItem resource = null;
-			for (ResourceListItem item : getResourceList()) {
-				if (item.getOid().equals(resourceOid)) {
-					resource = item;
-					break;
-				}
-			}
-			if (resource != null) {
-				resource.setStatus(ConnectionStatus.SUCCESS);
-			}
 		} catch (FaultMessage ex) {
 			String resourceName = resourceOid;
 			for (ResourceListItem item : getResourceList()) {
@@ -158,6 +175,8 @@ public class ResourceListController implements Serializable {
 			FacesUtils.addErrorMessage("Couldn't test conection on resource '" + resourceName + "'.", ex);
 			TRACE.trace("Couldn't test connection on resource '" + resourceName + "'", ex);
 		}
+
+		resource.setStatus(status);
 	}
 
 	public String updateController() {

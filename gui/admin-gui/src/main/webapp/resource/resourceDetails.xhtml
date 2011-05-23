@@ -12,9 +12,28 @@
 	</ui:define>
 
 	<ui:define name="content">
+		<ice:form>
 		Resource details
 		
 		
 		- add link straight to debug pages to this resource
+		- test connection details
+		
+		<div class="button-bar">
+				<idm:button action="#{resourceList.updateController}"
+					value="#{lang.messages['Back']}" img="/resources/images/door_in.png" />
+				<idm:button value="Disable" img="/resources/images/drive_burn.png" id="disableResource" immediate="true" />
+				<idm:button id="deleteResource" buttonType="negative" value="Delete"
+					img="/resources/images/drive_delete.png" />
+				<idm:button action="#{resourceTypeController.listAccounts}" id="listAccountsButton" buttonType="positive"
+					value="List accounts" img="/resources/images/list.png" />
+				<idm:button action="#{resourceTypeController.testConnection}" id="testConnectionButton"
+					buttonType="positive" value="Test connection" img="/resources/images/connect.png" />
+				<idm:button action="#{resourceTypeController.importFromResource}" id="ImportFromResourceButton"
+					buttonType="positive" value="Import from resource" img="/resources/images/cog.png" />
+				<idm:button action="#{resourceTypeController.getImportStatus}" id="ImportStatusButton"
+					buttonType="positive" value="Import status" img="/resources/images/cog.png" />
+			</div>
+		</ice:form>
 	</ui:define>
 </ui:composition>
