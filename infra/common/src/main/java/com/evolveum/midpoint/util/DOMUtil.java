@@ -23,8 +23,8 @@
 package com.evolveum.midpoint.util;
 
 //TODO: fix imports - to remove warning during build
-import com.evolveum.midpoint.util.diff.OidQualifier;
-import com.evolveum.midpoint.util.diff.MidPointDifferenceListener;
+import com.evolveum.midpoint.common.diff.MidPointDifferenceListener;
+import com.evolveum.midpoint.common.diff.OidQualifier;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
 import java.io.IOException;

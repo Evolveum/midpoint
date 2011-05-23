@@ -23,10 +23,10 @@
 package com.evolveum.midpoint.model.action;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
+import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.SynchronizationException;
-import com.evolveum.midpoint.util.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.util.diff.DiffException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;

@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.util.diff;
+package com.evolveum.midpoint.common.diff;
 
 import com.evolveum.midpoint.logging.TraceManager;
 import java.util.LinkedList;

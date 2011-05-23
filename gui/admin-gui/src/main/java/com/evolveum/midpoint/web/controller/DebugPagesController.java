@@ -23,10 +23,10 @@
 package com.evolveum.midpoint.web.controller;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.Utils;
-import com.evolveum.midpoint.util.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.web.model.AccountShadowDto;
 import com.evolveum.midpoint.web.model.GenericObjectDto;
 import com.evolveum.midpoint.web.model.ObjectDto;
