@@ -39,4 +39,12 @@ public class ResourceDetailsController implements Serializable {
 	private static final long serialVersionUID = 8325385127604325634L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceDetailsController.class);
 	private ResourceListItem resource;
+
+	public ResourceListItem getResource() {
+		return resource;
+	}
+
+	public void setResource(ResourceListItem resource) {
+		this.resource = resource;
+	}
 }
