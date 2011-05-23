@@ -14,22 +14,26 @@
 	<ui:define name="content">
 		<ice:form>
 			<ice:panelGrid columns="2" style="width: 100%;">
-				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
-					<f:facet name="header">
-						<h3>Resource</h3>
-					</f:facet>
-					<ice:outputLabel value="Oid" />
-					<ice:outputText value="#{resourceDetails.resource.oid}" />
+				<ice:panelGroup>
+					<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
+						<f:facet name="header">
+							<h3>Resource</h3>
+						</f:facet>
+						<ice:outputLabel value="Oid" />
+						<ice:outputText value="#{resourceDetails.resource.oid}" />
 
-					<ice:outputLabel value="Name" />
-					<ice:outputText value="#{resourceDetails.resource.name}" />
+						<ice:outputLabel value="Name" />
+						<ice:outputText value="#{resourceDetails.resource.name}" />
 
-					<ice:outputLabel value="Type" />
-					<ice:outputText value="#{resourceDetails.resource.type}" />
+						<ice:outputLabel value="Type" />
+						<ice:outputText value="#{resourceDetails.resource.type}" />
 
-					<ice:outputLabel value="Version" />
-					<ice:outputText value="#{resourceDetails.resource.version}" />
-				</ice:panelGrid>
+						<ice:outputLabel value="Version" />
+						<ice:outputText value="#{resourceDetails.resource.version}" />
+					</ice:panelGrid>
+					<ice:commandLink style="margin-top: 40px; display: block; text-decoration: underline;"
+						value="See debug pages" />
+				</ice:panelGroup>
 
 				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
 					<f:facet name="header">
@@ -69,18 +73,17 @@
 			<div>***Here goes table with data types of resource***</div>
 			<div>***Unused buttons will be removed later***</div>
 
-			<ice:commandLink value="See debug pages" />
-
 			<div class="button-bar">
 				<idm:button action="#{resourceList.updateController}" value="#{lang.messages['Back']}"
 					img="/resources/images/door_in.png" />
+				<idm:button action="#{resourceDetails.testConnection}" id="testConnectionButton" value="Test connection"
+					img="/resources/images/connect.png" />
+
 				<idm:button value="Disable" img="/resources/images/drive_burn.png" id="disableResource" immediate="true" />
 				<idm:button id="deleteResource" buttonType="negative" value="Delete"
 					img="/resources/images/drive_delete.png" />
 				<idm:button action="#{resourceTypeController.listAccounts}" id="listAccountsButton" value="List accounts"
 					img="/resources/images/list.png" />
-				<idm:button action="#{resourceTypeController.testConnection}" id="testConnectionButton"
-					value="Test connection" img="/resources/images/connect.png" />
 				<idm:button action="#{resourceTypeController.importFromResource}" id="ImportFromResourceButton"
 					value="Import from resource" img="/resources/images/cog.png" />
 				<idm:button action="#{resourceTypeController.getImportStatus}" id="ImportStatusButton"

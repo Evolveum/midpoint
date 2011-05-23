@@ -43,14 +43,11 @@ public class ResourceState implements Serializable {
 	private String extraName;
 
 	public ResourceStatus getOverall() {
+		overall = updateOverallStatus();
 		if (overall == null) {
 			return ResourceStatus.NOT_TESTED;
 		}
 		return overall;
-	}
-
-	public void setOverall(ResourceStatus overall) {
-		this.overall = overall;
 	}
 
 	public ResourceStatus getConfValidation() {
@@ -128,5 +125,34 @@ public class ResourceState implements Serializable {
 
 	public void setExtraName(String extraName) {
 		this.extraName = extraName;
+	}
+
+	private ResourceStatus updateOverallStatus() {
+		ResourceStatus overall = ResourceStatus.NOT_TESTED;
+		overall = getOverallBasedOnPartialStatus(overall, getConConnection());
+		overall = getOverallBasedOnPartialStatus(overall, getConfValidation());
+		overall = getOverallBasedOnPartialStatus(overall, getConInitialization());
+		overall = getOverallBasedOnPartialStatus(overall, getConSanity());
+		overall = getOverallBasedOnPartialStatus(overall, getConSchema());
+		overall = getOverallBasedOnPartialStatus(overall, getExtra());
+
+		return overall;
+	}
+
+	private ResourceStatus getOverallBasedOnPartialStatus(ResourceStatus overall, ResourceStatus partial) {
+		switch (overall) {
+			case NOT_TESTED:
+			case SUCCESS:
+				overall = partial;
+				break;
+			case WARNING:
+				if (!ResourceStatus.NOT_TESTED.equals(partial) && !ResourceStatus.SUCCESS.equals(partial)) {
+					overall = partial;
+				}
+				break;
+			case ERROR:
+		}
+
+		return overall;
 	}
 }

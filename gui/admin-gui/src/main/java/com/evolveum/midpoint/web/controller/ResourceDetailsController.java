@@ -22,12 +22,15 @@ package com.evolveum.midpoint.web.controller;
 
 import java.io.Serializable;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
+import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 @Controller("resourceDetails")
 @Scope("session")
@@ -36,6 +39,8 @@ public class ResourceDetailsController implements Serializable {
 	public static final String PAGE_NAVIGATION_LIST = "/resource/index?faces-redirect=true";
 	private static final long serialVersionUID = 8325385127604325634L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceDetailsController.class);
+	@Autowired(required = true)
+	private transient ModelPortType model;
 	private ResourceListItem resource;
 
 	public ResourceListItem getResource() {
@@ -44,5 +49,15 @@ public class ResourceDetailsController implements Serializable {
 
 	public void setResource(ResourceListItem resource) {
 		this.resource = resource;
+	}
+
+	public String testConnection() {
+		if (resource == null) {
+			FacesUtils.addErrorMessage("Resource not found.");
+			return null;
+		}
+
+		ResourceListController.testConnection(resource, model);
+		return null;
 	}
 }

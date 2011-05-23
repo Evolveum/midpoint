@@ -26,6 +26,7 @@ import java.util.List;
 import javax.faces.event.ActionEvent;
 import javax.faces.event.PhaseId;
 import javax.faces.event.ValueChangeEvent;
+import javax.xml.bind.JAXBElement;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,22 +40,26 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
+import com.evolveum.midpoint.web.bean.ResourceState;
 import com.evolveum.midpoint.web.bean.ResourceStatus;
 import com.evolveum.midpoint.web.bean.SortedResourceList;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType.ExtraTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * 
  * @author lazyman
- *
+ * 
  */
 @Controller("resourceList")
 @Scope("session")
@@ -119,7 +124,6 @@ public class ResourceListController implements Serializable {
 		resources.sort();
 	}
 
-	// TODO: if check is unchecked remove selectAll flag
 	public void selectPerformed(ValueChangeEvent evt) {
 		if (evt.getPhaseId() != PhaseId.INVOKE_APPLICATION) {
 			evt.setPhaseId(PhaseId.INVOKE_APPLICATION);
@@ -153,7 +157,12 @@ public class ResourceListController implements Serializable {
 			FacesUtils.addErrorMessage("Resource for oid '" + resourceOid + "' not found.");
 			return null;
 		}
-		
+
+		if (resourceDetails == null) {
+			FacesUtils.addErrorMessage("Resource details controller was not autowired.");
+			return null;
+		}
+
 		resourceDetails.setResource(resourceItem);
 
 		return PAGE_NAVIGATION_DETAILS;
@@ -176,28 +185,63 @@ public class ResourceListController implements Serializable {
 			return;
 		}
 
-		ResourceStatus status = ResourceStatus.SUCCESS;
 		ResourceListItem resource = getResourceItem(resourceOid);
 		if (resource == null) {
 			FacesUtils.addErrorMessage("Resource with oid '" + resourceOid + "' not found.");
 			return;
 		}
+
+		testConnection(resource, model);
+	}
+
+	static void testConnection(ResourceListItem resourceItem, ModelPortType model) {
 		try {
-			ResourceTestResultType result = model.testResource(resourceOid);
-			// TODO: update connection status on resource list item
+			ResourceTestResultType result = model.testResource(resourceItem.getOid());
+			updateResourceState(resourceItem.getState(), result);
 		} catch (FaultMessage ex) {
-			String resourceName = resourceOid;
-			for (ResourceListItem item : getResourceList()) {
-				if (item.getOid().equals(resourceOid)) {
-					resourceName = item.getName();
-					break;
-				}
-			}
-			FacesUtils.addErrorMessage("Couldn't test conection on resource '" + resourceName + "'.", ex);
-			TRACE.trace("Couldn't test connection on resource '" + resourceName + "'", ex);
+			String message = "Couldn't test conection on resource '" + resourceItem.getName() + "'.";
+			FacesUtils.addErrorMessage(message, ex);
+			TRACE.trace(message, ex);
+		}
+	}
+
+	private static void updateResourceState(ResourceState state, ResourceTestResultType result) {
+		ExtraTest extra = result.getExtraTest();
+		if (extra != null) {
+			state.setExtraName(extra.getName());
+			state.setExtra(getStatusFromResultType(extra.getResult()));
+		}
+		state.setConConnection(getStatusFromResultType(result.getConnectorConnection()));
+		state.setConfValidation(getStatusFromResultType(result.getConfigurationValidation()));
+		state.setConInitialization(getStatusFromResultType(result.getConnectorInitialization()));
+		state.setConSanity(getStatusFromResultType(result.getConnectorSanity()));
+		state.setConSchema(getStatusFromResultType(result.getConnectorSchema()));
+	}
+
+	private static ResourceStatus getStatusFromResultType(TestResultType result) {
+		if (result == null) {
+			return ResourceStatus.NOT_TESTED;
 		}
 
-		resource.getState().setOverall(status);
+		ResourceStatus status = result.isSuccess() ? ResourceStatus.SUCCESS : ResourceStatus.ERROR;
+
+		List<JAXBElement<DiagnosticsMessageType>> messages = result.getErrorOrWarning();
+		for (JAXBElement<DiagnosticsMessageType> element : messages) {
+			DiagnosticsMessageType message = element.getValue();
+			StringBuilder builder = new StringBuilder();
+			builder.append(message.getMessage());
+			if (!StringUtils.isEmpty(message.getDetails())) {
+				builder.append(" Reason: ");
+				builder.append(message.getDetails());
+			}
+			if (message.getTimestamp() != null) {
+				builder.append(" Time: ");
+				builder.append(message.getTimestamp().toGregorianCalendar().getTime());
+			}
+			FacesUtils.addErrorMessage(builder.toString());
+		}
+
+		return status;
 	}
 
 	public String updateController() {
