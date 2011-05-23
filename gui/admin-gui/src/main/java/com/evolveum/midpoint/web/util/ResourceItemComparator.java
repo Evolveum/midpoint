@@ -26,7 +26,7 @@ import java.util.Comparator;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.web.bean.ResourceListItem;
-import com.evolveum.midpoint.web.bean.ResourceListItem.ConnectionStatus;
+import com.evolveum.midpoint.web.bean.ResourceStatus;
 
 /**
  * 
@@ -57,25 +57,25 @@ public class ResourceItemComparator extends SortableListComparator<ResourceListI
 		} else if (getAttribute().equals("version")) {
 			value = String.CASE_INSENSITIVE_ORDER.compare(item1.getVersion(), item2.getVersion());
 		} else if (getAttribute().equals("status")) {
-			value = STATUS_ORDER.compare(item1.getStatus(), item2.getStatus());
+			value = STATUS_ORDER.compare(item1.getOverallStatus(), item2.getOverallStatus());
 		}
 
 		return isAscending() ? value : -value;
 	}
 
-	private static class ConnectionStatusComparator implements Comparator<ConnectionStatus>, Serializable {
+	private static class ConnectionStatusComparator implements Comparator<ResourceStatus>, Serializable {
 
 		private static final long serialVersionUID = 5728544984564936762L;
 
 		@Override
-		public int compare(ConnectionStatus status1, ConnectionStatus status2) {
+		public int compare(ResourceStatus status1, ResourceStatus status2) {
 			int intStatus1 = getStatusPosition(status1);
 			int intStatus2 = getStatusPosition(status2);
 			return (intStatus2 - intStatus1);
 		}
 
-		private int getStatusPosition(ConnectionStatus status) {
-			ConnectionStatus[] statuses = ConnectionStatus.values();
+		private int getStatusPosition(ResourceStatus status) {
+			ResourceStatus[] statuses = ResourceStatus.values();
 			for (int i = 0; i < statuses.length; i++) {
 				if (statuses[i].equals(status)) {
 					return i;

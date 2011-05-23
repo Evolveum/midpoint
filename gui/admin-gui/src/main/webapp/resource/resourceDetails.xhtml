@@ -5,7 +5,7 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">Details for resource ''</ui:define>
+	<ui:define name="title">Details for resource '#{resourceDetails.resource.name}'</ui:define>
 
 	<ui:define name="menu">
 		<ui:include src="./menu.xhtml" />
@@ -19,42 +19,49 @@
 						<h3>Resource</h3>
 					</f:facet>
 					<ice:outputLabel value="Oid" />
-					<ice:outputText value="aaa" />
+					<ice:outputText value="#{resourceDetails.resource.oid}" />
 
 					<ice:outputLabel value="Name" />
-					<ice:outputText value="aaa" />
+					<ice:outputText value="#{resourceDetails.resource.name}" />
 
 					<ice:outputLabel value="Type" />
-					<ice:outputText value="aaa" />
+					<ice:outputText value="#{resourceDetails.resource.type}" />
 
 					<ice:outputLabel value="Version" />
-					<ice:outputText value="aaa" />
+					<ice:outputText value="#{resourceDetails.resource.version}" />
 				</ice:panelGrid>
 
 				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
 					<f:facet name="header">
 						<h3>Connector Details</h3>
 					</f:facet>
+					<ice:outputLabel value="Overall status" />
+					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.overallStatus.icon}"
+						alt="#{resourceDetails.resource.overallStatus.title}" />
+
 					<ice:outputLabel value="Configuration validation" />
-					<ice:graphicImage value="/resources/images/accept.png" />
+					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.state.confValidation.icon}"
+						alt="#{resourceDetails.resource.state.confValidation.title}" />
 
 					<ice:outputLabel value="Connection initialization" />
-					<ice:graphicImage value="/resources/images/accept.png" />
+					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.state.conInitialization.icon}"
+						alt="#{resourceDetails.resource.state.conInitialization.title}" />
 
-					<ice:outputLabel value="Connection connection" />
-					<ice:graphicImage value="/resources/images/accept.png" />
+					<ice:outputLabel value="Connector connection" />
+					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.state.conConnection.icon}"
+						alt="#{resourceDetails.resource.state.conConnection.title}" />
 
-					<ice:outputLabel value="Connection sanity" />
-					<ice:graphicImage value="/resources/images/accept.png" />
+					<ice:outputLabel value="Connector sanity" />
+					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.state.conSanity.icon}"
+						alt="#{resourceDetails.resource.state.conSanity.title}" />
 
-					<ice:outputLabel value="Connection schema" />
-					<ice:graphicImage value="/resources/images/accept.png" />
+					<ice:outputLabel value="Connector schema" />
+					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.state.conSchema.icon}"
+						alt="#{resourceDetails.resource.state.conSchema.title}" />
 
-					<ice:outputLabel value="Extra test name" />
-					<ice:graphicImage value="/resources/images/accept.png" />
-
-					<ice:outputLabel value="Extra test result" />
-					<ice:graphicImage value="/resources/images/accept.png" />
+					<ice:outputLabel value="Extra test (#{resourceDetails.resource.state.extraName})" />
+					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.state.extra.icon}"
+						alt="#{resourceDetails.resource.state.extra.title}" />
 				</ice:panelGrid>
 			</ice:panelGrid>
 

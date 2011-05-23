@@ -39,8 +39,8 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
+import com.evolveum.midpoint.web.bean.ResourceStatus;
 import com.evolveum.midpoint.web.bean.SortedResourceList;
-import com.evolveum.midpoint.web.bean.ResourceListItem.ConnectionStatus;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -51,6 +51,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
+/**
+ * 
+ * @author lazyman
+ *
+ */
 @Controller("resourceList")
 @Scope("session")
 public class ResourceListController implements Serializable {
@@ -59,8 +64,10 @@ public class ResourceListController implements Serializable {
 	public static final String PAGE_NAVIGATION_DETAILS = "/resource/resourceDetails?faces-redirect=true";
 	private static final long serialVersionUID = 8325385127604325633L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceListController.class);
-	@Autowired
+	@Autowired(required = true)
 	private transient ModelPortType model;
+	@Autowired(required = true)
+	private transient ResourceDetailsController resourceDetails;
 	private static final String PARAM_RESOURCE_OID = "resourceOid";
 	private static final String DEFAULT_SORT_COLUMN = "name";
 	private boolean selectAll = false;
@@ -136,9 +143,30 @@ public class ResourceListController implements Serializable {
 
 	public String showResourceDetails() {
 		String resourceOid = FacesUtils.getRequestParameter(PARAM_RESOURCE_OID);
-		// TODO: check details
+		if (StringUtils.isEmpty(resourceOid)) {
+			FacesUtils.addErrorMessage("Resource oid not defined in request.");
+			return null;
+		}
+
+		ResourceListItem resourceItem = getResourceItem(resourceOid);
+		if (StringUtils.isEmpty(resourceOid)) {
+			FacesUtils.addErrorMessage("Resource for oid '" + resourceOid + "' not found.");
+			return null;
+		}
+		
+		resourceDetails.setResource(resourceItem);
 
 		return PAGE_NAVIGATION_DETAILS;
+	}
+
+	private ResourceListItem getResourceItem(String resourceOid) {
+		for (ResourceListItem item : getResourceList()) {
+			if (item.getOid().equals(resourceOid)) {
+				return item;
+			}
+		}
+
+		return null;
 	}
 
 	public void testConnection(ActionEvent evt) {
@@ -148,21 +176,14 @@ public class ResourceListController implements Serializable {
 			return;
 		}
 
-		ConnectionStatus status = ConnectionStatus.SUCCESS;
-		ResourceListItem resource = null;
-		for (ResourceListItem item : getResourceList()) {
-			if (item.getOid().equals(resourceOid)) {
-				resource = item;
-				break;
-			}
-		}
+		ResourceStatus status = ResourceStatus.SUCCESS;
+		ResourceListItem resource = getResourceItem(resourceOid);
 		if (resource == null) {
 			FacesUtils.addErrorMessage("Resource with oid '" + resourceOid + "' not found.");
 			return;
 		}
 		try {
 			ResourceTestResultType result = model.testResource(resourceOid);
-
 			// TODO: update connection status on resource list item
 		} catch (FaultMessage ex) {
 			String resourceName = resourceOid;
@@ -176,7 +197,7 @@ public class ResourceListController implements Serializable {
 			TRACE.trace("Couldn't test connection on resource '" + resourceName + "'", ex);
 		}
 
-		resource.setStatus(status);
+		resource.getState().setOverall(status);
 	}
 
 	public String updateController() {

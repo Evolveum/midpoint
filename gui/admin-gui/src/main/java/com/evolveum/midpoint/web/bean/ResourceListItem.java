@@ -33,26 +33,12 @@ public class ResourceListItem implements Serializable {
 
 	private static final long serialVersionUID = 8252381052377454312L;
 
-	public enum ConnectionStatus {
-		SUCCESS("accept.png"), WARNING("error.png"), ERROR("exclamation.png"), NOT_TESTED("help.png");
-
-		private String icon;
-
-		private ConnectionStatus(String icon) {
-			this.icon = icon;
-		}
-
-		public String getIcon() {
-			return icon;
-		}
-	}
-
 	private boolean selected = false;
 	private String oid;
 	private String name;
 	private String type;
 	private String version;
-	private ConnectionStatus status = ConnectionStatus.NOT_TESTED;
+	private ResourceState state;
 	private int progress;
 
 	public ResourceListItem(String oid, String name, String type, String version) {
@@ -89,12 +75,11 @@ public class ResourceListItem implements Serializable {
 		return version;
 	}
 
-	public ConnectionStatus getStatus() {
-		return status;
-	}
-
-	public void setStatus(ConnectionStatus status) {
-		this.status = status;
+	public ResourceStatus getOverallStatus() {
+		if (state == null) {
+			return ResourceStatus.NOT_TESTED;
+		}
+		return state.getOverall();
 	}
 
 	public int getProgress() {
@@ -103,5 +88,12 @@ public class ResourceListItem implements Serializable {
 
 	public void setProgress(int progress) {
 		this.progress = progress;
+	}
+
+	public ResourceState getState() {
+		if (state == null) {
+			state = new ResourceState();
+		}
+		return state;
 	}
 }

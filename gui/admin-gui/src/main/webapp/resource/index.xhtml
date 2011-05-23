@@ -64,7 +64,7 @@
 					<ice:commandLink actionListener="#{resourceList.testConnection}" immediate="true"
 						style="display: block; width: 100%; text-align: center;">
 						<f:param name="resourceOid" value="#{item.oid}" />
-						<ice:graphicImage value="/resources/images/#{item.status.icon}" />
+						<ice:graphicImage value="/resources/images/#{item.overallStatus.icon}" alt="#{item.overallStatus.title}" />
 					</ice:commandLink>
 				</ice:column>
 				<ice:column>

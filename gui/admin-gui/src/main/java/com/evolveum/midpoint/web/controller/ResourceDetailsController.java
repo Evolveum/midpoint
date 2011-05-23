@@ -22,14 +22,12 @@ package com.evolveum.midpoint.web.controller;
 
 import java.io.Serializable;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 @Controller("resourceDetails")
 @Scope("session")
