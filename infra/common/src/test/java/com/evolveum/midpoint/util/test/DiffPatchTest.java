@@ -22,10 +22,10 @@
 
 package com.evolveum.midpoint.util.test;
 
+import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.util.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.util.diff.OidQualifier;
 import com.evolveum.midpoint.util.diff.MidPointDifferenceListener;
-import com.evolveum.midpoint.util.patch.PatchXml;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import java.io.File;
 import java.io.FileInputStream;

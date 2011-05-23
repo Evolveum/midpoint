@@ -22,7 +22,7 @@
 
 package com.evolveum.midpoint.util;
 
-import com.evolveum.midpoint.util.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;

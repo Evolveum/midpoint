@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.util.patch;
+package com.evolveum.midpoint.common.patch;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 

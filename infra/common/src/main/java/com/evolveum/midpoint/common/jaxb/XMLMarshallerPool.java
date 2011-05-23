@@ -20,10 +20,10 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.util.jaxb;
+package com.evolveum.midpoint.common.jaxb;
 
 import com.evolveum.midpoint.xml.util.XMLMarshaller;
-import com.evolveum.midpoint.util.jaxb.impl.XMLMarshallerImpl;
+import com.evolveum.midpoint.common.jaxb.impl.XMLMarshallerImpl;
 import com.evolveum.midpoint.xml.common.ObjectPool;
 import java.util.logging.Level;
 import java.util.logging.Logger;

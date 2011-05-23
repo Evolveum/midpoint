@@ -23,11 +23,11 @@
 package com.evolveum.midpoint.web.controller;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.util.XPathUtil;
-import com.evolveum.midpoint.util.jaxb.JAXBUtil;
 import com.evolveum.midpoint.web.bean.XPathVariableBean;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;

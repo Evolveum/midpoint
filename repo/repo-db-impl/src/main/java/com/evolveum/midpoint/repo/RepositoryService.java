@@ -23,7 +23,9 @@
 package com.evolveum.midpoint.repo;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.util.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.patch.PatchXml;
+import com.evolveum.midpoint.common.patch.PatchingListener;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.Account;
 import com.evolveum.midpoint.model.GenericEntityBase;
@@ -43,8 +45,6 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.Utils;
 import com.evolveum.midpoint.util.constants.MidPointConstants;
 import com.evolveum.midpoint.util.patch.PatchException;
-import com.evolveum.midpoint.util.patch.PatchXml;
-import com.evolveum.midpoint.util.patch.PatchingListener;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;

@@ -23,6 +23,7 @@
 package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.action.Action;
 import com.evolveum.midpoint.model.action.ActionManager;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
-import com.evolveum.midpoint.util.patch.PatchXml;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType.Reaction;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
