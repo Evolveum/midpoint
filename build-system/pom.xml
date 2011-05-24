@@ -17,7 +17,7 @@
 <!-- your own identifying information: -->
 <!-- -->
 <!-- Portions Copyrighted 2011 [name of copyright owner] -->
-<!-- Portions Copyrighted 2010 Forgerock -->
+<!-- Portions Copyrighted 2011 Peter Prochazka -->
 <!-- -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -65,7 +65,7 @@
     <licenses>
         <license>
             <name>CDDL v1.0</name>
-            <url>http://www.sun.com/cddl/cddl.html</url>
+            <url>http://www.opensource.org/licenses/CDDL-1.0</url>
             <distribution>repo</distribution>
             <comments>A business-friendly OSS license</comments>
         </license>
@@ -152,6 +152,23 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-jar-plugin</artifactId>
+                        <configuration>
+                            <archive>
+                                <manifestEntries>
+                                    <Version-Number>${project.version}</Version-Number>
+                                    <SCM-Revision>${buildNumber}</SCM-Revision>
+                                    <Organization>Evolveum</Organization>
+                                    <Organization-URL>http://www.evolveum.com</Organization-URL>
+                                    <Bugtracking-System>http://jira.evolveum.com</Bugtracking-System>
+                                    <License>CDDL v1.0</License>
+                                    <License-URL>http://www.sun.com/cddl/cddl.html</License-URL>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
                         <configuration>
                             <archive>
                                 <manifestEntries>
