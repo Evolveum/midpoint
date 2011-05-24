@@ -265,6 +265,21 @@ body {
 	font: 13px Arial, Helvetica, sans-serif;
 }
 
+p {
+	text-indent: 30px;
+	text-align: justify;
+	margin-bottom: 10px;
+}
+
+#about {
+	margin-bottom: 30px;
+}
+
+#about ul {
+	list-style: disc;
+	margin-left: 30px;
+}
+
 .buttons {
 	display: inline-block;
 	padding: 4px 0;

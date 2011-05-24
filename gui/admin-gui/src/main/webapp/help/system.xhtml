@@ -12,20 +12,20 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<h3>midPoint Software and other Versions</h3>
-			These values where collected during the build phase and might be different on the machine where midPoint is
-			deployed!
-			<h3>midPoint Version <ice:outputLabel value="#{lang.messages['midPointVersion']}" /></h3>
-			This build is based on the Revision
+		<h3>midPoint</h3>
+		<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
+			<ice:outputLabel value="Version" />
+			<ice:outputLabel value="#{lang.messages['midPointVersion']}" />
+
+			<ice:outputLabel value="Svn revision" />
 			<ice:outputLabel value="#{lang.messages['midPointRevision']}" />
-			of the midPoint subversion repository at: <br />
-		<a href="https://svn.evolveum.com/midpoint">https://svn.evolveum.com/midpoint</a>
+
+			<ice:outputLabel value="Svn link" />
+			<ice:outputLink value="https://svn.evolveum.com/midpoint/trunk" style="text-decoration: underline;">midPoint SVN</ice:outputLink>
+		</ice:panelGrid>
 
 		<h3>Basic system properties</h3>
-		<ice:panelGrid columns="2" cellpadding="3" cellspacing="3">
-			<ice:outputText value="Property" style="font-weight: bold;" />
-			<ice:outputText value="Value" style="font-weight: bold;" />
-
+		<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
 			<c:forEach var="item" items="#{about.items}">
 				<ice:outputText value="#{item.property}" />
 				<ice:outputText value="#{item.value}" />

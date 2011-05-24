@@ -12,58 +12,50 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<p>midPoint is an open standards based Identity Management, Provisioning and Compliance solution.
-			Experience shows that the most important features of an identity management product are: high flexibility
-			in Business Process handling and compliance with open standards and interfaces. A highly flexible user
-			interface combined with a very robust workflow engine make midPoint ready for any Identity Management
-			project.</p>
-		<p>The provisioning services of midPoint are open for several identity related components: Role
-			Management, Identity Management, Compliance Calibration and others. With this kind of open architecture,
-			the provisioning service can be used for all user-related data like user objects, as well as user group
-			memberships or role memberships.</p>
-		<h3>Key Features</h3>
-		<ul>
-			<li>User account livecycle handling</li>
-			<li>Role handling, both in openIDM and external systems and role based access control (RBAC)</li>
-			<li>Flexible resource connection architecture</li>
-			<li>Organizational hierarchy of all objects</li>
-			<li>Access control through through flexible capabilities</li>
-			<li>Object relation handling</li>
-			<li>Extended Auditing</li>
-			<li>Password Synchronization</li>
-			<li>Reconciliation</li>
-			<li>Pickup of external changes in near Real Time</li>
-		</ul>
+		<div id="about">
+			<p>midPoint is an open standards based Identity Management, Provisioning and Compliance solution.
+				Experience shows that the most important features of an identity management product are: high flexibility
+				in Business Process handling and compliance with open standards and interfaces. A highly flexible user
+				interface combined with a very robust workflow engine make midPoint ready for any Identity Management
+				project.</p>
 
-		<h3>Currently Supported External Resources</h3>
-		<ul>
-			<li>Active Directory (ADSI and LDAP)</li>
-			<li>Database Table</li>
-			<li>DB2</li>
-			<li>Domino</li>
-			<li>Exchange</li>
-			<li>Google Apps</li>
-			<li>LDAP</li>
-			<li>MySQLUser</li>
-			<li>Oracle</li>
-			<li>RSA Authentication Manager</li>
-			<li>SAP</li>
-			<li>SPML</li>
-			<li>Web TimeSheet</li>
-			<li>Web Services (Generic or Skeleton)</li>
-		</ul>
-		<h3>Supported Standards</h3>
-		<ul>
-			<li>
-			<ice:outputLink value="http://static.springsource.org/spring-security/site/">Spring Security</ice:outputLink>
-			</li>
-		</ul>
-		<hr />
-		<ice:form style="margin-bottom: 40px;">
-			<idm:button action="/help/system.xhtml" value="#{lang.messages['System']}"
-				img="/resources/images/computer.png" />
-		</ice:form>
-		
+			<p>The provisioning services of midPoint are open for several identity related components: Role
+				Management, Identity Management, Compliance Calibration and others. With this kind of open architecture,
+				the provisioning service can be used for all user-related data like user objects, as well as user group
+				memberships or role memberships.</p>
+
+			<h3>Key Features</h3>
+			<ul>
+				<li>User account livecycle handling</li>
+				<li>Role handling, both in openIDM and external systems and role based access control (RBAC)</li>
+				<li>Flexible resource connection architecture</li>
+				<li>Organizational hierarchy of all objects</li>
+				<li>Access control through through flexible capabilities</li>
+				<li>Object relation handling</li>
+				<li>Extended Auditing</li>
+				<li>Password Synchronization</li>
+				<li>Reconciliation</li>
+				<li>Pickup of external changes in near Real Time</li>
+			</ul>
+
+			<h3>Currently Supported External Resources</h3>
+			<ul>
+				<li>Active Directory (ADSI and LDAP)</li>
+				<li>Database Table</li>
+				<li>DB2</li>
+				<li>Domino</li>
+				<li>Exchange</li>
+				<li>Google Apps</li>
+				<li>LDAP</li>
+				<li>MySQLUser</li>
+				<li>Oracle</li>
+				<li>RSA Authentication Manager</li>
+				<li>SAP</li>
+				<li>SPML</li>
+				<li>Web TimeSheet</li>
+				<li>Web Services (Generic or Skeleton)</li>
+			</ul>
+		</div>
 		<ice:outputLink value="http://wiki.evolveum.com">#{lang.messages['page.help.index.help']}</ice:outputLink>
 	</ui:define>
 </ui:composition>
