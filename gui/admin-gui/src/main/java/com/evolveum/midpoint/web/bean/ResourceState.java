@@ -143,7 +143,9 @@ public class ResourceState implements Serializable {
 		switch (overall) {
 			case NOT_TESTED:
 			case SUCCESS:
-				overall = partial;
+				if (!ResourceStatus.NOT_TESTED.equals(partial)) {
+					overall = partial;
+				}
 				break;
 			case WARNING:
 				if (!ResourceStatus.NOT_TESTED.equals(partial) && !ResourceStatus.SUCCESS.equals(partial)) {
