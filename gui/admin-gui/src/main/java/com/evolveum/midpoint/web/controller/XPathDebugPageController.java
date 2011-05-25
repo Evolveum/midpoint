@@ -61,16 +61,16 @@ import org.w3c.dom.NodeList;
  * 
  * @author Katuska
  */
-@Controller("xpathDebugPageController")
+@Controller("debugXPath")
 @Scope("session")
 public class XPathDebugPageController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_XPATH_DEBUG = "/config/xpathDebug?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_XPATH_DEBUG = "/config/debugXPath?faces-redirect=true";
 	private static final long serialVersionUID = 7295076387943631763L;
 	private static final Trace TRACE = TraceManager.getTrace(XPathDebugPageController.class);
 	@Autowired
 	private transient ModelPortType port;
-	private String expresion;
+	private String expression;
 	private List<SelectItem> type;
 	private XPathVariableBean variable1;
 	private XPathVariableBean variable2;
@@ -103,7 +103,7 @@ public class XPathDebugPageController implements Serializable {
 
 		Document doc = DOMUtil.getDocument();
 		Element element = doc.createElement("valueExpresion");
-		element.setTextContent(expresion);
+		element.setTextContent(expression);
 		ExpressionHolder expressionHolder = new ExpressionHolder(element);
 		TRACE.debug("expression holder: {}", expressionHolder.getFullExpressionAsString());
 		TRACE.debug("getExpressionHolder end");
@@ -164,7 +164,7 @@ public class XPathDebugPageController implements Serializable {
 
 	public String evaluate() throws JAXBException {
 		TRACE.debug("evaluate start");
-		if (expresion == null || expresion.isEmpty()) {
+		if (expression == null || expression.isEmpty()) {
 			FacesUtils.addErrorMessage("Expresion cannot be null.");
 			return null;
 		}
@@ -226,12 +226,12 @@ public class XPathDebugPageController implements Serializable {
 		this.type = type;
 	}
 
-	public String getExpresion() {
-		return expresion;
+	public String getExpression() {
+		return expression;
 	}
 
-	public void setExpresion(String expresion) {
-		this.expresion = expresion;
+	public void setExpression(String expression) {
+		this.expression = expression;
 	}
 
 	public XPathVariableBean getVariable1() {

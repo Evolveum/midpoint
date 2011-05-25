@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">#{lang.messages['page.config.debugXPath.title']}</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<ice:form>
+			<ice:outputText value="#{lang.messages['page.config.debugXPath.expression']}" />
+
+			<ice:inputTextarea style="width: 965px;" rows="5" value="#{debugXPath.expression}" />
+
+			<ice:panelGroup>
+				<ice:outputText value="#{lang.messages['page.config.debugXPath.returnType']}" />
+				<ice:selectOneMenu id="selectReturnType" style="width: auto;" partialSubmit="true" immediate="true"
+					value="#{debugXPath.returnType}">
+					<f:selectItems id="selectedReturnType" value="#{debugXPath.returnTypeList}" />
+				</ice:selectOneMenu>
+			</ice:panelGroup>
+
+			<ice:panelGrid columns="3">
+				<ice:outputText value="#{lang.messages['page.config.debugXPath.variableName']}" />
+				<ice:outputText value="#{lang.messages['page.config.debugXPath.type']}" />
+				<ice:outputText value="#{lang.messages['page.config.debugXPath.value']}" />
+
+				<ice:inputText value="#{debugXPath.variable1.variableName}" />
+				<ice:selectOneMenu id="selectType" style="width: auto;" partialSubmit="true" immediate="true"
+					value="#{debugXPath.variable1.type}">
+					<f:selectItems id="selectedType" value="#{debugXPath.type}" />
+				</ice:selectOneMenu>
+				<ice:inputText value="#{debugXPath.variable1.value}" />
+
+				<ice:inputText value="#{debugXPath.variable2.variableName}" />
+				<ice:selectOneMenu id="selectType2" style="width: auto;" partialSubmit="true" immediate="true"
+					value="#{debugXPath.variable2.type}">
+					<f:selectItems id="selectedType2" value="#{debugXPath.type}" />
+				</ice:selectOneMenu>
+				<ice:inputText value="#{debugXPath.variable2.value}" />
+
+				<ice:inputText value="#{debugXPath.variable3.variableName}" />
+				<ice:selectOneMenu id="selectType3" style="width: auto;" partialSubmit="true"
+					value="#{debugXPath.variable3.type}">
+					<f:selectItems id="selectedType3" value="#{debugXPath.type}" />
+				</ice:selectOneMenu>
+				<ice:inputText value="#{debugXPath.variable3.value}" />
+
+				<ice:inputText value="#{debugXPath.variable4.variableName}" />
+				<ice:selectOneMenu id="selectType4" style="width: auto;" partialSubmit="true"
+					value="#{debugXPath.variable4.type}">
+					<f:selectItems id="selectedType4" value="#{debugXPath.type}" />
+				</ice:selectOneMenu>
+				<ice:inputText value="#{debugXPath.variable4.value}" />
+			</ice:panelGrid>
+
+			<div class="button-bar">
+				<idm:button action="#{debugXPath.evaluate}" id="evaluateButton"
+					value="#{lang.messages['page.config.debugXPath.button.evaluate']}" img="/resources/images/calculator.png" />
+			</div>
+		</ice:form>
+		<ice:panelGroup>
+			<ice:outputText value="#{debugXPath.result}" />
+		</ice:panelGroup>
+	</ui:define>
+</ui:composition>
+

@@ -42,31 +42,6 @@
 					rendered="#{not import.showFileUpload}" />
 			</div>
 		</ice:form>
-
-		<ui:remove>
-			<ice:form id="fileEntry">
-				<ice:selectBooleanCheckbox value="#{import.overwrite}" />
-				<ice:outputText value="Overwrite existing object" />
-				<ice:panelGrid columns="2">
-					<ace:fileEntry id="fileEntryComp" styleClass="button regular fileUpload"
-						fileEntryListener="#{import.uploadFile}" />
-					<ice:panelGroup>
-						<div class="buttons">
-							<h:commandButton value="Upload" styleClass="button regular fileUpload" />
-						</div>
-					</ice:panelGroup>
-				</ice:panelGrid>
-				<ice:panelGrid columns="1">
-					<ice:panelGroup>
-						<idm:button value="#{msg['button.add']}" action="#{import.addObjects}" img="/resources/images/add.png" />
-					</ice:panelGroup>
-					<ice:panelGroup style="border: 1px solid black;">
-						<idm:inputSyntaxTextArea immediate="true" partialSubmit="true" id="code" cols="20" rows="10" width="943"
-							value="#{import.xmlObject}" />
-					</ice:panelGroup>
-				</ice:panelGrid>
-			</ice:form>
-		</ui:remove>
 	</ui:define>
 </ui:composition>
 

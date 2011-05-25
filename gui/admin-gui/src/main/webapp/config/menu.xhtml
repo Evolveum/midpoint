@@ -5,14 +5,19 @@
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
 	<idm:leftMenuContainer name="#{lang.messages['page.template.top.configuration']}">
-		<idm:leftMenuItem id="leftBasic" name="#{lang.messages['page.config.index.title']}" action="/config/index?faces-redirect=true" />
+		<idm:leftMenuItem id="leftBasic" name="#{lang.messages['page.config.index.title']}"
+			action="/config/index?faces-redirect=true" />
 		<idm:leftMenuItem id="leftLogging" name="Logging" action="/config/trace?faces-redirect=true" />
 	</idm:leftMenuContainer>
-	<idm:leftMenuContainer name="Debug">
-		<idm:leftMenuItem id="leftDebug" name="Debug Pages" action="#{debugPagesController.fillSelectItemList}" />
-		<idm:leftMenuItem id="leftXpath" name="XPath Debug" action="#{xpathDebugPageController.prepareXpathDebugPage}" />				
+	<idm:leftMenuContainer name="#{lang.messages['page.config.menu.debugging']}">			
+		<idm:leftMenuItem id="leftViewEdit" name="View/Edit Object" action="#{debugPagesController.fillSelectItemList}" />
+		<idm:leftMenuItem id="leftList" name="#{lang.messages['page.config.debugList.title']}" action="/config/debugList?faces-redirect=true" />
+		
+		<idm:leftMenuItem id="leftXpath" name="#{lang.messages['page.config.debugXPath.title']}"
+			action="#{debugXPath.prepareXpathDebugPage}" />
 	</idm:leftMenuContainer>
 	<idm:leftMenuContainer name="#{lang.messages['page.config.menu.import']}">
-		<idm:leftMenuItem id="leftImport" name="#{lang.messages['page.config.import.title']}" action="/config/import?faces-redirect=true" />		
+		<idm:leftMenuItem id="leftImport" name="#{lang.messages['page.config.import.title']}"
+			action="/config/import?faces-redirect=true" />
 	</idm:leftMenuContainer>
 </ui:composition>
