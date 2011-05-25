@@ -51,7 +51,7 @@ public class XMLResourceBundle extends ResourceBundle {
     }
 
     public Enumeration<String> getKeys() {
-        Vector vString = new Vector();
+        Vector<String> vString = new Vector<String>();
         Enumeration en = props.keys();
         while (en.hasMoreElements()) {
             vString.add((String) en.nextElement());

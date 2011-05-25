@@ -38,7 +38,7 @@ import org.apache.commons.lang.Validate;
  */
 public class MidPointXPathFunctionResolver implements XPathFunctionResolver {
 
-    Map<QName, XPathFunction>  map = new HashMap();
+    Map<QName, XPathFunction>  map = new HashMap<QName, XPathFunction>();
 
     @Override
     public XPathFunction resolveFunction(QName fname, int arity) {

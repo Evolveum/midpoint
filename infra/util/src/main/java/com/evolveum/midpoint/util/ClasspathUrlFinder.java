@@ -152,7 +152,7 @@ public class ClasspathUrlFinder {
          if (!fp.exists()) throw new RuntimeException("File in java.class.path does not exist: " + fp);
          try
          {
-            list.add(fp.toURL());
+            list.add(fp.toURI().toURL());
          }
          catch (MalformedURLException e)
          {
@@ -198,7 +198,7 @@ public class ClasspathUrlFinder {
          if (!fp.exists()) throw new RuntimeException("File in java.class.path does not exists: " + fp);
          try
          {
-            list.add(fp.toURL());
+            list.add(fp.toURI().toURL());
          }
          catch (MalformedURLException e)
          {

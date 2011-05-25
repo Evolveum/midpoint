@@ -24,8 +24,6 @@ package com.evolveum.midpoint.util.test;
 
 import com.evolveum.midpoint.util.QNameUtil;
 import javax.xml.namespace.QName;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
