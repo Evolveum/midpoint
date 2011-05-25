@@ -68,7 +68,7 @@ public class XPathDebugPageControllerTest {
     private void setAttributes() {
         xpathController.prepareXpathDebugPage();
         String expression = "declare namespace x='http://xxx.com/'; concat($x:foo,' ',$x:bar)";
-        xpathController.setExpresion(expression);
+        xpathController.setExpression(expression);
 
         XPathVariableBean variable1 = new XPathVariableBean();
         variable1.setType("String");
