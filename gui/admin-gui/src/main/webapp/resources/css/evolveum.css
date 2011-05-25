@@ -93,6 +93,19 @@ a {
 	text-decoration: none;
 }
 
+/* #breadcrumbs {
+	background: none repeat scroll 0 0 #546048;
+	width: 100%;
+	font: 13px Georgia, "Times New Roman", serif;
+	font-weight: bold; color : #fff;
+	padding: 5px 0;
+	color: #fff;
+}
+
+#breadcrumbs div.container span.arrow {
+	color: #2E3324;
+} */
+
 #footer {
 	background: none repeat scroll 0 0 #363930;
 	padding: 10px 0;
@@ -285,7 +298,7 @@ p {
 	padding: 4px 0;
 }
 
-.buttons a,.buttons button { /* display: block;
+.buttons a, .buttons button, .buttons input.button { /* display: block;
 	float: left; */
 	margin: 0 7px 0 0;
 	background-color: #d5d5d5;
@@ -302,18 +315,18 @@ p {
 	padding: 5px 10px 4px 7px; /* 5px 10px 6px 7px */
 }
 
-.buttons button {
+.buttons button, .buttons input.button {
 	width: auto;
 	overflow: visible;
 	padding: 4px 10px 3px 7px; /* IE6 */
 }
 
-.buttons button[type] {
+.buttons button[type], .buttons input.button {
 	padding: 5px 10px 5px 7px; /* Firefox */
 	line-height: 17px; /* Safari */
 }
 
-*:first-child+html button[type] {
+*:first-child+html button[type], .buttons input.button {
 	padding: 4px 10px 3px 7px; /* IE7 */
 }
 
@@ -339,55 +352,64 @@ button:hover,.buttons a:hover {
 }
 
 /* POSITIVE */
-button.positive,.buttons a.positive {
+button.positive,.buttons a.positive, .buttons input.positive {
 	color: #529214;
 }
 
-.buttons a.positive:hover,button.positive:hover {
+.buttons a.positive:hover,button.positive:hover, .buttons input.positive:hover {
 	background-color: #E6EFC2;
 	border: 1px solid #C6D880;
 	color: #529214;
 }
 
-.buttons a.positive:active {
+.buttons a.positive:active, .buttons input:active {
 	background-color: #529214;
 	border: 1px solid #529214;
 	color: #fff;
 }
 
 /* NEGATIVE */
-.buttons a.negative,button.negative {
+.buttons a.negative,button.negative, .buttons input.negative {
 	color: #d12f19;
 }
 
-.buttons a.negative:hover,button.negative:hover {
+.buttons a.negative:hover,button.negative:hover, .buttons input.negative:hover {
 	background: #fbe3e4;
 	border: 1px solid #fbc2c4;
 	color: #d12f19;
 }
 
-.buttons a.negative:active {
+.buttons a.negative:active, .buttons input.negative:active {
 	background-color: #d12f19;
 	border: 1px solid #d12f19;
 	color: #fff;
 }
 
 /* REGULAR */
-.buttons a.regular,button.regular {
+.buttons a.regular,button.regular, .buttons input.regular {
 	color: #336699;
 }
 
-.buttons a.regular:hover,button.regular:hover {
+.buttons a.regular:hover,button.regular:hover, .buttons input.regular:hover {
 	background-color: #dff4ff;
 	border: 1px solid #c2e1ef;
 	color: #336699;
 }
 
-.buttons a.regular:active {
+.buttons a.regular:active, .buttons input.regular:active {
 	background-color: #6299c5;
 	border: 1px solid #6299c5;
 	color: #fff;
 }
+
+/* hack for file upload start */
+.buttons input.fileUpload {
+	background: url("../images/add.png") no-repeat scroll 6px 4px #D5D5D5;
+	background-color: #d5d5d5;
+	padding: 4px 10px 4px 24px;
+}
+
+/* hack for file upload end */
 
 .button-bar {
 	padding-top: 20px;

@@ -5,33 +5,68 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component" xmlns:ace="http://www.icefaces.org/icefaces/components"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{lang.messages['user.type.debug.pages.title']}</ui:define>
+	<ui:define name="title">#{lang.messages['page.config.import.title']}</ui:define>
 
 	<ui:define name="menu">
 		<ui:include src="./menu.xhtml" />
 	</ui:define>
 
 	<ui:define name="content">
-		<ice:form id="fileEntry">
-			<ice:selectBooleanCheckbox value="#{import.overwrite}" />
-			<ice:outputText value="Overwrite existing object" />
-			<ice:panelGrid columns="2">
-				<ace:fileEntry id="fileEntryComp" fileEntryListener="#{import.uploadFile}" />
-				<ice:panelGroup>
-					<h:commandButton value="Upload" />
-				</ice:panelGroup>
-			</ice:panelGrid>
-			<ice:panelGrid columns="1">
-				<ice:panelGroup>
-					<idm:button value="#{msg['button.add']}" action="#{import.addObjects}" img="/resources/images/add.png" />
+		<ice:form>
+			<ice:panelGroup style="border: 1px solid black;">
+				<idm:inputSyntaxTextArea id="code" cols="20" rows="10" width="943" height="300" value="#{import.editor}" />
+			</ice:panelGroup>
+			<ul style="margin-top: 10px;">
+				<li><ice:selectBooleanCheckbox value="#{import.overwrite}">
+					#{lang.messages['page.config.import.overwrite']}
+					</ice:selectBooleanCheckbox></li>
+				<li><ice:selectBooleanCheckbox value="#{import.showFileUpload}" immediate="true" partialSubmit="true">
+					#{lang.messages['page.config.import.uploadFile']}</ice:selectBooleanCheckbox></li>
+			</ul>
+			<ace:fileEntry style="margin-top: 5px;" id="fileEntryComp" fileEntryListener="#{import.uploadFile}"
+				rendered="#{import.showFileUpload}" />
 
+			<div class="button-bar">
+				<ice:panelGroup rendered="#{import.showFileUpload}">
+					<div class="buttons">
+						<h:commandButton value="#{lang.messages['page.config.import.button.uploadObject']}"
+							styleClass="button positive fileUpload" />
+					</div>
 				</ice:panelGroup>
-				<ice:panelGroup style="border: 1px solid black;">
-					<idm:inputSyntaxTextArea immediate="true" partialSubmit="true" id="code" cols="20" rows="10" width="943"
-						value="#{import.xmlObject}" />
-				</ice:panelGroup>
-			</ice:panelGrid>
+
+				<ui:remove>
+					<!-- this button can't be used because ace:fileEntry needs standard full submit, not ajax submit -->
+				</ui:remove>
+				<idm:button value="#{lang.messages['page.config.import.button.uploadObject']}" buttonType="positive"
+					action="#{import.upload}" img="/resources/images/add.png" partialSubmit="false" immediate="false"
+					rendered="#{not import.showFileUpload}" />
+			</div>
 		</ice:form>
+
+		<ui:remove>
+			<ice:form id="fileEntry">
+				<ice:selectBooleanCheckbox value="#{import.overwrite}" />
+				<ice:outputText value="Overwrite existing object" />
+				<ice:panelGrid columns="2">
+					<ace:fileEntry id="fileEntryComp" styleClass="button regular fileUpload"
+						fileEntryListener="#{import.uploadFile}" />
+					<ice:panelGroup>
+						<div class="buttons">
+							<h:commandButton value="Upload" styleClass="button regular fileUpload" />
+						</div>
+					</ice:panelGroup>
+				</ice:panelGrid>
+				<ice:panelGrid columns="1">
+					<ice:panelGroup>
+						<idm:button value="#{msg['button.add']}" action="#{import.addObjects}" img="/resources/images/add.png" />
+					</ice:panelGroup>
+					<ice:panelGroup style="border: 1px solid black;">
+						<idm:inputSyntaxTextArea immediate="true" partialSubmit="true" id="code" cols="20" rows="10" width="943"
+							value="#{import.xmlObject}" />
+					</ice:panelGroup>
+				</ice:panelGrid>
+			</ice:form>
+		</ui:remove>
 	</ui:define>
 </ui:composition>
 

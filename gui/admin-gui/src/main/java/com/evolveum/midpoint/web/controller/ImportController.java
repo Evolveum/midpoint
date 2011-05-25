@@ -59,27 +59,101 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 @Scope("session")
 public class ImportController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_IMPORT = "/config/import?faces-redirect=true";
 	private static final long serialVersionUID = -4206532259499809326L;
 	private static final Trace TRACE = TraceManager.getTrace(ImportController.class);
-	private int fileProgress;
-	private String xmlObject;
-	private boolean overwrite = false;
 	@Autowired(required = true)
 	private transient RepositoryPortType repositoryService;
+	private String editor;
+	private boolean showFileUpload = false;
+	private boolean overwrite = false;
 
-	public String setImportPage() {
-		xmlObject = "";
+	public String getEditor() {
+		return editor;
+	}
 
-		return PAGE_NAVIGATION_IMPORT;
+	public void setEditor(String editor) {
+		this.editor = editor;
+	}
+
+	public boolean isShowFileUpload() {
+		return showFileUpload;
+	}
+
+	public void setShowFileUpload(boolean showUploadFile) {
+		this.showFileUpload = showUploadFile;
+	}
+
+	public boolean isOverwrite() {
+		return overwrite;
+	}
+
+	public void setOverwrite(boolean overwrite) {
+		this.overwrite = overwrite;
+	}
+
+	public String upload() {
+		if (showFileUpload) {
+			return null;
+		}
+
+		if (StringUtils.isEmpty(editor)) {
+			FacesUtils.addErrorMessage("Editor is null.");
+			return null;
+		}
+
+		InputStream stream = null;
+		try {
+			stream = IOUtils.toInputStream(editor, "utf-8");
+			uploadStream(stream);
+		} catch (IOException ex) {
+			FacesUtils.addErrorMessage("Couldn't load object from xml, reason: " + ex.getMessage());
+		} finally {
+			if (stream != null) {
+				IOUtils.closeQuietly(stream);
+			}
+		}
+
+		clearController();
+		return null;
+	}
+
+	public void uploadFile(FileEntryEvent event) {
+		FileEntry fileEntry = (FileEntry) event.getSource();
+		FileEntryResults results = fileEntry.getResults();
+		for (FileEntryResults.FileInfo info : results.getFiles()) {
+			File file = info.getFile();
+			if (file == null || !file.exists() || !file.canRead()) {
+				FacesUtils.addErrorMessage("Can't read file '" + info.getFileName() + "'.");
+				return;
+			}
+
+			InputStream stream = null;
+			try {
+				stream = new BufferedInputStream(new FileInputStream(file));
+				uploadStream(stream);
+			} catch (IOException ex) {
+				FacesUtils.addErrorMessage("Couldn't load object from file '" + file.getName() + "'.", ex);
+				// TODO: logging
+			} finally {
+				if (stream != null) {
+					IOUtils.closeQuietly(stream);
+				}
+			}
+		}
+
+		clearController();
+	}
+
+	private void clearController() {
+		showFileUpload = false;
+		overwrite = false;
+		editor = null;
 	}
 
 	private void addObjectsToRepository(List<ObjectType> objects) {
 		if (objects == null) {
 			return;
 		}
-
-		setImportPage();
 
 		for (ObjectType object : objects) {
 			ObjectContainerType objectContainer = new ObjectContainerType();
@@ -102,11 +176,6 @@ public class ImportController implements Serializable {
 				}
 				repositoryService.addObject(objectContainer);
 				FacesUtils.addSuccessMessage("Added object: " + object.getName());
-			} catch (FaultMessage ex) {
-				String failureMesage = FacesUtils.translateKey("import.jaxb.failed");
-				FacesUtils.addErrorMessage(failureMesage + " " + FacesUtils.getMessageFromFault(ex));
-				FacesUtils.addErrorMessage("Failed to add object " + object.getName());
-				TRACE.error("Exception was: {}", ex, ex);
 			} catch (Exception ex) {
 				String failureMessage = FacesUtils.translateKey("import.jaxb.failed");
 				FacesUtils.addErrorMessage(failureMessage + ":" + ex.getMessage());
@@ -114,57 +183,10 @@ public class ImportController implements Serializable {
 				TRACE.error("Add object failed");
 				TRACE.error("Exception was: {}", ex, ex);
 			}
-
 		}
-		xmlObject = "";
 	}
 
-	public String addObjects() {
-		if (StringUtils.isEmpty(xmlObject)) {
-			String loginFailedMessage = FacesUtils.translateKey("import.null.failed");
-			FacesUtils.addErrorMessage(loginFailedMessage);
-			return "";
-		}
-
-		try {
-			InputStream stream = IOUtils.toInputStream(xmlObject, "utf-8");
-			uploadObjects(stream);
-			stream.close();
-		} catch (IOException ex) {
-			FacesUtils.addErrorMessage("Couldn't load object from xml, reason: " + ex.getMessage());
-		}
-
-		return PAGE_NAVIGATION_IMPORT;
-	}
-
-	public void uploadFile(FileEntryEvent event) {
-		TRACE.info("uploadFile start");
-		FileEntry fileEntry = (FileEntry) event.getSource();
-		FileEntryResults results = fileEntry.getResults();
-		for (FileEntryResults.FileInfo fi : results.getFiles()) {
-			TRACE.info("file name {}", fi.getFileName());
-
-			File file = fi.getFile();
-			if (file == null || !file.exists() || !file.canRead()) {
-				FacesUtils.addErrorMessage("Can't read file '" + fi.getFileName() + "'.");
-				return;
-			}
-
-			try {
-				InputStream stream = new BufferedInputStream(new FileInputStream(file));
-				uploadObjects(stream);
-				stream.close();
-			} catch (IOException ex) {
-				FacesUtils.addErrorMessage("Couldn't load object from file '" + file.getName()
-						+ "', reason: " + ex.getMessage());
-			}
-		}
-
-		TRACE.info("uploadFile end");
-
-	}
-
-	private void uploadObjects(InputStream input) {
+	private void uploadStream(InputStream input) {
 		final List<ObjectType> objects = new ArrayList<ObjectType>();
 		Validator validator = new Validator(new ObjectHandler() {
 
@@ -192,32 +214,8 @@ public class ImportController implements Serializable {
 				FacesUtils.addErrorMessage(builder.toString());
 			}
 			return;
-		} else {
-			addObjectsToRepository(objects);
 		}
-	}
 
-	public int getFileProgress() {
-		return fileProgress;
-	}
-
-	public void setFileProgress(int fileProgress) {
-		this.fileProgress = fileProgress;
-	}
-
-	public String getXmlObject() {
-		return xmlObject;
-	}
-
-	public void setXmlObject(String xmlObject) {
-		this.xmlObject = xmlObject;
-	}
-
-	public boolean isOverwrite() {
-		return overwrite;
-	}
-
-	public void setOverwrite(boolean overwrite) {
-		this.overwrite = overwrite;
+		addObjectsToRepository(objects);
 	}
 }

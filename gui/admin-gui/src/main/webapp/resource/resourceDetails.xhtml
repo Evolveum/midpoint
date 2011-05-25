@@ -68,33 +68,35 @@
 						alt="#{resourceDetails.resource.state.extra.title}" />
 				</ice:panelGrid>
 			</ice:panelGrid>
+
+			<h3>Object Types</h3>
+			<div>***Here goes table with data types of resource***</div>
+			<div>***Unused buttons will be removed later***</div>
+
 			<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
 				<f:facet name="header">
 					<h3>Import Status</h3>
 				</f:facet>
 
-				<ice:outputText value="Name: " />
-				<ice:outputText value="#{resourceTypeController.status.name}" />
-
-				<ice:outputText value="Running: " />
+				<ice:outputText value="Running" />
 				<ice:outputText value="#{resourceTypeController.status.running}" />
-
-				<ice:outputText value="Launch time: " />
+				
+				<ice:outputText value="Launch time" />
 				<ice:outputText value="#{resourceTypeController.status.launchTime}" />
 
-				<ice:outputText value="Finish time: " />
+				<ice:outputText value="Finish time" />
 				<ice:outputText value="#{resourceTypeController.status.finishTime}" />
 
-				<ice:outputText value="Progress: " />
-				<ice:outputText value="#{resourceTypeController.status.progress}" />
+				<ice:outputText value="Progress" />
+				<ice:outputText value="#{resourceTypeController.status.progress}" />				
 
-				<ice:outputText value="Last status: " />
+				<ice:outputText value="Last status" />
 				<ice:outputText value="#{resourceTypeController.status.lastStatus}" />
 
-				<ice:outputText value="Number of errors: " />
+				<ice:outputText value="Number of errors" />
 				<ice:outputText value="#{resourceTypeController.status.numberOfErrors}" />
 
-				<ice:outputText value="Last error: " />
+				<ice:outputText value="Last error" />
 				<ice:panelGroup />
 
 				<ice:outputText value="Message: " styleClass="importStatus" />
@@ -106,10 +108,6 @@
 				<ice:outputText value="Timestamp: " styleClass="importStatus" />
 				<ice:outputText value="#{resourceTypeController.status.lastError.timestamp}" />
 			</ice:panelGrid>
-
-			<h3>Object Types</h3>
-			<div>***Here goes table with data types of resource***</div>
-			<div>***Unused buttons will be removed later***</div>
 
 			<div class="button-bar">
 				<idm:button action="#{resourceList.updateController}" value="#{lang.messages['Back']}"

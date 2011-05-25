@@ -9,4 +9,8 @@
 		<idm:leftMenuItem id="leftResourceCreate" name="#{lang.messages['page.resource.create.title']}" action="/resource/index?faces-redirect=true" />		
 		<idm:leftMenuItem id="leftResourceConfig" name="Resources Configuration" action="#{resourceTypeController.listResources}" />
 	</idm:leftMenuContainer>
+	<idm:leftMenuContainer name="Import">
+		<idm:leftMenuItem id="leftImportObjects" name="Import Objects"/>
+		<idm:leftMenuItem id="leftListAccounts" name="List Accounts"/>
+	</idm:leftMenuContainer>
 </ui:composition>

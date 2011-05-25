@@ -6,16 +6,13 @@
 
 	<idm:leftMenuContainer name="#{lang.messages['page.template.top.configuration']}">
 		<idm:leftMenuItem id="leftBasic" name="#{lang.messages['page.config.index.title']}" action="/config/index?faces-redirect=true" />
-	</idm:leftMenuContainer>
-	<idm:leftMenuContainer name="Security">
-		<idm:leftMenuItem id="loginModule" name="Login Modules" />
+		<idm:leftMenuItem id="leftLogging" name="Logging" action="/config/trace?faces-redirect=true" />
 	</idm:leftMenuContainer>
 	<idm:leftMenuContainer name="Debug">
 		<idm:leftMenuItem id="leftDebug" name="Debug Pages" action="#{debugPagesController.fillSelectItemList}" />
-		<idm:leftMenuItem id="leftXpath" name="XPath Debug" action="#{xpathDebugPageController.prepareXpathDebugPage}" />		
-		<idm:leftMenuItem id="leftLogging" name="Logging" action="/config/trace?faces-redirect=true" />
+		<idm:leftMenuItem id="leftXpath" name="XPath Debug" action="#{xpathDebugPageController.prepareXpathDebugPage}" />				
 	</idm:leftMenuContainer>
-	<idm:leftMenuContainer name="Import And Export">
-		<idm:leftMenuItem id="leftImport" name="#{lang.messages['menu.import.page']}" action="#{import.setImportPage}" />		
+	<idm:leftMenuContainer name="#{lang.messages['page.config.menu.import']}">
+		<idm:leftMenuItem id="leftImport" name="#{lang.messages['page.config.import.title']}" action="/config/import?faces-redirect=true" />		
 	</idm:leftMenuContainer>
 </ui:composition>
