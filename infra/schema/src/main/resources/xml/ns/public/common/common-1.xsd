@@ -4609,6 +4609,11 @@
 				<xsd:documentation>Maximum number of characters in password </xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
+		<xsd:attribute name="checkAgainstDictionary" type="xsd:boolean" default="false">
+			<xsd:annotation>
+				<xsd:documentation>If true, password will be tested against dictionary</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="LimitationsType">
@@ -4623,7 +4628,8 @@
 		</xsd:sequence>
 		<xsd:attribute name="minOccurence" type="xsd:int" use="required" />
 		<xsd:attribute name="maxOccurence" type="xsd:int" use="required" />
-		<xsd:attribute name="maxSequence" type="xsd:int" use="required" />
+		<xsd:attribute name="maxSequence" type="xsd:int" default="0" />
+		<xsd:attribute name="canBeFirst" type="xsd:boolean" default="true" />
 	</xsd:complexType>
 
 	<xsd:complexType name="ValidCharClassesType">
