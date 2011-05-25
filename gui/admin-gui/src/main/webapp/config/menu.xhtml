@@ -10,7 +10,7 @@
 		<idm:leftMenuItem id="leftLogging" name="Logging" action="/config/trace?faces-redirect=true" />
 	</idm:leftMenuContainer>
 	<idm:leftMenuContainer name="#{lang.messages['page.config.menu.debugging']}">			
-		<idm:leftMenuItem id="leftViewEdit" name="View/Edit Object" action="#{debugPagesController.fillSelectItemList}" />
+		<idm:leftMenuItem id="leftViewEdit" name="#{lang.messages['page.config.debugView.title']}" action="#{debugPagesController.fillSelectItemList}" />
 		<idm:leftMenuItem id="leftList" name="#{lang.messages['page.config.debugList.title']}" action="/config/debugList?faces-redirect=true" />
 		
 		<idm:leftMenuItem id="leftXpath" name="#{lang.messages['page.config.debugXPath.title']}"

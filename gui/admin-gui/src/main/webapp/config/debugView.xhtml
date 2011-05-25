@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component" xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">#{lang.messages['page.config.debugView.title']}</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<ice:form>
+			<idm:inputSyntaxTextArea id="code" cols="20" rows="10" width="943" height="300" value="#{import.editor}" />
+			<div class="button-bar">
+				<idm:button action="/config/debug" value="#{lang.messages['page.account.create.button.cancel']}"
+					img="/resources/images/door_in.png" id="cancelCreateUser" immediate="true" />
+
+				<idm:button action="#{userCreate.create}" id="createUser" buttonType="positive"
+					value="#{lang.messages['page.account.create.button.create']}" img="/resources/images/user_add.png" />
+			</div>
+		</ice:form>
+		<ui:remove>
+			<ice:form>
+				<ice:panelPopup modal="true" autoCentre="true" visible="#{debugList.showPopup}">
+					<f:facet name="header">
+						<ice:outputText value="#{lang.messages['page.config.debugList.confirm.title']}" />
+					</f:facet>
+					<f:facet name="body">
+						<ice:outputText value="#{lang.messages['page.config.debugList.confirm']}" />
+						<div class="button-bar">
+							<ice:commandButton value="#{lang.messages['page.config.debugList.confirm.yes']}"
+								action="#{debugList.deleteObject}">
+								<f:param name="objectOid" value="#{debugList.oidToDelete}" />
+							</ice:commandButton>
+							<ice:commandButton value="#{lang.messages['page.config.debugList.confirm.no']}"
+								action="#{debugList.hideConfirmDelete}" />
+						</div>
+					</f:facet>
+				</ice:panelPopup>
+
+				<ice:selectOneMenu id="selectOneMenuList" styleClass="secondRow" value="#{debugList.objectType}"
+					immediate="true" partialSubmit="true">
+					<f:selectItems value="#{debugList.objectTypes}" />
+				</ice:selectOneMenu>
+				<idm:button style="margin-left: 10px;"
+					value="#{lang.messages['page.config.debugList.button.listObjects']}" action="#{debugList.list}"
+					img="/resources/images/table.png" immediate="true" />
+
+				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7" rendered="#{debugList.showTable}">
+					<ice:outputText value="#{lang.messages['page.config.debugList.objectName']}" />
+					<ice:outputText />
+
+					<c:forEach items="#{debugList.objects}" var="item">
+						<ice:commandLink value="#{item.name}" action="#{debugList.viewOrEdit}"
+							style="text-decoration: underline;">
+							<f:param name="objectOid" value="#{item.oid}" />
+						</ice:commandLink>
+
+						<idm:button value="#{lang.messages['page.config.debugList.button.delete']}"
+							action="#{debugList.showConfirmDelete}" img="/resources/images/delete.png" buttonType="negative">
+							<f:param name="objectOid" value="#{item.oid}" />
+						</idm:button>
+					</c:forEach>
+				</ice:panelGrid>
+
+				<ice:panelGroup styleClass="container-auto" style="text-align: center;" rendered="#{debugList.showTable}">
+					<idm:button img="/resources/images/resultset_first.png" value="#{lang.messages['page.paginator.first']}"
+						action="#{debugList.listFirst}" />
+					<idm:button img="/resources/images/resultset_previous.png"
+						value="#{lang.messages['page.paginator.previous']}" action="#{debugList.listPrevious}" />
+					<idm:button img="/resources/images/resultset_next.png" value="#{lang.messages['page.paginator.next']}"
+						action="#{debugList.listNext}" />
+					<idm:button img="/resources/images/resultset_last.png" value="#{lang.messages['page.paginator.last']}"
+						action="#{debugList.listLast}" />
+				</ice:panelGroup>
+			</ice:form>
+		</ui:remove>
+	</ui:define>
+</ui:composition>
+

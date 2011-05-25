@@ -21,7 +21,9 @@
 					<ice:outputText value="#{lang.messages['page.config.debugList.confirm']}" />
 					<div class="button-bar">
 						<ice:commandButton value="#{lang.messages['page.config.debugList.confirm.yes']}"
-							action="#{debugList.deleteObject}" />
+							action="#{debugList.deleteObject}">
+							<f:param name="objectOid" value="#{debugList.oidToDelete}" />
+						</ice:commandButton>
 						<ice:commandButton value="#{lang.messages['page.config.debugList.confirm.no']}"
 							action="#{debugList.hideConfirmDelete}" />
 					</div>
@@ -39,13 +41,14 @@
 				<ice:outputText value="#{lang.messages['page.config.debugList.objectName']}" />
 				<ice:outputText />
 
-				<c:forEach items="#{debugList.objects}" var="item" varStatus="status">
-					<ice:commandLink value="#{item.name}" action="#{debugList.viewOrEdit}" style="text-decoration: underline;">
+				<c:forEach items="#{debugList.objects}" var="item">
+					<ice:commandLink value="#{item.name}" action="#{debugList.viewOrEdit}"
+						style="text-decoration: underline;">
 						<f:param name="objectOid" value="#{item.oid}" />
 					</ice:commandLink>
 
-					<idm:button value="#{lang.messages['page.config.debugList.button.delete']}" action="#{debugList.showConfirmDelete}"
-						img="/resources/images/delete.png" buttonType="negative">
+					<idm:button value="#{lang.messages['page.config.debugList.button.delete']}" action="/config/debugList"
+						actionListener="#{debugList.showConfirmDelete}" img="/resources/images/delete.png" buttonType="negative">
 						<f:param name="objectOid" value="#{item.oid}" />
 					</idm:button>
 				</c:forEach>
@@ -63,46 +66,11 @@
 			</ice:panelGroup>
 		</ice:form>
 
-
-
 		<ui:remove>
-			<ice:form>
-				<ice:commandButton value="#{msg['debug.button.list']}" styleClass="firstRow"
-					action="#{debugPagesController.listObjects}" />
-				<ice:selectOneMenu id="selectOneMenuList" styleClass="secondRow"
-					value="#{debugPagesController.objectType}">
-					<f:selectItems value="#{debugPagesController.objectsList}" />
-				</ice:selectOneMenu>
-			</ice:form>
 			<ice:form>
 				<ice:commandButton value="#{msg['debug.button.get']}" styleClass="firstRow"
 					action="#{debugPagesController.getObject}" />
 				<ice:selectOneMenu id="selectOneMenuGet" styleClass="secondRow" value="#{debugPagesController.objectType}">
-					<f:selectItems value="#{debugPagesController.objectsList}" />
-				</ice:selectOneMenu>
-				<ice:outputText value="#{msg['debug.label.id.text']}" styleClass="thirdRow" />
-				<ice:inputText value="#{debugPagesController.id}" />
-			</ice:form>
-			<ice:form>
-				<ice:commandButton value="#{msg['debug.button.add']}" styleClass="firstRow"
-					action="#{debugPagesController.addAction}" />
-			</ice:form>
-			<ice:form>
-				<ice:panelPopup modal="true" autoCentre="true" visible="#{debugPagesController.showPopup}">
-					<f:facet name="header">
-						<ice:outputText value="Confirm delete" />
-					</f:facet>
-					<f:facet name="body">
-						<ice:outputText value="Do you really want to delete selected object?" />
-						<br />
-						<ice:commandButton value="Yes" action="#{debugPagesController.deleteAction}" />
-						<ice:commandButton value="No" action="#{debugPagesController.hidePopup}" />
-					</f:facet>
-				</ice:panelPopup>
-				<ice:commandButton value="#{msg['debug.button.delete']}" styleClass="firstRow"
-					action="#{debugPagesController.showPopup}" />
-				<ice:selectOneMenu id="selectOneMenuDelete" styleClass="secondRow"
-					value="#{debugPagesController.objectType}">
 					<f:selectItems value="#{debugPagesController.objectsList}" />
 				</ice:selectOneMenu>
 				<ice:outputText value="#{msg['debug.label.id.text']}" styleClass="thirdRow" />

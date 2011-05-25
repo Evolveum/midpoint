@@ -25,6 +25,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
 
 import org.apache.commons.lang.StringUtils;
@@ -75,6 +76,7 @@ public class DebugListController implements Serializable {
 	private int offset = 0;
 	private int rowsCount = 30;
 	private boolean showPopup = false;
+	private String oidToDelete;
 
 	public List<SelectItem> getObjectTypes() {
 		return objectTypes;
@@ -188,14 +190,13 @@ public class DebugListController implements Serializable {
 
 	public void deleteObject() {
 		showPopup = false;
-		String objectOid = FacesUtils.getRequestParameter(PARAM_OBJECT_OID);
-		if (StringUtils.isEmpty(objectOid)) {
+		if (StringUtils.isEmpty(oidToDelete)) {
 			FacesUtils.addErrorMessage("Object oid not defined.");
 			return;
 		}
-
+		
 		try {
-			repositoryService.deleteObject(objectOid);
+			repositoryService.deleteObject(oidToDelete);			
 		} catch (FaultMessage ex) {
 			String message = (ex.getFaultInfo().getMessage() != null ? ex.getFaultInfo().getMessage() : ex
 					.getMessage());
@@ -205,10 +206,18 @@ public class DebugListController implements Serializable {
 			TRACE.info("Delete object failed");
 			TRACE.error("Exception was {} ", ex);
 		}
+		oidToDelete = null;
+		
 		list();
 	}
 
-	public void showConfirmDelete() {
+	public void showConfirmDelete(ActionEvent evt) {		
+		String a = FacesUtils.getRequestParameter(PARAM_OBJECT_OID);
+		if (StringUtils.isEmpty(a)) {
+			FacesUtils.addErrorMessage("Object oid not defined.");
+			return;
+		}
+		
 		showPopup = true;
 	}
 
@@ -217,6 +226,13 @@ public class DebugListController implements Serializable {
 	}
 
 	public String viewOrEdit() {
+		String objectOid = FacesUtils.getRequestParameter(PARAM_OBJECT_OID);
+		if (StringUtils.isEmpty(objectOid)) {
+			FacesUtils.addErrorMessage("Object oid not defined.");
+			return null;
+		}
+		//TODO: finish
+		
 		return PAGE_NAVIGATION_VIEW;
 	}
 }
