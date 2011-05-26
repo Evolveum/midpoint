@@ -59,7 +59,8 @@ public class DebugListController implements Serializable {
 
 	public static final String PAGE_NAVIGATION_LIST = "/config/debugList?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_VIEW = "/config/debugView?faces-redirect=true";
-	public static final String PARAM_OBJECT_OID = "objectOid";
+	public static final String PARAM_DELETE_OBJECT_OID = "deleteObjectOid";
+	public static final String PARAM_VIEW_OBJECT_OID = "viewObjectOid";
 	private static final long serialVersionUID = -6260309359121248205L;
 	private static final Trace TRACE = TraceManager.getTrace(DebugListController.class);
 
@@ -252,8 +253,8 @@ public class DebugListController implements Serializable {
 		list();
 	}
 
-	public void showConfirmDelete(ActionEvent evt) {
-		String a = FacesUtils.getRequestParameter(PARAM_OBJECT_OID);
+	public void showConfirmDelete() {
+		String a = FacesUtils.getRequestParameter(PARAM_DELETE_OBJECT_OID);
 		if (StringUtils.isEmpty(a)) {
 			FacesUtils.addErrorMessage("Object oid not defined.");
 			return;
@@ -267,7 +268,7 @@ public class DebugListController implements Serializable {
 	}
 
 	public String viewOrEdit() {
-		String objectOid = FacesUtils.getRequestParameter(PARAM_OBJECT_OID);
+		String objectOid = FacesUtils.getRequestParameter(PARAM_VIEW_OBJECT_OID);
 		if (StringUtils.isEmpty(objectOid)) {
 			FacesUtils.addErrorMessage("Object oid not defined.");
 			return null;

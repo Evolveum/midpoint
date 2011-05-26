@@ -37,7 +37,7 @@ public class DebugObject implements Serializable {
 
 	public DebugObject(String oid, String name) {
 		if (StringUtils.isEmpty(oid)) {
-			throw new IllegalArgumentException("Oit can't be null.");
+			throw new IllegalArgumentException("Oid can't be null.");
 		}
 		if (StringUtils.isEmpty(name)) {
 			throw new IllegalArgumentException("Name can't be null.");

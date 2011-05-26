@@ -44,12 +44,12 @@
 				<c:forEach items="#{debugList.objects}" var="item">
 					<ice:commandLink value="#{item.name}" action="#{debugList.viewOrEdit}"
 						style="text-decoration: underline;">
-						<f:param name="objectOid" value="#{item.oid}" />
+						<f:param name="viewObjectOid" value="#{item.oid}" />
 					</ice:commandLink>
 
-					<idm:button value="#{lang.messages['page.config.debugList.button.delete']}" action="/config/debugList"
-						actionListener="#{debugList.showConfirmDelete}" img="/resources/images/delete.png" buttonType="negative">
-						<f:param name="objectOid" value="#{item.oid}" />
+					<idm:button value="#{lang.messages['page.config.debugList.button.delete']}"
+						action="#{debugList.showConfirmDelete}" img="/resources/images/delete.png" buttonType="negative">
+						<f:param name="deleteObjectOid" value="#{item.oid}" />
 					</idm:button>
 				</c:forEach>
 			</ice:panelGrid>

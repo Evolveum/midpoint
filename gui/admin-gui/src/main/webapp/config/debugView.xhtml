@@ -14,16 +14,19 @@
 	<ui:define name="content">
 		<ice:form>
 			<ice:selectBooleanCheckbox value="#{debugView.editOther}" immediate="true" partialSubmit="true"
-				style="margin-bottom: 7px;">
-					#{lang.messages['page.config.debugView.editOther']}
-					</ice:selectBooleanCheckbox>
-			<ice:panelGrid columns="3" cellpadding="7" cellspacing="7" rendered="#{debugView.editOther}">
+				style="margin-bottom: 7px;">#{lang.messages['page.config.debugView.editOther']}
+			</ice:selectBooleanCheckbox>
+			<ice:panelGrid columns="4" cellpadding="7" cellspacing="7" rendered="#{debugView.editOther}">
 				<ice:outputLabel value="#{lang.messages['page.config.debugView.name']}" />
-				<ice:inputText value="#{debugView.editOtherOid}" />
-				<idm:button action="#{debugView.editOtherObject}" value="#{lang.messages['page.config.debugView.button.edit']}"
-					img="/resources/images/door_in.png" id="backButton" immediate="true" />
+				<ice:inputText id="editOtherName" value="#{debugView.editOtherName}" required="true" />
+				<idm:button action="#{debugView.editOtherObject}"
+					value="#{lang.messages['page.config.debugView.button.edit']}" img="/resources/images/page_white_code.png"
+					id="backButton" />
+				<ice:message for="editOtherName" errorClass="error" />
 			</ice:panelGrid>
 		</ice:form>
+		
+		<hr />
 
 		<ice:panelGrid columns="2" cellpadding="7" cellspacing="7" rendered="#{debugView.viewEditable}">
 			<ice:outputLabel value="#{lang.messages['page.config.debugView.oid']}" />

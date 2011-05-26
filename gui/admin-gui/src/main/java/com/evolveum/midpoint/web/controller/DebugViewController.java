@@ -69,20 +69,23 @@ public class DebugViewController implements Serializable {
 	@Autowired(required = true)
 	private transient RepositoryPortType repositoryService;
 	private boolean editOther = false;
-	private String editOtherOid;
+	private String editOtherName;
 	private DebugObject object;
 	private boolean editable = false;
 	private String xml;
 
-	public String getEditOtherOid() {
-		return editOtherOid;
+	public String getEditOtherName() {
+		return editOtherName;
 	}
 
-	public void setEditOtherOid(String editOtherOid) {
-		this.editOtherOid = editOtherOid;
+	public void setEditOtherName(String editOtherName) {
+		this.editOtherName = editOtherName;
 	}
 
 	public boolean isEditOther() {
+		if (!isViewEditable()) {
+			editOther = true;
+		}
 		return editOther;
 	}
 
@@ -116,7 +119,6 @@ public class DebugViewController implements Serializable {
 
 	public boolean isViewEditable() {
 		if (StringUtils.isEmpty(xml) || object == null) {
-			editOther = true;
 			return false;
 		}
 
@@ -139,9 +141,13 @@ public class DebugViewController implements Serializable {
 	}
 
 	public String editOtherObject() {
-		// TODO: finish
+		if (StringUtils.isEmpty(editOtherName)) {
+			FacesUtils.addErrorMessage("Object name must not be null.");
+			return null;
+		}
+		object = new DebugObject(editOtherName, "Unknown");
 
-		return null;
+		return viewObject();
 	}
 
 	public String viewObject() {
@@ -166,6 +172,10 @@ public class DebugViewController implements Serializable {
 		} catch (JAXBException ex) {
 			FacesUtils.addErrorMessage("Couldn't show object '" + object.getName() + "' in editor.", ex);
 			TRACE.debug("Couldn't show object '" + object.getName() + "' in editor.", ex);
+			return PAGE_NAVIGATION_LIST;
+		} catch (Exception ex) {
+			FacesUtils.addErrorMessage("Unknown error occured.", ex);
+			TRACE.debug("Unknown error occured.", ex);
 			return PAGE_NAVIGATION_LIST;
 		}
 
