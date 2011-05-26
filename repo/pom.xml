@@ -56,5 +56,6 @@
     </scm>
     <modules>
         <module>repo-db-impl</module>
+        <module>repo-basex-impl</module>		
     </modules>
 </project>
