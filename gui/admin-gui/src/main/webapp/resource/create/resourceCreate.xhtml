@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="./wizard.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="wizard-title">Define Name</ui:define>
+
+	<ui:define name="wizard-description">Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
+	Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley 
+	of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into 
+	electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset 
+	sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including 
+	versions of Lorem Ipsum.</ui:define>
+
+	<ui:define name="wizard-content">
+		<ice:panelGrid columns="3" cellpadding="7" cellspacing="7">
+			<ice:outputLabel value="Resource name" />
+			<ice:inputText size="40" value="" required="true" id="resourceName" />
+			<ice:message for="resourceName" errorClass="error" />
+
+			<ice:outputLabel value="Connectory type" />
+			<ice:selectOneMenu id="resourceType" style="min-width: 200px;" value="">
+				<f:selectItems value="" />
+			</ice:selectOneMenu>
+			<ice:message for="resourceType" errorClass="error" />
+		</ice:panelGrid>
+	</ui:define>
+</ui:composition>
