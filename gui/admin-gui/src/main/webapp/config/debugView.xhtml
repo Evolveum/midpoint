@@ -13,13 +13,25 @@
 
 	<ui:define name="content">
 		<ice:form>
-			<idm:inputSyntaxTextArea id="code" cols="20" rows="10" width="943" height="300" value="#{import.editor}" />
-			<div class="button-bar">
-				<idm:button action="/config/debug" value="#{lang.messages['page.account.create.button.cancel']}"
-					img="/resources/images/door_in.png" id="cancelCreateUser" immediate="true" />
+			<ui:remove>
+				<ice:selectBooleanCheckbox value="#{debugView.editable}" immediate="true" partialSubmit="true">
+					#{lang.messages['page.config.debugView.edit']}
+					</ice:selectBooleanCheckbox>
+			</ui:remove>
+			<ice:panelGroup style="border: 1px solid black;">
+				<idm:inputSyntaxTextArea id="code" cols="20" rows="10" width="943" height="390" value="#{debugView.xml}" />
 
-				<idm:button action="#{userCreate.create}" id="createUser" buttonType="positive"
-					value="#{lang.messages['page.account.create.button.create']}" img="/resources/images/user_add.png" />
+				<ui:remove>
+					<idm:xmlInput id="editor" width="978" height="300" readonly="#{not debugView.editable}"
+						value="#{debugView.xml}" />
+				</ui:remove>
+			</ice:panelGroup>
+			<div class="button-bar">
+				<idm:button action="#{debugList.back}" value="#{lang.messages['page.config.debugView.button.back']}"
+					img="/resources/images/door_in.png" id="backButton" immediate="true" />
+
+				<idm:button action="#{debugView.savePerformed}" id="saveButton" buttonType="positive"
+					value="#{lang.messages['page.config.debugView.button.save']}" img="/resources/images/disk.png" />
 			</div>
 		</ice:form>
 		<ui:remove>
@@ -60,7 +72,8 @@
 						</ice:commandLink>
 
 						<idm:button value="#{lang.messages['page.config.debugList.button.delete']}"
-							action="#{debugList.showConfirmDelete}" img="/resources/images/delete.png" buttonType="negative">
+							actionListener="#{debugList.showConfirmDelete}" img="/resources/images/delete.png"
+							buttonType="negative">
 							<f:param name="objectOid" value="#{item.oid}" />
 						</idm:button>
 					</c:forEach>

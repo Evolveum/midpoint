@@ -119,6 +119,9 @@ a {
 	line-height: 20px;
 	padding: 0;
 	text-align: center;
+	
+	text-indent: 0px;
+	margin-bottom: 0px;
 }
 
 #login-box {

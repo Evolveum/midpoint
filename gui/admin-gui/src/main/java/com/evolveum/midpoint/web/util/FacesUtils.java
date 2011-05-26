@@ -110,10 +110,11 @@ public abstract class FacesUtils {
 	}
 
 	private static void addMessage(FacesMessage.Severity severity, String msg, Exception ex) {
-		final MidPointMessage message = new MidPointMessage(severity, msg, null);
-		if (ex != null) {
-			fillExceptionMessages(message, ex);
-		}
+		FacesMessage message = new FacesMessage(severity, msg, null);
+//		final MidPointMessage message = new MidPointMessage(severity, msg, null);
+//		if (ex != null) {
+//			fillExceptionMessages(message, ex);
+//		}
 		FacesContext ctx = FacesContext.getCurrentInstance();
 		if (null != ctx) {
 			ctx.addMessage(null, message);

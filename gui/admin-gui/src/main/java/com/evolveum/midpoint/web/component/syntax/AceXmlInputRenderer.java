@@ -49,7 +49,7 @@ public class AceXmlInputRenderer extends HtmlBasicInputRenderer {
 		writer.writeAttribute("style", style.toString(), null);
 
 		ValueExpression valueExpr = component.getValueExpression(AceXmlInput.ATTR_VALUE);
-		if (valueExpr != null) {		
+		if (valueExpr != null) {
 			String value = (String) valueExpr.getValue(context.getELContext());
 			writer.writeText(value, null);
 		}
@@ -78,13 +78,15 @@ public class AceXmlInputRenderer extends HtmlBasicInputRenderer {
 		script.append(component.getClientId());
 		script.append("').style.fontSize='13px';\n");
 
-		String editable = (String) getAttributeValue(AceXmlInput.ATTR_EDITABLE, context, component);
-		if (StringUtils.isEmpty(editable)) {
-			editable = "true";
+		Object object = getAttributeValue(AceXmlInput.ATTR_READONLY, context, component);
+		Boolean readonly = new Boolean(false);
+		if (object instanceof String) {
+			readonly = new Boolean((String) object);
+		} else if (object instanceof Boolean) {
+			readonly = (Boolean) object;
 		}
-		boolean readOnly = new Boolean(editable).booleanValue();
 		script.append("\teditor.setReadOnly(");
-		script.append(readOnly);
+		script.append(readonly.booleanValue());
 		script.append(");\n");
 		script.append("};\n");
 		writer.writeText(script.toString(), null);

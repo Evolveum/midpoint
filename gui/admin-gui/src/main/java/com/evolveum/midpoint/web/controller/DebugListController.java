@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 @Scope("session")
 public class DebugListController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_DEBUG_LIST = "/config/debugList?faces-redirect=true";
+	public static final String PAGE_NAVIGATION_LIST = "/config/debugList?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_VIEW = "/config/debugView?faces-redirect=true";
 	public static final String PARAM_OBJECT_OID = "objectOid";
 	private static final long serialVersionUID = -6260309359121248205L;
@@ -71,6 +71,10 @@ public class DebugListController implements Serializable {
 	}
 	@Autowired(required = true)
 	private transient RepositoryPortType repositoryService;
+	@Autowired(required = true)
+	private transient TemplateController template;
+	@Autowired(required = true)
+	private transient DebugViewController debugView;
 	private List<DebugObject> objects;
 	private String objectType = "UserType";
 	private int offset = 0;
@@ -105,10 +109,12 @@ public class DebugListController implements Serializable {
 		return showPopup;
 	}
 
-	private void clearController() {
+	public String initController() {
 		getObjects().clear();
 		offset = 0;
 		rowsCount = 30;
+
+		return PAGE_NAVIGATION_LIST;
 	}
 
 	public String listLast() {
@@ -143,7 +149,7 @@ public class DebugListController implements Serializable {
 	}
 
 	public String list() {
-		clearController();
+		initController();
 		return listFirst();
 	}
 
@@ -194,9 +200,9 @@ public class DebugListController implements Serializable {
 			FacesUtils.addErrorMessage("Object oid not defined.");
 			return;
 		}
-		
+
 		try {
-			repositoryService.deleteObject(oidToDelete);			
+			repositoryService.deleteObject(oidToDelete);
 		} catch (FaultMessage ex) {
 			String message = (ex.getFaultInfo().getMessage() != null ? ex.getFaultInfo().getMessage() : ex
 					.getMessage());
@@ -207,17 +213,17 @@ public class DebugListController implements Serializable {
 			TRACE.error("Exception was {} ", ex);
 		}
 		oidToDelete = null;
-		
+
 		list();
 	}
 
-	public void showConfirmDelete(ActionEvent evt) {		
+	public void showConfirmDelete(ActionEvent evt) {
 		String a = FacesUtils.getRequestParameter(PARAM_OBJECT_OID);
 		if (StringUtils.isEmpty(a)) {
 			FacesUtils.addErrorMessage("Object oid not defined.");
 			return;
 		}
-		
+
 		showPopup = true;
 	}
 
@@ -231,8 +237,25 @@ public class DebugListController implements Serializable {
 			FacesUtils.addErrorMessage("Object oid not defined.");
 			return null;
 		}
-		//TODO: finish
-		
-		return PAGE_NAVIGATION_VIEW;
+
+		DebugObject object = null;
+		for (DebugObject dObject : objects) {
+			if (objectOid.equals(dObject.getOid())) {
+				object = dObject;
+				break;
+			}
+		}
+		if (object == null) {
+			FacesUtils.addErrorMessage("Couldn't find object with oid '" + objectOid + "' in session.");
+			return PAGE_NAVIGATION_LIST;
+		}
+
+		debugView.setObject(object);
+		String returnPage = debugView.viewObject();
+		if (PAGE_NAVIGATION_VIEW.equals(returnPage) && template != null) {
+			template.setSelectedLeftId("leftViewEdit");
+		}
+
+		return returnPage;
 	}
 }
