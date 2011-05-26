@@ -47,13 +47,15 @@ public class ResourceConfigurationController extends WizardPage {
 	}
 
 	@Override
-	public String getCancelPage() {
-		return "/resource/index";
-	}
-
-	@Override
 	public String finish() {
-
-		return null;
+		//TODO: stuff...
+		
+		return getFinishPage();
+	}
+	
+	@Override
+	public void cleanController() {
+		// TODO Auto-generated method stub
+		
 	}
 }

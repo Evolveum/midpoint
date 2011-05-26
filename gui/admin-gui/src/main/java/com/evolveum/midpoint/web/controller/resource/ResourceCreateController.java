@@ -28,15 +28,31 @@ import com.evolveum.midpoint.web.controller.wizard.WizardPage;
 /**
  * 
  * @author lazyman
- *
+ * 
  */
 @Controller("resourceCreate")
 @Scope("session")
 public class ResourceCreateController extends WizardPage {
 
 	private static final long serialVersionUID = 8679302869048479599L;
+	private String name;
 
 	public ResourceCreateController() {
-        super(ResourceWizard.PAGE_NAVIGATION_BASE + "/resourceCreate.xhtml");
-    }	
+		super(ResourceWizard.PAGE_NAVIGATION_BASE + "/resourceCreate.xhtml");
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	@Override
+	public void cleanController() {
+		name = null;
+		// TODO Auto-generated method stub
+
+	}
 }

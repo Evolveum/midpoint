@@ -62,19 +62,19 @@ public abstract class Wizard implements Serializable {
 		return getActualWizardPage().getFinishPage();
 	}
 
+	public boolean isActualShowCancel() {
+		return true;
+	}
+
+	public boolean isActualShowFinish() {
+		return getActualWizardPage().isShowFinish();
+	}
+
 	public boolean isActualShowBack() {
 		if (index == 0) {
 			return false;
 		}
 		return true;
-	}
-
-	public boolean isActualShowCancel() {
-		return getActualWizardPage().isShowCancel();
-	}
-
-	public boolean isActualShowFinish() {
-		return getActualWizardPage().isShowFinish();
 	}
 
 	public boolean isActualShowNext() {
@@ -99,21 +99,32 @@ public abstract class Wizard implements Serializable {
 		if (index + 1 <= getPages().size()) {
 			index++;
 		}
-		return getActualWizardPage().next();
+		return getActualWizardPage().getPageUrl();
 	}
 
 	public String back() {
 		if (index >= 1) {
 			index--;
 		}
-		return getActualWizardPage().back();
+		return getActualWizardPage().getPageUrl();
 	}
 
 	public String finish() {
-		return getActualWizardPage().finish();
+		String returnPage = getActualWizardPage().finish();
+		if (!StringUtils.isEmpty(returnPage)) {
+			for (WizardPage page : getPages()) {
+				page.cleanController();
+			}
+		}
+
+		return returnPage;
 	}
 
 	public String cancel() {
-		return getActualWizardPage().cancel();
+		for (WizardPage page : getPages()) {
+			page.cleanController();
+		}
+
+		return getActualCancelPage();
 	}
 }

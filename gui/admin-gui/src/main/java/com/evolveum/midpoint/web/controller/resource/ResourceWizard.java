@@ -26,36 +26,44 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.controller.wizard.Wizard;
 import com.evolveum.midpoint.web.controller.wizard.WizardPage;
 
 /**
  * 
  * @author lazyman
- *
+ * 
  */
 @Controller
 @Scope("session")
 public class ResourceWizard extends Wizard {
 
-	private static final long serialVersionUID = -8327099988202610912L;
 	static final String PAGE_NAVIGATION_BASE = "/resource/create";
-	
+	private static final long serialVersionUID = -8327099988202610912L;
+	private static final Trace TRACE = TraceManager.getTrace(ResourceWizard.class);
+	@Autowired(required = true)
+	private ResourceCreateController create;
+	@Autowired(required = true)
+	private ResourceConfigurationController config;
+
 	public ResourceWizard() {
 		super("/resource/index");
 	}
 
-	@Autowired(required = true)
-    private ResourceCreateController create;
-    @Autowired(required = true)
-    private ResourceConfigurationController config;
+	@Override
+	public List<WizardPage> getPages() {
+		if (super.getPages().isEmpty()) {
+			super.getPages().add(create);
+			super.getPages().add(config);
+		}
+		return super.getPages();
+	}
 
-    @Override
-    public List<WizardPage> getPages() {
-        if (super.getPages().isEmpty()) {
-            super.getPages().add(create);
-            super.getPages().add(config);
-        }
-        return super.getPages();
-    }
+	@Override
+	public String finish() {
+
+		return super.finish();
+	}
 }

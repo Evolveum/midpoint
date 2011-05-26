@@ -12,7 +12,9 @@
 
 	<ui:define name="wizard-content">
 		<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
-			<idm:autoForm bean="#{resourceConfiguration.configuration}" editable="true" />
+			<ui:remove>
+				<idm:autoForm bean="#{resourceConfiguration.configuration}" editable="true" />
+			</ui:remove>
 		</ice:panelGrid>
 	</ui:define>
 </ui:composition>

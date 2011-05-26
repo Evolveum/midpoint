@@ -33,8 +33,6 @@ public abstract class WizardPage implements Serializable {
 
 	private static final long serialVersionUID = 6794156473197099300L;
 	private String pageUrl;
-    private String cancelPage;
-    private String finishPage;
 
     public WizardPage(String pageUrl) {
         if (pageUrl == null || pageUrl.isEmpty()) {
@@ -47,14 +45,6 @@ public abstract class WizardPage implements Serializable {
         return pageUrl;
     }
 
-    public String getCancelPage() {
-        return cancelPage;
-    }
-
-    public String getFinishPage() {
-        return finishPage;
-    }
-
     public boolean isShowCancel() {
         return !StringUtils.isEmpty(getCancelPage());
     }
@@ -63,11 +53,11 @@ public abstract class WizardPage implements Serializable {
         return !StringUtils.isEmpty(getFinishPage());
     }
 
-    public String next() {
+    public String getCancelPage() {
         return null;
     }
 
-    public String back() {
+    public String getFinishPage() {
         return null;
     }
 
@@ -78,4 +68,6 @@ public abstract class WizardPage implements Serializable {
     public String cancel() {
         return getCancelPage();
     }
+    
+    public abstract void cleanController();
 }

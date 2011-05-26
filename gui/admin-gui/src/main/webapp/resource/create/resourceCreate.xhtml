@@ -17,14 +17,16 @@
 	<ui:define name="wizard-content">
 		<ice:panelGrid columns="3" cellpadding="7" cellspacing="7">
 			<ice:outputLabel value="Resource name" />
-			<ice:inputText size="40" value="" required="true" id="resourceName" />
+			<ice:inputText size="40" value="#{resourceCreate.name}" required="true" id="resourceName" />
 			<ice:message for="resourceName" errorClass="error" />
 
+<ui:remove>
 			<ice:outputLabel value="Connectory type" />
 			<ice:selectOneMenu id="resourceType" style="min-width: 200px;" value="">
 				<f:selectItems value="" />
 			</ice:selectOneMenu>
 			<ice:message for="resourceType" errorClass="error" />
+			</ui:remove>
 		</ice:panelGrid>
 	</ui:define>
 </ui:composition>

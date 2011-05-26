@@ -6,7 +6,7 @@
 
 	<idm:leftMenuContainer name="#{lang.messages['page.template.top.resources']}">
 		<idm:leftMenuItem id="leftResourceList" name="#{lang.messages['page.resource.index.title']}" action="#{resourceList.updateController}" />
-		<idm:leftMenuItem id="leftResourceCreate" name="#{lang.messages['page.resource.create.title']}" action="/resource/index?faces-redirect=true" />		
+		<idm:leftMenuItem id="leftResourceCreate" name="#{lang.messages['page.resource.create.title']}" action="/resource/create/resourceCreate?faces-redirect=true" />		
 		<idm:leftMenuItem id="leftResourceConfig" name="Deprecated (old)" action="#{resourceTypeController.listResources}" />
 	</idm:leftMenuContainer>
 	<idm:leftMenuContainer name="Import">
