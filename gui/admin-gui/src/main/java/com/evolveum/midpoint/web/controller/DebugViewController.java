@@ -67,12 +67,28 @@ public class DebugViewController implements Serializable {
 	@Autowired(required = true)
 	private transient TemplateController template;
 	@Autowired(required = true)
-	private transient DebugListController debugListController;
-	@Autowired(required = true)
 	private transient RepositoryPortType repositoryService;
+	private boolean editOther = false;
+	private String editOtherOid;
 	private DebugObject object;
 	private boolean editable = false;
 	private String xml;
+
+	public String getEditOtherOid() {
+		return editOtherOid;
+	}
+
+	public void setEditOtherOid(String editOtherOid) {
+		this.editOtherOid = editOtherOid;
+	}
+
+	public boolean isEditOther() {
+		return editOther;
+	}
+
+	public void setEditOther(boolean editOther) {
+		this.editOther = editOther;
+	}
 
 	public DebugObject getObject() {
 		return object;
@@ -98,6 +114,15 @@ public class DebugViewController implements Serializable {
 		this.xml = xml;
 	}
 
+	public boolean isViewEditable() {
+		if (StringUtils.isEmpty(xml) || object == null) {
+			editOther = true;
+			return false;
+		}
+
+		return true;
+	}
+
 	public String initController() {
 		object = null;
 		xml = null;
@@ -113,6 +138,12 @@ public class DebugViewController implements Serializable {
 		return PAGE_NAVIGATION_VIEW;
 	}
 
+	public String editOtherObject() {
+		// TODO: finish
+
+		return null;
+	}
+
 	public String viewObject() {
 		if (object == null) {
 			FacesUtils.addErrorMessage("Debug object not defined.");
@@ -122,8 +153,10 @@ public class DebugViewController implements Serializable {
 		try {
 			ObjectContainerType container = repositoryService.getObject(object.getOid(),
 					new PropertyReferenceListType());
+			ObjectType objectType = container.getObject();
+			object = new DebugObject(objectType.getOid(), objectType.getName());
 
-			xml = JAXBUtil.marshal(new ObjectFactory().createObject(container.getObject()));
+			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
 		} catch (FaultMessage ex) {
 			FacesUtils.addErrorMessage(
 					"Couldn't get object '" + object.getName() + "' with oid '" + object.getOid() + "'.", ex);
@@ -168,8 +201,7 @@ public class DebugViewController implements Serializable {
 			FacesUtils.addErrorMessage("Couln't create diff for object '" + object.getName() + "'.", ex);
 			// TODO: logging
 		}
-		
-		debugListController.listFirst();
+
 		template.setSelectedLeftId("leftList");
 
 		return PAGE_NAVIGATION_LIST;

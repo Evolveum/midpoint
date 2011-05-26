@@ -23,6 +23,8 @@ package com.evolveum.midpoint.web.controller;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.faces.event.ActionEvent;
@@ -60,15 +62,38 @@ public class DebugListController implements Serializable {
 	public static final String PARAM_OBJECT_OID = "objectOid";
 	private static final long serialVersionUID = -6260309359121248205L;
 	private static final Trace TRACE = TraceManager.getTrace(DebugListController.class);
-	private static final List<SelectItem> objectTypes = new ArrayList<SelectItem>();
-	static {
-		objectTypes.add(new SelectItem("UserType", "User"));
-		objectTypes.add(new SelectItem("AccountType", "Account"));
-		objectTypes.add(new SelectItem("ResourceStateType", "Resource State"));
-		objectTypes.add(new SelectItem("ResourceType", "Resource"));
-		objectTypes.add(new SelectItem("UserTemplateType", "User Template"));
-		objectTypes.add(new SelectItem("GenericObjectType", "Generic Object"));
+
+	private static enum Type {
+
+		ACCOUNT("controller.debugList.account", "AccountType"),
+
+		GENERIC_OBJECT("controller.debugList.genericObject", "GenericObjectType"),
+
+		RESOURCE("controller.debugList.resource", "ResourceType"),
+
+		RESOURCE_STATE("controller.debugList.resourceState", "ResourceStateType"),
+
+		USER("controller.debugList.user", "UserType"),
+
+		USER_TEMPLATE("controller.debugList.userTemplate", "UserTemplateType");
+
+		private String key;
+		private String value;
+
+		private Type(String key, String value) {
+			this.key = key;
+			this.value = value;
+		}
+
+		public String getKey() {
+			return key;
+		}
+
+		public String getValue() {
+			return value;
+		}
 	}
+
 	@Autowired(required = true)
 	private transient RepositoryPortType repositoryService;
 	@Autowired(required = true)
@@ -83,6 +108,16 @@ public class DebugListController implements Serializable {
 	private String oidToDelete;
 
 	public List<SelectItem> getObjectTypes() {
+		List<SelectItem> objectTypes = new ArrayList<SelectItem>();
+		for (Type type : Type.values()) {
+			objectTypes.add(new SelectItem(type.getValue(), FacesUtils.translateKey(type.getKey())));
+		}
+		Collections.sort(objectTypes, new Comparator<SelectItem>() {
+			@Override
+			public int compare(SelectItem o1, SelectItem o2) {
+				return String.CASE_INSENSITIVE_ORDER.compare(o1.getLabel(), o2.getLabel());
+			}
+		});
 		return objectTypes;
 	}
 

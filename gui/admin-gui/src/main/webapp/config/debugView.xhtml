@@ -13,13 +13,38 @@
 
 	<ui:define name="content">
 		<ice:form>
-			<ui:remove>
-				<ice:selectBooleanCheckbox value="#{debugView.editable}" immediate="true" partialSubmit="true">
+			<ice:selectBooleanCheckbox value="#{debugView.editOther}" immediate="true" partialSubmit="true"
+				style="margin-bottom: 7px;">
+					#{lang.messages['page.config.debugView.editOther']}
+					</ice:selectBooleanCheckbox>
+			<ice:panelGrid columns="3" cellpadding="7" cellspacing="7" rendered="#{debugView.editOther}">
+				<ice:outputLabel value="#{lang.messages['page.config.debugView.name']}" />
+				<ice:inputText value="#{debugView.editOtherOid}" />
+				<idm:button action="#{debugView.editOtherObject}" value="#{lang.messages['page.config.debugView.button.edit']}"
+					img="/resources/images/door_in.png" id="backButton" immediate="true" />
+			</ice:panelGrid>
+		</ice:form>
+
+		<ice:panelGrid columns="2" cellpadding="7" cellspacing="7" rendered="#{debugView.viewEditable}">
+			<ice:outputLabel value="#{lang.messages['page.config.debugView.oid']}" />
+			<ice:outputLabel value="#{debugView.object.oid}" />
+
+			<ice:outputLabel value="#{lang.messages['page.config.debugView.name']}" />
+			<ice:outputLabel value="#{debugView.object.name}" />
+		</ice:panelGrid>
+
+		<ice:form rendered="#{debugView.viewEditable}">
+			<ice:selectBooleanCheckbox value="#{debugView.editable}" immediate="true" partialSubmit="true"
+				style="margin-bottom: 7px;">
 					#{lang.messages['page.config.debugView.edit']}
 					</ice:selectBooleanCheckbox>
-			</ui:remove>
 			<ice:panelGroup style="border: 1px solid black;">
-				<idm:inputSyntaxTextArea id="code" cols="20" rows="10" width="943" height="390" value="#{debugView.xml}" />
+				<ice:inputTextarea style="width: 967px; height: 350px;" value="#{debugView.xml}"
+					readonly="#{not debugView.editable}" />
+
+				<ui:remove>
+					<idm:inputSyntaxTextArea id="code" cols="20" rows="10" width="943" height="390" value="#{debugView.xml}" />
+				</ui:remove>
 
 				<ui:remove>
 					<idm:xmlInput id="editor" width="978" height="300" readonly="#{not debugView.editable}"
@@ -34,63 +59,6 @@
 					value="#{lang.messages['page.config.debugView.button.save']}" img="/resources/images/disk.png" />
 			</div>
 		</ice:form>
-		<ui:remove>
-			<ice:form>
-				<ice:panelPopup modal="true" autoCentre="true" visible="#{debugList.showPopup}">
-					<f:facet name="header">
-						<ice:outputText value="#{lang.messages['page.config.debugList.confirm.title']}" />
-					</f:facet>
-					<f:facet name="body">
-						<ice:outputText value="#{lang.messages['page.config.debugList.confirm']}" />
-						<div class="button-bar">
-							<ice:commandButton value="#{lang.messages['page.config.debugList.confirm.yes']}"
-								action="#{debugList.deleteObject}">
-								<f:param name="objectOid" value="#{debugList.oidToDelete}" />
-							</ice:commandButton>
-							<ice:commandButton value="#{lang.messages['page.config.debugList.confirm.no']}"
-								action="#{debugList.hideConfirmDelete}" />
-						</div>
-					</f:facet>
-				</ice:panelPopup>
-
-				<ice:selectOneMenu id="selectOneMenuList" styleClass="secondRow" value="#{debugList.objectType}"
-					immediate="true" partialSubmit="true">
-					<f:selectItems value="#{debugList.objectTypes}" />
-				</ice:selectOneMenu>
-				<idm:button style="margin-left: 10px;"
-					value="#{lang.messages['page.config.debugList.button.listObjects']}" action="#{debugList.list}"
-					img="/resources/images/table.png" immediate="true" />
-
-				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7" rendered="#{debugList.showTable}">
-					<ice:outputText value="#{lang.messages['page.config.debugList.objectName']}" />
-					<ice:outputText />
-
-					<c:forEach items="#{debugList.objects}" var="item">
-						<ice:commandLink value="#{item.name}" action="#{debugList.viewOrEdit}"
-							style="text-decoration: underline;">
-							<f:param name="objectOid" value="#{item.oid}" />
-						</ice:commandLink>
-
-						<idm:button value="#{lang.messages['page.config.debugList.button.delete']}"
-							actionListener="#{debugList.showConfirmDelete}" img="/resources/images/delete.png"
-							buttonType="negative">
-							<f:param name="objectOid" value="#{item.oid}" />
-						</idm:button>
-					</c:forEach>
-				</ice:panelGrid>
-
-				<ice:panelGroup styleClass="container-auto" style="text-align: center;" rendered="#{debugList.showTable}">
-					<idm:button img="/resources/images/resultset_first.png" value="#{lang.messages['page.paginator.first']}"
-						action="#{debugList.listFirst}" />
-					<idm:button img="/resources/images/resultset_previous.png"
-						value="#{lang.messages['page.paginator.previous']}" action="#{debugList.listPrevious}" />
-					<idm:button img="/resources/images/resultset_next.png" value="#{lang.messages['page.paginator.next']}"
-						action="#{debugList.listNext}" />
-					<idm:button img="/resources/images/resultset_last.png" value="#{lang.messages['page.paginator.last']}"
-						action="#{debugList.listLast}" />
-				</ice:panelGroup>
-			</ice:form>
-		</ui:remove>
 	</ui:define>
 </ui:composition>
 

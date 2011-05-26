@@ -65,18 +65,6 @@
 					action="#{debugList.listLast}" />
 			</ice:panelGroup>
 		</ice:form>
-
-		<ui:remove>
-			<ice:form>
-				<ice:commandButton value="#{msg['debug.button.get']}" styleClass="firstRow"
-					action="#{debugPagesController.getObject}" />
-				<ice:selectOneMenu id="selectOneMenuGet" styleClass="secondRow" value="#{debugPagesController.objectType}">
-					<f:selectItems value="#{debugPagesController.objectsList}" />
-				</ice:selectOneMenu>
-				<ice:outputText value="#{msg['debug.label.id.text']}" styleClass="thirdRow" />
-				<ice:inputText value="#{debugPagesController.id}" />
-			</ice:form>
-		</ui:remove>
 	</ui:define>
 </ui:composition>
 
