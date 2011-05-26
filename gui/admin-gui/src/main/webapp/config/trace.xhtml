@@ -14,15 +14,15 @@
 	<ui:define name="content">
 		<ice:form id="admin-content">
 			<ice:panelGroup>
-				<h2>#{trace.module.name}</h2>
-				<ice:panelGrid columns="4" cellpadding="2" cellspacing="2">
+				<h3>#{trace.module.name}</h3>
+				<ice:panelGrid columns="4" cellpadding="7" cellspacing="7">
 					<ice:selectOneMenu value="#{trace.module.level}">
 						<f:selectItems value="#{trace.logLevels}" />
 					</ice:selectOneMenu>
 					<ice:outputText value="Log pattern: " />
 					<ice:inputText value="#{trace.module.logPattern}" size="40" />
 				</ice:panelGrid>
-				<ice:panelGrid columns="4" cellpadding="2" cellspacing="2">
+				<ice:panelGrid columns="4" cellpadding="7" cellspacing="7">
 					<c:forEach items="#{trace.module.items}" var="item" varStatus="status">
 						<ice:inputText size="60" value="#{item.packageName}" />
 						<ice:selectOneMenu value="#{item.level}">
@@ -54,10 +54,12 @@
 				</ice:panelGrid>
 			</ice:panelGroup>
 
-			<idm:button action="#{trace.refreshPerformed}" value="Refresh"
-				img="/resources/images/arrow_rotate_clockwise.png" />
-			<idm:button action="#{trace.savePerformed}" buttonType="positive" value="Save"
-				img="/resources/images/save.png" />
+			<div class="button-bar">
+				<idm:button action="#{trace.refreshPerformed}" value="Refresh"
+					img="/resources/images/arrow_rotate_clockwise.png" />
+				<idm:button action="#{trace.savePerformed}" buttonType="positive" value="Save"
+					img="/resources/images/save.png" />
+			</div>
 		</ice:form>
 	</ui:define>
 </ui:composition>

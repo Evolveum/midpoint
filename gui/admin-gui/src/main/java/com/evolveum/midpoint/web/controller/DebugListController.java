@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
 
 import org.apache.commons.lang.StringUtils;
@@ -287,6 +286,7 @@ public class DebugListController implements Serializable {
 		}
 
 		debugView.setObject(object);
+		debugView.setEditOther(false);
 		String returnPage = debugView.viewObject();
 		if (PAGE_NAVIGATION_VIEW.equals(returnPage) && template != null) {
 			template.setSelectedLeftId("leftViewEdit");

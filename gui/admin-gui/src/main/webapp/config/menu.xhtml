@@ -11,7 +11,7 @@
 	</idm:leftMenuContainer>
 	<idm:leftMenuContainer name="#{lang.messages['page.config.menu.debugging']}">
 		<idm:leftMenuItem id="leftViewEdit" name="#{lang.messages['page.config.debugView.title']}"
-			action="/config/debugView?faces-redirect=true" />
+			action="#{debugView.initController}" />
 		<idm:leftMenuItem id="leftList" name="#{lang.messages['page.config.debugList.title']}"
 			action="#{debugList.initController}" />
 
