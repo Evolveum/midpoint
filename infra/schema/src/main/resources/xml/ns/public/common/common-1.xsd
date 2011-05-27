@@ -4525,10 +4525,10 @@
 		<xsd:complexContent>
 			<xsd:extension base="c:ObjectType">
 				<xsd:sequence>
-					<xsd:element name="description" type="xsd:string" minOccurs="0" />
-					<xsd:element name="lifetime" type="c:PasswordLifeTimeType" />
-					<xsd:element name="complexity" type="c:PasswordComplexityType" />
-					<xsd:element name="validCharClasses" type="c:ValidCharClassesType" />
+					<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+					<xsd:element name="lifetime" type="c:PasswordLifeTimeType"  minOccurs="1" maxOccurs="1"/>
+					<xsd:element name="complexity" type="c:PasswordComplexityType" minOccurs="1" maxOccurs="1"/>
+					<xsd:element name="validCharClasses" type="c:PasswordValidCharClassesType" maxOccurs="1" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -4536,14 +4536,14 @@
 
 	<xsd:complexType name="PasswordLifeTimeType">
 		<xsd:sequence>
-			<xsd:element name="expiration" type="xsd:int">
+			<xsd:element name="expiration" type="xsd:int" default="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Number of days before password expires (0 means password doesn't expire)
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="warnBeforeExpiration">
+			<xsd:element name="warnBeforeExpiration" default="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Number of days before password expiration to send warnings (0 means no warnings)
@@ -4555,7 +4555,7 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:element>
-			<xsd:element name="lockAfterExpiration">
+			<xsd:element name="lockAfterExpiration" default="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Number of days after password after password
@@ -4569,7 +4569,7 @@
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:element>
-			<xsd:element name="minPasswordAge" type="xsd:int">
+			<xsd:element name="minPasswordAge" type="xsd:int" default="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Number of days before password may be changed (0
@@ -4577,10 +4577,10 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="passwordHistoryLength" type="xsd:int">
+			<xsd:element name="passwordHistoryLength" type="xsd:int" default="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Number of unique passwords in history
+						Number of unique passwords in history (0 - no history)
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -4594,19 +4594,19 @@
 			<xsd:element name="numbers" type="tns:LimitationsType" minOccurs="0" />
 			<xsd:element name="special" type="tns:LimitationsType" minOccurs="0" />
 		</xsd:sequence>
-		<xsd:attribute name="minSize" type="xsd:int" use="required">
+		<xsd:attribute name="minSize" type="xsd:int" default="4">
 			<xsd:annotation>
 				<xsd:documentation>Minimum number of characters in password</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
-		<xsd:attribute name="maxSize" type="xsd:int" use="required">
+		<xsd:attribute name="maxSize" type="xsd:int" default="8">
 			<xsd:annotation>
 				<xsd:documentation>Maximum number of characters in password</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="minimumUniqueChars" type="xsd:int" default="0">
 			<xsd:annotation>
-				<xsd:documentation>Maximum number of characters in password </xsd:documentation>
+				<xsd:documentation>minimal number of unique characters in password</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 		<xsd:attribute name="checkAgainstDictionary" type="xsd:boolean" default="false">
@@ -4619,42 +4619,44 @@
 	<xsd:complexType name="LimitationsType">
 		<xsd:annotation>
 			<xsd:documentation>
-				minOccurence - minimum occurence of characters
-				maxOccurence - maximal occurence of characters
+				minOccurence - minimum occurence of characters in this character class
+ 				maxOccurence - maximal occurence of characters in this character class  
+ 							( 0 - means character class is disable no character from this class can be used)
 				maxSequence - maximal sequence of characters
+				canBeFirst - charter in this class can be on first position in password
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
 		</xsd:sequence>
-		<xsd:attribute name="minOccurence" type="xsd:int" use="required" />
-		<xsd:attribute name="maxOccurence" type="xsd:int" use="required" />
+		<xsd:attribute name="minOccurence" type="xsd:int" default="0" />
+		<xsd:attribute name="maxOccurence" type="xsd:int" default="9999" />
 		<xsd:attribute name="maxSequence" type="xsd:int" default="0" />
 		<xsd:attribute name="canBeFirst" type="xsd:boolean" default="true" />
 	</xsd:complexType>
 
-	<xsd:complexType name="ValidCharClassesType">
+	<xsd:complexType name="PasswordValidCharClassesType">
 		<xsd:annotation>
 			<xsd:documentation>Definition of valid characters in each class</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="lowerChars" type="xsd:string" minOccurs="0">
+			<xsd:element name="lowerChars" type="xsd:string" minOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>Default characters: abcdefghijklmnopqrstuvwxyz</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="upperChars" type="xsd:string" minOccurs="0">
+			<xsd:element name="upperChars" type="xsd:string" minOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>Default characters: ABCDEFGHIJKLMNOPQRSTUVWXYZ</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="numberChars" type="xsd:string" minOccurs="0">
+			<xsd:element name="numberChars" type="xsd:string" minOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>Default characters: 0123456789</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="specialChars" type="xsd:string" minOccurs="0">
+			<xsd:element name="specialChars" type="xsd:string" minOccurs="1" default="~!@#$%^*_-+=`|\(){}[]:;,.?/ &lt;&gt;&quot;&apos;&amp;">
 				<xsd:annotation>
-					<xsd:documentation><![CDATA[default characters:	~!@#$&%^*_-+=`|\(){}[]:;"'<>,.?/  include SPACE and TAB]]></xsd:documentation>
+					<xsd:documentation><![CDATA[default characters:	~!@#$&%^*_-+=`|\(){}[]:;"'<>,.?/  include SPACE]]></xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
