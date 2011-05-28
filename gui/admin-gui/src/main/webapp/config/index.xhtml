@@ -27,8 +27,8 @@
 		Other configuration stuff :))
 		<hr />
 		<ice:form>
-			<ice:inputText id="text" />
-			<idm:xmlInput id="editor" width="980" height="350" readonly="false" value="#{basic.content}" />
+			<ice:selectBooleanCheckbox value="#{basic.editable}" immediate="true" partialSubmit="true">Editable</ice:selectBooleanCheckbox>
+			<idm:xmlInput id="editor" height="350" readonly="#{not basic.editable}" value="#{basic.content}" />
 			<ice:commandButton value="Run" action="#{basic.action}" />
 		</ice:form>
 		<ui:remove>

@@ -25,7 +25,7 @@
 				<ice:message for="editOtherName" errorClass="error" />
 			</ice:panelGrid>
 		</ice:form>
-		
+
 		<hr />
 
 		<ice:panelGrid columns="2" cellpadding="7" cellspacing="7" rendered="#{debugView.viewEditable}">
@@ -41,19 +41,17 @@
 				style="margin-bottom: 7px;">
 					#{lang.messages['page.config.debugView.edit']}
 					</ice:selectBooleanCheckbox>
-			<ice:panelGroup style="border: 1px solid black;">
+			<ui:remove>
 				<ice:inputTextarea style="width: 967px; height: 350px;" value="#{debugView.xml}"
 					readonly="#{not debugView.editable}" />
+			</ui:remove>
 
-				<ui:remove>
-					<idm:inputSyntaxTextArea id="code" cols="20" rows="10" width="943" height="390" value="#{debugView.xml}" />
-				</ui:remove>
+			<ui:remove>
+				<idm:inputSyntaxTextArea id="code" cols="20" rows="10" width="943" height="390" value="#{debugView.xml}" />
+			</ui:remove>
 
-				<ui:remove>
-					<idm:xmlInput id="editor" width="978" height="300" readonly="#{not debugView.editable}"
-						value="#{debugView.xml}" />
-				</ui:remove>
-			</ice:panelGroup>
+			<idm:xmlInput id="editor" width="978" height="300" readonly="#{not debugView.editable}"
+				value="#{debugView.xml}" />
 			<div class="button-bar">
 				<idm:button action="#{debugView.back}" value="#{lang.messages['page.config.debugView.button.back']}"
 					img="/resources/images/door_in.png" id="backButton" immediate="true" />

@@ -11,17 +11,22 @@
 		<ui:include src="./menu.xhtml" />
 	</ui:define>
 
-	<ui:define name="content">
+	<ui:define name="content">		
 		<ice:form>
-			<ice:panelGroup style="border: 1px solid black;">
-				<idm:inputSyntaxTextArea id="code" cols="20" rows="10" width="943" height="300" value="#{import.editor}" />
-			</ice:panelGroup>
+			<ui:remove>
+				<ice:panelGroup style="border: 1px solid black;">
+					<idm:inputSyntaxTextArea id="code" cols="20" rows="10" width="943" height="300" value="#{import.editor}" />
+				</ice:panelGroup>
+			</ui:remove>			
+			<idm:xmlInput id="editor" height="340" readonly="false" value="#{import.editor}" />
 			<ul style="margin-top: 10px;">
 				<li><ice:selectBooleanCheckbox value="#{import.overwrite}">
 					#{lang.messages['page.config.import.overwrite']}
-					</ice:selectBooleanCheckbox></li>
+					</ice:selectBooleanCheckbox>
+				</li>
 				<li><ice:selectBooleanCheckbox value="#{import.showFileUpload}" immediate="true" partialSubmit="true">
-					#{lang.messages['page.config.import.uploadFile']}</ice:selectBooleanCheckbox></li>
+					#{lang.messages['page.config.import.uploadFile']}</ice:selectBooleanCheckbox>
+				</li>
 			</ul>
 			<ace:fileEntry style="margin-top: 5px;" id="fileEntryComp" fileEntryListener="#{import.uploadFile}"
 				rendered="#{import.showFileUpload}" />

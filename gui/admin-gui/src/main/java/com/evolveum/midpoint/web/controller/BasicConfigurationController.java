@@ -38,6 +38,16 @@ public class BasicConfigurationController implements Serializable {
 	private String content = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
 			+ "<ui:composition template=\"/resources/templates/template.xhtml\" "
 			+ "xmlns=\"http://www.w3.org/1999/xhtml\">\n</ui:composition>";
+	
+	private boolean editable = true;
+	
+	public boolean isEditable() {
+		return editable;
+	}
+	
+	public void setEditable(boolean editable) {
+		this.editable = editable;
+	}
 
 	public String getContent() {
 		return content;
