@@ -22,8 +22,20 @@
 
 package com.evolveum.midpoint.common.test;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.List;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+
 import org.junit.Test;
 
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.validator.ObjectHandler;
+import com.evolveum.midpoint.validator.ValidationMessage;
+import com.evolveum.midpoint.validator.Validator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordComplexityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
@@ -32,19 +44,20 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordValidCharCla
 import static org.junit.Assert.*;
 
 public class PasswordPolicyValidatorTest {
-	
-	public PasswordPolicyValidatorTest () {
+
+	public PasswordPolicyValidatorTest() {
 	}
 
-	
-	@Test 
+	public static final String BASE_PATH = "src/test/resources/";
+
+	@Test
 	public void synteticValidatorTest() {
-		
+
 		PasswordPolicyType pp = new PasswordPolicyType();
 		pp.setName("Testing policy 1");
 		assertNotNull(pp);
-		
-		//Complexity for classes testing
+
+		// Complexity for classes testing
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(null));
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.setComplexity(new PasswordComplexityType());
@@ -59,7 +72,7 @@ public class PasswordPolicyValidatorTest {
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.setValidCharClasses(new PasswordValidCharClassesType());
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		
+
 		// test characters classes for minum characters
 		pp.getValidCharClasses().setLowerChars("");
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
@@ -76,9 +89,9 @@ public class PasswordPolicyValidatorTest {
 		pp.getValidCharClasses().setSpecialChars("");
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.getValidCharClasses().setSpecialChars("123");
-		
-		//testing at least one can be first
-		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));		
+
+		// testing at least one can be first
+		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.getComplexity().getLowers().setCanBeFirst(false);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.getComplexity().getUppers().setCanBeFirst(false);
@@ -89,16 +102,16 @@ public class PasswordPolicyValidatorTest {
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.getComplexity().getSpecial().setCanBeFirst(true);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		
-		//testing wrong definition of min max
+
+		// testing wrong definition of min max
 		pp.getComplexity().setMaxSize(5);
 		pp.getComplexity().setMinSize(6);
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.getComplexity().setMaxSize(6);
 		pp.getComplexity().setMinSize(4);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		
-		//consitency test for sum(min) < max 
+
+		// consitency test for sum(min) < max
 		pp.getComplexity().setMaxSize(7);
 		pp.getComplexity().getNumbers().setMinOccurence(2);
 		pp.getComplexity().getLowers().setMinOccurence(2);
@@ -107,8 +120,8 @@ public class PasswordPolicyValidatorTest {
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.getComplexity().setMaxSize(8);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		
-		//consitency test for sum(max) >= min
+
+		// consitency test for sum(max) >= min
 		pp.getComplexity().setMinSize(9);
 		pp.getComplexity().getNumbers().setMaxOccurence(2);
 		pp.getComplexity().getLowers().setMaxOccurence(2);
@@ -117,7 +130,7 @@ public class PasswordPolicyValidatorTest {
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.getComplexity().setMinSize(8);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		
+
 		// Class min <= max testing
 		pp.getComplexity().getNumbers().setMinOccurence(2);
 		pp.getComplexity().getNumbers().setMaxOccurence(1);
@@ -138,6 +151,21 @@ public class PasswordPolicyValidatorTest {
 		pp.getComplexity().getSpecial().setMaxOccurence(1);
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.getComplexity().getSpecial().setMaxOccurence(2);
+		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
+	}
+
+	@Test
+	public void minimalXMLPolicyTest() throws JAXBException {
+		String filename = "password-policy-minimal.xml";
+		String pathname = BASE_PATH + filename;
+		File file = new File(pathname);
+		JAXBElement<PasswordPolicyType> jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+		PasswordPolicyType pp = jbe.getValue();
+		try { 
+			com.evolveum.midpoint.common.password.PolicyValidator.validate(pp);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 	}
 }
