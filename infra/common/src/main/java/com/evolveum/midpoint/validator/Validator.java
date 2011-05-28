@@ -27,6 +27,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -95,14 +97,16 @@ public class Validator {
 
 		Objects objects = null;
 
-		try {			
-			Object object = u.unmarshal(inputStream);
+		try {
+			Object object = u.unmarshal(new InputStreamReader(inputStream, "utf-8"));
 			if (object instanceof Objects) {
-				objects = (Objects)object;
+				objects = (Objects) object;
 			} else {
-				objects = new Objects();				
+				objects = new Objects();
 				objects.getObject().add((JAXBElement<? extends ObjectType>) object);
 			}
+		} catch (UnsupportedEncodingException ex) {
+			// TODO: logging
 		} catch (JAXBException ex) {
 			if (verbose) {
 				ex.printStackTrace();
@@ -116,10 +120,11 @@ public class Validator {
 						+ saxex.getColumnNumber() + ")"));
 
 			} else if (ex instanceof UnmarshalException) {
-				errors.add(new ValidationMessage(ValidationMessage.Type.ERROR, "Unmarshalling error: " + ex.getMessage()));
+				errors.add(new ValidationMessage(ValidationMessage.Type.ERROR, "Unmarshalling error: "
+						+ ex.getMessage()));
 			} else {
 				errors.add(new ValidationMessage(ValidationMessage.Type.ERROR, "Unmarshalling error: "
-						+ (linkedException != null ? linkedException.getMessage() : "unknown: "+ex)));
+						+ (linkedException != null ? linkedException.getMessage() : "unknown: " + ex)));
 			}
 			return errors;
 		}
@@ -128,7 +133,7 @@ public class Validator {
 			objectErrors = new ArrayList<ValidationMessage>();
 
 			ObjectType object = jaxbObject.getValue();
-			
+
 			if (verbose) {
 				System.out.println("Processing OID " + object.getOid());
 			}

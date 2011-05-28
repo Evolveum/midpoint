@@ -58,7 +58,6 @@
             <!--
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/identity/1#" schemaLocation="../repository/identity.xsd"/>
             -->
-
         </xsd:schema>
     </types>
 
@@ -144,10 +143,14 @@
     <message name="getPropertyAvailableValuesResponse">
         <part name="propertyAvailableValuesList" type="c:PropertyAvailableValuesListType"/>
     </message>
-
+    
     <message name="FaultMessage">
-        <part name="fault" element="c:fault"/>
-    </message>
+    	<part name="result" element="c:fault" /> 	
+    </message>   
+    
+    <!-- <message name="FaultMessage">
+    	<part name="result" element="c:operationResult" /> 	
+    </message> -->     
 
     <!-- End of common messages -->
 

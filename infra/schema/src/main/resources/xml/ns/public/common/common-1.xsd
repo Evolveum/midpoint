@@ -954,25 +954,14 @@
 			<xsd:element name="message" type="xsd:string" />
 			<xsd:element name="temporary" type="xsd:boolean">
 				<xsd:annotation>
-					<xsd:documentation>
-						Temporary faults are independent from (business-wise)
-						system state.
-
-						Temporary faults may appear or
-						disappear withot obvious
-						reasons. It is meaningful to re-try the operation in
-						case of temporary fault as the fault
-						condition may
-						have disappeared in the meantime.
-
-						Permanent (non-temporary) faults are caused by the state
-						of the
-						system, programming bug, etc. It is not
-						meaningful to re-try operation in case of permanent
-						fault as it will most
-						likely produce the same fault
-						again.
-                    </xsd:documentation>
+					<xsd:documentation> Temporary faults are independent from (business-wise) system state. Temporary faults may appear
+						or disappear
+						withot obvious reasons. It is meaningful to re-try the operation in case of temporary fault as the fault condition may
+						have
+						disappeared in the meantime. Permanent (non-temporary) faults are caused by the state of the system, programming bug, etc.
+						It is not meaningful to re-try operation in case of permanent fault as it will most likely produce the same fault
+						again. 
+				</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
@@ -4661,12 +4650,94 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+
+	<xsd:element name="operationResult" type="tns:OperationResultType" />
+
+	<xsd:complexType name="OperationResultType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="operation" type="xsd:string" />
+			<xsd:element name="status" type="tns:OperationResultStatusType" />
+			<xsd:element name="params" type="tns:ParamsType" minOccurs="0" />
+			<xsd:element name="token" type="xsd:long" />
+			<xsd:element name="messageCode" type="xsd:string" minOccurs="0" />
+			<xsd:element name="message" type="xsd:string" />
+			<xsd:element name="localizedMessage" type="tns:LocalizedMessageType" minOccurs="0" />
+			<xsd:element name="partialResults" type="tns:OperationResultType" minOccurs="0" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="LocalizedMessageType">
+		<xsd:sequence>
+			<xsd:element name="key" />
+			<xsd:element name="argument" type="xsd:anySimpleType" minOccurs="0" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ParamsType">
+		<xsd:sequence>
+			<xsd:element name="entry" type="tns:EntryType" minOccurs="0" maxOccurs="unbounded" />
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="EntryType">
+		<xsd:sequence>
+			<xsd:any processContents="lax">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+					<xsd:appinfo>
+						<xjc:dom />
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:any>
+		</xsd:sequence>
+		<xsd:attribute name="key" type="xsd:string" use="required" />
+	</xsd:complexType>
+
+	<xsd:simpleType name="OperationResultStatusType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+            </xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass />
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="success">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="SUCCESS" />
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="warning">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="WARNING" />
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="partial_error">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="PARTIAL_ERROR" />
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="fatal_error">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FATAL_ERROR" />
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 </xsd:schema>
-
-
-
-
-
-
-
-
