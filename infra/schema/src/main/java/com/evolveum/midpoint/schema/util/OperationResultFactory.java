@@ -50,6 +50,30 @@ public abstract class OperationResultFactory {
 	}
 
 	public static OperationResultType createOperationResult(String operation,
+			OperationResultStatusType status, String message, String localizedMessage) {
+		return createOperationResult(operation, status, null, message, null, localizedMessage, null);
+	}
+
+	public static OperationResultType createOperationResult(String operation,
+			OperationResultStatusType status, String message, String localizedMessage,
+			Object[] localizedArguments) {
+		return createOperationResult(operation, status, null, message, null, localizedMessage,
+				localizedArguments);
+	}
+
+	public static OperationResultType createOperationResult(String operation,
+			OperationResultStatusType status, String message, String messageCode, String localizedMessage) {
+		return createOperationResult(operation, status, null, message, messageCode, localizedMessage, null);
+	}
+
+	public static OperationResultType createOperationResult(String operation,
+			OperationResultStatusType status, String message, String messageCode, String localizedMessage,
+			Object[] localizedArguments) {
+		return createOperationResult(operation, status, null, message, messageCode, localizedMessage,
+				localizedArguments);
+	}
+
+	public static OperationResultType createOperationResult(String operation,
 			OperationResultStatusType status, Map<String, Element> params, String message,
 			String messageCode, String localizedMessage, Object[] localizedArguments) {
 		OperationResultType result = createOperationResult(operation, status, params, message, messageCode);

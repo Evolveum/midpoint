@@ -169,12 +169,10 @@ public abstract class SchemaConstants {
 
 	private static void initResolver(Catalog resolver) {
 		try {
-			Enumeration<URL> catalogs;
-			catalogs = Thread.currentThread().getContextClassLoader()
+			Enumeration<URL> catalogs = Thread.currentThread().getContextClassLoader()
 					.getResources("META-INF/wsdl/catalog.xml");
 			while (catalogs.hasMoreElements()) {
 				URL catalogURL = catalogs.nextElement();
-				System.out.println(catalogURL);
 				resolver.parseCatalog(catalogURL);
 			}
 			resolverInitialized = true;

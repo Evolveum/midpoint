@@ -39,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
  * 
  * @author Vilo Repan
  */
+@Deprecated
 @FacesRenderer(componentFamily = HtmlInputTextarea.COMPONENT_FAMILY, rendererType = "InputSyntaxTextAreaRenderer")
 public class InputSyntaxTextAreaRenderer extends TextareaRenderer {
 

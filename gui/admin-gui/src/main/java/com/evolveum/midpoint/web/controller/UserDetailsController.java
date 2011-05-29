@@ -22,6 +22,30 @@
 
 package com.evolveum.midpoint.web.controller;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.context.FacesContext;
+import javax.faces.event.ActionEvent;
+import javax.faces.model.SelectItem;
+import javax.xml.namespace.QName;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.Utils;
@@ -52,28 +76,6 @@ import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
-import javax.faces.event.ActionEvent;
-import javax.faces.model.SelectItem;
-import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 /**
  * 
@@ -178,7 +180,7 @@ public class UserDetailsController implements Serializable {
 				FacesUtils.addErrorMessage(message.toString());
 			}
 		} else {
-			//here we know that setter's parameter user is null
+			// here we know that setter's parameter user is null
 			this.user = null;
 		}
 	}
@@ -377,13 +379,6 @@ public class UserDetailsController implements Serializable {
 				FacesUtils.addErrorMessage(message.toString());
 			}
 
-			// TODO: HACK
-			try {
-				setAccountDetails(account);
-			} catch (Exception ex) {
-				FacesUtils.addErrorMessage("Unknown error: Can't update account attributes: "
-						+ ex.getMessage());
-			}
 			newAccounts.add(account);
 		}
 		getAccountList().addAll(createFormBeanList(newAccounts, true));
@@ -396,60 +391,6 @@ public class UserDetailsController implements Serializable {
 		}
 
 		availableResourceList = createResourceList(existingAccounts);
-	}
-
-	private AccountShadowDto setAccountDetails(AccountShadowDto accountShadow)
-			throws ParserConfigurationException {
-		String resourceNamespace = accountShadow.getResource().getNamespace();
-		// TODO: hack - setting default values for account and some account's
-		// attributes
-		accountShadow.setName(accountShadow.getResource().getName() + "-" + user.getName());
-		List<Element> attributes = new ArrayList<Element>();
-
-		TRACE.info("starting DocumnetBuilderFactory");
-		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-		dbf.setNamespaceAware(true);
-		dbf.setValidating(false);
-		DocumentBuilder db = dbf.newDocumentBuilder();
-		// attributes/uid = user.name
-		Document doc = db.newDocument();
-		Element element = doc.createElementNS(resourceNamespace, "uid");
-		element.setPrefix("ns76");
-		element.setTextContent(user.getName());
-		attributes.add(element);
-		// attributes/name = "uid="+user.name+",ou=people,ou=example,ou=com"
-		// !!! another namespace
-		doc = db.newDocument();
-		element = doc.createElementNS(
-				"http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd",
-				"__NAME__");
-		element.setPrefix("ns75");
-		//
-		// element.setTextContent("uid=" + user.getName() +
-		// ",ou=people,dc=example,dc=com");
-		// attributes.add(element);
-		// attributes/cn = user.fullName
-		doc = db.newDocument();
-		element = doc.createElementNS(resourceNamespace, "cn");
-		element.setPrefix("ns76");
-		element.setTextContent(user.getFullName());
-		attributes.add(element);
-		// attributes/sn = user.familyName
-		doc = db.newDocument();
-		element = doc.createElementNS(resourceNamespace, "sn");
-		element.setPrefix("ns76");
-		element.setTextContent(user.getFamilyName());
-		attributes.add(element);
-		// attributes/givenName = user.givenName
-		doc = db.newDocument();
-		element = doc.createElementNS(resourceNamespace, "givenName");
-		element.setPrefix("ns76");
-		element.setTextContent(user.getGivenName());
-		attributes.add(element);
-		TRACE.info("ending Documnet BuilderFactory");
-
-		accountShadow.setAttributes(attributes);
-		return accountShadow;
 	}
 
 	public void removeResourcePerformed(ActionEvent evt) {

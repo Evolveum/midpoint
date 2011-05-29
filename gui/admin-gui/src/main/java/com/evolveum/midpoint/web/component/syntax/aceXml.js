@@ -5,6 +5,23 @@
  * AceXmlInput.java in encodeEnd() method. This script is builded with StringBuilder.
  */
 
+/*
+ * this method can be used for testing if client browser supports html5 canvas, not integrated yet
+ */
+function supports_canvas() {
+	return !!document.createElement('canvas').getContext;
+}
+
+// TODO: refactor to use this - no window.onload but ice.onLoad
+// var onLoadCallback = function() {
+// loadEditor();
+// var postUpdateHandler = function(updates) {
+// loadEditor();
+// };
+// ice.onAfterUpdate(postUpdateHandler);
+// };
+// ice.onLoad(onLoadCallback);
+
 window.onload = function() {
 	loadEditor();
 	var postUpdateHandler = function(updates) {
@@ -13,10 +30,7 @@ window.onload = function() {
 	ice.onAfterUpdate(postUpdateHandler);
 };
 
-function loadEditor() {
-	var editorId = "";
-	var editorHiddendId = "";
-
+function loadEditor() {	
 	var editor = ace.edit("j_idt53:editorReal");
 	editor.setTheme("ace/theme/eclipse");
 

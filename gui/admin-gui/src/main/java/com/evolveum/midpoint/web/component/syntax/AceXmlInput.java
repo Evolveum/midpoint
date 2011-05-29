@@ -69,6 +69,16 @@ public class AceXmlInput extends HtmlInputHidden {
 
 		writer.startElement("script", null);
 		StringBuilder script = new StringBuilder();
+		// TODO: refactor to use this - no window.onload but ice.onLoad
+		// script.append("var onLoadCallback = function() {\n");
+		// script.append("\tloadEditor();\n");
+		// script.append("\tvar postUpdateHandler = function(updates) {\n");
+		// script.append("\t\tloadEditor();\n");
+		// script.append("\t};\n");
+		// script.append("\tice.onAfterUpdate(postUpdateHandler);\n");
+		// script.append("};\n");
+		// script.append("ice.onLoad(onLoadCallback);\n");
+
 		script.append("window.onload = function() {\n");
 		script.append("\tloadEditor();\n");
 		script.append("\tvar postUpdateHandler = function(updates) {\n");

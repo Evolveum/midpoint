@@ -24,6 +24,8 @@ package com.evolveum.midpoint.provisioning.schema.util;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.provisioning.exceptions.SchemaParserException;
+
 import java.text.MessageFormat;
 
 import org.xml.sax.ErrorHandler;
@@ -47,11 +49,13 @@ public class SchemaErrorLog implements ErrorHandler {
     @Override
     public void error(SAXParseException e) throws SAXException {
         print("[Error]", e);
+        throw new SchemaParserException(e.getMessage(), e);
     }
 
     @Override
     public void fatalError(SAXParseException e) throws SAXException {
         print("[Fatal]", e);
+        throw new SchemaParserException(e.getMessage(), e);
     }
 
     private void print(String header, SAXParseException e) {

@@ -29,6 +29,7 @@ import javax.faces.component.html.HtmlInputTextarea;
  *
  * @author Vilo Repan
  */
+@Deprecated
 @FacesComponent(value = "inputSyntaxTextArea")
 public class HtmlInputSyntaxTextArea extends HtmlInputTextarea {
 }

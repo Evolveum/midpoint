@@ -36,6 +36,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.component.messages.MidPointMessage;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FaultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
 /**
@@ -110,11 +111,15 @@ public abstract class FacesUtils {
 	}
 
 	private static void addMessage(FacesMessage.Severity severity, String msg, Exception ex) {
-		FacesMessage message = new FacesMessage(severity, msg, null);
-//		final MidPointMessage message = new MidPointMessage(severity, msg, null);
-//		if (ex != null) {
-//			fillExceptionMessages(message, ex);
-//		}
+		FacesMessage message = null;
+		if (ex == null) {
+			message = new FacesMessage(severity, msg, null);
+		} else {
+			message = new MidPointMessage(severity, msg, null);
+			if (ex != null) {
+				fillExceptionMessages((MidPointMessage) message, ex);
+			}
+		}
 		FacesContext ctx = FacesContext.getCurrentInstance();
 		if (null != ctx) {
 			ctx.addMessage(null, message);
@@ -132,13 +137,19 @@ public abstract class FacesUtils {
 			FaultMessage fault = (FaultMessage) ex;
 			message.getSubMessages().add(getMessage(fault.getMessage(), fault.getFaultInfo()));
 		} else if (ex instanceof com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage) {
-			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage fault = (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage) ex;
-			message.getSubMessages().add(getMessage(fault.getMessage(), fault.getFaultInfo()));
+			FaultType fault = ((com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage) ex)
+					.getFaultInfo();
+			message.getSubMessages().add(getMessage(ex.getMessage(), fault));
 		} else {
 			message.getSubMessages().add(ex.getMessage());
 		}
 
 		fillExceptionMessages(message, ex.getCause());
+	}
+
+	private static void fillMessageFromOperationResult(MidPointMessage message,
+			OperationResultType operationResult) {
+
 	}
 
 	private static String getMessage(String faultMessage, FaultType faultType) {

@@ -493,6 +493,8 @@ public class DOMToSchemaParser {
 			inSource.setEncoding("utf-8");
 			parser.parse(inSource);
 			xss = parser.getResult();
+		} catch (SchemaParserException ex) {
+			throw ex;
 		} catch (Exception ex) {
 			throw new SchemaParserException("Uknown error during resource xsd schema parsing: "
 					+ ex.getMessage(), ex);
