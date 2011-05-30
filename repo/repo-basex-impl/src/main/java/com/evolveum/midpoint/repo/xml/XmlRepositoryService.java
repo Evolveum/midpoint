@@ -21,22 +21,11 @@
  */
 package com.evolveum.midpoint.repo.xml;
 
-import java.io.ByteArrayOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
-import org.xmldb.api.DatabaseManager;
 import org.xmldb.api.base.Collection;
-import org.xmldb.api.base.Database;
 import org.xmldb.api.base.Resource;
 import org.xmldb.api.base.ResourceIterator;
 import org.xmldb.api.base.ResourceSet;
@@ -46,7 +35,6 @@ import org.xmldb.api.modules.XPathQueryService;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -68,29 +56,9 @@ public class XmlRepositoryService implements RepositoryPortType {
     private static final Trace logger = TraceManager.getTrace(XmlRepositoryService.class);
 	private Collection collection;
 
-	/** Database driver. */
-	public static final String DRIVER = "org.basex.api.xmldb.BXDatabase";
-	
-	public XmlRepositoryService(String url) {
+	XmlRepositoryService(Collection collection) {
 		super();
-		
-		Class<?> c;
-		try {
-			c = Class.forName(DRIVER);
-			Database db = (Database) c.newInstance();
-			DatabaseManager.registerDatabase(db);
-			// Collection instance.
-			collection = DatabaseManager.getCollection(url, "admin", "admin");
-		} catch (ClassNotFoundException e) {
-			throw new RuntimeException("Class "+DRIVER+" for driver was not found", e);
-		} catch (InstantiationException e) {
-			throw new RuntimeException("Failed to create instance for class " + DRIVER, e);
-		} catch (IllegalAccessException e) {
-			throw new RuntimeException("Failed to create instance for class " + DRIVER, e);
-		} catch (XMLDBException e) {
-			throw new RuntimeException("Xml db exception during client initialization", e);
-		}
-
+		this.collection = collection;
 	}
 
 	@Override
@@ -108,12 +76,12 @@ public class XmlRepositoryService implements RepositoryPortType {
 			// Receive the XPath query service.
 			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
 
-			StringBuilder QUERY = new StringBuilder("declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n")
+			StringBuilder query = new StringBuilder("declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n")
 									.append("insert node ")
 									.append(serializedObject).append(" into //c:objects");
 
 			// Execute the query and receives all results.
-			ResourceSet set = service.query(QUERY.toString());
+			ResourceSet set = service.query(query.toString());
 
 			// Create a result iterator.
 			ResourceIterator iter = set.getIterator();
