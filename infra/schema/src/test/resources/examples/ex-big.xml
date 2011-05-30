@@ -36,10 +36,10 @@
    xmlns:ux4="http://foo/"
    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
    xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/resource/resource-schema-1.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/resource/idconnector/resource-schema-1.xsd
-   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/resource/idconnector/configuration-1.xsd'>
+   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/xml/ns/public/common/common-1.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd ../../../main/resources/xml/ns/public/resource/resource-schema-1.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../../../main/resources/xml/ns/public/resource/idconnector/resource-schema-1.xsd
+   http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../../../main/resources/xml/ns/public/resource/idconnector/configuration-1.xsd'>
 
     <i:user oid="c0c010c0-d34d-b33f-f00d-111111111111">
         <c:name>jack</c:name>
