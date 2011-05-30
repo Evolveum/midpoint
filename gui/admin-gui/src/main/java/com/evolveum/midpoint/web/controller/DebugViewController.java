@@ -240,9 +240,13 @@ public class DebugViewController implements Serializable {
 		} catch (FaultMessage ex) {
 			FacesUtils.addErrorMessage("Couln't update object '" + object.getName() + "'.", ex);
 			// TODO: logging
+			
+			return null;
 		} catch (DiffException ex) {
 			FacesUtils.addErrorMessage("Couln't create diff for object '" + object.getName() + "'.", ex);
 			// TODO: logging
+			
+			return null;
 		}
 
 		template.setSelectedLeftId("leftList");

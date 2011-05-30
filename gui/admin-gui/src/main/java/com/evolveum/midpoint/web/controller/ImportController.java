@@ -107,6 +107,8 @@ public class ImportController implements Serializable {
 			uploadStream(stream);
 		} catch (IOException ex) {
 			FacesUtils.addErrorMessage("Couldn't load object from xml, reason: " + ex.getMessage());
+			// TODO: logging
+			return null;
 		} finally {
 			if (stream != null) {
 				IOUtils.closeQuietly(stream);
@@ -134,6 +136,7 @@ public class ImportController implements Serializable {
 			} catch (IOException ex) {
 				FacesUtils.addErrorMessage("Couldn't load object from file '" + file.getName() + "'.", ex);
 				// TODO: logging
+				return;
 			} finally {
 				if (stream != null) {
 					IOUtils.closeQuietly(stream);

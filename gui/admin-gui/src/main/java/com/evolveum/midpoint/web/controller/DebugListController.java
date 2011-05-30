@@ -253,8 +253,8 @@ public class DebugListController implements Serializable {
 	}
 
 	public void showConfirmDelete() {
-		String a = FacesUtils.getRequestParameter(PARAM_DELETE_OBJECT_OID);
-		if (StringUtils.isEmpty(a)) {
+		oidToDelete = FacesUtils.getRequestParameter(PARAM_DELETE_OBJECT_OID);
+		if (StringUtils.isEmpty(oidToDelete)) {
 			FacesUtils.addErrorMessage("Object oid not defined.");
 			return;
 		}
