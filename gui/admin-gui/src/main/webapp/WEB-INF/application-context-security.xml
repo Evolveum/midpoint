@@ -28,7 +28,9 @@
 	<global-method-security secured-annotations="enabled" jsr250-annotations="enabled" />
 
 	<http use-expressions="true" entry-point-ref="authenticationEntryPoint" auto-config="false">
-		<custom-filter ref="sessionManagementFilter" before="SESSION_MANAGEMENT_FILTER" />
+		<!-- <custom-filter ref="maintenanceFilter" after="LAST" /> not finished yet -->
+		
+		<custom-filter ref="sessionManagementFilter" before="SESSION_MANAGEMENT_FILTER" />		
 
 		<intercept-url pattern="/" access="permitAll" />
 		<intercept-url pattern="/favicon.ico" access="permitAll" />
@@ -36,6 +38,7 @@
 		<intercept-url pattern="/resources/images/**" access="permitAll" />
 		<intercept-url pattern="/javax.faces.resource/**" access="permitAll" />
 		<intercept-url pattern="/login.iface" access="permitAll" />
+		<intercept-url pattern="/maintenance.iface" access="permitAll" />
 		<intercept-url pattern="/error.iface" access="permitAll" />
 		<intercept-url pattern="/**" access="isAuthenticated()" />
 
@@ -48,8 +51,12 @@
 		<session-management>
 			<concurrency-control max-sessions="1" error-if-maximum-exceeded="false" />
 		</session-management>
-
 	</http>
+	
+	<beans:bean id="maintenanceFilter" class="com.evolveum.midpoint.web.security.MidPointMaintenanceFilter">
+		<beans:property name="maintenanceUrl" value="/maintenance.iface" />
+		<beans:property name="redirectStrategy" ref="jsfRedirectStrategy" />
+	</beans:bean>
 
 	<beans:bean id="authenticationEntryPoint" class="org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint">
 		<beans:property name="loginFormUrl" value="/login.iface" />
