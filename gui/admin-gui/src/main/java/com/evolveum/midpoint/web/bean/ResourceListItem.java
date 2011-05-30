@@ -39,6 +39,7 @@ public class ResourceListItem implements Serializable {
 	private String type;
 	private String version;
 	private ResourceState state;
+	private ResourceSync sync;
 	private int progress;
 
 	public ResourceListItem(String oid, String name, String type, String version) {
@@ -95,5 +96,12 @@ public class ResourceListItem implements Serializable {
 			state = new ResourceState();
 		}
 		return state;
+	}
+	
+	public ResourceSync getSync() {
+		if (sync == null) {
+			sync = new ResourceSync();
+		}
+		return sync;
 	}
 }

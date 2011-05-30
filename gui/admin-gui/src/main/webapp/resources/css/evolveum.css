@@ -279,6 +279,14 @@ h3 {
 	text-transform: capitalize;
 }
 
+h4 {
+	font: 15px Georgia, "Times New Roman", serif;
+	font-weight: bold;
+	padding-top: 5px;
+	padding-bottom: 5px;
+	text-transform: capitalize;
+}
+
 body {
 	font: 13px Arial, Helvetica, sans-serif;
 }

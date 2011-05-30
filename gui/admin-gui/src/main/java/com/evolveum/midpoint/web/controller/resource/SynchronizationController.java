@@ -28,13 +28,15 @@ import com.evolveum.midpoint.web.controller.wizard.WizardPage;
 /**
  * 
  * @author lazyman
- *
+ * 
  */
 @Controller("resourceSynchronization")
 @Scope("session")
 public class SynchronizationController extends WizardPage {
 
 	private static final long serialVersionUID = 8679302869048479592L;
+	private boolean enabled;
+	private int poolingInterval;
 
 	public SynchronizationController() {
 		super(ResourceWizard.PAGE_NAVIGATION_BASE + "/synchronization.xhtml");
@@ -44,7 +46,23 @@ public class SynchronizationController extends WizardPage {
 	public String getFinishPage() {
 		return "/resource/index";
 	}
-	
+
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
+
+	public int getPoolingInterval() {
+		return poolingInterval;
+	}
+
+	public void setPoolingInterval(int poolingInterval) {
+		this.poolingInterval = poolingInterval;
+	}
+
 	@Override
 	public void cleanController() {
 		// TODO Auto-generated method stub
@@ -52,8 +70,8 @@ public class SynchronizationController extends WizardPage {
 
 	@Override
 	public String finish() {
-		//TODO: stuff...
-		
+		// TODO: stuff...
+
 		return getFinishPage();
 	}
 }

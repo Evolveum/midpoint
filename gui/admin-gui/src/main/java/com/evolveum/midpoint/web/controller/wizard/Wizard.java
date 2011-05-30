@@ -110,6 +110,8 @@ public abstract class Wizard implements Serializable {
 	}
 
 	public String finish() {
+		index = 0;
+		
 		String returnPage = getActualWizardPage().finish();
 		if (!StringUtils.isEmpty(returnPage)) {
 			for (WizardPage page : getPages()) {
@@ -121,6 +123,7 @@ public abstract class Wizard implements Serializable {
 	}
 
 	public String cancel() {
+		index = 0;
 		for (WizardPage page : getPages()) {
 			page.cleanController();
 		}
