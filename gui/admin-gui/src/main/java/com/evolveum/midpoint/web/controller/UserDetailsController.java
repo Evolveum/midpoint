@@ -369,6 +369,7 @@ public class UserDetailsController implements Serializable {
 			AccountShadowDto account = null;
 			try {
 				account = userManager.addAccount(user, resource.getOid());
+				account.setName(resource.getName() + "-" + user.getName());
 			} catch (WebModelException ex) {
 				StringBuilder message = new StringBuilder();
 				message.append("Error occured. Reason: ");
