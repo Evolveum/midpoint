@@ -128,7 +128,7 @@ public class LinkAccountActionTest {
     }
     
     @Test
-    public void testAddUserAction() throws Exception {
+    public void testLinkAccountAction() throws Exception {
 
         final String resourceOid = "ef2bc95b-76e0-48e2-97e7-3d4f02d3e1a2";
         final String userOid = "12345678-d34d-b33f-f00d-987987987987";
@@ -136,7 +136,7 @@ public class LinkAccountActionTest {
 
         try {
             //create additional change
-            ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-add.xml");
+            ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-link.xml");
             //adding objects to repo
             addObjectToRepo("src/test/resources/user.xml");
             ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());

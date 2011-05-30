@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- User Template Object. This object is used when creating a new account, 
+	to set it up as needed. -->
+<i:userTemplate oid="c0c010c0-d34d-b55f-f22d-777666111111"
+	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+	xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
+	xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'>
+	<c:name>Default User Template</c:name>
+
+	<!-- Property construction. Defines how properties of user object are set 
+		up. This specific definition sets a full name as a concatenation of givenName 
+		and familyName. -->
+	<i:propertyConstruction>
+		<i:property>i:fullName</i:property>
+		<i:valueConstruction default="true">
+			<i:valueExpression>
+				declare namespace
+				i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+				concat($i:user/i:givenName,' ',$i:user/i:familyName)
+			</i:valueExpression>
+		</i:valueConstruction>
+	</i:propertyConstruction>
+	
+
+</i:userTemplate>
+
