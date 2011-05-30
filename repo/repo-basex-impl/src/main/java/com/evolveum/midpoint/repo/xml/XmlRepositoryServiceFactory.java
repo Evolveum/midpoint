@@ -21,10 +21,12 @@
  */
 package com.evolveum.midpoint.repo.xml;
 
+import org.basex.api.xmldb.BXCollection;
 import org.xmldb.api.DatabaseManager;
 import org.xmldb.api.base.Collection;
 import org.xmldb.api.base.Database;
 import org.xmldb.api.base.XMLDBException;
+import org.xmldb.api.modules.XMLResource;
 
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
@@ -32,7 +34,7 @@ public class XmlRepositoryServiceFactory {
 
 	/** Database driver. */
 	public static final String DRIVER = "org.basex.api.xmldb.BXDatabase";
-	
+
 	private RepositoryPortType repositoryService;
 	private static final String url = "xmldb:basex://localhost:1984/midPoint";
 
@@ -42,8 +44,14 @@ public class XmlRepositoryServiceFactory {
 			c = Class.forName(DRIVER);
 			Database db = (Database) c.newInstance();
 			DatabaseManager.registerDatabase(db);
+			BXCollection collection = new BXCollection("midPoint", false);
+
+			XMLResource res = (XMLResource) collection.createResource("objects", XMLResource.RESOURCE_TYPE);
+			res.setContent("<c:objects xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"/>");
+			collection.storeResource(res);
 		} catch (ClassNotFoundException e) {
-			throw new RepositoryServiceFactoryException("Class "+DRIVER+" for XML DB driver was not found", e);
+			throw new RepositoryServiceFactoryException("Class " + DRIVER
+					+ " for XML DB driver was not found", e);
 		} catch (InstantiationException e) {
 			throw new RepositoryServiceFactoryException("Failed to create instance for class " + DRIVER, e);
 		} catch (IllegalAccessException e) {
@@ -53,21 +61,23 @@ public class XmlRepositoryServiceFactory {
 		}
 
 	}
-	
+
 	public RepositoryPortType getRepositoryService() throws RepositoryServiceFactoryException {
 		if (null == repositoryService) {
 			try {
 				Collection collection = DatabaseManager.getCollection(url);
 				if (null == collection) {
-					throw new RepositoryServiceFactoryException("Error retrieving midPoint collection from xml database");
+					throw new RepositoryServiceFactoryException(
+							"Error retrieving midPoint collection from xml database");
 				}
 				repositoryService = new XmlRepositoryService(collection);
 			} catch (XMLDBException e) {
-				throw new RepositoryServiceFactoryException("Xml db exception during client initialization", e);
+				throw new RepositoryServiceFactoryException("Xml db exception during client initialization",
+						e);
 			}
 		}
-		
+
 		return repositoryService;
 	}
-	
+
 }
