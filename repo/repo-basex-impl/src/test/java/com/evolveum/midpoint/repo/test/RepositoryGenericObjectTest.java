@@ -52,7 +52,7 @@ import static org.junit.Assert.*;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"../../../../../application-context-repository.xml", "../../../../../application-context-repository-test.xml"})
-public class RepositorGenericObjectTest {
+public class RepositoryGenericObjectTest {
 
     @Autowired(required = true)
     private RepositoryPortType repositoryService;
@@ -65,7 +65,7 @@ public class RepositorGenericObjectTest {
         this.repositoryService = repositoryService;
     }
 
-    public RepositorGenericObjectTest() {
+    public RepositoryGenericObjectTest() {
     }
 
     @BeforeClass
