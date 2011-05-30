@@ -104,18 +104,18 @@ public class ImportController implements Serializable {
 		InputStream stream = null;
 		try {
 			stream = IOUtils.toInputStream(editor, "utf-8");
-			uploadStream(stream);
+			if (uploadStream(stream)) {
+				clearController();
+			}
 		} catch (IOException ex) {
 			FacesUtils.addErrorMessage("Couldn't load object from xml, reason: " + ex.getMessage());
 			// TODO: logging
-			return null;
 		} finally {
 			if (stream != null) {
 				IOUtils.closeQuietly(stream);
 			}
 		}
-
-		clearController();
+		
 		return null;
 	}
 
@@ -132,19 +132,18 @@ public class ImportController implements Serializable {
 			InputStream stream = null;
 			try {
 				stream = new BufferedInputStream(new FileInputStream(file));
-				uploadStream(stream);
+				if (uploadStream(stream)) {
+					clearController();
+				}
 			} catch (IOException ex) {
 				FacesUtils.addErrorMessage("Couldn't load object from file '" + file.getName() + "'.", ex);
 				// TODO: logging
-				return;
 			} finally {
 				if (stream != null) {
 					IOUtils.closeQuietly(stream);
 				}
 			}
-		}
-
-		clearController();
+		}		
 	}
 
 	private void clearController() {
@@ -153,9 +152,9 @@ public class ImportController implements Serializable {
 		editor = null;
 	}
 
-	private void addObjectsToRepository(List<ObjectType> objects) {
+	private boolean addObjectsToRepository(List<ObjectType> objects) {
 		if (objects == null) {
-			return;
+			return false;
 		}
 
 		for (ObjectType object : objects) {
@@ -184,12 +183,14 @@ public class ImportController implements Serializable {
 				FacesUtils.addErrorMessage(failureMessage + ":" + ex.getMessage());
 				FacesUtils.addErrorMessage("Failed to add object " + object.getName());
 				TRACE.error("Add object failed");
-				TRACE.error("Exception was: {}", ex, ex);
+				TRACE.error("Exception was: {}", ex, ex);				
 			}
 		}
+		
+		return true;
 	}
 
-	private void uploadStream(InputStream input) {
+	private boolean uploadStream(InputStream input) {
 		final List<ObjectType> objects = new ArrayList<ObjectType>();
 		Validator validator = new Validator(new ObjectHandler() {
 
@@ -216,9 +217,9 @@ public class ImportController implements Serializable {
 				}
 				FacesUtils.addErrorMessage(builder.toString());
 			}
-			return;
+			return false;
 		}
 
-		addObjectsToRepository(objects);
+		return addObjectsToRepository(objects);		
 	}
 }
