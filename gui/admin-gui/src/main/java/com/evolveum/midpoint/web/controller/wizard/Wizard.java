@@ -34,6 +34,7 @@ import org.apache.commons.lang.StringUtils;
 public abstract class Wizard implements Serializable {
 
 	private static final long serialVersionUID = -1906021840798686508L;
+	private static final String FACES_REDIRECT = "?faces-redirect=true";
 	private String cancelPage;
 	private List<WizardPage> pages;
 	private int index = 0;
@@ -99,19 +100,29 @@ public abstract class Wizard implements Serializable {
 		if (index + 1 <= getPages().size()) {
 			index++;
 		}
-		return getActualWizardPage().getPageUrl();
+
+		return getActualWizardPageUrl();
 	}
 
 	public String back() {
 		if (index >= 1) {
 			index--;
 		}
-		return getActualWizardPage().getPageUrl();
+		return getActualWizardPageUrl();
+	}
+
+	private String getActualWizardPageUrl() {
+		String page = getActualWizardPage().getPageUrl();
+		if (!page.endsWith(FACES_REDIRECT)) {
+			return page + FACES_REDIRECT;
+		}
+
+		return page;
 	}
 
 	public String finish() {
 		index = 0;
-		
+
 		String returnPage = getActualWizardPage().finish();
 		if (!StringUtils.isEmpty(returnPage)) {
 			for (WizardPage page : getPages()) {

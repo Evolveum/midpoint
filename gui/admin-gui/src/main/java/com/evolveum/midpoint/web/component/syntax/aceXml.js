@@ -22,13 +22,16 @@ function supports_canvas() {
 // };
 // ice.onLoad(onLoadCallback);
 
-window.onload = function() {
-	loadEditor();
-	var postUpdateHandler = function(updates) {
-		loadEditor();
-	};
-	ice.onAfterUpdate(postUpdateHandler);
-};
+ice.onLoad(function() {
+	alert('vilkooo');
+});
+
+ice.onLoad(function() {
+	loadEditor("editorId", "editoIdReal", true);
+	ice.onAfterUpdate(function(updates) {
+		loadEditor("editorId", "editoIdReal", true);
+	});
+});
 
 function loadEditor() {	
 	var editor = ace.edit("j_idt53:editorReal");

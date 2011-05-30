@@ -26,8 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.controller.wizard.Wizard;
 import com.evolveum.midpoint.web.controller.wizard.WizardPage;
 
@@ -42,7 +40,6 @@ public class ResourceWizard extends Wizard {
 
 	static final String PAGE_NAVIGATION_BASE = "/resource/create";
 	private static final long serialVersionUID = -8327099988202610912L;
-	private static final Trace TRACE = TraceManager.getTrace(ResourceWizard.class);
 	@Autowired(required = true)
 	private ResourceCreateController create;
 	@Autowired(required = true)

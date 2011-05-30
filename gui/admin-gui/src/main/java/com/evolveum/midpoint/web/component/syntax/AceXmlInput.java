@@ -66,38 +66,8 @@ public class AceXmlInput extends HtmlInputHidden {
 		writeJavaScriptElement(context, writer, "ace.js");
 		writeJavaScriptElement(context, writer, "mode-xml.js");
 		writeJavaScriptElement(context, writer, "theme-eclipse.js");
+		writeJavaScriptElement(context, writer, "ace-component.js");
 
-		writer.startElement("script", null);
-		StringBuilder script = new StringBuilder();
-		// TODO: refactor to use this - no window.onload but ice.onLoad
-		// script.append("var onLoadCallback = function() {\n");
-		// script.append("\tloadEditor();\n");
-		// script.append("\tvar postUpdateHandler = function(updates) {\n");
-		// script.append("\t\tloadEditor();\n");
-		// script.append("\t};\n");
-		// script.append("\tice.onAfterUpdate(postUpdateHandler);\n");
-		// script.append("};\n");
-		// script.append("ice.onLoad(onLoadCallback);\n");
-
-		script.append("window.onload = function() {\n");
-		script.append("\tloadEditor();\n");
-		script.append("\tvar postUpdateHandler = function(updates) {\n");
-		script.append("\t\tloadEditor();\n");
-		script.append("\t};\n");
-		script.append("\tice.onAfterUpdate(postUpdateHandler);\n");
-		script.append("}; \n\n");
-
-		script.append("function loadEditor() {\n");
-		script.append("\tvar editor = ace.edit(\"");
-		script.append(getClientId());
-		script.append("Real\");\n");
-		script.append("\teditor.setTheme(\"ace/theme/eclipse\");\n\n");
-
-		script.append("\tvar XmlMode = require(\"ace/mode/xml\").Mode;\n");
-		script.append("\teditor.getSession().setMode(new XmlMode());\n");
-		script.append("\tdocument.getElementById('");
-		script.append(getClientId());
-		script.append("Real').style.fontSize='13px';\n");
 		Object object = getAttributeValue(AceXmlInput.ATTR_READONLY, context);
 		Boolean readonly = new Boolean(false);
 		if (object instanceof String) {
@@ -105,15 +75,37 @@ public class AceXmlInput extends HtmlInputHidden {
 		} else if (object instanceof Boolean) {
 			readonly = (Boolean) object;
 		}
-		script.append("\teditor.setReadOnly(");
-		script.append(readonly.booleanValue());
-		script.append(");\n");
-		script.append("\teditor.getSession().on('change', function() {\n");
-		script.append("\t\tdocument.getElementById('");
-		script.append(getClientId());
-		script.append("').value = editor.getSession().getValue();\n");
-		script.append("\t});\n");
+
+		writer.startElement("script", null);
+		writer.writeAttribute("type", "text/javascript", null);
+		StringBuilder script = new StringBuilder();
+		script.append("if (!isDefined('editors')) {\n");
+		script.append("\twindow.editors = {};\n");
 		script.append("}\n");
+		script.append("window.editors['");
+		script.append(getClientId());
+		script.append("'] = ");
+		script.append(readonly.booleanValue());
+		script.append(";\n");
+		
+//		writer.writeText(script.toString(), null);
+//		writer.endElement("script");
+//
+//		writer.startElement("script", null);
+//		writer.writeAttribute("type", "text/javascript", null);
+//		
+//		script = new StringBuilder();
+		
+		script.append("ice.onLoad(function() {\n");
+		// script.append("\talert(\"After load: editable: \" + !" +
+		// readonly.booleanValue() + ");\n");
+		script.append("\tloadEditor(\"" + getClientId() + "\");\n");
+		script.append("\tice.onAfterUpdate(function(updates) {\n");
+		// script.append("\talert(\"After update: editable: \" + !" +
+		// readonly.booleanValue() + ");");
+		script.append("\t\tloadEditor(\"" + getClientId() + "\");\n");
+		script.append("\t});\n");
+		script.append("});\n");
 
 		writer.writeText(script.toString(), null);
 		writer.endElement("script");
