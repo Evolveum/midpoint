@@ -4578,10 +4578,10 @@
 
 	<xsd:complexType name="PasswordComplexityType">
 		<xsd:sequence>
-			<xsd:element name="lowers" type="tns:LimitationsType" minOccurs="0" />
-			<xsd:element name="uppers" type="tns:LimitationsType" minOccurs="0" />
-			<xsd:element name="numbers" type="tns:LimitationsType" minOccurs="0" />
-			<xsd:element name="special" type="tns:LimitationsType" minOccurs="0" />
+			<xsd:element name="limitLowers" type="tns:LimitationsType" minOccurs="0" />
+			<xsd:element name="limitUppers" type="tns:LimitationsType" minOccurs="0" />
+			<xsd:element name="limitNumbers" type="tns:LimitationsType" minOccurs="0" />
+			<xsd:element name="limitSpecial" type="tns:LimitationsType" minOccurs="0" />
 		</xsd:sequence>
 		<xsd:attribute name="minSize" type="xsd:int" default="4">
 			<xsd:annotation>

@@ -49,7 +49,7 @@ public class PolicyValidator {
 							"No complexity defined in password policy :" + pp.getName()));
 		}
 
-		if (null == pp.getComplexity().getLowers()) {
+		if (null == pp.getComplexity().getLimitLowers()) {
 			throw new PasswordPolicyException(
 					"No complexity defined for lower class characters in password policy :" + pp.getName(),
 					new OperationResult("Password Policy Validation", "PPV-0003",
@@ -57,7 +57,7 @@ public class PolicyValidator {
 									+ pp.getName()));
 		}
 
-		if (null == pp.getComplexity().getUppers()) {
+		if (null == pp.getComplexity().getLimitUppers()) {
 			throw new PasswordPolicyException(
 					"No complexity defined for upper class characters in password policy :" + pp.getName(),
 					new OperationResult("Password Policy Validation", "PPV-0004",
@@ -65,7 +65,7 @@ public class PolicyValidator {
 									+ pp.getName()));
 		}
 
-		if (null == pp.getComplexity().getNumbers()) {
+		if (null == pp.getComplexity().getLimitNumbers()) {
 			throw new PasswordPolicyException(
 					"No complexity defined for number class characters in password policy :" + pp.getName(),
 					new OperationResult("Password Policy Validation", "PPV-0005",
@@ -73,7 +73,7 @@ public class PolicyValidator {
 									+ pp.getName()));
 		}
 
-		if (null == pp.getComplexity().getSpecial()) {
+		if (null == pp.getComplexity().getLimitSpecial()) {
 			throw new PasswordPolicyException(
 					"No complexity defined for special class characters in password policy :" + pp.getName(),
 					new OperationResult("Password Policy Validation", "PPV-0006",
@@ -92,9 +92,9 @@ public class PolicyValidator {
 		}
 
 		// sum(min) >= max
-		if (pp.getComplexity().getMaxSize() < (pp.getComplexity().getLowers().getMinOccurence()
-				+ pp.getComplexity().getUppers().getMinOccurence()
-				+ pp.getComplexity().getNumbers().getMinOccurence() + pp.getComplexity().getSpecial()
+		if (pp.getComplexity().getMaxSize() < (pp.getComplexity().getLimitLowers().getMinOccurence()
+				+ pp.getComplexity().getLimitUppers().getMinOccurence()
+				+ pp.getComplexity().getLimitNumbers().getMinOccurence() + pp.getComplexity().getLimitSpecial()
 				.getMinOccurence())) {
 			// TODO - FIX exception handling
 			throw new PasswordPolicyException(
@@ -104,10 +104,10 @@ public class PolicyValidator {
 									+ pp.getName()));
 		}
 		// sum(max) <= min
-		if ( pp.getComplexity().getMinSize() > ( pp.getComplexity().getLowers().getMaxOccurence()
-				+ pp.getComplexity().getUppers().getMaxOccurence()
-				+ pp.getComplexity().getNumbers().getMaxOccurence() 
-				+ pp.getComplexity().getSpecial().getMaxOccurence() ) ) {
+		if ( pp.getComplexity().getMinSize() > ( pp.getComplexity().getLimitLowers().getMaxOccurence()
+				+ pp.getComplexity().getLimitUppers().getMaxOccurence()
+				+ pp.getComplexity().getLimitNumbers().getMaxOccurence() 
+				+ pp.getComplexity().getLimitSpecial().getMaxOccurence() ) ) {
 			// TODO - FIX exception handling
 			throw new PasswordPolicyException(
 					"Requested maximal occurences exceed min length of password in password policy :"
@@ -117,9 +117,10 @@ public class PolicyValidator {
 		}
 		
 		// at least one need to be first
-		if (!(pp.getComplexity().getNumbers().isCanBeFirst() || pp.getComplexity().getLowers().isCanBeFirst()
-				|| pp.getComplexity().getUppers().isCanBeFirst() || pp.getComplexity().getSpecial()
-				.isCanBeFirst())) {
+		if (!(pp.getComplexity().getLimitNumbers().isCanBeFirst() 
+				|| pp.getComplexity().getLimitLowers().isCanBeFirst()
+				|| pp.getComplexity().getLimitUppers().isCanBeFirst()
+				|| pp.getComplexity().getLimitSpecial().isCanBeFirst())) {
 			// TODO - FIX exception handling
 			throw new PasswordPolicyException(
 					"At least one of character class need to be marked as can be first in password policy :"
@@ -129,10 +130,10 @@ public class PolicyValidator {
 		}
 
 		// sum(max) <= min
-		if ( 0 == ( pp.getComplexity().getLowers().getMaxOccurence()
-				+ pp.getComplexity().getUppers().getMaxOccurence()
-				+ pp.getComplexity().getNumbers().getMaxOccurence() 
-				+ pp.getComplexity().getSpecial().getMaxOccurence() ) ) {
+		if ( 0 == ( pp.getComplexity().getLimitLowers().getMaxOccurence()
+				+ pp.getComplexity().getLimitUppers().getMaxOccurence()
+				+ pp.getComplexity().getLimitNumbers().getMaxOccurence() 
+				+ pp.getComplexity().getLimitSpecial().getMaxOccurence() ) ) {
 			// TODO - FIX exception handling
 			throw new PasswordPolicyException(
 					"At least one character class need to be enabled in password policy :"
@@ -142,26 +143,26 @@ public class PolicyValidator {
 		}
 		
 		// Can not have only one first and in same time disabled this class 
-		if ( ( pp.getComplexity().getLowers().isCanBeFirst() == true 
-					&& pp.getComplexity().getUppers().isCanBeFirst() == false
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == false
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == false
-					&& pp.getComplexity().getLowers().getMaxOccurence() == 0 )
-				|| ( pp.getComplexity().getLowers().isCanBeFirst() == false
-					&& pp.getComplexity().getUppers().isCanBeFirst() == true
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == false
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == false
-					&& pp.getComplexity().getUppers().getMaxOccurence() == 0 )
-				|| ( pp.getComplexity().getLowers().isCanBeFirst() == false
-					&& pp.getComplexity().getUppers().isCanBeFirst() == false
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == true
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == false
-					&& pp.getComplexity().getNumbers().getMaxOccurence() == 0 )
-				|| ( pp.getComplexity().getLowers().isCanBeFirst() == false
-					&& pp.getComplexity().getUppers().isCanBeFirst() == false
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == false
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == true
-					&& pp.getComplexity().getSpecial().getMaxOccurence() == 0)) {
+		if ( ( pp.getComplexity().getLimitLowers().isCanBeFirst() == true 
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitLowers().getMaxOccurence() == 0 )
+				|| ( pp.getComplexity().getLimitLowers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitUppers().getMaxOccurence() == 0 )
+				|| ( pp.getComplexity().getLimitLowers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitNumbers().getMaxOccurence() == 0 )
+				|| ( pp.getComplexity().getLimitLowers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitSpecial().getMaxOccurence() == 0)) {
 			// TODO - FIX exception handling
 			throw new PasswordPolicyException(
 					"Character class can not be disabled and be single marked as can be first:" + pp.getName(),
@@ -171,42 +172,42 @@ public class PolicyValidator {
 		}
 		
 		// Can not be two first and both disabled 
-		if ( (pp.getComplexity().getLowers().isCanBeFirst() == true 
-					&& pp.getComplexity().getUppers().isCanBeFirst() == true
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == false
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == false
-					&& pp.getComplexity().getLowers().getMaxOccurence() == 0
-					&& pp.getComplexity().getUppers().getMaxOccurence() == 0 ) 
-				|| ( pp.getComplexity().getLowers().isCanBeFirst() == true 
-					&& pp.getComplexity().getUppers().isCanBeFirst() == false
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == true
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == false
-					&& pp.getComplexity().getLowers().getMaxOccurence() == 0
-					&& pp.getComplexity().getNumbers().getMaxOccurence() == 0 )
-				|| ( pp.getComplexity().getLowers().isCanBeFirst() == true 
-					&& pp.getComplexity().getUppers().isCanBeFirst() == false
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == false
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == true
-					&& pp.getComplexity().getLowers().getMaxOccurence() == 0
-					&& pp.getComplexity().getSpecial().getMaxOccurence() == 0 )
-				|| ( pp.getComplexity().getLowers().isCanBeFirst() == false 
-					&& pp.getComplexity().getUppers().isCanBeFirst() == true
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == true
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == false
-					&& pp.getComplexity().getUppers().getMaxOccurence() == 0
-					&& pp.getComplexity().getNumbers().getMaxOccurence() == 0 )
-				|| ( pp.getComplexity().getLowers().isCanBeFirst() == false 
-					&& pp.getComplexity().getUppers().isCanBeFirst() == true
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == false
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == true
-					&& pp.getComplexity().getUppers().getMaxOccurence() == 0
-					&& pp.getComplexity().getSpecial().getMaxOccurence() == 0 )
-				|| ( pp.getComplexity().getLowers().isCanBeFirst() == false 
-					&& pp.getComplexity().getUppers().isCanBeFirst() == false
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == true
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == true
-					&& pp.getComplexity().getNumbers().getMaxOccurence() == 0
-					&& pp.getComplexity().getSpecial().getMaxOccurence() == 0 )) {
+		if ( (pp.getComplexity().getLimitLowers().isCanBeFirst() == true 
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitLowers().getMaxOccurence() == 0
+					&& pp.getComplexity().getLimitUppers().getMaxOccurence() == 0 ) 
+				|| ( pp.getComplexity().getLimitLowers().isCanBeFirst() == true 
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitLowers().getMaxOccurence() == 0
+					&& pp.getComplexity().getLimitNumbers().getMaxOccurence() == 0 )
+				|| ( pp.getComplexity().getLimitLowers().isCanBeFirst() == true 
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitLowers().getMaxOccurence() == 0
+					&& pp.getComplexity().getLimitSpecial().getMaxOccurence() == 0 )
+				|| ( pp.getComplexity().getLimitLowers().isCanBeFirst() == false 
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitUppers().getMaxOccurence() == 0
+					&& pp.getComplexity().getLimitNumbers().getMaxOccurence() == 0 )
+				|| ( pp.getComplexity().getLimitLowers().isCanBeFirst() == false 
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitUppers().getMaxOccurence() == 0
+					&& pp.getComplexity().getLimitSpecial().getMaxOccurence() == 0 )
+				|| ( pp.getComplexity().getLimitLowers().isCanBeFirst() == false 
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitNumbers().getMaxOccurence() == 0
+					&& pp.getComplexity().getLimitSpecial().getMaxOccurence() == 0 )) {
 			// TODO - FIX exception handling
 			throw new PasswordPolicyException(
 					"Two character class can not be disabled and same time only marked as can be first :" 
@@ -216,34 +217,34 @@ public class PolicyValidator {
 		}
 		
 		// Can not be three first and same three disabled disabled 
-		if ( ( pp.getComplexity().getLowers().isCanBeFirst() == true 
-					&& pp.getComplexity().getUppers().isCanBeFirst() == true
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == true
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == false
-					&& pp.getComplexity().getLowers().getMaxOccurence() == 0
-					&& pp.getComplexity().getUppers().getMaxOccurence() == 0 
-					&& pp.getComplexity().getNumbers().getMaxOccurence() == 0 )
-				||  ( pp.getComplexity().getLowers().isCanBeFirst() == true 
-					&& pp.getComplexity().getUppers().isCanBeFirst() == true
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == false
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == true
-					&& pp.getComplexity().getLowers().getMaxOccurence() == 0
-					&& pp.getComplexity().getUppers().getMaxOccurence() == 0 
-					&& pp.getComplexity().getNumbers().getMaxOccurence() == 0 )
-				|| ( pp.getComplexity().getLowers().isCanBeFirst() == true 
-					&& pp.getComplexity().getUppers().isCanBeFirst() == false
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == true
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == true
-					&& pp.getComplexity().getLowers().getMaxOccurence() == 0
-					&& pp.getComplexity().getUppers().getMaxOccurence() == 0 
-					&& pp.getComplexity().getNumbers().getMaxOccurence() == 0 )
-				||( pp.getComplexity().getLowers().isCanBeFirst() == false
-					&& pp.getComplexity().getUppers().isCanBeFirst() == true
-					&& pp.getComplexity().getNumbers().isCanBeFirst() == true
-					&& pp.getComplexity().getSpecial().isCanBeFirst() == true
-					&& pp.getComplexity().getLowers().getMaxOccurence() == 0
-					&& pp.getComplexity().getUppers().getMaxOccurence() == 0 
-					&& pp.getComplexity().getNumbers().getMaxOccurence() == 0 )) {
+		if ( ( pp.getComplexity().getLimitLowers().isCanBeFirst() == true 
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitLowers().getMaxOccurence() == 0
+					&& pp.getComplexity().getLimitUppers().getMaxOccurence() == 0 
+					&& pp.getComplexity().getLimitNumbers().getMaxOccurence() == 0 )
+				||  ( pp.getComplexity().getLimitLowers().isCanBeFirst() == true 
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitLowers().getMaxOccurence() == 0
+					&& pp.getComplexity().getLimitUppers().getMaxOccurence() == 0 
+					&& pp.getComplexity().getLimitNumbers().getMaxOccurence() == 0 )
+				|| ( pp.getComplexity().getLimitLowers().isCanBeFirst() == true 
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitLowers().getMaxOccurence() == 0
+					&& pp.getComplexity().getLimitUppers().getMaxOccurence() == 0 
+					&& pp.getComplexity().getLimitNumbers().getMaxOccurence() == 0 )
+				||( pp.getComplexity().getLimitLowers().isCanBeFirst() == false
+					&& pp.getComplexity().getLimitUppers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitNumbers().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitSpecial().isCanBeFirst() == true
+					&& pp.getComplexity().getLimitLowers().getMaxOccurence() == 0
+					&& pp.getComplexity().getLimitUppers().getMaxOccurence() == 0 
+					&& pp.getComplexity().getLimitNumbers().getMaxOccurence() == 0 )) {
 			// TODO - FIX exception handling
 			throw new PasswordPolicyException(
 					"Two character class can not be disabled and same time only marked as can be first :" 
@@ -294,6 +295,20 @@ public class PolicyValidator {
 					"At least one character need to be defined in class specialChars in password policy :"
 							+ pp.getName(), new OperationResult("Password Policy Validation", "PPV-0018",
 							"At least one character need to be defined in class specialChars in password policy :"
+									+ pp.getName()));
+		}
+		
+		// test if there is enough characters to apply unique
+		if (pp.getComplexity().getMinimumUniqueChars() > ( 
+				pp.getValidCharClasses().getLowerChars().length() 
+				+ pp.getValidCharClasses().getUpperChars().length()
+				+ pp.getValidCharClasses().getNumberChars().length()
+				+ pp.getValidCharClasses().getSpecialChars().length())) {
+			// TODO - FIX exception handling
+			throw new PasswordPolicyException(
+					"Number of of available characters no meet requested uniqueness in password policy :"
+							+ pp.getName(), new OperationResult("Password Policy Validation", "PPV-0019",
+							"Number of of available characters no meet requested uniqueness in password policy :"
 									+ pp.getName()));
 		}
 		// Looks OK

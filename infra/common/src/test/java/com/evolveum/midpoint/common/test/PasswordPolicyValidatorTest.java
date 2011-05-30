@@ -62,13 +62,13 @@ public class PasswordPolicyValidatorTest {
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.setComplexity(new PasswordComplexityType());
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().setLowers(new LimitationsType());
+		pp.getComplexity().setLimitLowers(new LimitationsType());
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().setUppers(new LimitationsType());
+		pp.getComplexity().setLimitUppers(new LimitationsType());
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().setNumbers(new LimitationsType());
+		pp.getComplexity().setLimitNumbers(new LimitationsType());
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().setSpecial(new LimitationsType());
+		pp.getComplexity().setLimitSpecial(new LimitationsType());
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.setValidCharClasses(new PasswordValidCharClassesType());
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
@@ -92,15 +92,15 @@ public class PasswordPolicyValidatorTest {
 
 		// testing at least one can be first
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().getLowers().setCanBeFirst(false);
+		pp.getComplexity().getLimitLowers().setCanBeFirst(false);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().getUppers().setCanBeFirst(false);
+		pp.getComplexity().getLimitUppers().setCanBeFirst(false);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().getNumbers().setCanBeFirst(false);
+		pp.getComplexity().getLimitNumbers().setCanBeFirst(false);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().getSpecial().setCanBeFirst(false);
+		pp.getComplexity().getLimitSpecial().setCanBeFirst(false);
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().getSpecial().setCanBeFirst(true);
+		pp.getComplexity().getLimitSpecial().setCanBeFirst(true);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 
 		// testing wrong definition of min max
@@ -113,50 +113,65 @@ public class PasswordPolicyValidatorTest {
 
 		// consitency test for sum(min) < max
 		pp.getComplexity().setMaxSize(7);
-		pp.getComplexity().getNumbers().setMinOccurence(2);
-		pp.getComplexity().getLowers().setMinOccurence(2);
-		pp.getComplexity().getUppers().setMinOccurence(2);
-		pp.getComplexity().getSpecial().setMinOccurence(2);
+		pp.getComplexity().getLimitNumbers().setMinOccurence(2);
+		pp.getComplexity().getLimitLowers().setMinOccurence(2);
+		pp.getComplexity().getLimitUppers().setMinOccurence(2);
+		pp.getComplexity().getLimitSpecial().setMinOccurence(2);
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.getComplexity().setMaxSize(8);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 
 		// consitency test for sum(max) >= min
 		pp.getComplexity().setMinSize(9);
-		pp.getComplexity().getNumbers().setMaxOccurence(2);
-		pp.getComplexity().getLowers().setMaxOccurence(2);
-		pp.getComplexity().getUppers().setMaxOccurence(2);
-		pp.getComplexity().getSpecial().setMaxOccurence(2);
+		pp.getComplexity().getLimitNumbers().setMaxOccurence(2);
+		pp.getComplexity().getLimitLowers().setMaxOccurence(2);
+		pp.getComplexity().getLimitUppers().setMaxOccurence(2);
+		pp.getComplexity().getLimitSpecial().setMaxOccurence(2);
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 		pp.getComplexity().setMinSize(8);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 
 		// Class min <= max testing
-		pp.getComplexity().getNumbers().setMinOccurence(2);
-		pp.getComplexity().getNumbers().setMaxOccurence(1);
+		pp.getComplexity().getLimitNumbers().setMinOccurence(2);
+		pp.getComplexity().getLimitNumbers().setMaxOccurence(1);
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().getNumbers().setMaxOccurence(2);
+		pp.getComplexity().getLimitNumbers().setMaxOccurence(2);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().getLowers().setMinOccurence(2);
-		pp.getComplexity().getLowers().setMaxOccurence(1);
+		pp.getComplexity().getLimitLowers().setMinOccurence(2);
+		pp.getComplexity().getLimitLowers().setMaxOccurence(1);
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().getLowers().setMaxOccurence(2);
+		pp.getComplexity().getLimitLowers().setMaxOccurence(2);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().getUppers().setMinOccurence(2);
-		pp.getComplexity().getUppers().setMaxOccurence(1);
+		pp.getComplexity().getLimitUppers().setMinOccurence(2);
+		pp.getComplexity().getLimitUppers().setMaxOccurence(1);
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().getUppers().setMaxOccurence(2);
+		pp.getComplexity().getLimitUppers().setMaxOccurence(2);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().getSpecial().setMinOccurence(2);
-		pp.getComplexity().getSpecial().setMaxOccurence(1);
+		pp.getComplexity().getLimitSpecial().setMinOccurence(2);
+		pp.getComplexity().getLimitSpecial().setMaxOccurence(1);
 		assertFalse(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-		pp.getComplexity().getSpecial().setMaxOccurence(2);
+		pp.getComplexity().getLimitSpecial().setMaxOccurence(2);
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 	}
 
 	@Test
 	public void minimalXMLPolicyTest() throws JAXBException {
 		String filename = "password-policy-minimal.xml";
+		String pathname = BASE_PATH + filename;
+		File file = new File(pathname);
+		JAXBElement<PasswordPolicyType> jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+		PasswordPolicyType pp = jbe.getValue();
+		try { 
+			com.evolveum.midpoint.common.password.PolicyValidator.validate(pp);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
+	}
+	
+	@Test
+	public void complexXMLPolicyTest() throws JAXBException {
+		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
