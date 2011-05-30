@@ -46,7 +46,13 @@ public class ResourceWizard extends Wizard {
 	@Autowired(required = true)
 	private ResourceCreateController create;
 	@Autowired(required = true)
-	private ResourceConfigurationController config;
+	private ResourceConfigurationController configuration;
+	@Autowired(required = true)
+	private SchemaReviewController schemaReview;
+	@Autowired(required = true)
+	private SchemaHandlingController schemaHandling;
+	@Autowired(required = true)
+	private SynchronizationController synchronization;
 
 	public ResourceWizard() {
 		super("/resource/index");
@@ -56,7 +62,10 @@ public class ResourceWizard extends Wizard {
 	public List<WizardPage> getPages() {
 		if (super.getPages().isEmpty()) {
 			super.getPages().add(create);
-			super.getPages().add(config);
+			super.getPages().add(configuration);
+			super.getPages().add(schemaReview);
+			super.getPages().add(schemaHandling);
+			super.getPages().add(synchronization);
 		}
 		return super.getPages();
 	}

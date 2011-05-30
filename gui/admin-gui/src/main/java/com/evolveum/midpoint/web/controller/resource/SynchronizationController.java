@@ -23,27 +23,37 @@ package com.evolveum.midpoint.web.controller.resource;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import com.evolveum.midpoint.web.component.form.AutoForm;
 import com.evolveum.midpoint.web.controller.wizard.WizardPage;
 
-@Controller("resourceConfiguration")
+/**
+ * 
+ * @author lazyman
+ *
+ */
+@Controller("resourceSynchronization")
 @Scope("session")
-public class ResourceConfigurationController extends WizardPage {
+public class SynchronizationController extends WizardPage {
 
-	private static final long serialVersionUID = 3516650461724866075L;
-	private AutoForm configuration = new AutoForm();
+	private static final long serialVersionUID = 8679302869048479592L;
 
-	public ResourceConfigurationController() {
-		super(ResourceWizard.PAGE_NAVIGATION_BASE + "/resourceConfiguration.xhtml");
+	public SynchronizationController() {
+		super(ResourceWizard.PAGE_NAVIGATION_BASE + "/synchronization.xhtml");
 	}
 
-	public AutoForm getConfiguration() {
-		return configuration;
+	@Override
+	public String getFinishPage() {
+		return "/resource/index";
 	}
 	
 	@Override
 	public void cleanController() {
 		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public String finish() {
+		//TODO: stuff...
 		
+		return getFinishPage();
 	}
 }
