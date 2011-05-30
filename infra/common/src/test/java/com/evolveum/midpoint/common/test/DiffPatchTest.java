@@ -70,48 +70,6 @@ public class DiffPatchTest {
     public void tearDown() {
     }
 
-    public static void assertPatch(File fileNewXml, String patchedXml) throws Exception {
-        setupXmlUnitForTest();
-        Diff d = new Diff(new InputSource(new FileInputStream(fileNewXml)), new InputSource(new StringBufferInputStream(patchedXml)));
-        DetailedDiff dd = new DetailedDiff(d);
-        dd.overrideElementQualifier(new OidQualifier());
-        dd.overrideDifferenceListener(new MidPointDifferenceListener());
-        List<Difference> differences = dd.getAllDifferences();
-
-        for (Difference diff : differences) {
-            switch (diff.getId()) {
-//                case DifferenceConstants.NAMESPACE_PREFIX_ID:
-//                    //ignore namespaces
-//                    //TODO: ^^^
-//                    break;
-                case DifferenceConstants.ATTR_VALUE_ID:
-                    if (diff.getControlNodeDetail().getNode().getNodeName().contains("type")) {
-                        //ignore attribute values for xsi type, because of namespaces
-                        //TODO: ^^^
-                        break;
-                    }
-                case DifferenceConstants.CHILD_NODELIST_SEQUENCE_ID:
-                case DifferenceConstants.SCHEMA_LOCATION_ID:
-                    break;
-                default:
-                    fail(diff.toString());
-            }
-        }
-
-    }
-
-    private static void setupXmlUnitForTest() {
-        //XmlUnit setup
-        //Note: compareUnmatched has to be set to false to calculate diff properly, to avoid matching of nodes that are not comparable
-        XMLUnit.setCompareUnmatched(false);
-        XMLUnit.setIgnoreAttributeOrder(true);
-        XMLUnit.setIgnoreDiffBetweenTextAndCDATA(true);
-        XMLUnit.setIgnoreComments(true);
-        XMLUnit.setIgnoreWhitespace(true);
-        XMLUnit.setNormalize(true);
-        XMLUnit.setNormalizeWhitespace(true);
-    }
-
     @Test
     public void testDiffPatchAccount() throws Exception {
         ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File("src/test/resources/account-old.xml"), new File("src/test/resources/account-new.xml"));
@@ -120,7 +78,7 @@ public class DiffPatchTest {
         assertEquals("12345", changes.getOid());
 
         String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/account-old.xml"));
-        assertPatch(new File("src/test/resources/account-new.xml"), patchedXml);
+        XmlAsserts.assertPatch(new File("src/test/resources/account-new.xml"), patchedXml);
     }
 
     @Test
@@ -131,7 +89,7 @@ public class DiffPatchTest {
         assertEquals("12345", changes.getOid());
 
         String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/account-full-old.xml"));
-        assertPatch(new File("src/test/resources/account-full-new.xml"), patchedXml);
+        XmlAsserts.assertPatch(new File("src/test/resources/account-full-new.xml"), patchedXml);
     }
 
     @Test
@@ -142,7 +100,7 @@ public class DiffPatchTest {
         assertEquals("007", changes.getOid());
 
         String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/user-old.xml"));
-        assertPatch(new File("src/test/resources/user-new.xml"), patchedXml);
+        XmlAsserts.assertPatch(new File("src/test/resources/user-new.xml"), patchedXml);
     }
 
     @Test
@@ -153,7 +111,7 @@ public class DiffPatchTest {
         assertEquals("007", changes.getOid());
 
         String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/user-extension-old.xml"));
-        assertPatch(new File("src/test/resources/user-extension-new.xml"), patchedXml);
+        XmlAsserts.assertPatch(new File("src/test/resources/user-extension-new.xml"), patchedXml);
     }
 
     @Test
@@ -164,7 +122,7 @@ public class DiffPatchTest {
         assertEquals("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", changes.getOid());
 
         String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/resource-old.xml"));
-        assertPatch(new File("src/test/resources/resource-new.xml"), patchedXml);
+        XmlAsserts.assertPatch(new File("src/test/resources/resource-new.xml"), patchedXml);
     }
 
     @Test
@@ -175,7 +133,7 @@ public class DiffPatchTest {
         assertEquals("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", changes.getOid());
 
         String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/resource-advanced-old.xml"));
-        assertPatch(new File("src/test/resources/resource-advanced-new.xml"), patchedXml);
+        XmlAsserts.assertPatch(new File("src/test/resources/resource-advanced-new.xml"), patchedXml);
     }
 
     @Test
@@ -186,7 +144,7 @@ public class DiffPatchTest {
         assertEquals("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", changes.getOid());
 
         String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/resource-schemahandling-old.xml"));
-        assertPatch(new File("src/test/resources/resource-schemahandling-new.xml"), patchedXml);
+        XmlAsserts.assertPatch(new File("src/test/resources/resource-schemahandling-new.xml"), patchedXml);
     }
 
     @Test
@@ -197,6 +155,6 @@ public class DiffPatchTest {
         assertEquals("d7f1f990-b1fc-4001-9003-2106bd289c5b", changes.getOid());
 
         String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/user-credentials-old.xml"));
-        assertPatch(new File("src/test/resources/user-credentials-new.xml"), patchedXml);
+        XmlAsserts.assertPatch(new File("src/test/resources/user-credentials-new.xml"), patchedXml);
     }
 }

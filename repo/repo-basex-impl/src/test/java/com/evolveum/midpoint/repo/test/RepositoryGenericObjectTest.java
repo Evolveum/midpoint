@@ -24,6 +24,7 @@ package com.evolveum.midpoint.repo.test;
 
 import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
@@ -33,7 +34,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import java.io.File;
+import java.util.List;
+
 import javax.xml.bind.JAXBElement;
+
+import org.custommonkey.xmlunit.XMLUnit;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -43,6 +48,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.w3c.dom.Element;
 
 import static org.junit.Assert.*;
 
@@ -84,28 +90,53 @@ public class RepositoryGenericObjectTest {
     public void tearDown() {
     }
 
+    private void checkObject(GenericObjectType genericObject, GenericObjectType retrievedObject) throws Exception {
+        assertEquals(genericObject.getOid(), retrievedObject.getOid());
+        assertEquals(genericObject.getName(), retrievedObject.getName());
+        assertEquals(genericObject.getObjectType(), retrievedObject.getObjectType());
+        assertEquals(genericObject.getExtension().getAny().size(), retrievedObject.getExtension().getAny().size());
+        assertEquals(genericObject.getExtension().getAny().get(1).getLocalName(), retrievedObject.getExtension().getAny().get(1).getLocalName());
+        List<Element> extensionElements = genericObject.getExtension().getAny();
+        int i = 0;
+        for (Element element: extensionElements) {
+    		XmlAsserts.assertPatch(DOMUtil.serializeDOMToString(element), DOMUtil.serializeDOMToString(retrievedObject.getExtension().getAny().get(i)));
+    		i++;
+		}
+    }
+    
     @Test
     @SuppressWarnings("unchecked")
     public void testGenericObject() throws Exception {
         final String genericObjectOid = "c0c010c0-d34d-b33f-f00d-999111111111";
         try {
+        	
+        	//create object
             ObjectContainerType objectContainer = new ObjectContainerType();
             GenericObjectType genericObject = ((JAXBElement<GenericObjectType>) JAXBUtil.unmarshal(new File("src/test/resources/generic-object.xml"))).getValue();
             objectContainer.setObject(genericObject);
             repositoryService.addObject(objectContainer);
+            
+            //get object
             ObjectContainerType retrievedObjectContainer = repositoryService.getObject(genericObjectOid, new PropertyReferenceListType());
-            assertEquals(genericObject.getName(), ((GenericObjectType) (retrievedObjectContainer.getObject())).getName());
-            assertEquals(genericObject.getObjectType(), ((GenericObjectType) (retrievedObjectContainer.getObject())).getObjectType());
-            assertEquals(genericObject.getOid(), ((GenericObjectType) (retrievedObjectContainer.getObject())).getOid());
-            assertEquals(genericObject.getExtension().getAny().size(), ((GenericObjectType) (retrievedObjectContainer.getObject())).getExtension().getAny().size());
-            assertEquals(genericObject.getExtension().getAny().get(1).getLocalName(), ((GenericObjectType) (retrievedObjectContainer.getObject())).getExtension().getAny().get(1).getLocalName());
-            //assertEquals(genericObject.getExtension().getAny().get(1).getChildNodes().getLength(), ((GenericObjectType) (retrievedObjectContainer.getObject())).getExtension().getAny().get(1).getChildNodes().getLength());
-            assertEquals(DOMUtil.serializeDOMToString(genericObject.getExtension().getAny().get(1)), DOMUtil.serializeDOMToString(((GenericObjectType) (retrievedObjectContainer.getObject())).getExtension().getAny().get(1)));
+            checkObject(genericObject, (GenericObjectType) retrievedObjectContainer.getObject());
+            
+            //list objects of type
             ObjectListType objects = repositoryService.listObjects(QNameUtil.qNameToUri(SchemaConstants.I_GENERIC_OBJECT_TYPE), new PagingType());
+            assertNotNull(objects);
+            assertNotNull(objects.getObject());
             assertEquals(1, objects.getObject().size());
-            assertEquals(genericObjectOid, objects.getObject().get(0).getOid());
-        } finally {
+            checkObject(genericObject, (GenericObjectType) objects.getObject().get(0));
+            
+            //delete object
             repositoryService.deleteObject(genericObjectOid);
+            
+        } finally {
+        	//to be sure try to delete the object as part of cleanup
+        	try {
+        		repositoryService.deleteObject(genericObjectOid);
+        	} catch (Exception ex) {
+        		//ignore exceptions during cleanup
+        	}
         }
     }
 }

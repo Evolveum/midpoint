@@ -21,9 +21,13 @@
  */
 package com.evolveum.midpoint.repo.xml;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -36,6 +40,7 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import org.apache.commons.lang.StringUtils;
 import org.xmldb.api.base.Collection;
 import org.xmldb.api.base.Resource;
 import org.xmldb.api.base.ResourceIterator;
@@ -46,10 +51,12 @@ import org.xmldb.api.modules.XPathQueryService;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectAlreadyExistsFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
@@ -116,9 +123,9 @@ public class XmlRepositoryService implements RepositoryPortType {
 	public String addObject(ObjectContainerType objectContainer) throws FaultMessage {
 		String oid = null;
 		try {
-
 			ObjectType payload = (ObjectType) objectContainer.getObject();
 
+			//generate new oid, if necessary
 			oid = (null != payload.getOid() ? payload.getOid() : UUID.randomUUID().toString());
 			payload.setOid(oid);
 
@@ -131,20 +138,8 @@ public class XmlRepositoryService implements RepositoryPortType {
 					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n")
 					.append("insert node ").append(serializedObject).append(" into //c:objects");
 
-			// Execute the query and receives all results.
-			ResourceSet set = service.query(query.toString());
+			service.query(query.toString());
 
-			// Create a result iterator.
-			ResourceIterator iter = set.getIterator();
-
-			// Loop through all result items.
-			while (iter.hasMoreResources()) {
-				// Receive the next results.
-				Resource res = iter.nextResource();
-
-				// Write the result to the console.
-				System.out.println(res.getContent());
-			}
 			return oid;
 		} catch (JAXBException ex) {
 			logger.error("Failed to (un)marshal object", ex);
@@ -152,14 +147,66 @@ public class XmlRepositoryService implements RepositoryPortType {
 		} catch (XMLDBException ex) {
 			logger.error("Reported error by XML Database", ex);
 			throw new FaultMessage("Reported error by XML Database", new SystemFaultType());
-
 		}
 	}
 
 	@Override
 	public ObjectContainerType getObject(String oid, PropertyReferenceListType resolve) throws FaultMessage {
-		// TODO Auto-generated method stub
-		return null;
+        checkOid(oid);
+
+        ByteArrayInputStream in = null;
+        ObjectContainerType objectContainer = null;
+        try {
+
+            XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
+
+            StringBuilder QUERY = new StringBuilder("declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
+            QUERY.append("for $x in //c:object where $x/@oid=\"").append(oid).append("\" return $x");
+
+            // Execute the query and receives all results.
+            ResourceSet set = service.query(QUERY.toString());
+
+            // Create a result iterator.
+            ResourceIterator iter = set.getIterator();
+
+            // Loop through all result items.
+            while (iter.hasMoreResources()) {
+                Resource res = iter.nextResource();
+
+                if (null != objectContainer) {
+                    throw new FaultMessage("More than one object with oid "+oid+" found", new ObjectAlreadyExistsFaultType());
+                }
+                Object c = res.getContent();
+                if (c instanceof String) {
+                    in = new ByteArrayInputStream(((String) c).getBytes("UTF-8"));
+                    JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) unmarshaller.unmarshal(in);
+                    if (o != null) {
+                        objectContainer = new ObjectContainerType();
+                        objectContainer.setObject(o.getValue());
+                    }
+                }
+            }
+        } catch (UnsupportedEncodingException ex) {
+			logger.error("UTF-8 is unsupported encoding", ex);
+			throw new FaultMessage("UTF-8 is unsupported encoding", new SystemFaultType());            
+        } catch (JAXBException ex) {
+			logger.error("Failed to (un)marshal object", ex);
+			throw new FaultMessage("Failed to (un)marshal object", new IllegalArgumentFaultType());            
+        } catch (XMLDBException ex) {
+			logger.error("Reported error by XML Database", ex);
+			throw new FaultMessage("Reported error by XML Database", new SystemFaultType());
+        } finally {
+            try {
+                if (null != in) {
+                    in.close();
+                }
+            } catch (IOException ex) {
+            }
+        }
+        if (objectContainer == null) {
+        	throw new FaultMessage("Object not found. OID: "+oid, new ObjectNotFoundFaultType());
+        }
+        return objectContainer;
 	}
 
 	@Override
@@ -182,8 +229,43 @@ public class XmlRepositoryService implements RepositoryPortType {
 
 	@Override
 	public void deleteObject(String oid) throws FaultMessage {
-		// TODO Auto-generated method stub
+        checkOid(oid);
 
+        ByteArrayInputStream in = null;
+        ObjectContainerType out = null;
+        try {
+
+            // Receive the XPath query service.
+            XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
+
+            StringBuilder QUERY = new StringBuilder("declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
+            QUERY.append("delete nodes //c:object[@oid=\"").append(oid).append("\"]");
+
+            service.query(QUERY.toString());
+
+        } catch (XMLDBException ex) {
+			logger.error("Reported error by XML Database", ex);
+			throw new FaultMessage("Reported error by XML Database", new SystemFaultType());
+        } finally {
+            try {
+                if (null != in) {
+                    in.close();
+                }
+            } catch (IOException ex) {
+            }
+        }
+	}
+
+	private void checkOid(String oid) throws FaultMessage {
+		if (StringUtils.isEmpty(oid)) {
+            throw new FaultMessage("Invalid OID", new ObjectNotFoundFaultType());
+        }
+        
+        try {
+        	UUID id = UUID.fromString(oid);
+        } catch (IllegalArgumentException e) {
+        	throw new FaultMessage("Invalid OID format", new ObjectNotFoundFaultType(), e);
+        }
 	}
 
 	@Override
