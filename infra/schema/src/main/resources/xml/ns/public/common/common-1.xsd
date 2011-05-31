@@ -3521,7 +3521,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:ExtensibleObjectType">
 				<xsd:sequence>
-					<xsd:element name="version" type="xsd:string" minOccurs="0">
+					<xsd:element name="connectorVersion" type="xsd:string" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
 								Version of the connector. Used only for display
