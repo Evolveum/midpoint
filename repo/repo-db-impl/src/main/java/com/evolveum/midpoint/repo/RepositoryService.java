@@ -518,7 +518,7 @@ public class RepositoryService implements RepositoryPortType {
             if ("schema".equals(property.getPropertyName())) {
                 if (StringUtils.isNotEmpty((String) property.getPropertyValue())) {
                     Document doc = DOMUtil.parseDocument((String) property.getPropertyValue());
-                    ResourceType.Schema schema = new ResourceType.Schema();
+                    XmlSchemaType schema = new XmlSchemaType();
                     List<Element> any = new ArrayList();
                     any.add(doc.getDocumentElement());
                     schema.getAny().addAll(any);
@@ -754,7 +754,7 @@ public class RepositoryService implements RepositoryPortType {
 
 
         //schema processing begin
-        ResourceType.Schema schema = resourceType.getSchema();
+        XmlSchemaType schema = resourceType.getSchema();
 
         // Schema is optional. It is almost always there, but in rare cases
         // it may not be there.

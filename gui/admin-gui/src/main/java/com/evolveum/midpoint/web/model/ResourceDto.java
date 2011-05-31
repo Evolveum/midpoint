@@ -32,6 +32,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 /**
  * 
@@ -62,7 +63,7 @@ public class ResourceDto extends ExtensibleObjectDto {
 
 	public Element getSchema() {
 		// TODO: Make this smarter ... if possible
-		ResourceType.Schema schema = getResourceType().getSchema();
+		XmlSchemaType schema = getResourceType().getSchema();
 		if (schema != null && schema.getAny().size() != 0) {
 			return (Element) getResourceType().getSchema().getAny().get(0);
 		}
