@@ -4769,4 +4769,198 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+	
+	<!-- Configuration types -->
+		
+	<xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
+		
+	<xsd:complexType name="SystemConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				System configuration object.
+				
+				Holds global system configuration setting. There will be just
+				one object of this type in the system. It will have a well-known
+				OID.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:ExtensibleObjectType">
+				<xsd:sequence>
+					<xsd:element name="logging" type="tns:LoggingConfigurationType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Persistent configuration of logging levels,
+								categories, etc.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+
+					<xsd:element name="defaultUserTemplate" type="tns:UserTemplateType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								User template that will be used "universtally"
+								in all situations regarding user internal
+								consistency.
+								
+								TODO: better documentation
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="defaultUserTemplateRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reference to the default
+								user template that will be used "universtally"
+								in all situations regarding user internal
+								consistency.
+								
+								TODO: better documentation
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="LoggingConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configuration of logging levels, categories, log files, etc.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="logger" type="tns:LoggerConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="appender" type="tns:AppenderConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="LoggerConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configuration of the logger: the facility that collects log
+				messages from the code.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="level" type="tns:LoggingLevelType">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="category" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO: catagories are OR-ed
+						TODO: string, but there should be a way how to determine
+						list of valid categories. Maybe switch to enum later.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="component" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO: components are OR-ed
+						TODO: string, but there should be a way how to determine
+						list of valid categories. Maybe switch to enum later.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="package" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO: packages are OR-ed
+						TODO: string, wildcards allowed (* as in java)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:simpleType name="LoggingLevelType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass />
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="all">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ALL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="fatal">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="FATAL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="error">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ERROR"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="warn">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="WARN"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="info">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="INFO"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="debug">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="DEBUG"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="trace">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="TRACE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="all">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="ALL"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:complexType name="AppenderConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configuration of the logger: the facility that collects log
+				messages from the code.
+				
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:complexType>
+
 </xsd:schema>
+
+
