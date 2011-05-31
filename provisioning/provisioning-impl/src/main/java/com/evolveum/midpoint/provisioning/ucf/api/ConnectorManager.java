@@ -64,4 +64,6 @@ public interface ConnectorManager {
 	public ConfiguredConnector createConfiguredConnector(ResourceType resource);
 	
 	public Set<ConnectorType> listConnectors();
+	
+	public ConnectorType getConnector(String oid);
 }
