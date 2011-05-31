@@ -19,7 +19,9 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import java.util.Set;
 
 /**
  * Interface to Unified Connector functionality.
@@ -60,4 +62,6 @@ public interface ConnectorManager {
 	 * @return
 	 */
 	public ConfiguredConnector createConfiguredConnector(ResourceType resource);
+	
+	public Set<ConnectorType> listConnectors();
 }
