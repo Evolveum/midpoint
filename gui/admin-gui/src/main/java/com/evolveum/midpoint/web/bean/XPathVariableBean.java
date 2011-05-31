@@ -58,4 +58,12 @@ public class XPathVariableBean implements Serializable {
 	public void setVariableName(String variableName) {
 		this.variableName = variableName;
 	}
+	
+	public boolean isBrowsable() {
+		if ("Object".equals(type)) {
+			return true;
+		}
+		
+		return false;
+	}
 }

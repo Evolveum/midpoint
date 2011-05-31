@@ -63,11 +63,11 @@ import org.w3c.dom.NodeList;
  */
 @Controller("debugXPath")
 @Scope("session")
-public class XPathDebugPageController implements Serializable {
+public class XPathDebugController implements Serializable {
 
 	public static final String PAGE_NAVIGATION_XPATH_DEBUG = "/config/debugXPath?faces-redirect=true";
 	private static final long serialVersionUID = 7295076387943631763L;
-	private static final Trace TRACE = TraceManager.getTrace(XPathDebugPageController.class);
+	private static final Trace TRACE = TraceManager.getTrace(XPathDebugController.class);
 	@Autowired
 	private transient ModelPortType port;
 	private String expression;
@@ -238,32 +238,16 @@ public class XPathDebugPageController implements Serializable {
 		return variable1;
 	}
 
-	public void setVariable1(XPathVariableBean variable1) {
-		this.variable1 = variable1;
-	}
-
 	public XPathVariableBean getVariable2() {
 		return variable2;
-	}
-
-	public void setVariable2(XPathVariableBean variable2) {
-		this.variable2 = variable2;
 	}
 
 	public XPathVariableBean getVariable3() {
 		return variable3;
 	}
 
-	public void setVariable3(XPathVariableBean variable3) {
-		this.variable3 = variable3;
-	}
-
 	public XPathVariableBean getVariable4() {
 		return variable4;
-	}
-
-	public void setVariable4(XPathVariableBean variable4) {
-		this.variable4 = variable4;
 	}
 
 	public List<XPathVariableBean> getVariables() {
@@ -272,6 +256,14 @@ public class XPathDebugPageController implements Serializable {
 
 	public void setVariables(List<XPathVariableBean> variables) {
 		this.variables = variables;
+	}
+	
+	void setVariable1(XPathVariableBean variable1) {
+		this.variable1 = variable1;
+	}
+	
+	void setVariable2(XPathVariableBean variable2) {
+		this.variable2 = variable2;
 	}
 
 	public List<SelectItem> getReturnTypeList() {

@@ -25,10 +25,11 @@
 				</ice:selectOneMenu>
 			</ice:panelGroup>
 
-			<ice:panelGrid columns="3">
+			<ice:panelGrid columns="4">
 				<ice:outputText value="#{lang.messages['page.config.debugXPath.variableName']}" />
 				<ice:outputText value="#{lang.messages['page.config.debugXPath.type']}" />
 				<ice:outputText value="#{lang.messages['page.config.debugXPath.value']}" />
+				<ice:outputLabel />
 
 				<ice:inputText value="#{debugXPath.variable1.variableName}" />
 				<ice:selectOneMenu id="selectType" style="width: auto;" partialSubmit="true" immediate="true"
@@ -36,6 +37,9 @@
 					<f:selectItems id="selectedType" value="#{debugXPath.type}" />
 				</ice:selectOneMenu>
 				<ice:inputText value="#{debugXPath.variable1.value}" />
+				<idm:button value="#{lang.messages['page.config.debugXPath.button.browse']}"
+					img="/resources/images/folder_explore.png" rendered="#{debugXPath.variable1.browsable}" />
+				<ice:outputLabel rendered="#{not debugXPath.variable1.browsable}" />
 
 				<ice:inputText value="#{debugXPath.variable2.variableName}" />
 				<ice:selectOneMenu id="selectType2" style="width: auto;" partialSubmit="true" immediate="true"
@@ -43,6 +47,9 @@
 					<f:selectItems id="selectedType2" value="#{debugXPath.type}" />
 				</ice:selectOneMenu>
 				<ice:inputText value="#{debugXPath.variable2.value}" />
+				<idm:button value="#{lang.messages['page.config.debugXPath.button.browse']}"
+					img="/resources/images/folder_explore.png" rendered="#{debugXPath.variable2.browsable}" />
+				<ice:outputLabel rendered="#{not debugXPath.variable2.browsable}" />
 
 				<ice:inputText value="#{debugXPath.variable3.variableName}" />
 				<ice:selectOneMenu id="selectType3" style="width: auto;" partialSubmit="true"
@@ -50,6 +57,9 @@
 					<f:selectItems id="selectedType3" value="#{debugXPath.type}" />
 				</ice:selectOneMenu>
 				<ice:inputText value="#{debugXPath.variable3.value}" />
+				<idm:button value="#{lang.messages['page.config.debugXPath.button.browse']}"
+					img="/resources/images/folder_explore.png" rendered="#{debugXPath.variable3.browsable}" />
+				<ice:outputLabel rendered="#{not debugXPath.variable3.browsable}" />
 
 				<ice:inputText value="#{debugXPath.variable4.variableName}" />
 				<ice:selectOneMenu id="selectType4" style="width: auto;" partialSubmit="true"
@@ -57,6 +67,9 @@
 					<f:selectItems id="selectedType4" value="#{debugXPath.type}" />
 				</ice:selectOneMenu>
 				<ice:inputText value="#{debugXPath.variable4.value}" />
+				<idm:button value="#{lang.messages['page.config.debugXPath.button.browse']}"
+					img="/resources/images/folder_explore.png" rendered="#{debugXPath.variable4.browsable}" />
+				<ice:outputLabel rendered="#{not debugXPath.variable4.browsable}" />
 			</ice:panelGrid>
 
 			<div class="button-bar">

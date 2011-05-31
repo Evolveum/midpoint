@@ -1770,11 +1770,16 @@ fieldset {
 }
 
 .icePnlPopHdr, .icePnlTlTipHdr {
-    background-color: #DEDEDE;
+    /* background-color: #DEDEDE;
     background-image: url( "./css-images/window_top.gif" );
     background-position: top;
     background-repeat: repeat-x;
-    height: 2.0em;
+    height: 2.0em; */
+    
+    background-color: #404535;
+	font-family:  Georgia, "Times New Roman", serif;    
+	height: 2.0em;
+	vertical-align: middle;
 }
 
 .icePnlPopHdr .iceOutTxt, .icePnlTlTipHdr .iceOutTxt {
