@@ -2053,9 +2053,34 @@
 		<xsd:complexContent>
 			<xsd:extension base="c:ExtensibleObjectType">
 				<xsd:sequence>
-					<xsd:element name="type" type="xsd:anyURI">
+					<xsd:element name="connector" type="tns:ConnectorType" minOccurs="0" maxOccurs="1">
 						<xsd:annotation>
 							<xsd:documentation>
+								"Composite" version of the ConnectorType
+								reference. See below for more details.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="connectorRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+						<xsd:annotation>
+							<xsd:documentation>
+								Reference to the connector that implements
+								specified resource.
+								
+								Connector reference is MANDATORY. Although the
+								schema does not enforce it (due to various JAXB
+								reasons), exactly one of the connecotor or
+								connectorRef MUST be present in the resource
+								object.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="type" type="xsd:anyURI" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								DEPRECATED. It is made optional for now. It
+								will be removed later.
+								
 								Type of the resource expressed as URI.
 								The type (indirectly) defines what method to use
 								to
@@ -2092,7 +2117,7 @@
 						minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
-								TODO
+								DEPRECATED. This will be removed.
 
 								This is optional for now. May become mandatory
 								later.
@@ -2100,7 +2125,7 @@
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element ref="tns:configuration" />
-					<xsd:element name="schema">
+					<xsd:element ref="tns:schema">
 						<xsd:annotation>
 							<xsd:documentation>
 								Schema for resource objects.
@@ -2141,23 +2166,8 @@
 								schema is not supported.
 
 								TODO: annotations in the schema
-
-								Note: xsd:any is here, but maybe a stricter type
-								would be preferable. However xsd:any seems to be
-								a common practice (e.g. SPML, WSDL).
 							</xsd:documentation>
 						</xsd:annotation>
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded">
-									<xsd:annotation>
-										<xsd:appinfo>
-											<xjc:dom />
-										</xsd:appinfo>
-									</xsd:annotation>
-								</xsd:any>
-							</xsd:sequence>
-						</xsd:complexType>
 					</xsd:element>
 					<xsd:element ref="tns:schemaHandling" minOccurs="0" />
 					<xsd:element ref="tns:scripts" minOccurs="0" />
@@ -2166,9 +2176,40 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
+	
+	<xsd:element name="schema" type="tns:XmlSchemaType"/>
+	
+	<xsd:complexType name="XmlSchemaType">
+		<xsd:annotation>
+			<xsd:documentation>
+				This element contains the XSD-formatted definition of schema.
+				
+				The schema available in this definition is expeceted to comply
+				to the usual midPoint schema structure (properties, property
+				containers), although it should not contain objects (persistent
+				objects identified by OID).
+				
+				Note: This schema is considered to be available only in run-time.
+				Therefore code-generation methods such as JAXB cannot be applied
+				here.
+				
+				Note: xsd:any is here, but maybe a stricter type would be 
+				preferable. However xsd:any seems to be a common practice 
+				(e.g. SPML, WSDL).
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<xjc:dom />
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:any>
+		</xsd:sequence>
+	</xsd:complexType>
 
 	<xsd:element name="schemaHandling" type="tns:SchemaHandlingType" />
-
 	<xsd:complexType name="SchemaHandlingType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -3456,6 +3497,91 @@
 				</xsd:sequence>
 			</xsd:extension>
 			<!-- Other parts may come here in the future -->
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ConnectorType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Description of a generic connector. Connector in midPoint is any
+				method of connection to the resource. The actual implementation,
+				connector framework or protocol does not matter.
+				
+				The ConnectorType object may be "virtual" in a sense that it
+				may not be stored in the persistent repository.
+				
+				More specific types derived from this type may exists. E.g.
+				a connector framework may create a derived type and return that
+				instead of this type.
+				
+				Note: The ConnectorType does not describe only Identity
+				Connector Framework (ICF) connectors, it is much more generic.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:ExtensibleObjectType">
+				<xsd:sequence>
+					<xsd:element name="version" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Version of the connector. Used only for display
+								purposes. May be any string (numberic convention
+								is recommended, but not required).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="framework" type="xsd:anyURI" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Identification of the framework or mechanism
+								that implements this connector. Used only for
+								display and similar purposes.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="targetSystemType" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Identification of the kind of target system that
+								the connector can connect to.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="namespace" type="xsd:anyURI">
+						<xsd:annotation>
+							<xsd:documentation>
+								Connector-private namespace. This is the namespace
+								that is private for a specific connector (and
+								optionally connector version).
+								It may be used by the connector to generate
+								connector configuration schema or for other
+								purposes.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element ref="tns:schema">
+						<xsd:annotation>
+							<xsd:documentation>
+								Connector configuration schema.
+
+								This element contains the XSD-formatted definition
+								of connector configuration schema. It defines
+								connector configuration variables and data types
+								such as host names, ports, administrator names
+								and so on.
+
+								Connector schema will most likely be only
+								available at run-time and will be diffrent for 
+								every connector. It is supposed to be dynamically
+								interpreted in run-time.
+
+								Connector schema is read-only. Changing the
+								schema is not supported.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 
