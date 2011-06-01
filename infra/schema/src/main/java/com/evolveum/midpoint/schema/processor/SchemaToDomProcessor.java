@@ -117,7 +117,8 @@ class SchemaToDomProcessor {
 			Element parent) {
 		Document document = parent.getOwnerDocument();
 		Element container = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "complexType");
-		setAttribute(container, "name", definition.getName().getLocalPart());
+		// "typeName" should be used instead of "name" when defining a XSD type
+		setAttribute(container, "name", definition.getTypeName().getLocalPart());
 
 		Element annotation = createPropertyContainerAnnotation(definition, document);
 		if (annotation != null) {
