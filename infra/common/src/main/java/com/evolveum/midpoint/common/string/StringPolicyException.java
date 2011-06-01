@@ -20,28 +20,28 @@
  * Portions Copyrighted 2011 Peter Prochazka
  */
 
-package com.evolveum.midpoint.common.password;
+package com.evolveum.midpoint.common.string;
+/**
+ * 
+ * @author mamut
+ *
+ */
 
 import com.evolveum.midpoint.util.MidPointException;
 import com.evolveum.midpoint.util.result.OperationResult;
-/**
- * This class is used for exceptions which are thrown during operations with 
- * PasswordPolicy. It provides @{link OperationResult} object for better error
- * handling.
- * 
- * @author Mamut
- * 
- */
 
-public class PasswordPolicyException extends MidPointException {
+public class StringPolicyException extends MidPointException {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4261226827803166562L;
 	
-	private static final long serialVersionUID = -8740728739980818024L;
-
-	public PasswordPolicyException (String msg, OperationResult or) {
+	public StringPolicyException (String msg, OperationResult or) {
 		super (msg, or);
 	}
 	
-	public PasswordPolicyException (OperationResult or) {
+	public StringPolicyException (OperationResult or) {
 		super (or.getMessage(), or);
 	}
 }

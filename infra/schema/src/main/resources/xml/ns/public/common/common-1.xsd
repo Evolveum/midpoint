@@ -4679,10 +4679,12 @@
 
 	<xsd:complexType name="PasswordLifeTimeType">
 		<xsd:sequence>
-			<xsd:element name="expiration" type="xsd:int" default="0" minOccurs="0">
+			<xsd:element name="expiration" type="xsd:int" default="-1" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Number of days before password expires (0 means password doesn't expire)
+						Number of days before password expires 
+							 -1 : means password doesn't expire
+							  0 : means password is expired
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -4733,22 +4735,22 @@
 	<xsd:complexType name="StringPolicyType">
 		<xsd:sequence>
 			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="limitatitions" type="tns:LimitationsType" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="limitatitions" type="tns:limitationsType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="LimitationsType">
+	<xsd:complexType name="limitationsType">
 		<xsd:annotation>
 			<xsd:documentation>Definition of complexity and string policy</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="minLength" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="maxLength" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="maxLength" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1"/>
 			<xsd:element name="minUniqueChars" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
 			<xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1"/>
 			<xsd:element name="checkPattern" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="limit" type="tns:StringLimitType" maxOccurs="unbounded"/>
+			<xsd:element name="limit" type="tns:StringLimitType"  minOccurs="0" maxOccurs="unbounded"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -4759,21 +4761,24 @@
 		<xsd:sequence>
 			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
 			<xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0" maxOccurs="1" />
-			<xsd:element name="maxOccurs" type="xsd:int" default="0" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="maxOccurs" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="canBeFirst" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="CharacterClassType" mixed="true">
+	<xsd:complexType name="CharacterClassType">
 		<xsd:annotation>
-			<xsd:documentation>Definition of valid characters in class</xsd:documentation>
+			<xsd:documentation>Definition of valid characters in class. Default value is ASCII printable characters (Codes 0x20 to 0x7E)</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:choice>
+				<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="1" maxOccurs="unbounded" />
+				<xsd:element name="value" type="xsd:string" minOccurs="1"/>
+			</xsd:choice>	
 		</xsd:sequence>
-		<xsd:attribute name="ref" type="xsd:QName" />
-		<xsd:attribute name="name" type="xsd:QName" />
+		<xsd:attribute name="ref" type="xsd:QName" use="optional"/>
+		<xsd:attribute name="name" type="xsd:QName" use="optional"/>
 	</xsd:complexType>
 
 	<!-- End of TODO -->
