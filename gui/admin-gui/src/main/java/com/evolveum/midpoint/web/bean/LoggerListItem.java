@@ -20,7 +20,6 @@
  */
 package com.evolveum.midpoint.web.bean;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,10 +30,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
  * @author lazyman
  * 
  */
-public class LoggerListItem implements Serializable {
+public class LoggerListItem extends SelectableBean {
 
 	private static final long serialVersionUID = -2575577614131038008L;
-	private boolean selected;
 	private int id;
 	private LoggingLevelType level;
 	private List<String> categories;
@@ -45,7 +43,7 @@ public class LoggerListItem implements Serializable {
 	public LoggerListItem(int id) {
 		this.id = id;
 	}
-	
+
 	public LoggerListItem cloneItem() {
 		LoggerListItem item = new LoggerListItem(getId());
 		item.setLevel(getLevel());
@@ -53,20 +51,12 @@ public class LoggerListItem implements Serializable {
 		item.getComponents().addAll(getComponents());
 		item.getPackages().addAll(getPackages());
 		item.getAppenders().addAll(getAppenders());
-		
+
 		return item;
 	}
-	
+
 	public int getId() {
 		return id;
-	}
-	
-	public boolean isSelected() {
-		return selected;
-	}
-
-	public void setSelected(boolean selected) {
-		this.selected = selected;
 	}
 
 	public LoggingLevelType getLevel() {
@@ -76,7 +66,7 @@ public class LoggerListItem implements Serializable {
 	public void setLevel(LoggingLevelType level) {
 		this.level = level;
 	}
-	
+
 	public String getLevelString() {
 		if (level == null) {
 			return null;
@@ -122,9 +112,12 @@ public class LoggerListItem implements Serializable {
 	}
 
 	public List<String> getAppenders() {
+		if (appenders == null) {
+			appenders = new ArrayList<String>();
+		}
 		return appenders;
 	}
-	
+
 	public void setAppenders(List<String> appenders) {
 		this.appenders = appenders;
 	}

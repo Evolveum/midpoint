@@ -20,17 +20,20 @@
  */
 package com.evolveum.midpoint.web.bean;
 
-import java.io.Serializable;
 
 /**
  * 
  * @author lazyman
  * 
  */
-public class AppenderListItem implements Serializable {
+public class AppenderListItem extends SelectableBean {
 
 	private static final long serialVersionUID = 1965555036713631609L;
 	private String name;
+	private String pattern = "%d{HH:mm:ss,SSS} %-5p [%c] - %m%n";
+	private AppenderType type;
+	private String filePath;
+	private int maxFileSize = 500;
 
 	public String getName() {
 		return name;
@@ -38,5 +41,67 @@ public class AppenderListItem implements Serializable {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public String getPattern() {
+		return pattern;
+	}
+
+	public void setPattern(String pattern) {
+		this.pattern = pattern;
+	}
+
+	public boolean isFileType() {
+		if (AppenderType.FILE.equals(type)) {
+			return true;
+		}
+
+		return false;
+	}
+
+	public AppenderType getType() {
+		return type;
+	}
+
+	public void setType(AppenderType type) {
+		this.type = type;
+	}
+
+	public String getTypeString() {
+		if (type == null) {
+			return null;
+		}
+
+		return type.getTitle();
+	}
+
+	public void setTypeString(String type) {
+		if (type == null) {
+			this.type = null;
+			return;
+		}
+
+		for (AppenderType apType : AppenderType.values()) {
+			if (apType.getTitle().equals(type)) {
+				this.type = apType;
+				return;
+			}
+		}
+	}
+
+	public String getFilePath() {
+		return filePath;
+	}
+
+	public void setFilePath(String filePath) {
+		this.filePath = filePath;
+	}
+
+	public int getMaxFileSize() {
+		return maxFileSize;
+	}
+
+	public void setMaxFileSize(int maxFileSize) {
+		this.maxFileSize = maxFileSize;
 	}
 }

@@ -25,13 +25,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.web.bean.AppenderListItem;
+import com.evolveum.midpoint.web.bean.AppenderType;
 import com.evolveum.midpoint.web.bean.LoggerListItem;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
@@ -49,6 +53,8 @@ public class LoggingController implements Serializable {
 	private static final long serialVersionUID = -8739729766074013883L;
 	private List<LoggerListItem> loggers;
 	private List<AppenderListItem> appenders;
+	private boolean selectAllLoggers = false;
+	private boolean selectAllAppenders = false;
 
 	public List<SelectItem> getAppenderNames() {
 		List<SelectItem> appenders = new ArrayList<SelectItem>();
@@ -94,6 +100,17 @@ public class LoggingController implements Serializable {
 		return levels;
 	}
 
+	public List<SelectItem> getTypes() {
+		List<SelectItem> types = new ArrayList<SelectItem>();
+		for (AppenderType type : AppenderType.values()) {
+			types.add(new SelectItem(type.getTitle(), FacesUtils.translateKey(type.getTitle())));
+		}
+
+		Collections.sort(types, new SelectItemComparator());
+
+		return types;
+	}
+
 	public List<LoggerListItem> getLoggers() {
 		if (loggers == null) {
 			loggers = new ArrayList<LoggerListItem>();
@@ -108,15 +125,43 @@ public class LoggingController implements Serializable {
 		return appenders;
 	}
 
-	public void removeLogger() {
+	public boolean isSelectAllAppenders() {
+		return selectAllAppenders;
+	}
+
+	public boolean isSelectAllLoggers() {
+		return selectAllLoggers;
+	}
+
+	public void setSelectAllAppenders(boolean selectAllAppenders) {
+		this.selectAllAppenders = selectAllAppenders;
+	}
+
+	public void setSelectAllLoggers(boolean selectAllLoggers) {
+		this.selectAllLoggers = selectAllLoggers;
+	}
+
+	public void selectLoggerPerformed(ValueChangeEvent evt) {
+		this.selectAllLoggers = ControllerUtil.selectPerformed(evt, getLoggers());
+	}
+
+	public void selectAllLoggersPerformed(ValueChangeEvent evt) {
+		ControllerUtil.selectAllPerformed(evt, getLoggers());
+	}
+
+	public void selectAppenderPerformed(ValueChangeEvent evt) {
+		this.selectAllAppenders = ControllerUtil.selectPerformed(evt, getAppenders());
+	}
+
+	public void selectAllAppendersPerformed(ValueChangeEvent evt) {
+		ControllerUtil.selectAllPerformed(evt, getAppenders());
+	}
+
+	public void deleteLoggers() {
 
 	}
 
-	public void addAppender() {
-
-	}
-
-	public void removeAppender() {
+	public void deleteAppenders() {
 
 	}
 }

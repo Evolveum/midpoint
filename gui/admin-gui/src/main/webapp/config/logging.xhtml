@@ -28,10 +28,9 @@
 					<f:facet name="header">
 						<ice:outputLabel value="#{lang.messages['page.config.logging.table.log.level']}" />
 					</f:facet>
-					<ice:commandLink style="text-decoration: underline;" value="#{item.level}">
-						<ui:remove>
-							<f:param name="loggerId" value="#{item.id}" />
-						</ui:remove>
+					<ice:commandLink style="text-decoration: underline;" value="#{item.level}"
+						action="#{loggerEdit.editLogger}">
+						<f:param name="loggerId" value="#{item.id}" />
 					</ice:commandLink>
 				</ice:column>
 				<ice:column>
@@ -80,7 +79,7 @@
 					action="#{loggerEdit.addLogger}" img="/resources/images/report_add.png" />
 
 				<idm:button value="#{lang.messages['page.config.logging.button.deleteLogger']}" buttonType="negative"
-					action="#{logging.removeLogger}" img="/resources/images/report_delete.png" />
+					action="#{logging.deleteLoggers}" img="/resources/images/report_delete.png" />
 			</h:panelGroup>
 
 			<h3>#{lang.messages['page.config.logging.appenders']}</h3>
@@ -98,38 +97,41 @@
 					<f:facet name="header">
 						<ice:outputLabel value="#{lang.messages['page.config.logging.table.app.name']}" />
 					</f:facet>
-					<ice:commandLink style="text-decoration: underline;" value="name" />
+					<ice:commandLink style="text-decoration: underline;" value="#{item.name}"
+						action="#{appenderEdit.editAppender}">
+						<f:param name="appenderId" value="#{item.id}" />
+					</ice:commandLink>
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
 						<ice:outputLabel value="#{lang.messages['page.config.logging.table.app.type']}" />
 					</f:facet>
-					<ice:outputText value="level" />
+					<ice:graphicImage value="/resources/images/#{item.type.icon}" alt="#{item.type.title}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
 						<ice:outputLabel value="#{lang.messages['page.config.logging.table.app.pattern']}" />
 					</f:facet>
-					<ice:outputText value="level" />
+					<ice:outputText value="#{item.pattern}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
 						<ice:outputLabel value="#{lang.messages['page.config.logging.table.app.filePath']}" />
 					</f:facet>
-					<ice:outputText value="level" />
+					<ice:outputText value="#{item.filePath}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
 						<ice:outputLabel value="#{lang.messages['page.config.logging.table.app.fileSize']}" />
 					</f:facet>
-					<ice:outputText value="level" />
+					<ice:outputText value="#{item.fileSize}" />
 				</ice:column>
 			</ice:dataTable>
 			<div class="button-bar">
 				<idm:button value="#{lang.messages['page.config.logging.button.addAppender']}" buttonType="positive"
-					img="/resources/images/printer_add.png" />
+					img="/resources/images/printer_add.png" action="#{appenderEdit.addAppender}" />
 				<idm:button value="#{lang.messages['page.config.logging.button.deleteAppender']}" buttonType="negative"
-					img="/resources/images/printer_delete.png" />
+					img="/resources/images/printer_delete.png" action="#{logging.deleteAppenders}" />
 			</div>
 		</ice:form>
 	</ui:define>

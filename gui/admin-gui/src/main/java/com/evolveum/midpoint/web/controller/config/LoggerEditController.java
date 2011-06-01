@@ -75,17 +75,13 @@ public class LoggerEditController implements Serializable {
 		if (item == null) {
 			int id = 0;
 			for (LoggerListItem item : loggingController.getLoggers()) {
-				if (item.getId() > id) {
+				if (item.getId() >= id) {
 					id = item.getId() + 1;
 				}
 			}
 			item = new LoggerListItem(id);
 		}
 		return item;
-	}
-
-	public void setItem(LoggerListItem item) {
-		this.item = item;
 	}
 
 	private void clearController() {
