@@ -22,25 +22,6 @@
 
 package com.evolveum.midpoint.common.test;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.List;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-
-import org.junit.Test;
-
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.validator.ObjectHandler;
-import com.evolveum.midpoint.validator.ValidationMessage;
-import com.evolveum.midpoint.validator.Validator;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordComplexityType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordValidCharClassesType;
-
 import static org.junit.Assert.*;
 
 public class PasswordPolicyValidatorTest {
@@ -49,7 +30,7 @@ public class PasswordPolicyValidatorTest {
 	}
 
 	public static final String BASE_PATH = "src/test/resources/";
-
+/*
 	@Test
 	public void synteticValidatorTest() {
 
@@ -183,4 +164,5 @@ public class PasswordPolicyValidatorTest {
 		}
 		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
 	}
+	*/
 }
