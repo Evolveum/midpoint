@@ -20,20 +20,19 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.controller;
+package com.evolveum.midpoint.web.controller.config;
 
-import com.evolveum.midpoint.web.bean.XPathVariableBean;
-import com.evolveum.midpoint.web.controller.XPathDebugController;
-
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.evolveum.midpoint.web.bean.XPathVariableBean;
 
 /**
  *
