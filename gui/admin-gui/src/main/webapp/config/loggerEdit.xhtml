@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component" xmlns:ace="http://www.icefaces.org/icefaces/components"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">#{lang.messages['page.config.loggerEdit.title']}</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<ice:form>
+			<h:panelGrid columns="3" cellspacing="7px">
+				<ice:outputLabel value="#{lang.messages['page.config.loggerEdit.level']}" />
+				<ice:selectOneMenu id="level" value="#{loggerEdit.item.levelString}">
+					<f:selectItems value="#{logging.levels}" />
+				</ice:selectOneMenu>
+				<ice:message for="level" errorClass="error" />
+
+				<ice:outputLabel value="#{lang.messages['page.config.loggerEdit.category']}" />
+				<ice:selectManyCheckbox id="category" value="#{loggerEdit.item.categories}">
+					<f:selectItems value="#{logging.categories}" />
+				</ice:selectManyCheckbox>
+				<ice:message for="category" errorClass="error" />
+
+				<ice:outputLabel value="#{lang.messages['page.config.loggerEdit.component']}" />
+				<ice:selectManyCheckbox id="component" value="#{loggerEdit.item.components}">
+					<f:selectItems value="#{logging.components}" />
+				</ice:selectManyCheckbox>
+				<ice:message for="component" errorClass="error" />
+
+				<ice:outputLabel value="#{lang.messages['page.config.loggerEdit.package']}" />
+				<ice:panelGrid columns="2" cellspacing="5px">
+					<ice:inputText id="package" width="300" value="#{loggerEdit.packageName}" />
+					<idm:button value="#{lang.messages['page.config.loggerEdit.button.addPackage']}" img="/resources/images/add.png"
+						action="#{loggerEdit.addPackage}" />
+
+					<ice:selectManyMenu style="width: 98%; height: 85px;" value="#{loggerEdit.selectedPackages}">
+						<f:selectItems value="#{loggerEdit.packages}" />
+					</ice:selectManyMenu>
+					<idm:button value="#{lang.messages['page.config.loggerEdit.button.deletePackages']}" img="/resources/images/delete.png"
+						action="#{loggerEdit.deletePackages}" />
+				</ice:panelGrid>
+				<ice:message for="package" errorClass="error" />
+
+				<ice:outputLabel value="#{lang.messages['page.config.loggerEdit.appender']}" />
+				<ice:selectManyCheckbox id="appender" value="#{loggerEdit.item.appenders}">
+					<f:selectItems value="#{logging.appenderNames}" />
+				</ice:selectManyCheckbox>
+				<ice:message for="appender" errorClass="error" />
+			</h:panelGrid>
+
+			<div class="button-bar">
+				<idm:button value="#{lang.messages['page.config.loggerEdit.button.back']}" img="/resources/images/door_in.png"
+					action="#{loggerEdit.backPerformed}" />
+
+				<idm:button value="#{lang.messages['page.config.loggerEdit.button.save']}" buttonType="positive" img="/resources/images/disk.png"
+					action="#{loggerEdit.savePerformed}" />
+			</div>
+		</ice:form>
+	</ui:define>
+</ui:composition>
+
+
+
