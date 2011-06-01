@@ -131,8 +131,6 @@
 					</wsdlFiles>
 				</configuration>
 			</plugin>
-			
-			
 		</plugins>
 		<pluginManagement>
 			<plugins>
