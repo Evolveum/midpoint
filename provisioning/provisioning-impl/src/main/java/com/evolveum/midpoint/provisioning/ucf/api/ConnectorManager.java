@@ -26,13 +26,15 @@ import java.util.Set;
 /**
  * Interface to Unified Connector functionality.
  * 
- * This is kind of connector facade. It is an API provided by
- * the "Unified Connector Framework" to the midPoint provisioning
- * component. There is no associated SPI yet. That may come in the
- * future when this interface stabilizes a bit.
+ * This is considered the "main" interface of the Unified Connector
+ * Framework (UCF) API. It can be used to instantiate connectors which in
+ * turn can be used to invoke operations on resources.
  * 
- * As it is an API for midPoint, it is using midPoint-specific classes,
- * such as Schema.
+ * The UCF interface is considered to be an abstraction internal to the
+ * midPoint project and not really reusable. It is using objects from the
+ * midPoint data model. But the longer-term ambition is to use this
+ * interface as an prototype of ICF replacement, as ICF is burdened by
+ * numerous problems.
  * 
  * Calls to this interface always try to reach the resource and get the
  * actual state on resource. The connectors are not supposed to cache any
@@ -48,22 +50,50 @@ public interface ConnectorManager {
 	/**
 	 * Creates new instance of the connector.
 	 * 
-	 * The factory does NOT cache or pool the connector instances. Call to this
-	 * method will always create new connector instance.
+	 * Returned connector instance will be configured to the state that it can
+	 * immediately access the resource. The resource definition is provided as
+	 * a parameter to this method.
+	 * 
+	 * This factory is NOT required to cache or pool the connector instances.
+	 * Call to this method may create new connector instance each time it is
+	 * called unless an underlying framework is pooling connector instances.
 	 * 
 	 * May return null if the resource definition cannot be handled by this factory
 	 * instance. E.g. it does not have configuration or the configuration is meant for
 	 * a different factory.
-	 * 
+	 * TODO: Better errror handling
 	 * TODO throw misconfiguration exception if the configuration is obviously meant for
 	 * this connector but it cannot be applied.
 	 * 
-	 * @param resource
-	 * @return
+	 * @param resource resource definition
+	 * @return configured and initialized connector instance
 	 */
 	public ConnectorInstance createConnectorInstance(ResourceType resource);
-	
+
+	/**
+	 * Returns a list of all known connectors.
+	 * 
+	 * The returned list contains all connectors known to the system, whether
+	 * they are used or not, whethere they are configured or not. It should
+	 * be used to list the "capabilities" of the system.
+	 * 
+	 * Returned connector objects are "virtual". They may not be stored in the
+	 * persistent repository and they may disappear if the connector disappears
+	 * from the system. The returned connector objects are immutable.
+	 * 
+	 * @return list of all known connectors.
+	 */
 	public Set<ConnectorType> listConnectors();
-	
+
+	/**
+	 * Returns a specific connector by OID.
+	 * 
+ 	 * Returned connector objects are "virtual". They may not be stored in the
+	 * persistent repository and they may disappear if the connector disappears
+	 * from the system. The returned connector objects are immutable.
+	 * 
+	 * @param oid
+	 * @return 
+	 */
 	public ConnectorType getConnector(String oid);
 }

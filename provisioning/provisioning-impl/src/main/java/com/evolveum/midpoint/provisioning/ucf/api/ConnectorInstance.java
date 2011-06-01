@@ -31,14 +31,22 @@ import javax.xml.namespace.QName;
 /**
  * Connector instance configured for a specific resource.
  * 
+ * This is kind of connector facade. It is an API provided by
+ * the "Unified Connector Framework" to the midPoint provisioning
+ * component. There is no associated SPI yet. That may come in the
+ * future when this interface stabilizes a bit.
+ * 
  * This interface provides an unified facade to a connector capabilities
  * in the Unified Connector Framework interface. The connector is configured
  * to a specific resource instance and therefore can execute operations on 
  * resource.
  * 
- * @see ConnectorManager
+ * Calls to this interface always try to reach the resource and get the
+ * actual state on resource. The connectors are not supposed to cache any
+ * information. Therefore the methods do not follow get/set java convention
+ * as the data are not regular javabean properties.
  * 
- *  TODO: doc
+ * @see ConnectorManager
  *  
  *  TODO: rich operation result
  * 
@@ -50,12 +58,65 @@ public interface ConnectorInstance {
     /**
 	 * Retrieves the schema from the resource.
 	 * 
+	 * The schema may be considered to be an XSD schema, but it is returned in a
+	 * "parsed" format and it is in fact a bit stricter and richer midPoint
+	 * schema.
+	 * 
+	 * The schema is always "freshly" fetched from the resource, it is not
+	 * cached in any way. Therefore this may be quite an expensive operation.
+	 * 
+	 * @see Schema
+	 * 
 	 * @return Up-to-date resource schema.
+	 * @throws CommunicationException error in communication to the resource 
+	 *				- nothing was fetched.
 	 */
 	public Schema fetchResourceSchema() throws CommunicationException;
 	
+	/**
+	 * Retrieves a specific object from the resource.
+	 * 
+	 * This method is fetching an object from the resource that is identified
+	 * by its primary identifier. It is a "targeted" method in this aspect and
+	 * it will fail if the object is not found.
+	 * 
+	 * The objectClass provided as a parameter to this method must correspond
+	 * to one of the object classes in the schema. The object class must match
+	 * the object. If it does not, the behavior of this operation is undefined.
+	 * 
+	 * The returned ResourceObject is "disconnected" from schema. It means that
+	 * any call to the getDefinition() method of the returned object will
+	 * return null.
+	 * 
+	 * TODO: object not found error
+	 * 
+	 * @param objectClass objectClass of the object to fetch (QName).
+	 * @param identifiers primary identifiers of the object.
+	 * @return object fetched from the resource (no schema)
+	 * @throws CommunicationException error in communication to the resource 
+	 *				- nothing was fetched.
+	 */
 	public ResourceObject fetchObject(QName objectClass, Set<ResourceObjectAttribute> identifiers) throws CommunicationException;
 	
+	// TODO schema-aware version of the operations
+	
+	/**
+	 * Execute iterative search operation.
+	 * 
+	 * This method will execute search operation on the resource and will pass
+	 * any objects that are found. A "handler" callback will be called for each
+	 * of the objects found.
+	 * 
+	 * The call to this method will return only after all the callbacks were
+	 * called, therefore it is not asynchronous in a strict sense.
+	 * 
+	 * 
+	 * TODO: filter
+	 * 
+	 * @param objectClass
+	 * @param handler
+	 * @throws CommunicationException 
+	 */
 	public void search(QName objectClass, ResultHandler handler) throws CommunicationException;
 
 	/**

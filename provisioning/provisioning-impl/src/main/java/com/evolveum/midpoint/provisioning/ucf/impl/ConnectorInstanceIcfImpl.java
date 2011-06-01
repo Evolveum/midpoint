@@ -55,7 +55,13 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 /**
- *
+ * Implementation of ConnectorInstance for ICF connectors.
+ * 
+ * This class implements the ConnectorInstance interface. The methods are
+ * converting the data from the "midPoint semantics" as seen by the 
+ * ConnectorInstance interface to the "ICF semantics" as seen by the ICF 
+ * framework.
+ * 
  * @author Radovan Semancik
  */
 public class ConnectorInstanceIcfImpl implements ConnectorInstance {
@@ -80,22 +86,35 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return resource.getNamespace();
 	}
 
+	/**
+	 * Retrieves schema from the resource.
+	 * 
+	 * Transforms native ICF schema to the midPoint representation.
+	 * 
+	 * @return midPoint resource schema.
+	 * @throws CommunicationException 
+	 */
 	@Override
 	public Schema fetchResourceSchema() throws CommunicationException {
 
+		// Fetch the schema from the connector (which actually gets that from the resource).
 		org.identityconnectors.framework.common.objects.Schema icfSchema = connector.schema();
+		
+		// New instance of midPoint schema object
 		Schema mpSchema = new Schema(getSchemaNamespace());
 		Set<Definition> definitions = mpSchema.getDefinitions();
 
+		// Let's convert every objectclass in the ICF schema ...
 		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
-
 		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
 
+			// "Flat" ICF object class names needs to be mapped to QNames
 			QName objectClassXsdName = objectClassToQname(objectClassInfo.getType());
 			
 			// Element names does not really make much sense in Resource
 			// Objects as they are not usually used. But for the sake of
 			// completeness we are going to generate them.
+			// TODO: this may need to be moved to a separate method
 			QName objectElementName;
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
 				objectElementName = new QName(getSchemaNamespace(),"account", SchemaConstants.NS_ICF_SCHEMA_PREFIX);
@@ -105,9 +124,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				objectElementName = new QName(getSchemaNamespace(), objectClassInfo.getType(), SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 			}
 
+			// ResourceObjectDefinition is a midPpoint way how to represent an object class.
+			// The important thing here is the last "type" parameter (objectClassXsdName). The rest is more-or-less cosmetics.
 			ResourceObjectDefinition roDefinition = new ResourceObjectDefinition(mpSchema, objectElementName, objectElementName, objectClassXsdName);
 			definitions.add(roDefinition);
 			
+			// The __ACCOUNT__ objectclass in ICF is a default account objectclass. So mark it appropriately.
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
 				roDefinition.setAccountType(true);
 				roDefinition.setDefaultAccountType(true);
@@ -115,33 +137,41 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 			// Every object has UID in ICF, therefore add it right now
 			ResourceObjectAttributeDefinition uidDefinition = new ResourceObjectAttributeDefinition(roDefinition, SchemaConstants.ICFS_UID, SchemaConstants.ICFS_UID, SchemaConstants.XSD_STRING);
+			// Make it mandatory
 			uidDefinition.setMinOccurs(1);
 			uidDefinition.setMaxOccurs(1);
 			roDefinition.getDefinitions().add(uidDefinition);
+			// Uid is a primary identifier of every object (this is the ICF way)
 			roDefinition.getIdentifiers().add(uidDefinition);
-			// TODO: identifier annontation ... and also other annotations
 			
+			// TODO: may need also other annotations
+			
+			// Let's iterate over all attributes in this object class ...
 			Set<AttributeInfo> attributeInfoSet = objectClassInfo.getAttributeInfo();
 			for (AttributeInfo attributeInfo : attributeInfoSet) {
 
-				// Default name and type for the attribute
+				// Default name and type for the attribute: name is takes "as is", type is mapped
 				QName attrXsdName = new QName(getSchemaNamespace(),attributeInfo.getName(),SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 				QName attrXsdType = mapType(attributeInfo.getType());
 				
 				// Handle special cases
 				if (Name.NAME.equals(attributeInfo.getName())) {
+					// this is ICF __NAME__ attribute. It will look ugly in XML and may even cause problems.
+					// so convert to something more friendly such as icfs:name
 					attrXsdName = SchemaConstants.ICFS_NAME;
 				}
 				if (PASSWORD_ATTRIBUTE_NAME.equals(attributeInfo.getName())) {
 					// Temporary hack. Password should go into credentials, not attributes
+					// TODO: fix this
 					attrXsdName = SchemaConstants.ICFS_PASSWORD;
 				}
 				
+				// Create ResourceObjectAttributeDefinition, which is midPoint way how to express attribute schema.
 				ResourceObjectAttributeDefinition roaDefinition = new ResourceObjectAttributeDefinition(roDefinition, attrXsdName, attrXsdName, attrXsdType);
 				roDefinition.getDefinitions().add(roaDefinition);
 				
+				// Now we are gooing to process flas such as optional and multi-valued
 				Set<Flags> flagsSet = attributeInfo.getFlags();
-
 				//System.out.println(flagsSet);
 
 				roaDefinition.setMinOccurs(0);
@@ -154,6 +184,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						roaDefinition.setMaxOccurs(-1);
 					}
 				}
+				
+				// TODO: process also other flags
 
 			}
 
@@ -176,6 +208,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         xsdTypeMap.put(org.identityconnectors.common.security.GuardedString.class,SchemaConstants.R_PROTECTED_STRING_TYPE);
     }
 	
+	// Hack. Should be moved to an appropriate place
     private QName mapType(Class idConnType) {
         QName xsdType = xsdTypeMap.get(idConnType);
         if (xsdType==null) {
@@ -184,6 +217,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
         return xsdType;
     }
 
+	/**
+	 * Maps ICF native objectclass name to a midPoint QName objctclass name.
+	 * 
+	 * The mapping is "stateless" - it does not keep any mapping database or
+	 * any other state. There is a bi-directional mapping algorithm.
+	 * 
+	 * TODO: mind the special characters in the ICF objectclass names.
+	 */
 	private QName objectClassToQname(String icfObjectClassString) {		
 			if (ObjectClass.ACCOUNT_NAME.equals(icfObjectClassString)) {
 				return new QName(getSchemaNamespace(), ACCOUNT_OBJECTCLASS_LOCALNAME, SchemaConstants.NS_ICF_SCHEMA_PREFIX);
@@ -193,7 +234,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				return new QName(getSchemaNamespace(), CUSTOM_OBJECTCLASS_PREFIX + icfObjectClassString + CUSTOM_OBJECTCLASS_SUFFIX, SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 			}
 	}
-	
+
+	/**
+	 * Maps a midPoint QName objctclass to the ICF native objectclass name.
+	 * 
+	 * The mapping is "stateless" - it does not keep any mapping database or
+	 * any other state. There is a bi-directional mapping algorithm.
+	 * 
+	 * TODO: mind the special characters in the ICF objectclass names.
+	 */
 	private ObjectClass objectClassToIcf(QName qnameObjectClass) {
 		if (!getSchemaNamespace().equals(qnameObjectClass.getNamespaceURI())) {
 			throw new IllegalArgumentException("ObjectClass QName "+qnameObjectClass+" is not in the appropriate namespace for resource "+resource.getName()+"(OID:"+resource.getOid()+"), expected: "+getSchemaNamespace());
@@ -212,6 +261,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 
+	/**
+	 * Looks up ICF Uid identifier in a (potentially multi-valued) set of
+	 * identifiers. Handy method to convert midPoint identifier style to an
+	 * ICF identifier style.
+	 * 
+	 * @param identifiers midPoint resource object identifiers
+	 * @return ICF UID or null
+	 */
 	private Uid getUid(Set<ResourceObjectAttribute> identifiers) {
 		for (ResourceObjectAttribute attr : identifiers) {
 			if (attr.getName().equals(SchemaConstants.ICFS_UID)) {
@@ -221,6 +278,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return null;
 	}
 	
+	/**
+	 * Converts ICF ConnectorObject to the midPoint ResourceObject.
+	 * 
+	 * All the attributes are mapped using the same way as they are mapped in the
+	 * schema (which is actually no mapping at all now).
+	 * 
+	 * If an optional ResourceObjectDefinition was provided, the resulting
+	 * ResourceObject is schema-aware (getDefinition() method works). If no
+	 * ResourceObjectDefinition was provided, the object is schema-less.
+	 * TODO: this still needs to be implemented.
+	 * 
+	 * @param co ICF ConnectorObject to convert
+	 * @param def ResourceObjectDefinition (from the schema) or null
+	 * @return new mapped ResourceObject instance.
+	 */
 	private ResourceObject convertToResourceObject(ConnectorObject co,ResourceObjectDefinition def) {
 		ResourceObject ro = new ResourceObject();
 		
