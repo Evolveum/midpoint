@@ -93,4 +93,19 @@ public class PropertyContainerDefinition extends Definition {
 	void setPropertyDefinitions(Set<PropertyDefinition> propertyDefinitions) {
 		this.propertyDefinitions = propertyDefinitions;
 	}
+	
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		for (int i=0; i<indent; i++) {
+			sb.append(Schema.INDENT);
+		}
+		sb.append(toString());
+		sb.append("\n");
+		for (PropertyDefinition def : getDefinitions()) {
+			sb.append(def.debugDump(indent+1));
+		}
+		return sb.toString();
+	}
+
 }

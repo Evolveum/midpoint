@@ -55,7 +55,7 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	private boolean accountType = false;
 	private String nativeObjectClass;
 
-	ResourceObjectDefinition(Schema schema, QName name, QName defaultName, QName typeName) {
+	public ResourceObjectDefinition(Schema schema, QName name, QName defaultName, QName typeName) {
 		super(name, defaultName, typeName);
 		if (schema == null) {
 			throw new IllegalArgumentException("Schema can't be null.");
@@ -174,7 +174,7 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		return accountType;
 	}
 
-	void setAccountType(boolean accountType) {
+	public void setAccountType(boolean accountType) {
 		this.accountType = accountType;
 		if (!accountType) {
 			defaultAccountType = false;
@@ -206,7 +206,7 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		return defaultAccountType;
 	}
 
-	void setDefaultAccountType(boolean defaultAccountType) {
+	public void setDefaultAccountType(boolean defaultAccountType) {
 		this.defaultAccountType = defaultAccountType;
 		if (defaultAccountType && !accountType) {
 			throw new IllegalStateException(

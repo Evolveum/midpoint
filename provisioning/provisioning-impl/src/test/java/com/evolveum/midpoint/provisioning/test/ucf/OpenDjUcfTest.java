@@ -19,12 +19,17 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
+import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
+import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerImpl;
 import com.evolveum.midpoint.provisioning.ucf.api.ConfiguredConnector;
+import com.evolveum.midpoint.schema.processor.ResourceObject;
 import javax.xml.bind.JAXBElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -42,6 +47,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
+import org.w3c.dom.Document;
 
 /**
  * Test UCF implementation with OpenDJ and ICF LDAP connector.
@@ -98,16 +104,21 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
     public void shutdownUcf() throws Exception {
         BaseXDatabaseFactory.XMLServerStop();
     }
-	
+
+	/**
+	 * Simple call to connector test() method.
+	 * 
+	 * @throws Exception 
+	 */
 	@Test
     public void testTestConnection() throws Exception {
-        //given
+        //GIVEN
 
-        //when
+        //WHEN
 		
         ResourceTestResultType result = cc.test();
 
-        //then
+        //THEN
         assertNotNull(result);
         TestResultType connectorConnectionResult = result.getConnectorConnection();
         assertNotNull(connectorConnectionResult);
@@ -115,6 +126,31 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
         assertTrue(connectorConnectionResult.isSuccess());
 
     }
+
+	/**
+	 * Test fetching and translating resource schema.
+	 * 
+	 * @throws Exception 
+	 */
+	@Test
+    public void testfetchResourceSchema() throws CommunicationException, SchemaProcessorException {
+		// GIVEN
+		
+		// WHEN
+		Schema schema = cc.fetchResourceSchema();
+		
+		// THEN
+		
+		assertNotNull(schema);
+		
+		System.out.println(schema.debugDump());
+		
+		Document xsdSchema = Schema.parseSchema(schema);
+		
+		System.out.println("-------------------------------------------------------------------------------------");
+		System.out.println(DOMUtil.printDom(xsdSchema));
+		System.out.println("-------------------------------------------------------------------------------------");
+	}
 
 
 	

@@ -89,12 +89,14 @@ public class PropertyDefinition extends Definition {
 		return minOccurs;
 	}
 
-	void setMinOccurs(int minOccurs) {
+	public void setMinOccurs(int minOccurs) {
 		this.minOccurs = minOccurs;
 	}
 
 	/**
 	 * Return the number of maximal value occurrences.
+	 * 
+	 * Any negative number means "unbounded".
 	 * 
 	 * @return the maxOccurs
 	 */
@@ -102,7 +104,7 @@ public class PropertyDefinition extends Definition {
 		return maxOccurs;
 	}
 
-	void setMaxOccurs(int maxOccurs) {
+	public void setMaxOccurs(int maxOccurs) {
 		this.maxOccurs = maxOccurs;
 	}
 

@@ -61,6 +61,9 @@ public abstract class SchemaConstants {
 	public static final String NS_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd";
 	public static final String NS_ICF_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd";
 	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd";
+	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd";
+	public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
+	public static final String NS_ICF_RESOURCE_INSTANCE_PREFIX = "ri";
 	public static final String NS_FILTER = "http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd";
 	public static final QName C_NAME = new QName(NS_C, "name");
 	public static final QName C_GENERIC_OBJECT = new QName(NS_C, "genericObject");
@@ -113,6 +116,17 @@ public abstract class SchemaConstants {
 	public static final QName X_DOCUMENTATION = new QName(W3C_XML_SCHEMA_NS_URI, "documentation");
 	public static final QName I_DIAGNOSTICS_MESSAGE_ERROR = new QName(NS_C, "error");
 	public static final QName I_DIAGNOSTICS_MESSAGE_WARNING = new QName(NS_C, "error");
+	
+	public static final QName R_PROTECTED_STRING_TYPE = new QName(NS_RESOURCE, "ProtectedStringType");
+	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
+	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
+	public static final QName ICFS_PASSWORD = new QName(NS_ICF_SCHEMA, "password");
+	
+	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
+	public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI,"string",NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_INTEGER = new QName(W3C_XML_SCHEMA_NS_URI,"integer",NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_BOOLEAN = new QName(W3C_XML_SCHEMA_NS_URI,"boolean",NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_BASE64BINARY = new QName(W3C_XML_SCHEMA_NS_URI,"base64Binary",NS_W3C_XML_SCHEMA_PREFIX);
 
 	private static Map<Class, QName> objectTypeElementMap;
 

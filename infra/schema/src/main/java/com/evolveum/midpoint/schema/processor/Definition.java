@@ -178,4 +178,14 @@ public abstract class Definition {
 	public String toString() {
 		return getClass().getSimpleName() + ":" + getName();
 	}
+	
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		for (int i=0; i<indent; i++) {
+			sb.append(Schema.INDENT);
+		}
+		sb.append(toString());
+		sb.append("\n");
+		return sb.toString();
+	}
 }

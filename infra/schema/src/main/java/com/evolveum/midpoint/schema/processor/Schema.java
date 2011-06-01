@@ -61,8 +61,9 @@ public class Schema {
 
 	private String namespace;
 	private Set<Definition> definitions;
+	static final String INDENT = "  ";
 	
-	Schema(String namespace) {
+	public Schema(String namespace) {
 		if (StringUtils.isEmpty(namespace)) {
 			throw new IllegalArgumentException("Namespace can't be null or empty.");
 		}
@@ -155,5 +156,16 @@ public class Schema {
 			}
 		}
 		return null;
+	}
+	
+	public String debugDump() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Schema ns=");
+		sb.append(getNamespace());
+		sb.append("\n");
+		for (Definition def: getDefinitions()) {
+			sb.append(def.debugDump(1));
+		}
+		return sb.toString();
 	}
 }

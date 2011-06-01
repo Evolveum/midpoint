@@ -97,7 +97,7 @@ public class ConnectorManagerImpl implements ConnectorManager {
 		ConnectorFacade cfacade =
 				ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
 
-		ConfiguredConnectorImpl connectorImpl = new ConfiguredConnectorImpl(cfacade);
+		ConfiguredConnectorImpl connectorImpl = new ConfiguredConnectorImpl(cfacade,resource);
 
 		return connectorImpl;
 	}

@@ -46,17 +46,17 @@ public class ResourceObjectAttributeDefinition extends PropertyDefinition {
 	private ResourceObjectDefinition objectDefinition;
 	private String nativeAttributeName;
 
-	ResourceObjectAttributeDefinition(QName name, QName defaultName, QName typeName) {
+	public ResourceObjectAttributeDefinition(QName name, QName defaultName, QName typeName) {
 		this(null, name, defaultName, typeName);
 	}
 
-	ResourceObjectAttributeDefinition(ResourceObjectDefinition objectDefinition, QName name,
+	public ResourceObjectAttributeDefinition(ResourceObjectDefinition objectDefinition, QName name,
 			QName defaultName, QName typeName) {
 		super(name, defaultName, typeName);
 		this.objectDefinition = objectDefinition;
 	}
 
-	void setObjectDefinition(ResourceObjectDefinition objectDefinition) {
+	public void setObjectDefinition(ResourceObjectDefinition objectDefinition) {
 		this.objectDefinition = objectDefinition;
 	}
 
