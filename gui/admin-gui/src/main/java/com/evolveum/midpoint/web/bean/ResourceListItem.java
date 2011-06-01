@@ -20,8 +20,6 @@
  */
 package com.evolveum.midpoint.web.bean;
 
-import java.io.Serializable;
-
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -29,11 +27,9 @@ import org.apache.commons.lang.StringUtils;
  * @author lazyman
  * 
  */
-public class ResourceListItem implements Serializable {
+public class ResourceListItem extends SelectableBean {
 
 	private static final long serialVersionUID = 8252381052377454312L;
-
-	private boolean selected = false;
 	private String oid;
 	private String name;
 	private String type;
@@ -50,14 +46,6 @@ public class ResourceListItem implements Serializable {
 		this.name = name;
 		this.type = type;
 		this.version = version;
-	}
-
-	public boolean isSelected() {
-		return selected;
-	}
-
-	public void setSelected(boolean selected) {
-		this.selected = selected;
 	}
 
 	public String getOid() {
@@ -97,7 +85,7 @@ public class ResourceListItem implements Serializable {
 		}
 		return state;
 	}
-	
+
 	public ResourceSync getSync() {
 		if (sync == null) {
 			sync = new ResourceSync();

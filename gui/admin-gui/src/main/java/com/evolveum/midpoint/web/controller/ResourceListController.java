@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.bean.ResourceState;
 import com.evolveum.midpoint.web.bean.ResourceStatus;
 import com.evolveum.midpoint.web.bean.SortedResourceList;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
@@ -109,15 +110,7 @@ public class ResourceListController implements Serializable {
 	}
 
 	public void selectAllPerformed(ValueChangeEvent evt) {
-		if (evt.getPhaseId() != PhaseId.INVOKE_APPLICATION) {
-			evt.setPhaseId(PhaseId.INVOKE_APPLICATION);
-			evt.queue();
-		} else {
-			boolean selectAll = ((Boolean) evt.getNewValue()).booleanValue();
-			for (ResourceListItem item : getResourceList()) {
-				item.setSelected(selectAll);
-			}
-		}
+		ControllerUtil.selectAllPerformed(evt, getResourceList());
 	}
 
 	public void sortList(ActionEvent evt) {
@@ -125,24 +118,7 @@ public class ResourceListController implements Serializable {
 	}
 
 	public void selectPerformed(ValueChangeEvent evt) {
-		if (evt.getPhaseId() != PhaseId.INVOKE_APPLICATION) {
-			evt.setPhaseId(PhaseId.INVOKE_APPLICATION);
-			evt.queue();
-		} else {
-			boolean selected = ((Boolean) evt.getNewValue()).booleanValue();
-			if (!selected) {
-				selectAll = false;
-			} else {
-				boolean selectedAll = true;
-				for (ResourceListItem item : getResourceList()) {
-					if (!item.isSelected()) {
-						selectedAll = false;
-						break;
-					}
-				}
-				this.selectAll = selectedAll;
-			}
-		}
+		ControllerUtil.selectPerformed(evt, getResourceList());
 	}
 
 	public String showResourceDetails() {

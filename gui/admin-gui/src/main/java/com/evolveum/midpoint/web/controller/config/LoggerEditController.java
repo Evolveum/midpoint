@@ -134,6 +134,7 @@ public class LoggerEditController implements Serializable {
 		for (LoggerListItem item : loggingController.getLoggers()) {
 			if (item.getId() == loggerId) {
 				this.item = item.cloneItem();
+				break;
 			}
 		}
 
@@ -153,7 +154,7 @@ public class LoggerEditController implements Serializable {
 	public String savePerformed() {
 		LoggerListItem oldItem = null;
 		for (LoggerListItem item : loggingController.getLoggers()) {
-			if (item.getId() == this.item.getId()) {
+			if (item.getId() == getItem().getId()) {
 				oldItem = item;
 				break;
 			}

@@ -22,11 +22,13 @@ package com.evolveum.midpoint.web.controller.config;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.web.bean.AppenderListItem;
+import com.evolveum.midpoint.web.util.FacesUtils;
 
 /**
  * 
@@ -39,7 +41,7 @@ public class AppenderEditController implements Serializable {
 
 	public static final String PAGE_NAVIGATION_LIST = "/config/logging?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_EDIT = "/config/appenderEdit?faces-redirect=true";
-	public static final String PARAM_LOGGER_ID = "appenderId";
+	public static final String PARAM_APPENDER_ID = "appenderName";
 	private static final long serialVersionUID = 636982713825573383L;
 	@Autowired(required = true)
 	private LoggingController loggingController;
@@ -63,7 +65,24 @@ public class AppenderEditController implements Serializable {
 
 	public String editAppender() {
 		clearController();
-		// TODO: finish
+		String appenderName = FacesUtils.getRequestParameter(PARAM_APPENDER_ID);
+		if (StringUtils.isEmpty(appenderName)) {
+			FacesUtils.addErrorMessage("Appender id not defined.");
+			return PAGE_NAVIGATION_LIST;
+		}
+
+		for (AppenderListItem item : loggingController.getAppenders()) {
+			if (item.getName().equals(appenderName)) {
+				this.item = item.cloneItem();
+				break;
+			}
+		}
+
+		if (item == null) {
+			FacesUtils.addErrorMessage("Appender configuration not found.");
+			return PAGE_NAVIGATION_LIST;
+		}
+		
 		return PAGE_NAVIGATION_EDIT;
 	}
 
@@ -73,7 +92,22 @@ public class AppenderEditController implements Serializable {
 	}
 
 	public String savePerformed() {
-
+		AppenderListItem oldItem = null;
+		for (AppenderListItem item : loggingController.getAppenders()) {
+			if (item.getName().equals(getItem().getName())) {
+				oldItem = item;
+				break;
+			}
+		}
+		
+		if (oldItem != null) {
+			loggingController.getAppenders().remove(oldItem);		
+		}
+		
+		loggingController.getAppenders().add(item);
+		
+		//TODO: update configuration
+		
 		clearController();
 		return PAGE_NAVIGATION_LIST;
 	}

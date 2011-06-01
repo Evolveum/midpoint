@@ -18,11 +18,11 @@
 				columnWidths="auto, 70px, 160px, 200px, 280px, 150px" resizable="false">
 				<ice:column>
 					<f:facet name="header">
-						<ice:selectBooleanCheckbox id="selectAllCheckbox" value="#{resourceList.selectAll}"
-							valueChangeListener="#{resourceList.selectAllPerformed}" immediate="true" partialSubmit="true" />
+						<ice:selectBooleanCheckbox id="selectAllCheckbox" value="#{logging.selectAllLoggers}"
+							valueChangeListener="#{logging.selectAllLoggersPerformed}" immediate="true" partialSubmit="true" />
 					</f:facet>
 					<ice:selectBooleanCheckbox id="selectCheckbox" value="#{item.selected}" partialSubmit="true"
-						immediate="true" valueChangeListener="#{resourceList.selectPerformed}" />
+						immediate="true" valueChangeListener="#{logging.selectLoggerPerformed}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
@@ -87,11 +87,11 @@
 				columnWidths="auto, 150px, 30px, 230px, 320px, 120px" resizable="false">
 				<ice:column>
 					<f:facet name="header">
-						<ice:selectBooleanCheckbox id="selectAllCheckbox" value="#{resourceList.selectAll}"
-							valueChangeListener="#{resourceList.selectAllPerformed}" immediate="true" partialSubmit="true" />
+						<ice:selectBooleanCheckbox id="selectAllCheckbox" value="#{logging.selectAllAppenders}"
+							valueChangeListener="#{logging.selectAllAppendersPerformed}" immediate="true" partialSubmit="true" />
 					</f:facet>
 					<ice:selectBooleanCheckbox id="selectCheckbox" value="#{item.selected}" partialSubmit="true"
-						immediate="true" valueChangeListener="#{resourceList.selectPerformed}" />
+						immediate="true" valueChangeListener="#{logging.selectAppenderPerformed}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
@@ -99,7 +99,7 @@
 					</f:facet>
 					<ice:commandLink style="text-decoration: underline;" value="#{item.name}"
 						action="#{appenderEdit.editAppender}">
-						<f:param name="appenderId" value="#{item.id}" />
+						<f:param name="appenderName" value="#{item.name}" />
 					</ice:commandLink>
 				</ice:column>
 				<ice:column>
@@ -124,7 +124,7 @@
 					<f:facet name="header">
 						<ice:outputLabel value="#{lang.messages['page.config.logging.table.app.fileSize']}" />
 					</f:facet>
-					<ice:outputText value="#{item.fileSize}" />
+					<ice:outputText value="#{item.maxFileSizeString}" />
 				</ice:column>
 			</ice:dataTable>
 			<div class="button-bar">

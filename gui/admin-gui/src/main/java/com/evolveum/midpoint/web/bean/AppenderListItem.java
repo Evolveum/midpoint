@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.bean;
 
+import org.apache.commons.lang.StringUtils;
 
 /**
  * 
@@ -35,7 +36,21 @@ public class AppenderListItem extends SelectableBean {
 	private String filePath;
 	private int maxFileSize = 500;
 
+	public AppenderListItem cloneItem() {
+		AppenderListItem item = new AppenderListItem();
+		item.setName(getName());
+		item.setPattern(getPattern());
+		item.setType(getType());
+		item.setFilePath(getFilePath());
+		item.setMaxFileSize(getMaxFileSize());
+
+		return item;
+	}
+
 	public String getName() {
+		if (StringUtils.isEmpty(name)) {
+			name = "Unknown-" + ((int) (Math.random() * 100));
+		}
 		return name;
 	}
 
@@ -95,6 +110,14 @@ public class AppenderListItem extends SelectableBean {
 
 	public void setFilePath(String filePath) {
 		this.filePath = filePath;
+	}
+
+	public String getMaxFileSizeString() {
+		if (!AppenderType.FILE.equals(type)) {
+			return null;
+		}
+
+		return Integer.toString(maxFileSize);
 	}
 
 	public int getMaxFileSize() {
