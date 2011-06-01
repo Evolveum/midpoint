@@ -16,11 +16,31 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2011 Igor Farinic
  * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.repo.test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.util.List;
+
+import javax.xml.bind.JAXBElement;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
@@ -35,25 +55,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import java.io.File;
-import java.util.List;
-
-import javax.xml.bind.JAXBElement;
-
-import org.custommonkey.xmlunit.XMLUnit;
-import org.eclipse.core.internal.dtree.ObjectNotFoundException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.w3c.dom.Element;
-
-import static org.junit.Assert.*;
 
 /**
  * 

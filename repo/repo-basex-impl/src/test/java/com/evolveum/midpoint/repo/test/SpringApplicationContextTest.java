@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2011 Igor Farinic
  * Portions Copyrighted 2010 Forgerock
  */
 
@@ -39,9 +39,8 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 /**
  * Test of spring application context initialization
  *
- * @author $author$
- * @version $Revision$ $Date$
- * @since 1.0.0
+ * @author Igor Farinic
+
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"../../../../../application-context-repository.xml", "../../../../../application-context-repository-test.xml"})

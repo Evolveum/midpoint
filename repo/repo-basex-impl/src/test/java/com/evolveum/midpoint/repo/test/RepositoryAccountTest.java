@@ -16,16 +16,18 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2011 Igor Farinic
  * Portions Copyrighted 2010 Forgerock
  */
 
 package com.evolveum.midpoint.repo.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.math.BigInteger;
+import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
@@ -38,17 +40,22 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
@@ -91,34 +98,57 @@ public class RepositoryAccountTest {
 	public void tearDown() {
 	}
 
+	private void compareObjects(AccountShadowType object, AccountShadowType retrievedObject) throws Exception {
+		assertEquals(object.getOid(), retrievedObject.getOid());
+		assertEquals(object.getName(), retrievedObject.getName());
+		assertEquals(object.getCredentials().getPassword().getAny().toString(), object.getCredentials()
+				.getPassword().getAny().toString());
+
+		if (object.getExtension() != null && retrievedObject.getExtension() != null) {
+			assertEquals(object.getExtension().getAny().size(), retrievedObject.getExtension().getAny()
+					.size());
+			List<Element> extensionElements = object.getExtension().getAny();
+			int i = 0;
+			for (Element element : extensionElements) {
+				XmlAsserts.assertPatch(DOMUtil.serializeDOMToString(element),
+						DOMUtil.serializeDOMToString(retrievedObject.getExtension().getAny().get(i)));
+				i++;
+			}
+		} else if ((object.getExtension() != null && retrievedObject.getExtension() == null)
+				|| (object.getExtension() == null && retrievedObject.getExtension() != null)) {
+			fail("Extension section is null for one object but not null for other object");
+		}
+	}
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testAccount() throws Exception {
-		String oid = "dbb0c37d-9ee6-44a4-8d39-016dbce18b4c";
+		final String accountOid = "dbb0c37d-9ee6-44a4-8d39-016dbce18b4c";
 		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
+			// add resource
 			ObjectContainerType objectContainer = new ObjectContainerType();
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
 			objectContainer.setObject(resource);
 			repositoryService.addObject(objectContainer);
-
 			ObjectContainerType retrievedObjectContainer = repositoryService.getObject(resourceOid,
 					new PropertyReferenceListType());
 			assertEquals(resource.getOid(), ((ResourceType) (retrievedObjectContainer.getObject())).getOid());
 
+			// add account
 			objectContainer = new ObjectContainerType();
 			AccountShadowType accountShadow = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/account.xml"))).getValue();
 			objectContainer.setObject(accountShadow);
 			repositoryService.addObject(objectContainer);
-			retrievedObjectContainer = repositoryService.getObject(oid, new PropertyReferenceListType());
-			assertEquals(accountShadow.getOid(),
-					((AccountShadowType) (retrievedObjectContainer.getObject())).getOid());
-			assertEquals(accountShadow.getCredentials().getPassword().getAny().toString(),
-					((AccountShadowType) (retrievedObjectContainer.getObject())).getCredentials()
-							.getPassword().getAny().toString());
 
+			// get account object
+			retrievedObjectContainer = repositoryService.getObject(accountOid,
+					new PropertyReferenceListType());
+			compareObjects(accountShadow, ((AccountShadowType) (retrievedObjectContainer.getObject())));
+
+			// list account objects with simple paging
 			PagingType pagingType = new PagingType();
 			pagingType.setMaxSize(BigInteger.valueOf(5));
 			pagingType.setOffset(BigInteger.valueOf(0));
@@ -127,13 +157,21 @@ public class RepositoryAccountTest {
 			ObjectListType objects = repositoryService.listObjects(
 					QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE), pagingType);
 			assertEquals(1, objects.getObject().size());
-			assertEquals(oid, objects.getObject().get(0).getOid());
+			compareObjects(accountShadow, (AccountShadowType) objects.getObject().get(0));
 
-			//remove object
-			repositoryService.deleteObject(oid);
+			// delete object
+			repositoryService.deleteObject(accountOid);
+			try {
+				repositoryService.getObject(accountOid, new PropertyReferenceListType());
+				fail("Object with oid " + accountOid + " was not deleted");
+			} catch (FaultMessage ex) {
+				if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
+					throw ex;
+				}
+			}
 		} finally {
 			try {
-				repositoryService.deleteObject(oid);
+				repositoryService.deleteObject(accountOid);
 			} catch (Exception e) {
 				// ignore errors during cleanup
 			}
