@@ -21,7 +21,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.provisioning.ucf.api.ConfiguredConnector;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.util.ClasspathUrlFinder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -59,7 +59,7 @@ import org.w3c.dom.NodeList;
  * 
  * @author Radovan Semancik
  */
-public class ConnectorManagerImpl implements ConnectorManager {
+public class ConnectorManagerIcfImpl implements ConnectorManager {
 
 	// This ususally refers to WEB-INF/lib/icf-connectors
 	private static final String BUNDLE_PATH = "../../lib/icf-connectors";
@@ -67,11 +67,11 @@ public class ConnectorManagerImpl implements ConnectorManager {
 	private static final String BUNDLE_SUFFIX = ".jar";
 	private static final String CONFIGURATION_PROPERTIES_XML_ELEMENT_NAME = "configurationProperties";
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns/resource/icf/";
-	private static final Trace log = TraceManager.getTrace(ConnectorManagerImpl.class);
+	private static final Trace log = TraceManager.getTrace(ConnectorManagerIcfImpl.class);
 	private ConnectorInfoManager localConnectorInfoManager;
 	private Map<String, ConnectorInfo> connectors;
 
-	public ConnectorManagerImpl() {
+	public ConnectorManagerIcfImpl() {
 	}
 
 	public void initialize() {
@@ -87,7 +87,7 @@ public class ConnectorManagerImpl implements ConnectorManager {
 	}
 
 	@Override
-	public ConfiguredConnector createConfiguredConnector(ResourceType resource) {
+	public ConnectorInstance createConnectorInstance(ResourceType resource) {
 		String connectorOid = getConnectorOid(resource);
 		ConnectorInfo cinfo = findConnectorInfoByOid(connectorOid);
 		APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
@@ -97,7 +97,7 @@ public class ConnectorManagerImpl implements ConnectorManager {
 		ConnectorFacade cfacade =
 				ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
 
-		ConfiguredConnectorImpl connectorImpl = new ConfiguredConnectorImpl(cfacade,resource);
+		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cfacade,resource);
 
 		return connectorImpl;
 	}

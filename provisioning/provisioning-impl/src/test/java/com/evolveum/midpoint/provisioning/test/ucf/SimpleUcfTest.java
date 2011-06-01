@@ -20,7 +20,7 @@
 package com.evolveum.midpoint.provisioning.test.ucf;
 
 import javax.xml.bind.JAXBElement;
-import com.evolveum.midpoint.provisioning.ucf.api.ConfiguredConnector;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import javax.xml.bind.JAXBContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -29,7 +29,7 @@ import javax.xml.bind.Unmarshaller;
 import java.io.FileInputStream;
 import java.io.File;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerImpl;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerIcfImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import java.io.FileNotFoundException;
 import java.util.Set;
@@ -56,7 +56,7 @@ public class SimpleUcfTest {
 
 	@Before
 	public void setUp() {
-		ConnectorManagerImpl managerImpl = new ConnectorManagerImpl();
+		ConnectorManagerIcfImpl managerImpl = new ConnectorManagerIcfImpl();
 		managerImpl.initialize();
 		manager = managerImpl;
 	}
@@ -99,7 +99,7 @@ public class SimpleUcfTest {
 		
 		ResourceType resource = (ResourceType) ((JAXBElement) object).getValue();
 		
-		ConfiguredConnector cc = manager.createConfiguredConnector(resource);
+		ConnectorInstance cc = manager.createConnectorInstance(resource);
 
 		assertNotNull(cc);
 	}

@@ -22,14 +22,21 @@ package com.evolveum.midpoint.provisioning.test.ucf;
 import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
+import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerImpl;
-import com.evolveum.midpoint.provisioning.ucf.api.ConfiguredConnector;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerIcfImpl;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import java.util.Set;
 import javax.xml.bind.JAXBElement;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -41,6 +48,9 @@ import java.io.File;
 import com.evolveum.midpoint.test.repository.BaseXDatabaseFactory;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import java.util.HashSet;
+import javax.xml.namespace.QName;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -63,8 +73,10 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 	
     protected static OpenDJUtil djUtil = new OpenDJUtil();
 	private JAXBContext jaxbctx;
+	ResourceType resource;
 	private ConnectorManager manager;
-	private ConfiguredConnector cc;
+	private ConnectorInstance cc;
+	Schema schema;
 	
 	public OpenDjUcfTest() throws JAXBException {
 		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
@@ -88,15 +100,19 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 
         Unmarshaller u = jaxbctx.createUnmarshaller();
         Object object = u.unmarshal(fis);		
-		ResourceType resource = (ResourceType) ((JAXBElement) object).getValue();
+		resource = (ResourceType) ((JAXBElement) object).getValue();
 
-		ConnectorManagerImpl managerImpl = new ConnectorManagerImpl();
+		ConnectorManagerIcfImpl managerImpl = new ConnectorManagerIcfImpl();
 		managerImpl.initialize();
 		manager = managerImpl;
 
-		cc = manager.createConfiguredConnector(resource);
+		cc = manager.createConnectorInstance(resource);
 
 		assertNotNull(cc);
+		
+		schema = cc.fetchResourceSchema();
+		
+		assertNotNull(schema);
 
     }
 
@@ -133,11 +149,12 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 	 * @throws Exception 
 	 */
 	@Test
-    public void testfetchResourceSchema() throws CommunicationException, SchemaProcessorException {
+    public void testFetchResourceSchema() throws CommunicationException, SchemaProcessorException {
 		// GIVEN
 		
 		// WHEN
-		Schema schema = cc.fetchResourceSchema();
+		
+		// The schema was fetched during test init. Now just check if it was OK.
 		
 		// THEN
 		
@@ -150,8 +167,67 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		System.out.println("-------------------------------------------------------------------------------------");
 		System.out.println(DOMUtil.printDom(xsdSchema));
 		System.out.println("-------------------------------------------------------------------------------------");
+		
+		PropertyContainerDefinition accountDefinition = schema.findContainerDefinitionByType(new QName(resource.getNamespace(),"AccountObjectClass"));
+		assertNotNull(accountDefinition);
+		
+		PropertyDefinition uidDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.ICFS_UID);
+		assertNotNull(uidDefinition);
+		
 	}
 
+	@Test
+	public void testFetchObject() throws CommunicationException {
+		// GIVEN
+		
+		// Account type is hardcoded now
+		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(resource.getNamespace(),"AccountObjectClass"));
+		// Determine identifier from the schema
+		Set<ResourceObjectAttributeDefinition> identifierDefinition = accountDefinition.getIdentifiers();
+		Set<ResourceObjectAttribute> identifiers = new HashSet<ResourceObjectAttribute>();
+		for (ResourceObjectAttributeDefinition definition : identifierDefinition) {
+			ResourceObjectAttribute identifier = definition.instantiate();
+			identifier.setValue("dd2b96ec-43f5-3953-ae21-807cedac45ab");
+			System.out.println("Fetch: Identifier "+identifier);
+			identifiers.add(identifier);
+		}
+		// Determine object class from the schema
+		QName objectClass = accountDefinition.getTypeName();
+		
+		// WHEN
+		ResourceObject ro = cc.fetchObject(objectClass,identifiers);
+		
+		// THEN
+		
+		assertNotNull(ro);
+		System.out.println("Fetched object "+ro);
+		
+	}
 
-	
+	@Test
+	public void testSearch() throws CommunicationException {
+		// GIVEN
+		
+		// Account type is hardcoded now
+		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(resource.getNamespace(),"AccountObjectClass"));
+		// Determine object class from the schema
+		QName objectClass = accountDefinition.getTypeName();
+		
+		ResultHandler handler = new ResultHandler() {
+
+			@Override
+			public boolean handle(ResourceObject object) {
+				System.out.println("Search: found: "+object);
+				return true;
+			}
+		};
+		
+		// WHEN
+		cc.search(objectClass,handler);
+		
+		// THEN
+		
+		
+	}
+
 }

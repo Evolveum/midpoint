@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.sun.org.apache.xerces.internal.impl.xs.identity.ValueStore;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -47,12 +48,16 @@ public class ResourceObjectAttribute extends Property {
 	}
 
 	public ResourceObjectAttribute(QName name, PropertyDefinition definition,
-			Set<MidPointObject> values) {
+			Set<Object> values) {
 		super(name, definition, values);
 	}
 
 	public ResourceObjectAttribute(QName name, PropertyDefinition definition) {
 		super(name, definition);
+	}
+
+	public ResourceObjectAttribute(QName name) {
+		super(name);
 	}
 
 	public ResourceObjectAttributeDefinition getDefinition() {
@@ -102,4 +107,5 @@ public class ResourceObjectAttribute extends Property {
 		return getDefinition() == null ? null : getDefinition()
 				.getResourceObjectReference();
 	}
+	
 }

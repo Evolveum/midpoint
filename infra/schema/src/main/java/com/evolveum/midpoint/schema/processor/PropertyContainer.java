@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -48,7 +49,7 @@ import javax.xml.namespace.QName;
 public class PropertyContainer {
 
 	private QName name;
-	private Set<Property> properties;
+	private Set<Property> properties = new HashSet<Property>();
 	private PropertyContainerDefinition definition;
 
 	/**
@@ -171,5 +172,10 @@ public class PropertyContainer {
 	 */
 	public Property findProperty(PropertyDefinition propertyDefinition) {
 		throw new IllegalStateException("not implemented yet.");
+	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName()+"("+getName()+"):"+getProperties();
 	}
 }

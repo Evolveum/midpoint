@@ -147,7 +147,7 @@ public class Schema {
 	 * @throws IllegalStateException
 	 *             if more than one definition is found
 	 */
-	PropertyContainerDefinition findContainerDefinitionByType(QName typeName) {
+	public PropertyContainerDefinition findContainerDefinitionByType(QName typeName) {
 		// TODO: check for multiple definition with the same type
 		for (Definition definition : definitions) {
 			if (definition instanceof PropertyContainerDefinition

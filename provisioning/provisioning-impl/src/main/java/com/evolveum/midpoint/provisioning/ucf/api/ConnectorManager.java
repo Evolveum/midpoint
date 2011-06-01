@@ -61,7 +61,7 @@ public interface ConnectorManager {
 	 * @param resource
 	 * @return
 	 */
-	public ConfiguredConnector createConfiguredConnector(ResourceType resource);
+	public ConnectorInstance createConnectorInstance(ResourceType resource);
 	
 	public Set<ConnectorType> listConnectors();
 	

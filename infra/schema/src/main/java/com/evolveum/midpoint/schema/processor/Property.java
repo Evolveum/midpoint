@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -53,19 +54,27 @@ public class Property {
 
 	private QName name;
 	private PropertyDefinition definition;
-	private Set<MidPointObject> values;
+	private Set<Object> values;
 
 	public Property() {
 		super();
+	}
+
+	public Property(QName name) {
+		super();
+		this.name = name;
+		this.definition = null;
+		this.values = new HashSet<Object>();
 	}
 
 	public Property(QName name, PropertyDefinition definition) {
 		super();
 		this.name = name;
 		this.definition = definition;
+		this.values = new HashSet<Object>();
 	}
 
-	public Property(QName name, PropertyDefinition definition, Set<MidPointObject> values) {
+	public Property(QName name, PropertyDefinition definition, Set<Object> values) {
 		super();
 		this.name = name;
 		this.definition = definition;
@@ -132,7 +141,7 @@ public class Property {
 	 * 
 	 * @return property values
 	 */
-	public Object getValues() {
+	public Set<Object> getValues() {
 		return values;
 	}
 
@@ -178,11 +187,22 @@ public class Property {
 			throw new IllegalStateException("Attempt to get single value from property " + name
 					+ " with multiple values");
 		}
-		MidPointObject o = values.iterator().next();
+		Object o = values.iterator().next();
 		if (o == null) {
 			return null;
 		}
 		return (T) o;
+	}
+	
+	/**
+	 * Means as a short-hand for setting just a value for single-valued
+	 * attributes.
+	 * Will remove all existing values.
+	 * TODO
+	 */
+	public void setValue(Object value) {
+		values.clear();
+		values.add(value);
 	}
 
 	/**
@@ -212,4 +232,10 @@ public class Property {
 	public String getHelp() {
 		return getDefinition() == null ? null : getDefinition().getHelp();
 	}
+	
+	@Override
+	public String toString() {
+		return getClass().getSimpleName()+"("+getName()+"):"+getValues();
+	}
+
 }

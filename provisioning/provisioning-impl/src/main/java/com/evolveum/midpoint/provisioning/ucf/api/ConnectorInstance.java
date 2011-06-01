@@ -23,8 +23,10 @@ import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import javax.xml.namespace.QName;
 
 /**
  * Connector instance configured for a specific resource.
@@ -43,7 +45,7 @@ import java.util.Set;
  * @author Radovan Semancik
  * 
  */
-public interface ConfiguredConnector {
+public interface ConnectorInstance {
 	
     /**
 	 * Retrieves the schema from the resource.
@@ -52,7 +54,9 @@ public interface ConfiguredConnector {
 	 */
 	public Schema fetchResourceSchema() throws CommunicationException;
 	
-	public ResourceObject fetchObject(Set<ResourceObjectAttribute> identifiers) throws CommunicationException;
+	public ResourceObject fetchObject(QName objectClass, Set<ResourceObjectAttribute> identifiers) throws CommunicationException;
+	
+	public void search(QName objectClass, ResultHandler handler) throws CommunicationException;
 
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not

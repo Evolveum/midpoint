@@ -21,8 +21,9 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
-import com.evolveum.midpoint.provisioning.ucf.api.ConfiguredConnector;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.Token;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import java.util.Collection;
 import java.util.HashMap;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
@@ -42,7 +44,10 @@ import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.ObjectClass;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
+import org.identityconnectors.framework.common.objects.ResultsHandler;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,15 +58,19 @@ import javax.xml.namespace.QName;
  *
  * @author Radovan Semancik
  */
-public class ConfiguredConnectorImpl implements ConfiguredConnector {
+public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	private static final String PASSWORD_ATTRIBUTE_NAME = "__PASSWORD__";
+	private static final String ACCOUNT_OBJECTCLASS_LOCALNAME = "AccountObjectClass";
+	private static final String GROUP_OBJECTCLASS_LOCALNAME = "GroupObjectClass";
+	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
+	private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
 	
 	ConnectorFacade connector;
 	ResourceType resource;
 	static Map<Class,QName> xsdTypeMap;
 
-	public ConfiguredConnectorImpl(ConnectorFacade connector, ResourceType resource) {
+	public ConnectorInstanceIcfImpl(ConnectorFacade connector, ResourceType resource) {
 		this.connector = connector;
 		this.resource = resource;
 		initTypeMap();
@@ -82,20 +91,17 @@ public class ConfiguredConnectorImpl implements ConfiguredConnector {
 
 		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
 
-			QName objectClassXsdName;
+			QName objectClassXsdName = objectClassToQname(objectClassInfo.getType());
+			
 			// Element names does not really make much sense in Resource
 			// Objects as they are not usually used. But for the sake of
 			// completeness we are going to generate them.
 			QName objectElementName;
-
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-				objectClassXsdName = new QName(getSchemaNamespace(), "AccountObjectClass", SchemaConstants.NS_ICF_SCHEMA_PREFIX);
 				objectElementName = new QName(getSchemaNamespace(),"account", SchemaConstants.NS_ICF_SCHEMA_PREFIX);
 			} else if (ObjectClass.GROUP_NAME.equals(objectClassInfo.getType())) {
-				objectClassXsdName = new QName(getSchemaNamespace(), "GroupObjectClass", SchemaConstants.NS_ICF_SCHEMA_PREFIX);
 				objectElementName = new QName(getSchemaNamespace(),"group", SchemaConstants.NS_ICF_SCHEMA_PREFIX);
 			} else {
-				objectClassXsdName = new QName(getSchemaNamespace(), "Custom" + objectClassInfo.getType() + "ObjectClass", SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 				objectElementName = new QName(getSchemaNamespace(), objectClassInfo.getType(), SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 			}
 
@@ -108,12 +114,12 @@ public class ConfiguredConnectorImpl implements ConfiguredConnector {
 			}
 			
 			// Every object has UID in ICF, therefore add it right now
-			
 			ResourceObjectAttributeDefinition uidDefinition = new ResourceObjectAttributeDefinition(roDefinition, SchemaConstants.ICFS_UID, SchemaConstants.ICFS_UID, SchemaConstants.XSD_STRING);
 			uidDefinition.setMinOccurs(1);
 			uidDefinition.setMaxOccurs(1);
 			roDefinition.getDefinitions().add(uidDefinition);
-			// TODO: identifier
+			roDefinition.getIdentifiers().add(uidDefinition);
+			// TODO: identifier annontation ... and also other annotations
 			
 			Set<AttributeInfo> attributeInfoSet = objectClassInfo.getAttributeInfo();
 			for (AttributeInfo attributeInfo : attributeInfoSet) {
@@ -156,95 +162,8 @@ public class ConfiguredConnectorImpl implements ConfiguredConnector {
 		return mpSchema;
 	}
 
-	
-//			StringBuilder xsdSb = new StringBuilder();
-//		xsdSb.append("<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" "
-//				+ "targetNamespace=\"");
-//		xsdSb.append(schemaNamespace);
-//		xsdSb.append("\" xmlns:tns=\"");
-//		xsdSb.append(schemaNamespace);
-//		xsdSb.append("\" xmlns:idfs=\"");
-//		xsdSb.append(SchemaConstants.NS_ICF_SCHEMA);
-//		xsdSb.append("\" xmlns:r=\"");
-//		xsdSb.append(SchemaConstants.NS_RESOURCE);
-//		xsdSb.append("\" elementFormDefault=\"qualified\">\n");
-//
-//		xsdSb.append("<xsd:import namespace=\"");
-//		xsdSb.append(SchemaConstants.NS_ICF_SCHEMA);
-//		xsdSb.append("\"/>\n");
-//
-//		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
-//
-//		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
-//			xsdSb.append("\n\n");
-//
-//			boolean hasName = false;
-//
-//			String objectClassXsdName;
-//
-//			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-//				objectClassXsdName = "AccountObjectClass";
-//			} else if (ObjectClass.GROUP_NAME.equals(objectClassInfo.getType())) {
-//				objectClassXsdName = "GroupObjectClass";
-//			} else {
-//				objectClassXsdName = objectClassInfo.getType() + "MiscObjectClass";
-//			}
-//
-//			xsdSb.append("<xsd:complexType name=\"");
-//			xsdSb.append(objectClassXsdName);
-//			xsdSb.append("\"\n");
-//
-//			Set<AttributeInfo> attributeInfoSet = objectClassInfo.getAttributeInfo();
-//			for (AttributeInfo attributeInfo : attributeInfoSet) {
-//
-//				if (Name.NAME.equals(attributeInfo.getName())) {
-//					hasName = true;
-//					continue;
-//				}
-//
-//				String attrXsdName = attributeInfo.getName();
-//				String attrXsdType = mapType(attributeInfo.getType());
-//				StringBuffer xsdConstraints = new StringBuffer();
-//
-//				Set<Flags> flagsSet = attributeInfo.getFlags();
-//
-//				System.out.println(flagsSet);
-//
-//				boolean required = false;
-//				for (Flags flags : flagsSet) {
-//					if (flags == Flags.REQUIRED) {
-//						required = true;
-//					}
-//					if (flags == Flags.MULTIVALUED) {
-//						xsdConstraints.append("maxOccurs=\"unbounded\" ");
-//					}
-//				}
-//				if (!required) {
-//					xsdConstraints.append("minOccurs=\"0\" ");
-//				}
-//
-//				if ("__PASSWORD__".equals(attributeInfo.getName())) {
-//					xsdSb.append("        <xsd:element ref=\"idc:password\" " + xsdConstraints + "/>\n");
-//				} else {
-//					xsdSb.append("        <xsd:element name=\"" + attrXsdName + "\" type=\"" + attrXsdType + "\" " + xsdConstraints + "/>\n");
-//				}
-//			}
-//
-//			xsdSb.append("      </xsd:sequence>\n"
-//					+ "    </xsd:extension>\n"
-//					+ "  </xsd:complexContent>\n"
-//					+ "</xsd:complexType>\n");
-//
-//			System.out.println(objectClassInfo.getType() + " Has name: " + hasName);
-//		}
-//
-//
-//		System.out.println("===================================================");
-//		System.out.println(xsdSb);
-//		System.out.println("===================================================");
-
-	
-	private static void initTypeMap() {
+	// Hack. Should be moved to an appropriate place
+	private void initTypeMap() {
 		if (xsdTypeMap!=null) { 
 			return;
 		}
@@ -265,10 +184,85 @@ public class ConfiguredConnectorImpl implements ConfiguredConnector {
         return xsdType;
     }
 
+	private QName objectClassToQname(String icfObjectClassString) {		
+			if (ObjectClass.ACCOUNT_NAME.equals(icfObjectClassString)) {
+				return new QName(getSchemaNamespace(), ACCOUNT_OBJECTCLASS_LOCALNAME, SchemaConstants.NS_ICF_SCHEMA_PREFIX);
+			} else if (ObjectClass.GROUP_NAME.equals(icfObjectClassString)) {
+				return new QName(getSchemaNamespace(), GROUP_OBJECTCLASS_LOCALNAME, SchemaConstants.NS_ICF_SCHEMA_PREFIX);
+			} else {
+				return new QName(getSchemaNamespace(), CUSTOM_OBJECTCLASS_PREFIX + icfObjectClassString + CUSTOM_OBJECTCLASS_SUFFIX, SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
+			}
+	}
+	
+	private ObjectClass objectClassToIcf(QName qnameObjectClass) {
+		if (!getSchemaNamespace().equals(qnameObjectClass.getNamespaceURI())) {
+			throw new IllegalArgumentException("ObjectClass QName "+qnameObjectClass+" is not in the appropriate namespace for resource "+resource.getName()+"(OID:"+resource.getOid()+"), expected: "+getSchemaNamespace());
+		}
+		String lname = qnameObjectClass.getLocalPart();
+		if (ACCOUNT_OBJECTCLASS_LOCALNAME.equals(lname)) {
+			return ObjectClass.ACCOUNT;
+		} else if (GROUP_OBJECTCLASS_LOCALNAME.equals(lname)) {
+			return ObjectClass.GROUP;
+		} else if (lname.startsWith(CUSTOM_OBJECTCLASS_PREFIX) && lname.endsWith(CUSTOM_OBJECTCLASS_SUFFIX)) {
+			String icfObjectClassName = lname.substring(CUSTOM_OBJECTCLASS_PREFIX.length(), lname.length()-CUSTOM_OBJECTCLASS_SUFFIX.length());
+			return new ObjectClass(icfObjectClassName);
+		} else {
+			throw new IllegalArgumentException("Cannot recognize objectclass QName "+qnameObjectClass+" for resource "+resource.getName()+"(OID:"+resource.getOid()+"), expected: "+getSchemaNamespace());
+		}
+	}
 
+
+	private Uid getUid(Set<ResourceObjectAttribute> identifiers) {
+		for (ResourceObjectAttribute attr : identifiers) {
+			if (attr.getName().equals(SchemaConstants.ICFS_UID)) {
+				return new Uid(attr.getValue(String.class));
+			}
+		}
+		return null;
+	}
+	
+	private ResourceObject convertToResourceObject(ConnectorObject co,ResourceObjectDefinition def) {
+		ResourceObject ro = new ResourceObject();
+		
+		// TODO: use definition
+		
+		// Uid is always there
+		Uid uid = co.getUid();
+		ResourceObjectAttribute uidRoa = new ResourceObjectAttribute(SchemaConstants.ICFS_UID);
+		uidRoa.setValue(uid.getUidValue());
+		ro.getAttributes().add(uidRoa);
+		
+		for (Attribute icfAttr : co.getAttributes()) {
+			QName qname = new QName(getSchemaNamespace(),icfAttr.getName());
+			ResourceObjectAttribute roa = new ResourceObjectAttribute(qname);
+			List<Object> icfValues = icfAttr.getValue();
+			roa.getValues().addAll(icfValues);
+			ro.getAttributes().add(roa);
+		}
+		
+		return ro;
+	}
+	
 	@Override
-	public ResourceObject fetchObject(Set<ResourceObjectAttribute> identifiers) throws CommunicationException {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public ResourceObject fetchObject(QName objectClass, Set<ResourceObjectAttribute> identifiers) throws CommunicationException {
+		
+		// Get UID from the set of idetifiers
+		Uid uid = getUid(identifiers);
+		if (uid == null) {
+            throw new IllegalArgumentException("Required attribute UID not found in identification set while attempting to fetch object identified by "+identifiers+" from recource "+resource.getName()+"(OID:"+resource.getOid()+")");
+        }
+		
+		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
+		if (objectClass == null) {
+            throw new IllegalArgumentException("Unable to detemine object class from QName "+objectClass+" while attempting to fetch object identified by "+identifiers+" from recource "+resource.getName()+"(OID:"+resource.getOid()+")");			
+		}
+		ConnectorObject co = connector.getObject(icfObjectClass,uid,null);
+		if (co==null) {
+			// Change to a more reasonable error later
+			return null;
+		}
+		ResourceObject ro = convertToResourceObject(co,null);
+		return ro;
 	}
 
 	@Override
@@ -321,5 +315,27 @@ public class ConfiguredConnectorImpl implements ConfiguredConnector {
 		}
 
 		return result;
+	}
+
+	@Override
+	public void search(QName objectClass, final ResultHandler handler) throws CommunicationException {
+		
+		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
+		if (objectClass == null) {
+            throw new IllegalArgumentException("Unable to detemine object class from QName "+objectClass+" while attempting to searcg objects in recource "+resource.getName()+"(OID:"+resource.getOid()+")");
+		}
+		
+		ResultsHandler icfHandler = new ResultsHandler() {
+            @Override
+            public boolean handle(ConnectorObject connectorObject) {
+                // Convert ICF-specific connetor object to a generic ResourceObject
+                ResourceObject resourceObject = convertToResourceObject(connectorObject,null);
+                // .. and pass it to the handler
+                return handler.handle(resourceObject);
+            }
+        };
+		
+		connector.search(icfObjectClass,null,icfHandler,null);
+		
 	}
 }
