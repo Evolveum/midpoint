@@ -27,9 +27,14 @@ import com.evolveum.midpoint.provisioning.ucf.api.Token;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import java.util.List;
 import java.util.Set;
+import javax.xml.bind.JAXBElement;
 
 /**
  *
@@ -37,10 +42,10 @@ import java.util.Set;
  */
 public class ConfiguredConnectorImpl implements ConfiguredConnector {
 	
-	ConnectorFacade connectorFacade;
+	ConnectorFacade connector;
 
-	public ConfiguredConnectorImpl(ConnectorFacade connectorFacade) {
-		this.connectorFacade = connectorFacade;
+	public ConfiguredConnectorImpl(ConnectorFacade connector) {
+		this.connector = connector;
 	}
 	
 	@Override
@@ -81,6 +86,28 @@ public class ConfiguredConnectorImpl implements ConfiguredConnector {
 	@Override
 	public List<Change> fetchChanges(Token lastToken) throws CommunicationException {
 		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public ResourceTestResultType test() {
+        ResourceTestResultType result = new ResourceTestResultType();
+
+        TestResultType testResult = new TestResultType();
+        result.setConnectorConnection(testResult);
+        try {
+            connector.test();
+            testResult.setSuccess(true);
+        } catch (RuntimeException ex) {
+            testResult.setSuccess(false);
+            List<JAXBElement<DiagnosticsMessageType>> errorOrWarning = testResult.getErrorOrWarning();
+            DiagnosticsMessageType message = new DiagnosticsMessageType();
+            message.setMessage(ex.getClass().getName()+": "+ex.getMessage());
+            // TODO: message.setDetails();
+            JAXBElement<DiagnosticsMessageType> element = new JAXBElement<DiagnosticsMessageType>(SchemaConstants.I_DIAGNOSTICS_MESSAGE_ERROR,DiagnosticsMessageType.class,message);
+            errorOrWarning.add(element);
+        }
+        
+        return result;
 	}
 	
 }

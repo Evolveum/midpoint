@@ -38,6 +38,7 @@ import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.common.security.GuardedString;
 import java.io.File;
 import java.io.FileFilter;
+import java.lang.reflect.Array;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -59,32 +60,30 @@ import org.w3c.dom.NodeList;
  * @author Radovan Semancik
  */
 public class ConnectorManagerImpl implements ConnectorManager {
-	
+
 	// This ususally refers to WEB-INF/lib/icf-connectors
 	private static final String BUNDLE_PATH = "../../lib/icf-connectors";
 	private static final String BUNDLE_PREFIX = "org.identityconnectors";
 	private static final String BUNDLE_SUFFIX = ".jar";
 	private static final String CONFIGURATION_PROPERTIES_XML_ELEMENT_NAME = "configurationProperties";
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns/resource/icf/";
-	
 	private static final Trace log = TraceManager.getTrace(ConnectorManagerImpl.class);
-	
 	private ConnectorInfoManager localConnectorInfoManager;
-	private Map<String,ConnectorInfo> connectors;
+	private Map<String, ConnectorInfo> connectors;
 
 	public ConnectorManagerImpl() {
 	}
-	
+
 	public void initialize() {
 		Set<URL> bundleURLs = listBundleJars();
-		
+
 		connectors = new HashMap<String, ConnectorInfo>();
 		List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
 		for (ConnectorInfo connectorInfo : connectorInfos) {
-                ConnectorKey key = connectorInfo.getConnectorKey();
-                String mapKey = keyToString(key);
-				connectors.put(mapKey,connectorInfo);
-        }
+			ConnectorKey key = connectorInfo.getConnectorKey();
+			String mapKey = keyToString(key);
+			connectors.put(mapKey, connectorInfo);
+		}
 	}
 
 	@Override
@@ -92,22 +91,22 @@ public class ConnectorManagerImpl implements ConnectorManager {
 		String connectorOid = getConnectorOid(resource);
 		ConnectorInfo cinfo = findConnectorInfoByOid(connectorOid);
 		APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
-		
-		transformConnectorConfiguration(apiConfig,resource);
-		
+
+		transformConnectorConfiguration(apiConfig, resource);
+
 		ConnectorFacade cfacade =
-                    ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
-		
+				ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
+
 		ConfiguredConnectorImpl connectorImpl = new ConfiguredConnectorImpl(cfacade);
-		
+
 		return connectorImpl;
 	}
 
 	@Override
 	public Set<ConnectorType> listConnectors() {
 		Set<ConnectorType> connectorTypes = new HashSet<ConnectorType>();
-		for (Map.Entry<String,ConnectorInfo> e : connectors.entrySet()) {			
-			String oid = e.getKey();			
+		for (Map.Entry<String, ConnectorInfo> e : connectors.entrySet()) {
+			String oid = e.getKey();
 			ConnectorInfo cinfo = e.getValue();
 			ConnectorType connectorType = convertToConnectorType(cinfo, oid);
 			connectorTypes.add(connectorType);
@@ -120,17 +119,17 @@ public class ConnectorManagerImpl implements ConnectorManager {
 		ConnectorInfo cinfo = findConnectorInfoByOid(oid);
 		return convertToConnectorType(cinfo, oid);
 	}
-	
-	private ConnectorType convertToConnectorType(ConnectorInfo cinfo,String oid) {
+
+	private ConnectorType convertToConnectorType(ConnectorInfo cinfo, String oid) {
 		ConnectorType connectorType = new ConnectorType();
 		connectorType.setOid(oid);
-			ConnectorKey key = cinfo.getConnectorKey();
-			connectorType.setName("ICF "+key.getConnectorName());
-			connectorType.setNamespace(ICF_CONFIGURATION_NAMESPACE_PREFIX+oid);
-			connectorType.setConnectorVersion(key.getBundleVersion());
-			return connectorType;
+		ConnectorKey key = cinfo.getConnectorKey();
+		connectorType.setName("ICF " + key.getConnectorName());
+		connectorType.setNamespace(ICF_CONFIGURATION_NAMESPACE_PREFIX + oid);
+		connectorType.setConnectorVersion(key.getBundleVersion());
+		return connectorType;
 	}
-	
+
 	private String keyToString(ConnectorKey key) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(key.getBundleName());
@@ -140,48 +139,55 @@ public class ConnectorManagerImpl implements ConnectorManager {
 		sb.append(key.getConnectorName());
 		return sb.toString();
 	}
-	
+
 	private void transformConnectorConfiguration(APIConfiguration apiConfig, ResourceType resource) {
-		
+
 		ConfigurationProperties configProps = apiConfig.getConfigurationProperties();
-		
+
 		String connectorConfNs = getConnectorType(resource).getNamespace();
 		List<Element> xmlConfig = resource.getConfiguration().getAny();
 		for (Element e : xmlConfig) {
-			if (e.getNamespaceURI()!=null && e.getNamespaceURI().equals(connectorConfNs) &&
-				e.getLocalName()!=null && e.getLocalName().equals(CONFIGURATION_PROPERTIES_XML_ELEMENT_NAME)) {
+			if (e.getNamespaceURI() != null && e.getNamespaceURI().equals(connectorConfNs)
+					&& e.getLocalName() != null && e.getLocalName().equals(CONFIGURATION_PROPERTIES_XML_ELEMENT_NAME)) {
 				NodeList configurationNodelist = e.getChildNodes();
-				
-				for (int i=0;i<configurationNodelist.getLength();i++) {
+
+				for (int i = 0; i < configurationNodelist.getLength(); i++) {
 					Node node = configurationNodelist.item(i);
-					if (node.getNodeType()==Node.ELEMENT_NODE) {
+					if (node.getNodeType() == Node.ELEMENT_NODE) {
 						Element configElement = (Element) node;
-						
+
 						if (configElement.getNamespaceURI() == null || !configElement.getNamespaceURI().equals(connectorConfNs)) {
-							log.warn("Found element with a wrong namespace ({}) in resource OID={}",configElement.getNamespaceURI(),resource.getOid());
+							log.warn("Found element with a wrong namespace ({}) in resource OID={}", configElement.getNamespaceURI(), resource.getOid());
 						} else {
-							
+
 							String propertyName = configElement.getLocalName();
 							ConfigurationProperty property = configProps.getProperty(propertyName);
 							Class type = property.getType();
-							
+
 							if (type.isArray()) {
 								List<Object> values = new ArrayList<Object>();
-								Object value = convertToJava(configElement,type.getComponentType());
+								Object value = convertToJava(configElement, type.getComponentType());
 								values.add(value);
 								// Loop over until the elements have the same local name
-								while (i+1<configurationNodelist.getLength() &&
-									   configurationNodelist.item(i+1).getNodeType()==Node.ELEMENT_NODE &&
-									   ((Element)(configurationNodelist.item(i+1))).getLocalName().equals(propertyName)) {
+								while (i + 1 < configurationNodelist.getLength()
+										&& configurationNodelist.item(i + 1).getNodeType() == Node.ELEMENT_NODE
+										&& ((Element) (configurationNodelist.item(i + 1))).getLocalName().equals(propertyName)) {
 									i++;
-									configElement = (Element)configurationNodelist.item(i);
-									Object avalue = convertToJava(configElement,type.getComponentType());
+									configElement = (Element) configurationNodelist.item(i);
+									Object avalue = convertToJava(configElement, type.getComponentType());
 									values.add(avalue);
 								}
-								property.setValue(values.toArray());
 								
+								Object valuesArrary = Array.newInstance(type.getComponentType(), values.size());
+								for (int j = 0; j < values.size(); ++j) {
+									Object avalue = values.get(j);
+									Array.set(valuesArrary, j, avalue);
+								}
+
+								property.setValue(valuesArrary);
+
 							} else {
-								Object value = convertToJava(configElement,type);
+								Object value = convertToJava(configElement, type);
 								property.setValue(value);
 							}
 						}
@@ -189,11 +195,11 @@ public class ConnectorManagerImpl implements ConnectorManager {
 				}
 			}
 		}
-		
+
 		// TODO: pools, etc.
-		
+
 	}
-	
+
 	/**
 	 * Returns ICF connector info manager that manages local connectors.
 	 * The manager will be created if it does not exist yet.
@@ -207,7 +213,7 @@ public class ConnectorManagerImpl implements ConnectorManager {
 		}
 		return localConnectorInfoManager;
 	}
-	
+
 	/**
 	 * Lists all ICF connector bundles, either in BUNDLE_PATH or in current classpath.
 	 * 
@@ -215,9 +221,9 @@ public class ConnectorManagerImpl implements ConnectorManager {
 	 */
 	private Set<URL> listBundleJars() {
 		Set<URL> bundleURLs = new HashSet<URL>();
-		
+
 		// Look for connectors in the BUNDLE_PATH folder
-		
+
 		File icfFolder = null;
 		try {
 			icfFolder = new File(new File(this.getClass().getClassLoader().getResource("com").toURI()),
@@ -227,8 +233,9 @@ public class ConnectorManagerImpl implements ConnectorManager {
 		}
 
 		// Take only those that start with BUNDLE_PREFIX and end with BUNDLE_SUFFIX
-		
+
 		final FileFilter fileFilter = new FileFilter() {
+
 			@Override
 			public boolean accept(File file) {
 				if (!file.exists() || file.isDirectory()) {
@@ -276,35 +283,34 @@ public class ConnectorManagerImpl implements ConnectorManager {
 
 		return bundleURLs;
 	}
-	
+
 	private ConnectorInfo findConnectorInfoByOid(String connectorOid) {
 		return connectors.get(connectorOid);
 	}
 
 	// TODO: Following two methods should do into some kind of ResourceUtil...
-	
 	private String getConnectorOid(ResourceType resource) {
-		if (resource.getConnectorRef()!=null) {
+		if (resource.getConnectorRef() != null) {
 			return resource.getConnectorRef().getOid();
-		} else if (resource.getConnector()!=null) {
+		} else if (resource.getConnector() != null) {
 			return resource.getConnector().getOid();
 		} else {
 			return null;
 		}
 	}
-	
+
 	private ConnectorType getConnectorType(ResourceType resource) {
-		if (resource.getConnector()!=null) {
+		if (resource.getConnector() != null) {
 			return resource.getConnector();
-		} else if (resource.getConnectorRef()!=null) {
+		} else if (resource.getConnectorRef() != null) {
 			String oid = resource.getConnectorRef().getOid();
 			return getConnector(oid);
 		} else {
-			log.error("Resource does not contain connector or connectorRef (OID="+resource.getOid()+")");
-			throw new IllegalArgumentException("Resource does not contain connector or connectorRef (OID="+resource.getOid()+")");
+			log.error("Resource does not contain connector or connectorRef (OID=" + resource.getOid() + ")");
+			throw new IllegalArgumentException("Resource does not contain connector or connectorRef (OID=" + resource.getOid() + ")");
 		}
 	}
-	
+
 	// Kind of a hack now. Should be switched to a more sophisticated converters later
 	private Object convertToJava(Element configElement, Class type) {
 		String stringContent = configElement.getTextContent();
@@ -317,9 +323,8 @@ public class ConnectorManagerImpl implements ConnectorManager {
 		} else if (type.equals(GuardedString.class)) {
 			return new GuardedString(stringContent.toCharArray());
 		} else {
-			log.error("Unknown type for ICF conversion: {}",type);
-			throw new IllegalArgumentException("Unknown type for ICF conversion: "+type);
+			log.error("Unknown type for ICF conversion: {}", type);
+			throw new IllegalArgumentException("Unknown type for ICF conversion: " + type);
 		}
 	}
-	
 }

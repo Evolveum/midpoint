@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
@@ -61,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.FaultMessage;
@@ -516,6 +518,31 @@ public class DebugUtil {
 			sb.append("Unknown change type ");
 			sb.append(change.getClass().getName());
 		}
+		return sb.toString();
+	}
+	
+	public static String prettyPrint(TestResultType testResult) {
+		if (testResult == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("TestResult(");
+		if (testResult.isSuccess()) {
+			sb.append("OK(");
+		} else {
+			sb.append("FAIL(");
+		}
+		List<JAXBElement<DiagnosticsMessageType>> messageElements = testResult.getErrorOrWarning();
+		for (JAXBElement<DiagnosticsMessageType> messageElement : messageElements) {
+			if (SchemaConstants.I_DIAGNOSTICS_MESSAGE_ERROR.equals(messageElement.getName())) {
+				sb.append("E:");
+			} else {
+				sb.append("W:");
+			}
+			DiagnosticsMessageType message = messageElement.getValue();
+			sb.append(message.getMessage());
+			sb.append(",");
+		}
+		sb.append(")");
 		return sb.toString();
 	}
 

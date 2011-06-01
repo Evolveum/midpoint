@@ -22,6 +22,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import java.util.List;
 import java.util.Set;
 
@@ -126,6 +127,8 @@ public interface ConfiguredConnector {
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	
-	//public void applyConfiguration(ResourceConfiguration newConfiguration) throws MisconfigurationException; 
+	//public void applyConfiguration(ResourceConfiguration newConfiguration) throws MisconfigurationException;
+	
+	public ResourceTestResultType test();
 	
 }
