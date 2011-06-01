@@ -32,13 +32,15 @@ import com.evolveum.midpoint.web.controller.wizard.WizardPage;
  */
 @Controller("resourceSynchronization")
 @Scope("session")
-public class SynchronizationController extends WizardPage {
+public class ResourceSynchronizationController extends WizardPage {
 
 	private static final long serialVersionUID = 8679302869048479592L;
 	private boolean enabled;
 	private int poolingInterval;
+	private String correlation;
+	private String confirmation;
 
-	public SynchronizationController() {
+	public ResourceSynchronizationController() {
 		super(ResourceWizard.PAGE_NAVIGATION_BASE + "/synchronization.xhtml");
 	}
 
@@ -61,6 +63,22 @@ public class SynchronizationController extends WizardPage {
 
 	public void setPoolingInterval(int poolingInterval) {
 		this.poolingInterval = poolingInterval;
+	}
+
+	public String getCorrelation() {
+		return correlation;
+	}
+
+	public void setCorrelation(String correlation) {
+		this.correlation = correlation;
+	}
+
+	public String getConfirmation() {
+		return confirmation;
+	}
+
+	public void setConfirmation(String confirmation) {
+		this.confirmation = confirmation;
 	}
 
 	@Override

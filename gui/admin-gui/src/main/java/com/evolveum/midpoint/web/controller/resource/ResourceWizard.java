@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.wizard.Wizard;
 import com.evolveum.midpoint.web.controller.wizard.WizardPage;
 
@@ -41,6 +42,8 @@ public class ResourceWizard extends Wizard {
 	static final String PAGE_NAVIGATION_BASE = "/resource/create";
 	private static final long serialVersionUID = -8327099988202610912L;
 	@Autowired(required = true)
+	private TemplateController template;
+	@Autowired(required = true)
 	private ResourceCreateController create;
 	@Autowired(required = true)
 	private ResourceConfigurationController configuration;
@@ -49,7 +52,7 @@ public class ResourceWizard extends Wizard {
 	@Autowired(required = true)
 	private SchemaHandlingController schemaHandling;
 	@Autowired(required = true)
-	private SynchronizationController synchronization;
+	private ResourceSynchronizationController synchronization;
 
 	public ResourceWizard() {
 		super("/resource/index");
@@ -66,10 +69,20 @@ public class ResourceWizard extends Wizard {
 		}
 		return super.getPages();
 	}
+	
+	@Override
+	public String cancel() {
+		template.setSelectedLeftId("leftResourceList");
+		
+		//TODO: finish
+		return super.cancel();
+	}
 
 	@Override
 	public String finish() {
-
+		template.setSelectedLeftId("leftResourceList");
+		
+		//TODO: finish
 		return super.finish();
 	}
 }
