@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.web.controller.wizard;
+package com.evolveum.midpoint.web.controller.util;
 
 import java.io.Serializable;
 import java.util.ArrayList;

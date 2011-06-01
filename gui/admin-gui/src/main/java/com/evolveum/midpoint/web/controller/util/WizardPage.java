@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.web.controller.wizard;
+package com.evolveum.midpoint.web.controller.util;
 
 import java.io.Serializable;
 
@@ -27,47 +27,47 @@ import org.apache.commons.lang.StringUtils;
 /**
  * 
  * @author lazyman
- *
+ * 
  */
 public abstract class WizardPage implements Serializable {
 
 	private static final long serialVersionUID = 6794156473197099300L;
 	private String pageUrl;
 
-    public WizardPage(String pageUrl) {
-        if (pageUrl == null || pageUrl.isEmpty()) {
-            throw new IllegalArgumentException("Actual page cant' be null or empty");
-        }
-        this.pageUrl = pageUrl;
-    }
+	public WizardPage(String pageUrl) {
+		if (pageUrl == null || pageUrl.isEmpty()) {
+			throw new IllegalArgumentException("Actual page cant' be null or empty");
+		}
+		this.pageUrl = pageUrl;
+	}
 
-    public String getPageUrl() {
-        return pageUrl;
-    }
+	public String getPageUrl() {
+		return pageUrl;
+	}
 
-    public boolean isShowCancel() {
-        return !StringUtils.isEmpty(getCancelPage());
-    }
+	public boolean isShowCancel() {
+		return !StringUtils.isEmpty(getCancelPage());
+	}
 
-    public boolean isShowFinish() {
-        return !StringUtils.isEmpty(getFinishPage());
-    }
+	public boolean isShowFinish() {
+		return !StringUtils.isEmpty(getFinishPage());
+	}
 
-    public String getCancelPage() {
-        return null;
-    }
+	public String getCancelPage() {
+		return null;
+	}
 
-    public String getFinishPage() {
-        return null;
-    }
+	public String getFinishPage() {
+		return null;
+	}
 
-    public String finish() {
-        return getFinishPage();
-    }
+	public String finish() {
+		return getFinishPage();
+	}
 
-    public String cancel() {
-        return getCancelPage();
-    }
-    
-    public abstract void cleanController();
+	public String cancel() {
+		return getCancelPage();
+	}
+
+	public abstract void cleanController();
 }
