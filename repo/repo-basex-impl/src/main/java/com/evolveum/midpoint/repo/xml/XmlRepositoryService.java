@@ -69,6 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.schema.XPathType;
 
 public class XmlRepositoryService implements RepositoryPortType {
 
@@ -223,22 +224,28 @@ public class XmlRepositoryService implements RepositoryPortType {
             XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
 
             StringBuilder query = new StringBuilder("declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
+            //TODO: namespace declaration has to generated dynamically
+            query.append("declare namespace idmdn='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
             query.append("declare namespace xsi='http://www.w3.org/2001/XMLSchema-instance';\n");
             //FIXME: possible problems with object type checking. Now it is simple string checking, because import schema is not supported 
             query.append("for $x in //c:object where $x/@xsi:type=\"").append(objectType.substring(objectType.lastIndexOf("#")+1)).append("\"");
             if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
-            	query.append("$x[fn:position() = ( ")
+            	query.append("[fn:position() = ( ")
             	 .append(paging.getOffset().multiply(paging.getMaxSize())).append(" to ")
-            	 .append(paging.getOffset().add(BigInteger.valueOf(1L)).multiply(paging.getMaxSize()).subtract(BigInteger.valueOf(1L)));
+            	 .append(paging.getOffset().add(BigInteger.valueOf(1L)).multiply(paging.getMaxSize()).subtract(BigInteger.valueOf(1L)))
+            	 .append(") ]");
             }
             if (null != paging && null != paging.getOrderBy()) {
-            	query.append(") ] order by ").append(paging.getOrderBy());
+            	XPathType xpath = new XPathType(paging.getOrderBy().getProperty());
+            	String orderBy = xpath.getXPath();
+            	query.append(" order by $x/").append(orderBy);
+                if (null != paging.getOrderDirection()) {
+                	query.append(" ");
+                	query.append(StringUtils.lowerCase(paging.getOrderDirection().toString()));
+                }
             }
             query.append(" return $x ");
-            if (null != paging && null != paging.getOrderDirection()) {
-            	query.append(paging.getOrderDirection());
-            }
-
+            
             logger.trace("generated query: " + query);
             
             // Execute the query and receives all results.

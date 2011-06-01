@@ -29,8 +29,10 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import java.io.File;
@@ -39,6 +41,7 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 
 import org.custommonkey.xmlunit.XMLUnit;
+import org.eclipse.core.internal.dtree.ObjectNotFoundException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -53,90 +56,108 @@ import org.w3c.dom.Element;
 import static org.junit.Assert.*;
 
 /**
- *
+ * 
  * @author Igor Farinic
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"../../../../../application-context-repository.xml", "../../../../../application-context-repository-test.xml"})
+@ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
+		"../../../../../application-context-repository-test.xml" })
 public class RepositoryGenericObjectTest {
 
-    @Autowired(required = true)
-    private RepositoryPortType repositoryService;
+	@Autowired(required = true)
+	private RepositoryPortType repositoryService;
 
-    public RepositoryPortType getRepositoryService() {
-        return repositoryService;
-    }
+	public RepositoryPortType getRepositoryService() {
+		return repositoryService;
+	}
 
-    public void setRepositoryService(RepositoryPortType repositoryService) {
-        this.repositoryService = repositoryService;
-    }
+	public void setRepositoryService(RepositoryPortType repositoryService) {
+		this.repositoryService = repositoryService;
+	}
 
-    public RepositoryGenericObjectTest() {
-    }
+	public RepositoryGenericObjectTest() {
+	}
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+	}
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
+	@AfterClass
+	public static void tearDownClass() throws Exception {
+	}
 
-    @Before
-    public void setUp() {
-    }
+	@Before
+	public void setUp() {
+	}
 
-    @After
-    public void tearDown() {
-    }
+	@After
+	public void tearDown() {
+	}
 
-    private void checkObject(GenericObjectType genericObject, GenericObjectType retrievedObject) throws Exception {
-        assertEquals(genericObject.getOid(), retrievedObject.getOid());
-        assertEquals(genericObject.getName(), retrievedObject.getName());
-        assertEquals(genericObject.getObjectType(), retrievedObject.getObjectType());
-        assertEquals(genericObject.getExtension().getAny().size(), retrievedObject.getExtension().getAny().size());
-        assertEquals(genericObject.getExtension().getAny().get(1).getLocalName(), retrievedObject.getExtension().getAny().get(1).getLocalName());
-        List<Element> extensionElements = genericObject.getExtension().getAny();
-        int i = 0;
-        for (Element element: extensionElements) {
-    		XmlAsserts.assertPatch(DOMUtil.serializeDOMToString(element), DOMUtil.serializeDOMToString(retrievedObject.getExtension().getAny().get(i)));
-    		i++;
+	private void compareObjects(GenericObjectType object, GenericObjectType retrievedObject)
+			throws Exception {
+		assertEquals(object.getOid(), retrievedObject.getOid());
+		assertEquals(object.getName(), retrievedObject.getName());
+		assertEquals(object.getObjectType(), retrievedObject.getObjectType());
+		if (object.getExtension() != null && retrievedObject.getExtension() != null) {
+			assertEquals(object.getExtension().getAny().size(), retrievedObject.getExtension()
+					.getAny().size());
+			List<Element> extensionElements = object.getExtension().getAny();
+			int i = 0;
+			for (Element element : extensionElements) {
+				XmlAsserts.assertPatch(DOMUtil.serializeDOMToString(element),
+						DOMUtil.serializeDOMToString(retrievedObject.getExtension().getAny().get(i)));
+				i++;
+			}
+		} else if ((object.getExtension() != null && retrievedObject.getExtension() == null)
+				|| (object.getExtension() == null && retrievedObject.getExtension() != null)) {
+			fail("Extension section is null for one object but not null for other object");
 		}
-    }
-    
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testGenericObject() throws Exception {
-        final String genericObjectOid = "c0c010c0-d34d-b33f-f00d-999111111111";
-        try {
-        	
-        	//create object
-            ObjectContainerType objectContainer = new ObjectContainerType();
-            GenericObjectType genericObject = ((JAXBElement<GenericObjectType>) JAXBUtil.unmarshal(new File("src/test/resources/generic-object.xml"))).getValue();
-            objectContainer.setObject(genericObject);
-            repositoryService.addObject(objectContainer);
-            
-            //get object
-            ObjectContainerType retrievedObjectContainer = repositoryService.getObject(genericObjectOid, new PropertyReferenceListType());
-            checkObject(genericObject, (GenericObjectType) retrievedObjectContainer.getObject());
-            
-            //list objects of type
-            ObjectListType objects = repositoryService.listObjects(QNameUtil.qNameToUri(SchemaConstants.I_GENERIC_OBJECT_TYPE), new PagingType());
-            assertNotNull(objects);
-            assertNotNull(objects.getObject());
-            assertEquals(1, objects.getObject().size());
-            checkObject(genericObject, (GenericObjectType) objects.getObject().get(0));
-            
-            //delete object
-            repositoryService.deleteObject(genericObjectOid);
-            
-        } finally {
-        	//to be sure try to delete the object as part of cleanup
-        	try {
-        		repositoryService.deleteObject(genericObjectOid);
-        	} catch (Exception ex) {
-        		//ignore exceptions during cleanup
-        	}
-        }
-    }
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testGenericObject() throws Exception {
+		final String genericObjectOid = "c0c010c0-d34d-b33f-f00d-999111111111";
+		try {
+
+			// create object
+			ObjectContainerType objectContainer = new ObjectContainerType();
+			GenericObjectType genericObject = ((JAXBElement<GenericObjectType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/generic-object.xml"))).getValue();
+			objectContainer.setObject(genericObject);
+			repositoryService.addObject(objectContainer);
+
+			// get object
+			ObjectContainerType retrievedObjectContainer = repositoryService.getObject(genericObjectOid,
+					new PropertyReferenceListType());
+			compareObjects(genericObject, (GenericObjectType) retrievedObjectContainer.getObject());
+
+			// list objects of type
+			ObjectListType objects = repositoryService.listObjects(
+					QNameUtil.qNameToUri(SchemaConstants.I_GENERIC_OBJECT_TYPE), new PagingType());
+			assertNotNull(objects);
+			assertNotNull(objects.getObject());
+			assertEquals(1, objects.getObject().size());
+			compareObjects(genericObject, (GenericObjectType) objects.getObject().get(0));
+
+			// delete object
+			repositoryService.deleteObject(genericObjectOid);
+			try {
+				repositoryService.getObject(genericObjectOid, new PropertyReferenceListType());
+				fail("Object with oid " + genericObjectOid + " was not deleted");
+			} catch (FaultMessage ex) {
+				if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
+					throw ex;
+				}
+			}
+		} finally {
+			// to be sure try to delete the object as part of cleanup
+			try {
+				repositoryService.deleteObject(genericObjectOid);
+			} catch (Exception ex) {
+				// ignore exceptions during cleanup
+			}
+		}
+	}
 }
