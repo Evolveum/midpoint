@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.web.controller;
+package com.evolveum.midpoint.web.controller.config;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -45,6 +45,7 @@ import com.evolveum.midpoint.validator.ObjectHandler;
 import com.evolveum.midpoint.validator.ValidationMessage;
 import com.evolveum.midpoint.validator.Validator;
 import com.evolveum.midpoint.web.bean.DebugObject;
+import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;

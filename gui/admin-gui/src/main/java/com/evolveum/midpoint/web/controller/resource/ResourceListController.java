@@ -18,13 +18,12 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.web.controller;
+package com.evolveum.midpoint.web.controller.resource;
 
 import java.io.Serializable;
 import java.util.List;
 
 import javax.faces.event.ActionEvent;
-import javax.faces.event.PhaseId;
 import javax.faces.event.ValueChangeEvent;
 import javax.xml.bind.JAXBElement;
 

@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.web.component.form.AutoForm;
-import com.evolveum.midpoint.web.controller.wizard.WizardPage;
+import com.evolveum.midpoint.web.controller.util.WizardPage;
 
 @Controller("resourceConfiguration")
 @Scope("session")

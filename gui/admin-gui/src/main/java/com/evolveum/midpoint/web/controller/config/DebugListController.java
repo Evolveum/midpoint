@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.web.controller;
+package com.evolveum.midpoint.web.controller.config;
 
 import java.io.Serializable;
 import java.math.BigInteger;

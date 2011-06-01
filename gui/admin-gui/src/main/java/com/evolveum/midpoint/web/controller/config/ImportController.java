@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.controller;
+package com.evolveum.midpoint.web.controller.config;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -173,7 +173,7 @@ public class ImportController implements Serializable {
 						message.append("', reason: ");
 						message.append(ex.getMessage());
 						message.append(". It will be only added, not replaced.");
-						FacesUtils.addErrorMessage(message.toString());
+						FacesUtils.addWarnMessage(message.toString());
 					}
 				}
 				repositoryService.addObject(objectContainer);

@@ -27,8 +27,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.web.controller.TemplateController;
-import com.evolveum.midpoint.web.controller.wizard.Wizard;
-import com.evolveum.midpoint.web.controller.wizard.WizardPage;
+import com.evolveum.midpoint.web.controller.util.Wizard;
+import com.evolveum.midpoint.web.controller.util.WizardPage;
 
 /**
  * 
