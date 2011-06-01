@@ -25,9 +25,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -49,7 +48,9 @@ import org.xmldb.api.base.XMLDBException;
 import org.xmldb.api.modules.XPathQueryService;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectAlreadyExistsFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
@@ -138,21 +139,23 @@ public class XmlRepositoryService implements RepositoryPortType {
 					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n")
 					.append("insert node ").append(serializedObject).append(" into //c:objects");
 
+            logger.trace("generated query: " + query);
+			
 			service.query(query.toString());
 
 			return oid;
 		} catch (JAXBException ex) {
 			logger.error("Failed to (un)marshal object", ex);
-			throw new FaultMessage("Failed to (un)marshal object", new IllegalArgumentFaultType());
+			throw new FaultMessage("Failed to (un)marshal object", new IllegalArgumentFaultType(), ex);
 		} catch (XMLDBException ex) {
 			logger.error("Reported error by XML Database", ex);
-			throw new FaultMessage("Reported error by XML Database", new SystemFaultType());
+			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
 		}
 	}
 
 	@Override
 	public ObjectContainerType getObject(String oid, PropertyReferenceListType resolve) throws FaultMessage {
-        checkOid(oid);
+        validateOid(oid);
 
         ByteArrayInputStream in = null;
         ObjectContainerType objectContainer = null;
@@ -160,11 +163,13 @@ public class XmlRepositoryService implements RepositoryPortType {
 
             XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
 
-            StringBuilder QUERY = new StringBuilder("declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
-            QUERY.append("for $x in //c:object where $x/@oid=\"").append(oid).append("\" return $x");
+            StringBuilder query = new StringBuilder("declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
+            query.append("for $x in //c:object where $x/@oid=\"").append(oid).append("\" return $x");
 
+            logger.trace("generated query: " + query);
+            
             // Execute the query and receives all results.
-            ResourceSet set = service.query(QUERY.toString());
+            ResourceSet set = service.query(query.toString());
 
             // Create a result iterator.
             ResourceIterator iter = set.getIterator();
@@ -188,13 +193,13 @@ public class XmlRepositoryService implements RepositoryPortType {
             }
         } catch (UnsupportedEncodingException ex) {
 			logger.error("UTF-8 is unsupported encoding", ex);
-			throw new FaultMessage("UTF-8 is unsupported encoding", new SystemFaultType());            
+			throw new FaultMessage("UTF-8 is unsupported encoding", new SystemFaultType(), ex);            
         } catch (JAXBException ex) {
 			logger.error("Failed to (un)marshal object", ex);
-			throw new FaultMessage("Failed to (un)marshal object", new IllegalArgumentFaultType());            
+			throw new FaultMessage("Failed to (un)marshal object", new IllegalArgumentFaultType(), ex);            
         } catch (XMLDBException ex) {
 			logger.error("Reported error by XML Database", ex);
-			throw new FaultMessage("Reported error by XML Database", new SystemFaultType());
+			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
         } finally {
             try {
                 if (null != in) {
@@ -211,8 +216,69 @@ public class XmlRepositoryService implements RepositoryPortType {
 
 	@Override
 	public ObjectListType listObjects(String objectType, PagingType paging) throws FaultMessage {
-		// TODO Auto-generated method stub
-		return null;
+        ByteArrayInputStream in = null;
+        ObjectListType objectList = new ObjectListType();;
+        try {
+
+            XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
+
+            StringBuilder query = new StringBuilder("declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
+            query.append("declare namespace xsi='http://www.w3.org/2001/XMLSchema-instance';\n");
+            //FIXME: possible problems with object type checking. Now it is simple string checking, because import schema is not supported 
+            query.append("for $x in //c:object where $x/@xsi:type=\"").append(objectType.substring(objectType.lastIndexOf("#")+1)).append("\"");
+            if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
+            	query.append("$x[fn:position() = ( ")
+            	 .append(paging.getOffset().multiply(paging.getMaxSize())).append(" to ")
+            	 .append(paging.getOffset().add(BigInteger.valueOf(1L)).multiply(paging.getMaxSize()).subtract(BigInteger.valueOf(1L)));
+            }
+            if (null != paging && null != paging.getOrderBy()) {
+            	query.append(") ] order by ").append(paging.getOrderBy());
+            }
+            query.append(" return $x ");
+            if (null != paging && null != paging.getOrderDirection()) {
+            	query.append(paging.getOrderDirection());
+            }
+
+            logger.trace("generated query: " + query);
+            
+            // Execute the query and receives all results.
+            ResourceSet set = service.query(query.toString());
+
+            // Create a result iterator.
+            ResourceIterator iter = set.getIterator();
+
+            // Loop through all result items.
+            while (iter.hasMoreResources()) {
+                Resource res = iter.nextResource();
+
+                Object c = res.getContent();
+                if (c instanceof String) {
+                    in = new ByteArrayInputStream(((String) c).getBytes("UTF-8"));
+                    JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) unmarshaller.unmarshal(in);
+                    if (o != null) {
+                        objectList.getObject().add(o.getValue());
+                    }
+                }
+            }
+        } catch (UnsupportedEncodingException ex) {
+			logger.error("UTF-8 is unsupported encoding", ex);
+			throw new FaultMessage("UTF-8 is unsupported encoding", new SystemFaultType(), ex);            
+        } catch (JAXBException ex) {
+			logger.error("Failed to (un)marshal object", ex);
+			throw new FaultMessage("Failed to (un)marshal object", new IllegalArgumentFaultType(), ex);            
+        } catch (XMLDBException ex) {
+			logger.error("Reported error by XML Database", ex);
+			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
+        } finally {
+            try {
+                if (null != in) {
+                    in.close();
+                }
+            } catch (IOException ex) {
+            }
+        }
+
+        return objectList;
 	}
 
 	@Override
@@ -223,13 +289,45 @@ public class XmlRepositoryService implements RepositoryPortType {
 
 	@Override
 	public void modifyObject(ObjectModificationType objectChange) throws FaultMessage {
-		// TODO Auto-generated method stub
+		validateObjectChange(objectChange);
+		
+		try {
+			//get object from repo
+			//FIXME: possible problems with resolving property reference before xml patching
+			ObjectContainerType retrievedObjectContainer = this.getObject(objectChange.getOid(), new PropertyReferenceListType());
+            ObjectType objectType = retrievedObjectContainer.getObject();
+            
+            //modify the object
+            PatchXml xmlPatchTool = new PatchXml();
+            String serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
+			
+            //HACK:
+            serializedObject = serializedObject.substring(38);
+            
+            //store modified object in repo
+			// Receive the XPath query service.
+			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
 
+			StringBuilder query = new StringBuilder(
+					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n")
+					.append("replace node //c:object[@oid=\"").append(objectChange.getOid()).append("\"] with ").append(serializedObject);
+
+            logger.trace("generated query: " + query);
+			
+			service.query(query.toString());
+
+		} catch (PatchException ex) {
+			logger.error("Failed to modify object", ex);
+			throw new FaultMessage("Failed to modify object", new IllegalArgumentFaultType(), ex);
+		} catch (XMLDBException ex) {
+			logger.error("Reported error by XML Database", ex);
+			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
+		}
 	}
 
 	@Override
 	public void deleteObject(String oid) throws FaultMessage {
-        checkOid(oid);
+        validateOid(oid);
 
         ByteArrayInputStream in = null;
         ObjectContainerType out = null;
@@ -256,18 +354,30 @@ public class XmlRepositoryService implements RepositoryPortType {
         }
 	}
 
-	private void checkOid(String oid) throws FaultMessage {
+	private void validateOid(String oid) throws FaultMessage {
 		if (StringUtils.isEmpty(oid)) {
-            throw new FaultMessage("Invalid OID", new ObjectNotFoundFaultType());
+            throw new FaultMessage("Invalid OID", new IllegalArgumentFaultType());
         }
         
         try {
         	UUID id = UUID.fromString(oid);
         } catch (IllegalArgumentException e) {
-        	throw new FaultMessage("Invalid OID format", new ObjectNotFoundFaultType(), e);
+        	throw new FaultMessage("Invalid OID format", new IllegalArgumentFaultType(), e);
         }
 	}
 
+
+	private void validateObjectChange(ObjectModificationType objectChange) throws FaultMessage {
+		if (null == objectChange) {
+			throw new FaultMessage("provided null object modifications", new IllegalArgumentFaultType());
+		}
+		validateOid(objectChange.getOid());
+		
+		if (null == objectChange.getPropertyModification() || objectChange.getPropertyModification().size() == 0 ) {
+			throw new FaultMessage("no property modifications provided", new IllegalArgumentFaultType());
+		}
+	}
+	
 	@Override
 	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
 			PropertyReferenceListType properties) throws FaultMessage {
