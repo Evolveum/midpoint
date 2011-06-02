@@ -25,6 +25,7 @@ package com.evolveum.midpoint.model;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.action.Action;
@@ -62,12 +63,17 @@ import com.evolveum.midpoint.xml.schema.ExpressionHolder;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.ws.Holder;
 
 /**
@@ -513,8 +519,8 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
         } else if (objectChange instanceof ObjectChangeModificationType) {
             ObjectChangeModificationType objectModification = (ObjectChangeModificationType) objectChange;
             ObjectModificationType modification = objectModification.getObjectModification();
-            patchXml.applyDifferences(modification, resourceShadow);
-            return resourceShadow;
+            ResourceObjectShadowType changedResourceShadow = unmarshalChangedObject(patchXml.applyDifferences(modification, resourceShadow));
+            return changedResourceShadow;
         } else if (objectChange instanceof ObjectChangeDeletionType) {
             // in case of deletion the object has already all that it can have
             return resourceShadow;
@@ -522,6 +528,20 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
             throw new IllegalArgumentException("Unknown change type " + objectChange.getClass().getName());
         }
 
+    }
+    
+    private ResourceObjectShadowType unmarshalChangedObject(String patchedObject) throws PatchException{
+    	Validate.notNull(patchedObject);
+    	ResourceObjectShadowType changedResourceShadow = null;
+    	 try{
+         	JAXBElement<ResourceObjectShadowType> el = (JAXBElement<ResourceObjectShadowType>) JAXBUtil.unmarshal(patchedObject);
+         	changedResourceShadow = el.getValue();
+         	trace.debug("Shadow after change: {}", patchedObject);      	
+         }catch(JAXBException ex){
+         	trace.error("Failed to unmarshal object: {}", patchedObject, ex);
+         	throw new PatchException("Failed to unmarshal object: " + patchedObject, ex);
+         }
+         return changedResourceShadow;
     }
 
     private ModificationType getModificationType(ObjectChangeType change) throws FaultMessage {

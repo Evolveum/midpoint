@@ -27,8 +27,12 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.ModelService;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.provisioning.service.ProvisioningService;
+
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
+import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
+
+
 import java.util.Map;
 
 /**
@@ -41,6 +45,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
     private Map<String, Class<T>> actionMap;
     private ModelPortType model;
     private ProvisioningPortType provisioning;
+    private RepositoryPortType repository;
     private SchemaHandling schemaHandling;
 
     @Override
@@ -61,6 +66,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
             ((BaseAction)action).setModel((ModelService) model);
             ((BaseAction)action).setProvisioning((ProvisioningService) provisioning);
             ((BaseAction)action).setSchemaHandling(schemaHandling);
+            ((BaseAction)action).setRepository((RepositoryPortType) repository);
         } catch (InstantiationException ex) {
             trace.error("Couln't create action instance, reason: {}.", ex.getMessage());
             trace.debug("Couln't create action instance.", ex);
@@ -110,4 +116,10 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
     public void setSchemaHandling(SchemaHandling schemaHandling) {
         this.schemaHandling = schemaHandling;
     }
+
+	public void setRepository(RepositoryPortType repository) {
+		this.repository = repository;
+	}
+    
+    
 }

@@ -31,49 +31,54 @@
 	xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
 	xmlns='http://default.com/whatever' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
 	xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-	xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/87654321-d34d-b33f-f00d-333222111111"
+	xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/45645645-d34d-b33f-f00d-333222111111"
 	xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
 	xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd
    http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/resource/resource-schema-1.xsd'>
 
 
-	<i:objectChange xsi:type="c:ObjectChangeModificationType">
-		<i:objectModification>
-			<c:oid>87654321-d34d-b44f-f11d-333222111111</c:oid>
-			<c:propertyModification modificationType="replace" >
-			<i:path>i:attributes</i:path>
-				<i:value>
-					<dj:sn>First</dj:sn>
-				</i:value>
-			</c:propertyModification>
-		</i:objectModification>
+	<i:objectChange xsi:type="c:ObjectChangeDeletionType">
+		<i:object xsi:type="i:AccountShadowType" oid="45645645-d34d-b44f-f11d-333222111111">
+			<c:name>peter123</c:name>
+			<i:resourceRef oid="45645645-d34d-b33f-f00d-333222111111"
+				type="ResourceType" />
+			<i:objectClass>dj:Account</i:objectClass>
+			<i:attributes>
+				<dj:__UID__>45645645-d34d-b33f-f00d-987987987987</dj:__UID__>
+				<dj:__NAME__>uid=peter123,ou=people,dc=example,dc=com</dj:__NAME__>
+				<dj:uid>peter123</dj:uid>
+				<dj:cn>Peter Tell</dj:cn>
+				<dj:givenName>Peter</dj:givenName>
+				<dj:sn>Tell</dj:sn>
+			</i:attributes>
+		</i:object>
 	</i:objectChange>
 	<i:sourceChannel>
 		http://midpoint.evolveum.com/xml/ns/public/common/concepts-1#Synchronization
 	</i:sourceChannel>
-	<i:shadow xsi:type="i:AccountShadowType" oid="87654321-d34d-b44f-f11d-333222111111">
-		<c:name>william</c:name>
-		<i:resourceRef oid="87654321-d34d-b33f-f00d-333222111111"
+	<i:shadow xsi:type="i:AccountShadowType" oid="45645645-d34d-b44f-f11d-333222111111">
+		<c:name>peter123</c:name>
+		<i:resourceRef oid="45645645-d34d-b33f-f00d-333222111111"
 			type="ResourceType" />
 		<i:objectClass>dj:Account</i:objectClass>
 		<i:attributes>
-			<dj:__UID__>12345678-d34d-b33f-f00d-999888777111</dj:__UID__>
-			<dj:__NAME__>uid=william,ou=people,dc=example,dc=com</dj:__NAME__>
-			<dj:uid>william</dj:uid>
-			<dj:cn>William Tell</dj:cn>
-			<dj:givenName>William</dj:givenName>
+			<dj:__UID__>45645645-d34d-b33f-f00d-987987987987</dj:__UID__>
+			<dj:__NAME__>uid=peter123,ou=people,dc=example,dc=com</dj:__NAME__>
+			<dj:uid>peter123</dj:uid>
+			<dj:cn>Peter Tell</dj:cn>
+			<dj:givenName>Peter</dj:givenName>
 			<dj:sn>Tell</dj:sn>
 		</i:attributes>
 	</i:shadow>
-	<i:resource oid="87654321-d34d-b33f-f00d-333222111111">
+	<i:resource oid="45645645-d34d-b33f-f00d-333222111111">
 		<c:name>Localhost OpenDJv1</c:name>
 		<c:type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd
 		</c:type>
 
 		<!-- Resource namespace. This is important. All resource schema elements 
 			should be in this namespace. -->
-		<c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/87654321-d34d-b33f-f00d-333222111111
+		<c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/45645645-d34d-b33f-f00d-333222111111
 		</c:namespace>
 
 		<!-- Configuration section contains configuration of the connector, such 
@@ -139,12 +144,12 @@
 			for now. -->
 		<c:schema>
 			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-				targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/87654321-d34d-b33f-f00d-333222111111"
+				targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/45645645-d34d-b33f-f00d-333222111111"
 				elementFormDefault="qualified"
 				xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 				xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/87654321-d34d-b33f-f00d-333222111111"
-
+				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/45645645-d34d-b33f-f00d-333222111111"
+				         
 				xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
 				<xsd:import
 					namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" />
@@ -295,13 +300,13 @@
 			and outbound flow of the attributes are defined in this section. This is 
 			the part where most of the customization takes place. -->
 		<c:schemaHandling xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/87654321-d34d-b33f-f00d-333222111111"
-			elementFormDefault="qualified"
-			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-			xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/87654321-d34d-b33f-f00d-333222111111"
-
-			xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
+				targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/45645645-d34d-b33f-f00d-333222111111"
+				elementFormDefault="qualified"
+				xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+				xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/45645645-d34d-b33f-f00d-333222111111"
+				         
+				xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
 
 			<!-- Definition of default account type. This is now the only account 
 				type that midPoint can work with. -->
@@ -341,7 +346,7 @@
 						</i:valueExpression>
 					</i:outbound>
 
-
+					
 					<!-- No inbound expression here. We cannot sync changes in DN yet -->
 
 				</i:attribute>
@@ -515,7 +520,7 @@
 						declare namespace
 						i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 						declare namespace
-						dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/87654321-d34d-b33f-f00d-333222111111";
+						dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/45645645-d34d-b33f-f00d-333222111111";
 						$i:account/i:attributes/dj:uid
                         </c:valueExpression>
 				</c:equal>
@@ -556,7 +561,9 @@
 				<i:situation>unmatched</i:situation>
 				<i:action
 					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
-
+					<!-- Reference to the User Template is here. If the user would be created 
+						as a result of this action, it will be created according to this template. -->
+					<i:userTemplateRef oid="c0c010c0-d34d-b55f-f22d-777666111111" />
 				</i:action>
 				<i:action
 					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount" />

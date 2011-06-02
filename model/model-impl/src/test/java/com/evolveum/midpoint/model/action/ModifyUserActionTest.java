@@ -20,6 +20,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -37,12 +39,16 @@ import com.evolveum.midpoint.provisioning.service.ResourceAccessInterface;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
@@ -65,7 +71,7 @@ public class ModifyUserActionTest {
 	private RepositoryPortType repositoryService;
 	@Autowired(required = true)
 	private ResourceAccessInterface rai;
-
+	
 	
 
 	public ModifyUserActionTest() {
@@ -87,6 +93,8 @@ public class ModifyUserActionTest {
 	@After
 	public void tearDown() throws Exception {
 	}
+	
+	
 	
 	private ObjectType addObjectToRepo(ObjectType object) throws Exception {
 		ObjectContainerType objectContainer = new ObjectContainerType();
@@ -120,6 +128,9 @@ public class ModifyUserActionTest {
 		return valueWriter.buildResourceObject(shadow, schema);
 	}
 
+	
+
+	
 	@Test
 	public void testModifyUserAction() throws Exception {
 
@@ -133,35 +144,39 @@ public class ModifyUserActionTest {
 			// create additional change
 			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-modify-user.xml");
 			// adding objects to repo	
-			ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());
-			AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change.getShadow());
+			final ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());
+			final AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change.getShadow());
 			UserType userType = (UserType) addObjectToRepo("src/test/resources/user-modify-action.xml");
 
 			//setting resource for ResourceObjectShadowType
-			((ResourceObjectShadowType) ((ObjectChangeAdditionType) change.getObjectChange()).getObject()).setResource(resourceType);
-			((ResourceObjectShadowType) ((ObjectChangeAdditionType) change.getObjectChange()).getObject()).setResourceRef(null);
-
+			ObjectModificationType objChange = ((ObjectChangeModificationType) change.getObjectChange()).getObjectModification();
+						
 			assertNotNull(resourceType);
 			// setup provisioning mock
 			BaseResourceIntegration bri = new BaseResourceIntegration(
 					resourceType);
 			ResourceObject ro = createSampleResourceObject(bri.getSchema(),
 					accountType);
-			when(
-					rai.get(any(OperationalResultType.class),
+			
+			
+			
+			when(rai.get(any(OperationalResultType.class),
 							any(ResourceObject.class))).thenReturn(ro);
+		
 			when(rai.getConnector()).thenReturn(bri);
-
+			
 			resourceObjectChangeService.notifyChange(change);
 
+		
 			ObjectContainerType container = repositoryService.getObject(userOid, new PropertyReferenceListType());
 			UserType changedUser = (UserType) container.getObject();
 			List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
 			assertNotNull(changedUser);
 			assertEquals(accountOid, accountRefs.get(0).getOid());
 			
+			
 			assertEquals("First", changedUser.getFamilyName());
-			assertEquals("William First", changedUser.getFullName());
+			
 
 
 		} finally {

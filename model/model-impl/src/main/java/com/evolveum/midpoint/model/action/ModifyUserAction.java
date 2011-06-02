@@ -33,24 +33,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletion
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
+
 import javax.xml.bind.JAXBException;
 
 /**
- *
+ * 
  * @author Vilo Repan
  */
 public class ModifyUserAction extends BaseAction {
 
-    private static transient Trace logger = TraceManager.getTrace(ModifyUserAction.class);
+	private static transient Trace logger = TraceManager
+			.getTrace(ModifyUserAction.class);
 
-//    @Autowired
-//    private SchemaHandling schemaHandling;
+	// @Autowired
+	// private SchemaHandling schemaHandling;
 
-    @Override
+	@Override
     public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
             SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange) throws SynchronizationException {
         UserType userType = getUser(userOid);
@@ -70,6 +75,10 @@ public class ModifyUserAction extends BaseAction {
 
         try {
             UserType oldUserType = (UserType) JAXBUtil.clone(userType);
+            
+            if (shadowAfterChange.getResource() == null && shadowAfterChange.getResourceRef()!=null){
+            	resolveResource(shadowAfterChange);
+            }
 
             userType = getSchemaHandling().applyInboundSchemaHandlingOnUser(userType, shadowAfterChange);
             ObjectFactory of = new ObjectFactory();
@@ -97,4 +106,17 @@ public class ModifyUserAction extends BaseAction {
 
         return userOid;
     }
+	
+	private ResourceObjectShadowType resolveResource(ResourceObjectShadowType shadowAfterChange) throws SynchronizationException{
+		try{
+        	ObjectContainerType container = getRepository().getObject(shadowAfterChange.getResourceRef().getOid(), new PropertyReferenceListType());
+        	ResourceType resourceType = (ResourceType) container.getObject();
+        	shadowAfterChange.setResource(resourceType);
+        	shadowAfterChange.setResourceRef(null);
+        	}catch(FaultMessage ex){
+        		logger.error("Failed to resolve resource with oid {}", shadowAfterChange.getResourceRef().getOid(), ex);
+        		throw new SynchronizationException("Resource can't be resolved.", ex);
+        	}
+        	return shadowAfterChange;
+	}
 }

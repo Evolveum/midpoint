@@ -108,6 +108,9 @@
         <property name="schemaHandling" >
             <ref bean="schemaHandling"/>
         </property>
+        <property name="repository" >
+            <ref bean="repositoryService"/>
+        </property>
     </bean>
 
     <bean id="filterManager" class="com.evolveum.midpoint.model.filter.FilterManagerImpl">
