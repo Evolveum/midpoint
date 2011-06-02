@@ -25,7 +25,7 @@ package com.evolveum.midpoint.model.xpath;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
-import com.evolveum.midpoint.common.ObjectTypeUtil;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;

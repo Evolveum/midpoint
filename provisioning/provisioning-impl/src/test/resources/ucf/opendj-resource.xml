@@ -28,12 +28,9 @@
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>Embedded Test OpenDJ</name>
-	<connector oid="org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector">
-		<c:name>ICF org.identityconnectors.ldap.LdapConnector</c:name>
-		<c:namespace>http://midpoint.evolveum.com/xml/ns/resource/icf/org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector</c:namespace>
-	</connector>
+	<connectorRef oid="icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector"/>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
-	<configuration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/resource/icf/org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector"
+	<configuration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf/configuration-1.xsd">
 					   
 		<icfcldap:configurationProperties>

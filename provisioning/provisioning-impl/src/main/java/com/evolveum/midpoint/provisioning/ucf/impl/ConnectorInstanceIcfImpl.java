@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
+import com.evolveum.midpoint.common.XsdTypeConverter;
+import com.evolveum.midpoint.provisioning.integration.identityconnector.converter.GuardedStringToStringConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -48,6 +50,7 @@ import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
+import org.identityconnectors.common.security.GuardedString;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -74,12 +77,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	
 	ConnectorFacade connector;
 	ResourceType resource;
-	static Map<Class,QName> xsdTypeMap;
 
 	public ConnectorInstanceIcfImpl(ConnectorFacade connector, ResourceType resource) {
 		this.connector = connector;
 		this.resource = resource;
-		initTypeMap();
 	}
 	
 	private String getSchemaNamespace() {
@@ -152,7 +153,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				// Default name and type for the attribute: name is takes "as is", type is mapped
 				QName attrXsdName = new QName(getSchemaNamespace(),attributeInfo.getName(),SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
-				QName attrXsdType = mapType(attributeInfo.getType());
+				
+				QName attrXsdType = null;
+				if (GuardedString.class.equals(attributeInfo.getType())) {
+					// GuardedString is a special case. It is a ICF-specific type
+					// implementing Potemkin-like security. Use a temporary
+					// "nonsense" type for now, so this will fail in tests and
+					// will be fixed later
+					attrXsdType = SchemaConstants.R_PROTECTED_STRING_TYPE;
+				} else {
+					attrXsdType = XsdTypeConverter.toXsdType(attributeInfo.getType());
+				}
 				
 				// Handle special cases
 				if (Name.NAME.equals(attributeInfo.getName())) {
@@ -193,29 +204,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		return mpSchema;
 	}
-
-	// Hack. Should be moved to an appropriate place
-	private void initTypeMap() {
-		if (xsdTypeMap!=null) { 
-			return;
-		}
-		
-        xsdTypeMap = new HashMap();
-        xsdTypeMap.put(String.class, SchemaConstants.XSD_STRING);
-        xsdTypeMap.put(int.class, SchemaConstants.XSD_INTEGER);
-        xsdTypeMap.put(boolean.class, SchemaConstants.XSD_BOOLEAN);
-		xsdTypeMap.put(byte[].class, SchemaConstants.XSD_BASE64BINARY);
-        xsdTypeMap.put(org.identityconnectors.common.security.GuardedString.class,SchemaConstants.R_PROTECTED_STRING_TYPE);
-    }
-	
-	// Hack. Should be moved to an appropriate place
-    private QName mapType(Class idConnType) {
-        QName xsdType = xsdTypeMap.get(idConnType);
-        if (xsdType==null) {
-            throw new IllegalArgumentException("No XSD mapping for ICF type "+idConnType.getCanonicalName());
-        }
-        return xsdType;
-    }
 
 	/**
 	 * Maps ICF native objectclass name to a midPoint QName objctclass name.

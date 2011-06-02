@@ -20,11 +20,15 @@
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.XsdTypeConverter;
+import com.evolveum.midpoint.common.object.ObjectResolver;
+import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.util.ClasspathUrlFinder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import org.identityconnectors.framework.api.ConnectorInfoManager;
 import org.identityconnectors.framework.api.ConnectorInfoManagerFactory;
@@ -57,6 +61,8 @@ import org.w3c.dom.NodeList;
  * 
  * It is hardcoded to ICF now.
  * 
+ * This class holds a list of all known ICF connectors in the system.
+ * 
  * @author Radovan Semancik
  */
 public class ConnectorManagerIcfImpl implements ConnectorManager {
@@ -74,6 +80,10 @@ public class ConnectorManagerIcfImpl implements ConnectorManager {
 	public ConnectorManagerIcfImpl() {
 	}
 
+	/**
+	 * Initialize the ICF implementation. Look for all connector bundles,
+	 * get basic information about them and keep that in memory.
+	 */
 	public void initialize() {
 		Set<URL> bundleURLs = listBundleJars();
 
@@ -86,22 +96,44 @@ public class ConnectorManagerIcfImpl implements ConnectorManager {
 		}
 	}
 
+	/**
+	 * Creates new connector instance.
+	 * 
+	 * It will initialize the connector by taking the XML Resource definition,
+	 * transforming it to the ICF configuration and applying that to the 
+	 * new connector instance.
+	 * 
+	 */
 	@Override
 	public ConnectorInstance createConnectorInstance(ResourceType resource) {
-		String connectorOid = getConnectorOid(resource);
+		// Take the ConnectorInfo from the memory store
+		String connectorOid = ResourceTypeUtil.getConnectorOid(resource);
 		ConnectorInfo cinfo = findConnectorInfoByOid(connectorOid);
+		
+		// Get default configuration for the connector. This is important, as
+		// it contains types of connector configuration properties.
+		// So we do not need to know the connector configuration schema
+		// here. We are in fact looking at the data that the schema is
+		// generated from.
 		APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
 
+		// Transform XML configuration from the resource to the ICF connector
+		// configuration
 		transformConnectorConfiguration(apiConfig, resource);
 
+		// Create new connector instance using the transformed configuration
 		ConnectorFacade cfacade =
 				ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
 
+		// Create new midPoint ConnectorInstance and pass it the ICF connector facade
 		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cfacade,resource);
 
 		return connectorImpl;
 	}
 
+	/**
+	 * Returns a list XML representation of the ICF connectors.
+	 */
 	@Override
 	public Set<ConnectorType> listConnectors() {
 		Set<ConnectorType> connectorTypes = new HashSet<ConnectorType>();
@@ -114,12 +146,20 @@ public class ConnectorManagerIcfImpl implements ConnectorManager {
 		return connectorTypes;
 	}
 
+	/**
+	 * Returns a single XML representation of ICF connector.
+	 */
 	@Override
 	public ConnectorType getConnector(String oid) {
 		ConnectorInfo cinfo = findConnectorInfoByOid(oid);
 		return convertToConnectorType(cinfo, oid);
 	}
 
+	/**
+	 * Converts ICF ConnectorInfo into a midPoint XML connector representation.
+	 * 
+	 * TODO: schema transformation
+	 */
 	private ConnectorType convertToConnectorType(ConnectorInfo cinfo, String oid) {
 		ConnectorType connectorType = new ConnectorType();
 		connectorType.setOid(oid);
@@ -130,8 +170,13 @@ public class ConnectorManagerIcfImpl implements ConnectorManager {
 		return connectorType;
 	}
 
+	/**
+	 * Converts ICF connector key to a simple string.
+	 * 
+	 * The string may be used as an OID.
+	 */
 	private String keyToString(ConnectorKey key) {
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder("icf1-");
 		sb.append(key.getBundleName());
 		sb.append("-");
 		sb.append(key.getBundleVersion());
@@ -140,32 +185,62 @@ public class ConnectorManagerIcfImpl implements ConnectorManager {
 		return sb.toString();
 	}
 
+	/**
+	 * Transforms midPoint XML configuration of the connector to the ICF
+	 * configuration.
+	 * 
+	 * The "configuration" part of the XML resource definition will be used.
+	 * 
+	 * The provided ICF APIConfiguration will be modified, some values may be
+	 * overwritten.
+	 * 
+	 * @param apiConfig ICF connector configuration
+	 * @param resource  midPoint XML configuration
+	 */
 	private void transformConnectorConfiguration(APIConfiguration apiConfig, ResourceType resource) {
 
 		ConfigurationProperties configProps = apiConfig.getConfigurationProperties();
 
+		// The namespace of all the configuration properties specific to the
+		// connector instance will have a connector instance namespace. This
+		// namespace can be found in the resource definition.
 		String connectorConfNs = getConnectorType(resource).getNamespace();
+		
+		// Iterate over all the elements of XML resource definition that are in
+		// the "configuration" part.
 		List<Element> xmlConfig = resource.getConfiguration().getAny();
 		for (Element e : xmlConfig) {
+			
+			// Process the "configurationProperties" part of configuraiton
 			if (e.getNamespaceURI() != null && e.getNamespaceURI().equals(connectorConfNs)
 					&& e.getLocalName() != null && e.getLocalName().equals(CONFIGURATION_PROPERTIES_XML_ELEMENT_NAME)) {
+				
+				// Iterate over all the XML elements there. Each element is
+				// a configuration property.
 				NodeList configurationNodelist = e.getChildNodes();
-
 				for (int i = 0; i < configurationNodelist.getLength(); i++) {
 					Node node = configurationNodelist.item(i);
+					// We care only about elements, ignoring comments and text
 					if (node.getNodeType() == Node.ELEMENT_NODE) {
 						Element configElement = (Element) node;
 
+						// All the elements must be in a connector instance namespace.
 						if (configElement.getNamespaceURI() == null || !configElement.getNamespaceURI().equals(connectorConfNs)) {
 							log.warn("Found element with a wrong namespace ({}) in resource OID={}", configElement.getNamespaceURI(), resource.getOid());
 						} else {
 
+							// Local name of the element is the same as the name of ICF configuration property
 							String propertyName = configElement.getLocalName();
 							ConfigurationProperty property = configProps.getProperty(propertyName);
+							
+							// Check (java) type of ICF configuration property, behave accordingly
 							Class type = property.getType();
-
 							if (type.isArray()) {
+								// Special handling for array values. If the type
+								// of the property is array, the XML element may appear
+								// several times.
 								List<Object> values = new ArrayList<Object>();
+								// Convert the first value
 								Object value = convertToJava(configElement, type.getComponentType());
 								values.add(value);
 								// Loop over until the elements have the same local name
@@ -174,19 +249,21 @@ public class ConnectorManagerIcfImpl implements ConnectorManager {
 										&& ((Element) (configurationNodelist.item(i + 1))).getLocalName().equals(propertyName)) {
 									i++;
 									configElement = (Element) configurationNodelist.item(i);
+									// Conver all the remaining values
 									Object avalue = convertToJava(configElement, type.getComponentType());
 									values.add(avalue);
 								}
 								
+								// Convert array to a list with appropriate type
 								Object valuesArrary = Array.newInstance(type.getComponentType(), values.size());
 								for (int j = 0; j < values.size(); ++j) {
 									Object avalue = values.get(j);
 									Array.set(valuesArrary, j, avalue);
 								}
-
 								property.setValue(valuesArrary);
 
 							} else {
+								// Single-valued propery are easy to convert
 								Object value = convertToJava(configElement, type);
 								property.setValue(value);
 							}
@@ -203,6 +280,7 @@ public class ConnectorManagerIcfImpl implements ConnectorManager {
 	/**
 	 * Returns ICF connector info manager that manages local connectors.
 	 * The manager will be created if it does not exist yet.
+	 * 
 	 * @return ICF connector info manager that manages local connectors
 	 */
 	private ConnectorInfoManager getLocalConnectorInfoManager() {
@@ -288,43 +366,32 @@ public class ConnectorManagerIcfImpl implements ConnectorManager {
 		return connectors.get(connectorOid);
 	}
 
-	// TODO: Following two methods should do into some kind of ResourceUtil...
-	private String getConnectorOid(ResourceType resource) {
-		if (resource.getConnectorRef() != null) {
-			return resource.getConnectorRef().getOid();
-		} else if (resource.getConnector() != null) {
-			return resource.getConnector().getOid();
-		} else {
-			return null;
-		}
-	}
-
+	/**
+	 * Gets connector from the resource, regardless whenther there is a
+	 * "composite" connector or connectorRef.
+	 */
 	private ConnectorType getConnectorType(ResourceType resource) {
-		if (resource.getConnector() != null) {
-			return resource.getConnector();
-		} else if (resource.getConnectorRef() != null) {
-			String oid = resource.getConnectorRef().getOid();
-			return getConnector(oid);
-		} else {
+
+		ObjectResolver resolver = new ObjectResolver() {
+			@Override
+			public ObjectType resolve(String oid) {
+				return getConnector(oid);
+			}
+		};
+		ConnectorType connector = ResourceTypeUtil.getConnectorType(resource, resolver);
+		if (connector==null) {
 			log.error("Resource does not contain connector or connectorRef (OID=" + resource.getOid() + ")");
 			throw new IllegalArgumentException("Resource does not contain connector or connectorRef (OID=" + resource.getOid() + ")");
 		}
+		return connector;
 	}
 
-	// Kind of a hack now. Should be switched to a more sophisticated converters later
 	private Object convertToJava(Element configElement, Class type) {
-		String stringContent = configElement.getTextContent();
-		if (type.equals(String.class)) {
-			return stringContent;
-		} else if (type.equals(Integer.class)) {
-			return Integer.valueOf(stringContent);
-		} else if (type.equals(int.class)) {
-			return Integer.parseInt(stringContent);
-		} else if (type.equals(GuardedString.class)) {
-			return new GuardedString(stringContent.toCharArray());
+		if (type.equals(GuardedString.class)) {
+			// Guarded string is a special ICF beast
+			return new GuardedString(configElement.getTextContent().toCharArray());
 		} else {
-			log.error("Unknown type for ICF conversion: {}", type);
-			throw new IllegalArgumentException("Unknown type for ICF conversion: " + type);
+			return XsdTypeConverter.toJavaValue(configElement, type);
 		}
 	}
 }

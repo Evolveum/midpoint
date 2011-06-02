@@ -20,8 +20,9 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.common;
+package com.evolveum.midpoint.common.object;
 
+import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -46,8 +47,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /**
- *
- * @author semancik
+ * Methods that would belong to the ObjectType class but cannot go there
+ * because of JAXB.
+ * 
+ * There are also useful methods that would belong to other classes. But we don't
+ * want to create new class for every method ... if this goes beyond a reasonable
+ * degree, please refactor accordingly.
+ * 
+ * @author Radovan Semancik
  */
 public class ObjectTypeUtil {
 
