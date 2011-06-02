@@ -19,11 +19,12 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
@@ -71,7 +72,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException error in communication to the resource 
 	 *				- nothing was fetched.
 	 */
-	public Schema fetchResourceSchema() throws CommunicationException;
+	public Schema fetchResourceSchema() throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Retrieves a specific object from the resource.
@@ -96,7 +97,19 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException error in communication to the resource 
 	 *				- nothing was fetched.
 	 */
-	public ResourceObject fetchObject(QName objectClass, Set<ResourceObjectAttribute> identifiers) throws CommunicationException;
+	public ResourceObject fetchObject(QName objectClass, Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+	
+	/**
+	 * Schema aware-version of the fetchObject.
+	 * 
+	 * TODO
+	 * 
+	 * @param resourceObjectDefinition
+	 * @param identifiers
+	 * @return
+	 * @throws CommunicationException 
+	 */
+	//public ResourceObject fetchObject(ResourceObjectDefinition resourceObjectDefinition, Set<ResourceObjectAttribute> identifiers) throws CommunicationException;
 	
 	// TODO schema-aware version of the operations
 	
@@ -117,7 +130,7 @@ public interface ConnectorInstance {
 	 * @param handler
 	 * @throws CommunicationException 
 	 */
-	public void search(QName objectClass, ResultHandler handler) throws CommunicationException;
+	public void search(QName objectClass, ResultHandler handler) throws CommunicationException, GenericFrameworkException;
 
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
@@ -141,7 +154,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @return created object attributes. May be null.
 	 */
-	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations) throws CommunicationException;
+	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
@@ -155,9 +168,9 @@ public interface ConnectorInstance {
 	 * @param changes
 	 * @throws CommunicationException
 	 */
-	public void modifyObject(Set<ResourceObjectAttribute> identifiers, Set<Operation> changes) throws CommunicationException;
+	public void modifyObject(Set<ResourceObjectAttribute> identifiers, Set<Operation> changes) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
-	public void deleteObject(Set<ResourceObjectAttribute> identifiers) throws CommunicationException;
+	public void deleteObject(Set<ResourceObjectAttribute> identifiers) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Creates a live Java object from a token previously serialized to string.
@@ -180,7 +193,7 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public Token fetchCurrentToken() throws CommunicationException;
+	public Token fetchCurrentToken() throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".
@@ -188,7 +201,7 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public List<Change> fetchChanges(Token lastToken) throws CommunicationException;
+	public List<Change> fetchChanges(Token lastToken) throws CommunicationException, GenericFrameworkException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	

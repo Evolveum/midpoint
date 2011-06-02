@@ -20,10 +20,15 @@
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import com.evolveum.midpoint.common.XsdTypeConverter;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
+import com.evolveum.midpoint.common.object.ResourceTypeUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.integration.identityconnector.converter.GuardedStringToStringConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.Token;
@@ -33,7 +38,9 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.util.OperationResultFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
@@ -56,6 +63,7 @@ import java.util.Map;
 import java.util.Set;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+import javax.xml.ws.RespectBinding;
 
 /**
  * Implementation of ConnectorInstance for ICF connectors.
@@ -96,7 +104,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * @throws CommunicationException 
 	 */
 	@Override
-	public Schema fetchResourceSchema() throws CommunicationException {
+	public Schema fetchResourceSchema() throws CommunicationException, GenericFrameworkException {
 
 		// Fetch the schema from the connector (which actually gets that from the resource).
 		org.identityconnectors.framework.common.objects.Schema icfSchema = connector.schema();
@@ -205,7 +213,134 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return mpSchema;
 	}
 
-	/**
+	
+	@Override
+	public ResourceObject fetchObject(QName objectClass, Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
+		
+		// Result type for this operation
+		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()+".fetchObject");
+		result.addParam("objectClass",objectClass);
+		result.addParam("identifiers",identifiers);
+		result.addContext("resource",resource);
+		
+		// Get UID from the set of idetifiers
+		Uid uid = getUid(identifiers);
+		if (uid == null) {
+            throw new IllegalArgumentException("Required attribute UID not found in identification set while attempting to fetch object identified by "+identifiers+" from recource "+resource.getName()+"(OID:"+resource.getOid()+")");
+        }
+		
+		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
+		if (objectClass == null) {
+            throw new IllegalArgumentException("Unable to detemine object class from QName "+objectClass+" while attempting to fetch object identified by "+identifiers+" from recource "+resource.getName()+"(OID:"+resource.getOid()+")");			
+		}
+		
+		// Connector operation cannot create result for itself, so we need to create result for it
+		
+		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName()+".getObject");
+		icfResult.addParam("objectClass",icfObjectClass);
+		icfResult.addParam("uid",uid.getUidValue());
+		icfResult.addParam("options",null);
+		
+		ConnectorObject co = null;
+		try {
+			co = connector.getObject(icfObjectClass,uid,null);
+			icfResult.recordSuccess();
+		} catch (Exception ex) {
+			// ICF interface does not specify exceptions or other error conditions.
+			// Therefore this kind of heavy artilery is necessary.
+			// TODO maybe we can try to catch at least some specific exceptions
+			icfResult.recordFatalError("ICF invocation failed",ex);
+			result.recordFatalError("ICF invocation failed");
+			
+			// This is fatal. No point in continuing.
+			throw new GenericFrameworkException(ex);
+		}
+		
+		if (co==null) {
+			result.recordFatalError("Object not found");
+			throw new ObjectNotFoundException("Object identified by "+identifiers+" was not found on resource "+ObjectTypeUtil.toShortString(resource));
+		}
+		ResourceObject ro = convertToResourceObject(co,null);
+		return ro;
+	}
+
+	@Override
+	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations) throws CommunicationException, GenericFrameworkException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void modifyObject(Set<ResourceObjectAttribute> identifiers, Set<Operation> changes) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void deleteObject(Set<ResourceObjectAttribute> identifiers) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Token deserializeToken(String serializedToken) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Token fetchCurrentToken() throws CommunicationException, GenericFrameworkException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public List<Change> fetchChanges(Token lastToken) throws CommunicationException, GenericFrameworkException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public ResourceTestResultType test() {
+		ResourceTestResultType result = new ResourceTestResultType();
+
+		TestResultType testResult = new TestResultType();
+		result.setConnectorConnection(testResult);
+		try {
+			connector.test();
+			testResult.setSuccess(true);
+		} catch (RuntimeException ex) {
+			testResult.setSuccess(false);
+			List<JAXBElement<DiagnosticsMessageType>> errorOrWarning = testResult.getErrorOrWarning();
+			DiagnosticsMessageType message = new DiagnosticsMessageType();
+			message.setMessage(ex.getClass().getName() + ": " + ex.getMessage());
+			// TODO: message.setDetails();
+			JAXBElement<DiagnosticsMessageType> element = new JAXBElement<DiagnosticsMessageType>(SchemaConstants.I_DIAGNOSTICS_MESSAGE_ERROR, DiagnosticsMessageType.class, message);
+			errorOrWarning.add(element);
+		}
+
+		return result;
+	}
+
+	@Override
+	public void search(QName objectClass, final ResultHandler handler) throws CommunicationException, GenericFrameworkException {
+		
+		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
+		if (objectClass == null) {
+            throw new IllegalArgumentException("Unable to detemine object class from QName "+objectClass+" while attempting to searcg objects in recource "+resource.getName()+"(OID:"+resource.getOid()+")");
+		}
+		
+		ResultsHandler icfHandler = new ResultsHandler() {
+            @Override
+            public boolean handle(ConnectorObject connectorObject) {
+                // Convert ICF-specific connetor object to a generic ResourceObject
+                ResourceObject resourceObject = convertToResourceObject(connectorObject,null);
+                // .. and pass it to the handler
+                return handler.handle(resourceObject);
+            }
+        };
+		
+		connector.search(icfObjectClass,null,icfHandler,null);
+		
+	}
+	
+	// UTILITY METHODS
+	
+		/**
 	 * Maps ICF native objectclass name to a midPoint QName objctclass name.
 	 * 
 	 * The mapping is "stateless" - it does not keep any mapping database or
@@ -302,100 +437,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		return ro;
 	}
+
 	
-	@Override
-	public ResourceObject fetchObject(QName objectClass, Set<ResourceObjectAttribute> identifiers) throws CommunicationException {
-		
-		// Get UID from the set of idetifiers
-		Uid uid = getUid(identifiers);
-		if (uid == null) {
-            throw new IllegalArgumentException("Required attribute UID not found in identification set while attempting to fetch object identified by "+identifiers+" from recource "+resource.getName()+"(OID:"+resource.getOid()+")");
-        }
-		
-		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
-		if (objectClass == null) {
-            throw new IllegalArgumentException("Unable to detemine object class from QName "+objectClass+" while attempting to fetch object identified by "+identifiers+" from recource "+resource.getName()+"(OID:"+resource.getOid()+")");			
-		}
-		ConnectorObject co = connector.getObject(icfObjectClass,uid,null);
-		if (co==null) {
-			// Change to a more reasonable error later
-			return null;
-		}
-		ResourceObject ro = convertToResourceObject(co,null);
-		return ro;
-	}
-
-	@Override
-	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations) throws CommunicationException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void modifyObject(Set<ResourceObjectAttribute> identifiers, Set<Operation> changes) throws CommunicationException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public void deleteObject(Set<ResourceObjectAttribute> identifiers) throws CommunicationException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public Token deserializeToken(String serializedToken) {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public Token fetchCurrentToken() throws CommunicationException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public List<Change> fetchChanges(Token lastToken) throws CommunicationException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public ResourceTestResultType test() {
-		ResourceTestResultType result = new ResourceTestResultType();
-
-		TestResultType testResult = new TestResultType();
-		result.setConnectorConnection(testResult);
-		try {
-			connector.test();
-			testResult.setSuccess(true);
-		} catch (RuntimeException ex) {
-			testResult.setSuccess(false);
-			List<JAXBElement<DiagnosticsMessageType>> errorOrWarning = testResult.getErrorOrWarning();
-			DiagnosticsMessageType message = new DiagnosticsMessageType();
-			message.setMessage(ex.getClass().getName() + ": " + ex.getMessage());
-			// TODO: message.setDetails();
-			JAXBElement<DiagnosticsMessageType> element = new JAXBElement<DiagnosticsMessageType>(SchemaConstants.I_DIAGNOSTICS_MESSAGE_ERROR, DiagnosticsMessageType.class, message);
-			errorOrWarning.add(element);
-		}
-
-		return result;
-	}
-
-	@Override
-	public void search(QName objectClass, final ResultHandler handler) throws CommunicationException {
-		
-		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
-		if (objectClass == null) {
-            throw new IllegalArgumentException("Unable to detemine object class from QName "+objectClass+" while attempting to searcg objects in recource "+resource.getName()+"(OID:"+resource.getOid()+")");
-		}
-		
-		ResultsHandler icfHandler = new ResultsHandler() {
-            @Override
-            public boolean handle(ConnectorObject connectorObject) {
-                // Convert ICF-specific connetor object to a generic ResourceObject
-                ResourceObject resourceObject = convertToResourceObject(connectorObject,null);
-                // .. and pass it to the handler
-                return handler.handle(resourceObject);
-            }
-        };
-		
-		connector.search(icfObjectClass,null,icfHandler,null);
-		
-	}
 }

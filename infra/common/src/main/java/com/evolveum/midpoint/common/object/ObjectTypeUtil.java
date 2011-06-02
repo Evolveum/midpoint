@@ -171,4 +171,8 @@ public class ObjectTypeUtil {
 
         throw new IllegalArgumentException("Provided wrong AccountShadow or SchemaHandling. No AccountType definition found for provided account's object class: " + accountObjectClass);
     }
+	
+	public static String toShortString(ObjectType object) {
+		return object.getName()+"(OID:"+object.getOid()+")";
+	}
 }

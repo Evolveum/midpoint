@@ -15,34 +15,43 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
+ *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.provisioning.ucf.api;
+package com.evolveum.midpoint.common.result;
 
 /**
- * Connector communication exception.
  * 
- * May happen in case of various network communication errors, including
- * (but not limited to) connection refused and timeouts.
+ * @author lazyman
  * 
- * TODO
- * 
- * @author Radovan Semancik
- *
  */
-public class CommunicationException extends UcfException {
+public enum OperationResultStatus {
 
 	/**
-	 * Creates a new instance of <code>CommunicationException</code> without detail message.
+	 * No information about operation is present.
 	 */
-	public CommunicationException() {
-	}
+	UNKNOWN,
 
 	/**
-	 * Constructs an instance of <code>CommunicationException</code> with the specified detail message.
-	 * @param msg the detail message.
+	 * Used when operation and sub operations finish successfully.
 	 */
-	public CommunicationException(String msg) {
-		super(msg);
-	}
+	SUCCESS,
+
+	/**
+	 * Used when operation finish successfully, but minor problem occurred. For
+	 * example operation code recovered from some error and after that operation
+	 * finished successfully.
+	 */
+	WARNING,
+
+	/**
+	 * Used when operation contains at least one operation witch status
+	 * SUCCESS/WARNING and at least one operation with status FATAL_ERROR.
+	 */
+	PARTIAL_ERROR,
+
+	/**
+	 * Used when operation didn't finish correctly.
+	 */
+	FATAL_ERROR;
 }

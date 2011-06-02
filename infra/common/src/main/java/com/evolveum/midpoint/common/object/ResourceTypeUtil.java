@@ -54,6 +54,5 @@ public class ResourceTypeUtil {
 			return null;
 		}
 	}
-
 	
 }

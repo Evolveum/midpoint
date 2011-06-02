@@ -21,6 +21,7 @@ package com.evolveum.midpoint.provisioning.test.ucf;
 
 import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerIcfImpl;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfException;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -177,7 +179,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 	}
 
 	@Test
-	public void testFetchObject() throws CommunicationException {
+	public void testFetchObject() throws UcfException {
 		// GIVEN
 		
 		// Account type is hardcoded now
@@ -194,8 +196,10 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		// Determine object class from the schema
 		QName objectClass = accountDefinition.getTypeName();
 		
+		OperationResult result = new OperationResult(this.getClass().getName()+".testFetchObject");
+		
 		// WHEN
-		ResourceObject ro = cc.fetchObject(objectClass,identifiers);
+		ResourceObject ro = cc.fetchObject(objectClass,identifiers,result);
 		
 		// THEN
 		
@@ -205,7 +209,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 	}
 
 	@Test
-	public void testSearch() throws CommunicationException {
+	public void testSearch() throws UcfException {
 		// GIVEN
 		
 		// Account type is hardcoded now
