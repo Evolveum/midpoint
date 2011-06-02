@@ -24,7 +24,6 @@ package com.evolveum.midpoint.repo.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
@@ -48,12 +47,10 @@ import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectNotFoundFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -106,11 +103,7 @@ public class RepositoryResourceTest {
 	private void compareObjects(ResourceType object, ResourceType retrievedObject) throws Exception {
 		assertEquals(object.getOid(), retrievedObject.getOid());
 		assertEquals(object.getName(), retrievedObject.getName());
-		assertEquals(object.getSchemaHandling(), retrievedObject.getSchemaHandling());
-		assertEquals(object.getConfiguration(), retrievedObject.getConfiguration());
-		assertEquals(object.getSchema(), retrievedObject.getSchema());
-		assertEquals(object.getScripts(), retrievedObject.getScripts());
-		
+
 		if (object.getExtension() != null && retrievedObject.getExtension() != null) {
 			assertEquals(object.getExtension().getAny().size(), retrievedObject.getExtension().getAny()
 					.size());
@@ -127,6 +120,14 @@ public class RepositoryResourceTest {
 		}
 	}
 
+	//FIXME: temporary solution till proper compare of JAXB objects without equals methods is implemented 
+	private void compareNullObjects(ResourceType object, ResourceType retrievedObject) throws Exception {
+		assertEquals(object.getSchemaHandling(), retrievedObject.getSchemaHandling());
+		assertEquals(object.getConfiguration(), retrievedObject.getConfiguration());
+		assertEquals(object.getSchema(), retrievedObject.getSchema());
+		assertEquals(object.getScripts(), retrievedObject.getScripts());
+	}
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testResource() throws Exception {
@@ -138,13 +139,13 @@ public class RepositoryResourceTest {
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
 			objectContainer.setObject(resource);
 			repositoryService.addObject(objectContainer);
-			
-			//get resource
+
+			// get resource
 			ObjectContainerType retrievedObjectContainer = repositoryService.getObject(resourceOid,
 					new PropertyReferenceListType());
 			compareObjects(resource, (ResourceType) retrievedObjectContainer.getObject());
 
-			//list objects
+			// list objects
 			ObjectListType objects = repositoryService.listObjects(
 					QNameUtil.qNameToUri(SchemaConstants.I_RESOURCE_TYPE), new PagingType());
 			assertNotNull(objects);
@@ -177,19 +178,19 @@ public class RepositoryResourceTest {
 	public void testResourceModification() throws Exception {
 		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
-			//add object
+			// add object
 			ObjectContainerType objectContainer = new ObjectContainerType();
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
 			objectContainer.setObject(resource);
 			repositoryService.addObject(objectContainer);
-			
-			//get object
+
+			// get object
 			ObjectContainerType retrievedObjectContainer = repositoryService.getObject(resourceOid,
 					new PropertyReferenceListType());
 			compareObjects(resource, (ResourceType) retrievedObjectContainer.getObject());
-			
-			//modify object
+
+			// modify object
 			ResourceType modifiedResource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/resource-modified-removed-tags.xml"))).getValue();
 			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
@@ -199,6 +200,8 @@ public class RepositoryResourceTest {
 			retrievedObjectContainer = repositoryService.getObject(resourceOid,
 					new PropertyReferenceListType());
 			compareObjects(modifiedResource, (ResourceType) (retrievedObjectContainer.getObject()));
+			compareNullObjects(modifiedResource, (ResourceType) (retrievedObjectContainer.getObject()));
+
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
