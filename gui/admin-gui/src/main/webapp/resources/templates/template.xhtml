@@ -35,10 +35,14 @@
 				<span> <ice:outputLink rendered="#{security.isUserLoggedIn}"
 						value="#{facesContext.externalContext.requestContextPath}/j_spring_security_logout">
 						<span>#{lang.messages['page.template.logout']}</span>
-					</ice:outputLink> </span> <span class="delimiter">|</span> <span class="last"> <ice:outputLink
-						value="#{facesContext.externalContext.requestContextPath}/help/index.iface">
-						<span>#{lang.messages['page.template.help']}</span>
 					</ice:outputLink> </span>
+
+				<f:verbatim styleClass="delimiter" rendered="#{security.isUserLoggedIn}">|</f:verbatim>
+				<ice:outputLink value="#{facesContext.externalContext.requestContextPath}/help/index.iface"
+					rendered="#{security.isUserLoggedIn}">
+					<span>#{lang.messages['page.template.help']}</span>
+				</ice:outputLink>
+				<ice:panelGroup style="padding-right: 10px; display: inline-block;">&nbsp;</ice:panelGroup>
 			</div>
 			<div class="container">
 				<div id="logo">
@@ -82,14 +86,14 @@
 			</div>
 		</h:panelGroup>
 		<ui:remove>
-		<div id="breadcrumbs">
-			<div class="container">
-				<c:forEach var="item" items="#{about.items}">					
-					<span>asdf</span>
-					<span class="arrow">::</span>
-				</c:forEach>
+			<div id="breadcrumbs">
+				<div class="container">
+					<c:forEach var="item" items="#{about.items}">
+						<span>asdf</span>
+						<span class="arrow">::</span>
+					</c:forEach>
+				</div>
 			</div>
-		</div>
 		</ui:remove>
 		<div class="container">
 			<div id="sidebar">

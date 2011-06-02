@@ -49,8 +49,16 @@ public class MidPointMaintenanceFilter extends GenericFilterBean {
 	private static final Trace TRACE = TraceManager.getTrace(MidPointMaintenanceFilter.class);
 	private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 	private String maintenanceUrl;
-	private boolean maintenanceEnabled = false;
+	private boolean enabled = false;
 	private Set<String> ipList = new HashSet<String>();
+	
+	public boolean isEnabled() {
+		return enabled;
+	}
+	
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+	}
 
 	public void setMaintenanceUrl(String maintenanceUrl) {
 		this.maintenanceUrl = maintenanceUrl;
@@ -61,10 +69,10 @@ public class MidPointMaintenanceFilter extends GenericFilterBean {
 	}
 
 	@Override
-	public void doFilter(ServletRequest req, ServletResponse response, FilterChain chain)
-			throws IOException, ServletException {
+	public void doFilter(ServletRequest req, ServletResponse response, FilterChain chain) throws IOException,
+			ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
-		
+
 		if (request.getAttribute(FILTER_APPLIED) != null) {
 			TRACE.debug("Maintenance filter already applied.");
 			chain.doFilter(request, response);
@@ -72,21 +80,23 @@ public class MidPointMaintenanceFilter extends GenericFilterBean {
 		}
 		request.setAttribute(FILTER_APPLIED, Boolean.TRUE);
 
-//		System.out.println(request.getRequestURI());
-//		System.out.println(request.getContextPath() + maintenanceUrl);
-//		System.out.println(request.getHeader("referer") == null ? null : new URL(request.getHeader("referer")));
-		boolean goingToMaintenancePage = request.getRequestURI().equals(request.getContextPath() + maintenanceUrl);
-		
+		String path = request.getRequestURI().replaceFirst(request.getContextPath(), "");
+		if (path.startsWith("/javax.faces.resource/") || path.startsWith("/resources/")) {
+			chain.doFilter(request, response);
+			return;
+		}
+
+		boolean goingToMaintenancePage = request.getRequestURI().equals(
+				request.getContextPath() + maintenanceUrl);
+
 		String ipAddress = request.getRemoteAddr();
-		if (maintenanceEnabled && !ipList.contains(ipAddress) && !goingToMaintenancePage) {
+		if (enabled && !ipList.contains(ipAddress) && !goingToMaintenancePage) {
 			TRACE.debug("Maintenance mode enabled, redirecting to '" + maintenanceUrl + "'");
-			redirectStrategy.sendRedirect(request, (HttpServletResponse) response,
-					maintenanceUrl);
+			redirectStrategy.sendRedirect(request, (HttpServletResponse) response, maintenanceUrl);
 
 			return;
 		}
-		
-		TRACE.debug("chaining...");
+
 		chain.doFilter(request, response);
 	}
 }

@@ -28,7 +28,7 @@
 	<global-method-security secured-annotations="enabled" jsr250-annotations="enabled" />
 
 	<http use-expressions="true" entry-point-ref="authenticationEntryPoint" auto-config="false">
-		<!-- <custom-filter ref="maintenanceFilter" after="LAST" /> not finished yet -->
+		<custom-filter ref="maintenanceFilter" after="LAST" />
 		
 		<custom-filter ref="sessionManagementFilter" before="SESSION_MANAGEMENT_FILTER" />		
 
