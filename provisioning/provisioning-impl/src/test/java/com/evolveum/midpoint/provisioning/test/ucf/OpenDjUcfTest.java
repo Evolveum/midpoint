@@ -112,7 +112,8 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 
 		assertNotNull(cc);
 		
-		schema = cc.fetchResourceSchema();
+		OperationResult result = new OperationResult(this.getClass().getName()+".initUcf");
+		schema = cc.fetchResourceSchema(result);
 		
 		assertNotNull(schema);
 
@@ -134,15 +135,15 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 
         //WHEN
 		
-        ResourceTestResultType result = cc.test();
+        OperationResult result = cc.test();
 
         //THEN
         assertNotNull(result);
-        TestResultType connectorConnectionResult = result.getConnectorConnection();
+        OperationResult connectorConnectionResult = result.getSubresults().get(0);
         assertNotNull(connectorConnectionResult);
-		System.out.println("Test \"connector connection\" result: "+DebugUtil.prettyPrint(connectorConnectionResult));
+		System.out.println("Test \"connector connection\" result: "+connectorConnectionResult);
         assertTrue(connectorConnectionResult.isSuccess());
-
+		assertTrue(result.isSuccess());
     }
 
 	/**
@@ -205,6 +206,8 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		
 		assertNotNull(ro);
 		System.out.println("Fetched object "+ro);
+		System.out.println("Result:");
+		System.out.println(result.debugDump());
 		
 	}
 
@@ -226,8 +229,10 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 			}
 		};
 		
+		OperationResult result = new OperationResult(this.getClass().getName()+".testSearch");
+		
 		// WHEN
-		cc.search(objectClass,handler);
+		cc.search(objectClass,handler,result);
 		
 		// THEN
 		

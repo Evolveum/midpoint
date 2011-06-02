@@ -72,7 +72,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException error in communication to the resource 
 	 *				- nothing was fetched.
 	 */
-	public Schema fetchResourceSchema() throws CommunicationException, GenericFrameworkException;
+	public Schema fetchResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Retrieves a specific object from the resource.
@@ -130,7 +130,7 @@ public interface ConnectorInstance {
 	 * @param handler
 	 * @throws CommunicationException 
 	 */
-	public void search(QName objectClass, ResultHandler handler) throws CommunicationException, GenericFrameworkException;
+	public void search(QName objectClass, ResultHandler handler, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
@@ -154,7 +154,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @return created object attributes. May be null.
 	 */
-	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations) throws CommunicationException, GenericFrameworkException;
+	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
@@ -168,9 +168,9 @@ public interface ConnectorInstance {
 	 * @param changes
 	 * @throws CommunicationException
 	 */
-	public void modifyObject(Set<ResourceObjectAttribute> identifiers, Set<Operation> changes) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+	public void modifyObject(Set<ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
-	public void deleteObject(Set<ResourceObjectAttribute> identifiers) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+	public void deleteObject(Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Creates a live Java object from a token previously serialized to string.
@@ -193,7 +193,7 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public Token fetchCurrentToken() throws CommunicationException, GenericFrameworkException;
+	public Token fetchCurrentToken(OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".
@@ -201,12 +201,13 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public List<Change> fetchChanges(Token lastToken) throws CommunicationException, GenericFrameworkException;
+	public List<Change> fetchChanges(Token lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	
 	//public void applyConfiguration(ResourceConfiguration newConfiguration) throws MisconfigurationException;
 	
-	public ResourceTestResultType test();
+	// Maybe this should be moved to ConnectorManager? In that way it can also test connector instantiation.
+	public OperationResult test();
 	
 }

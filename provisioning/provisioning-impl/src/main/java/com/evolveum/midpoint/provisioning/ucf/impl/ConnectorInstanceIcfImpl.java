@@ -104,10 +104,32 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * @throws CommunicationException 
 	 */
 	@Override
-	public Schema fetchResourceSchema() throws CommunicationException, GenericFrameworkException {
+	public Schema fetchResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
-		// Fetch the schema from the connector (which actually gets that from the resource).
-		org.identityconnectors.framework.common.objects.Schema icfSchema = connector.schema();
+		// Result type for this operation
+		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()+".fetchResourceSchema");
+		result.addContext("resource",resource);
+		
+		// Connector operation cannot create result for itself, so we need to create result for it
+		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName()+".schema");
+		icfResult.addContext("connector",connector.getClass());
+		
+		org.identityconnectors.framework.common.objects.Schema icfSchema = null;
+		try {
+			
+			// Fetch the schema from the connector (which actually gets that from the resource).
+			icfSchema = connector.schema();
+		
+			icfResult.recordSuccess();
+		} catch (Exception ex) {
+			// ICF interface does not specify exceptions or other error conditions.
+			// Therefore this kind of heavy artilery is necessary.
+			// TODO maybe we can try to catch at least some specific exceptions
+			icfResult.recordFatalError(ex);
+			result.recordFatalError("ICF invocation failed");			
+			// This is fatal. No point in continuing.
+			throw new GenericFrameworkException(ex);			
+		}
 		
 		// New instance of midPoint schema object
 		Schema mpSchema = new Schema(getSchemaNamespace());
@@ -235,23 +257,25 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		
 		// Connector operation cannot create result for itself, so we need to create result for it
-		
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName()+".getObject");
 		icfResult.addParam("objectClass",icfObjectClass);
 		icfResult.addParam("uid",uid.getUidValue());
 		icfResult.addParam("options",null);
+		icfResult.addContext("connector",connector.getClass());
 		
 		ConnectorObject co = null;
 		try {
+			
+			// Invoke the ICF connector
 			co = connector.getObject(icfObjectClass,uid,null);
+			
 			icfResult.recordSuccess();
 		} catch (Exception ex) {
 			// ICF interface does not specify exceptions or other error conditions.
 			// Therefore this kind of heavy artilery is necessary.
 			// TODO maybe we can try to catch at least some specific exceptions
-			icfResult.recordFatalError("ICF invocation failed",ex);
-			result.recordFatalError("ICF invocation failed");
-			
+			icfResult.recordFatalError(ex);
+			result.recordFatalError("ICF invocation failed");			
 			// This is fatal. No point in continuing.
 			throw new GenericFrameworkException(ex);
 		}
@@ -260,22 +284,25 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			result.recordFatalError("Object not found");
 			throw new ObjectNotFoundException("Object identified by "+identifiers+" was not found on resource "+ObjectTypeUtil.toShortString(resource));
 		}
+		
 		ResourceObject ro = convertToResourceObject(co,null);
+		
+		result.recordSuccess();
 		return ro;
 	}
 
 	@Override
-	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations) throws CommunicationException, GenericFrameworkException {
+	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void modifyObject(Set<ResourceObjectAttribute> identifiers, Set<Operation> changes) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
+	public void modifyObject(Set<ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void deleteObject(Set<ResourceObjectAttribute> identifiers) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
+	public void deleteObject(Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -285,39 +312,33 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Token fetchCurrentToken() throws CommunicationException, GenericFrameworkException {
+	public Token fetchCurrentToken(OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public List<Change> fetchChanges(Token lastToken) throws CommunicationException, GenericFrameworkException {
+	public List<Change> fetchChanges(Token lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public ResourceTestResultType test() {
-		ResourceTestResultType result = new ResourceTestResultType();
+	public OperationResult test() {
+		OperationResult result = new OperationResult(ConnectorInstance.class.getName()+".test");
+		result.addContext("resource", resource);
 
-		TestResultType testResult = new TestResultType();
-		result.setConnectorConnection(testResult);
+		OperationResult connectionResult = result.createSubresult(ConnectorInstance.class.getName()+".test.connectorConnection");
 		try {
 			connector.test();
-			testResult.setSuccess(true);
-		} catch (RuntimeException ex) {
-			testResult.setSuccess(false);
-			List<JAXBElement<DiagnosticsMessageType>> errorOrWarning = testResult.getErrorOrWarning();
-			DiagnosticsMessageType message = new DiagnosticsMessageType();
-			message.setMessage(ex.getClass().getName() + ": " + ex.getMessage());
-			// TODO: message.setDetails();
-			JAXBElement<DiagnosticsMessageType> element = new JAXBElement<DiagnosticsMessageType>(SchemaConstants.I_DIAGNOSTICS_MESSAGE_ERROR, DiagnosticsMessageType.class, message);
-			errorOrWarning.add(element);
+			connectionResult.recordSuccess();
+		} catch (Exception ex) {
+			connectionResult.recordFatalError(ex);
 		}
-
+		result.computeStatus();
 		return result;
 	}
 
 	@Override
-	public void search(QName objectClass, final ResultHandler handler) throws CommunicationException, GenericFrameworkException {
+	public void search(QName objectClass, final ResultHandler handler,OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 		
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 		if (objectClass == null) {

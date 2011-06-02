@@ -39,6 +39,7 @@ import org.apache.commons.lang.StringUtils;
 public class OperationResult implements Serializable {
 
 	private static final long serialVersionUID = -2467406395542291044L;
+	private static final String INDENT_STRING = "  ";
 	private String operation;
 	private OperationResultStatus status;
 	private Map<String, Object> params;
@@ -149,6 +150,58 @@ public class OperationResult implements Serializable {
 	public OperationResultStatus getStatus() {
 		return status;
 	}
+	
+	/**
+	 * Returns true if the result is success.
+	 * 
+	 * This returns true if the result is absolute success. Presence of partial
+	 * failures or warnings fail this test.
+	 * 
+	 * @return true if the result is success.
+	 */
+	public boolean isSuccess() {
+		return (status==OperationResultStatus.SUCCESS);
+	}
+	
+	/**
+	 * Returns true if the result is acceptable for further processing.
+	 * 
+	 * In other words: if there were no fatal errors. Warnings and partial
+	 * errors are acceptable. Yet, this test also fails if the operation state
+	 * is not known.
+	 * 
+	 * @return true if the result is acceptable for further processing.
+	 */
+	public boolean isAcceptable() {
+		return (status!=OperationResultStatus.FATAL_ERROR);
+	}
+	
+	public void computeStatus() {
+		OperationResultStatus newStatus = OperationResultStatus.UNKNOWN;
+		boolean allSuccess = true;
+		for (OperationResult sub : getSubresults()) {
+			if (sub.getStatus()==OperationResultStatus.FATAL_ERROR) {
+				status = OperationResultStatus.FATAL_ERROR;
+				return;
+			}
+			if (sub.getStatus()!=OperationResultStatus.SUCCESS) {
+				allSuccess = false;
+			}			
+			if (sub.getStatus()==OperationResultStatus.PARTIAL_ERROR) {
+				newStatus = OperationResultStatus.PARTIAL_ERROR;
+			}
+			if (newStatus!=OperationResultStatus.PARTIAL_ERROR) {
+				if (sub.getStatus()==OperationResultStatus.WARNING) {
+					newStatus = OperationResultStatus.WARNING;
+				}
+			}
+		}
+		if (allSuccess && !getSubresults().isEmpty()) {
+			status = OperationResultStatus.SUCCESS;
+		} else {
+			status = newStatus;
+		}
+	}
 
 	/**
 	 * Method returns {@link Map} with operation parameters. Parameters keys are
@@ -253,6 +306,36 @@ public class OperationResult implements Serializable {
 	public void recordError(OperationResultStatus status, String message) {
 		this.status = status;
 		this.message = message;
+	}
+	
+	@Override
+	public String toString() {
+		return OperationResult.class.getSimpleName() + "(" +
+				operation + " " +
+				status + " " +
+				message;
+	}
+	
+	public String debugDump() {
+		StringBuilder sb = new StringBuilder();
+		debugDumpIndent(sb,0);
+		return sb.toString();
+	}
+	
+	private void debugDumpIndent(StringBuilder sb,int indent) {
+		for (int i=0;i<indent;i++) {
+			sb.append(INDENT_STRING);
+		}
+		sb.append(operation);
+		sb.append(" ");
+		sb.append(status);
+		sb.append(" ");
+		sb.append(message);
+		sb.append("\n");
+		
+		for (OperationResult sub : getSubresults()) {
+			sub.debugDumpIndent(sb,indent+1);
+		}
 	}
 
 }
