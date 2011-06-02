@@ -25,7 +25,7 @@ import java.io.Serializable;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.component.form.FormObject;
+import com.evolveum.midpoint.web.jsf.form.FormObject;
 import com.evolveum.midpoint.web.model.AccountShadowDto;
 
 public class AccountFormBean implements Serializable {

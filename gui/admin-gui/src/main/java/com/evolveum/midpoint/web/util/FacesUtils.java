@@ -33,7 +33,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.web.component.messages.MidPointMessage;
+import com.evolveum.midpoint.web.jsf.messages.MidPointMessage;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;

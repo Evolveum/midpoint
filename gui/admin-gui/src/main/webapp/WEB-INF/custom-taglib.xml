@@ -27,7 +27,7 @@
         <tag-name>autoForm</tag-name>
         <component>
             <component-type>AutoForm</component-type>
-            <handler-class>com.evolveum.midpoint.web.component.form.AutoFormTag</handler-class>
+            <handler-class>com.evolveum.midpoint.web.jsf.form.AutoFormTag</handler-class>
         </component>
         <attribute>
             <name>bean</name>
@@ -45,7 +45,7 @@
 	<tag>
 		<tag-name>button</tag-name>
 		<component>
-			<component-type>com.evolveum.midpoint.web.component.button.HtmlButton</component-type>
+			<component-type>com.evolveum.midpoint.web.jsf.button.HtmlButton</component-type>
 			<renderer-type>HtmlButtonRenderer</renderer-type>
 		</component>
 	</tag>

@@ -67,7 +67,7 @@ public class XPathDebugController implements Serializable {
 
 	public static final String PAGE_NAVIGATION_XPATH_DEBUG = "/config/debugXPath?faces-redirect=true";
 	private static final long serialVersionUID = 7295076387943631763L;
-	private static final Trace TRACE = TraceManager.getTrace(XPathDebugController.class);
+	private static final Trace TRACE = TraceManager.getTrace(XPathDebugController.class);	
 	@Autowired
 	private transient ModelPortType port;
 	private String expression;
@@ -84,15 +84,19 @@ public class XPathDebugController implements Serializable {
 	public String prepareXpathDebugPage() {
 		if (variable1 == null) {
 			variable1 = new XPathVariableBean();
+			variable1.setType("Object");
 		}
 		if (variable2 == null) {
 			variable2 = new XPathVariableBean();
+			variable2.setType("Object");
 		}
 		if (variable3 == null) {
 			variable3 = new XPathVariableBean();
+			variable3.setType("Object");
 		}
 		if (variable4 == null) {
 			variable4 = new XPathVariableBean();
+			variable4.setType("Object");
 		}
 		return PAGE_NAVIGATION_XPATH_DEBUG;
 
