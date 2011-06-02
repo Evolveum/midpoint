@@ -29,6 +29,7 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.web.bean.XPathVariableBean;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -43,6 +44,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 import javax.xml.bind.JAXBException;
 
@@ -67,39 +70,36 @@ public class XPathDebugController implements Serializable {
 
 	public static final String PAGE_NAVIGATION_XPATH_DEBUG = "/config/debugXPath?faces-redirect=true";
 	private static final long serialVersionUID = 7295076387943631763L;
-	private static final Trace TRACE = TraceManager.getTrace(XPathDebugController.class);	
+	private static final Trace TRACE = TraceManager.getTrace(XPathDebugController.class);
+	private static final List<SelectItem> returnTypes = new ArrayList<SelectItem>();
+	private static final List<SelectItem> types = new ArrayList<SelectItem>();
+	static {		
+		returnTypes.add(new SelectItem("String"));
+		returnTypes.add(new SelectItem("Number"));
+		returnTypes.add(new SelectItem("Node"));
+		returnTypes.add(new SelectItem("NodeList"));
+		returnTypes.add(new SelectItem("Boolean"));
+		returnTypes.add(new SelectItem("DomObjectModel"));	
+		
+		types.add(new SelectItem("Object"));
+		types.add(new SelectItem("String"));
+	}
 	@Autowired
 	private transient ModelPortType port;
 	private String expression;
-	private List<SelectItem> type;
-	private XPathVariableBean variable1;
-	private XPathVariableBean variable2;
-	private XPathVariableBean variable3;
-	private XPathVariableBean variable4;
-	private List<SelectItem> returnTypeList;
-	private String returnType;
 	private List<XPathVariableBean> variables = new ArrayList<XPathVariableBean>();
+	private boolean selectAll;
+	private String returnType;
 	private String result;
 
-	public String prepareXpathDebugPage() {
-		if (variable1 == null) {
-			variable1 = new XPathVariableBean();
-			variable1.setType("Object");
-		}
-		if (variable2 == null) {
-			variable2 = new XPathVariableBean();
-			variable2.setType("Object");
-		}
-		if (variable3 == null) {
-			variable3 = new XPathVariableBean();
-			variable3.setType("Object");
-		}
-		if (variable4 == null) {
-			variable4 = new XPathVariableBean();
-			variable4.setType("Object");
-		}
+	public String cleanupController() {
+		expression = null;
+		variables = null;
+		selectAll = false;
+		returnType = null;
+		result = null;
+		
 		return PAGE_NAVIGATION_XPATH_DEBUG;
-
 	}
 
 	public ExpressionHolder getExpressionHolderFromExpresion() {
@@ -131,12 +131,8 @@ public class XPathDebugController implements Serializable {
 
 	public Map<QName, Variable> getVariableValue() throws JAXBException {
 		TRACE.debug("getVariableValue start");
-		variables.add(variable1);
-		variables.add(variable2);
-		variables.add(variable3);
-		variables.add(variable4);
 		Map<QName, Variable> variableMap = new HashMap<QName, Variable>();
-		for (XPathVariableBean variable : variables) {
+		for (XPathVariableBean variable : getVariables()) {
 			if (StringUtils.isNotEmpty(variable.getVariableName())) {
 				if (variable.getType().equals("Object")) {
 					try {
@@ -217,17 +213,8 @@ public class XPathDebugController implements Serializable {
 		this.result = result;
 	}
 
-	public List<SelectItem> getType() {
-		if (type == null) {
-			type = new ArrayList<SelectItem>();
-			type.add(new SelectItem("Object"));
-			type.add(new SelectItem("String"));
-		}
-		return type;
-	}
-
-	public void setType(List<SelectItem> type) {
-		this.type = type;
+	public List<SelectItem> getTypes() {
+		return types;
 	}
 
 	public String getExpression() {
@@ -238,54 +225,16 @@ public class XPathDebugController implements Serializable {
 		this.expression = expression;
 	}
 
-	public XPathVariableBean getVariable1() {
-		return variable1;
-	}
-
-	public XPathVariableBean getVariable2() {
-		return variable2;
-	}
-
-	public XPathVariableBean getVariable3() {
-		return variable3;
-	}
-
-	public XPathVariableBean getVariable4() {
-		return variable4;
-	}
-
 	public List<XPathVariableBean> getVariables() {
+		if (variables == null) {
+			variables = new ArrayList<XPathVariableBean>();
+			addVariablePerformed();
+		}
 		return variables;
 	}
 
-	public void setVariables(List<XPathVariableBean> variables) {
-		this.variables = variables;
-	}
-	
-	void setVariable1(XPathVariableBean variable1) {
-		this.variable1 = variable1;
-	}
-	
-	void setVariable2(XPathVariableBean variable2) {
-		this.variable2 = variable2;
-	}
-
-	public List<SelectItem> getReturnTypeList() {
-		if (type == null) {
-
-			returnTypeList = new ArrayList<SelectItem>();
-			returnTypeList.add(new SelectItem("String"));
-			returnTypeList.add(new SelectItem("Number"));
-			returnTypeList.add(new SelectItem("Node"));
-			returnTypeList.add(new SelectItem("NodeList"));
-			returnTypeList.add(new SelectItem("Boolean"));
-			returnTypeList.add(new SelectItem("DomObjectModel"));
-		}
-		return returnTypeList;
-	}
-
-	public void setReturnTypeList(List<SelectItem> returnTypeList) {
-		this.returnTypeList = returnTypeList;
+	public List<SelectItem> getReturnTypes() {
+		return returnTypes;
 	}
 
 	public String getReturnType() {
@@ -294,5 +243,39 @@ public class XPathDebugController implements Serializable {
 
 	public void setReturnType(String returnType) {
 		this.returnType = returnType;
+	}
+
+	public void addVariablePerformed() {
+		XPathVariableBean variable = new XPathVariableBean();
+		variable.setType("Object");
+		
+		getVariables().add(variable);
+	}
+
+	public void deleteVariablesPerformed() {
+		List<XPathVariableBean> toDelete = new ArrayList<XPathVariableBean>();
+		for (XPathVariableBean bean : getVariables()) {
+			if (bean.isSelected()) {
+				toDelete.add(bean);
+			}
+		}
+		
+		getVariables().removeAll(toDelete);		
+	}
+
+	public boolean isSelectAll() {
+		return selectAll;
+	}
+
+	public void setSelectAll(boolean selectAll) {
+		this.selectAll = selectAll;
+	}
+
+	public void selectPerformed(ValueChangeEvent evt) {
+		this.selectAll = ControllerUtil.selectPerformed(evt, getVariables());
+	}
+
+	public void selectAllPerformed(ValueChangeEvent evt) {
+		ControllerUtil.selectAllPerformed(evt, getVariables());
 	}
 }

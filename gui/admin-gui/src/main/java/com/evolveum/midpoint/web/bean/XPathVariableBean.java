@@ -22,13 +22,12 @@
 
 package com.evolveum.midpoint.web.bean;
 
-import java.io.Serializable;
 
 /**
  * 
  * @author Katuska
  */
-public class XPathVariableBean implements Serializable {
+public class XPathVariableBean extends SelectableBean {
 
 	private static final long serialVersionUID = -678792251414420570L;
 	private String variableName;

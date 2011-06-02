@@ -65,20 +65,21 @@ public class XPathDebugControllerTest {
     }
 
     private void setAttributes() {
-        xpathController.prepareXpathDebugPage();
+        xpathController.cleanupController();
         String expression = "declare namespace x='http://xxx.com/'; concat($x:foo,' ',$x:bar)";
         xpathController.setExpression(expression);
 
-        XPathVariableBean variable1 = new XPathVariableBean();
+        xpathController.addVariablePerformed();
+        XPathVariableBean variable1 = xpathController.getVariables().get(0);
         variable1.setType("String");
         variable1.setValue("salala");
         variable1.setVariableName("x:foo");
-        xpathController.setVariable1(variable1);
-        XPathVariableBean variable2 = new XPathVariableBean();
+        
+        xpathController.addVariablePerformed();
+        XPathVariableBean variable2 = xpathController.getVariables().get(0);        
         variable2.setType("String");
         variable2.setValue("tralala");
         variable2.setVariableName("x:bar");
-        xpathController.setVariable2(variable2);
 
         xpathController.setReturnType("String");
     }

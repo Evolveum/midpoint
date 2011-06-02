@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.web.controller.other;
+package com.evolveum.midpoint.web.component;
 
 import java.util.List;
 
