@@ -17,10 +17,27 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.common.jaxb;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringWriter;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.io.IOUtils;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DOMUtil;
@@ -28,164 +45,196 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.util.XMLMarshaller;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import java.io.File;
-import java.io.InputStream;
 
 /**
- * Sample Class Doc
- *
- * @author $author$
- * @version $Revision$ $Date$
- * @since 1.0.0
+ * 
+ * @author lazyman
+ * 
  */
 public class JAXBUtil {
 
-    private static final transient Trace logger = TraceManager.getTrace(JAXBUtil.class);
-    public static final String code_id = "$Id$";
-    private static XMLMarshallerPool _marshallerPool = new XMLMarshallerPool();
+	private static final Trace TRACE = TraceManager.getTrace(JAXBUtil.class);
+	private static final JAXBContext context;
 
-    public static final ObjectType clone(ObjectType object) throws JAXBException {
-        if (object == null) {
-            return null;
-        }
-        ObjectFactory of = new ObjectFactory();
-        JAXBElement<ObjectType> obj = of.createObject(object);
-        obj = (JAXBElement<ObjectType>) JAXBUtil.unmarshal(JAXBUtil.marshal(obj));
+	static {
+		JAXBContext ctx = null;
+		try {
+			ctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
+		} catch (JAXBException ex) {
+			TRACE.error("Couldn't create JAXBContext for: " + ObjectFactory.class.getPackage().getName(), ex);
+			throw new IllegalStateException("Couldn't create JAXBContext for: "
+					+ ObjectFactory.class.getPackage().getName(), ex);
+		}
 
-        return obj.getValue();
-    }
+		context = ctx;
+	}
 
-    public static final String marshal(Object xmlObject) throws JAXBException {
-        XMLMarshaller m = _marshallerPool.checkout();
-        String result = null;
-        try {
-            result = m.marshal(xmlObject);
-        } finally {
-            _marshallerPool.checkin(m);
-        }
-        return result;
-    }
+	private static final Marshaller createMarshaller() throws JAXBException {
+		Marshaller marshaller = context.createMarshaller();
+		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new PrefixMapper());
 
-    public static final <T> String marshalWrap(T jaxbObject, QName elementQName) throws JAXBException {
-        JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(), jaxbObject);
-        return marshal(jaxbElement);
-    }
+		return marshaller;
+	}
 
-    public static final String silentMarshal(Object xmlObject) {
-        try {
-            return marshal(xmlObject);
-        } catch (JAXBException ex) {
-            logger.debug("Failed to marshal object {}", xmlObject, ex);
-            return null;
-        }
-    }
+	private static final Unmarshaller createUnmarshaller() throws JAXBException {
+		return context.createUnmarshaller();
+	}
 
-    public static final <T> String silentMarshalWrap(T jaxbObject, QName elementQName) {
-        try {
-            JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(), jaxbObject);
-            return marshal(jaxbElement);
-        } catch (JAXBException ex) {
-            logger.debug("Failed to marshal object {}", jaxbObject, ex);
-            return null;
-        }
-    }
+	@SuppressWarnings("unchecked")
+	public static final ObjectType clone(ObjectType object) throws JAXBException {
+		if (object == null) {
+			return null;
+		}
+		ObjectFactory of = new ObjectFactory();
+		JAXBElement<ObjectType> obj = of.createObject(object);
+		obj = (JAXBElement<ObjectType>) unmarshal(marshal(obj));
 
-    public static final void marshal(Object xmlObject, Element element) throws JAXBException {
-        XMLMarshaller m = _marshallerPool.checkout();
-        try {
-            m.marshal(xmlObject, element);
-        } finally {
-            _marshallerPool.checkin(m);
-        }
-    }
+		return obj.getValue();
+	}
 
-    public static final void silentMarshal(Object xmlObject, Element element) {
-        try {
-            marshal(xmlObject, element);
-        } catch (JAXBException ex) {
-            logger.debug("Failed to marshal object {}", xmlObject, ex);
-        }
-    }
+	public static final String marshal(Object object) throws JAXBException {
+		if (object == null) {
+			return "";
+		}
 
-    public static final Object unmarshal(String xmlString) throws JAXBException {
-        Object result = null;
-        XMLMarshaller m = _marshallerPool.checkout();
-        try {
-            result = m.unmarshal(xmlString);
-        } finally {
-            _marshallerPool.checkin(m);
-        }
-        return result;
-    }
+		StringWriter writer = new StringWriter();
+		createMarshaller().marshal(object, writer);
 
-    public static final Object unmarshal(InputStream input) throws JAXBException {
-        Object result = null;
-        XMLMarshaller m = _marshallerPool.checkout();
-        try {
-            result = m.unmarshal(input);
-        } finally {
-            _marshallerPool.checkin(m);
-        }
-        return result;
-    }
+		return writer.getBuffer().toString();
+	}
 
-    public static final Object silentUnmarshal(String xmlString) {
-        try {
-            return unmarshal(xmlString);
-        } catch (JAXBException ex) {
-            logger.debug("Failed to unmarshal xml string {}", xmlString, ex);
-            return null;
-        }
-    }
+	@SuppressWarnings("unchecked")
+	public static final <T> String marshalWrap(T jaxbObject, QName elementQName) throws JAXBException {
+		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
+				jaxbObject);
+		return marshal(jaxbElement);
+	}
 
-    public static final Object silentUnmarshal(File file) {
-        try {
-            return unmarshal(file);
-        } catch (JAXBException ex) {
-            logger.debug("Failed to unmarshal file {}", file, ex);
-            return null;
-        }
+	public static final String silentMarshal(Object xmlObject) {
+		try {
+			return marshal(xmlObject);
+		} catch (JAXBException ex) {
+			TRACE.debug("Failed to marshal object {}", xmlObject, ex);
+			return null;
+		}
+	}
 
-    }
+	@SuppressWarnings("unchecked")
+	public static final <T> String silentMarshalWrap(T jaxbObject, QName elementQName) {
+		try {
+			JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
+					jaxbObject);
+			return marshal(jaxbElement);
+		} catch (JAXBException ex) {
+			TRACE.debug("Failed to marshal object {}", jaxbObject, ex);
+			return null;
+		}
+	}
 
-    public static final Object unmarshal(File file) throws JAXBException {
-        Object result = null;
-        XMLMarshaller m = _marshallerPool.checkout();
-        try {
-            result = m.unmarshal(file);
-        } finally {
-            _marshallerPool.checkin(m);
-        }
-        return result;
-    }
+	public static final void marshal(Object xmlObject, Element element) throws JAXBException {
+		createMarshaller().marshal(xmlObject, element);
+	}
 
-    public static final <T> Element jaxbToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {
-        if (doc == null) {
-            doc = DOMUtil.getDocument();
-        }
+	public static final void silentMarshal(Object xmlObject, Element element) {
+		try {
+			marshal(xmlObject, element);
+		} catch (JAXBException ex) {
+			TRACE.debug("Failed to marshal object {}", xmlObject, ex);
+		}
+	}
 
-        JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(), jaxbObject);
-        Element element = doc.createElementNS(elementQName.getNamespaceURI(), elementQName.getLocalPart());
+	public static final Object unmarshal(String xmlString) throws JAXBException {
+		if (xmlString == null) {
+			return null;
+			// throw new
+			// IllegalArgumentException("Can't parse null xml string.");
+		}
 
-        marshal(jaxbElement, element);
+		xmlString = xmlString.trim();
+		if (!xmlString.startsWith("<") || !xmlString.endsWith(">")) {
+			return null;
+			// throw new
+			// IllegalArgumentException("Not an xml string (doesn't start with < and finish with >.");
+		}
 
-        return (Element) element.getFirstChild();
-    }
+		InputStream stream = null;
+		try {
+			stream = IOUtils.toInputStream(xmlString, "utf-8");
+			return unmarshal(stream);
+		} catch (IOException ex) {
+			throw new JAXBException(ex);
+		} finally {
+			if (stream != null) {
+				IOUtils.closeQuietly(stream);
+			}
+		}
+	}
 
-    public static <T> Element objectTypeToDom(T jaxbObject, Document doc) throws JAXBException {
-        if (doc == null) {
-            doc = DOMUtil.getDocument();
-        }
-        QName qname = SchemaConstants.getElementByObjectType(jaxbObject.getClass());
-        if (qname == null) {
-            throw new IllegalArgumentException("Cannot find element for class "+jaxbObject.getClass());
-        }
-        return jaxbToDom(jaxbObject,qname,doc);
-    }
+	public static final Object unmarshal(InputStream input) throws JAXBException {
+		return createUnmarshaller().unmarshal(input);
+	}
+
+	public static final Object silentUnmarshal(String xmlString) {
+		try {
+			return unmarshal(xmlString);
+		} catch (JAXBException ex) {
+			TRACE.debug("Failed to unmarshal xml string {}", xmlString, ex);
+			return null;
+		}
+	}
+
+	public static final Object silentUnmarshal(File file) {
+		try {
+			return unmarshal(file);
+		} catch (JAXBException ex) {
+			TRACE.debug("Failed to unmarshal file {}", file, ex);
+			return null;
+		}
+	}
+
+	public static final Object unmarshal(File file) throws JAXBException {
+		if (file == null) {
+			throw new IllegalArgumentException("File argument can't be null.");
+		}
+
+		Reader reader = null;
+		try {
+			reader = new InputStreamReader(new FileInputStream(file), "utf-8");
+			return createUnmarshaller().unmarshal(reader);
+		} catch (IOException ex) {
+			throw new JAXBException("Couldn't parse file: " + file.getAbsolutePath(), ex);
+		} finally {
+			if (reader != null) {
+				IOUtils.closeQuietly(reader);
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static final <T> Element jaxbToDom(T jaxbObject, QName elementQName, Document doc)
+			throws JAXBException {
+		if (doc == null) {
+			doc = DOMUtil.getDocument();
+		}
+
+		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
+				jaxbObject);
+		Element element = doc.createElementNS(elementQName.getNamespaceURI(), elementQName.getLocalPart());
+		marshal(jaxbElement, element);
+
+		return (Element) element.getFirstChild();
+	}
+
+	public static <T> Element objectTypeToDom(T jaxbObject, Document doc) throws JAXBException {
+		if (doc == null) {
+			doc = DOMUtil.getDocument();
+		}
+		QName qname = SchemaConstants.getElementByObjectType(jaxbObject.getClass());
+		if (qname == null) {
+			throw new IllegalArgumentException("Cannot find element for class " + jaxbObject.getClass());
+		}
+		return jaxbToDom(jaxbObject, qname, doc);
+	}
 }
