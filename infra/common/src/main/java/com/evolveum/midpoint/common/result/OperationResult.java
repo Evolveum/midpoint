@@ -29,8 +29,17 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 
 /**
+ * Nested Operation Result.
+ * 
  * This class provides informations for better error handling in complex
+ * operations. It contains a status (success, failure, warning, ...) and an
+ * error message. It also contains a set of sub-results - results on inner
  * operations.
+ * 
+ * This object can be used by GUI to display smart (and interactive) error
+ * information. It can also be used by the client code to detect deeper
+ * problems in the invocations, retry or otherwise compensate for the errors or
+ * decide how severe the error was and it is possible to proceed.
  * 
  * @author lazyman
  * @author Radovan Semancik
@@ -175,7 +184,28 @@ public class OperationResult implements Serializable {
 	public boolean isAcceptable() {
 		return (status!=OperationResultStatus.FATAL_ERROR);
 	}
+
+	public boolean isUnknown() {
+		return (status==OperationResultStatus.UNKNOWN);
+	}
+
 	
+	/**
+	 * Computes operation result status based on subtask status and sets
+	 * an error message if the status is FATAL_ERROR.
+	 * 
+	 * @param errorMessage error message
+	 */
+	public void computeStatus(String errorMessage) {
+		computeStatus();
+		if (status==OperationResultStatus.FATAL_ERROR && message==null) {
+			message = errorMessage;
+		}
+	}
+	
+	/**
+	 * Computes operation result status based on subtask status.
+	 */
 	public void computeStatus() {
 		OperationResultStatus newStatus = OperationResultStatus.UNKNOWN;
 		boolean allSuccess = true;
@@ -280,7 +310,11 @@ public class OperationResult implements Serializable {
 	public void recordFatalError(Exception cause) {
 		recordError(OperationResultStatus.FATAL_ERROR,cause);
 	}
-	
+
+	public void recordPartialError(Exception cause) {
+		recordError(OperationResultStatus.PARTIAL_ERROR,cause);
+	}
+
 	public void recordError(OperationResultStatus status, Exception cause) {
 		this.status = status;
 		this.cause = cause;
@@ -293,6 +327,10 @@ public class OperationResult implements Serializable {
 		recordError(OperationResultStatus.FATAL_ERROR,message,cause);
 	}
 
+	public void recordPartialError(String message, Exception cause) {
+		recordError(OperationResultStatus.PARTIAL_ERROR,message,cause);
+	}
+
 	public void recordError(OperationResultStatus status, String message, Exception cause) {
 		this.status = status;
 		this.message = message;
@@ -301,6 +339,10 @@ public class OperationResult implements Serializable {
 
 	public void recordFatalError(String message) {
 		recordError(OperationResultStatus.FATAL_ERROR,message);
+	}
+
+	public void recordPartialError(String message) {
+		recordError(OperationResultStatus.PARTIAL_ERROR,message);
 	}
 
 	public void recordError(OperationResultStatus status, String message) {

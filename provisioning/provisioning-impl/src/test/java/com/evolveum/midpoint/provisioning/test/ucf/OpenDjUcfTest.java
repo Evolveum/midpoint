@@ -72,10 +72,12 @@ import org.w3c.dom.Document;
 public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 	
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
+	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/ucf/opendj-resource-bad.xml";
 	
     protected static OpenDJUtil djUtil = new OpenDJUtil();
 	private JAXBContext jaxbctx;
 	ResourceType resource;
+	ResourceType badResource;
 	private ConnectorManager manager;
 	private ConnectorInstance cc;
 	Schema schema;
@@ -103,7 +105,13 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
         Unmarshaller u = jaxbctx.createUnmarshaller();
         Object object = u.unmarshal(fis);		
 		resource = (ResourceType) ((JAXBElement) object).getValue();
-
+		
+		// Second copy for negative test cases
+		file = new File(FILENAME_RESOURCE_OPENDJ_BAD);
+        fis = new FileInputStream(file);
+		object = u.unmarshal(fis);
+		badResource = (ResourceType) ((JAXBElement) object).getValue();
+		
 		ConnectorManagerIcfImpl managerImpl = new ConnectorManagerIcfImpl();
 		managerImpl.initialize();
 		manager = managerImpl;
@@ -131,6 +139,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 	 */
 	@Test
     public void testTestConnection() throws Exception {
+		System.out.println("*** Positive test connection");
         //GIVEN
 
         //WHEN
@@ -146,6 +155,33 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		assertTrue(result.isSuccess());
     }
 
+	
+	/**
+	 * Simple call to connector test() method.
+	 * 
+	 * @throws Exception 
+	 */
+	@Test
+    public void testTestConnectionNegative() throws Exception {
+		System.out.println("*** Negative test connection");
+        //GIVEN
+
+		ConnectorInstance badConnector = manager.createConnectorInstance(badResource);
+		
+        //WHEN
+		
+        OperationResult result = badConnector.test();
+
+        //THEN
+        assertNotNull(result);
+        OperationResult connectorConnectionResult = result.getSubresults().get(0);
+        assertNotNull(connectorConnectionResult);
+		System.out.println("Test \"connector connection\" result: "+connectorConnectionResult+" (FAILURE EXPECTED)");
+		System.out.println(result.debugDump());
+        assertTrue(!connectorConnectionResult.isSuccess());
+		assertTrue(!result.isSuccess());
+    }
+
 	/**
 	 * Test fetching and translating resource schema.
 	 * 
@@ -153,6 +189,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 	 */
 	@Test
     public void testFetchResourceSchema() throws CommunicationException, SchemaProcessorException {
+		System.out.println("*** Fetch resource schema");
 		// GIVEN
 		
 		// WHEN
@@ -181,6 +218,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 
 	@Test
 	public void testFetchObject() throws UcfException {
+		System.out.println("*** Fetch resource object");
 		// GIVEN
 		
 		// Account type is hardcoded now
@@ -213,6 +251,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 
 	@Test
 	public void testSearch() throws UcfException {
+		System.out.println("*** Search");
 		// GIVEN
 		
 		// Account type is hardcoded now

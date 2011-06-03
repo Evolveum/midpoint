@@ -21,9 +21,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import com.evolveum.midpoint.common.XsdTypeConverter;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
-import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.provisioning.integration.identityconnector.converter.GuardedStringToStringConverter;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -38,15 +36,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.schema.util.OperationResultFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import java.util.Collection;
-import java.util.HashMap;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
@@ -59,11 +50,8 @@ import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.common.security.GuardedString;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import javax.xml.ws.RespectBinding;
 
 /**
  * Implementation of ConnectorInstance for ICF connectors.
@@ -333,16 +321,23 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} catch (Exception ex) {
 			connectionResult.recordFatalError(ex);
 		}
-		result.computeStatus();
+		result.computeStatus("Test connection failed");
 		return result;
 	}
 
 	@Override
 	public void search(QName objectClass, final ResultHandler handler,OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 		
+		// Result type for this operation
+		final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()+".search");
+		result.addParam("objectClass",objectClass);
+		result.addContext("resource",resource);
+		
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 		if (objectClass == null) {
-            throw new IllegalArgumentException("Unable to detemine object class from QName "+objectClass+" while attempting to searcg objects in recource "+resource.getName()+"(OID:"+resource.getOid()+")");
+            IllegalArgumentException ex = new IllegalArgumentException("Unable to detemine object class from QName "+objectClass+" while attempting to searcg objects in recource "+resource.getName()+"(OID:"+resource.getOid()+")");
+			result.recordFatalError("Unable to detemine object class", ex);
+			throw ex;
 		}
 		
 		ResultsHandler icfHandler = new ResultsHandler() {
@@ -351,12 +346,34 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
                 // Convert ICF-specific connetor object to a generic ResourceObject
                 ResourceObject resourceObject = convertToResourceObject(connectorObject,null);
                 // .. and pass it to the handler
-                return handler.handle(resourceObject);
+                boolean cont = handler.handle(resourceObject);
+				if (!cont) {
+					result.recordPartialError("Stopped on request from the handler");
+				}
+				return  cont;
             }
         };
+
+		// Connector operation cannot create result for itself, so we need to create result for it
+		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName()+".getObject");
+		icfResult.addParam("objectClass",icfObjectClass);
+		icfResult.addContext("connector",connector.getClass());
+
+		try {
+			connector.search(icfObjectClass,null,icfHandler,null);
+		} catch (Exception ex) {
+			// ICF interface does not specify exceptions or other error conditions.
+			// Therefore this kind of heavy artilery is necessary.
+			// TODO maybe we can try to catch at least some specific exceptions
+			icfResult.recordFatalError(ex);
+			result.recordFatalError("ICF invocation failed");			
+			// This is fatal. No point in continuing.
+			throw new GenericFrameworkException(ex);			
+		}
 		
-		connector.search(icfObjectClass,null,icfHandler,null);
-		
+		if (result.isUnknown()) {
+			result.recordSuccess();
+		}
 	}
 	
 	// UTILITY METHODS
