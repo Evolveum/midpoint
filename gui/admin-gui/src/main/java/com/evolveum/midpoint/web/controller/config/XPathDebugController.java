@@ -19,7 +19,6 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.web.controller.config;
 
 import com.evolveum.midpoint.api.logging.Trace;
@@ -28,6 +27,7 @@ import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.Variable;
+import com.evolveum.midpoint.web.bean.BrowserBean;
 import com.evolveum.midpoint.web.bean.XPathVariableBean;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
@@ -70,17 +70,19 @@ public class XPathDebugController implements Serializable {
 
 	public static final String PAGE_NAVIGATION_XPATH_DEBUG = "/config/debugXPath?faces-redirect=true";
 	private static final long serialVersionUID = 7295076387943631763L;
+	private static final String PARAM_VARIABLE_NAME = "variableName";
+	private static final String PARAM_OBJECT_OID = "objectOid";
 	private static final Trace TRACE = TraceManager.getTrace(XPathDebugController.class);
 	private static final List<SelectItem> returnTypes = new ArrayList<SelectItem>();
 	private static final List<SelectItem> types = new ArrayList<SelectItem>();
-	static {		
+	static {
 		returnTypes.add(new SelectItem("String"));
 		returnTypes.add(new SelectItem("Number"));
 		returnTypes.add(new SelectItem("Node"));
 		returnTypes.add(new SelectItem("NodeList"));
 		returnTypes.add(new SelectItem("Boolean"));
-		returnTypes.add(new SelectItem("DomObjectModel"));	
-		
+		returnTypes.add(new SelectItem("DomObjectModel"));
+
 		types.add(new SelectItem("Object"));
 		types.add(new SelectItem("String"));
 	}
@@ -91,6 +93,10 @@ public class XPathDebugController implements Serializable {
 	private boolean selectAll;
 	private String returnType;
 	private String result;
+	// browsing
+	private String variableName;
+	private boolean showBrowser;
+	private BrowserBean browser;
 
 	public String cleanupController() {
 		expression = null;
@@ -98,7 +104,7 @@ public class XPathDebugController implements Serializable {
 		selectAll = false;
 		returnType = null;
 		result = null;
-		
+
 		return PAGE_NAVIGATION_XPATH_DEBUG;
 	}
 
@@ -247,8 +253,8 @@ public class XPathDebugController implements Serializable {
 
 	public void addVariablePerformed() {
 		XPathVariableBean variable = new XPathVariableBean();
-		variable.setType("Object");
-		
+		variable.setType("String");
+
 		getVariables().add(variable);
 	}
 
@@ -259,8 +265,8 @@ public class XPathDebugController implements Serializable {
 				toDelete.add(bean);
 			}
 		}
-		
-		getVariables().removeAll(toDelete);		
+
+		getVariables().removeAll(toDelete);
 	}
 
 	public boolean isSelectAll() {
@@ -277,5 +283,61 @@ public class XPathDebugController implements Serializable {
 
 	public void selectAllPerformed(ValueChangeEvent evt) {
 		ControllerUtil.selectAllPerformed(evt, getVariables());
+	}
+
+	public BrowserBean getBrowser() {
+		if (browser == null) {
+			browser = new BrowserBean();
+			browser.setModel(port);
+		}
+		return browser;
+	}
+
+	public boolean isShowBrowser() {
+		return showBrowser;
+	}
+
+	public void browse() {
+		variableName = FacesUtils.getRequestParameter(PARAM_VARIABLE_NAME);
+		if (StringUtils.isEmpty(variableName)) {
+			FacesUtils.addErrorMessage("Variable name not defined.");
+			return;
+		}
+
+		browser.setModel(port);
+		showBrowser = true;
+	}
+
+	public String okAction() {
+		if (StringUtils.isEmpty(variableName)) {
+			FacesUtils.addErrorMessage("Variable name not defined.");
+			return null;
+		}
+		String objectOid = FacesUtils.getRequestParameter(PARAM_OBJECT_OID);
+		if (StringUtils.isEmpty(objectOid)) {
+			FacesUtils.addErrorMessage("Object oid not defined.");
+			return null;
+		}
+
+		for (XPathVariableBean bean : getVariables()) {
+			if (variableName.equals(bean.getVariableName())) {
+				bean.setValue(objectOid);
+			}
+		}
+		browseCleanup();
+		
+		return null;
+	}
+
+	private void browseCleanup() {
+		variableName = null;
+		showBrowser = false;
+		browser.cleanup();
+	}
+
+	public String cancelAction() {
+		browseCleanup();
+
+		return null;
 	}
 }

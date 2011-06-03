@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:comp="http://java.sun.com/jsf/composite/components"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/"
+	xmlns:composite="http://java.sun.com/jsf/composite">
+
+<composite:interface>
+	<composite:attribute name="bean" type="com.evolveum.midpoint.web.bean.BrowserBean" required="true" />
+	<composite:attribute name="okAction" method-signature="java.lang.String action()" required="true" />
+	<composite:attribute name="cancelAction" method-signature="java.lang.String action()" required="true" />
+</composite:interface>
+
+<composite:implementation>
+	<ice:panelPopup modal="true" autoCentre="true" visible="#{debugXPath.showBrowser}">
+		<f:facet name="header">
+			<ice:outputText value="#{lang.messages['Browse objects']}" />
+		</f:facet>
+		<f:facet name="body">
+			<ice:form>
+				<ice:panelTabSet style="width: 100%;" selectedIndex="#{userDetails.selectedTab}">
+					<ice:panelTab label="#{lang.messages['By name']}" title="#{lang.messages['Search by name']}">
+						<ice:panelGrid columns="3" cellspacing="5">
+							<ice:outputText value="#{lang.messages['Name']}" />
+							<ice:inputText value="#{cc.attrs.bean.name}" />
+							<idm:button value="#{lang.messages['Search']}" action="#{cc.attrs.bean.searchByName}"
+								img="/resources/images/magnifier.png" />
+						</ice:panelGrid>
+					</ice:panelTab>
+					<ice:panelTab label="#{lang.messages['By type']}" title="#{lang.messages['List by type']}">
+						<ice:panelGrid columns="3" cellspacing="5">
+							<ice:outputText value="#{lang.messages['Type']}" />
+							<ice:selectOneMenu style="width: auto;" value="#{cc.attrs.bean.type}">
+								<f:selectItems value="#{cc.attrs.bean.types}" />
+							</ice:selectOneMenu>
+							<idm:button value="#{lang.messages['List']}" action="#{cc.attrs.bean.searchByType}"
+								img="/resources/images/magnifier.png" />
+						</ice:panelGrid>
+					</ice:panelTab>
+				</ice:panelTabSet>
+
+				<ice:dataTable rows="15" value="#{cc.attrs.bean.objects}" var="item" columnWidths="300px, 200px, 240px"
+					resizable="false">
+					<ice:column>
+						<f:facet name="header">
+							<ice:outputLabel value="#{lang.messages['Name']}" />
+						</f:facet>
+						<ice:commandLink style="text-decoration: underline;" value="#{item.name}" action="#{cc.attrs.okAction}">
+							<f:param name="objectOid" value="#{item.oid}" />
+						</ice:commandLink>
+					</ice:column>
+					<ice:column>
+						<f:facet name="header">
+							<ice:outputLabel value="#{lang.messages['Type']}" />
+						</f:facet>
+						<ice:outputText value="#{item.type}" />
+					</ice:column>
+					<ice:column>
+						<f:facet name="header">
+							<ice:outputLabel value="#{lang.messages['Oid']}" />
+						</f:facet>
+						<ice:outputText value="#{item.oid}" />
+					</ice:column>
+				</ice:dataTable>
+
+				<div class="button-bar">
+					<idm:button value="#{lang.messages['Cancel']}" buttonType="negative" action="#{cc.attrs.cancelAction}" />
+				</div>
+			</ice:form>
+		</f:facet>
+	</ice:panelPopup>
+</composite:implementation>
+</html>

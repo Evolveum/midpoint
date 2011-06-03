@@ -24,7 +24,6 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import javax.faces.model.SelectItem;
@@ -37,9 +36,11 @@ import org.springframework.stereotype.Controller;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.web.bean.DebugObject;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
@@ -63,38 +64,14 @@ public class DebugListController implements Serializable {
 	public static final String PARAM_VIEW_OBJECT_OID = "viewObjectOid";
 	private static final long serialVersionUID = -6260309359121248205L;
 	private static final Trace TRACE = TraceManager.getTrace(DebugListController.class);
-
-	private static enum Type {
-
-		ACCOUNT("controller.debugList.account", "AccountType"),
-
-		GENERIC_OBJECT("controller.debugList.genericObject", "GenericObjectType"),
-
-		RESOURCE("controller.debugList.resource", "ResourceType"),
-
-		RESOURCE_STATE("controller.debugList.resourceState", "ResourceStateType"),
-
-		USER("controller.debugList.user", "UserType"),
-
-		USER_TEMPLATE("controller.debugList.userTemplate", "UserTemplateType");
-
-		private String key;
-		private String value;
-
-		private Type(String key, String value) {
-			this.key = key;
-			this.value = value;
+	private static final List<SelectItem> objectTypes = new ArrayList<SelectItem>();
+	static {
+		for (ObjectTypes type : ObjectTypes.values()) {
+			objectTypes.add(new SelectItem(type.getValue(), FacesUtils.translateKey(type.getLocalizationKey())));
 		}
-
-		public String getKey() {
-			return key;
-		}
-
-		public String getValue() {
-			return value;
-		}
+		
+		Collections.sort(objectTypes, new SelectItemComparator());
 	}
-
 	@Autowired(required = true)
 	private transient RepositoryPortType repositoryService;
 	@Autowired(required = true)
@@ -109,16 +86,6 @@ public class DebugListController implements Serializable {
 	private String oidToDelete;
 
 	public List<SelectItem> getObjectTypes() {
-		List<SelectItem> objectTypes = new ArrayList<SelectItem>();
-		for (Type type : Type.values()) {
-			objectTypes.add(new SelectItem(type.getValue(), FacesUtils.translateKey(type.getKey())));
-		}
-		Collections.sort(objectTypes, new Comparator<SelectItem>() {
-			@Override
-			public int compare(SelectItem o1, SelectItem o2) {
-				return String.CASE_INSENSITIVE_ORDER.compare(o1.getLabel(), o2.getLabel());
-			}
-		});
 		return objectTypes;
 	}
 

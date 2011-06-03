@@ -12,6 +12,7 @@
 	</ui:define>
 
 	<ui:define name="content">
+		<comp:browser okAction="#{debugXPath.okAction}" cancelAction="#{debugXPath.cancelAction}" bean="#{debugXPath.browser}" />
 		<ice:form>
 			<ice:outputText value="#{lang.messages['page.config.debugXPath.expression']}" />
 
@@ -36,31 +37,35 @@
 				<c:forEach items="#{debugXPath.variables}" var="item">
 					<ice:selectBooleanCheckbox value="#{item.selected}" partialSubmit="true" immediate="true"
 						valueChangeListener="#{debugXPath.selectPerformed}" />
-					<ice:inputText value="#{item.variableName}" />
+					<ice:inputText value="#{item.variableName}" size="25" />
 					<ice:selectOneMenu style="width: auto;" partialSubmit="true" immediate="true" value="#{item.type}">
 						<f:selectItems value="#{debugXPath.types}" />
 					</ice:selectOneMenu>
-					<ice:inputText value="#{item.value}" />
+					<ice:inputText value="#{item.value}" size="35" />
 					<idm:button value="#{lang.messages['page.config.debugXPath.button.browse']}"
-						img="/resources/images/folder_explore.png" rendered="#{item.browsable}" />
+						img="/resources/images/folder_explore.png" rendered="#{item.browsable}" action="#{debugXPath.browse}">
+						<f:param name="variableName" value="#{item.variableName}" />
+					</idm:button>
 					<ice:outputLabel rendered="#{not item.browsable}" />
 				</c:forEach>
 			</ice:panelGrid>
 
-			<ice:outputText value="#{lang.messages['page.config.debugXPath.result']}" style="margin-top: 10px; display: block;" />
+			<ice:outputText value="#{lang.messages['page.config.debugXPath.result']}"
+				style="margin-top: 10px; display: block;" />
 			<ice:panelGroup style="min-height: 20px; width: 978px; display: block; border: 1px solid #aaa;">
 				<ice:outputText value="#{debugXPath.result}" />
 			</ice:panelGroup>
 
 			<div class="button-bar">
-				<idm:button action="#{debugXPath.addVariablePerformed}" id="addVariableButton"
+				<idm:button action="#{debugXPath.addVariablePerformed}" id="addVariableButton" buttonType="positive"
 					value="#{lang.messages['page.config.debugXPath.button.addVariable']}" img="/resources/images/add.png" />
 				<idm:button action="#{debugXPath.deleteVariablesPerformed}" id="deleteVariableButton"
-					value="#{lang.messages['page.config.debugXPath.button.deleteVariables']}"
+					buttonType="negative" value="#{lang.messages['page.config.debugXPath.button.deleteVariables']}"
 					img="/resources/images/delete.png" />
+
 				<div style="width: 50px; display: inline-block;" />
 
-				<idm:button action="#{debugXPath.cleanupController}" id="clearButton"
+				<idm:button action="#{debugXPath.cleanupController}" id="clearButton" buttonType="negative"
 					value="#{lang.messages['page.config.debugXPath.button.clear']}"
 					img="/resources/images/calculator_delete.png" />
 				<idm:button action="#{debugXPath.evaluate}" id="evaluateButton"
