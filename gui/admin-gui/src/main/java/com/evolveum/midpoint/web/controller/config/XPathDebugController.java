@@ -108,7 +108,7 @@ public class XPathDebugController implements Serializable {
 		return PAGE_NAVIGATION_XPATH_DEBUG;
 	}
 
-	public ExpressionHolder getExpressionHolderFromExpresion() {
+	private ExpressionHolder getExpressionHolderFromExpresion() {
 		TRACE.debug("getExpressionHolder start");
 
 		Document doc = DOMUtil.getDocument();
@@ -120,7 +120,7 @@ public class XPathDebugController implements Serializable {
 		return expressionHolder;
 	}
 
-	public QName getQNameForVariable(String variable) {
+	private QName getQNameForVariable(String variable) {
 		TRACE.debug("getQNameForVariable start");
 		ExpressionHolder expressionHolder = getExpressionHolderFromExpresion();
 		Map<String, String> namespaceMap = expressionHolder.getNamespaceMap();
@@ -135,7 +135,7 @@ public class XPathDebugController implements Serializable {
 		}
 	}
 
-	public Map<QName, Variable> getVariableValue() throws JAXBException {
+	private Map<QName, Variable> getVariableValue() throws JAXBException {
 		TRACE.debug("getVariableValue start");
 		Map<QName, Variable> variableMap = new HashMap<QName, Variable>();
 		for (XPathVariableBean variable : getVariables()) {
@@ -168,42 +168,46 @@ public class XPathDebugController implements Serializable {
 		return variableMap;
 	}
 
-	public String evaluate() throws JAXBException {
+	public String evaluate() {
 		TRACE.debug("evaluate start");
 		if (expression == null || expression.isEmpty()) {
 			FacesUtils.addErrorMessage("Expresion cannot be null.");
 			return null;
 		}
 
-		ExpressionHolder expressionHolder = getExpressionHolderFromExpresion();
-		if (returnType.equals("Boolean")) {
-			Boolean boolResult = (Boolean) XPathUtil.evaluateExpression(getVariableValue(), expressionHolder,
-					XPathConstants.BOOLEAN);
-			result = String.valueOf(boolResult);
-		}
-		if (returnType.equals("Number")) {
-			Double doubleResult = (Double) XPathUtil.evaluateExpression(getVariableValue(), expressionHolder,
-					XPathConstants.NUMBER);
-			result = String.valueOf(doubleResult);
-		}
-		if (returnType.equals("String") || returnType.equals("DomObjectModel")) {
-			result = (String) XPathUtil.evaluateExpression(getVariableValue(), expressionHolder,
-					XPathConstants.STRING);
-		}
-
-		if (returnType.equals("Node")) {
-			Node nodeResult = (Node) XPathUtil.evaluateExpression(getVariableValue(), expressionHolder,
-					XPathConstants.NODE);
-			result = DOMUtil.printDom(nodeResult).toString();
-		}
-		if (returnType.equals("NodeList")) {
-			NodeList nodeListResult = (NodeList) XPathUtil.evaluateExpression(getVariableValue(),
-					expressionHolder, XPathConstants.NODESET);
-			StringBuffer strBuilder = new StringBuffer();
-			for (int i = 0; i < nodeListResult.getLength(); i++) {
-				strBuilder.append(DOMUtil.printDom(nodeListResult.item(i)));
+		try {
+			ExpressionHolder expressionHolder = getExpressionHolderFromExpresion();
+			if (returnType.equals("Boolean")) {
+				Boolean boolResult = (Boolean) XPathUtil.evaluateExpression(getVariableValue(),
+						expressionHolder, XPathConstants.BOOLEAN);
+				result = String.valueOf(boolResult);
 			}
-			result = strBuilder.toString();
+			if (returnType.equals("Number")) {
+				Double doubleResult = (Double) XPathUtil.evaluateExpression(getVariableValue(),
+						expressionHolder, XPathConstants.NUMBER);
+				result = String.valueOf(doubleResult);
+			}
+			if (returnType.equals("String") || returnType.equals("DomObjectModel")) {
+				result = (String) XPathUtil.evaluateExpression(getVariableValue(), expressionHolder,
+						XPathConstants.STRING);
+			}
+
+			if (returnType.equals("Node")) {
+				Node nodeResult = (Node) XPathUtil.evaluateExpression(getVariableValue(), expressionHolder,
+						XPathConstants.NODE);
+				result = DOMUtil.printDom(nodeResult).toString();
+			}
+			if (returnType.equals("NodeList")) {
+				NodeList nodeListResult = (NodeList) XPathUtil.evaluateExpression(getVariableValue(),
+						expressionHolder, XPathConstants.NODESET);
+				StringBuffer strBuilder = new StringBuffer();
+				for (int i = 0; i < nodeListResult.getLength(); i++) {
+					strBuilder.append(DOMUtil.printDom(nodeListResult.item(i)));
+				}
+				result = strBuilder.toString();
+			}
+		} catch (JAXBException ex) {
+			FacesUtils.addErrorMessage("JAXB error occured, reason: " + ex.getMessage(), ex);
 		}
 
 		TRACE.debug("result is: {}", result);
@@ -325,7 +329,7 @@ public class XPathDebugController implements Serializable {
 			}
 		}
 		browseCleanup();
-		
+
 		return null;
 	}
 

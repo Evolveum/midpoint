@@ -20,6 +20,16 @@
  */
 package com.evolveum.midpoint.schema;
 
+import java.math.BigInteger;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.schema.XPathType;
+
 /**
  * 
  * @author lazyman
@@ -27,4 +37,29 @@ package com.evolveum.midpoint.schema;
  */
 public abstract class PagingTypeFactory {
 
+	public static PagingType createPaging(int offset, int rows, OrderDirectionType order, String orderBy) {
+		PagingType paging = new PagingType();
+
+		PropertyReferenceType propertyReferenceType = fillPropertyReference(orderBy);
+		paging.setOrderBy(propertyReferenceType);
+		paging.setOffset(BigInteger.valueOf(offset));
+		paging.setMaxSize(BigInteger.valueOf(rows));
+		paging.setOrderDirection(order);
+		
+		return paging;
+	}
+
+    private static PropertyReferenceType fillPropertyReference(String resolve) {
+        PropertyReferenceType property = new PropertyReferenceType();
+        XPathType xpath = new XPathType(getPropertyName(resolve));
+        property.setProperty(xpath.toElement(SchemaConstants.NS_C, "property"));
+        return property;
+    }
+
+    private static String getPropertyName(String name) {
+        if (null == name) {
+            return "";
+        }
+        return StringUtils.lowerCase(name);
+    }
 }

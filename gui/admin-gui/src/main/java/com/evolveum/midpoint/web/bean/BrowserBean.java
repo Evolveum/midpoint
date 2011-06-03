@@ -20,7 +20,6 @@
  */
 package com.evolveum.midpoint.web.bean;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,7 +31,9 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.ObjectTypeEnum;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.ListController;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
@@ -40,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
@@ -55,7 +56,7 @@ public class BrowserBean extends ListController<BrowserItem> {
 	private static final Trace LOGGER = TraceManager.getTrace(BrowserBean.class);
 	private static final List<SelectItem> types = new ArrayList<SelectItem>();
 	static {
-		for (ObjectTypes type : ObjectTypes.values()) {
+		for (ObjectTypeEnum type : ObjectTypeEnum.values()) {
 			types.add(new SelectItem(type.getValue(), FacesUtils.translateKey(type.getLocalizationKey())));
 		}
 
@@ -111,10 +112,11 @@ public class BrowserBean extends ListController<BrowserItem> {
 		listObjects();
 	}
 
-	public void clearBean() {
+	@Override
+	public void cleanup() {
+		super.cleanup();
 		type = null;
 		name = null;
-		cleanup();
 	}
 
 	@Override
@@ -127,19 +129,26 @@ public class BrowserBean extends ListController<BrowserItem> {
 	}
 
 	private String listByName() {
+		QueryType query = new QueryType();
+		query.setFilter(ControllerUtil.createQuery(name));
+		ObjectListType list = null;
+		try {
+			list = model.searchObjects(query, new PagingType());
+		} catch (FaultMessage ex) {
+			FacesUtils.addErrorMessage("Couldn't search for object '" + name + "'.", ex);
+			LOGGER.debug("Couldn't search for object '" + name + "'.", ex);
+		}
+
+		updateObjectList(list);
+
 		return null;
 	}
 
 	private String listByType() {
 		ObjectListType result = null;
 		try {
-			PagingType paging = new PagingType();
-
-			PropertyReferenceType propertyReferenceType = Utils.fillPropertyReference("name");
-			paging.setOrderBy(propertyReferenceType);
-			paging.setOffset(BigInteger.valueOf(getOffset()));
-			paging.setMaxSize(BigInteger.valueOf(getRowsCount()));
-			paging.setOrderDirection(OrderDirectionType.ASCENDING);
+			PagingType paging = PagingTypeFactory.createPaging(getOffset(), getRowsCount(),
+					OrderDirectionType.ASCENDING, "name");
 			result = model.listObjects(Utils.getObjectType(type), paging);
 		} catch (FaultMessage ex) {
 			String message = (ex.getFaultInfo().getMessage() != null ? ex.getFaultInfo().getMessage() : ex
@@ -151,16 +160,26 @@ public class BrowserBean extends ListController<BrowserItem> {
 			LOGGER.error("Exception was {} ", ex);
 		}
 
+		updateObjectList(result);
+
+		return null;
+	}
+
+	private void updateObjectList(ObjectListType result) {
 		if (result == null) {
 			FacesUtils.addWarnMessage("No objects found for type '" + type + "'.");
-			return null;
+			return;
 		}
 
 		getObjects().clear();
 		for (ObjectType object : result.getObject()) {
-			getObjects().add(new BrowserItem(object.getOid(), object.getName(), type));
-		}
+			// TODO: refactor - object type from class name??? wtf
+			ObjectTypeEnum objectType = ObjectTypeEnum.getObjectType(object.getClass().getSimpleName());
 
-		return null;
+			String localizationKey = objectType == null ? "Unknown" : objectType.getLocalizationKey();
+			getObjects().add(
+					new BrowserItem(object.getOid(), object.getName(), FacesUtils
+							.translateKey(localizationKey)));
+		}
 	}
 }

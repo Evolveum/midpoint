@@ -25,7 +25,12 @@ import java.util.List;
 import javax.faces.event.PhaseId;
 import javax.faces.event.ValueChangeEvent;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.web.bean.SelectableBean;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -33,6 +38,26 @@ import com.evolveum.midpoint.web.bean.SelectableBean;
  * 
  */
 public class ControllerUtil {
+
+	public static Element createQuery(String username) {
+		Document document = DOMUtil.getDocument();
+		Element and = document.createElementNS(SchemaConstants.NS_C, "c:and");
+		document.appendChild(and);
+
+		Element type = document.createElementNS(SchemaConstants.NS_C, "c:type");
+		type.setAttribute("uri", "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType");
+		and.appendChild(type);
+
+		Element equal = document.createElementNS(SchemaConstants.NS_C, "c:equal");
+		and.appendChild(equal);
+		Element value = document.createElementNS(SchemaConstants.NS_C, "c:value");
+		equal.appendChild(value);
+		Element name = document.createElementNS(SchemaConstants.NS_C, "c:name");
+		name.setTextContent(username);
+		value.appendChild(name);
+
+		return and;
+	}
 
 	private static boolean isEventAvailable(ValueChangeEvent evt) {
 		if (evt.getPhaseId() != PhaseId.INVOKE_APPLICATION) {

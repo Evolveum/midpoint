@@ -21,7 +21,6 @@
 package com.evolveum.midpoint.web.controller.config;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -36,7 +35,8 @@ import org.springframework.stereotype.Controller;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.ObjectTypeEnum;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.bean.DebugObject;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.util.FacesUtils;
@@ -45,7 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
@@ -66,10 +65,11 @@ public class DebugListController implements Serializable {
 	private static final Trace TRACE = TraceManager.getTrace(DebugListController.class);
 	private static final List<SelectItem> objectTypes = new ArrayList<SelectItem>();
 	static {
-		for (ObjectTypes type : ObjectTypes.values()) {
-			objectTypes.add(new SelectItem(type.getValue(), FacesUtils.translateKey(type.getLocalizationKey())));
+		for (ObjectTypeEnum type : ObjectTypeEnum.values()) {
+			objectTypes.add(new SelectItem(type.getValue(),
+					FacesUtils.translateKey(type.getLocalizationKey())));
 		}
-		
+
 		Collections.sort(objectTypes, new SelectItemComparator());
 	}
 	@Autowired(required = true)
@@ -166,13 +166,8 @@ public class DebugListController implements Serializable {
 		String xsdName = Utils.getObjectType(objectType);
 		ObjectListType result = null;
 		try {
-			PagingType paging = new PagingType();
-
-			PropertyReferenceType propertyReferenceType = Utils.fillPropertyReference("name");
-			paging.setOrderBy(propertyReferenceType);
-			paging.setOffset(BigInteger.valueOf(offset));
-			paging.setMaxSize(BigInteger.valueOf(rowsCount));
-			paging.setOrderDirection(OrderDirectionType.ASCENDING);
+			PagingType paging = PagingTypeFactory.createPaging(offset, rowsCount,
+					OrderDirectionType.ASCENDING, "name");
 			result = repositoryService.listObjects(xsdName, paging);
 		} catch (FaultMessage ex) {
 			String message = (ex.getFaultInfo().getMessage() != null ? ex.getFaultInfo().getMessage() : ex

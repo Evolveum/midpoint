@@ -25,7 +25,7 @@ package com.evolveum.midpoint.schema;
  * @author lazyman
  * 
  */
-public enum ObjectTypes {
+public enum ObjectTypeEnum {
 
 	ACCOUNT("schema.objectTypes.account", "AccountType"),
 
@@ -42,7 +42,7 @@ public enum ObjectTypes {
 	private String localizationKey;
 	private String value;
 
-	private ObjectTypes(String key, String value) {
+	private ObjectTypeEnum(String key, String value) {
 		this.localizationKey = key;
 		this.value = value;
 	}
@@ -53,5 +53,15 @@ public enum ObjectTypes {
 
 	public String getValue() {
 		return value;
+	}
+
+	public static ObjectTypeEnum getObjectType(String value) {
+		for (ObjectTypeEnum type : values()) {
+			if (type.getValue().equals(value)) {
+				return type;
+			}
+		}
+
+		return null;
 	}
 }

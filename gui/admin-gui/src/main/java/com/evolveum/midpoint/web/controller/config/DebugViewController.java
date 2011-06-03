@@ -32,11 +32,8 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
@@ -46,6 +43,7 @@ import com.evolveum.midpoint.validator.ValidationMessage;
 import com.evolveum.midpoint.validator.Validator;
 import com.evolveum.midpoint.web.bean.DebugObject;
 import com.evolveum.midpoint.web.controller.TemplateController;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -57,7 +55,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -155,7 +152,7 @@ public class DebugViewController implements Serializable {
 		}
 
 		QueryType query = new QueryType();
-		query.setFilter(createQuery(editOtherName));
+		query.setFilter(ControllerUtil.createQuery(editOtherName));
 		try {
 			ObjectListType list = repositoryService.searchObjects(query, new PagingType());
 			List<ObjectType> objects = list.getObject();
@@ -298,25 +295,5 @@ public class DebugViewController implements Serializable {
 		}
 
 		return objects.get(0);
-	}
-
-	private Element createQuery(String username) {
-		Document document = DOMUtil.getDocument();
-		Element and = document.createElementNS(SchemaConstants.NS_C, "c:and");
-		document.appendChild(and);
-
-		Element type = document.createElementNS(SchemaConstants.NS_C, "c:type");
-		type.setAttribute("uri", "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType");
-		and.appendChild(type);
-
-		Element equal = document.createElementNS(SchemaConstants.NS_C, "c:equal");
-		and.appendChild(equal);
-		Element value = document.createElementNS(SchemaConstants.NS_C, "c:value");
-		equal.appendChild(value);
-		Element name = document.createElementNS(SchemaConstants.NS_C, "c:name");
-		name.setTextContent(username);
-		value.appendChild(name);
-
-		return and;
 	}
 }
