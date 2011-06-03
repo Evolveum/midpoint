@@ -347,17 +347,13 @@ p {
 	height: 16px;
 }
 
-/* STANDARD */
-button:hover,.buttons a:hover {
-	background-color: #dff4ff;
-	border: 1px solid #c2e1ef;
-	color: #336699;
+/* DISABLED */
+button:hover,.buttons a.disabled:hover {
+	cursor: default;
 }
 
-.buttons a:active {
-	background-color: #6299c5;
-	border: 1px solid #6299c5;
-	color: #fff;
+.buttons a.disabled:active {
+	cursor: default;
 }
 
 /* POSITIVE */

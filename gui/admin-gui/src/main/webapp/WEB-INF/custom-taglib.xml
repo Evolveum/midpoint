@@ -1,53 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Copyright (c) 2011 Evolveum                             -->
-<!--                                                         -->
-<!-- The contents of this file are subject to the terms      -->
-<!-- of the Common Development and Distribution License      -->
-<!-- (the License). You may not use this file except in      -->
-<!-- compliance with the License.                            -->
-<!--                                                         -->
-<!-- You can obtain a copy of the License at                 -->
-<!-- http://www.opensource.org/licenses/cddl1 or             -->
-<!-- CDDLv1.0.txt file in the source code distribution.      -->
-<!-- See the License for the specific language governing     -->
-<!-- permission and limitations under the License.           -->
-<!--                                                         -->
+<!-- Copyright (c) 2011 Evolveum -->
+<!-- -->
+<!-- The contents of this file are subject to the terms -->
+<!-- of the Common Development and Distribution License -->
+<!-- (the License). You may not use this file except in -->
+<!-- compliance with the License. -->
+<!-- -->
+<!-- You can obtain a copy of the License at -->
+<!-- http://www.opensource.org/licenses/cddl1 or -->
+<!-- CDDLv1.0.txt file in the source code distribution. -->
+<!-- See the License for the specific language governing -->
+<!-- permission and limitations under the License. -->
+<!-- -->
 <!-- If applicable, add the following below the CDDL Header, -->
-<!-- with the fields enclosed by brackets [] replaced by     -->
-<!-- your own identifying information:                       -->
-<!--                                                         -->
-<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
-<!--                                                         -->
+<!-- with the fields enclosed by brackets [] replaced by -->
+<!-- your own identifying information: -->
+<!-- -->
+<!-- Portions Copyrighted 2011 [name of copyright owner] -->
+<!-- Portions Copyrighted 2010 Forgerock -->
+<!-- -->
 <facelet-taglib xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-facelettaglibrary_2_0.xsd"
 	version="2.0">
 	<namespace>http://midpoint.evolveum.com/xml/ns/custom-taglib/</namespace>
 	<tag>
-        <tag-name>autoForm</tag-name>
-        <component>
-            <component-type>AutoForm</component-type>
-            <handler-class>com.evolveum.midpoint.web.jsf.form.AutoFormTag</handler-class>
-        </component>
-        <attribute>
-            <name>bean</name>
-            <required>true</required>
-        </attribute>
-        <attribute>
-            <name>index</name>
-            <required>false</required>
-        </attribute>
-        <attribute>
-            <name>editable</name>
-            <required>false</required>
-        </attribute>
-    </tag>
+		<tag-name>autoForm</tag-name>
+		<component>
+			<component-type>AutoForm</component-type>
+			<handler-class>com.evolveum.midpoint.web.jsf.form.AutoFormTag</handler-class>
+		</component>
+		<attribute>
+			<name>bean</name>
+			<required>true</required>
+		</attribute>
+		<attribute>
+			<name>index</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>editable</name>
+			<required>false</required>
+		</attribute>
+	</tag>	
 	<tag>
 		<tag-name>button</tag-name>
 		<component>
-			<component-type>com.evolveum.midpoint.web.jsf.button.HtmlButton</component-type>
-			<renderer-type>HtmlButtonRenderer</renderer-type>
+			<component-type>HtmlButton</component-type>
 		</component>
+		<attribute>
+			<name>img</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>buttonType</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>enabled</name>
+			<required>false</required>
+		</attribute>
 	</tag>
 	<tag>
 		<tag-name>inputSyntaxTextArea</tag-name>
@@ -103,24 +114,24 @@
 			<component-type>AceXmlInput</component-type>
 		</component>
 		<attribute>
-            <name>id</name>
-            <required>true</required>
-        </attribute>
-        <attribute>
-            <name>value</name>
-            <required>false</required>
-        </attribute>
-        <attribute>
-            <name>width</name>
-            <required>false</required>
-        </attribute>
-        <attribute>
-            <name>height</name>
-            <required>false</required>
-        </attribute>
-        <attribute>
-            <name>readonly</name>
-            <required>false</required>
-        </attribute>
+			<name>id</name>
+			<required>true</required>
+		</attribute>
+		<attribute>
+			<name>value</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>width</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>height</name>
+			<required>false</required>
+		</attribute>
+		<attribute>
+			<name>readonly</name>
+			<required>false</required>
+		</attribute>
 	</tag>
 </facelet-taglib>

@@ -28,6 +28,7 @@ import java.io.Serializable;
  * 
  * @author Vilo Repan
  */
+@Deprecated
 public class TraceItem implements Serializable {
 
 	private static final long serialVersionUID = 8346151495344702621L;

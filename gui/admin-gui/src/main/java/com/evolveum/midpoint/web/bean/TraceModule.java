@@ -30,6 +30,7 @@ import java.util.List;
  * 
  * @author lazyman
  */
+@Deprecated
 public class TraceModule implements Serializable {
 
 	private static final long serialVersionUID = -6575035946287918109L;

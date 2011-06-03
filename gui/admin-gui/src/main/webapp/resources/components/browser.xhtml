@@ -66,6 +66,17 @@
 					</ice:column>
 				</ice:dataTable>
 
+				<ice:panelGroup styleClass="container-auto" style="text-align: center;">
+					<idm:button img="/resources/images/resultset_first.png" value="#{lang.messages['page.paginator.first']}"
+						action="#{cc.attrs.bean.listFirst}" />
+					<idm:button img="/resources/images/resultset_previous.png"
+						value="#{lang.messages['page.paginator.previous']}" action="#{cc.attrs.bean.listPrevious}" />
+					<idm:button img="/resources/images/resultset_next.png" value="#{lang.messages['page.paginator.next']}"
+						action="#{cc.attrs.bean.listNext}" />
+					<idm:button img="/resources/images/resultset_last.png" value="#{lang.messages['page.paginator.last']}"
+						action="#{cc.attrs.bean.listLast}" />
+				</ice:panelGroup>
+
 				<div class="button-bar">
 					<idm:button value="#{lang.messages['page.composite.browser.button.cancel']}" buttonType="negative"
 						action="#{cc.attrs.cancelAction}" />

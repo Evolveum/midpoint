@@ -48,6 +48,7 @@ import org.springframework.stereotype.Controller;
  * 
  * @author lazyman
  */
+@Deprecated
 @Controller("trace")
 @Scope("session")
 public class TraceController implements Serializable {

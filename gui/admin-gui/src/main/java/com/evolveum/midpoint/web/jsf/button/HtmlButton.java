@@ -17,77 +17,136 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.web.jsf.button;
 
-import com.icesoft.faces.component.ext.HtmlCommandLink;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+
 import javax.el.ValueExpression;
 import javax.faces.component.FacesComponent;
+import javax.faces.context.FacesContext;
+import javax.faces.context.ResponseWriter;
+
+import com.icesoft.faces.component.ext.HtmlCommandLink;
+import com.sun.faces.renderkit.RenderKitUtils;
 
 /**
- *
- * @author Vilo Repan
+ * 
+ * @author lazyman
+ * 
  */
-@FacesComponent("com.evolveum.midpoint.web.jsf.button.HtmlButton")
+@FacesComponent("HtmlButton")
 public class HtmlButton extends HtmlCommandLink {
 
-    @Override
-    public String getType() {
-        return HtmlButton.class.getName();
-    }
+	private static final String ATTR_VALUE = "value";
+	private static final String ATTR_IMG = "img";
+	private static final String ATTR_BUTTON_TYPE = "buttonType";
+	private static final String ATTR_ENABLED = "enabled";
+	private static final String BUTTON_TYPE_DEFAULT = "regular";
+	private static final String BUTTON_TYPE_DISABLED = "disabled";
 
-    @Override
-    public String getRendererType() {
-        return "HtmlButtonRenderer";
-    }
+	private String value;
+	private ValueExpression valueExpr;
 
-    public String getImg() {
-        return (java.lang.String) getStateHelper().eval("img");
-    }
+	@Override
+	public boolean getRendersChildren() {
+		return true;
+	}
 
-    public void setImg(String image) {
-        getStateHelper().put("img", image);
-        handleAttribute("img", image);
-    }
+	@Override
+	public void encodeBegin(FacesContext context) throws IOException {
+		ValueExpression styles = context.getApplication().getExpressionFactory()
+				.createValueExpression(getButtonType(context), String.class);
+		setValueExpression("styleClass", styles);
 
-    public String getButtonType() {
-        String type = (java.lang.String) getStateHelper().eval("buttonType");
-        if (type == null) {
-            type = "regular";
-        }
+		ResponseWriter writer = context.getResponseWriter();
+		writer.startElement("div", null);
+		writer.writeAttribute("class", "buttons", null);
 
-        return type;
-    }
+		// HACK
+		value = (String) getAttributes().get(ATTR_VALUE);
+		valueExpr = getValueExpression(ATTR_VALUE);
+		getAttributes().put(ATTR_VALUE, "");
+		setValueExpression(ATTR_VALUE, null);
 
-    public void setButtonType(String type) {
-        getStateHelper().put("buttonType", type);
-        handleAttribute("buttonType", type);
-    }
-    private static final String OPTIMIZED_PACKAGE = "javax.faces.component.";
+		if (isEnabled(context)) {
+			super.encodeBegin(context);
+		} else {
+			writer.startElement("a", null);
+			writer.writeAttribute("href", "#", null);
+			writer.writeAttribute("class", BUTTON_TYPE_DISABLED, null);
+		}
+	}
 
-    @SuppressWarnings("unchecked")
-	private void handleAttribute(String name, Object value) {
-        List<String> setAttributes = (List<String>) this.getAttributes().get("javax.faces.component.UIComponentBase.attributesThatAreSet");
-        if (setAttributes == null) {
-            String cname = this.getClass().getName();
-            if (cname != null && cname.startsWith(OPTIMIZED_PACKAGE)) {
-                setAttributes = new ArrayList<String>(6);
-                this.getAttributes().put("javax.faces.component.UIComponentBase.attributesThatAreSet", setAttributes);
-            }
-        }
-        if (setAttributes != null) {
-            if (value == null) {
-                ValueExpression ve = getValueExpression(name);
-                if (ve == null) {
-                    setAttributes.remove(name);
-                }
-            } else if (!setAttributes.contains(name)) {
-                setAttributes.add(name);
-            }
-        }
-    }
+	@Override
+	public void encodeChildren(FacesContext context) throws IOException {
+		ResponseWriter writer = context.getResponseWriter();
+		String src = RenderKitUtils.getImageSource(context, this, ATTR_IMG);
+		if (src != null && !src.isEmpty()) {
+			writer.startElement("img", null);
+			writer.writeAttribute("style", "border: 0px none;", null);
+			writer.writeAttribute("src", src, null);
+			writer.endElement("img");
+		}
+
+		String buttonType = getButtonType(context);
+		String value = getValue(context);
+
+		writer.startElement("span", null);
+		writer.writeAttribute("class", buttonType, null);
+		writer.writeText(value, null);
+		writer.endElement("span");
+	}
+
+	@Override
+	public void encodeEnd(FacesContext context) throws IOException {
+		ResponseWriter writer = context.getResponseWriter();
+		if (isEnabled(context)) {
+			super.encodeEnd(context);
+		} else {
+			writer.endElement("a");
+		}
+		writer.endElement("div");
+
+		getAttributes().put(ATTR_VALUE, value);
+		setValueExpression(ATTR_VALUE, valueExpr);
+	}
+
+	private boolean isEnabled(FacesContext context) {
+		ValueExpression expr = getValueExpression(ATTR_ENABLED);
+		if (expr == null) {
+			String value = (String) getAttributes().get(ATTR_ENABLED);
+			if (value != null) {
+				return Boolean.parseBoolean(value);
+			}
+			return true;
+		}
+
+		Boolean enabled = (Boolean) expr.getValue(context.getELContext());
+		if (enabled == null) {
+			return true;
+		}
+
+		return enabled.booleanValue();
+	}
+
+	private String getValue(FacesContext context) {
+		if (valueExpr == null) {
+			return value;
+		}
+
+		return (String) valueExpr.getValue(context.getELContext());
+	}
+
+	private String getButtonType(FacesContext context) {
+		if (!isEnabled(context)) {
+			return "disabled";
+		}
+
+		ValueExpression buttonType = getValueExpression(ATTR_BUTTON_TYPE);
+		if (buttonType == null) {
+			return BUTTON_TYPE_DEFAULT;
+		}
+		return (String) buttonType.getValue(context.getELContext());
+	}
 }
