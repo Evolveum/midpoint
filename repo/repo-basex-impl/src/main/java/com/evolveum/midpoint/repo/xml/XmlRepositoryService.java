@@ -26,6 +26,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBContext;
@@ -40,6 +42,9 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xmldb.api.base.Collection;
 import org.xmldb.api.base.Resource;
 import org.xmldb.api.base.ResourceIterator;
@@ -48,8 +53,10 @@ import org.xmldb.api.base.XMLDBException;
 import org.xmldb.api.modules.XPathQueryService;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectAlreadyExistsFaultType;
@@ -180,6 +187,7 @@ public class XmlRepositoryService implements RepositoryPortType {
                 Resource res = iter.nextResource();
 
                 if (null != objectContainer) {
+                	logger.error("More than one object with oid {} found", oid);
                     throw new FaultMessage("More than one object with oid "+oid+" found", new ObjectAlreadyExistsFaultType());
                 }
                 Object c = res.getContent();
@@ -215,8 +223,12 @@ public class XmlRepositoryService implements RepositoryPortType {
         return objectContainer;
 	}
 
-	@Override
-	public ObjectListType listObjects(String objectType, PagingType paging) throws FaultMessage {
+	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters) throws FaultMessage {
+		if (StringUtils.isEmpty(objectType)) {
+			logger.error("objectType is empty");
+			throw new FaultMessage("objectType is empty", new IllegalArgumentFaultType());   			
+		}
+
         ByteArrayInputStream in = null;
         ObjectListType objectList = new ObjectListType();;
         try {
@@ -224,8 +236,10 @@ public class XmlRepositoryService implements RepositoryPortType {
             XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
 
             StringBuilder query = new StringBuilder("declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
-            //TODO: namespace declaration has to generated dynamically
+            //TODO: namespace declaration has to be generated dynamically
             query.append("declare namespace idmdn='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
+            query.append("declare namespace i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
+            query.append("declare namespace dj='http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ';\n");
             query.append("declare namespace xsi='http://www.w3.org/2001/XMLSchema-instance';\n");
             //FIXME: possible problems with object type checking. Now it is simple string checking, because import schema is not supported 
             query.append("for $x in //c:object where $x/@xsi:type=\"").append(objectType.substring(objectType.lastIndexOf("#")+1)).append("\"");
@@ -233,7 +247,12 @@ public class XmlRepositoryService implements RepositoryPortType {
             	query.append("[fn:position() = ( ")
             	 .append(paging.getOffset().multiply(paging.getMaxSize())).append(" to ")
             	 .append(paging.getOffset().add(BigInteger.valueOf(1L)).multiply(paging.getMaxSize()).subtract(BigInteger.valueOf(1L)))
-            	 .append(") ]");
+            	 .append(") ] ");
+            }
+            if (filters != null) {
+            	for (Map.Entry<String, String> filterEntry: filters.entrySet()) {
+            		query.append(" and $x/").append(filterEntry.getKey()).append("='").append(filterEntry.getValue()).append("'");
+            	}
             }
             if (null != paging && null != paging.getOrderBy()) {
             	XPathType xpath = new XPathType(paging.getOrderBy().getProperty());
@@ -287,11 +306,83 @@ public class XmlRepositoryService implements RepositoryPortType {
 
         return objectList;
 	}
+	
+	@Override
+	public ObjectListType listObjects(String objectType, PagingType paging) throws FaultMessage {
+		return searchObjects(objectType, paging, null);
+	}
 
 	@Override
 	public ObjectListType searchObjects(QueryType query, PagingType paging) throws FaultMessage {
-		// TODO Auto-generated method stub
-		return null;
+		validateQuery(query);
+		
+        NodeList children = query.getFilter().getChildNodes();
+        String objectType = null;
+        Map<String, String> filters = new HashMap<String, String>();
+        
+        for (int index = 0; index < children.getLength(); index++) {
+            Node child = children.item(index);
+            if (child.getNodeType() != Node.ELEMENT_NODE) {
+                // Skipping all non-element nodes
+                continue;
+            }
+            
+            if (! StringUtils.equals(SchemaConstants.NS_C, child.getNamespaceURI()) ) {
+            	 logger.warn("Found query's filter element from unsupported namespace. Ignoring filter {}", child);
+            	 continue;
+            }
+            
+            if (validateFilterElement(SchemaConstants.NS_C, "type", child)) {
+            	objectType = child.getAttributes().getNamedItem("uri").getTextContent();
+            } else if (validateFilterElement(SchemaConstants.NS_C, "equal", child)) {
+                Node criteria = DOMUtil.getFirstChildElement(child);
+                
+                if (validateFilterElement(SchemaConstants.NS_C, "path", criteria) ) {
+                	XPathType xpathType = new XPathType((Element)criteria);
+                	String parentPath = xpathType.getXPath();
+                	
+                    Node criteriaValueNode = DOMUtil.getNextSiblingElement(criteria);
+                    processValueNode(criteriaValueNode, filters, parentPath);
+                }
+            
+                if (validateFilterElement(SchemaConstants.NS_C, "value", criteria) ) {
+                    processValueNode(criteria, filters, null);
+                }
+            }
+        }
+        
+		return searchObjects(objectType, paging, filters);
+	}
+
+	private void processValueNode(Node criteriaValueNode, Map<String, String> filters, String parentPath) {
+		if (null == criteriaValueNode) {
+		    throw new IllegalArgumentException("Query filter does not contain any values to search by");
+		}
+		if (validateFilterElement(SchemaConstants.NS_C, "value", criteriaValueNode)) {
+		    Node firstChild = DOMUtil.getFirstChildElement(criteriaValueNode);
+		    if (null == firstChild) {
+		        throw new IllegalArgumentException("Query filter contains empty list of values to search by");
+		    }
+		    //FIXME: possible problem with prefixes
+		    String lastPathSegment = firstChild.getPrefix() + ":" + firstChild.getLocalName();
+		    String criteriaValue = criteriaValueNode.getTextContent();
+		    
+		    if (parentPath != null) {
+		    	filters.put(parentPath +"/"+ lastPathSegment, StringUtils.trim(criteriaValue));
+		    } else {
+		    	filters.put(lastPathSegment, StringUtils.trim(criteriaValue));
+		    }
+		    
+		} else {
+			throw new IllegalArgumentException("Found unexpected element in query filter " + criteriaValueNode);
+		}
+	}
+
+	private boolean validateFilterElement(String elementNamespace, String elementName, Node criteria) {
+		if (StringUtils.equals(elementName, criteria.getLocalName()) && StringUtils.equalsIgnoreCase(elementNamespace, criteria.getNamespaceURI())) {
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -373,7 +464,6 @@ public class XmlRepositoryService implements RepositoryPortType {
         }
 	}
 
-
 	private void validateObjectChange(ObjectModificationType objectChange) throws FaultMessage {
 		if (null == objectChange) {
 			throw new FaultMessage("provided null object modifications", new IllegalArgumentFaultType());
@@ -382,6 +472,16 @@ public class XmlRepositoryService implements RepositoryPortType {
 		
 		if (null == objectChange.getPropertyModification() || objectChange.getPropertyModification().size() == 0 ) {
 			throw new FaultMessage("no property modifications provided", new IllegalArgumentFaultType());
+		}
+	}
+
+	private void validateQuery(QueryType query) throws FaultMessage {
+		if (null == query) {
+			throw new FaultMessage("provided null query", new IllegalArgumentFaultType());
+		}
+		
+		if (null == query.getFilter()) {
+			throw new FaultMessage("no filter in query", new IllegalArgumentFaultType());
 		}
 	}
 	
