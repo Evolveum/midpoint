@@ -22,21 +22,24 @@
 
 package com.evolveum.midpoint.model.action;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.ws.Holder;
+
 import com.evolveum.midpoint.model.ModelService;
 import com.evolveum.midpoint.model.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.provisioning.service.ProvisioningService;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -63,19 +66,20 @@ public abstract class BaseAction implements Action {
 		this.parameters = parameters;
 	}
 
-	protected UserType getUser(String oid) throws SynchronizationException {
+	protected UserType getUser(String oid, OperationResultType resultType) throws SynchronizationException {
 		if (oid == null) {
 			return null;
 		}
 
 		try {
-			ObjectType object = model.getObject(oid, new PropertyReferenceListType());
+			ObjectType object = model.getObject(oid, new PropertyReferenceListType(),
+					new Holder<OperationResultType>(resultType));
 			if (object == null) {
 				return null;
 			}
 			if (!(object instanceof UserType)) {
-				throw new SynchronizationException("Returned object is not of type "
-						+ UserType.class.getName() + ", it is "+object.getClass().getName());
+				throw new SynchronizationException("Returned object is null or not type of "
+						+ UserType.class.getName() + ".");
 			}
 			return (UserType) object;
 		} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
@@ -104,8 +108,6 @@ public abstract class BaseAction implements Action {
 	public void setProvisioning(ProvisioningService provisioning) {
 		this.provisioning = provisioning;
 	}
-	
-	
 
 	public RepositoryPortType getRepository() {
 		return repository;

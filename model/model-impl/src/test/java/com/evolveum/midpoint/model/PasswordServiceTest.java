@@ -37,68 +37,67 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.evolveum.midpoint.model.PasswordService;
 import com.evolveum.midpoint.xml.ns._public.model.password_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordChangeRequestType;
 import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordChangeResponseType;
 import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordSynchronizeRequestType;
 import com.evolveum.midpoint.xml.ns._public.model.password_1.SelfPasswordChangeRequestType;
 
 /**
- *
+ * 
  * @author laszlohordos
  */
 public class PasswordServiceTest {
 
-    private JAXBContext ctx;
-    private Unmarshaller unmarshaller;
+	private JAXBContext ctx;
+	private Unmarshaller unmarshaller;
 
-    public PasswordServiceTest() throws JAXBException {
-        ctx = JAXBContext.newInstance(ObjectFactory.class);
-        unmarshaller = ctx.createUnmarshaller();
+	public PasswordServiceTest() throws JAXBException {
+		ctx = JAXBContext.newInstance(ObjectFactory.class);
+		unmarshaller = ctx.createUnmarshaller();
 
-    }
+	}
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+	}
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
+	@AfterClass
+	public static void tearDownClass() throws Exception {
+	}
 
-    @Test
-    @Ignore
-    public void testSelfChangePassword() {
-        System.out.println("selfChangePassword");
-        SelfPasswordChangeRequestType spcrt = null;
-        PasswordService instance = new PasswordService();
-        PasswordChangeResponseType expResult = null;
-        PasswordChangeResponseType result = instance.selfChangePassword(spcrt);
-        assertEquals(expResult, result);
-        fail("The test case is a prototype.");
-    }
+	@Test
+	@Ignore
+	public void testSelfChangePassword() {
+		System.out.println("selfChangePassword");
+		SelfPasswordChangeRequestType spcrt = null;
+		PasswordService instance = new PasswordService();
+		PasswordChangeResponseType expResult = null;
+		PasswordChangeResponseType result = instance.selfChangePassword(spcrt);
+		assertEquals(expResult, result);
+		fail("The test case is a prototype.");
+	}
 
-    @Test
-    @Ignore
-    public void testChangePassword() {
-        System.out.println("changePassword");
-//        PasswordChangeRequestType pcrt = null;
-//        PasswordService instance = new PasswordService();
-//        PasswordChangeResponseType expResult = null;
-//        PasswordChangeResponseType result = instance.changePassword(pcrt);
-//        assertEquals(expResult, result);
-        fail("The test case is a prototype.");
-    }
+	@Test
+	@Ignore
+	public void testChangePassword() {
+		System.out.println("changePassword");
+		// PasswordChangeRequestType pcrt = null;
+		// PasswordService instance = new PasswordService();
+		// PasswordChangeResponseType expResult = null;
+		// PasswordChangeResponseType result = instance.changePassword(pcrt);
+		// assertEquals(expResult, result);
+		fail("The test case is a prototype.");
+	}
 
-    @Test
-    @Ignore
-    public void testSynchronizePassword() throws JAXBException {
-        System.out.println("synchronizePassword");
-        InputStream in = PasswordServiceTest.class.getResourceAsStream("/password-SynchronizeRequest.xml");
-        JAXBElement<PasswordSynchronizeRequestType> input = (JAXBElement<PasswordSynchronizeRequestType>) unmarshaller.unmarshal(in);
-        PasswordService instance = new PasswordService();
-        instance.synchronizePassword(input.getValue());        
-    }
+	@Test
+	@Ignore
+	public void testSynchronizePassword() throws JAXBException {
+		System.out.println("synchronizePassword");
+		InputStream in = PasswordServiceTest.class.getResourceAsStream("/password-SynchronizeRequest.xml");
+		JAXBElement<PasswordSynchronizeRequestType> input = (JAXBElement<PasswordSynchronizeRequestType>) unmarshaller
+				.unmarshal(in);
+		PasswordService instance = new PasswordService();
+		instance.synchronizePassword(input.getValue());
+	}
 
 }

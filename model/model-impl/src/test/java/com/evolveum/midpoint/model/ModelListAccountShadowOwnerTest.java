@@ -22,17 +22,18 @@
 
 package com.evolveum.midpoint.model;
 
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.model.xpath.SchemaHandling;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.ws.Holder;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,68 +41,77 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
+import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
- *
+ * 
  * @author lazyman
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {
-    "classpath:application-context-model.xml",
-    "classpath:application-context-model-unit-test.xml"})
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-model-unit-test.xml" })
 public class ModelListAccountShadowOwnerTest {
 
-    private static final File TEST_FOLDER = new File("./src/test/resources/service/model/list");
-    @Autowired(required = true)
-    ModelPortType modelService;
-    @Autowired(required = true)
-    ProvisioningPortType provisioningService;
-    @Autowired(required = true)
-    RepositoryPortType repositoryService;
-//    @Autowired(required = true)
-//    SchemaHandling schemaHandling;
+	private static final File TEST_FOLDER = new File("./src/test/resources/service/model/list");
+	@Autowired(required = true)
+	ModelPortType modelService;
+	@Autowired(required = true)
+	ProvisioningPortType provisioningService;
+	@Autowired(required = true)
+	RepositoryPortType repositoryService;
 
-    @Before
-    public void before() {
-        Mockito.reset(provisioningService, repositoryService);
-    }
+	// @Autowired(required = true)
+	// SchemaHandling schemaHandling;
 
-    @Test(expected = IllegalArgumentException.class)
-    public void nullAccountOid() throws FaultMessage {
-        modelService.listAccountShadowOwner(null);
-        fail("Illegal argument excetion must be thrown");
-    }
+	@Before
+	public void before() {
+		Mockito.reset(provisioningService, repositoryService);
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void emptyAccountOid() throws FaultMessage {
-        modelService.listAccountShadowOwner("");
-        fail("Illegal argument excetion must be thrown");
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void nullAccountOid() throws FaultMessage {
+		modelService.listAccountShadowOwner(null, new Holder<OperationResultType>(new OperationResultType()));
+		fail("Illegal argument excetion must be thrown");
+	}
 
-    @Test
-    public void accountWithoutOwner() throws FaultMessage,
-            com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
-        final String accountOid = "1";
-        final UserContainerType expected = new UserContainerType();
-        when(repositoryService.listAccountShadowOwner(accountOid)).thenReturn(expected);
-        final UserType returned = modelService.listAccountShadowOwner("1");
-        assertNull(returned);
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void emptyAccountOid() throws FaultMessage {
+		modelService.listAccountShadowOwner("", new Holder<OperationResultType>(new OperationResultType()));
+		fail("Illegal argument excetion must be thrown");
+	}
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void correctListAccountShadowOwner() throws FaultMessage, JAXBException,
-            com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
-        final String accountOid = "acc11111-76e0-48e2-86d6-3d4f02d3e1a2";
-        final UserContainerType expected = new UserContainerType();
-        expected.setUser(((JAXBElement<UserType>) JAXBUtil.unmarshal(
-                new File(TEST_FOLDER, "list-account-shadow-owner.xml"))).getValue());
+	@Test
+	public void accountWithoutOwner() throws FaultMessage,
+			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+		final String accountOid = "1";
+		final UserContainerType expected = new UserContainerType();
+		when(repositoryService.listAccountShadowOwner(accountOid)).thenReturn(expected);
+		final UserType returned = modelService.listAccountShadowOwner("1", new Holder<OperationResultType>(
+				new OperationResultType()));
+		assertNull(returned);
+	}
 
-        when(repositoryService.listAccountShadowOwner(accountOid)).thenReturn(expected);
-        final UserType returned = (UserType) modelService.listAccountShadowOwner(accountOid);
-        assertNotNull(returned);
-        assertEquals(expected.getUser(), returned);
-    }
+	@Test
+	@SuppressWarnings("unchecked")
+	public void correctListAccountShadowOwner() throws FaultMessage, JAXBException,
+			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+		final String accountOid = "acc11111-76e0-48e2-86d6-3d4f02d3e1a2";
+		final UserContainerType expected = new UserContainerType();
+		expected.setUser(((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"list-account-shadow-owner.xml"))).getValue());
+
+		when(repositoryService.listAccountShadowOwner(accountOid)).thenReturn(expected);
+		final UserType returned = (UserType) modelService.listAccountShadowOwner(accountOid,
+				new Holder<OperationResultType>(new OperationResultType()));
+		assertNotNull(returned);
+		assertEquals(expected.getUser(), returned);
+	}
 }

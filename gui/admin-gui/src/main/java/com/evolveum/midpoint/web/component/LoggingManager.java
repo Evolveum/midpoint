@@ -23,6 +23,7 @@ package com.evolveum.midpoint.web.component;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.xml.ws.Holder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfiguratio
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
@@ -61,8 +63,8 @@ public class LoggingManager {
 	public void updateLogger() {
 		LoggingConfigurationType config = null;
 		try {
-			ObjectType object = model.getObject(SYSTEM_CONFIGURATION_OID,
-					new PropertyReferenceListType());
+			ObjectType object = model.getObject(SYSTEM_CONFIGURATION_OID, new PropertyReferenceListType(),
+					new Holder<OperationResultType>(new OperationResultType()));
 			if (object == null) {
 				LOGGER.error("Couldn't get system configuration, reason: Empty container.");
 				return;

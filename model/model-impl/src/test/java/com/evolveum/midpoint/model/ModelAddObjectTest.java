@@ -53,10 +53,10 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.model.test.util.mock.ContainerObjectNameMatcher;
-import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
@@ -71,8 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
  * @author lazyman
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { 
-		"classpath:application-context-model-unit-test.xml",
+@ContextConfiguration(locations = { "classpath:application-context-model-unit-test.xml",
 		"classpath:application-context-model.xml" })
 public class ModelAddObjectTest {
 
@@ -83,8 +82,9 @@ public class ModelAddObjectTest {
 	ProvisioningPortType provisioningService;
 	@Autowired(required = true)
 	RepositoryPortType repositoryService;
-//	@Autowired(required = true)
-//	SchemaHandling schemaHandling;
+
+	// @Autowired(required = true)
+	// SchemaHandling schemaHandling;
 
 	@Before
 	public void before() {
@@ -93,16 +93,16 @@ public class ModelAddObjectTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void addNullContainer() throws FaultMessage {
-		modelService.addObject(null);
+		modelService.addObject(null, new Holder<OperationResultType>(new OperationResultType()));
 		fail("add must fail");
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void addNullObject() throws FaultMessage {
-		modelService.addObject(null);
+		modelService.addObject(null, new Holder<OperationResultType>(new OperationResultType()));
 		fail("add must fail");
 	}
-	
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addUserCorrect() throws JAXBException, FaultMessage,
@@ -130,7 +130,8 @@ public class ModelAddObjectTest {
 						return oid;
 					}
 				});
-		String result = modelService.addObject(expectedUser);
+		String result = modelService.addObject(expectedUser, new Holder<OperationResultType>(
+				new OperationResultType()));
 		verify(repositoryService, times(1)).addObject(
 				argThat(new ContainerObjectNameMatcher(expectedUser.getName())));
 		assertEquals(oid, result);
@@ -142,7 +143,7 @@ public class ModelAddObjectTest {
 			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"add-user-without-name.xml"))).getValue();
-		modelService.addObject(expectedUser);
+		modelService.addObject(expectedUser, new Holder<OperationResultType>(new OperationResultType()));
 		fail("add must fail");
 	}
 
@@ -160,7 +161,7 @@ public class ModelAddObjectTest {
 		when(repositoryService.getObject(matches(oid), any(PropertyReferenceListType.class))).thenReturn(
 				container);
 
-		modelService.addObject(expectedUser);
+		modelService.addObject(expectedUser, new Holder<OperationResultType>(new OperationResultType()));
 
 		verify(repositoryService, atLeast(1)).getObject(matches(oid), any(PropertyReferenceListType.class));
 		verify(repositoryService, times(1)).addObject(
@@ -196,7 +197,8 @@ public class ModelAddObjectTest {
 				return oid;
 			}
 		});
-		String result = modelService.addObject(expectedResource);
+		String result = modelService.addObject(expectedResource, new Holder<OperationResultType>(
+				new OperationResultType()));
 		verify(provisioningService, times(1)).addObject(
 				argThat(new ContainerObjectNameMatcher(expectedResource.getName())), any(ScriptsType.class),
 				any(Holder.class));
@@ -270,7 +272,8 @@ public class ModelAddObjectTest {
 
 		container = new ObjectContainerType();
 		container.setObject(expectedUser);
-		String result = modelService.addObject(expectedUser);
+		String result = modelService.addObject(expectedUser, new Holder<OperationResultType>(
+				new OperationResultType()));
 		verify(repositoryService, times(1)).addObject(
 				argThat(new ContainerObjectNameMatcher(expectedUser.getName())));
 		assertEquals(userOid, result);

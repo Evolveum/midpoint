@@ -26,6 +26,7 @@ import java.util.List;
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
 import javax.xml.bind.JAXBElement;
+import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType.ExtraTest;
@@ -171,7 +173,8 @@ public class ResourceListController implements Serializable {
 
 	static void testConnection(ResourceListItem resourceItem, ModelPortType model) {
 		try {
-			ResourceTestResultType result = model.testResource(resourceItem.getOid());
+			ResourceTestResultType result = model.testResource(resourceItem.getOid(),
+					new Holder<OperationResultType>(new OperationResultType()));
 			updateResourceState(resourceItem.getState(), result);
 		} catch (FaultMessage ex) {
 			String message = "Couldn't test conection on resource '" + resourceItem.getName() + "'.";
@@ -222,7 +225,8 @@ public class ResourceListController implements Serializable {
 	public String updateController() {
 		try {
 			String objectType = Utils.getObjectType("ResourceType");
-			ObjectListType objectList = model.listObjects(objectType, new PagingType());
+			ObjectListType objectList = model.listObjects(objectType, new PagingType(),
+					new Holder<OperationResultType>(new OperationResultType()));
 			List<ObjectType> objects = objectList.getObject();
 
 			List<ResourceListItem> list = getResourceList();

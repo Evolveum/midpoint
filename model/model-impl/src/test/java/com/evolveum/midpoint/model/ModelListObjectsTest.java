@@ -22,24 +22,25 @@
 
 package com.evolveum.midpoint.model;
 
-import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.model.test.util.UserTypeComparator;
-import com.evolveum.midpoint.model.xpath.SchemaHandling;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.ws.Holder;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,104 +48,121 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
+
+import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.model.test.util.UserTypeComparator;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
+import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
- *
+ * 
  * @author lazyman
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {
-    "classpath:application-context-model.xml",
-    "classpath:application-context-model-unit-test.xml"})
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-model-unit-test.xml" })
 public class ModelListObjectsTest {
 
-    private static final File TEST_FOLDER = new File("./src/test/resources/service/model/list");
-    @Autowired(required = true)
-    ModelPortType modelService;
-    @Autowired(required = true)
-    ProvisioningPortType provisioningService;
-    @Autowired(required = true)
-    RepositoryPortType repositoryService;
-//    @Autowired(required = true)
-//    SchemaHandling schemaHandling;
+	private static final File TEST_FOLDER = new File("./src/test/resources/service/model/list");
+	@Autowired(required = true)
+	ModelPortType modelService;
+	@Autowired(required = true)
+	ProvisioningPortType provisioningService;
+	@Autowired(required = true)
+	RepositoryPortType repositoryService;
 
-    @Before
-    public void before() {
-        Mockito.reset(provisioningService, repositoryService);
-    }
+	// @Autowired(required = true)
+	// SchemaHandling schemaHandling;
 
-    @Test(expected = IllegalArgumentException.class)
-    public void nullObjectType() throws FaultMessage {
-        modelService.listObjects(null, new PagingType());
-        fail("Illegal argument exception was not thrown.");
-    }
+	@Before
+	public void before() {
+		Mockito.reset(provisioningService, repositoryService);
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void nullObjectTypeAndPaging() throws FaultMessage {
-        modelService.listObjects(null, null);
-        fail("Illegal argument exception was not thrown.");
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void nullObjectType() throws FaultMessage {
+		modelService.listObjects(null, new PagingType(), new Holder<OperationResultType>(
+				new OperationResultType()));
+		fail("Illegal argument exception was not thrown.");
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void nullPaging() throws FaultMessage {
-        modelService.listObjects("", null);
-        fail("Illegal argument exception was not thrown.");
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void nullObjectTypeAndPaging() throws FaultMessage {
+		modelService.listObjects(null, null, new Holder<OperationResultType>(new OperationResultType()));
+		fail("Illegal argument exception was not thrown.");
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void badPaging() throws FaultMessage {
-        PagingType paging = new PagingType();
-        paging.setMaxSize(BigInteger.valueOf(-1));
-        paging.setOffset(BigInteger.valueOf(-1));
+	@Test(expected = IllegalArgumentException.class)
+	public void nullPaging() throws FaultMessage {
+		modelService.listObjects("", null, new Holder<OperationResultType>(new OperationResultType()));
+		fail("Illegal argument exception was not thrown.");
+	}
 
-        modelService.listObjects(Utils.getObjectType("UserType"), paging);
-        fail("Illegal argument exception was not thrown.");
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void badPaging() throws FaultMessage {
+		PagingType paging = new PagingType();
+		paging.setMaxSize(BigInteger.valueOf(-1));
+		paging.setOffset(BigInteger.valueOf(-1));
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void userList() throws FaultMessage, JAXBException, com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
-        final ObjectListType expectedUserList = ((JAXBElement<ObjectListType>) JAXBUtil.unmarshal(
-                new File(TEST_FOLDER, "user-list.xml"))).getValue();
+		modelService.listObjects(Utils.getObjectType("UserType"), paging, new Holder<OperationResultType>(
+				new OperationResultType()));
+		fail("Illegal argument exception was not thrown.");
+	}
 
-        when(repositoryService.listObjects(eq(Utils.getObjectType("UserType")), any(PagingType.class))).thenReturn(expectedUserList);
-        final ObjectListType returnedUserList = modelService.listObjects(Utils.getObjectType("UserType"), new PagingType());
+	@Test
+	@SuppressWarnings("unchecked")
+	public void userList() throws FaultMessage, JAXBException,
+			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+		final ObjectListType expectedUserList = ((JAXBElement<ObjectListType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER, "user-list.xml"))).getValue();
 
-        verify(repositoryService, times(1)).listObjects(eq(Utils.getObjectType("UserType")), any(PagingType.class));
-        testObjectListTypes(expectedUserList, returnedUserList);
-    }
-    
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+		when(repositoryService.listObjects(eq(Utils.getObjectType("UserType")), any(PagingType.class)))
+				.thenReturn(expectedUserList);
+		final ObjectListType returnedUserList = modelService.listObjects(Utils.getObjectType("UserType"),
+				new PagingType(), new Holder<OperationResultType>(new OperationResultType()));
+
+		verify(repositoryService, times(1)).listObjects(eq(Utils.getObjectType("UserType")),
+				any(PagingType.class));
+		testObjectListTypes(expectedUserList, returnedUserList);
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	private void testObjectListTypes(ObjectListType expected, ObjectListType returned) {
-        assertNotNull(expected);
-        assertNotNull(returned);
+		assertNotNull(expected);
+		assertNotNull(returned);
 
-        List<ObjectType> expectedList = expected.getObject();
-        List<ObjectType> returnedList = returned.getObject();
+		List<ObjectType> expectedList = expected.getObject();
+		List<ObjectType> returnedList = returned.getObject();
 
-        assertTrue(expectedList == null ? returnedList == null : returnedList != null);
-        if (expectedList == null) {
-            return;
-        }
-        assertEquals(expectedList.size(), returnedList.size());
-        if (expectedList.size() == 0) {
-            return;
-        }
+		assertTrue(expectedList == null ? returnedList == null : returnedList != null);
+		if (expectedList == null) {
+			return;
+		}
+		assertEquals(expectedList.size(), returnedList.size());
+		if (expectedList.size() == 0) {
+			return;
+		}
 
-        if (expectedList.get(0) instanceof UserType) {
-            testUserLists(new ArrayList(expectedList), new ArrayList(returnedList));
-        }
-    }
+		if (expectedList.get(0) instanceof UserType) {
+			testUserLists(new ArrayList(expectedList), new ArrayList(returnedList));
+		}
+	}
 
-    private void testUserLists(List<UserType> expected, List<UserType> returned) {
-        UserTypeComparator comp = new UserTypeComparator();
-        for (int i = 0; i < expected.size(); i++) {
-            UserType u1 = expected.get(i);
-            UserType u2 = returned.get(i);
+	private void testUserLists(List<UserType> expected, List<UserType> returned) {
+		UserTypeComparator comp = new UserTypeComparator();
+		for (int i = 0; i < expected.size(); i++) {
+			UserType u1 = expected.get(i);
+			UserType u2 = returned.get(i);
 
-            assertTrue(comp.areEqual(u1, u2));
-        }
-    }
+			assertTrue(comp.areEqual(u1, u2));
+		}
+	}
 }

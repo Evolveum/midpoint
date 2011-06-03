@@ -22,20 +22,16 @@
 
 package com.evolveum.midpoint.model;
 
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.model.xpath.SchemaHandling;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
-import javax.xml.bind.JAXBElement;
+
 import javax.xml.bind.JAXBException;
+import javax.xml.ws.Holder;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -44,74 +40,85 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
+import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
- *
+ * 
  * @author lazyman
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {
-    "classpath:application-context-model.xml",    
-    "classpath:application-context-model-unit-test.xml"})
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-model-unit-test.xml" })
 public class ModelModifyObjectTest {
 
-    private static final File TEST_FOLDER = new File("./src/test/resources/service/model/modify");
-    @Autowired(required = true)
-    ModelPortType modelService;
-    @Autowired(required = true)
-    ProvisioningPortType provisioningService;
-    @Autowired(required = true)
-    RepositoryPortType repositoryService;
-//    @Autowired(required = true)
-//    SchemaHandling schemaHandling;
+	private static final File TEST_FOLDER = new File("./src/test/resources/service/model/modify");
+	@Autowired(required = true)
+	ModelPortType modelService;
+	@Autowired(required = true)
+	ProvisioningPortType provisioningService;
+	@Autowired(required = true)
+	RepositoryPortType repositoryService;
 
-    @Before
-    public void before() {
-        Mockito.reset(provisioningService, repositoryService);
-    }
+	// @Autowired(required = true)
+	// SchemaHandling schemaHandling;
 
-    @Test(expected = IllegalArgumentException.class)
-    public void nullChange() throws FaultMessage {
-        modelService.modifyObject(null);
-        fail("Illegal argument excetion must be thrown");
-    }
+	@Before
+	public void before() {
+		Mockito.reset(provisioningService, repositoryService);
+	}
 
-    @Test(expected = FaultMessage.class)
-    public void nonExistingUid() throws FaultMessage,
-            com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+	@Test(expected = IllegalArgumentException.class)
+	public void nullChange() throws FaultMessage {
+		modelService.modifyObject(null, new Holder<OperationResultType>(new OperationResultType()));
+		fail("Illegal argument excetion must be thrown");
+	}
 
-        final String oid = "1";
-        ObjectModificationType modification = new ObjectModificationType();
-        PropertyModificationType mod1 = new PropertyModificationType();
-        mod1.setModificationType(PropertyModificationTypeType.add);
-        mod1.setValue(new PropertyModificationType.Value());
+	@Test(expected = FaultMessage.class)
+	public void nonExistingUid() throws FaultMessage,
+			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
 
-        modification.getPropertyModification().add(mod1);
-        modification.setOid(oid);
+		final String oid = "1";
+		ObjectModificationType modification = new ObjectModificationType();
+		PropertyModificationType mod1 = new PropertyModificationType();
+		mod1.setModificationType(PropertyModificationTypeType.add);
+		mod1.setValue(new PropertyModificationType.Value());
 
-        when(repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class))).thenThrow(
-                new com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage("Oid '" + oid +
-                "' not found.", new ObjectNotFoundFaultType()));
-        try {
-            modelService.modifyObject(modification);
-        } catch (FaultMessage ex) {
-            if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
-                fail("Bad exceptiong fault info was thrown.");
-            }
+		modification.getPropertyModification().add(mod1);
+		modification.setOid(oid);
 
-            throw ex;
-        }
-    }
+		when(repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class))).thenThrow(
+				new com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage("Oid '" + oid
+						+ "' not found.", new ObjectNotFoundFaultType()));
+		try {
+			modelService.modifyObject(modification,
+					new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
+				fail("Bad exceptiong fault info was thrown.");
+			}
 
-    @Ignore
-    @Test
-    @SuppressWarnings("unchecked")
-    public void correctModifyUser() throws JAXBException {
-//        final String oid = "1";
-//        ObjectModificationType modification = ((JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(
-//                new File(TEST_FOLDER, "modify-user-correct.xml"))).getValue();
-        fail("not implemented yet.");
-    }
+			throw ex;
+		}
+	}
+
+	@Ignore
+	@Test
+	@SuppressWarnings("unchecked")
+	public void correctModifyUser() throws JAXBException {
+		// final String oid = "1";
+		// ObjectModificationType modification =
+		// ((JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(
+		// new File(TEST_FOLDER, "modify-user-correct.xml"))).getValue();
+		fail("not implemented yet.");
+	}
 }

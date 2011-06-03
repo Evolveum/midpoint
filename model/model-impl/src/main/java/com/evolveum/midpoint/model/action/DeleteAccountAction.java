@@ -25,6 +25,7 @@ package com.evolveum.midpoint.model.action;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.SynchronizationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -35,28 +36,31 @@ import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMes
 import javax.xml.ws.Holder;
 
 /**
- *
+ * 
  * @author Vilo Repan
  */
 public class DeleteAccountAction extends BaseAction {
 
-    private static Trace trace = TraceManager.getTrace(DeleteAccountAction.class);
+	private static Trace trace = TraceManager.getTrace(DeleteAccountAction.class);
 
-    @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-            SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange) throws SynchronizationException {
-        try {
-            ScriptsType scripts = getScripts(change.getResource());
-            getProvisioning().deleteObject(change.getShadow().getOid(), scripts, new Holder<OperationalResultType>());
-        } catch (FaultMessage ex) {
-            ResourceType resource = change.getResource();
-            String resourceName = resource == null ? "Undefined" : resource.getName();
-            trace.error("Couldn't delete resource object with oid '{}' on resource '{}'.",
-                    new Object[]{change.getShadow().getOid(), resourceName});
-            throw new SynchronizationException("Couldn't delete resource object with oid '" +
-                    change.getShadow().getOid() + "' on resource '" + resourceName + "'.", ex, ex.getFaultInfo());
-        }
+	@Override
+	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
+			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
+			OperationResultType resultType) throws SynchronizationException {
+		try {
+			ScriptsType scripts = getScripts(change.getResource());
+			getProvisioning().deleteObject(change.getShadow().getOid(), scripts,
+					new Holder<OperationalResultType>());
+		} catch (FaultMessage ex) {
+			ResourceType resource = change.getResource();
+			String resourceName = resource == null ? "Undefined" : resource.getName();
+			trace.error("Couldn't delete resource object with oid '{}' on resource '{}'.", new Object[] {
+					change.getShadow().getOid(), resourceName });
+			throw new SynchronizationException("Couldn't delete resource object with oid '"
+					+ change.getShadow().getOid() + "' on resource '" + resourceName + "'.", ex,
+					ex.getFaultInfo());
+		}
 
-        return userOid;
-    }
+		return userOid;
+	}
 }

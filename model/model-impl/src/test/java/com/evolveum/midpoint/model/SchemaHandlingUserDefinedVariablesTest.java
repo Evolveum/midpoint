@@ -49,59 +49,66 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
- *
+ * 
  * @author sleepwalker
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:application-context-model.xml", "classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml", "classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml"})
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml",
+		"classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml" })
 public class SchemaHandlingUserDefinedVariablesTest {
 
-    @Autowired
-    private SchemaHandling schemaHandling;
-    @Autowired
-    private RepositoryPortType repositoryService;
+	@Autowired
+	private SchemaHandling schemaHandling;
+	@Autowired
+	private RepositoryPortType repositoryService;
 
-    public SchemaHandlingUserDefinedVariablesTest() {
-    }
+	public SchemaHandlingUserDefinedVariablesTest() {
+	}
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+	}
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
+	@AfterClass
+	public static void tearDownClass() throws Exception {
+	}
 
-    @Before
-    public void setUp() {
-    }
+	@Before
+	public void setUp() {
+	}
 
-    @After
-    public void tearDown() {
-    }
+	@After
+	public void tearDown() {
+	}
 
-    private ObjectType addObjectToRepo(String fileString) throws Exception {
-        ObjectContainerType objectContainer = new ObjectContainerType();
-        ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
-        objectContainer.setObject(object);
-        repositoryService.addObject(objectContainer);
-        return object;
-    }
+	private ObjectType addObjectToRepo(String fileString) throws Exception {
+		ObjectContainerType objectContainer = new ObjectContainerType();
+		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
+		objectContainer.setObject(object);
+		repositoryService.addObject(objectContainer);
+		return object;
+	}
 
-    @Test
-    public void testApplyOutboundSchemaHandlingWithUserDefinedVariablesOnAccount() throws Exception {
-        final String myConfigOid = "c0c010c0-d34d-b33f-f00d-999111111111";
-        try {
-            addObjectToRepo("src/test/resources/generic-object-my-config.xml");
+	@Test
+	public void testApplyOutboundSchemaHandlingWithUserDefinedVariablesOnAccount() throws Exception {
+		final String myConfigOid = "c0c010c0-d34d-b33f-f00d-999111111111";
+		try {
+			addObjectToRepo("src/test/resources/generic-object-my-config.xml");
 
-            JAXBElement<AccountShadowType> accountJaxb = (JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File("src/test/resources/account-resource-schema-handling-custom-variables.xml"));
-            JAXBElement<UserType> userJaxb = (JAXBElement<UserType>) JAXBUtil.unmarshal(new File("src/test/resources/user-new.xml"));
-            ResourceObjectShadowType appliedAccountShadow = schemaHandling.applyOutboundSchemaHandlingOnAccount(userJaxb.getValue(), accountJaxb.getValue(), accountJaxb.getValue().getResource());
-            assertEquals(2, appliedAccountShadow.getAttributes().getAny().size());
-            assertEquals("l", appliedAccountShadow.getAttributes().getAny().get(1).getLocalName());
-            assertEquals("Here", appliedAccountShadow.getAttributes().getAny().get(1).getTextContent());
-        } finally {
-            repositoryService.deleteObject(myConfigOid);
-        }
-    }
+			JAXBElement<AccountShadowType> accountJaxb = (JAXBElement<AccountShadowType>) JAXBUtil
+					.unmarshal(new File(
+							"src/test/resources/account-resource-schema-handling-custom-variables.xml"));
+			JAXBElement<UserType> userJaxb = (JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/user-new.xml"));
+			ResourceObjectShadowType appliedAccountShadow = schemaHandling
+					.applyOutboundSchemaHandlingOnAccount(userJaxb.getValue(), accountJaxb.getValue(),
+							accountJaxb.getValue().getResource());
+			assertEquals(2, appliedAccountShadow.getAttributes().getAny().size());
+			assertEquals("l", appliedAccountShadow.getAttributes().getAny().get(1).getLocalName());
+			assertEquals("Here", appliedAccountShadow.getAttributes().getAny().get(1).getTextContent());
+		} finally {
+			repositoryService.deleteObject(myConfigOid);
+		}
+	}
 }

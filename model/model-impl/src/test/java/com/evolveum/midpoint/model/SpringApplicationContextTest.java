@@ -36,44 +36,44 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import static org.junit.Assert.*;
 
 /**
+ * 
  * Test of spring application context initialization
- *
- * @author $author$
- * @version $Revision$ $Date$
- * @since 1.0.0
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:application-context-model.xml", "classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml", "classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml"})
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml",
+		"classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml" })
 public class SpringApplicationContextTest {
 
-    @Autowired(required=true)
-    EntityManagerFactory entityManagerFactory;
-    @Autowired(required=true)
-    RepositoryPortType repositoryService;
+	@Autowired(required = true)
+	EntityManagerFactory entityManagerFactory;
+	@Autowired(required = true)
+	RepositoryPortType repositoryService;
 
-    public SpringApplicationContextTest() {
-    }
+	public SpringApplicationContextTest() {
+	}
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+	}
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
+	@AfterClass
+	public static void tearDownClass() throws Exception {
+	}
 
-    @Before
-    public void setUp() {
-    }
+	@Before
+	public void setUp() {
+	}
 
-    @After
-    public void tearDown() {
-    }
+	@After
+	public void tearDown() {
+	}
 
-    @Test
-    public void initApplicationContext() {
-        assertNotNull(entityManagerFactory);
-        assertNotNull(repositoryService);
-    }
+	@Test
+	public void initApplicationContext() {
+		assertNotNull(entityManagerFactory);
+		assertNotNull(repositoryService);
+	}
 
 }

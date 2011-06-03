@@ -26,6 +26,8 @@ import static org.junit.Assert.fail;
 
 import java.math.BigInteger;
 
+import javax.xml.ws.Holder;
+
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -35,7 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.evolveum.midpoint.model.xpath.SchemaHandling;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
@@ -44,60 +46,63 @@ import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.Provisio
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
- *
+ * 
  * @author lazyman
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {
-    "classpath:application-context-model.xml",    
-    "classpath:application-context-model-unit-test.xml"})
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-model-unit-test.xml" })
 public class ModelSearchObjectsTest {
 
-    @Autowired(required = true)
-    ModelPortType modelService;
-    @Autowired(required = true)
-    ProvisioningPortType provisioningService;
-    @Autowired(required = true)
-    RepositoryPortType repositoryService;
-//    @Autowired(required = true)
-//    SchemaHandling schemaHandling;
+	@Autowired(required = true)
+	ModelPortType modelService;
+	@Autowired(required = true)
+	ProvisioningPortType provisioningService;
+	@Autowired(required = true)
+	RepositoryPortType repositoryService;
 
-    @Before
-    public void before() {
-        Mockito.reset(provisioningService, repositoryService);
-    }
+	// @Autowired(required = true)
+	// SchemaHandling schemaHandling;
 
-    @Test(expected = IllegalArgumentException.class)
-    public void nullQueryType() throws FaultMessage {
-        modelService.searchObjects(null, new PagingType());
-        fail("Illegal argument exception was not thrown.");
-    }
+	@Before
+	public void before() {
+		Mockito.reset(provisioningService, repositoryService);
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void nullQueryTypeAndPaging() throws FaultMessage {
-        modelService.searchObjects(null, null);
-        fail("Illegal argument exception was not thrown.");
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void nullQueryType() throws FaultMessage {
+		modelService.searchObjects(null, new PagingType(), new Holder<OperationResultType>(
+				new OperationResultType()));
+		fail("Illegal argument exception was not thrown.");
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void nullPaging() throws FaultMessage {
-        modelService.searchObjects(new QueryType(), null);
-        fail("Illegal argument exception was not thrown.");
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void nullQueryTypeAndPaging() throws FaultMessage {
+		modelService.searchObjects(null, null, new Holder<OperationResultType>(new OperationResultType()));
+		fail("Illegal argument exception was not thrown.");
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void badPaging() throws FaultMessage {
-        PagingType paging = new PagingType();
-        paging.setMaxSize(BigInteger.valueOf(-1));
-        paging.setOffset(BigInteger.valueOf(-1));
+	@Test(expected = IllegalArgumentException.class)
+	public void nullPaging() throws FaultMessage {
+		modelService.searchObjects(new QueryType(), null, new Holder<OperationResultType>(
+				new OperationResultType()));
+		fail("Illegal argument exception was not thrown.");
+	}
 
-        modelService.searchObjects(new QueryType(), paging);
-        fail("Illegal argument exception was not thrown.");
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void badPaging() throws FaultMessage {
+		PagingType paging = new PagingType();
+		paging.setMaxSize(BigInteger.valueOf(-1));
+		paging.setOffset(BigInteger.valueOf(-1));
 
-    @Ignore
-    @Test
-    public void correctSearch() {
-        fail("not implemented yet.");
-    }
+		modelService.searchObjects(new QueryType(), paging, new Holder<OperationResultType>(
+				new OperationResultType()));
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Ignore
+	@Test
+	public void correctSearch() {
+		fail("not implemented yet.");
+	}
 }

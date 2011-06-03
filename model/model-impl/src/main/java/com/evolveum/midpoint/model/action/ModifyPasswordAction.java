@@ -27,6 +27,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -37,6 +38,8 @@ import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
 import java.util.List;
 import javax.xml.namespace.QName;
+import javax.xml.ws.Holder;
+
 import org.w3c.dom.Element;
 
 /**
@@ -49,9 +52,9 @@ public class ModifyPasswordAction extends BaseAction {
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange)
-			throws SynchronizationException {
-		UserType userType = getUser(userOid);
+			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
+			OperationResultType resultType) throws SynchronizationException {
+		UserType userType = getUser(userOid, resultType);
 		if (userType == null) {
 			throw new SynchronizationException("Can't find user with oid '" + userOid + "'.");
 		}
@@ -70,7 +73,8 @@ public class ModifyPasswordAction extends BaseAction {
 
 		try {
 			ObjectModificationType changes = createPasswordModification(userType, pwd);
-			getModel().modifyObjectWithExclusion(changes, change.getShadow().getOid());
+			getModel().modifyObjectWithExclusion(changes, change.getShadow().getOid(),
+					new Holder<OperationResultType>(resultType));
 		} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
 			throw new SynchronizationException("Can't save user", ex, ex.getFaultInfo());
 		}

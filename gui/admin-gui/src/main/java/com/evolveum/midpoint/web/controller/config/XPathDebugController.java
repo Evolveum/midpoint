@@ -21,6 +21,28 @@
  */
 package com.evolveum.midpoint.web.controller.config;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.faces.event.ValueChangeEvent;
+import javax.faces.model.SelectItem;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+import javax.xml.ws.Holder;
+import javax.xml.xpath.XPathConstants;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.XPathUtil;
@@ -31,34 +53,13 @@ import com.evolveum.midpoint.web.bean.BrowserBean;
 import com.evolveum.midpoint.web.bean.XPathVariableBean;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 import com.evolveum.midpoint.xml.schema.ExpressionHolder;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.faces.event.ValueChangeEvent;
-import javax.faces.model.SelectItem;
-import javax.xml.bind.JAXBException;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Controller;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import javax.xml.namespace.QName;
-import javax.xml.xpath.XPathConstants;
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 /**
  * 
@@ -143,7 +144,8 @@ public class XPathDebugController implements Serializable {
 				if (variable.getType().equals("Object")) {
 					try {
 						ObjectType objectType = port.getObject(variable.getValue(),
-								new PropertyReferenceListType());
+								new PropertyReferenceListType(), new Holder<OperationResultType>(
+										new OperationResultType()));
 						// Variable only accepts String or Node, but here we
 						// will get a JAXB object. Need to convert it.
 						Element jaxbToDom = JAXBUtil.jaxbToDom(objectType, SchemaConstants.I_OBJECT, null);

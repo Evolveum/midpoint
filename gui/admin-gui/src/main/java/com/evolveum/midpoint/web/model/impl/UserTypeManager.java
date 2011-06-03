@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
+import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -56,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
@@ -92,7 +94,7 @@ public class UserTypeManager implements UserManager, Serializable {
 		Validate.notNull(oid);
 
 		try { // Call Web Service Operation
-			model.deleteObject(oid);
+			model.deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			TRACE.error("Delete user failed for oid = {}", oid);
 			TRACE.error("Exception was: ", ex);
@@ -107,7 +109,8 @@ public class UserTypeManager implements UserManager, Serializable {
 		Validate.notNull(newObject);
 
 		try { // Call Web Service Operation
-			java.lang.String result = model.addObject((UserType) newObject.getXmlObject());
+			java.lang.String result = model.addObject(newObject.getXmlObject(),
+					new Holder<OperationResultType>(new OperationResultType()));
 			return result;
 		} catch (FaultMessage fault) {
 			String message = fault.getFaultInfo().getMessage();
@@ -129,7 +132,7 @@ public class UserTypeManager implements UserManager, Serializable {
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
 					changedObject.getXmlObject());
 			if (changes != null && changes.getOid() != null && changes.getPropertyModification().size() > 0) {
-				model.modifyObject(changes);
+				model.modifyObject(changes, new Holder<OperationResultType>(new OperationResultType()));
 			}
 
 			Set<PropertyChange> set = null;
@@ -189,7 +192,8 @@ public class UserTypeManager implements UserManager, Serializable {
 		try { // Call Web Service Operation
 				// TODO: more reasonable handling of paging info
 			PagingType paging = new PagingType();
-			ObjectListType result = model.listObjects(Utils.getObjectType("UserType"), paging);
+			ObjectListType result = model.listObjects(Utils.getObjectType("UserType"), paging,
+					new Holder<OperationResultType>(new OperationResultType()));
 
 			List<ObjectType> users = result.getObject();
 			List<UserDto> guiUsers = new ArrayList<UserDto>();
@@ -220,7 +224,8 @@ public class UserTypeManager implements UserManager, Serializable {
 		Validate.notNull(oid);
 
 		try { // Call Web Service Operation
-			ObjectType result = model.getObject(oid, resolve);
+			ObjectType result = model.getObject(oid, resolve, new Holder<OperationResultType>(
+					new OperationResultType()));
 			// ObjectStage stage = new ObjectStage();
 			// stage.setObject((UserType) result.getObject());
 
@@ -294,7 +299,8 @@ public class UserTypeManager implements UserManager, Serializable {
 			paging.setOffset(BigInteger.valueOf(pagingDto.getOffset()));
 			paging.setMaxSize(BigInteger.valueOf(pagingDto.getMaxSize()));
 			paging.setOrderDirection(paging.getOrderDirection());
-			ObjectListType result = model.listObjects(Utils.getObjectType("UserType"), paging);
+			ObjectListType result = model.listObjects(Utils.getObjectType("UserType"), paging,
+					new Holder<OperationResultType>(new OperationResultType()));
 
 			List<ObjectType> users = result.getObject();
 			List<UserDto> guiUsers = new ArrayList<UserDto>();

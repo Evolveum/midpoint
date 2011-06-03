@@ -46,9 +46,9 @@ import com.evolveum.midpoint.web.model.ResourceDto;
 import com.evolveum.midpoint.web.model.TaskStatusDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -62,6 +62,7 @@ import com.icesoft.faces.component.ext.RowSelectorEvent;
 
 /**
  * Depreacted, break class into smaller pieces according to pages
+ * 
  * @author Katuska
  */
 @Deprecated
@@ -123,7 +124,7 @@ public class ResourceTypeController implements Serializable {
 			OperationalResultType operationalResult = new OperationalResultType();
 			Holder<OperationalResultType> holder = new Holder<OperationalResultType>(operationalResult);
 			ObjectListType result = model.listResourceObjects(resourceDto.getOid(), objectType,
-					new PagingType(), holder);
+					new PagingType(), new Holder<OperationResultType>(new OperationResultType()));
 			List<ObjectType> objects = result.getObject();
 			accounts = new ArrayList<AccountShadowDto>();
 
@@ -171,7 +172,8 @@ public class ResourceTypeController implements Serializable {
 		}
 
 		try { // Call Web Service Operation
-			ResourceTestResultType result = model.testResource(resourceDto.getOid());
+			ResourceTestResultType result = model.testResource(resourceDto.getOid(),
+					new Holder<OperationResultType>(new OperationResultType()));
 			guiTestResult = new GuiTestResultDto();
 			guiTestResult.setConfigurationValidation(getEachResult(result.getConfigurationValidation()));
 			guiTestResult.setConnectorConnection(getEachResult(result.getConnectorConnection()));
@@ -210,7 +212,8 @@ public class ResourceTypeController implements Serializable {
 			String objectClass = "Account";
 
 			TRACE.debug("Calling launchImportFromResource({})", resourceDto.getOid());
-			model.launchImportFromResource(resourceDto.getOid(), objectClass);
+			model.launchImportFromResource(resourceDto.getOid(), objectClass,
+					new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			String message = (ex.getFaultInfo().getMessage() != null) ? ex.getFaultInfo().getMessage() : ex
 					.getMessage();
@@ -276,7 +279,8 @@ public class ResourceTypeController implements Serializable {
 		}
 
 		try { // Call Web Service Operation
-			TaskStatusType taskStatus = model.getImportStatus(resourceDto.getOid());
+			TaskStatusType taskStatus = model.getImportStatus(resourceDto.getOid(),
+					new Holder<OperationResultType>(new OperationResultType()));
 			status = convertTaskStatusResults(taskStatus);
 		} catch (FaultMessage ex) {
 			String message = (ex.getFaultInfo().getMessage() != null) ? ex.getFaultInfo().getMessage() : ex
@@ -301,7 +305,8 @@ public class ResourceTypeController implements Serializable {
 
 		try { // Call Web Service Operation
 
-			ObjectType result = model.getObject(resourceId, new PropertyReferenceListType());
+			ObjectType result = model.getObject(resourceId, new PropertyReferenceListType(),
+					new Holder<OperationResultType>(new OperationResultType()));
 			resourceDto = new GuiResourceDto((ResourceType) result);
 			parseForUsedConnector(resourceDto);
 		} catch (Exception ex) {
@@ -316,7 +321,8 @@ public class ResourceTypeController implements Serializable {
 			String objectType = Utils.getObjectType("ResourceType");
 			// TODO: more reasonable handling of paging info
 			PagingType paging = new PagingType();
-			ObjectListType result = model.listObjects(objectType, paging);
+			ObjectListType result = model.listObjects(objectType, paging, new Holder<OperationResultType>(
+					new OperationResultType()));
 			List<ObjectType> objects = result.getObject();
 			resources = new ArrayList<GuiResourceDto>();
 

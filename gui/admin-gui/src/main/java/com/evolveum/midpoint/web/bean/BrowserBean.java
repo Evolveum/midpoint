@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.faces.model.SelectItem;
+import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -39,6 +40,7 @@ import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
@@ -133,7 +135,8 @@ public class BrowserBean extends ListController<BrowserItem> {
 		query.setFilter(ControllerUtil.createQuery(name));
 		ObjectListType list = null;
 		try {
-			list = model.searchObjects(query, new PagingType());
+			list = model.searchObjects(query, new PagingType(), new Holder<OperationResultType>(
+					new OperationResultType()));
 		} catch (FaultMessage ex) {
 			FacesUtils.addErrorMessage("Couldn't search for object '" + name + "'.", ex);
 			LOGGER.debug("Couldn't search for object '" + name + "'.", ex);
@@ -149,7 +152,8 @@ public class BrowserBean extends ListController<BrowserItem> {
 		try {
 			PagingType paging = PagingTypeFactory.createPaging(getOffset(), getRowsCount(),
 					OrderDirectionType.ASCENDING, "name");
-			result = model.listObjects(Utils.getObjectType(type), paging);
+			result = model.listObjects(Utils.getObjectType(type), paging, new Holder<OperationResultType>(
+					new OperationResultType()));
 		} catch (FaultMessage ex) {
 			String message = (ex.getFaultInfo().getMessage() != null ? ex.getFaultInfo().getMessage() : ex
 					.getMessage());

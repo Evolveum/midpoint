@@ -28,6 +28,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.ws.Holder;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -44,13 +46,12 @@ import com.evolveum.midpoint.web.model.PropertyChange;
 import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
@@ -74,7 +75,8 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 		try { // Call Web Service Operation
 				// TODO: more reasonable handling of paging info
 			PagingType paging = new PagingType();
-			ObjectListType result = port.listObjects(Utils.getObjectType("AccountType"), paging);
+			ObjectListType result = port.listObjects(Utils.getObjectType("AccountType"), paging,
+					new Holder<OperationResultType>(new OperationResultType()));
 			List<ObjectType> objects = result.getObject();
 			Collection<AccountShadowDto> items = new ArrayList<AccountShadowDto>(objects.size());
 			for (Object o : objects) {
@@ -95,7 +97,8 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 		TRACE.info("oid = {}", new Object[] { oid });
 		Validate.notNull(oid);
 		try { // Call Web Service Operation
-			ObjectType result = port.getObject(oid, resolve);
+			ObjectType result = port.getObject(oid, resolve, new Holder<OperationResultType>(
+					new OperationResultType()));
 
 			AccountShadowDto accountShadowDto = (AccountShadowDto) constructAccountShadowType.newInstance();
 			accountShadowDto.setXmlObject(result);
@@ -119,7 +122,8 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 		Validate.notNull(accountShadowDto);
 
 		try { // Call Web Service Operation
-			String result = port.addObject(accountShadowDto.getXmlObject());
+			String result = port.addObject(accountShadowDto.getXmlObject(), new Holder<OperationResultType>(
+					new OperationResultType()));
 			return result;
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] Add account failed");
@@ -133,7 +137,7 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 		Validate.notNull(oid);
 
 		try { // Call Web Service Operation
-			port.deleteObject(oid);
+			port.deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] Delete account failed.");
 		}
@@ -144,7 +148,8 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 		Validate.notNull(oid);
 
 		try {
-			UserType userType = port.listAccountShadowOwner(oid);
+			UserType userType = port.listAccountShadowOwner(oid, new Holder<OperationResultType>(
+					new OperationResultType()));
 			return userType;
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] List owner failed.");
@@ -163,7 +168,7 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),
 					changedObject.getXmlObject());
 			if (changes != null && changes.getOid() != null) {
-				port.modifyObject(changes);
+				port.modifyObject(changes, new Holder<OperationResultType>(new OperationResultType()));
 			}
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(),

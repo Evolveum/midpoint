@@ -26,17 +26,23 @@ import java.math.BigInteger;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.ws.Holder;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DOMUtil;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.model.RepositoryException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
@@ -45,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
@@ -52,12 +59,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 /**
  * 
@@ -98,7 +99,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		query.setFilter(createQuery(username));
 		TRACE.trace("Looking for user, query:\n" + DOMUtil.printDom(query.getFilter()));
 
-		ObjectListType list = modelService.searchObjects(query, new PagingType());
+		ObjectListType list = modelService.searchObjects(query, new PagingType(),
+				new Holder<OperationResultType>(new OperationResultType()));
 		if (list == null) {
 			return null;
 		}
@@ -193,7 +195,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 			ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
 			if (modification != null && modification.getOid() != null) {
-				modelService.modifyObject(modification);
+				modelService.modifyObject(modification, new Holder<OperationResultType>(
+						new OperationResultType()));
 			}
 		} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
 			StringBuilder message = new StringBuilder();
@@ -215,7 +218,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	}
 
 	private UserType getUserByOid(String oid) throws FaultMessage {
-		ObjectType object = modelService.getObject(oid, new PropertyReferenceListType());
+		ObjectType object = modelService.getObject(oid, new PropertyReferenceListType(),
+				new Holder<OperationResultType>(new OperationResultType()));
 		if (object != null && (object instanceof UserType)) {
 			return (UserType) object;
 		}

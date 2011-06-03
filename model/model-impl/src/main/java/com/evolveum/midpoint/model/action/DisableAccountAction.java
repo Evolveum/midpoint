@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
@@ -42,62 +43,63 @@ import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMes
 import javax.xml.ws.Holder;
 
 /**
- *
+ * 
  * @author Vilo Repan
  */
 public class DisableAccountAction extends BaseAction {
 
-    private static Trace trace = TraceManager.getTrace(DisableAccountAction.class);
+	private static Trace trace = TraceManager.getTrace(DisableAccountAction.class);
 
-    @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-            SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange) throws SynchronizationException {
-        if (!(change.getShadow() instanceof AccountShadowType)) {
-            throw new SynchronizationException("Resource object is not account (class '" +
-                    AccountShadowType.class + "'), but it's '" + change.getShadow().getClass() + "'.");
-        }
+	@Override
+	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
+			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
+			OperationResultType resultType) throws SynchronizationException {
+		if (!(change.getShadow() instanceof AccountShadowType)) {
+			throw new SynchronizationException("Resource object is not account (class '"
+					+ AccountShadowType.class + "'), but it's '" + change.getShadow().getClass() + "'.");
+		}
 
-        AccountShadowType account = (AccountShadowType) change.getShadow();
-        ActivationType activation = account.getActivation();
-        if (activation == null) {
-            ObjectFactory of = new ObjectFactory();
-            activation = of.createActivationType();
-            account.setActivation(activation);
-        }
+		AccountShadowType account = (AccountShadowType) change.getShadow();
+		ActivationType activation = account.getActivation();
+		if (activation == null) {
+			ObjectFactory of = new ObjectFactory();
+			activation = of.createActivationType();
+			account.setActivation(activation);
+		}
 
-        activation.setEnabled(false);
+		activation.setEnabled(false);
 
-        try {
-            ObjectContainerType container = getProvisioning().getObject(account.getOid(),
-                    new PropertyReferenceListType(), new Holder<OperationalResultType>());
-            AccountShadowType oldAccount = (AccountShadowType) container.getObject();
+		try {
+			ObjectContainerType container = getProvisioning().getObject(account.getOid(),
+					new PropertyReferenceListType(), new Holder<OperationalResultType>());
+			AccountShadowType oldAccount = (AccountShadowType) container.getObject();
 
-            ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldAccount, account);
-            ScriptsType scripts = getScripts(change.getResource());
-            getProvisioning().modifyObject(changes, scripts, new Holder<OperationalResultType>());
-        } catch (DiffException ex) {
-            trace.error("Couldn't disable account {}, error while creating diff: {}.", new Object[]{
-                        account.getOid(), ex.getMessage()});
-            throw new SynchronizationException("Couldn't disable account " + account.getOid() +
-                    ", error while creating diff: " + ex.getMessage() + ".", ex);
-        } catch (FaultMessage ex) {
-            trace.error("Couldn't update (disable) account '{}' in provisioning, reason: {}.",
-                    new Object[]{account.getOid(), getMessage(ex)});
-            throw new SynchronizationException("Couldn't update (disable) account '" + account.getOid() +
-                    "' in provisioning, reason: " + getMessage(ex) + ".", ex, ex.getFaultInfo());
-        }
+			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldAccount, account);
+			ScriptsType scripts = getScripts(change.getResource());
+			getProvisioning().modifyObject(changes, scripts, new Holder<OperationalResultType>());
+		} catch (DiffException ex) {
+			trace.error("Couldn't disable account {}, error while creating diff: {}.",
+					new Object[] { account.getOid(), ex.getMessage() });
+			throw new SynchronizationException("Couldn't disable account " + account.getOid()
+					+ ", error while creating diff: " + ex.getMessage() + ".", ex);
+		} catch (FaultMessage ex) {
+			trace.error("Couldn't update (disable) account '{}' in provisioning, reason: {}.", new Object[] {
+					account.getOid(), getMessage(ex) });
+			throw new SynchronizationException("Couldn't update (disable) account '" + account.getOid()
+					+ "' in provisioning, reason: " + getMessage(ex) + ".", ex, ex.getFaultInfo());
+		}
 
-        return userOid;
-    }
+		return userOid;
+	}
 
-    private String getMessage(FaultMessage ex) {
-        String message = null;
-        if (ex.getFaultInfo() != null) {
-            message = ex.getFaultInfo().getMessage();
-        } else {
-            message = ex.getMessage();
-        }
+	private String getMessage(FaultMessage ex) {
+		String message = null;
+		if (ex.getFaultInfo() != null) {
+			message = ex.getFaultInfo().getMessage();
+		} else {
+			message = ex.getMessage();
+		}
 
-        return message;
-    }
+		return message;
+	}
 }

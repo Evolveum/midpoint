@@ -22,109 +22,125 @@
 
 package com.evolveum.midpoint.model;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.ws.Holder;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import java.io.File;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.mockito.Mockito;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
 
 /**
- *
+ * 
  * @author lazyman
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {
-    "classpath:application-context-model.xml",
-    "classpath:application-context-model-unit-test.xml"})
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-model-unit-test.xml" })
 public class ModelGetObjectTest {
 
-    private static final File TEST_FOLDER = new File("./src/test/resources/service/model/get");
-    @Autowired(required = true)
-    ModelPortType modelService;
-    @Autowired(required = true)
-    ProvisioningPortType provisioningService;
-    @Autowired(required = true)
-    RepositoryPortType repositoryService;
-//    @Autowired(required = true)
-//    SchemaHandling schemaHandling;
+	private static final File TEST_FOLDER = new File("./src/test/resources/service/model/get");
+	@Autowired(required = true)
+	ModelPortType modelService;
+	@Autowired(required = true)
+	ProvisioningPortType provisioningService;
+	@Autowired(required = true)
+	RepositoryPortType repositoryService;
 
-    @Before
-    public void before() {
-        Mockito.reset(provisioningService, repositoryService);
-    }
+	// @Autowired(required = true)
+	// SchemaHandling schemaHandling;
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testGetNullOid() throws FaultMessage {
-        modelService.getObject(null, new PropertyReferenceListType());
-        fail("get must fail");
-    }
+	@Before
+	public void before() {
+		Mockito.reset(provisioningService, repositoryService);
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testGetEmptyOid() throws FaultMessage {
-        modelService.getObject("", new PropertyReferenceListType());
-        fail("get must fail");
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void testGetNullOid() throws FaultMessage {
+		modelService.getObject(null, new PropertyReferenceListType(), new Holder<OperationResultType>(
+				new OperationResultType()));
+		fail("get must fail");
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testGetNullOidAndPropertyRef() throws FaultMessage {
-        modelService.getObject(null, null);
-        fail("get must fail");
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void testGetEmptyOid() throws FaultMessage {
+		modelService.getObject("", new PropertyReferenceListType(), new Holder<OperationResultType>(
+				new OperationResultType()));
+		fail("get must fail");
+	}
 
-    @Test(expected = IllegalArgumentException.class)
-    public void testGetNullPropertyRef() throws FaultMessage {
-        modelService.getObject("001", null);
-        fail("get must fail");
-    }
+	@Test(expected = IllegalArgumentException.class)
+	public void testGetNullOidAndPropertyRef() throws FaultMessage {
+		modelService.getObject(null, null, new Holder<OperationResultType>(new OperationResultType()));
+		fail("get must fail");
+	}
 
-    @Test(expected = FaultMessage.class)
-    public void getNonexistingObject() throws FaultMessage,
-            com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+	@Test(expected = IllegalArgumentException.class)
+	public void testGetNullPropertyRef() throws FaultMessage {
+		modelService.getObject("001", null, new Holder<OperationResultType>(new OperationResultType()));
+		fail("get must fail");
+	}
 
-        final String oid = "abababab-abab-abab-abab-000000000001";
-        when(repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class))).thenThrow(
-                new com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage(
-                "Object with oid '' not found.", new ObjectNotFoundFaultType()));
+	@Test(expected = FaultMessage.class)
+	public void getNonexistingObject() throws FaultMessage,
+			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
 
-        modelService.getObject(oid, new PropertyReferenceListType());
-        fail("get must fail");
-    }
+		final String oid = "abababab-abab-abab-abab-000000000001";
+		when(repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class))).thenThrow(
+				new com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage(
+						"Object with oid '' not found.", new ObjectNotFoundFaultType()));
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void getUserCorrect() throws JAXBException, FaultMessage,
-            com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+		modelService.getObject(oid, new PropertyReferenceListType(), new Holder<OperationResultType>(
+				new OperationResultType()));
+		fail("get must fail");
+	}
 
-        ObjectContainerType container = new ObjectContainerType();
-        final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(
-                new File(TEST_FOLDER, "get-user-correct.xml"))).getValue();
-        container.setObject(expectedUser);
+	@Test
+	@SuppressWarnings("unchecked")
+	public void getUserCorrect() throws JAXBException, FaultMessage,
+			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
 
-        final String oid = "abababab-abab-abab-abab-000000000001";
-        when(repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class))).thenReturn(container);
-        final UserType user = (UserType) modelService.getObject(oid, new PropertyReferenceListType());
+		ObjectContainerType container = new ObjectContainerType();
+		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"get-user-correct.xml"))).getValue();
+		container.setObject(expectedUser);
 
-        assertNotNull(user);
-        assertEquals(expectedUser.getName(), user.getName());
+		final String oid = "abababab-abab-abab-abab-000000000001";
+		when(repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class)))
+				.thenReturn(container);
+		final UserType user = (UserType) modelService.getObject(oid, new PropertyReferenceListType(),
+				new Holder<OperationResultType>(new OperationResultType()));
 
-        verify(repositoryService, atLeastOnce()).getObject(eq(oid), any(PropertyReferenceListType.class));
+		assertNotNull(user);
+		assertEquals(expectedUser.getName(), user.getName());
 
-    }
+		verify(repositoryService, atLeastOnce()).getObject(eq(oid), any(PropertyReferenceListType.class));
+
+	}
 }

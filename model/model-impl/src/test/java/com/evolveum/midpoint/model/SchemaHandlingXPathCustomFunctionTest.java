@@ -45,43 +45,47 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
- *
+ * 
  * @author Igor Farinic
- * @version $Revision$ $Date$
- * @since 0.1
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:application-context-model.xml", "classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml", "classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml"})
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml",
+		"classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml" })
 public class SchemaHandlingXPathCustomFunctionTest {
 
-    @Autowired
-    SchemaHandling schemaHandling;
+	@Autowired
+	SchemaHandling schemaHandling;
 
-    public SchemaHandlingXPathCustomFunctionTest() {
-    }
+	public SchemaHandlingXPathCustomFunctionTest() {
+	}
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+	}
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
+	@AfterClass
+	public static void tearDownClass() throws Exception {
+	}
 
-    @Before
-    public void setUp() {
-    }
+	@Before
+	public void setUp() {
+	}
 
-    @After
-    public void tearDown() {
-    }
+	@After
+	public void tearDown() {
+	}
 
-    @Test
-    public void testCustomFunction() throws Exception {
-        JAXBElement<AccountShadowType> accountJaxb = (JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File("src/test/resources/account-custom-function.xml"));
-        JAXBElement<UserType> userJaxb = (JAXBElement<UserType>) JAXBUtil.unmarshal(new File("src/test/resources/user-custom-function.xml"));
-        ResourceObjectShadowType appliedAccountShadow = schemaHandling.applyOutboundSchemaHandlingOnAccount(userJaxb.getValue(), accountJaxb.getValue(), accountJaxb.getValue().getResource());
-        assertEquals("__NAME__", appliedAccountShadow.getAttributes().getAny().get(0).getLocalName());
-        assertEquals("Bond", appliedAccountShadow.getAttributes().getAny().get(0).getTextContent());
-    }
+	@Test
+	public void testCustomFunction() throws Exception {
+		JAXBElement<AccountShadowType> accountJaxb = (JAXBElement<AccountShadowType>) JAXBUtil
+				.unmarshal(new File("src/test/resources/account-custom-function.xml"));
+		JAXBElement<UserType> userJaxb = (JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+				"src/test/resources/user-custom-function.xml"));
+		ResourceObjectShadowType appliedAccountShadow = schemaHandling.applyOutboundSchemaHandlingOnAccount(
+				userJaxb.getValue(), accountJaxb.getValue(), accountJaxb.getValue().getResource());
+		assertEquals("__NAME__", appliedAccountShadow.getAttributes().getAny().get(0).getLocalName());
+		assertEquals("Bond", appliedAccountShadow.getAttributes().getAny().get(0).getTextContent());
+	}
 }

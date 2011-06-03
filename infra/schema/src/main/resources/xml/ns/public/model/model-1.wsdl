@@ -68,6 +68,7 @@
                 OID attribute of the object may be empty.
             </documentation>
         </part>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="addObjectResponse">
         <part name="oid" type="xsd:string">
@@ -75,14 +76,17 @@
                 OID assigned to the created object.
             </documentation>
         </part>
+        <part name="result" type="c:OperationResultType" />
     </message>
 
     <message name="getObjectRequest">
         <part name="oid" type="xsd:string"/>
         <part name="resolve" type="c:PropertyReferenceListType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="getObjectResponse">
         <part name="object" type="c:ObjectType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
 
     <message name="listObjectsRequest">
@@ -96,9 +100,11 @@
                 Parameters limiting the number of returned entries, offset, etc.
             </documentation>
         </part>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="listObjectsResponse">
         <part name="objectList" type="c:ObjectListType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
 
     <message name="searchObjectsRequest">
@@ -112,46 +118,58 @@
                 Parameters limiting the number of returned entries, offset, etc.
             </documentation>
         </part>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="searchObjectsResponse">
         <part name="objectList" type="c:ObjectListType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
 
     <message name="modifyObjectRequest">
         <part name="objectChange" type="c:ObjectModificationType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="modifyObjectResponse">
+    	<part name="result" type="c:OperationResultType" />
     </message>
 
     <message name="deleteObjectRequest">
         <part name="oid" type="xsd:string"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="deleteObjectResponse">
+    	<part name="result" type="c:OperationResultType" />
     </message>
 
     <message name="getPropertyAvailableValuesRequest">
         <part name="oid" type="xsd:string"/>
         <part name="properties" type="c:PropertyReferenceListType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="getPropertyAvailableValuesResponse">
         <part name="propertyAvailableValuesList" type="c:PropertyAvailableValuesListType"/>
-    </message>
-    
+        <part name="result" type="c:OperationResultType" />
+    </message>  
+
     <!-- End of common messages -->
 
     <message name="listAccountShadowOwnerRequest">
         <part name="accountOid" type="xsd:string"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="listAccountShadowOwnerResponse">
         <part name="user" type="c:UserType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
 
     <message name="listResourceObjectShadowsRequest">
         <part name="resourceOid" type="xsd:string"/>
         <part name="resourceObjectShadowType" type="xsd:anyURI"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="listResourceObjectShadowsResponse">
         <part name="resourceObjectShadowList" type="c:ResourceObjectShadowListType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
 
     <!-- Following two pairs of messages should not be here. They are in fact
@@ -172,18 +190,20 @@
                 Parameters limiting the number of returned entries, offset, etc.
             </documentation>
         </part>
-        <part name="result" type="c:OperationalResultType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="listResourceObjectsResponse">
         <part name="objectList" type="c:ObjectListType"/>
-        <part name="result" type="c:OperationalResultType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
 
     <message name="testResourceRequest">
         <part name="resourceOid" type="xsd:string"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="testResourceResponse">
-        <part name="result" type="c:ResourceTestResultType"/>
+        <part name="testResult" type="c:ResourceTestResultType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
 
     <message name="launchImportFromResourceRequest">
@@ -194,16 +214,20 @@
                 Local name, assumed to be in the resource namespace.
             </documentation>
         </part>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="launchImportFromResourceResponse">
         <part name="empty" type="c:EmptyType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
 
     <message name="getImportStatusRequest">
         <part name="resourceOid" type="xsd:string"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
     <message name="getImportStatusResponse">
         <part name="status" type="c:TaskStatusType"/>
+        <part name="result" type="c:OperationResultType" />
     </message>
 
     <portType name="modelPortType">

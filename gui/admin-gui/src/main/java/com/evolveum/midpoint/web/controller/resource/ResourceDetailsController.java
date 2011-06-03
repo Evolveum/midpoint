@@ -22,6 +22,8 @@ package com.evolveum.midpoint.web.controller.resource;
 
 import java.io.Serializable;
 
+import javax.xml.ws.Holder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -30,6 +32,7 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
@@ -77,7 +80,8 @@ public class ResourceDetailsController implements Serializable {
 			String objectClass = "Account";
 
 			TRACE.debug("Calling launchImportFromResource({})", resource.getOid());
-			model.launchImportFromResource(resource.getOid(), objectClass);
+			model.launchImportFromResource(resource.getOid(), objectClass, new Holder<OperationResultType>(
+					new OperationResultType()));
 		} catch (FaultMessage ex) {
 			String message = (ex.getFaultInfo().getMessage() != null) ? ex.getFaultInfo().getMessage() : ex
 					.getMessage();

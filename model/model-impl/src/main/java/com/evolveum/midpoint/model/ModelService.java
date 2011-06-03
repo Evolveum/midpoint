@@ -22,67 +22,14 @@
 
 package com.evolveum.midpoint.model;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.DOMUtil;
-import com.evolveum.midpoint.common.DebugUtil;
-import com.evolveum.midpoint.common.object.ObjectTypeUtil;
-import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.common.diff.DiffException;
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.common.patch.PatchXml;
-import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.xpath.SchemaHandling;
-import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.RandomString;
-import com.evolveum.midpoint.util.patch.PatchException;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType.Credentials;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.InapplicableOperationFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.SchemaViolationFaultType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,12 +38,67 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
+import com.evolveum.midpoint.common.diff.DiffException;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
+import com.evolveum.midpoint.common.patch.PatchXml;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.xpath.SchemaHandling;
+import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.RandomString;
+import com.evolveum.midpoint.util.patch.PatchException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType.Credentials;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.InapplicableOperationFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.SchemaViolationFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
+import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.schema.XPathSegment;
+import com.evolveum.midpoint.xml.schema.XPathType;
+
 /**
- * TODO
  * 
  * @author Igor Farinic
- * @version $Revision$ $Date$
- * @since 0.1
+ * 
  */
 @Service
 public class ModelService implements ModelPortType {
@@ -110,8 +112,9 @@ public class ModelService implements ModelPortType {
 	private SchemaHandling schemaHandling;
 
 	@Override
-	public java.lang.String addObject(ObjectType object) throws FaultMessage {
-		if (object== null) {
+	public java.lang.String addObject(ObjectType object, Holder<OperationResultType> resultType)
+			throws FaultMessage {
+		if (object == null) {
 			throw new IllegalArgumentException("Object must not be null.");
 		}
 		logger.info("### MODEL # Enter addObject({})", DebugUtil.prettyPrint(object));
@@ -130,7 +133,7 @@ public class ModelService implements ModelPortType {
 		} else {
 			if (object instanceof UserType) {
 				UserType user = (UserType) object;
-				preprocessUserType(user);
+				preprocessUserType(user, resultType);
 			}
 
 			try {
@@ -138,17 +141,13 @@ public class ModelService implements ModelPortType {
 				objectContainer.setObject(object);
 				result = repositoryService.addObject(objectContainer);
 			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
-				logger.error(
-						"### MODEL # Fault addObject(..): Repository failed for method addObject : ",
-						ex);
+				logger.error("### MODEL # Fault addObject(..): Repository failed for method addObject : ", ex);
 				throw createFaultMessage("Repository invocation failed (addObject)", ex.getFaultInfo(), ex,
 						null);
 			} catch (Exception ex) {
-				logger.error(
-						"### MODEL # Fault addObject(..): Repository failed for method addObject : ",
-						ex);
-				throw createFaultMessage("Repository invocation failed (addObject)", new InapplicableOperationFaultType(), ex,
-						null);				
+				logger.error("### MODEL # Fault addObject(..): Repository failed for method addObject : ", ex);
+				throw createFaultMessage("Repository invocation failed (addObject)",
+						new InapplicableOperationFaultType(), ex, null);
 			}
 		}
 
@@ -156,7 +155,8 @@ public class ModelService implements ModelPortType {
 		return result;
 	}
 
-	private void preprocessUserType(UserType user) throws FaultMessage {
+	private void preprocessUserType(UserType user, Holder<OperationResultType> resultType)
+			throws FaultMessage {
 		List<AccountShadowType> accounts = user.getAccount();
 		List<ObjectReferenceType> references = new ArrayList<ObjectReferenceType>();
 		// we're looking for accounts (now only resource references) which have
@@ -187,7 +187,7 @@ public class ModelService implements ModelPortType {
 				account = (AccountShadowType) schemaHandling.applyOutboundSchemaHandlingOnAccount(user,
 						account, resource);
 
-				String oid = addObject(account);
+				String oid = addObject(account, resultType);
 
 				ObjectReferenceType accountRef = new ObjectReferenceType();
 				accountRef.setOid(oid);
@@ -226,7 +226,7 @@ public class ModelService implements ModelPortType {
 			ScriptsType scripts = getScripts(object);
 			ObjectContainerType container = new ObjectContainerType();
 			container.setObject(object);
-			String result = provisioningService.addObject(container, scripts, holder);
+			java.lang.String result = provisioningService.addObject(container, scripts, holder);
 			return result;
 		} catch (com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage ex) {
 			logger.error(
@@ -279,10 +279,9 @@ public class ModelService implements ModelPortType {
 		password.setAny(hash);
 	}
 
-	public UserType listAccountShadowOwnerSilent(String accountOid) {
+	public UserType listAccountShadowOwnerSilent(String accountOid, Holder<OperationResultType> resultType) {
 		try {
-			UserType user = listAccountShadowOwner(accountOid);
-			return user;
+			return listAccountShadowOwner(accountOid, resultType);
 		} catch (FaultMessage ex) {
 			logger.error("Couldn't find owner for account with oid {}, reason: {}", accountOid,
 					ex.getMessage());
@@ -313,7 +312,8 @@ public class ModelService implements ModelPortType {
 		return scripts;
 	}
 
-	private void processAddAccount(ObjectModificationType objectChange, String operation) throws FaultMessage {
+	private void processAddAccount(ObjectModificationType objectChange, String operation,
+			Holder<OperationResultType> resultType) throws FaultMessage {
 		// handle add new account - it is modification of the user.
 		// other changes won't be processed here
 
@@ -341,8 +341,8 @@ public class ModelService implements ModelPortType {
 
 					// 1. we will evaluate values for attributes from schema
 					// handling
-					ObjectType object = this.getObject(objectChange.getOid(),
-							Utils.getResolveResourceList());
+					ObjectType object = this.getObject(objectChange.getOid(), Utils.getResolveResourceList(),
+							resultType);
 					AccountShadowType account = accountShadowJaxb.getValue();
 					ResourceType resource = account.getResource();
 					if (resource == null) {
@@ -358,8 +358,8 @@ public class ModelService implements ModelPortType {
 						// SchemaHandling util = new SchemaHandling();
 						// util.setModel(this);
 						// util.setFilterManager(filterManager);
-						schemaHandling.applyOutboundSchemaHandlingOnAccount(
-								(UserType) object, account, resource);
+						schemaHandling.applyOutboundSchemaHandlingOnAccount((UserType) object, account,
+								resource);
 					} catch (SchemaHandlingException ex) {
 						logger.error("### MODEL # Fault {}(..): Parsing outbound schema hadling failed : {}",
 								operation, ex);
@@ -370,15 +370,15 @@ public class ModelService implements ModelPortType {
 					logger.trace("JAXBObject for account: {}", JAXBUtil.silentMarshal(accountShadowJaxb));
 
 					// 2. we will send new account to provisioning
-
-					logger.trace("ObjectCOntainer for account: {}", JAXBUtil.silentMarshalWrap(
-							accountShadowJaxb.getValue(), new QName(SchemaConstants.NS_C, "ObjectContainerType")));
+					AccountShadowType accountShadow = accountShadowJaxb.getValue();
+					logger.trace("ObjectCOntainer for account: {}", JAXBUtil.silentMarshalWrap(accountShadow,
+							new QName(SchemaConstants.NS_C, "ObjectContainerType")));
 
 					logger.trace("Account in ObjectCOntainer with applied schema handling: {}", JAXBUtil
-							.silentMarshalWrap(accountShadowJaxb.getValue(), new QName(SchemaConstants.NS_C,
+							.silentMarshalWrap(accountShadow, new QName(SchemaConstants.NS_C,
 									"ObjectContainerType")));
 
-					String accountOid = this.addObject(accountShadowJaxb.getValue());
+					String accountOid = this.addObject(accountShadow, resultType);
 
 					// 3. we will modify object change to contain only
 					// accountRef not whole account
@@ -432,8 +432,8 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public ObjectType getObject(java.lang.String oid, PropertyReferenceListType resolve)
-			throws FaultMessage {
+	public ObjectType getObject(java.lang.String oid, PropertyReferenceListType resolve,
+			Holder<OperationResultType> resultType) throws FaultMessage {
 		if (oid == null || oid.isEmpty()) {
 			throw new IllegalArgumentException("Oid must not be null or empty.");
 		}
@@ -579,7 +579,8 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public ObjectListType listObjects(java.lang.String objectType, PagingType paging) throws FaultMessage {
+	public ObjectListType listObjects(java.lang.String objectType, PagingType paging,
+			Holder<OperationResultType> resultType) throws FaultMessage {
 		if (objectType == null || objectType.isEmpty()) {
 			throw new IllegalArgumentException("Object type must not be null.");
 		}
@@ -636,7 +637,8 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public ObjectListType searchObjects(QueryType filter, PagingType paging) throws FaultMessage {
+	public ObjectListType searchObjects(QueryType filter, PagingType paging,
+			Holder<OperationResultType> resultType) throws FaultMessage {
 		if (filter == null) {
 			throw new IllegalArgumentException("Object type must not be null.");
 		}
@@ -666,8 +668,9 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public void modifyObject(ObjectModificationType objectChange) throws FaultMessage {
-		modifyObjectWithExclusion(objectChange, null);
+	public void modifyObject(ObjectModificationType objectChange, Holder<OperationResultType> resultType)
+			throws FaultMessage {
+		modifyObjectWithExclusion(objectChange, null, resultType);
 	}
 
 	/**
@@ -681,8 +684,8 @@ public class ModelService implements ModelPortType {
 	 * @deprecated
 	 */
 	@Deprecated
-	public void modifyObjectWithExclusion(ObjectModificationType objectChange, String accountOid)
-			throws FaultMessage {
+	public void modifyObjectWithExclusion(ObjectModificationType objectChange, String accountOid,
+			Holder<OperationResultType> resultType) throws FaultMessage {
 		if (objectChange == null) {
 			throw new IllegalArgumentException("Object change must not be null.");
 		}
@@ -727,7 +730,7 @@ public class ModelService implements ModelPortType {
 					// This seems to be wrong. What are the outboudn expressions
 					// only applied
 					// if an account has an owner?
-					UserType userType = listAccountShadowOwnerSilent(object.getOid());
+					UserType userType = listAccountShadowOwnerSilent(object.getOid(), resultType);
 					if (userType != null) {
 						// We have object already, but that may be just
 						// "empty shell" from repository
@@ -801,7 +804,7 @@ public class ModelService implements ModelPortType {
 						SystemFaultType.class, true, ex, null);
 			}
 		} else {
-			processAddAccount(objectChange, "modifyObject");
+			processAddAccount(objectChange, "modifyObject", resultType);
 
 			try {
 				PropertyModificationType password = null;
@@ -813,12 +816,12 @@ public class ModelService implements ModelPortType {
 				// if objectChange contains password change for user type,
 				// update all passwords on his accounts
 				if (password != null) {
-					updateAccountPasswords((UserType) object, password, accountOid);
+					updateAccountPasswords((UserType) object, password, accountOid, resultType);
 				}
 				// update user accounts
 				if (object instanceof UserType) {
 					UserType userType = (UserType) getObject(object.getOid(),
-							new PropertyReferenceListType());
+							new PropertyReferenceListType(), resultType);
 					if (logger.isDebugEnabled()) {
 						logger.debug("User before accounts update - outbound schema handling\n{}",
 								DebugUtil.prettyPrint(userType));
@@ -973,7 +976,8 @@ public class ModelService implements ModelPortType {
 		return resource;
 	}
 
-	private void updateAccountPasswords(UserType user, PropertyModificationType password, String accountOid)
+	private void updateAccountPasswords(UserType user, PropertyModificationType password, String accountOid,
+			Holder<OperationResultType> resultType)
 			throws com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage,
 			JAXBException, PatchException, DiffException, FaultMessage {
 		// 2. update passwords on accounts
@@ -983,7 +987,7 @@ public class ModelService implements ModelPortType {
 			if (updateAccountPassword(account, accountOid)) {
 				logger.debug("### MODEL # updating password for account: " + account.getName());
 				ObjectModificationType changes = createPasswordModification(account, password);
-				modifyObject(changes);
+				modifyObject(changes, resultType);
 			}
 		}
 
@@ -992,7 +996,7 @@ public class ModelService implements ModelPortType {
 			if (updateAccountPassword(account, accountOid)) {
 				logger.debug("### MODEL # updating password for account: " + account.getName());
 				ObjectModificationType changes = createPasswordModification(account, password);
-				modifyObject(changes);
+				modifyObject(changes, resultType);
 			}
 		}
 	}
@@ -1053,7 +1057,7 @@ public class ModelService implements ModelPortType {
 		for (PropertyModificationType propModification : list) {
 			XPathType path = new XPathType(propModification.getPath());
 			List<XPathSegment> segments = path.toSegments();
-			if (segments.isEmpty() || !segments.get(0).getQName().equals(SchemaConstants.I_CREDENTIALS)) {
+			if (segments.size() == 0 || !segments.get(0).getQName().equals(SchemaConstants.I_CREDENTIALS)) {
 				continue;
 			}
 
@@ -1074,7 +1078,8 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public void deleteObject(java.lang.String oid) throws FaultMessage {
+	public void deleteObject(java.lang.String oid, Holder<OperationResultType> resultType)
+			throws FaultMessage {
 		logger.info("### MODEL # Enter deleteObject({})", oid);
 		if (oid == null || oid.isEmpty()) {
 			throw new IllegalArgumentException("Oid must not be null or empty.");
@@ -1203,7 +1208,7 @@ public class ModelService implements ModelPortType {
 
 	@Override
 	public PropertyAvailableValuesListType getPropertyAvailableValues(java.lang.String oid,
-			PropertyReferenceListType properties) throws FaultMessage {
+			PropertyReferenceListType properties, Holder<OperationResultType> resultType) throws FaultMessage {
 		if (oid == null || oid.isEmpty()) {
 			throw new IllegalArgumentException("Oid must not be null.");
 		}
@@ -1216,7 +1221,8 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public UserType listAccountShadowOwner(java.lang.String accountOid) throws FaultMessage {
+	public UserType listAccountShadowOwner(java.lang.String accountOid, Holder<OperationResultType> resultType)
+			throws FaultMessage {
 		if (accountOid == null || accountOid.isEmpty()) {
 			throw new IllegalArgumentException("Account oid must not be null or empty.");
 		}
@@ -1236,7 +1242,8 @@ public class ModelService implements ModelPortType {
 
 	@Override
 	public ResourceObjectShadowListType listResourceObjectShadows(java.lang.String resourceOid,
-			java.lang.String resourceObjectShadowType) throws FaultMessage {
+			java.lang.String resourceObjectShadowType, Holder<OperationResultType> resultType)
+			throws FaultMessage {
 		if (resourceOid == null || resourceOid.isEmpty()) {
 			throw new IllegalArgumentException("Resource oid must not be null or empty.");
 		}
@@ -1329,7 +1336,8 @@ public class ModelService implements ModelPortType {
 	 * disappear eventually.
 	 */
 	@Override
-	public ResourceTestResultType testResource(String resourceOid) throws FaultMessage {
+	public ResourceTestResultType testResource(String resourceOid, Holder<OperationResultType> resultType)
+			throws FaultMessage {
 		logger.info("### MODEL # Enter testResource({})", resourceOid);
 
 		ResourceTestResultType result = null;
@@ -1341,8 +1349,7 @@ public class ModelService implements ModelPortType {
 		} catch (com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage ex) {
 			logger.error("### MODEL # Fault testResource(..): Provisioning invocation failed (getObject) : ",
 					ex);
-			throw createFaultMessage(
-					"Provisioning invocation failed (testResource), reason: ",
+			throw createFaultMessage("Provisioning invocation failed (testResource), reason: ",
 					ex.getFaultInfo(), ex, null);
 		} catch (RuntimeException ex) {
 			// Exceptions such as JBI messaging exceptions
@@ -1358,14 +1365,15 @@ public class ModelService implements ModelPortType {
 
 	@Override
 	public ObjectListType listResourceObjects(String resourceOid, String objectType, PagingType paging,
-			Holder<OperationalResultType> resultHolder) throws FaultMessage {
+			Holder<OperationResultType> resultType) throws FaultMessage {
 		logger.info("### MODEL # Enter listResourceObjects({},{},...)", resourceOid, objectType);
 
 		ObjectListType result = null;
 
 		try { // Call Web Service Operation
 
-			result = provisioningService.listResourceObjects(resourceOid, objectType, paging, resultHolder);
+			result = provisioningService.listResourceObjects(resourceOid, objectType, paging,
+					new Holder<OperationalResultType>());
 
 		} catch (com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage ex) {
 			logger.error(
@@ -1388,7 +1396,8 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public EmptyType launchImportFromResource(String resourceOid, String objectClass) throws FaultMessage {
+	public EmptyType launchImportFromResource(String resourceOid, String objectClass,
+			Holder<OperationResultType> resultType) throws FaultMessage {
 		logger.info("### MODEL # Enter launchImportFromResource({},{})", resourceOid, objectClass);
 
 		EmptyType result = null;
@@ -1417,7 +1426,8 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public TaskStatusType getImportStatus(String resourceOid) throws FaultMessage {
+	public TaskStatusType getImportStatus(String resourceOid, Holder<OperationResultType> resultType)
+			throws FaultMessage {
 		if (resourceOid == null || resourceOid.isEmpty()) {
 			throw new IllegalArgumentException("Resource OID must not be null or empty.");
 		}

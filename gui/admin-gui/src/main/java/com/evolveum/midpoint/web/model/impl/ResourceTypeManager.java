@@ -28,6 +28,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.ws.Holder;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -42,9 +44,9 @@ import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.ResourceObjectShadowDto;
 import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.web.model.WebModelException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
@@ -75,7 +77,8 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 			String objectType = Utils.getObjectType("ResourceType");
 			// TODO: more reasonable handling of paging info
 			PagingType paging = new PagingType();
-			ObjectListType result = model.listObjects(objectType, paging);
+			ObjectListType result = model.listObjects(objectType, paging, new Holder<OperationResultType>(
+					new OperationResultType()));
 			List<ObjectType> objects = result.getObject();
 			Collection<ResourceDto> items = new ArrayList<ResourceDto>(objects.size());
 
@@ -98,9 +101,10 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 		TRACE.info("oid = {}", new Object[] { oid });
 		Validate.notNull(oid);
 		try { // Call Web Service Operation
-			ObjectType result = model.getObject(oid, resolve);
+			ObjectType result = model.getObject(oid, resolve, new Holder<OperationResultType>(
+					new OperationResultType()));
 
-			ResourceDto resourceDto = (ResourceDto) constructResourceType.newInstance();			
+			ResourceDto resourceDto = (ResourceDto) constructResourceType.newInstance();
 			resourceDto.setXmlObject(result);
 
 			return resourceDto;
@@ -129,7 +133,8 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 		Validate.notNull(newObject);
 
 		try { // Call Web Service Operation
-			String result = model.addObject(newObject.getXmlObject());
+			String result = model.addObject(newObject.getXmlObject(), new Holder<OperationResultType>(
+					new OperationResultType()));
 			return result;
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] Add resource failed");
@@ -147,7 +152,7 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 	public void delete(String oid) throws WebModelException {
 		Validate.notNull(oid);
 		try {
-			model.deleteObject(oid);
+			model.deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(),
 					"[Web Service Error] Failed to delete resource with oid " + oid);
@@ -165,7 +170,8 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 		Validate.notNull(oid);
 		try {
 			ResourceObjectShadowListType resourceObjectShadowListType = model.listResourceObjectShadows(oid,
-					resourceObjectShadowType.getName());
+					resourceObjectShadowType.getName(), new Holder<OperationResultType>(
+							new OperationResultType()));
 			List<ResourceObjectShadowDto> resourceObjectShadowDtoList = new ArrayList<ResourceObjectShadowDto>();
 			for (ResourceObjectShadowType resourceObjectShadow : resourceObjectShadowListType.getObject()) {
 				ResourceObjectShadowDto resourceObjectShadowDto = new ResourceObjectShadowDto(
