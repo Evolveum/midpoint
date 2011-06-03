@@ -39,6 +39,7 @@ import com.evolveum.midpoint.schema.ObjectTypeEnum;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.bean.DebugObject;
 import com.evolveum.midpoint.web.controller.TemplateController;
+import com.evolveum.midpoint.web.controller.util.ListController;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -55,7 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
  */
 @Controller("debugList")
 @Scope("session")
-public class DebugListController implements Serializable {
+public class DebugListController extends ListController<DebugObject> {
 
 	public static final String PAGE_NAVIGATION_LIST = "/config/debugList?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_VIEW = "/config/debugView?faces-redirect=true";
@@ -78,7 +79,6 @@ public class DebugListController implements Serializable {
 	private transient TemplateController template;
 	@Autowired(required = true)
 	private transient DebugViewController debugView;
-	private List<DebugObject> objects;
 	private String objectType = "UserType";
 	private int offset = 0;
 	private int rowsCount = 30;
@@ -87,13 +87,6 @@ public class DebugListController implements Serializable {
 
 	public List<SelectItem> getObjectTypes() {
 		return objectTypes;
-	}
-
-	public List<DebugObject> getObjects() {
-		if (objects == null) {
-			objects = new ArrayList<DebugObject>();
-		}
-		return objects;
 	}
 
 	public void setObjectType(String objectType) {
@@ -120,31 +113,8 @@ public class DebugListController implements Serializable {
 		return PAGE_NAVIGATION_LIST;
 	}
 
-	public String listLast() {
-		offset = 0;
-		return listObjects();
-	}
-
-	public String listNext() {
-		offset += rowsCount;
-		return listObjects();
-	}
-
-	public String listFirst() {
-		offset = 0;
-		return listObjects();
-	}
-
-	public String listPrevious() {
-		if (offset < rowsCount) {
-			return null;
-		}
-		offset -= rowsCount;
-		return listObjects();
-	}
-
 	public boolean isShowTable() {
-		if (objects != null && !objects.isEmpty()) {
+		if (!getObjects().isEmpty()) {
 			return true;
 		}
 
@@ -156,7 +126,8 @@ public class DebugListController implements Serializable {
 		return listFirst();
 	}
 
-	private String listObjects() {
+	@Override
+	protected String listObjects() {
 		if (StringUtils.isEmpty(objectType)) {
 			FacesUtils.addErrorMessage("Object type not defined.");
 			return null;
@@ -186,7 +157,7 @@ public class DebugListController implements Serializable {
 
 		getObjects().clear();
 		for (ObjectType object : result.getObject()) {
-			objects.add(new DebugObject(object.getOid(), object.getName()));
+			getObjects().add(new DebugObject(object.getOid(), object.getName()));
 		}
 
 		return null;
@@ -237,7 +208,7 @@ public class DebugListController implements Serializable {
 		}
 
 		DebugObject object = null;
-		for (DebugObject dObject : objects) {
+		for (DebugObject dObject : getObjects()) {
 			if (objectOid.equals(dObject.getOid())) {
 				object = dObject;
 				break;

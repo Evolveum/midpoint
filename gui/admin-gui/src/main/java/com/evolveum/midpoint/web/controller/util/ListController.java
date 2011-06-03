@@ -35,6 +35,8 @@ public abstract class ListController<T> implements Serializable {
 	private List<T> objects;
 	private int offset = 0;
 	private int rowsCount = 10;
+	private boolean firstEnabled = true;
+	private boolean lastEnabled = true;
 
 	public List<T> getObjects() {
 		if (objects == null) {
@@ -42,7 +44,7 @@ public abstract class ListController<T> implements Serializable {
 		}
 		return objects;
 	}
-	
+
 	public int getOffset() {
 		return offset;
 	}
@@ -56,31 +58,60 @@ public abstract class ListController<T> implements Serializable {
 	}
 
 	public String listLast() {
-		offset = 0;
+		offset = -1;
+		firstEnabled = true;
+		lastEnabled = false;
+
 		return listObjects();
 	}
 
 	public String listNext() {
 		offset += rowsCount;
+		firstEnabled = true;
+		lastEnabled = true;
+
 		return listObjects();
 	}
 
 	public String listFirst() {
 		offset = 0;
+		firstEnabled = false;
+		lastEnabled = true;
+
 		return listObjects();
 	}
 
 	public String listPrevious() {
 		if (offset < rowsCount) {
-			return null;
+			offset = 0;
+		} else {
+			offset -= rowsCount;
 		}
-		offset -= rowsCount;
+		lastEnabled = true;
+		firstEnabled = true;
+
 		return listObjects();
 	}
-	
+
 	public void cleanup() {
 		offset = 0;
 		getObjects().clear();
+	}
+
+	public boolean isFirstEnabled() {
+		return firstEnabled;
+	}
+
+	public boolean isPreviousEnabled() {
+		return firstEnabled;
+	}
+
+	public boolean isNextEnabled() {
+		return lastEnabled;
+	}
+
+	public boolean isLastEnabled() {
+		return lastEnabled;
 	}
 
 	protected abstract String listObjects();

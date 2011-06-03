@@ -100,7 +100,7 @@ public class BrowserBean extends ListController<BrowserItem> {
 			return;
 		}
 		listByName = true;
-		listObjects();
+		listFirst();
 	}
 
 	public void searchByType() {
@@ -109,7 +109,7 @@ public class BrowserBean extends ListController<BrowserItem> {
 			return;
 		}
 		listByName = false;
-		listObjects();
+		listFirst();
 	}
 
 	@Override

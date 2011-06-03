@@ -67,10 +67,6 @@
 		<filter-name>springSecurityFilterChain</filter-name>
 		<url-pattern>/*</url-pattern>
 	</filter-mapping>
-	
-	<listener>
-		<listener-class>com.evolveum.midpoint.web.security.SessionListener</listener-class>
-	</listener>
 
 	<listener>
 		<listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
@@ -87,7 +83,7 @@
 	<listener>
 		<listener-class>org.springframework.security.web.session.HttpSessionEventPublisher</listener-class>
 	</listener>
-	
+
 	<servlet>
 		<servlet-name>Resource Servlet</servlet-name>
 		<servlet-class>com.icesoft.faces.webapp.CompatResourceServlet</servlet-class>
@@ -106,7 +102,7 @@
 		<servlet-name>Faces Servlet</servlet-name>
 		<url-pattern>*.iface</url-pattern>
 	</servlet-mapping>
-	
+
 	<session-config>
 		<session-timeout>30</session-timeout>
 	</session-config>
@@ -114,9 +110,6 @@
 		<welcome-file>index.html</welcome-file>
 		<welcome-file>index.iface</welcome-file>
 	</welcome-file-list>
-	<!-- <error-page>		
-		<exception-type>java.lang.Exception</exception-type>
-		<location>/error.iface</location>
-	</error-page> -->
+	<!-- <error-page> <exception-type>java.lang.Exception</exception-type> <location>/error.iface</location> </error-page> -->
 </web-app>
 

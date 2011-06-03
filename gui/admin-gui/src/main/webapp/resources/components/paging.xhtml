@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:comp="http://java.sun.com/jsf/composite/components"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:c="http://java.sun.com/jsp/jstl/core" xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/"
+	xmlns:composite="http://java.sun.com/jsf/composite">
+
+<composite:interface>
+	<composite:attribute name="bean" type="com.evolveum.midpoint.web.controller.util.ListController" required="true" />		
+</composite:interface>
+
+<composite:implementation>
+	<ice:panelGroup styleClass="container-auto" style="text-align: center;">
+		<idm:button img="/resources/images/resultset_first.png" value="#{lang.messages['page.paginator.first']}"
+			action="#{cc.attrs.bean.listFirst}" enabled="#{cc.attrs.bean.firstEnabled}" />
+		<idm:button img="/resources/images/resultset_previous.png"
+			value="#{lang.messages['page.paginator.previous']}" action="#{cc.attrs.bean.listPrevious}"
+			enabled="#{cc.attrs.bean.previousEnabled}" />
+		<idm:button img="/resources/images/resultset_next.png" value="#{lang.messages['page.paginator.next']}"
+			action="#{cc.attrs.bean.listNext}" enabled="#{cc.attrs.bean.nextEnabled}" />
+		<idm:button img="/resources/images/resultset_last.png" value="#{lang.messages['page.paginator.last']}"
+			action="#{cc.attrs.bean.listLast}" enabled="#{cc.attrs.bean.lastEnabled}" />
+	</ice:panelGroup>
+</composite:implementation>
+</html>
