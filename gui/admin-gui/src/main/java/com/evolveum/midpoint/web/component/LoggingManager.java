@@ -33,7 +33,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
@@ -61,13 +61,13 @@ public class LoggingManager {
 	public void updateLogger() {
 		LoggingConfigurationType config = null;
 		try {
-			ObjectContainerType container = model.getObject(SYSTEM_CONFIGURATION_OID,
+			ObjectType object = model.getObject(SYSTEM_CONFIGURATION_OID,
 					new PropertyReferenceListType());
-			if (container == null) {
+			if (object == null) {
 				LOGGER.error("Couldn't get system configuration, reason: Empty container.");
 				return;
 			}
-			SystemConfigurationType system = (SystemConfigurationType) container.getObject();
+			SystemConfigurationType system = (SystemConfigurationType) object;
 			config = system.getLogging();
 		} catch (FaultMessage ex) {
 			LOGGER.error("Couldn't get system configuration, reason: " + ex.getMessage());

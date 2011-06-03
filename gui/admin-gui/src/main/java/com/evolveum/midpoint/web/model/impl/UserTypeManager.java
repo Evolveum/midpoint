@@ -53,7 +53,6 @@ import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -108,9 +107,7 @@ public class UserTypeManager implements UserManager, Serializable {
 		Validate.notNull(newObject);
 
 		try { // Call Web Service Operation
-			ObjectContainerType userContainer = new ObjectContainerType();
-			userContainer.setObject((UserType) newObject.getXmlObject());
-			java.lang.String result = model.addObject(userContainer);
+			java.lang.String result = model.addObject((UserType) newObject.getXmlObject());
 			return result;
 		} catch (FaultMessage fault) {
 			String message = fault.getFaultInfo().getMessage();
@@ -223,12 +220,12 @@ public class UserTypeManager implements UserManager, Serializable {
 		Validate.notNull(oid);
 
 		try { // Call Web Service Operation
-			ObjectContainerType result = model.getObject(oid, resolve);
+			ObjectType result = model.getObject(oid, resolve);
 			// ObjectStage stage = new ObjectStage();
 			// stage.setObject((UserType) result.getObject());
 
 			UserDto userDto = (UserDto) constructUserType.newInstance();
-			userDto.setXmlObject((UserType) result.getObject());
+			userDto.setXmlObject((UserType) result);
 			// userDto.setStage(stage);
 			return userDto;
 		} catch (FaultMessage ex) {

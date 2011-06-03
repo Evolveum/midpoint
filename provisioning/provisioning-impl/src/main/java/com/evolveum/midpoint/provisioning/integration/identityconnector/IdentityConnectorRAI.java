@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceAccessConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectIdentificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;

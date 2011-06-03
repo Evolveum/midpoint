@@ -26,6 +26,7 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/cycle-management-1.wsdl"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl"
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
 
     <documentation>
@@ -41,6 +42,7 @@
 
     </documentation>
 
+	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl" location="../common/fault-1.wsdl"/>
 
     <types>
         <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl">
@@ -85,10 +87,6 @@
         <part name="empty" type="c:EmptyType"/>
     </message>
 
-    <message name="FaultMessage">
-        <part name="fault" element="c:fault"/>
-    </message>
-
     <portType name="cycleManagementPortType">
 
         <operation name="listCycles">
@@ -100,7 +98,7 @@
             </documentation>
             <input name="listCyclesInput" message="tns:listCyclesRequest"/>
             <output name="listCyclesOutput" message="tns:listCyclesResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -118,7 +116,7 @@
             </documentation>
             <input name="startCycleInput" message="tns:startCycleRequest"/>
             <output name="startCycleOutput" message="tns:startCycleResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -136,7 +134,7 @@
             </documentation>
             <input name="stopCycleInput" message="tns:stopCycleRequest"/>
             <output name="stopCycleOutput" message="tns:stopCycleResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -155,7 +153,7 @@
             </documentation>
             <input name="initInput" message="tns:initRequest"/>
             <output name="initOutput" message="tns:initResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -175,7 +173,7 @@
             </documentation>
             <input name="shutdownInput" message="tns:shutdownRequest"/>
             <output name="shutdownOutput" message="tns:shutdownResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.

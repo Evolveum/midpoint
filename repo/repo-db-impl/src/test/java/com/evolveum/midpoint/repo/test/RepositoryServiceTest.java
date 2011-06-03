@@ -29,6 +29,8 @@ import com.evolveum.midpoint.repo.spring.GenericDao;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
 import java.io.File;
 import java.math.BigInteger;
 import java.sql.Connection;

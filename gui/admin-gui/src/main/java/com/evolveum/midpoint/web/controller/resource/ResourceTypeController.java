@@ -301,8 +301,8 @@ public class ResourceTypeController implements Serializable {
 
 		try { // Call Web Service Operation
 
-			ObjectContainerType result = model.getObject(resourceId, new PropertyReferenceListType());
-			resourceDto = new GuiResourceDto((ResourceType) result.getObject());
+			ObjectType result = model.getObject(resourceId, new PropertyReferenceListType());
+			resourceDto = new GuiResourceDto((ResourceType) result);
 			parseForUsedConnector(resourceDto);
 		} catch (Exception ex) {
 			TRACE.error("Select resource failed");

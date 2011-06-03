@@ -27,10 +27,8 @@
     xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-    xmlns:cw="http://midpoint.evolveum.com/xml/ns/public/common/object-1.wsdl"
-    xmlns:idm="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
-
-    <!-- Prefix "idm" defined above is all wrong! It is workaround for OPENIDM-124 -->
+    xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl"
+	xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
 
     <documentation>
 
@@ -48,16 +46,11 @@
 
     </documentation>
 
+	<import namespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl" location="../common/fault-1.wsdl"/>
 
     <types>
         <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl">
-
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" schemaLocation="../common/common-1.xsd"/>
-
-            <!-- This should import identity schema. But it deos not now. Workaround for OPENIDM-124 -->
-            <!--
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/identity/1#" schemaLocation="../repository/identity.xsd"/>
-            -->
         </xsd:schema>
     </types>
 
@@ -68,10 +61,10 @@
          But that does not work on OpenESB. Therefore good old copy&paste
          instead of import -->
 
-        <message name="addObjectRequest">
-        <part name="objectContainer" type="c:ObjectContainerType">
+	<message name="addObjectRequest">
+        <part name="object" type="c:ObjectType">
             <documentation>
-                Container with the Objectto be created.
+                Object to be created.
                 OID attribute of the object may be empty.
             </documentation>
         </part>
@@ -89,7 +82,7 @@
         <part name="resolve" type="c:PropertyReferenceListType"/>
     </message>
     <message name="getObjectResponse">
-        <part name="objectContainer" type="c:ObjectContainerType"/>
+        <part name="object" type="c:ObjectType"/>
     </message>
 
     <message name="listObjectsRequest">
@@ -144,21 +137,13 @@
         <part name="propertyAvailableValuesList" type="c:PropertyAvailableValuesListType"/>
     </message>
     
-    <message name="FaultMessage">
-    	<part name="result" element="c:fault" /> 	
-    </message>   
-    
-    <!-- <message name="FaultMessage">
-    	<part name="result" element="c:operationResult" /> 	
-    </message> -->     
-
     <!-- End of common messages -->
 
     <message name="listAccountShadowOwnerRequest">
         <part name="accountOid" type="xsd:string"/>
     </message>
     <message name="listAccountShadowOwnerResponse">
-        <part name="userContainer" type="idm:UserContainerType"/>
+        <part name="user" type="c:UserType"/>
     </message>
 
     <message name="listResourceObjectShadowsRequest">
@@ -166,7 +151,7 @@
         <part name="resourceObjectShadowType" type="xsd:anyURI"/>
     </message>
     <message name="listResourceObjectShadowsResponse">
-        <part name="resourceObjectShadowList" type="idm:ResourceObjectShadowListType"/>
+        <part name="resourceObjectShadowList" type="c:ResourceObjectShadowListType"/>
     </message>
 
     <!-- Following two pairs of messages should not be here. They are in fact
@@ -255,13 +240,7 @@
             </documentation>
             <input name="addObjectInput" message="tns:addObjectRequest"/>
             <output name="addObjectOutput" message="tns:addObjectResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
-                <documentation>
-                    This is all wrong. Specific fault types should be there.
-                    But because of Netbeans/JAXWS bug we need to do this ugliness.
-                    Please see the list of fault types in operation documentation.
-                </documentation>
-            </fault>
+            <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
         <operation name="getObject">
@@ -278,7 +257,7 @@
             </documentation>
             <input name="getObjectInput" message="tns:getObjectRequest"/>
             <output name="getObjectOutput" message="tns:getObjectResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -299,7 +278,7 @@
             </documentation>
             <input name="listObjectsInput" message="tns:listObjectsRequest"/>
             <output name="listObjectsOutput" message="tns:listObjectsResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -321,7 +300,7 @@
             </documentation>
             <input name="searchObjectsInput" message="tns:searchObjectsRequest"/>
             <output name="searchObjectsOutput" message="tns:searchObjectsResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -357,7 +336,7 @@
             </documentation>
             <input name="modifyObjectInput" message="tns:modifyObjectRequest"/>
             <output name="modifyObjectOutput" message="tns:modifyObjectResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -379,7 +358,7 @@
             </documentation>
             <input name="deleteObjectInput" message="tns:deleteObjectRequest"/>
             <output name="deleteObjectOutput" message="tns:deleteObjectResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -411,7 +390,7 @@
             </documentation>
             <input name="getPropertyAvailableValuesInput" message="tns:getPropertyAvailableValuesRequest"/>
             <output name="getPropertyAvailableValuesOutput" message="tns:getPropertyAvailableValuesResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -440,7 +419,7 @@
             </documentation>
             <input name="listAccountShadowOwnerInput" message="tns:listAccountShadowOwnerRequest"/>
             <output name="listAccountShadowOwnerOutput" message="tns:listAccountShadowOwnerResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -466,7 +445,7 @@
             </documentation>
             <input name="listResourceObjectShadowsInput" message="tns:listResourceObjectShadowsRequest"/>
             <output name="listResourceObjectShadowsOutput" message="tns:listResourceObjectShadowsResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -528,7 +507,7 @@
             </documentation>
             <input name="listResourceObjectsInput" message="tns:listResourceObjectsRequest"/>
             <output name="listResourceObjectsOutput" message="tns:listResourceObjectsResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -561,7 +540,7 @@
             </documentation>
             <input name="testResourceInput" message="tns:testResourceRequest"/>
             <output name="testResourceOutput" message="tns:testResourceResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -588,7 +567,7 @@
             </documentation>
             <input name="launchImportFromResourceInput" message="tns:launchImportFromResourceRequest"/>
             <output name="launchImportFromResourceOutput" message="tns:launchImportFromResourceResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.
@@ -615,7 +594,7 @@
             </documentation>
             <input name="getImportStatusInput" message="tns:getImportStatusRequest"/>
             <output name="getImportStatusOutput" message="tns:getImportStatusResponse"/>
-            <fault name="fault" message="tns:FaultMessage">
+            <fault name="fault" message="f:FaultMessage">
                 <documentation>
                     This is all wrong. Specific fault types should be there.
                     But because of Netbeans/JAXWS bug we need to do this ugliness.

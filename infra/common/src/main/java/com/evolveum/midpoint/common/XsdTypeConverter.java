@@ -61,8 +61,8 @@ public class XsdTypeConverter {
         return xsdType;
     }
 	
-	public static Object toJavaValue(Element configElement, Class type) {
-		String stringContent = configElement.getTextContent();
+	public static Object toJavaValue(Element xmlElement, Class type) {
+		String stringContent = xmlElement.getTextContent();
 		if (type.equals(String.class)) {
 			return stringContent;
 		} else if (type.equals(Integer.class)) {

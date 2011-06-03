@@ -22,7 +22,7 @@
 
 package com.evolveum.midpoint.model.xpath;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.FaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 
 /**
  * 

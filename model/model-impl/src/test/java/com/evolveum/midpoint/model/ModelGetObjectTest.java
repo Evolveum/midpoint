@@ -25,7 +25,7 @@ package com.evolveum.midpoint.model;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
@@ -119,8 +119,7 @@ public class ModelGetObjectTest {
 
         final String oid = "abababab-abab-abab-abab-000000000001";
         when(repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class))).thenReturn(container);
-        container = modelService.getObject(oid, new PropertyReferenceListType());
-        final UserType user = (UserType) container.getObject();
+        final UserType user = (UserType) modelService.getObject(oid, new PropertyReferenceListType());
 
         assertNotNull(user);
         assertEquals(expectedUser.getName(), user.getName());

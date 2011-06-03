@@ -42,7 +42,7 @@ import org.w3c.dom.Text;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.FaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;

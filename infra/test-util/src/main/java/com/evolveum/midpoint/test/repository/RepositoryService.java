@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.FilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;

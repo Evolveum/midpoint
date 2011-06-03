@@ -35,8 +35,8 @@ import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType.Reaction;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.FaultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
@@ -102,7 +102,6 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
         if (objectChange == null) {
             FaultType fault = new IllegalArgumentFaultType();
             fault.setMessage("Object change not defined.");
-            fault.setTemporary(true);
 
             trace.error("### MODEL # Fault notifyChange(..): Object change not defined.");
             throw new FaultMessage(fault.getMessage(), fault);

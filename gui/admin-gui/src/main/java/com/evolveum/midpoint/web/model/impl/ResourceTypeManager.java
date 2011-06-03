@@ -98,10 +98,10 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 		TRACE.info("oid = {}", new Object[] { oid });
 		Validate.notNull(oid);
 		try { // Call Web Service Operation
-			ObjectContainerType result = model.getObject(oid, resolve);
+			ObjectType result = model.getObject(oid, resolve);
 
 			ResourceDto resourceDto = (ResourceDto) constructResourceType.newInstance();			
-			resourceDto.setXmlObject(result.getObject());
+			resourceDto.setXmlObject(result);
 
 			return resourceDto;
 		} catch (FaultMessage ex) {
@@ -129,9 +129,7 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 		Validate.notNull(newObject);
 
 		try { // Call Web Service Operation
-			ObjectContainerType objectContainerType = new ObjectContainerType();
-			objectContainerType.setObject(newObject.getXmlObject());
-			String result = model.addObject(objectContainerType);
+			String result = model.addObject(newObject.getXmlObject());
 			return result;
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] Add resource failed");

@@ -27,7 +27,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import java.io.InputStream;

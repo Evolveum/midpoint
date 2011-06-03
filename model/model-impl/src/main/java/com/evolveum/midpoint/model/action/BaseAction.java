@@ -27,14 +27,13 @@ import com.evolveum.midpoint.model.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.provisioning.service.ProvisioningService;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.FaultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -70,15 +69,15 @@ public abstract class BaseAction implements Action {
 		}
 
 		try {
-			ObjectContainerType container = model.getObject(oid, new PropertyReferenceListType());
-			if (container == null) {
+			ObjectType object = model.getObject(oid, new PropertyReferenceListType());
+			if (object == null) {
 				return null;
 			}
-			if (container.getObject() == null || !(container.getObject() instanceof UserType)) {
-				throw new SynchronizationException("Returned object is null or not type of "
-						+ UserType.class.getName() + ".");
+			if (!(object instanceof UserType)) {
+				throw new SynchronizationException("Returned object is not of type "
+						+ UserType.class.getName() + ", it is "+object.getClass().getName());
 			}
-			return (UserType) container.getObject();
+			return (UserType) object;
 		} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
 			FaultType info = ex.getFaultInfo();
 			if (info == null || !(info instanceof ObjectNotFoundFaultType)) {

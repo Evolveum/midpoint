@@ -46,6 +46,10 @@ import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMes
 import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.SchemaViolationFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
@@ -913,7 +917,6 @@ public class ProvisioningService implements ProvisioningPortType {
         } else {
             fault.setMessage(message);
         }
-        fault.setTemporary(temporary);
         return new FaultMessage(message, fault, exception);
     }
 

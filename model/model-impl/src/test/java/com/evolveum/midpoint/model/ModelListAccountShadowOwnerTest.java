@@ -86,9 +86,8 @@ public class ModelListAccountShadowOwnerTest {
         final String accountOid = "1";
         final UserContainerType expected = new UserContainerType();
         when(repositoryService.listAccountShadowOwner(accountOid)).thenReturn(expected);
-        final UserContainerType returned = modelService.listAccountShadowOwner("1");
-        assertNotNull(returned);
-        assertNull(returned.getUser());
+        final UserType returned = modelService.listAccountShadowOwner("1");
+        assertNull(returned);
     }
 
     @Test
@@ -101,9 +100,8 @@ public class ModelListAccountShadowOwnerTest {
                 new File(TEST_FOLDER, "list-account-shadow-owner.xml"))).getValue());
 
         when(repositoryService.listAccountShadowOwner(accountOid)).thenReturn(expected);
-        final UserContainerType returned = modelService.listAccountShadowOwner(accountOid);
+        final UserType returned = (UserType) modelService.listAccountShadowOwner(accountOid);
         assertNotNull(returned);
-        assertNotNull(returned.getUser());
-        assertEquals(expected.getUser(), returned.getUser());
+        assertEquals(expected.getUser(), returned);
     }
 }

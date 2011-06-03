@@ -99,7 +99,7 @@ public class ModelAddObjectTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void addNullObject() throws FaultMessage {
-		modelService.addObject(new ObjectContainerType());
+		modelService.addObject(null);
 		fail("add must fail");
 	}
 	
@@ -130,7 +130,7 @@ public class ModelAddObjectTest {
 						return oid;
 					}
 				});
-		String result = modelService.addObject(container);
+		String result = modelService.addObject(expectedUser);
 		verify(repositoryService, times(1)).addObject(
 				argThat(new ContainerObjectNameMatcher(expectedUser.getName())));
 		assertEquals(oid, result);
@@ -140,11 +140,9 @@ public class ModelAddObjectTest {
 	@SuppressWarnings("unchecked")
 	public void addUserWithoutName() throws JAXBException, FaultMessage,
 			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
-		ObjectContainerType container = new ObjectContainerType();
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"add-user-without-name.xml"))).getValue();
-		container.setObject(expectedUser);
-		modelService.addObject(container);
+		modelService.addObject(expectedUser);
 		fail("add must fail");
 	}
 
@@ -162,7 +160,7 @@ public class ModelAddObjectTest {
 		when(repositoryService.getObject(matches(oid), any(PropertyReferenceListType.class))).thenReturn(
 				container);
 
-		modelService.addObject(container);
+		modelService.addObject(expectedUser);
 
 		verify(repositoryService, atLeast(1)).getObject(matches(oid), any(PropertyReferenceListType.class));
 		verify(repositoryService, times(1)).addObject(
@@ -198,7 +196,7 @@ public class ModelAddObjectTest {
 				return oid;
 			}
 		});
-		String result = modelService.addObject(container);
+		String result = modelService.addObject(expectedResource);
 		verify(provisioningService, times(1)).addObject(
 				argThat(new ContainerObjectNameMatcher(expectedResource.getName())), any(ScriptsType.class),
 				any(Holder.class));
@@ -272,7 +270,7 @@ public class ModelAddObjectTest {
 
 		container = new ObjectContainerType();
 		container.setObject(expectedUser);
-		String result = modelService.addObject(container);
+		String result = modelService.addObject(expectedUser);
 		verify(repositoryService, times(1)).addObject(
 				argThat(new ContainerObjectNameMatcher(expectedUser.getName())));
 		assertEquals(userOid, result);

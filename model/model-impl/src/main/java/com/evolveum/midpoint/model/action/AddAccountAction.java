@@ -68,12 +68,10 @@ public class AddAccountAction extends BaseAction {
 //            util.setModel(getModel());
 //            account = (AccountShadowType) util.applyOutboundSchemaHandlingOnAccount(userType, account);
 //            ScriptsType scripts = getScripts(change.getResource());
-            ObjectContainerType container = of.createObjectContainerType();
-            container.setObject(account);
 //
 //            trace.debug("Adding account '{}' to provisioning.", account.getOid());
 //            provisioning.addObject(container, scripts, new Holder<OperationalResultType>());
-            getModel().addObject(container);
+            getModel().addObject(account);
 //        } catch (SchemaHandlingException ex) {
 //            trace.error("Couldn't add account to provisioning: Couldn't apply resource outbound schema handling " +
 //                    "(resource '{}') on account '{}', reason: {}", new Object[]{change.getResource().getOid(),

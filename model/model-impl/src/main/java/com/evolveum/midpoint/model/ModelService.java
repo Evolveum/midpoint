@@ -37,10 +37,40 @@ import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.patch.PatchException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType.Credentials;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.InapplicableOperationFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.SchemaViolationFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
@@ -80,13 +110,12 @@ public class ModelService implements ModelPortType {
 	private SchemaHandling schemaHandling;
 
 	@Override
-	public java.lang.String addObject(ObjectContainerType objectContainer) throws FaultMessage {
-		if (objectContainer == null || objectContainer.getObject() == null) {
-			throw new IllegalArgumentException("Object container and object in container must not be null.");
+	public java.lang.String addObject(ObjectType object) throws FaultMessage {
+		if (object== null) {
+			throw new IllegalArgumentException("Object must not be null.");
 		}
-		logger.info("### MODEL # Enter addObject({})", DebugUtil.prettyPrint(objectContainer));
+		logger.info("### MODEL # Enter addObject({})", DebugUtil.prettyPrint(object));
 
-		ObjectType object = objectContainer.getObject();
 		String name = object.getName();
 		if (name == null || name.isEmpty()) {
 			throw createFaultMessage(
@@ -105,6 +134,8 @@ public class ModelService implements ModelPortType {
 			}
 
 			try {
+				ObjectContainerType objectContainer = new ObjectContainerType();
+				objectContainer.setObject(object);
 				result = repositoryService.addObject(objectContainer);
 			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
 				logger.error(
@@ -156,9 +187,7 @@ public class ModelService implements ModelPortType {
 				account = (AccountShadowType) schemaHandling.applyOutboundSchemaHandlingOnAccount(user,
 						account, resource);
 
-				ObjectContainerType container = new ObjectContainerType();
-				container.setObject(account);
-				String oid = addObject(container);
+				String oid = addObject(account);
 
 				ObjectReferenceType accountRef = new ObjectReferenceType();
 				accountRef.setOid(oid);
@@ -197,7 +226,7 @@ public class ModelService implements ModelPortType {
 			ScriptsType scripts = getScripts(object);
 			ObjectContainerType container = new ObjectContainerType();
 			container.setObject(object);
-			java.lang.String result = provisioningService.addObject(container, scripts, holder);
+			String result = provisioningService.addObject(container, scripts, holder);
 			return result;
 		} catch (com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage ex) {
 			logger.error(
@@ -252,8 +281,8 @@ public class ModelService implements ModelPortType {
 
 	public UserType listAccountShadowOwnerSilent(String accountOid) {
 		try {
-			UserContainerType container = listAccountShadowOwner(accountOid);
-			return container.getUser();
+			UserType user = listAccountShadowOwner(accountOid);
+			return user;
 		} catch (FaultMessage ex) {
 			logger.error("Couldn't find owner for account with oid {}, reason: {}", accountOid,
 					ex.getMessage());
@@ -312,7 +341,7 @@ public class ModelService implements ModelPortType {
 
 					// 1. we will evaluate values for attributes from schema
 					// handling
-					ObjectContainerType userContainer = this.getObject(objectChange.getOid(),
+					ObjectType object = this.getObject(objectChange.getOid(),
 							Utils.getResolveResourceList());
 					AccountShadowType account = accountShadowJaxb.getValue();
 					ResourceType resource = account.getResource();
@@ -330,7 +359,7 @@ public class ModelService implements ModelPortType {
 						// util.setModel(this);
 						// util.setFilterManager(filterManager);
 						schemaHandling.applyOutboundSchemaHandlingOnAccount(
-								(UserType) userContainer.getObject(), account, resource);
+								(UserType) object, account, resource);
 					} catch (SchemaHandlingException ex) {
 						logger.error("### MODEL # Fault {}(..): Parsing outbound schema hadling failed : {}",
 								operation, ex);
@@ -341,16 +370,15 @@ public class ModelService implements ModelPortType {
 					logger.trace("JAXBObject for account: {}", JAXBUtil.silentMarshal(accountShadowJaxb));
 
 					// 2. we will send new account to provisioning
-					ObjectContainerType accountContainer = (new ObjectFactory()).createObjectContainerType();
 
 					logger.trace("ObjectCOntainer for account: {}", JAXBUtil.silentMarshalWrap(
-							accountContainer, new QName(SchemaConstants.NS_C, "ObjectContainerType")));
-					accountContainer.setObject(accountShadowJaxb.getValue());
+							accountShadowJaxb.getValue(), new QName(SchemaConstants.NS_C, "ObjectContainerType")));
+
 					logger.trace("Account in ObjectCOntainer with applied schema handling: {}", JAXBUtil
-							.silentMarshalWrap(accountContainer, new QName(SchemaConstants.NS_C,
+							.silentMarshalWrap(accountShadowJaxb.getValue(), new QName(SchemaConstants.NS_C,
 									"ObjectContainerType")));
 
-					String accountOid = this.addObject(accountContainer);
+					String accountOid = this.addObject(accountShadowJaxb.getValue());
 
 					// 3. we will modify object change to contain only
 					// accountRef not whole account
@@ -404,7 +432,7 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public ObjectContainerType getObject(java.lang.String oid, PropertyReferenceListType resolve)
+	public ObjectType getObject(java.lang.String oid, PropertyReferenceListType resolve)
 			throws FaultMessage {
 		if (oid == null || oid.isEmpty()) {
 			throw new IllegalArgumentException("Oid must not be null or empty.");
@@ -546,7 +574,7 @@ public class ModelService implements ModelPortType {
 		logger.trace("Method getObject() returned: {}",
 				JAXBUtil.silentMarshalWrap(result, new QName(SchemaConstants.NS_C, "ObjectContainerType")));
 
-		return result;
+		return result.getObject();
 
 	}
 
@@ -789,9 +817,8 @@ public class ModelService implements ModelPortType {
 				}
 				// update user accounts
 				if (object instanceof UserType) {
-					ObjectContainerType container = getObject(object.getOid(),
+					UserType userType = (UserType) getObject(object.getOid(),
 							new PropertyReferenceListType());
-					UserType userType = (UserType) container.getObject();
 					if (logger.isDebugEnabled()) {
 						logger.debug("User before accounts update - outbound schema handling\n{}",
 								DebugUtil.prettyPrint(userType));
@@ -1026,7 +1053,7 @@ public class ModelService implements ModelPortType {
 		for (PropertyModificationType propModification : list) {
 			XPathType path = new XPathType(propModification.getPath());
 			List<XPathSegment> segments = path.toSegments();
-			if (segments.size() == 0 || !segments.get(0).getQName().equals(SchemaConstants.I_CREDENTIALS)) {
+			if (segments.isEmpty() || !segments.get(0).getQName().equals(SchemaConstants.I_CREDENTIALS)) {
 				continue;
 			}
 
@@ -1189,7 +1216,7 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public UserContainerType listAccountShadowOwner(java.lang.String accountOid) throws FaultMessage {
+	public UserType listAccountShadowOwner(java.lang.String accountOid) throws FaultMessage {
 		if (accountOid == null || accountOid.isEmpty()) {
 			throw new IllegalArgumentException("Account oid must not be null or empty.");
 		}
@@ -1197,7 +1224,7 @@ public class ModelService implements ModelPortType {
 		try {
 			UserContainerType result = repositoryService.listAccountShadowOwner(accountOid);
 			logger.info("### MODEL # Exit listAccountShadowOwner(..): {}", DebugUtil.prettyPrint(result));
-			return result;
+			return result.getUser();
 		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
 			logger.error(
 					"### MODEL # Exception listAccountShadowOwner(..): Repository client failed for method listAccountShadowOwner",
@@ -1292,7 +1319,6 @@ public class ModelService implements ModelPortType {
 		} else {
 			fault.setMessage(message);
 		}
-		fault.setTemporary(temporary);
 		return new FaultMessage(message, fault, exception);
 	}
 

@@ -54,6 +54,13 @@
 		<tag>HEAD</tag>
 		<url>https://fisheye.evolveum.com/midpoint/</url>
 	</scm>
+	<repositories>
+        <repository>
+            <id>evolveum</id>
+            <name>repo</name>
+            <url>http://repo.evolveum.com/repo</url>
+        </repository>
+    </repositories>
 	<dependencies>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
@@ -130,6 +137,13 @@
 						<wsdlFile>private/provisioning/resourceObjectChangeListenerWrapper.wsdl</wsdlFile>
 					</wsdlFiles>
 				</configuration>
+				<dependencies>
+					<dependency>
+						<groupId>com.sun.xml.ws</groupId>
+						<artifactId>jaxws-tools</artifactId>
+						<version>2.2.3</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 		</plugins>
 		<pluginManagement>

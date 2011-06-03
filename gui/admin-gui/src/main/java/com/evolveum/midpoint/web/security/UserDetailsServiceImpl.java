@@ -215,9 +215,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	}
 
 	private UserType getUserByOid(String oid) throws FaultMessage {
-		ObjectContainerType container = modelService.getObject(oid, new PropertyReferenceListType());
-		if (container != null && (container.getObject() instanceof UserType)) {
-			return (UserType) container.getObject();
+		ObjectType object = modelService.getObject(oid, new PropertyReferenceListType());
+		if (object != null && (object instanceof UserType)) {
+			return (UserType) object;
 		}
 
 		return null;

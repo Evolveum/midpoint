@@ -79,9 +79,7 @@ public class AddUserAction extends BaseAction {
                 }
 
                 //save user
-                ObjectContainerType userContainer = of.createObjectContainerType();
-                userContainer.setObject(userType);
-                userOid = getModel().addObject(userContainer);
+                userOid = getModel().addObject(userType);
             } catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
                 throw new SynchronizationException("Can't save user", ex, ex.getFaultInfo());
             } catch (SchemaHandlingException ex) {
@@ -128,8 +126,7 @@ public class AddUserAction extends BaseAction {
 
         UserTemplateType userTemplate = null;
         try {
-            ObjectContainerType container = getModel().getObject(userTemplateOid, new PropertyReferenceListType());
-            userTemplate = (UserTemplateType) container.getObject();
+            userTemplate = (UserTemplateType) getModel().getObject(userTemplateOid, new PropertyReferenceListType());
         } catch (FaultMessage ex) {
             throw new SynchronizationException("Couldn't get user template with oid '" +
                     userTemplateOid + "'.", ex, ex.getFaultInfo());

@@ -56,7 +56,7 @@
     </scm>
     <repositories>
         <repository>
-            <id>central</id>
+            <id>evolveum</id>
             <name>repo</name>
             <url>http://repo.evolveum.com/repo</url>
         </repository>

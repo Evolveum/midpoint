@@ -95,10 +95,10 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 		TRACE.info("oid = {}", new Object[] { oid });
 		Validate.notNull(oid);
 		try { // Call Web Service Operation
-			ObjectContainerType result = port.getObject(oid, resolve);
+			ObjectType result = port.getObject(oid, resolve);
 
 			AccountShadowDto accountShadowDto = (AccountShadowDto) constructAccountShadowType.newInstance();
-			accountShadowDto.setXmlObject(result.getObject());
+			accountShadowDto.setXmlObject(result);
 
 			return accountShadowDto;
 		} catch (FaultMessage ex) {
@@ -119,9 +119,7 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 		Validate.notNull(accountShadowDto);
 
 		try { // Call Web Service Operation
-			ObjectContainerType objectContainer = new ObjectContainerType();
-			objectContainer.setObject(accountShadowDto.getXmlObject());
-			String result = port.addObject(objectContainer);
+			String result = port.addObject(accountShadowDto.getXmlObject());
 			return result;
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] Add account failed");
@@ -146,8 +144,7 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 		Validate.notNull(oid);
 
 		try {
-			UserContainerType userContainerType = port.listAccountShadowOwner(oid);
-			UserType userType = userContainerType.getUser();
+			UserType userType = port.listAccountShadowOwner(oid);
 			return userType;
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] List owner failed.");

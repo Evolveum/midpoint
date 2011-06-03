@@ -142,9 +142,8 @@ public class XPathDebugController implements Serializable {
 			if (StringUtils.isNotEmpty(variable.getVariableName())) {
 				if (variable.getType().equals("Object")) {
 					try {
-						ObjectContainerType objectContainer = port.getObject(variable.getValue(),
+						ObjectType objectType = port.getObject(variable.getValue(),
 								new PropertyReferenceListType());
-						ObjectType objectType = objectContainer.getObject();
 						// Variable only accepts String or Node, but here we
 						// will get a JAXB object. Need to convert it.
 						Element jaxbToDom = JAXBUtil.jaxbToDom(objectType, SchemaConstants.I_OBJECT, null);

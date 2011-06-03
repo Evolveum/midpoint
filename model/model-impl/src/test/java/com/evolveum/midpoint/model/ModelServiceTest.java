@@ -138,7 +138,7 @@ public class ModelServiceTest {
             //test begins
             container = new ObjectContainerType();
             container.setObject(user);
-            userOid = modelService.addObject(container);
+            userOid = modelService.addObject(user);
 
             container = repositoryService.getObject(userOid, new PropertyReferenceListType());
             user = (UserType) container.getObject();
@@ -156,8 +156,7 @@ public class ModelServiceTest {
             ObjectReferenceType accountRef = user.getAccountRef().get(0);
             accountOid = accountRef.getOid();
 
-            container = modelService.getObject(accountOid, new PropertyReferenceListType());
-            AccountShadowType account = (AccountShadowType) container.getObject();
+            AccountShadowType account = (AccountShadowType) modelService.getObject(accountOid, new PropertyReferenceListType());
             //test account credentials
             assertEquals(resource.getOid(), account.getResourceRef().getOid());
             assertNotNull(account.getCredentials());

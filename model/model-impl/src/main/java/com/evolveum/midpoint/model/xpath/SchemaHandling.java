@@ -800,7 +800,7 @@ public class SchemaHandling extends XPathUtil {
         }
 
         try {
-            return model.getObject(oid, new PropertyReferenceListType()).getObject();
+            return model.getObject(oid, new PropertyReferenceListType());
         } catch (FaultMessage ex) {
             throw new SchemaHandlingException("Couldn't resolve oid '" + oid + "', reason: " +
                     ex.getMessage(), ex, ex.getFaultInfo());

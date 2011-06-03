@@ -24,7 +24,7 @@ package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
