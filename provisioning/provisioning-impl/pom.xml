@@ -44,7 +44,7 @@
     <version>1.8-SNAPSHOT</version>
     <packaging>jar</packaging>
     <parent>
-        <artifactId>infra</artifactId>
+        <artifactId>provisioning</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>1.8-SNAPSHOT</version>
     </parent>
