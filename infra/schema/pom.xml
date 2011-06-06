@@ -138,11 +138,11 @@
 					</wsdlFiles>
 				</configuration>
 				<dependencies>
-					<dependency>
+					<!-- <dependency>
 						<groupId>com.sun.xml.ws</groupId>
 						<artifactId>jaxws-tools</artifactId>
 						<version>2.2.3</version>
-					</dependency>
+					</dependency> -->
 				</dependencies>
 			</plugin>
 		</plugins>
