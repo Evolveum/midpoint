@@ -27,17 +27,16 @@ import java.util.List;
 
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
-import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import com.evolveum.midpoint.common.DebugUtil;
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.bean.AppenderListItem;
 import com.evolveum.midpoint.web.bean.AppenderType;
 import com.evolveum.midpoint.web.bean.LoggerListItem;
+import com.evolveum.midpoint.web.component.LoggingManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
@@ -48,8 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * 
@@ -63,7 +60,7 @@ public class LoggingController implements Serializable {
 	public static final String PAGE_NAVIGATION_LOGGING = "/config/logging?faces-redirect=true";
 	private static final long serialVersionUID = -8739729766074013883L;
 	@Autowired(required = true)
-	private ModelPortType model;
+	private LoggingManager loggingManager;
 	private List<LoggerListItem> loggers;
 	private List<AppenderListItem> appenders;
 	private boolean selectAllLoggers = false;
@@ -196,29 +193,60 @@ public class LoggingController implements Serializable {
 	}
 
 	public String initController() {
+		OperationResult result = new OperationResult("Load Logging Configuration");
+		LoggingConfigurationType logging = loggingManager.getConfiguration(result);
+		if (logging == null) {
+			FacesUtils.addMessage(result);
+			return PAGE_NAVIGATION_LOGGING;
+		}
+
+		for (AppenderConfigurationType appender : logging.getAppender()) {
+			getAppenders().add(createAppenderListItem(appender));
+		}
+
+		int id = 0;
+		for (LoggerConfigurationType logger : logging.getLogger()) {
+			getLoggers().add(createLoggerListItem(id, logger));
+			id++;
+		}
 
 		return PAGE_NAVIGATION_LOGGING;
 	}
 
 	void saveConfiguration() {
-		// TODO: finish save operation
-		LoggingConfigurationType configuration = createConfiguration(getLoggers(), getAppenders());
-		try {
-			SystemConfigurationType object = new SystemConfigurationType();
-			object.setLogging(configuration);
-			System.out.println(JAXBUtil.marshalWrap(object, new QName("configuration",
-					"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd")));
-		} catch (Exception ex) {
-			ex.printStackTrace();
+		LoggingConfigurationType logging = createConfiguration(getLoggers(), getAppenders());
+		OperationResult result = new OperationResult("Load Logging Configuration");
+		loggingManager.updateConfiguration(logging, result);
+	}
+
+	private LoggerListItem createLoggerListItem(int id, LoggerConfigurationType logger) {
+		LoggerListItem item = new LoggerListItem(id);
+		item.setAppenders(logger.getAppender());
+		item.setLevel(logger.getLevel());
+		for (LoggingCategoryType category : logger.getCategory()) {
+			item.getCategories().add(category.value());
 		}
-		// try {
-		// ObjectModificationType change = null;
-		// Holder<OperationResultType> holder = new
-		// Holder<OperationResultType>(new OperationResultType());
-		// model.modifyObject(change, holder);
-		// } catch (FaultMessage ex) {
-		//
-		// }
+		for (LoggingComponentType component : logger.getComponent()) {
+			item.getComponents().add(component.value());
+		}
+
+		return item;
+	}
+
+	private AppenderListItem createAppenderListItem(AppenderConfigurationType appender) {
+		AppenderListItem item = new AppenderListItem();
+		item.setName(appender.getName());
+		item.setPattern(appender.getPattern());
+		item.setType(AppenderType.CONSOLE);
+
+		if (appender instanceof FileAppenderConfigurationType) {
+			FileAppenderConfigurationType file = (FileAppenderConfigurationType) appender;
+			item.setFilePath(file.getFilePath());
+			item.setMaxFileSize(file.getMaxFileSize());
+			item.setType(AppenderType.FILE);
+		}
+
+		return item;
 	}
 
 	private LoggingConfigurationType createConfiguration(List<LoggerListItem> loggers,

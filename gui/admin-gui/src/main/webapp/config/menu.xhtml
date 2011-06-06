@@ -7,7 +7,7 @@
 	<idm:leftMenuContainer name="#{lang.messages['page.template.top.configuration']}">
 		<idm:leftMenuItem id="leftBasic" name="#{lang.messages['page.config.index.title']}"
 			action="/config/index?faces-redirect=true" />
-		<idm:leftMenuItem id="leftLogging" name="#{lang.messages['page.config.logging.title']}" action="/config/logging?faces-redirect=true" />
+		<idm:leftMenuItem id="leftLogging" name="#{lang.messages['page.config.logging.title']}" action="#{logging.initController}" />
 		<idm:leftMenuItem id="leftTraces" name="Traces (old)" action="/config/trace?faces-redirect=true" />
 	</idm:leftMenuContainer>
 	<idm:leftMenuContainer name="#{lang.messages['page.config.menu.debugging']}">

@@ -33,10 +33,9 @@ import javax.faces.context.FacesContext;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.result.OperationResultFactory;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.jsf.messages.MidPointMessage;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
@@ -120,18 +119,6 @@ public abstract class FacesUtils {
 		addMessage(FacesMessage.SEVERITY_ERROR, msg, ex);
 	}
 
-	public static void addWarnMessageWithResult(String msg, OperationResultType result) {
-		addMessage(FacesMessage.SEVERITY_WARN, msg, result);
-	}
-
-	public static void addSuccessMessageWithResult(String msg, OperationResultType result) {
-		addMessage(FacesMessage.SEVERITY_INFO, msg, result);
-	}
-
-	public static void addErrorMessageWithResult(String msg, OperationResultType result) {
-		addMessage(FacesMessage.SEVERITY_ERROR, msg, result);
-	}
-
 	private static void addMessage(FacesMessage.Severity severity, String msg, Exception ex) {
 		FacesMessage message = null;
 		if (ex == null) {
@@ -143,13 +130,29 @@ public abstract class FacesUtils {
 
 			return;
 		}
-		OperationResultType result = OperationResultFactory.createOperationResult("Unknown",
-				OperationResultStatusType.FATAL_ERROR, ex.getMessage(), ex.getMessage());
-		message = new MidPointMessage(severity, msg, null, null);
+
+		OperationResult result = new OperationResult("Unknown");
+		result.recordFatalError(ex.getMessage(), ex);
+		addMessage(result);
 	}
 
-	private static void addMessage(FacesMessage.Severity severity, String msg, OperationResultType result) {
-		MidPointMessage message = new MidPointMessage(severity, msg, null, result);
+	public static void addMessage(OperationResult result) {
+		FacesMessage.Severity severity = FacesMessage.SEVERITY_WARN;
+		switch (result.getStatus()) {
+			case FATAL_ERROR:
+			case PARTIAL_ERROR:
+				severity = FacesMessage.SEVERITY_ERROR;
+				break;
+			case SUCCESS:
+				severity = FacesMessage.SEVERITY_INFO;
+				break;
+			case UNKNOWN:
+			case WARNING:
+				severity = FacesMessage.SEVERITY_WARN;
+				break;
+		}
+		// TODO: last argument must not be null but operation result type
+		MidPointMessage message = new MidPointMessage(severity, result.getMessage(), null, null);
 		FacesContext ctx = FacesContext.getCurrentInstance();
 		if (null != ctx) {
 			ctx.addMessage(null, message);

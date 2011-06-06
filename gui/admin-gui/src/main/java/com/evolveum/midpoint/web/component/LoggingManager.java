@@ -30,6 +30,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
@@ -51,32 +52,36 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 public class LoggingManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingManager.class);
-	private static final String SYSTEM_CONFIGURATION_OID = "SystemConfiguration";
+	public static final String SYSTEM_CONFIGURATION_OID = "SystemConfiguration";
 	@Autowired(required = true)
 	private ModelPortType model;
+	private SystemConfigurationType system;
 
 	@PostConstruct
 	public void init() {
 		updateLogger();
 	}
 
-	public void updateLogger() {
-		LoggingConfigurationType config = null;
-		try {
-			ObjectType object = model.getObject(SYSTEM_CONFIGURATION_OID, new PropertyReferenceListType(),
-					new Holder<OperationResultType>(new OperationResultType()));
-			if (object == null) {
-				LOGGER.error("Couldn't get system configuration, reason: Empty container.");
-				return;
-			}
-			SystemConfigurationType system = (SystemConfigurationType) object;
-			config = system.getLogging();
-		} catch (FaultMessage ex) {
-			LOGGER.error("Couldn't get system configuration, reason: " + ex.getMessage());
-			// TODO: error handling
-			return;
+	public LoggingConfigurationType getConfiguration(OperationResult result) {
+		if (system == null) {
+			system = loadConfiguration(result);
+		}
+		if (system == null || system.getLogging() == null) {
+			return new LoggingConfigurationType();
 		}
 
+		return system.getLogging();
+	}
+
+	public void updateConfiguration(LoggingConfigurationType logging, OperationResult result) {
+		// TODO: save configuration
+
+		updateLogger();
+	}
+
+	public void updateLogger() {
+		OperationResult result = new OperationResult("Load Logging Configuration");
+		LoggingConfigurationType config = getConfiguration(result);
 		if (config == null) {
 			LOGGER.warn("Logging configuration was not found in system configuration.");
 			return;
@@ -85,5 +90,25 @@ public class LoggingManager {
 		List<AppenderConfigurationType> appenders = config.getAppender();
 		List<LoggerConfigurationType> loggers = config.getLogger();
 		// TODO: update logger configuration
+	}
+
+	private void saveConfiguration(LoggingConfigurationType logging, OperationResult result) {
+
+	}
+
+	private SystemConfigurationType loadConfiguration(OperationResult result) {
+		OperationResultType resultType = result.createOperationResultType();
+		SystemConfigurationType config = null;
+		try {
+			ObjectType object = model.getObject(SYSTEM_CONFIGURATION_OID, new PropertyReferenceListType(),
+					new Holder<OperationResultType>(resultType));
+			config = (SystemConfigurationType) object;
+		} catch (FaultMessage ex) {
+			LOGGER.error("Couldn't get system configuration, reason: " + ex.getMessage());
+			// TODO: error handling
+			return null;
+		}
+
+		return config;
 	}
 }

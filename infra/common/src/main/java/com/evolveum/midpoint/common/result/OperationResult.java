@@ -28,6 +28,8 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+
 /**
  * Nested Operation Result.
  * 
@@ -381,4 +383,15 @@ public class OperationResult implements Serializable {
 		}
 	}
 
+	public static OperationResult createOperationResult(OperationResultType resultType) {
+		//TODO: finish this!
+		
+		return new OperationResult(resultType.getOperation());
+	}
+	
+	public OperationResultType createOperationResultType() {
+		//TODO: finish this!
+		
+		return new OperationResultType();
+	}
 }
