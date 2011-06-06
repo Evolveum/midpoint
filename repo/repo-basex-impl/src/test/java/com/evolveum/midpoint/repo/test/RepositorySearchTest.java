@@ -16,7 +16,7 @@
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
  *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2011 Igor Farinic
  * Portions Copyrighted 2010 Forgerock
  */
 
@@ -61,6 +61,10 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
 
+/**
+ * 
+ * @author Igor Farinic
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
 		"../../../../../application-context-repository-test.xml" })
@@ -106,7 +110,7 @@ public class RepositorySearchTest {
 					"src/test/resources/user.xml"))).getValue();
 			objectContainer.setObject(user);
 			repositoryService.addObject(objectContainer);
-			
+
 			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
 					"src/test/resources/query-user-by-name.xml"))).getValue();
 			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType());
@@ -127,74 +131,122 @@ public class RepositorySearchTest {
 	}
 
 	@Test
-	@Ignore
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void searchAccountByAttributes() throws Exception {
-		QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
-				"src/test/resources/query-account-by-attributes.xml"))).getValue();
-		ObjectListType objectList = repositoryService.searchObjects(query, new PagingType());
-		assertNotNull(objectList);
-		assertNotNull(objectList.getObject());
-		assertEquals(1, objectList.getObject().size());
+		String accountOid = "dbb0c37d-9ee6-44a4-8d39-016dbce18b4c";
+		try {
+			// add account
+			ObjectContainerType objectContainer = new ObjectContainerType();
+			AccountShadowType accountShadow = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/account.xml"))).getValue();
+			objectContainer.setObject(accountShadow);
+			repositoryService.addObject(objectContainer);
 
-		AccountShadowType accountShadow = (AccountShadowType) objectList.getObject().get(0);
-		assertNotNull(accountShadow.getAttributes().getAny());
-		assertEquals("cn=foobar,uo=people,dc=nlight,dc=eu", accountShadow.getAttributes().getAny().get(0)
-				.getTextContent());
+			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
+					"src/test/resources/query-account-by-attributes.xml"))).getValue();
+			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType());
+			assertNotNull(objectList);
+			assertNotNull(objectList.getObject());
+			assertEquals(1, objectList.getObject().size());
+
+			accountShadow = (AccountShadowType) objectList.getObject().get(0);
+			assertNotNull(accountShadow.getAttributes().getAny());
+			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", accountShadow.getAttributes().getAny()
+					.get(0).getTextContent());
+			assertEquals("uid=jbond,ou=People,dc=example,dc=com",
+					accountShadow.getAttributes().getAny().get(1).getTextContent());
+		} finally {
+			// to be sure try to delete the object as part of cleanup
+			try {
+				repositoryService.deleteObject(accountOid);
+			} catch (Exception ex) {
+				// ignore exceptions during cleanup
+			}
+		}
 	}
 
 	@Test
-	@Ignore
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void searchAccountByAttributesAndResourceRef() throws Exception {
-		QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
-				"src/test/resources/query-account-by-attributes-and-resource-ref.xml"))).getValue();
-		ObjectListType objectList = repositoryService.searchObjects(query, new PagingType());
-		assertNotNull(objectList);
-		assertNotNull(objectList.getObject());
-		assertEquals(1, objectList.getObject().size());
+		String accountOid = "dbb0c37d-9ee6-44a4-8d39-016dbce18b4c";
+		try {
+			// add account
+			ObjectContainerType objectContainer = new ObjectContainerType();
+			AccountShadowType accountShadow = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/account.xml"))).getValue();
+			objectContainer.setObject(accountShadow);
+			repositoryService.addObject(objectContainer);
 
-		AccountShadowType accountShadow = (AccountShadowType) objectList.getObject().get(0);
-		assertNotNull(accountShadow.getAttributes().getAny());
-		assertEquals("cn=foobar,uo=people,dc=nlight,dc=eu", accountShadow.getAttributes().getAny().get(0)
-				.getTextContent());
+			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
+					"src/test/resources/query-account-by-attributes-and-resource-ref.xml"))).getValue();
+			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType());
+			assertNotNull(objectList);
+			assertNotNull(objectList.getObject());
+			assertEquals(1, objectList.getObject().size());
+
+			accountShadow = (AccountShadowType) objectList.getObject().get(0);
+			assertNotNull(accountShadow.getAttributes().getAny());
+			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", accountShadow.getAttributes().getAny()
+					.get(0).getTextContent());
+			assertEquals("uid=jbond,ou=People,dc=example,dc=com",
+					accountShadow.getAttributes().getAny().get(1).getTextContent());
+		} finally {
+			// to be sure try to delete the object as part of cleanup
+			try {
+				repositoryService.deleteObject(accountOid);
+			} catch (Exception ex) {
+				// ignore exceptions during cleanup
+			}
+		}
 	}
 
 	@Test
-	@Ignore
+	@SuppressWarnings({ "rawtypes" })
 	public void searchResourceStateByResourceRef() throws Exception {
-		// insert new resource state
-		ResourceStateType newResourceState = new ResourceStateType();
-		newResourceState.setName("ResourceStateForSearch");
-		ObjectReferenceType resourceRef = new ObjectReferenceType();
-		resourceRef.setOid("d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
-		newResourceState.setResourceRef(resourceRef);
-		ResourceStateType.SynchronizationState state = new ResourceStateType.SynchronizationState();
-		Document doc = DOMUtil.getDocument();
-		Element element = doc.createElement("fakeNode");
-		element.setTextContent("fakeValue");
-		doc.appendChild(element);
-		state.getAny().add((Element) doc.getFirstChild());
-		newResourceState.setSynchronizationState(state);
+		String resourceOid = "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e";
+		String resourceStateOid = "d0db5be9-cb93-401f-b6c1-111111111111";
+		try {
+			// insert new resource state
+			ResourceStateType newResourceState = new ResourceStateType();
+			newResourceState.setOid(resourceStateOid);
+			newResourceState.setName("ResourceStateForSearch");
+			ObjectReferenceType resourceRef = new ObjectReferenceType();
+			resourceRef.setOid(resourceOid);
+			newResourceState.setResourceRef(resourceRef);
+			ResourceStateType.SynchronizationState state = new ResourceStateType.SynchronizationState();
+			Document doc = DOMUtil.getDocument();
+			Element element = doc.createElement("fakeNode");
+			element.setTextContent("fakeValue");
+			doc.appendChild(element);
+			state.getAny().add((Element) doc.getFirstChild());
+			newResourceState.setSynchronizationState(state);
+			ObjectContainerType container = new ObjectContainerType();
+			container.setObject(newResourceState);
+			repositoryService.addObject(container);
 
-		ObjectContainerType container = new ObjectContainerType();
-		container.setObject(newResourceState);
-		repositoryService.addObject(container);
+			// search for object
+			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
+					"src/test/resources/query-resource-state-by-resource-ref.xml"))).getValue();
+			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType());
+			assertNotNull(objectList);
+			assertNotNull(objectList.getObject());
+			assertEquals(1, objectList.getObject().size());
 
-		// run search for object
-		QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
-				"src/test/resources/query-resource-state-by-resource-ref.xml"))).getValue();
-		ObjectListType objectList = repositoryService.searchObjects(query, new PagingType());
-		assertNotNull(objectList);
-		assertNotNull(objectList.getObject());
-		assertEquals(1, objectList.getObject().size());
-
-		ResourceStateType resourceState = (ResourceStateType) objectList.getObject().get(0);
-		assertNotNull(resourceState);
-		assertNotNull("d0db5be9-cb93-401f-b6c1-86ffffe4cd5e", resourceState.getResourceRef().getOid());
-		assertNotNull(resourceState.getSynchronizationState().getAny());
+			ResourceStateType resourceState = (ResourceStateType) objectList.getObject().get(0);
+			assertNotNull(resourceState);
+			assertNotNull(resourceOid, resourceState.getResourceRef().getOid());
+			assertNotNull(resourceState.getSynchronizationState().getAny());
+		} finally {
+			// to be sure try to delete the object as part of cleanup
+			try {
+				repositoryService.deleteObject(resourceStateOid);
+			} catch (Exception ex) {
+				// ignore exceptions during cleanup
+			}
+		}
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	@Ignore
 	public void searchAccountByNoAttributesUseQueryUtil() throws Exception {
 		XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
 		Document doc = DOMUtil.getDocument();
@@ -216,39 +268,58 @@ public class RepositorySearchTest {
 	}
 
 	@Test
-	@Ignore
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void searchAccountByAttributesUseQueryUtil() throws Exception {
-		XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
-		Document doc = DOMUtil.getDocument();
-		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
-		xpathSegments.add(xpathSegment);
-		XPathType xpath = new XPathType(xpathSegments);
+		String accountOid = "dbb0c37d-9ee6-44a4-8d39-016dbce18b4c";
+		try {
+			// add account
+			ObjectContainerType objectContainer = new ObjectContainerType();
+			AccountShadowType accountShadow = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/account.xml"))).getValue();
+			objectContainer.setObject(accountShadow);
+			repositoryService.addObject(objectContainer);
 
-		List<Element> values = new ArrayList<Element>();
-		values.add((Element) DOMUtil
-				.parseDocument(
-						"<dj:__UID__ xmlns:dj=\"http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ\">cn=foobar,uo=people,dc=nlight,dc=eu</dj:__UID__>")
-				.getFirstChild());
+			// prepare query's filter value
+			XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
+			Document doc = DOMUtil.getDocument();
+			List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
+			xpathSegments.add(xpathSegment);
+			XPathType xpath = new XPathType(xpathSegments);
+			List<Element> values = new ArrayList<Element>();
+			values.add((Element) DOMUtil
+					.parseDocument(
+							"<s:__NAME__ xmlns:s=\"http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd\">uid=jbond,ou=People,dc=example,dc=com</s:__NAME__>")
+					.getFirstChild());
 
-		Element filter = QueryUtil.createAndFilter(doc,
-				QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_TYPE)),
-				QueryUtil.createEqualFilter(doc, xpath, values));
+			// prepare query
+			Element filter = QueryUtil.createAndFilter(doc,
+					QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
+					QueryUtil.createEqualFilter(doc, xpath, values));
 
-		System.out.println(DOMUtil.serializeDOMToString(filter));
+			QueryType query = new QueryType();
+			query.setFilter(filter);
 
-		QueryType query = new QueryType();
-		query.setFilter(filter);
+			// search objects
+			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType());
 
-		ObjectListType objectList = repositoryService.searchObjects(query, new PagingType());
+			assertNotNull(objectList);
+			assertNotNull(objectList.getObject());
+			assertEquals(1, objectList.getObject().size());
 
-		assertNotNull(objectList);
-		assertNotNull(objectList.getObject());
-		assertEquals(1, objectList.getObject().size());
-
-		AccountShadowType accountShadow = (AccountShadowType) objectList.getObject().get(0);
-		assertNotNull(accountShadow.getAttributes().getAny());
-		assertEquals("cn=foobar,uo=people,dc=nlight,dc=eu", accountShadow.getAttributes().getAny().get(0)
-				.getTextContent());
+			accountShadow = (AccountShadowType) objectList.getObject().get(0);
+			assertNotNull(accountShadow.getAttributes().getAny());
+			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", accountShadow.getAttributes().getAny()
+					.get(0).getTextContent());
+			assertEquals("uid=jbond,ou=People,dc=example,dc=com",
+					accountShadow.getAttributes().getAny().get(1).getTextContent());
+		} finally {
+			// to be sure try to delete the object as part of cleanup
+			try {
+				repositoryService.deleteObject(accountOid);
+			} catch (Exception ex) {
+				// ignore exceptions during cleanup
+			}
+		}
 
 	}
 }

@@ -35,7 +35,7 @@
         <c:equal>
             <c:path>c:attributes</c:path>
             <c:value>
-                <dj:__UID__>cn=foobar,uo=people,dc=nlight,dc=eu</dj:__UID__>
+                <s:__NAME__ xmlns:s='http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd'>uid=jbond,ou=People,dc=example,dc=com</s:__NAME__>
             </c:value>
         </c:equal>
     </c:and>

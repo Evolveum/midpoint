@@ -241,6 +241,7 @@ public class XmlRepositoryService implements RepositoryPortType {
             query.append("declare namespace i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
             query.append("declare namespace dj='http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ';\n");
             query.append("declare namespace xsi='http://www.w3.org/2001/XMLSchema-instance';\n");
+            query.append("declare namespace s='http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd';\n");
             //FIXME: possible problems with object type checking. Now it is simple string checking, because import schema is not supported 
             query.append("for $x in //c:object where $x/@xsi:type=\"").append(objectType.substring(objectType.lastIndexOf("#")+1)).append("\"");
             if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
@@ -251,7 +252,14 @@ public class XmlRepositoryService implements RepositoryPortType {
             }
             if (filters != null) {
             	for (Map.Entry<String, String> filterEntry: filters.entrySet()) {
-            		query.append(" and $x/").append(filterEntry.getKey()).append("='").append(filterEntry.getValue()).append("'");
+            		//FIXME: now only refs are search by attributes values
+            		if (StringUtils.contains(filterEntry.getKey(), "Ref")) {
+            			//search based on attribute value
+            			query.append(" and $x/").append(filterEntry.getKey()).append("/@oid='").append(filterEntry.getValue()).append("'");
+            		} else {
+            			//search based on element value
+            			query.append(" and $x/").append(filterEntry.getKey()).append("='").append(filterEntry.getValue()).append("'");
+            		}
             	}
             }
             if (null != paging && null != paging.getOrderBy()) {
@@ -355,6 +363,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 	}
 
 	private void processValueNode(Node criteriaValueNode, Map<String, String> filters, String parentPath) {
+		//TODO: Translate IllegalArgumentException to Fault types
 		if (null == criteriaValueNode) {
 		    throw new IllegalArgumentException("Query filter does not contain any values to search by");
 		}
@@ -365,12 +374,25 @@ public class XmlRepositoryService implements RepositoryPortType {
 		    }
 		    //FIXME: possible problem with prefixes
 		    String lastPathSegment = firstChild.getPrefix() + ":" + firstChild.getLocalName();
-		    String criteriaValue = criteriaValueNode.getTextContent();
+		    
+		    //some search filters does not contain element's text value, for these filters the value is stored in attribute
+		    String criteriaValue = StringUtils.trim(firstChild.getTextContent());
+		    if (StringUtils.isEmpty(criteriaValue)) {
+		    	//FIXME: for now it is ok to get value of the first attribute
+		    	if (firstChild.getAttributes().getLength() == 1) {
+		    		criteriaValue = StringUtils.trim(firstChild.getAttributes().item(0).getNodeValue());
+		    	} else {
+		    		throw new IllegalArgumentException("Incorrect number of attributes in query filter "+firstChild+", expected was 1, but actual size was " + criteriaValueNode.getAttributes().getLength() );
+		    	}
+		    }
+		    if (StringUtils.isEmpty(criteriaValue)) {
+		    	throw new IllegalArgumentException("Could not extract filter value from search query filter " + criteriaValueNode);
+		    }
 		    
 		    if (parentPath != null) {
-		    	filters.put(parentPath +"/"+ lastPathSegment, StringUtils.trim(criteriaValue));
+		    	filters.put(parentPath +"/"+ lastPathSegment, criteriaValue);
 		    } else {
-		    	filters.put(lastPathSegment, StringUtils.trim(criteriaValue));
+		    	filters.put(lastPathSegment, criteriaValue);
 		    }
 		    
 		} else {
