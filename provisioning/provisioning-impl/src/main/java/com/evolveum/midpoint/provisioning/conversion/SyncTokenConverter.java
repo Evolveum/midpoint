@@ -22,7 +22,7 @@
 
 package com.evolveum.midpoint.provisioning.conversion;
 
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.common.Pair;
 import java.lang.reflect.Constructor;
 import java.util.Collection;

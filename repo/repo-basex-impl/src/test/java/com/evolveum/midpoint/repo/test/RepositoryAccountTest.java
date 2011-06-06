@@ -43,7 +43,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.test.XmlAsserts;

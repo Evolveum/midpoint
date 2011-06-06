@@ -37,7 +37,7 @@ import com.evolveum.midpoint.common.password.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
 
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;

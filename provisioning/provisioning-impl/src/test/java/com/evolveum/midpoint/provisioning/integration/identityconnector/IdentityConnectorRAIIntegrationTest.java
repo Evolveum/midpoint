@@ -44,7 +44,7 @@ import org.opends.server.types.SearchScope;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.provisioning.integration.identityconnector.schema.ResourceUtils;
 import com.evolveum.midpoint.provisioning.objects.ResourceAttribute;
 import com.evolveum.midpoint.provisioning.objects.ResourceObject;

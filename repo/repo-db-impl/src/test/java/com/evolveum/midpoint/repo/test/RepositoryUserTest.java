@@ -22,7 +22,7 @@
 
 package com.evolveum.midpoint.repo.test;
 
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;

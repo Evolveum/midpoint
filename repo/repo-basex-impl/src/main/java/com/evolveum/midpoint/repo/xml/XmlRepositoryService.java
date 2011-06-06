@@ -54,7 +54,7 @@ import org.xmldb.api.base.XMLDBException;
 import org.xmldb.api.modules.XPathQueryService;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.QNameUtil;

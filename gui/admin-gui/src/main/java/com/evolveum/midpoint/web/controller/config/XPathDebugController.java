@@ -44,7 +44,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;

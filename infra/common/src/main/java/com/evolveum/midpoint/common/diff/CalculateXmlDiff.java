@@ -22,7 +22,7 @@
 
 package com.evolveum.midpoint.common.diff;
 
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.Utils;

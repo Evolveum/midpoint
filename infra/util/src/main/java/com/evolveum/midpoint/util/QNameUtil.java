@@ -23,6 +23,7 @@
 package com.evolveum.midpoint.util;
 
 import javax.xml.namespace.QName;
+import org.w3c.dom.Node;
 
 /**
  *
@@ -72,4 +73,12 @@ public class QNameUtil {
         }
         throw new IllegalArgumentException("The URI ("+uri+") does not contain slash character");
     }
+	
+	public static QName getNodeQName(Node node) {
+		return new QName(node.getNamespaceURI(),node.getLocalName());
+	}
+	
+	public static boolean compareQName(QName qname, Node node) {
+		return (qname.getNamespaceURI().equals(node.getNamespaceURI()) && qname.getLocalPart().equals(node.getLocalName()));
+	}
 }

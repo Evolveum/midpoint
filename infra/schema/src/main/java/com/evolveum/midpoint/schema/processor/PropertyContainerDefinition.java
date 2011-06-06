@@ -21,10 +21,14 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.util.QNameUtil;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
+import org.w3c.dom.Element;
 
 /**
  * Definition of a property container.
@@ -67,14 +71,18 @@ public class PropertyContainerDefinition extends Definition {
 	 * @return found property definition of null
 	 */
 	public PropertyDefinition findPropertyDefinition(QName name) {
+		return findPropertyDefinition(name,PropertyDefinition.class);
+	}
+
+	protected <T extends PropertyDefinition> T findPropertyDefinition(QName name, Class<T> clazz) {
 		for (PropertyDefinition def : propertyDefinitions) {
 			if (name.equals(def.getName())) {
-				return def;
+				return (T) def;
 			}
 		}
 		return null;
 	}
-
+	
 	/**
 	 * Returns set of property definitions.
 	 * 
@@ -98,6 +106,70 @@ public class PropertyContainerDefinition extends Definition {
 		return new PropertyContainer(getNameOrDefaultName(), this);
 	}
 	
+	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz) {
+		return parseProperties(elements,clazz,null);
+	}
+	
+	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz, Set<PropertyDefinition> selection) {
+		
+		Set<T> props = new HashSet<T>();
+		
+		// Iterate over all the XML elements there. Each element is
+		// an attribute.
+		for(int i=0;i<elements.size();i++) {
+			Element propElement = elements.get(i);
+
+			QName elementQName =  QNameUtil.getNodeQName(propElement);
+			
+			// If there was a selection filter specified, filter out the
+			// properties that are not in the filter.
+			
+			// Quite an ugly code. TODO: clean it up
+			if (selection!=null) {
+				boolean selected=false;
+				for (PropertyDefinition selProdDef : selection) {
+					if (selProdDef.getNameOrDefaultName().equals(elementQName)) {
+						selected = true;
+					}
+				}
+				if (!selected) {
+					continue;
+				}
+			}
+			
+			// Find Attribute definition from the schema
+			PropertyDefinition propDef = findPropertyDefinition(elementQName);
+			T prop = (T) propDef.instantiate();
+			Set<Object> propValues = prop.getValues();
+
+			if (propDef.isMultiValue()) {
+				// Special handling for multivalue attributes. If the type
+				// of the property is multivalued, the XML element may appear
+				// several times.
+
+				// Convert the first value
+				Object value = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
+				propValues.add(value);
+				// Loop over until the elements have the same local name
+				while (i + 1 < elements.size()
+					   && QNameUtil.compareQName(elementQName, elements.get(i + 1))) {
+					i++;
+					propElement = elements.get(i);
+					// Conver all the remaining values
+					Object avalue = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
+					propValues.add(avalue);
+				}
+
+			} else {
+				// Single-valued properties are easy to convert
+				Object value = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
+				propValues.add(value);
+			}
+			props.add(prop);
+		}
+		return props;
+	}
+
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();

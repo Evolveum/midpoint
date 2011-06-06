@@ -20,7 +20,7 @@
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.XsdTypeConverter;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.common.object.ObjectResolver;
 import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.logging.TraceManager;

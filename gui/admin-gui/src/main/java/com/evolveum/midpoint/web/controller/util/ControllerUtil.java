@@ -28,7 +28,7 @@ import javax.faces.event.ValueChangeEvent;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.bean.SelectableBean;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 

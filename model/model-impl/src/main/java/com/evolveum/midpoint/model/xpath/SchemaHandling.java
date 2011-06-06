@@ -48,9 +48,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.XPathUtil;
+import com.evolveum.midpoint.common.XmlUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
@@ -554,7 +555,7 @@ public class SchemaHandling extends XPathUtil {
 							Document doc = DOMUtil.getDocument();
 							doc.adoptNode(domUser);
 							doc.appendChild(domUser);
-							DOMUtil.createNodesDefinedByXPath(doc, relativeParentXPath);
+							XPathUtil.createNodesDefinedByXPath(doc, relativeParentXPath);
 							domUser = doc.getFirstChild();
 							Validate.notNull(domUser, "null value assigned to domUser");
 							variables.put(SchemaConstants.I_USER, new Variable(domUser, false));
@@ -577,7 +578,7 @@ public class SchemaHandling extends XPathUtil {
 						nodesAttributesFromAccountShadow, userPropertyQName, filters);
 				// III.b set new values in transformed
 				// nodesAttributesFromAccountShadow to user
-				DOMUtil.addChildNodes(parentNode, newNodes);
+				XmlUtil.addChildNodes(parentNode, newNodes);
 				// IV. set modified user
 				if (wasEmpty) {
 					domUser = parentNode;
@@ -600,7 +601,7 @@ public class SchemaHandling extends XPathUtil {
 						nodesAttributesFromAccountShadow, userPropertyQName, filters);
 				// III.a replace values in transformed
 				// nodesAttributesFromAccountShadow to user
-				DOMUtil.replaceChildNodes(parentNode, newNodes);
+				XmlUtil.replaceChildNodes(parentNode, newNodes);
 				// IV. set modified user
 				domUser = parentNode.getOwnerDocument().getFirstChild();
 				TRACE.debug("INBOUND: expression [attribute:{}] =(replace)=> [user:{},path:{}] {}",

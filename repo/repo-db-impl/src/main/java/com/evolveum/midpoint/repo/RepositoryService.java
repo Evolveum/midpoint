@@ -23,7 +23,7 @@
 package com.evolveum.midpoint.repo;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;

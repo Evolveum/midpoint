@@ -19,7 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;

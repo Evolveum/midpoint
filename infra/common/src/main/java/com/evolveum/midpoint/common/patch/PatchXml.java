@@ -22,8 +22,9 @@
 
 package com.evolveum.midpoint.common.patch;
 
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.XPathUtil;
+import com.evolveum.midpoint.common.XmlUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.patch.PatchException;
@@ -92,7 +93,7 @@ public class PatchXml extends XPathUtil {
                     throw new PatchException("XPath matches incorrect number of nodes");
                 }
                 Node parentNode = parentNodes.item(0);
-                DOMUtil.addChildNodes(parentNode, newOrOldNode);
+                XmlUtil.addChildNodes(parentNode, newOrOldNode);
                 break;
 
             case replace:
@@ -109,7 +110,7 @@ public class PatchXml extends XPathUtil {
                     if (PropertyModificationTypeType.replace.equals(change.getModificationType())) {
                         logger.warn("Will create nodes defined by XPath {}", xpathUtil.getXPath());
                         //we will create xml tags defined by xpath
-                        DOMUtil.createNodesDefinedByXPath(doc, xpathUtil);
+                        XPathUtil.createNodesDefinedByXPath(doc, xpathUtil);
                         try {
                             nodes = matchedNodesByXPath(xpathUtil, null, doc.getFirstChild());
                         } catch (XPathExpressionException ex) {
@@ -125,11 +126,11 @@ public class PatchXml extends XPathUtil {
                     Node node = nodes.item(i);
 
                     if (PropertyModificationTypeType.replace.equals(change.getModificationType())) {
-                        DOMUtil.replaceChildNodes(node, newOrOldNode);
+                        XmlUtil.replaceChildNodes(node, newOrOldNode);
                     }
                     if (PropertyModificationTypeType.delete.equals(change.getModificationType())) {
                         //TODO: we should check whole subtree
-                        DOMUtil.deleteChildNodes(node, newOrOldNode);
+                        XmlUtil.deleteChildNodes(node, newOrOldNode);
                     }
                 }
                 break;

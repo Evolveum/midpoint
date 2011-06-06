@@ -21,10 +21,14 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import com.evolveum.midpoint.util.QNameUtil;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
+import org.w3c.dom.Element;
 
 /**
  * Resource Object Definition (Object Class).
@@ -262,5 +266,13 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	@Override
 	public ResourceObject instantiate() {
 		return new ResourceObject(getNameOrDefaultName(), this);
+	}
+	
+	public Set<ResourceObjectAttribute> parseAttributes(List<Element> elements) {
+		return parseProperties(elements, ResourceObjectAttribute.class);
+	}
+
+	public ResourceObjectAttributeDefinition findAttributeDefinition(QName elementQName) {
+		return findPropertyDefinition(elementQName,ResourceObjectAttributeDefinition.class);
 	}
 }

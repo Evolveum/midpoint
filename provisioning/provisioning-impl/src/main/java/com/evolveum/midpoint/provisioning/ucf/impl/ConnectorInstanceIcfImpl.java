@@ -19,7 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
-import com.evolveum.midpoint.common.XsdTypeConverter;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
@@ -169,8 +169,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			Set<AttributeInfo> attributeInfoSet = objectClassInfo.getAttributeInfo();
 			for (AttributeInfo attributeInfo : attributeInfoSet) {
 
-				// Default name and type for the attribute: name is takes "as is", type is mapped
-				QName attrXsdName = new QName(getSchemaNamespace(),attributeInfo.getName(),SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
+				QName attrXsdName = convertAttributeNameToQName(attributeInfo.getName());
 				
 				QName attrXsdType = null;
 				if (GuardedString.class.equals(attributeInfo.getType())) {
@@ -182,19 +181,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				} else {
 					attrXsdType = XsdTypeConverter.toXsdType(attributeInfo.getType());
 				}
-				
-				// Handle special cases
-				if (Name.NAME.equals(attributeInfo.getName())) {
-					// this is ICF __NAME__ attribute. It will look ugly in XML and may even cause problems.
-					// so convert to something more friendly such as icfs:name
-					attrXsdName = SchemaConstants.ICFS_NAME;
-				}
-				if (PASSWORD_ATTRIBUTE_NAME.equals(attributeInfo.getName())) {
-					// Temporary hack. Password should go into credentials, not attributes
-					// TODO: fix this
-					attrXsdName = SchemaConstants.ICFS_PASSWORD;
-				}
-				
+								
 				// Create ResourceObjectAttributeDefinition, which is midPoint way how to express attribute schema.
 				ResourceObjectAttributeDefinition roaDefinition = new ResourceObjectAttributeDefinition(roDefinition, attrXsdName, attrXsdName, attrXsdType);
 				roDefinition.getDefinitions().add(roaDefinition);
@@ -378,7 +365,43 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	
 	// UTILITY METHODS
 	
-		/**
+	private QName convertAttributeNameToQName(String icfAttrName) {
+		QName attrXsdName = new QName(getSchemaNamespace(),icfAttrName,SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);						
+		// Handle special cases
+		if (Name.NAME.equals(icfAttrName)) {
+			// this is ICF __NAME__ attribute. It will look ugly in XML and may even cause problems.
+			// so convert to something more friendly such as icfs:name
+			attrXsdName = SchemaConstants.ICFS_NAME;
+		}
+		if (PASSWORD_ATTRIBUTE_NAME.equals(icfAttrName)) {
+			// Temporary hack. Password should go into credentials, not attributes
+			// TODO: fix this
+			attrXsdName = SchemaConstants.ICFS_PASSWORD;
+		}
+		return attrXsdName;
+	}
+
+	private String convertAttributeNameToIcf(QName attrQName) {
+		// Attribute QNames in the resource instance namespace are converted "as is"
+		if (attrQName.getNamespaceURI().equals(getSchemaNamespace())) {
+			return attrQName.getLocalPart();
+		}
+		
+		// Other namespace are special cases
+		
+		if (SchemaConstants.ICFS_NAME.equals(attrQName)) {
+			return Name.NAME;
+		}
+		
+		if (SchemaConstants.ICFS_PASSWORD.equals(attrQName)) {
+			return PASSWORD_ATTRIBUTE_NAME;
+		}
+		
+		// No mapping available
+		throw new IllegalArgumentException("No mapping from QName "+attrQName+" to an ICF attribute name");
+	}
+
+	/**
 	 * Maps ICF native objectclass name to a midPoint QName objctclass name.
 	 * 
 	 * The mapping is "stateless" - it does not keep any mapping database or

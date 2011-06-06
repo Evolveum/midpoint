@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.common;
+package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import java.util.HashMap;
@@ -39,10 +39,12 @@ import org.w3c.dom.Element;
 public class XsdTypeConverter {
 	
 	private static Map<Class,QName> javaToXsdTypeMap;
+	private static Map<QName,Class> xsdToJavaTypeMap;
 	
 	private static void initTypeMap() {
 		
         javaToXsdTypeMap = new HashMap();
+		xsdToJavaTypeMap = new HashMap();
         addMapping(String.class, SchemaConstants.XSD_STRING);
         addMapping(int.class, SchemaConstants.XSD_INTEGER);
         addMapping(boolean.class, SchemaConstants.XSD_BOOLEAN);
@@ -51,6 +53,7 @@ public class XsdTypeConverter {
 	
 	private static void addMapping(Class javaClass, QName xsdType) {
 		javaToXsdTypeMap.put(javaClass, xsdType);
+		xsdToJavaTypeMap.put(xsdType, javaClass);
 	}
 	
     public static QName toXsdType(Class javaClass) {
@@ -60,7 +63,15 @@ public class XsdTypeConverter {
         }
         return xsdType;
     }
-	
+
+	public static Class toJavaType(QName xsdType) {
+        Class javaType = xsdToJavaTypeMap.get(xsdType);
+        if (javaType==null) {
+            throw new IllegalArgumentException("No type mapping for XSD type "+xsdType);
+        }
+        return javaType;
+    }
+
 	public static Object toJavaValue(Element xmlElement, Class type) {
 		String stringContent = xmlElement.getTextContent();
 		if (type.equals(String.class)) {
@@ -74,6 +85,11 @@ public class XsdTypeConverter {
 		}
 	}
 
+	public static Object toJavaValue(Element xmlElement, QName type) {
+		return toJavaValue(xmlElement,toJavaType(type));
+	}
+
+	
 	static {
 		initTypeMap();
 	}

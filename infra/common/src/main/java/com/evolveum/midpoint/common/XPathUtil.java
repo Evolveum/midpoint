@@ -28,10 +28,12 @@ import com.evolveum.midpoint.util.MapXPathVariableResolver;
 import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.xml.schema.ExpressionHolder;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
 import com.evolveum.midpoint.xpath.MidPointNamespaceContext;
 import com.evolveum.midpoint.xpath.MidPointXPathFunctionResolver;
 import com.evolveum.midpoint.xpath.functions.CapitalizeFunction;
+import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPath;
@@ -41,6 +43,8 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import javax.xml.xpath.XPathVariableResolver;
 import org.apache.commons.lang.Validate;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -129,4 +133,60 @@ public class XPathUtil {
 //        return result;
 //
 //    }
+	
+		public static void createNodesDefinedByXPath(Document doc,
+			XPathType xpathType) {
+		Validate.notNull(doc, "Provided parameter doc was null");
+		Validate.notNull(xpathType, "Provided parameter xpathType was null");
+
+		List<XPathSegment> segments = xpathType.toSegments();
+
+		if (null != segments) {
+			// first we will find first element defined by xpath that does not
+			// exists
+			Node docChildToWhichAppend = (Element) doc.getFirstChild();
+			int i;
+			for (i = 0; i < segments.size(); i++) {
+				NodeList nodes;
+				try {
+					XPathType path = null;
+					path = new XPathType(segments.subList(0, i + 1));
+					nodes = (new XPathUtil()).matchedNodesByXPath(path, null,
+							doc.getFirstChild());
+				} catch (XPathExpressionException ex) {
+					// TODO: exception translation
+					throw new IllegalArgumentException(ex);
+				}
+
+				if ((null == nodes) || (nodes.getLength() == 0)) {
+					break;
+				}
+				docChildToWhichAppend = docChildToWhichAppend.getFirstChild();
+			}
+
+			// if there is at least element that does not exists (defined by
+			// xpath), then create it and all remaining elements from xpath
+			if (i < segments.size()) {
+				Element parentElement = null;
+				Element element = null;
+				Element child;
+
+				for (int j = i; j < segments.size(); j++) {
+					QName qname = segments.get(j).getQName();
+					if (null == parentElement) {
+						parentElement = doc.createElementNS(
+								qname.getNamespaceURI(), qname.getLocalPart());
+						element = parentElement;
+					} else {
+						child = doc.createElementNS(qname.getNamespaceURI(),
+								qname.getLocalPart());
+						element.appendChild(child);
+						element = child;
+					}
+				}
+				docChildToWhichAppend.appendChild(parentElement);
+			}
+		}
+
+	}
 }

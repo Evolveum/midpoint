@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;

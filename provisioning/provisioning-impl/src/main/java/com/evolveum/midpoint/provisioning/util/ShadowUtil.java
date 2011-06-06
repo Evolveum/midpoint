@@ -23,7 +23,7 @@
 package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectIdentificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;

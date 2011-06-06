@@ -31,7 +31,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 
-import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
