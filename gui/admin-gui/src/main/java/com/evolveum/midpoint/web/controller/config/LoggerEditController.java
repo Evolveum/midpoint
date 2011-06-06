@@ -164,9 +164,8 @@ public class LoggerEditController implements Serializable {
 			loggingController.getLoggers().remove(oldItem);		
 		}
 		
-		loggingController.getLoggers().add(item);
-		
-		//TODO: update configuration
+		loggingController.getLoggers().add(item);		
+		loggingController.saveConfiguration();
 		
 		clearController();
 		return PAGE_NAVIGATION_LIST;

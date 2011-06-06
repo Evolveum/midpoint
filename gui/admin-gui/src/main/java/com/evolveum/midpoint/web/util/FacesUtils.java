@@ -27,16 +27,18 @@ import java.util.ResourceBundle;
 
 import javax.faces.application.Application;
 import javax.faces.application.FacesMessage;
+import javax.faces.application.ProjectStage;
 import javax.faces.context.FacesContext;
 
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResultFactory;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.jsf.messages.MidPointMessage;
-import com.evolveum.midpoint.web.model.WebModelException;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
 /**
@@ -70,20 +72,28 @@ public abstract class FacesUtils {
 		}
 		Application application = FacesContext.getCurrentInstance().getApplication();
 
-		ResourceBundle bundle = null;
+		String translation = null;
+		if (ProjectStage.Development.equals(application.getProjectStage())) {
+			translation = "!" + key + "!";
+		} else {
+			translation = key;
+		}
+
 		try {
-			bundle = ResourceBundle.getBundle(application.getMessageBundle(), FacesContext
+			ResourceBundle bundle = ResourceBundle.getBundle(application.getMessageBundle(), FacesContext
 					.getCurrentInstance().getViewRoot().getLocale());
+
+			if (bundle != null) {
+				translation = bundle.getString(key);
+			} else {
+				TRACE.warn("Couldn't find key '" + key + "'.");
+
+			}
 		} catch (Exception ex) {
 			TRACE.warn("Couldn't get resource bundle, reason: " + ex.getMessage());
 		}
 
-		if (bundle == null) {
-			TRACE.warn("Couldn't find key '" + key + "'.");
-			return "!" + key + "!";
-		}
-
-		return bundle.getString(key);
+		return translation;
 	}
 
 	public static void addWarnMessage(String msg) {
@@ -110,16 +120,36 @@ public abstract class FacesUtils {
 		addMessage(FacesMessage.SEVERITY_ERROR, msg, ex);
 	}
 
+	public static void addWarnMessageWithResult(String msg, OperationResultType result) {
+		addMessage(FacesMessage.SEVERITY_WARN, msg, result);
+	}
+
+	public static void addSuccessMessageWithResult(String msg, OperationResultType result) {
+		addMessage(FacesMessage.SEVERITY_INFO, msg, result);
+	}
+
+	public static void addErrorMessageWithResult(String msg, OperationResultType result) {
+		addMessage(FacesMessage.SEVERITY_ERROR, msg, result);
+	}
+
 	private static void addMessage(FacesMessage.Severity severity, String msg, Exception ex) {
 		FacesMessage message = null;
 		if (ex == null) {
 			message = new FacesMessage(severity, msg, null);
-		} else {
-			message = new MidPointMessage(severity, msg, null);
-			if (ex != null) {
-				fillExceptionMessages((MidPointMessage) message, ex);
+			FacesContext ctx = FacesContext.getCurrentInstance();
+			if (null != ctx) {
+				ctx.addMessage(null, message);
 			}
+
+			return;
 		}
+		OperationResultType result = OperationResultFactory.createOperationResult("Unknown",
+				OperationResultStatusType.FATAL_ERROR, ex.getMessage(), ex.getMessage());
+		message = new MidPointMessage(severity, msg, null, null);
+	}
+
+	private static void addMessage(FacesMessage.Severity severity, String msg, OperationResultType result) {
+		MidPointMessage message = new MidPointMessage(severity, msg, null, result);
 		FacesContext ctx = FacesContext.getCurrentInstance();
 		if (null != ctx) {
 			ctx.addMessage(null, message);
@@ -127,22 +157,27 @@ public abstract class FacesUtils {
 	}
 
 	private static void fillExceptionMessages(MidPointMessage message, Throwable ex) {
-		if (ex == null || message.getSubMessages().size() > 4) {
-			return;
-		}
-		if (ex instanceof WebModelException) {
-			WebModelException webException = (WebModelException) ex;
-			message.getSubMessages().add(webException.getTitle());
-		} else if (ex instanceof FaultMessage) {
-			FaultMessage fault = (FaultMessage) ex;
-			message.getSubMessages().add(getMessage(fault.getMessage(), fault.getFaultInfo()));
-		} else if (ex instanceof com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage) {
-			FaultType fault = ((com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage) ex)
-					.getFaultInfo();
-			message.getSubMessages().add(getMessage(ex.getMessage(), fault));
-		} else {
-			message.getSubMessages().add(ex.getMessage());
-		}
+		// if (ex == null || message.getSubMessages().size() > 4) {
+		// return;
+		// }
+		// if (ex instanceof WebModelException) {
+		// WebModelException webException = (WebModelException) ex;
+		// message.getSubMessages().add(webException.getTitle());
+		// } else if (ex instanceof FaultMessage) {
+		// FaultMessage fault = (FaultMessage) ex;
+		// message.getSubMessages().add(getMessage(fault.getMessage(),
+		// fault.getFaultInfo()));
+		// } else if (ex instanceof
+		// com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage)
+		// {
+		// FaultType fault =
+		// ((com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage)
+		// ex)
+		// .getFaultInfo();
+		// message.getSubMessages().add(getMessage(ex.getMessage(), fault));
+		// } else {
+		// message.getSubMessages().add(ex.getMessage());
+		// }
 
 		fillExceptionMessages(message, ex.getCause());
 	}

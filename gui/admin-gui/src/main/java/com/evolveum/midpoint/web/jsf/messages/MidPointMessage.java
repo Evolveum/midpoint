@@ -20,10 +20,9 @@
  */
 package com.evolveum.midpoint.web.jsf.messages;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.faces.application.FacesMessage;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 
 /**
  * 
@@ -33,16 +32,14 @@ import javax.faces.application.FacesMessage;
 public class MidPointMessage extends FacesMessage {
 
 	private static final long serialVersionUID = 8320638234262514369L;
-	private List<String> subMessages;
+	private OperationResultType result;
 
-	public MidPointMessage(Severity severity, String summary, String detail) {
+	public MidPointMessage(Severity severity, String summary, String detail, OperationResultType result) {
 		super(severity, summary, detail);
+		this.result = result;
 	}
 
-	public List<String> getSubMessages() {
-		if (subMessages == null) {
-			subMessages = new ArrayList<String>();
-		}
-		return subMessages;
+	public OperationResultType getResult() {
+		return result;
 	}
 }

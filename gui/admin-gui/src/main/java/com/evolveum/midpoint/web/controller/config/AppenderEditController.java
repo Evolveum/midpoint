@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.web.bean.AppenderListItem;
+import com.evolveum.midpoint.web.bean.LoggerListItem;
 import com.evolveum.midpoint.web.util.FacesUtils;
 
 /**
@@ -82,7 +83,7 @@ public class AppenderEditController implements Serializable {
 			FacesUtils.addErrorMessage("Appender configuration not found.");
 			return PAGE_NAVIGATION_LIST;
 		}
-		
+
 		return PAGE_NAVIGATION_EDIT;
 	}
 
@@ -99,15 +100,23 @@ public class AppenderEditController implements Serializable {
 				break;
 			}
 		}
-		
+
 		if (oldItem != null) {
-			loggingController.getAppenders().remove(oldItem);		
+			// loggers appender name update
+			if (!oldItem.getName().equals(item.getName())) {
+				for (LoggerListItem item : loggingController.getLoggers()) {
+					if (item.getAppenders().contains(oldItem.getName())) {
+						item.getAppenders().remove(oldItem.getName());
+						item.getAppenders().add(this.item.getName());
+					}
+				}
+			}
+			loggingController.getAppenders().remove(oldItem);
 		}
-		
+
 		loggingController.getAppenders().add(item);
-		
-		//TODO: update configuration
-		
+		loggingController.saveConfiguration();
+
 		clearController();
 		return PAGE_NAVIGATION_LIST;
 	}

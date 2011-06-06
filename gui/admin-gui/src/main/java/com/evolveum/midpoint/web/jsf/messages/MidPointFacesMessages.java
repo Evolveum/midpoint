@@ -20,13 +20,36 @@
  */
 package com.evolveum.midpoint.web.jsf.messages;
 
+import java.io.IOException;
+import java.util.Iterator;
+
+import javax.faces.application.FacesMessage;
+import javax.faces.component.FacesComponent;
+import javax.faces.context.FacesContext;
+import javax.faces.context.ResponseWriter;
+
 import com.icesoft.faces.component.ext.HtmlMessages;
 
 /**
  * 
  * @author lazyman
- *
+ * 
  */
+@FacesComponent("MidPointFacesMessages")
 public class MidPointFacesMessages extends HtmlMessages {
 
+	@Override
+	public void encodeBegin(FacesContext context) throws IOException {
+		ResponseWriter writer = context.getResponseWriter();
+
+		Iterator<FacesMessage> iterator = context.getMessages();
+		while (iterator.hasNext()) {
+			FacesMessage message = iterator.next();
+			writer.startElement("p", null);
+			writer.writeText(message.getSummary(), null);
+			writer.endElement("p");
+		}
+		super.encodeBegin(context);
+		System.out.println("encodeBegin");
+	}
 }

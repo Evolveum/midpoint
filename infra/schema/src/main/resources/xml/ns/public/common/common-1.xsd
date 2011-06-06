@@ -1,42 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- Copyright (c) 2011 Evolveum                             -->
-<!--                                                         -->
-<!-- The contents of this file are subject to the terms      -->
-<!-- of the Common Development and Distribution License      -->
-<!-- (the License). You may not use this file except in      -->
-<!-- compliance with the License.                            -->
-<!--                                                         -->
-<!-- You can obtain a copy of the License at                 -->
-<!-- http://www.opensource.org/licenses/cddl1 or             -->
-<!-- CDDLv1.0.txt file in the source code distribution.      -->
-<!-- See the License for the specific language governing     -->
-<!-- permission and limitations under the License.           -->
-<!--                                                         -->
+<!-- Copyright (c) 2011 Evolveum -->
+<!-- -->
+<!-- The contents of this file are subject to the terms -->
+<!-- of the Common Development and Distribution License -->
+<!-- (the License). You may not use this file except in -->
+<!-- compliance with the License. -->
+<!-- -->
+<!-- You can obtain a copy of the License at -->
+<!-- http://www.opensource.org/licenses/cddl1 or -->
+<!-- CDDLv1.0.txt file in the source code distribution. -->
+<!-- See the License for the specific language governing -->
+<!-- permission and limitations under the License. -->
+<!-- -->
 <!-- If applicable, add the following below the CDDL Header, -->
-<!-- with the fields enclosed by brackets [] replaced by     -->
-<!-- your own identifying information:                       -->
-<!--                                                         -->
-<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!--                                                         -->
-<!--  Portions Copyrighted 2010-2011 ForgeRock, Inc.         -->
+<!-- with the fields enclosed by brackets [] replaced by -->
+<!-- your own identifying information: -->
+<!-- -->
+<!-- Portions Copyrighted 2011 [name of copyright owner] -->
+<!-- -->
+<!-- Portions Copyrighted 2010-2011 ForgeRock, Inc. -->
 
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:m="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-	xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-	elementFormDefault="qualified"
-	jaxb:extensionBindingPrefixes="xjc"
-	jaxb:version="2.0">
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:m="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" elementFormDefault="qualified"
+	jaxb:extensionBindingPrefixes="xjc" jaxb:version="2.0">
 
 	<xsd:annotation>
 		<xsd:documentation>
 			This is a common schema for midPoint project. It contains all the
-			data types that the stock midPoint is using.
+			data types that the stock midPoint
+			is using.
 
 			This file contains more that a common schema in fact. It contains
 			all the objects, even parts of what is
@@ -55,17 +50,18 @@
 	</xsd:annotation>
 
 	<!-- ################################## -->
-	<!-- ##      Common Schema Layer     ## -->
+	<!-- ## Common Schema Layer ## -->
 	<!-- ################################## -->
-	
+
 	<!-- See https://wiki.evolveum.com/display/midPoint/Common+Schema -->
 
 	<xsd:element name="name" type="xsd:string">
 		<xsd:annotation>
 			<xsd:documentation>
 				Human-readable name for object, property, attribute or whatever.
-                                
-				TODO: Any special reason this is top-level element?
+
+				TODO: Any special reason this is
+				top-level element?
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -1290,18 +1286,12 @@
 	</xsd:complexType>
 
 	<!-- ################################## -->
-	<!-- ##     Identity Schema Layer    ## -->
+	<!-- ## Identity Schema Layer ## -->
 	<!-- ################################## -->
 
-	<!-- The following clauses belong to the identity schema layer.
-		 This schema defines the "identity model", the basic objects for 
-		 midPoint system that are common for most IDM deployments. It is
-		 supposed to be heavily used by midPoint low-level components and also
-		 by business logic.
-		 
-		 See https://wiki.evolveum.com/display/midPoint/Identity+Schema
-		 
-		 -->
+	<!-- The following clauses belong to the identity schema layer. This schema defines the "identity model", the basic objects 
+		for midPoint system that are common for most IDM deployments. It is supposed to be heavily used by midPoint low-level components 
+		and also by business logic. See https://wiki.evolveum.com/display/midPoint/Identity+Schema -->
 
 	<xsd:complexType name="UserType">
 		<xsd:annotation>
@@ -1310,7 +1300,8 @@
 
 				TODO: More details
 
-				Inspired by FOAF, but still quite LDAP-ish.
+				Inspired by FOAF, but
+				still quite LDAP-ish.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -1882,10 +1873,12 @@
 							<xsd:documentation>
 								Reference to the connector that implements
 								specified resource.
-								
-								Connector reference is MANDATORY. Although the
+
+								Connector reference is MANDATORY.
+								Although the
 								schema does not enforce it (due to various JAXB
-								reasons), exactly one of the connecotor or
+								reasons), exactly one of the
+								connecotor or
 								connectorRef MUST be present in the resource
 								object.
 							</xsd:documentation>
@@ -1896,20 +1889,25 @@
 							<xsd:documentation>
 								DEPRECATED. It is made optional for now. It
 								will be removed later.
-								
-								Type of the resource expressed as URI.
+
+								Type of the resource
+								expressed as URI.
 								The type (indirectly) defines what method to use
 								to
-								connect to the resource. E.g. it may specify
+								connect to the resource.
+								E.g. it may specify
 								the name of a Identity Connector bundle, version
 								and connector name.
 								Or it may specify the URI
-								of built-in SPML connector, etc.
+								of built-in SPML
+								connector, etc.
 
 								Note: QName may be more appropriate here.
 								But due to
-								OpenESB bug we have URI. But these
-								should be the same anyway.
+								OpenESB bug we have URI. But
+								these
+								should be the
+								same anyway.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -1992,25 +1990,31 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	
-	<xsd:element name="schema" type="tns:XmlSchemaType"/>
-	
+
+	<xsd:element name="schema" type="tns:XmlSchemaType" />
+
 	<xsd:complexType name="XmlSchemaType">
 		<xsd:annotation>
 			<xsd:documentation>
 				This element contains the XSD-formatted definition of schema.
-				
-				The schema available in this definition is expeceted to comply
-				to the usual midPoint schema structure (properties, property
-				containers), although it should not contain objects (persistent
+
+				The schema available in this
+				definition is expeceted to comply
+				to the usual midPoint schema structure (properties,
+				property
+				containers), although it
+				should not contain objects (persistent
 				objects identified by OID).
-				
-				Note: This schema is considered to be available only in run-time.
-				Therefore code-generation methods such as JAXB cannot be applied
+
+				Note: This schema is considered to be available
+				only in run-time.
+				Therefore code-generation methods such as JAXB cannot be
+				applied
 				here.
-				
-				Note: xsd:any is here, but maybe a stricter type would be 
-				preferable. However xsd:any seems to be a common practice 
+
+				Note: xsd:any is here, but
+				maybe a stricter type would be
+				preferable. However xsd:any seems to be a common practice
 				(e.g. SPML, WSDL).
 			</xsd:documentation>
 		</xsd:annotation>
@@ -3315,22 +3319,27 @@
 			<!-- Other parts may come here in the future -->
 		</xsd:complexContent>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="ConnectorType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Description of a generic connector. Connector in midPoint is any
-				method of connection to the resource. The actual implementation,
+				method of connection to the
+				resource. The actual implementation,
 				connector framework or protocol does not matter.
-				
-				The ConnectorType object may be "virtual" in a sense that it
+
+				The ConnectorType object may be
+				"virtual" in a sense that it
 				may not be stored in the persistent repository.
-				
-				More specific types derived from this type may exists. E.g.
-				a connector framework may create a derived type and return that
+
+				More specific types derived from this
+				type may exists. E.g.
+				a connector framework may create a derived type and return
+				that
 				instead of this type.
-				
-				Note: The ConnectorType does not describe only Identity
+
+				Note: The
+				ConnectorType does not describe only Identity
 				Connector Framework (ICF) connectors, it is much more generic.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -3341,7 +3350,8 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Version of the connector. Used only for display
-								purposes. May be any string (numberic convention
+								purposes. May be any string (numberic
+								convention
 								is recommended, but not required).
 							</xsd:documentation>
 						</xsd:annotation>
@@ -3367,10 +3377,12 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Connector-private namespace. This is the namespace
-								that is private for a specific connector (and
+								that is private for a specific connector
+								(and
 								optionally connector version).
 								It may be used by the connector to generate
-								connector configuration schema or for other
+								connector configuration schema or
+								for other
 								purposes.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -3381,17 +3393,21 @@
 								Connector configuration schema.
 
 								This element contains the XSD-formatted definition
-								of connector configuration schema. It defines
+								of connector
+								configuration schema. It defines
 								connector configuration variables and data types
-								such as host names, ports, administrator names
+								such as host names, ports,
+								administrator names
 								and so on.
 
 								Connector schema will most likely be only
-								available at run-time and will be diffrent for 
+								available at run-time and will be diffrent
+								for
 								every connector. It is supposed to be dynamically
 								interpreted in run-time.
 
-								Connector schema is read-only. Changing the
+								Connector schema is read-only.
+								Changing the
 								schema is not supported.
 							</xsd:documentation>
 						</xsd:annotation>
@@ -4478,7 +4494,7 @@
 	</xsd:complexType>
 	<xsd:element name="operationalResult" type="tns:OperationalResultType" />
 
-<!-- TODO - check -->
+	<!-- TODO - check -->
 
 	<xsd:element name="passwordPolicy" type="tns:PasswordPolicyType" />
 
@@ -4486,9 +4502,9 @@
 		<xsd:complexContent>
 			<xsd:extension base="c:ObjectType">
 				<xsd:sequence>
-					<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-					<xsd:element name="lifetime" type="c:PasswordLifeTimeType"  minOccurs="1" maxOccurs="1"/>
-					<xsd:element name="stringPolicy" type="c:StringPolicyType" minOccurs="1" maxOccurs="1"/>
+					<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="lifetime" type="c:PasswordLifeTimeType" minOccurs="1" maxOccurs="1" />
+					<xsd:element name="stringPolicy" type="c:StringPolicyType" minOccurs="1" maxOccurs="1" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -4499,9 +4515,10 @@
 			<xsd:element name="expiration" type="xsd:int" default="-1" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
-						Number of days before password expires 
-							 -1 : means password doesn't expire
-							  0 : means password is expired
+						Number of days before password expires
+						-1 : means password doesn't expire
+						0 : means password is
+						expired
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -4551,9 +4568,9 @@
 
 	<xsd:complexType name="StringPolicyType">
 		<xsd:sequence>
-			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="limitations" type="tns:limitationsType" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="limitations" type="tns:limitationsType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -4562,12 +4579,12 @@
 			<xsd:documentation>Definition of complexity and string policy</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="minLength" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="maxLength" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="minUniqueChars" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="checkPattern" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="limit" type="tns:StringLimitType"  minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="minLength" type="xsd:int" default="0" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="maxLength" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="minUniqueChars" type="xsd:int" default="0" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="checkPattern" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="limit" type="tns:StringLimitType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -4576,7 +4593,7 @@
 			<xsd:documentation>Definition of valid single string limitation</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="maxOccurs" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="mustBeFirst" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1" />
@@ -4586,16 +4603,17 @@
 
 	<xsd:complexType name="CharacterClassType">
 		<xsd:annotation>
-			<xsd:documentation>Definition of valid characters in class. Default value is ASCII printable characters (Codes 0x20 to 0x7E)</xsd:documentation>
+			<xsd:documentation>Definition of valid characters in class. Default value is ASCII printable characters (Codes 0x20
+				to 0x7E)</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:choice>
 				<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="1" maxOccurs="unbounded" />
-				<xsd:element name="value" type="xsd:string" minOccurs="1"/>
-			</xsd:choice>	
+				<xsd:element name="value" type="xsd:string" minOccurs="1" />
+			</xsd:choice>
 		</xsd:sequence>
-		<xsd:attribute name="ref" type="xsd:QName" use="optional"/>
-		<xsd:attribute name="name" type="xsd:QName" use="optional"/>
+		<xsd:attribute name="ref" type="xsd:QName" use="optional" />
+		<xsd:attribute name="name" type="xsd:QName" use="optional" />
 	</xsd:complexType>
 
 	<!-- End of TODO -->
@@ -4688,18 +4706,20 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<!-- Configuration types -->
-		
-	<xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
-		
+
+	<xsd:element name="systemConfiguration" type="tns:SystemConfigurationType" />
+
 	<xsd:complexType name="SystemConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
 				System configuration object.
-				
+
 				Holds global system configuration setting. There will be just
-				one object of this type in the system. It will have a well-known
+				one
+				object of this type in the system. It will have a
+				well-known
 				OID.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -4721,7 +4741,7 @@
 								User template that will be used "universtally"
 								in all situations regarding user internal
 								consistency.
-								
+
 								TODO: better documentation
 							</xsd:documentation>
 						</xsd:annotation>
@@ -4731,9 +4751,10 @@
 							<xsd:documentation>
 								Reference to the default
 								user template that will be used "universtally"
-								in all situations regarding user internal
+								in all situations
+								regarding user internal
 								consistency.
-								
+
 								TODO: better documentation
 							</xsd:documentation>
 						</xsd:annotation>
@@ -4743,7 +4764,7 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="LoggingConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -4751,8 +4772,8 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="logger" type="tns:LoggerConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
-			<xsd:element name="appender" type="tns:AppenderConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="logger" type="tns:LoggerConfigurationType" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="appender" type="tns:AppenderConfigurationType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -4776,7 +4797,8 @@
 					<xsd:documentation>
 						TODO: catagories are OR-ed
 						TODO: string, but there should be a way how to determine
-						list of valid categories. Maybe switch to enum later.
+						list of valid
+						categories. Maybe switch to enum later.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -4785,7 +4807,8 @@
 					<xsd:documentation>
 						TODO: components are OR-ed
 						TODO: string, but there should be a way how to determine
-						list of valid categories. Maybe switch to enum later.
+						list of valid
+						categories. Maybe switch to enum later.
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -4794,6 +4817,13 @@
 					<xsd:documentation>
 						TODO: packages are OR-ed
 						TODO: string, wildcards allowed (* as in java)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="appender" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Appender name defined in appenders section in logging configuration
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -4813,62 +4843,62 @@
 			<xsd:enumeration value="all">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="ALL"/>
+						<jaxb:typesafeEnumMember name="ALL" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="fatal">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="FATAL"/>
+						<jaxb:typesafeEnumMember name="FATAL" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="error">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="ERROR"/>
+						<jaxb:typesafeEnumMember name="ERROR" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="warn">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="WARN"/>
+						<jaxb:typesafeEnumMember name="WARN" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="info">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="INFO"/>
+						<jaxb:typesafeEnumMember name="INFO" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="debug">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="DEBUG"/>
+						<jaxb:typesafeEnumMember name="DEBUG" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="trace">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="TRACE"/>
+						<jaxb:typesafeEnumMember name="TRACE" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="all">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="ALL"/>
+						<jaxb:typesafeEnumMember name="ALL" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<xsd:simpleType name="LoggingCategoryType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -4882,20 +4912,20 @@
 			<xsd:enumeration value="category1">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="CATEGORY1"/>
+						<jaxb:typesafeEnumMember name="CATEGORY1" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="category2">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="CATEGORY2"/>
+						<jaxb:typesafeEnumMember name="CATEGORY2" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<xsd:simpleType name="LoggingComponentType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -4909,42 +4939,42 @@
 			<xsd:enumeration value="util">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="UTIL"/>
+						<jaxb:typesafeEnumMember name="UTIL" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="common">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="COMMON"/>
+						<jaxb:typesafeEnumMember name="COMMON" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="model">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="MODEL"/>
+						<jaxb:typesafeEnumMember name="MODEL" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="provisioning">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="PROVISIONING"/>
+						<jaxb:typesafeEnumMember name="PROVISIONING" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="repository">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="REPOSITORY"/>
+						<jaxb:typesafeEnumMember name="REPOSITORY" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="gui">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="GUI"/>
+						<jaxb:typesafeEnumMember name="GUI" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -4956,14 +4986,29 @@
 			<xsd:documentation>
 				Configuration of the logger: the facility that collects log
 				messages from the code.
-				
+
 				TODO
 			</xsd:documentation>
 		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="pattern" type="xsd:string" />
+		</xsd:sequence>
+		<xsd:attribute name="name" type="xsd:string" />
+	</xsd:complexType>
+
+	<xsd:complexType name="FileAppenderConfigurationType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:AppenderConfigurationType">
+				<xsd:sequence>
+					<xsd:element name="filePath" type="xsd:string" />
+					<xsd:element name="maxFileSize" type="xsd:int" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
 	</xsd:complexType>
 
 
-    <xsd:attribute name="NewAttribute" type="xsd:string"></xsd:attribute>
+	<xsd:attribute name="NewAttribute" type="xsd:string"></xsd:attribute>
 
 </xsd:schema>
 
