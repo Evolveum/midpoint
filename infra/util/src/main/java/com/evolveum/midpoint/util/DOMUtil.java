@@ -26,6 +26,7 @@ package com.evolveum.midpoint.util;
 import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -238,6 +239,18 @@ public class DOMUtil {
 		}
 
 		return null;
+	}
+	
+	public static List<Element> getSubelementList(Node node) {
+		List<Element> subelements = new ArrayList<Element>();
+		NodeList childNodes = node.getChildNodes();
+		for(int i=0;i<childNodes.getLength();i++) {
+			Node childNode = childNodes.item(i);
+			if (childNode.getNodeType() == Node.ELEMENT_NODE) {
+				subelements.add((Element)childNode);
+			}
+		}
+		return subelements;
 	}
 
 }
