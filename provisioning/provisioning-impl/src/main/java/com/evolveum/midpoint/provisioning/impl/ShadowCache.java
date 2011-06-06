@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import com.evolveum.midpoint.common.object.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -63,11 +65,7 @@ import org.w3c.dom.Element;
  * That should be made configurable later. It also only support Account objects
  * now.
  * 
- * This is work in progress, the methods of this object are quite ad-hoc now,
- * and it has to be improved later. But in the time this object was created the
- * ProvisioningService was quite a mess (OPENIDM-360) and was not usable by the
- * import task. So I figured it would be better to start the move in the correct
- * direction, although the result is far from perfect.
+ * This is work in progress ...
  *
  * @author Radovan Semancik
  */
@@ -99,6 +97,14 @@ public class ShadowCache {
     public void setRepositoryService(RepositoryPortType repositoryService) {
         this.repositoryService = repositoryService;
     }
+	
+	public ConnectorManager getConnectorManager() {
+		return connectorManager;
+	}
+	
+	public void setConnectorManager(ConnectorManager connectorManager) {
+		this.connectorManager = connectorManager;
+	}
 
 	/**
 	 * OID identitfication - normal usage
@@ -110,12 +116,16 @@ public class ShadowCache {
 
 		// We are using parent result directly, not creating subresult.
 		// We want to hide the existence of shadow cache from the user.
-		
+				
 		// Get the shadow from repository. There are identifiers that we need
 		// for accessing the object by UCF.
 		// Later, the repository object may have a fully cached object from.
         ObjectContainerType repositoryObjectContainer = getRepositoryService().getObject(oid, null);
 		ResourceObjectShadowType repositoryShadow = (ResourceObjectShadowType)repositoryObjectContainer.getObject();
+		
+		if (resource==null) {
+			resource = getResource(ResourceObjectShadowUtil.getResourceOid(repositoryShadow));
+		}
 		
 		// Get the fresh object from UCF
 		
@@ -151,7 +161,7 @@ public class ShadowCache {
 
 	private ConnectorInstance getConnectorInstance(ResourceType resource) {
 		// TODO: Add caching later
-		return connectorManager.createConnectorInstance(resource);
+		return getConnectorManager().createConnectorInstance(resource);
 	}
 	
 	private Schema getResourceSchema(ResourceType resource) throws SchemaProcessorException {
@@ -160,6 +170,12 @@ public class ShadowCache {
 		
 		// TODO: smarter search for schema, add to some utility class
 		return Schema.parse(resource.getSchema().getAny().get(0));
+	}
+	
+	private ResourceType getResource(String oid) throws com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+		// TODO: add some caching
+		ObjectContainerType container = getRepositoryService().getObject(oid,null);
+		return (ResourceType) container.getObject();
 	}
 	
     /**
