@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.common.result;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
+
 /**
  * 
  * @author lazyman
@@ -54,4 +56,34 @@ public enum OperationResultStatus {
 	 * Used when operation didn't finish correctly.
 	 */
 	FATAL_ERROR;
+
+	public static OperationResultStatus parseStatusType(OperationResultStatusType statusType) {
+		switch (statusType) {
+			case FATAL_ERROR:
+				return FATAL_ERROR;
+			case PARTIAL_ERROR:
+				return PARTIAL_ERROR;
+			case SUCCESS:
+				return SUCCESS;
+			case WARNING:
+				return WARNING;
+			default:
+				return UNKNOWN;
+		}
+	}
+
+	public OperationResultStatusType createStatusType() {
+		switch (this) {
+			case SUCCESS:
+				return OperationResultStatusType.SUCCESS;
+			case WARNING:
+				return OperationResultStatusType.WARNING;
+			case FATAL_ERROR:
+				return OperationResultStatusType.FATAL_ERROR;
+			case PARTIAL_ERROR:
+				return OperationResultStatusType.PARTIAL_ERROR;
+			default:
+				return OperationResultStatusType.WARNING;
+		}
+	}
 }

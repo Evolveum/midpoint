@@ -27,7 +27,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.EntryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 
 /**
@@ -39,9 +42,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
  * operations.
  * 
  * This object can be used by GUI to display smart (and interactive) error
- * information. It can also be used by the client code to detect deeper
- * problems in the invocations, retry or otherwise compensate for the errors or
- * decide how severe the error was and it is possible to proceed.
+ * information. It can also be used by the client code to detect deeper problems
+ * in the invocations, retry or otherwise compensate for the errors or decide
+ * how severe the error was and it is possible to proceed.
  * 
  * @author lazyman
  * @author Radovan Semancik
@@ -58,14 +61,15 @@ public class OperationResult implements Serializable {
 	private long token;
 	private String messageCode;
 	private String message;
-	private String details;
+	private String localizationMessage;
+	private List<Object> localizationArguments;
 	private Exception cause;
 	private List<OperationResult> subresults;
 
 	public OperationResult(String operation) {
 		this(operation, null, OperationResultStatus.UNKNOWN, 0, null, null, null, null, null);
 	}
-	
+
 	public OperationResult(String operation, String messageCode, String message) {
 		this(operation, null, OperationResultStatus.SUCCESS, 0, messageCode, message, null, null, null);
 	}
@@ -99,8 +103,15 @@ public class OperationResult implements Serializable {
 	}
 
 	public OperationResult(String operation, Map<String, Object> params, OperationResultStatus status,
-			long token, String messageCode, String message, String details, Exception cause,
+			long token, String messageCode, String message, String localizationMessage, Exception cause,
 			List<OperationResult> subresults) {
+		this(operation, params, status, token, messageCode, message, localizationMessage, null, cause,
+				subresults);
+	}
+
+	public OperationResult(String operation, Map<String, Object> params, OperationResultStatus status,
+			long token, String messageCode, String message, String localizationMessage,
+			List<Object> localizationArguments, Exception cause, List<OperationResult> subresults) {
 		if (StringUtils.isEmpty(operation)) {
 			throw new IllegalArgumentException("Operation argument must not be null or empty.");
 		}
@@ -113,11 +124,12 @@ public class OperationResult implements Serializable {
 		this.token = token;
 		this.messageCode = messageCode;
 		this.message = message;
-		this.details = details;
+		this.localizationMessage = localizationMessage;
+		this.localizationArguments = localizationArguments;
 		this.cause = cause;
 		this.subresults = subresults;
 	}
-	
+
 	public OperationResult createSubresult(String operation) {
 		OperationResult subresult = new OperationResult(operation);
 		addSubresult(subresult);
@@ -148,7 +160,7 @@ public class OperationResult implements Serializable {
 		}
 		return subresults;
 	}
-	
+
 	public void addSubresult(OperationResult subresult) {
 		getSubresults().add(subresult);
 	}
@@ -161,7 +173,7 @@ public class OperationResult implements Serializable {
 	public OperationResultStatus getStatus() {
 		return status;
 	}
-	
+
 	/**
 	 * Returns true if the result is success.
 	 * 
@@ -171,9 +183,9 @@ public class OperationResult implements Serializable {
 	 * @return true if the result is success.
 	 */
 	public boolean isSuccess() {
-		return (status==OperationResultStatus.SUCCESS);
+		return (status == OperationResultStatus.SUCCESS);
 	}
-	
+
 	/**
 	 * Returns true if the result is acceptable for further processing.
 	 * 
@@ -184,27 +196,27 @@ public class OperationResult implements Serializable {
 	 * @return true if the result is acceptable for further processing.
 	 */
 	public boolean isAcceptable() {
-		return (status!=OperationResultStatus.FATAL_ERROR);
+		return (status != OperationResultStatus.FATAL_ERROR);
 	}
 
 	public boolean isUnknown() {
-		return (status==OperationResultStatus.UNKNOWN);
+		return (status == OperationResultStatus.UNKNOWN);
 	}
 
-	
 	/**
-	 * Computes operation result status based on subtask status and sets
-	 * an error message if the status is FATAL_ERROR.
+	 * Computes operation result status based on subtask status and sets an
+	 * error message if the status is FATAL_ERROR.
 	 * 
-	 * @param errorMessage error message
+	 * @param errorMessage
+	 *            error message
 	 */
 	public void computeStatus(String errorMessage) {
 		computeStatus();
-		if (status==OperationResultStatus.FATAL_ERROR && message==null) {
+		if (status == OperationResultStatus.FATAL_ERROR && message == null) {
 			message = errorMessage;
 		}
 	}
-	
+
 	/**
 	 * Computes operation result status based on subtask status.
 	 */
@@ -212,18 +224,18 @@ public class OperationResult implements Serializable {
 		OperationResultStatus newStatus = OperationResultStatus.UNKNOWN;
 		boolean allSuccess = true;
 		for (OperationResult sub : getSubresults()) {
-			if (sub.getStatus()==OperationResultStatus.FATAL_ERROR) {
+			if (sub.getStatus() == OperationResultStatus.FATAL_ERROR) {
 				status = OperationResultStatus.FATAL_ERROR;
 				return;
 			}
-			if (sub.getStatus()!=OperationResultStatus.SUCCESS) {
+			if (sub.getStatus() != OperationResultStatus.SUCCESS) {
 				allSuccess = false;
-			}			
-			if (sub.getStatus()==OperationResultStatus.PARTIAL_ERROR) {
+			}
+			if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
 				newStatus = OperationResultStatus.PARTIAL_ERROR;
 			}
-			if (newStatus!=OperationResultStatus.PARTIAL_ERROR) {
-				if (sub.getStatus()==OperationResultStatus.WARNING) {
+			if (newStatus != OperationResultStatus.PARTIAL_ERROR) {
+				if (sub.getStatus() == OperationResultStatus.WARNING) {
 					newStatus = OperationResultStatus.WARNING;
 				}
 			}
@@ -247,8 +259,8 @@ public class OperationResult implements Serializable {
 		}
 		return params;
 	}
-	
-	public void addParam(String paramName,Object paramValue) {
+
+	public void addParam(String paramName, Object paramValue) {
 		getParams().put(paramName, paramValue);
 	}
 
@@ -259,11 +271,10 @@ public class OperationResult implements Serializable {
 		return context;
 	}
 
-	public void addContext(String contextName,Object value) {
+	public void addContext(String contextName, Object value) {
 		getContext().put(contextName, value);
 	}
 
-	
 	/**
 	 * @return Contains random long number, for better searching in logs.
 	 */
@@ -289,11 +300,17 @@ public class OperationResult implements Serializable {
 	}
 
 	/**
-	 * @return Method returns operation result detail message. Not required, can
-	 *         be null.
+	 * @return Method returns message key for translation, can be null.
 	 */
-	public String getDetails() {
-		return details;
+	public String getLocalizationMessage() {
+		return localizationMessage;
+	}
+
+	/**
+	 * @return Method returns arguments if needed for localization, can be null.
+	 */
+	public List<Object> getLocalizationArguments() {
+		return localizationArguments;
 	}
 
 	/**
@@ -303,18 +320,18 @@ public class OperationResult implements Serializable {
 	public Exception getCause() {
 		return cause;
 	}
-	
+
 	public void recordSuccess() {
 		// Success, no message or other explanation is needed.
 		status = OperationResultStatus.SUCCESS;
 	}
 
 	public void recordFatalError(Exception cause) {
-		recordStatus(OperationResultStatus.FATAL_ERROR,cause);
+		recordStatus(OperationResultStatus.FATAL_ERROR, cause);
 	}
 
 	public void recordPartialError(Exception cause) {
-		recordStatus(OperationResultStatus.PARTIAL_ERROR,cause);
+		recordStatus(OperationResultStatus.PARTIAL_ERROR, cause);
 	}
 
 	public void recordStatus(OperationResultStatus status, Exception cause) {
@@ -326,48 +343,45 @@ public class OperationResult implements Serializable {
 	}
 
 	public void recordFatalError(String message, Exception cause) {
-		recordStatus(OperationResultStatus.FATAL_ERROR,message,cause);
+		recordStatus(OperationResultStatus.FATAL_ERROR, message, cause);
 	}
 
 	public void recordPartialError(String message, Exception cause) {
-		recordStatus(OperationResultStatus.PARTIAL_ERROR,message,cause);
+		recordStatus(OperationResultStatus.PARTIAL_ERROR, message, cause);
 	}
 
 	public void recordStatus(OperationResultStatus status, String message, Exception cause) {
 		this.status = status;
 		this.message = message;
-		this.cause = cause;		
+		this.cause = cause;
 	}
 
 	public void recordFatalError(String message) {
-		recordStatus(OperationResultStatus.FATAL_ERROR,message);
+		recordStatus(OperationResultStatus.FATAL_ERROR, message);
 	}
 
 	public void recordPartialError(String message) {
-		recordStatus(OperationResultStatus.PARTIAL_ERROR,message);
+		recordStatus(OperationResultStatus.PARTIAL_ERROR, message);
 	}
 
 	public void recordStatus(OperationResultStatus status, String message) {
 		this.status = status;
 		this.message = message;
 	}
-	
+
 	@Override
 	public String toString() {
-		return OperationResult.class.getSimpleName() + "(" +
-				operation + " " +
-				status + " " +
-				message;
+		return OperationResult.class.getSimpleName() + "(" + operation + " " + status + " " + message;
 	}
-	
+
 	public String debugDump() {
 		StringBuilder sb = new StringBuilder();
-		debugDumpIndent(sb,0);
+		debugDumpIndent(sb, 0);
 		return sb.toString();
 	}
-	
-	private void debugDumpIndent(StringBuilder sb,int indent) {
-		for (int i=0;i<indent;i++) {
+
+	private void debugDumpIndent(StringBuilder sb, int indent) {
+		for (int i = 0; i < indent; i++) {
 			sb.append(INDENT_STRING);
 		}
 		sb.append("op:");
@@ -377,21 +391,43 @@ public class OperationResult implements Serializable {
 		sb.append(" msg:");
 		sb.append(message);
 		sb.append("\n");
-		
+
 		for (OperationResult sub : getSubresults()) {
-			sub.debugDumpIndent(sb,indent+1);
+			sub.debugDumpIndent(sb, indent + 1);
 		}
 	}
 
-	public static OperationResult createOperationResult(OperationResultType resultType) {
-		//TODO: finish this!
-		
-		return new OperationResult(resultType.getOperation());
+	public static OperationResult createOperationResult(OperationResultType result) {
+		Validate.notNull(result, "Result type must not be null.");
+
+		Map<String, Object> params = null;
+		if (result.getParams() != null) {
+			params = new HashMap<String, Object>();
+			for (EntryType entry : result.getParams().getEntry()) {
+				params.put(entry.getKey(), entry.getAny());
+			}
+		}
+
+		List<OperationResult> subresults = null;
+		if (!result.getPartialResults().isEmpty()) {
+			subresults = new ArrayList<OperationResult>();
+			for (OperationResultType subResult : result.getPartialResults()) {
+				subresults.add(createOperationResult(subResult));
+			}
+		}
+
+		LocalizedMessageType message = result.getLocalizedMessage();
+		String localizedMessage = message == null ? null : message.getKey();
+
+		return new OperationResult(result.getOperation(), params,
+				OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
+				result.getMessageCode(), result.getMessage(), localizedMessage, message.getArgument(), null,
+				subresults);
 	}
-	
+
 	public OperationResultType createOperationResultType() {
-		//TODO: finish this!
-		
+		// TODO: finish this!
+
 		return new OperationResultType();
 	}
 }
