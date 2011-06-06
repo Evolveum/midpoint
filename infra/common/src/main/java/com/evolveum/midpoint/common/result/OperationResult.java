@@ -308,14 +308,14 @@ public class OperationResult implements Serializable {
 	}
 
 	public void recordFatalError(Exception cause) {
-		recordError(OperationResultStatus.FATAL_ERROR,cause);
+		recordStatus(OperationResultStatus.FATAL_ERROR,cause);
 	}
 
 	public void recordPartialError(Exception cause) {
-		recordError(OperationResultStatus.PARTIAL_ERROR,cause);
+		recordStatus(OperationResultStatus.PARTIAL_ERROR,cause);
 	}
 
-	public void recordError(OperationResultStatus status, Exception cause) {
+	public void recordStatus(OperationResultStatus status, Exception cause) {
 		this.status = status;
 		this.cause = cause;
 		// No other message was given, so use message from the exception
@@ -324,28 +324,28 @@ public class OperationResult implements Serializable {
 	}
 
 	public void recordFatalError(String message, Exception cause) {
-		recordError(OperationResultStatus.FATAL_ERROR,message,cause);
+		recordStatus(OperationResultStatus.FATAL_ERROR,message,cause);
 	}
 
 	public void recordPartialError(String message, Exception cause) {
-		recordError(OperationResultStatus.PARTIAL_ERROR,message,cause);
+		recordStatus(OperationResultStatus.PARTIAL_ERROR,message,cause);
 	}
 
-	public void recordError(OperationResultStatus status, String message, Exception cause) {
+	public void recordStatus(OperationResultStatus status, String message, Exception cause) {
 		this.status = status;
 		this.message = message;
 		this.cause = cause;		
 	}
 
 	public void recordFatalError(String message) {
-		recordError(OperationResultStatus.FATAL_ERROR,message);
+		recordStatus(OperationResultStatus.FATAL_ERROR,message);
 	}
 
 	public void recordPartialError(String message) {
-		recordError(OperationResultStatus.PARTIAL_ERROR,message);
+		recordStatus(OperationResultStatus.PARTIAL_ERROR,message);
 	}
 
-	public void recordError(OperationResultStatus status, String message) {
+	public void recordStatus(OperationResultStatus status, String message) {
 		this.status = status;
 		this.message = message;
 	}
@@ -368,10 +368,11 @@ public class OperationResult implements Serializable {
 		for (int i=0;i<indent;i++) {
 			sb.append(INDENT_STRING);
 		}
+		sb.append("op:");
 		sb.append(operation);
-		sb.append(" ");
+		sb.append(" st:");
 		sb.append(status);
-		sb.append(" ");
+		sb.append(" msg:");
 		sb.append(message);
 		sb.append("\n");
 		

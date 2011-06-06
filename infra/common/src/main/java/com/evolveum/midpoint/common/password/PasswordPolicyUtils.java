@@ -28,15 +28,16 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 
+import javax.naming.spi.DirStateFactory.Result;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.internal.preferences.exchange.ILegacyPreferences;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.string.StringPolicyException;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.util.result.OperationResult;
-import com.evolveum.midpoint.util.result.OperationResultStatus;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CharacterClassType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordLifeTimeType;
@@ -51,26 +52,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.StringPolicyType;
  */
 public class PasswordPolicyUtils {
 	private static final transient Trace logger = TraceManager.getTrace(PasswordPolicyUtils.class);
-/**
- * 
- * @param pp
- * @return
- * @throws PasswordPolicyException
- */
-	public static PasswordPolicyType initialize(PasswordPolicyType pp) throws PasswordPolicyException {
+
+	/**
+	 * 
+	 * @param pp
+	 * @return
+	 * @throws PasswordPolicyException
+	 */
+	public static PasswordPolicyType initialize(PasswordPolicyType pp) {
 		if (null == pp) {
-			throw new PasswordPolicyException(
-					new OperationResult("Password Policy Initialize ", OperationResultStatus.FATAL_ERROR,
-							"PPU-001", "Provided password policcy cannot be null."));
+			throw new IllegalArgumentException("Password policy cannot be null");
 		}
 
 		if (null == pp.getStringPolicy()) {
 			StringPolicyType sp = new StringPolicyType();
-			try {
-				pp.setStringPolicy(com.evolveum.midpoint.common.string.Utils.initialize(sp));
-			} catch (StringPolicyException spe) {
-				throw new PasswordPolicyException(spe.getResult());
-			}
+			pp.setStringPolicy(com.evolveum.midpoint.common.string.Utils.initialize(sp));
+
 		}
 
 		if (null == pp.getLifetime()) {
@@ -84,10 +81,10 @@ public class PasswordPolicyUtils {
 		return pp;
 	}
 
-	public static OperationResult validatePassword (String password, PasswordPolicyType pp) {
+	public static OperationResult validatePassword(String password, PasswordPolicyType pp) {
 		return null;
 	}
-	
+
 	/**
 	 * Generate password on provided password policy
 	 * 
@@ -96,7 +93,7 @@ public class PasswordPolicyUtils {
 	 * @return Generated password string
 	 * @throws PasswordPolicyException
 	 */
-	public static String generatePassword(PasswordPolicyType pp) throws PasswordPolicyException {
+	public static String generatePassword(PasswordPolicyType pp, OperationResult generationResult) {
 
 		// If no police defined use default values
 		if (null == pp) {
@@ -105,20 +102,24 @@ public class PasswordPolicyUtils {
 		// Add missing and default parts
 		pp = initialize(pp);
 
-		//Get global borders
+		// Get global borders
 		int minSize = pp.getStringPolicy().getLimitations().getMinLength();
 		int maxSize = pp.getStringPolicy().getLimitations().getMaxLength();
-		int uniqChars = pp.getStringPolicy().getLimitations().getMinUniqueChars(); //TODO
+		int uniqChars = pp.getStringPolicy().getLimitations().getMinUniqueChars(); // TODO
 
 		if (uniqChars > minSize) {
 			minSize = uniqChars;
 		}
 
+		// test if there no basic logical error
 		if (-1 != maxSize && minSize > maxSize) {
-			throw new PasswordPolicyException(new OperationResult("PPG", OperationResultStatus.FATAL_ERROR,
-					"PPG-001", "Minimal size (" + minSize + ") cannot be bigger then maximal size ("
-							+ maxSize + ") in password policy:"
-							+ (null == pp.getName() ? "Unamed policy" : pp.getName())));
+
+			generationResult.recordFatalError("Minimal size (" + minSize
+					+ ") cannot be bigger then maximal size (" + maxSize + ") in password policy:"
+					+ (null == pp.getName() ? "Unamed policy" : pp.getName()));
+
+			// no more processing
+			return null;
 		}
 
 		// find limitation which need to be run as first
@@ -126,102 +127,124 @@ public class PasswordPolicyUtils {
 
 		StringBuilder password = new StringBuilder();
 		Random r = new Random(System.currentTimeMillis());
-		
+
 		for (StringLimitType l : limits) {
 			normalizeLimit(l);
 			logger.debug("Processing limit: " + l.getDescription());
-			
-			if (isAlreadyMeetThis(pp, l, password.toString())) {
+
+			// test if requirements meet
+			OperationResult op = isAlreadyMeetThis(pp, l, password.toString());
+
+			if (op.isSuccess()) {
 				// next iteration
 				continue;
-			} else {
-				//Generate character based on policy
+			} else if (op.getStatus() == OperationResultStatus.WARNING) {
+				// Generate character based on policy
 				ArrayList<String> validChars = extractValidChars(pp, l);
 				password.append(validChars.get(r.nextInt(validChars.size())));
+			} else {
+				generationResult.recordPartialError("Some limitation are not meetable.");
+				generationResult.addSubresult(op);
 			}
+		}
+
+		// If there is any limitation based error skip processing
+		if (generationResult.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
+			return null;
 		}
 
 		// Check if maximal size not exceeded
 		if (maxSize != -1 && maxSize < password.length()) {
 			String msg = "Maximal size (" + maxSize
 					+ ") of password was exceeded because generated password size was (" + password.length()
-					+ ") based on password policy:" + (null == pp.getName() ? "Unamed policy" : pp.getName())
-					+ ".To fix it please make policy less restrictive";
+					+ ") based on password policy:" + (null == pp.getName() ? "Unamed policy" : pp.getName());
 
 			logger.error(msg);
-			throw new PasswordPolicyException(new OperationResult("PPG", OperationResultStatus.FATAL_ERROR,
-					"PPG-002", msg));
+			// unable to get valid password clear generated and return NULL
+			generationResult.recordFatalError(msg);
+			return null;
 		}
 
 		// Check if minimal criteria was meet
 		if (minSize <= password.length()) {
+			generationResult.recordSuccess();
 			return password.toString();
 		}
 		// Look like minimal criteria not meet.
-
 		return null;
 	}
 
 	/**
 	 * Normalize and add default values
+	 * 
 	 * @param l
 	 */
 	private static void normalizeLimit(StringLimitType l) {
 		if (null == l) {
 			throw new IllegalArgumentException();
 		}
-		if ( null == l.getMaxOccurs()) {
+		if (null == l.getMaxOccurs()) {
 			l.setMaxOccurs(-1);
 		}
-		
-		if ( null == l.getMinOccurs()) {
+
+		if (null == l.getMinOccurs()) {
 			l.setMinOccurs(0);
 		}
 	}
 
-	
-
-	/*
-	 * Check if any character not meet policy
+	/**
+	 * Check if provided password meet required single limitation
+	 * 
+	 * @param pp
+	 * @param l
+	 * @param password
+	 * @return OperationResult FATAL - if password exceed limitation Warning -
+	 *         If password not reach limitation Success - if all requirements
+	 *         met
 	 */
-	private static boolean isAlreadyMeetThis(PasswordPolicyType pp, StringLimitType l, String password)
-			throws PasswordPolicyException {
+	private static OperationResult isAlreadyMeetThis(PasswordPolicyType pp, StringLimitType l, String password) {
 		// Get Valid chars for this policy
 		ArrayList<String> validChars = extractValidChars(pp, l);
 
-		// count how many characters from password is there
+		OperationResult result = new OperationResult("Password Policy ["
+				+ (null != pp.getName() ? pp.getName() : "Unamed password policy")
+				+ "] single limit validation for [" + l.getDescription() + "]");
+
 		int counter = 0;
 		if (password.length() != 0) {
+			// count how many characters from password is there
 			for (String letter : tokenizeString(password)) {
 				if (validChars.contains(letter)) {
 					counter++;
 				}
 			}
+			// If first characters is required and not there from valid chars
+			if (l.isMustBeFirst() && !validChars.contains(password.substring(0, 1))) {
+				result.recordFatalError("Provided password not contain required character on first place. "
+						+ password.substring(0, 1) + "***** ∉  " + listToString(validChars));
+				return result;
+			}
 		}
-		
-		// no character required character there
-		if (counter == 0) {
-			return false;
-			// if number of characters not meet minimal criteria
-		} else if (counter < l.getMinOccurs()) {
-			return false;
+
+		// if number of characters not meet minimal criteria
+		if (counter < l.getMinOccurs()) {
+			result.recordStatus(
+					OperationResultStatus.WARNING,
+					"Provided password not contain enought characters from set" + listToString(validChars)
+							+ " recognized count of charactes: " + counter + " but required "
+							+ l.getMinOccurs());
+			return result;
+
 			// if number of characters not exceed maximum
 		} else if (counter > l.getMaxOccurs() && l.getMaxOccurs() != -1) {
-			throw new PasswordPolicyException(new OperationResult("Limitation check",
-					OperationResultStatus.FATAL_ERROR, "PP-003",
-					"Provided password exceed maximal length of charaters for this limitation ("
-							+ l.getDescription() + ") in password policy:" + pp.getName()));
+			result.recordFatalError("Provided password contains more characters (" + counter
+					+ ") then required maximum " + l.getMaxOccurs());
+			return result;
+		}
 
-			// If required characters is on first position
-		}
-		if (l.isMustBeFirst() && !validChars.contains(password.subSequence(0, 0))) {
-			throw new PasswordPolicyException(new OperationResult("Limitation check",
-					OperationResultStatus.FATAL_ERROR, "PP-003",
-					"Provided password exceed maximal length of charaters for this limitation ("
-							+ l.getDescription() + ") in password policy:" + pp.getName()));
-		}
 		logger.debug("Criteria for password was met. -> " + l.getDescription());
-		return true;
+		result.recordSuccess();
+		return result;
 	}
 
 	/**
@@ -252,12 +275,12 @@ public class PasswordPolicyUtils {
 			} else {
 				// it's included
 				logger.debug("Characters are included :" + l.getCharacterClass().getValue());
-				validChars = tokenizeCharacterClass(l.getCharacterClass(),null);
+				validChars = tokenizeCharacterClass(l.getCharacterClass(), null);
 			}
 		} else {
 			// use whole class
 			logger.debug("Cahracters are not included and not referenced use all from policy.");
-			validChars = tokenizeCharacterClass(pp.getStringPolicy().getCharacterClass(),null);
+			validChars = tokenizeCharacterClass(pp.getStringPolicy().getCharacterClass(), null);
 		}
 		if (validChars.size() == 0) {
 			logger.error("No valid chars found in " + pp.getName() + "for " + l.getDescription());
@@ -277,16 +300,17 @@ public class PasswordPolicyUtils {
 		ArrayList<StringLimitType> partB = new ArrayList<StringLimitType>();
 
 		// Split to which can be first and which not
-		
+
 		for (StringLimitType l : lims.getLimit()) {
 			if (l.isMustBeFirst() == true) {
 				partA.add(l);
 			} else {
 				partB.add(l);
 			}
-			//If there is more characters of this type required just multiply limits
+			// If there is more characters of this type required just multiply
+			// limits
 			if (l.getMinOccurs() > 1) {
-				for ( int i = 1 ; i < l.getMinOccurs() ; i++ ) {
+				for (int i = 1; i < l.getMinOccurs(); i++) {
 					partB.add(l);
 				}
 			}
@@ -301,17 +325,16 @@ public class PasswordPolicyUtils {
 		return partA;
 	}
 
-	
 	/*
 	 * Prepare usable list of strings for generator
 	 */
 	private static ArrayList<String> tokenizeCharacterClass(CharacterClassType cc, QName ref) {
 		ArrayList<String> l = new ArrayList<String>();
-		if ( null == cc ) {
+		if (null == cc) {
 			throw new IllegalArgumentException("Character class cannot be null");
 		}
-		
-		if (null != cc.getValue() && ( null == ref || ref.equals(cc.getName()) )) {
+
+		if (null != cc.getValue() && (null == ref || ref.equals(cc.getName()))) {
 			String a[] = cc.getValue().split("");
 			// Add all to list
 			for (int i = 1; i < a.length; i++) {
@@ -321,7 +344,7 @@ public class PasswordPolicyUtils {
 			// Process all sub lists
 			for (CharacterClassType subClass : cc.getCharacterClass()) {
 				// If we found requested name or no name defined
-				if ( null == ref || ref.equals(cc.getName()) ) {
+				if (null == ref || ref.equals(cc.getName())) {
 					l.addAll(tokenizeCharacterClass(subClass, null));
 				} else {
 					l.addAll(tokenizeCharacterClass(subClass, ref));
@@ -341,14 +364,14 @@ public class PasswordPolicyUtils {
 		}
 		return l;
 	}
-	
-	private static String listToString ( ArrayList<String> l){
-		 if ( l.size() == 0 ) {
-			 return "[ ]";
-		 }
+
+	private static String listToString(ArrayList<String> l) {
+		if (l.size() == 0) {
+			return "[ ]";
+		}
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
-		for (String i: l) {
+		for (String i : l) {
 			sb.append(i);
 			sb.append(" ,");
 		}

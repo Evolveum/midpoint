@@ -19,9 +19,9 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  * Portions Copyrighted 2011 Viliam Repan
  */
-package com.evolveum.midpoint.util;
+package com.evolveum.midpoint.common;
 
-import com.evolveum.midpoint.util.result.OperationResult;
+import com.evolveum.midpoint.common.result.OperationResult;
 
 /**
  * This class is used as base class for exceptions which are thrown in complex

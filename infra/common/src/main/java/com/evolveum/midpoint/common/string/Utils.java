@@ -22,10 +22,9 @@
 package com.evolveum.midpoint.common.string;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.string.StringPolicyException;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.util.result.OperationResult;
-import com.evolveum.midpoint.util.result.OperationResultStatus;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CharacterClassType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.StringPolicyType;
@@ -38,10 +37,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.StringPolicyType;
 public class Utils {
 	private static final transient Trace logger = TraceManager.getTrace(Utils.class);
 	
-	public static StringPolicyType initialize(StringPolicyType sp) throws StringPolicyException {
+	public static StringPolicyType initialize(StringPolicyType sp){
 		if (null == sp) {
-			throw new StringPolicyException(new OperationResult("String policy",
-					OperationResultStatus.FATAL_ERROR, "SP-001", "Providide string policy cannot be null"));
+			throw new IllegalArgumentException("Providide string policy cannot be null");
 		}
 
 		if (null == sp.getLimitations()) {
@@ -64,11 +62,4 @@ public class Utils {
 		return sp;
 	}
 
-/*	public static CharacterClassType getAggregatedCharacterClass(CharacterClassType ccin) {
-		if (ccin.getValue() != null) {
-			CharacterClassType ccout = new CharacterClassType();
-			ccout.setValue(cc.);
-			return ccout;
-		}
-	} */
 }

@@ -34,7 +34,7 @@ import org.junit.Test;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.password.PasswordPolicyUtils;
-import com.evolveum.midpoint.common.password.PasswordPolicyException;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
 
 import com.evolveum.midpoint.common.DOMUtil;
@@ -59,7 +59,7 @@ public class PasswordPolicyValidatorTest {
 	public static final String BASE_PATH = "src/test/resources/";
 
 	private static final transient Trace logger = TraceManager.getTrace(PasswordPolicyValidatorTest.class);
-	
+
 	@Test
 	public void XMLPasswordPolicy() {
 		String filename = "password-policy-minimal.xml";
@@ -67,20 +67,20 @@ public class PasswordPolicyValidatorTest {
 		File file = new File(pathname);
 		JAXBElement<PasswordPolicyType> jbe = null;
 		try {
-			 jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+			jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 		PasswordPolicyType pp = jbe.getValue();
-		
-		try {
-			String pswd = PasswordPolicyUtils.generatePassword(pp);
-			logger.info("Generated password: " + pswd ); 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
+
+		OperationResult op = new OperationResult("Generator testing");
+
+		String pswd = PasswordPolicyUtils.generatePassword(pp, op);
+		logger.info("Generated password: " + pswd);
+		assertNotNull(pswd);
+		assertTrue(op.isSuccess());
+
 	}
 
 }
