@@ -52,6 +52,9 @@ public class PropertyContainer {
 	private Set<Property> properties = new HashSet<Property>();
 	private PropertyContainerDefinition definition;
 
+	public PropertyContainer() {
+	}
+
 	public PropertyContainer(QName name, PropertyContainerDefinition definition) {
 		this.name = name;
 		this.definition = definition;

@@ -39,6 +39,9 @@ import javax.xml.namespace.QName;
  */
 public final class ResourceObject extends PropertyContainer {
 
+	public ResourceObject() {
+	}
+	
 	public ResourceObject(QName name) {
 		super(name);
 	}

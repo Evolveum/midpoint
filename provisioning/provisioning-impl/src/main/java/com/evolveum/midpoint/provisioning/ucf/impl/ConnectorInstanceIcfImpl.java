@@ -455,9 +455,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * @return new mapped ResourceObject instance.
 	 */
 	private ResourceObject convertToResourceObject(ConnectorObject co,ResourceObjectDefinition def) {
-		ResourceObject ro = new ResourceObject();
 		
-		// TODO: use definition
+		ResourceObject ro = null;
+		if (def!=null) {
+			ro = def.instantiate();
+		} else {
+			// We don't know the name here. ObjectClass is a type, not name.
+			// Therefore it will not help here even if we would have it.
+			ro = new ResourceObject();
+		}
 		
 		// Uid is always there
 		Uid uid = co.getUid();

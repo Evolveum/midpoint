@@ -55,7 +55,7 @@
         <url>https://fisheye.evolveum.com/midpoint/</url>
     </scm>
     <modules>
-        <!--module>provisioning-api</module-->
+        <module>provisioning-api</module>
         <module>provisioning-impl</module>
     </modules>
 </project>
