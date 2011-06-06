@@ -283,7 +283,7 @@ public class RepositoryUserTest {
 
 			objectContainer = new ObjectContainerType();
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/user-delete-account-ref.xml"))).getValue();
+					"src/test/resources/user-account-ref.xml"))).getValue();
 			assertEquals(1, user.getAccountRef().size());
 			objectContainer.setObject(user);
 			repositoryService.addObject(objectContainer);

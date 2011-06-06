@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -58,21 +59,22 @@ import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectAlreadyExistsFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectAlreadyExistsFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
@@ -83,6 +85,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 	private static final Trace logger = TraceManager.getTrace(XmlRepositoryService.class);
 	private Collection collection;
 
+	//FIXME: switch to new version JAXB utils and remove local marshaller/unmarshaller
 	private final Marshaller marshaller;
 	private final Unmarshaller unmarshaller;
 
@@ -488,36 +491,50 @@ public class XmlRepositoryService implements RepositoryPortType {
 
 	private void validateObjectChange(ObjectModificationType objectChange) throws FaultMessage {
 		if (null == objectChange) {
-			throw new FaultMessage("provided null object modifications", new IllegalArgumentFaultType());
+			throw new FaultMessage("Provided null object modifications", new IllegalArgumentFaultType());
 		}
 		validateOid(objectChange.getOid());
 		
 		if (null == objectChange.getPropertyModification() || objectChange.getPropertyModification().size() == 0 ) {
-			throw new FaultMessage("no property modifications provided", new IllegalArgumentFaultType());
+			throw new FaultMessage("No property modifications provided", new IllegalArgumentFaultType());
 		}
 	}
 
 	private void validateQuery(QueryType query) throws FaultMessage {
 		if (null == query) {
-			throw new FaultMessage("provided null query", new IllegalArgumentFaultType());
+			throw new FaultMessage("Provided null query", new IllegalArgumentFaultType());
 		}
 		
 		if (null == query.getFilter()) {
-			throw new FaultMessage("no filter in query", new IllegalArgumentFaultType());
+			throw new FaultMessage("No filter in query", new IllegalArgumentFaultType());
 		}
 	}
 	
 	@Override
 	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
 			PropertyReferenceListType properties) throws FaultMessage {
-		// TODO Auto-generated method stub
-		return null;
+        throw new UnsupportedOperationException("Not implemented yet.");
 	}
 
 	@Override
 	public UserContainerType listAccountShadowOwner(String accountOid) throws FaultMessage {
-		// TODO Auto-generated method stub
-		return null;
+		Map<String, String> filters = new HashMap<String, String>();
+		//FIXME: hardcoded prefix c:
+		filters.put("c:accountRef", accountOid);
+		ObjectListType retrievedObjects = searchObjects(QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE), null, filters);
+		List<ObjectType> objects = retrievedObjects.getObject();
+		
+		if (null == retrievedObjects || objects == null || objects.size() == 0 ) {
+			throw new FaultMessage("No object found", new ObjectNotFoundFaultType());
+		}
+		if (objects.size() > 1) {
+			throw new FaultMessage("Found incorrect number of objects " + objects.size(), new SystemFaultType());
+		}
+	
+		UserContainerType userContainer = new UserContainerType();
+		userContainer.setUser((UserType) objects.get(0));
+		
+		return userContainer;
 	}
 
 	@Override
