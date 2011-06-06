@@ -21,19 +21,12 @@
  */
 package com.evolveum.midpoint.common.password;
 
-import java.awt.List;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
 
-import javax.naming.spi.DirStateFactory.Result;
 import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.StringUtils;
-import org.eclipse.core.internal.preferences.exchange.ILegacyPreferences;
-
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -52,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.StringPolicyType;
  */
 public class PasswordPolicyUtils {
 	private static final transient Trace logger = TraceManager.getTrace(PasswordPolicyUtils.class);
+	private static final long GENERATOR_TIMEOUT = 10000; // ms
 
 	/**
 	 * 
@@ -128,24 +122,83 @@ public class PasswordPolicyUtils {
 		StringBuilder password = new StringBuilder();
 		Random r = new Random(System.currentTimeMillis());
 
-		for (StringLimitType l : limits) {
-			normalizeLimit(l);
-			logger.debug("Processing limit: " + l.getDescription());
+		int countedUniqueChars = -1;
+		long timeOut = System.currentTimeMillis() + GENERATOR_TIMEOUT;
+		// password.append("a!0emef"); // TODO remove only for testing
 
-			// test if requirements meet
-			OperationResult op = isAlreadyMeetThis(pp, l, password.toString());
+		// Do while not meet uniqness criteria
+		while (countedUniqueChars <= uniqChars && System.currentTimeMillis() < timeOut) {
+			// process all limitation to generate password
+			for (StringLimitType l : limits) {
+				normalizeLimit(l);
+				logger.debug("Processing limit: " + l.getDescription());
 
-			if (op.isSuccess()) {
-				// next iteration
-				continue;
-			} else if (op.getStatus() == OperationResultStatus.WARNING) {
-				// Generate character based on policy
+				// test if requirements meet
+				OperationResult op = isAlreadyMeetThis(pp, l, password.toString());
+
+				if (op.isSuccess()) {
+					// next iteration
+					continue;
+				} else if (op.getStatus() == OperationResultStatus.WARNING) {
+					// Generate character based on policy
+					ArrayList<String> validChars = extractValidChars(pp, l);
+					password.append(validChars.get(r.nextInt(validChars.size())));
+				} else {
+					generationResult.recordPartialError("Some limitation are not meetable.");
+					generationResult.addSubresult(op);
+				}
+			}
+
+			int maxErrorCounter = maxSize * 100;
+			// Generate remaining chars to meet minimal randomly
+			while (password.length() < minSize) {
+				// select one randomly and try to add
+				StringLimitType l = limits.get(r.nextInt(limits.size()));
 				ArrayList<String> validChars = extractValidChars(pp, l);
 				password.append(validChars.get(r.nextInt(validChars.size())));
-			} else {
-				generationResult.recordPartialError("Some limitation are not meetable.");
-				generationResult.addSubresult(op);
+
+				// validate if others are not exceeding after this one
+				for (StringLimitType vl : limits) {
+					if (!isAlreadyMeetThis(pp, vl, password.toString()).isSuccess()) {
+						// If one is exceeded after this remove character
+						password.deleteCharAt(password.length() - 1);
+						break;
+					}
+				}
+				maxErrorCounter--;
+				if (maxErrorCounter == 0) {
+					generationResult
+							.recordFatalError("Generator not be able generate new password based on provided password policy: "
+									+ pp.getName());
+					break;
+				}
 			}
+
+			// UNIQNESS TESTING AND REGENERATING
+			// Get Unique chars;
+			ArrayList<String> tmp = new ArrayList(new HashSet<String>(tokenizeString(password.toString())));
+			countedUniqueChars = tmp.size();
+
+			// no more processing is need password is OK
+			if (tmp.size() >= uniqChars) {
+				break;
+			}
+
+			// remove all duplicities
+			for (String i : tmp) {
+				// character are on two different places
+				if (password.indexOf(i) != password.lastIndexOf(i)) {
+					// delete it on second place
+					password.deleteCharAt(password.lastIndexOf(i));
+				}
+			}
+		}
+
+		if (System.currentTimeMillis() >= timeOut) {
+			generationResult
+					.recordFatalError("Generator surender generation of password based on password police:"
+							+ pp.getName() + " after " + GENERATOR_TIMEOUT + " ms");
+			return null;
 		}
 
 		// If there is any limitation based error skip processing
@@ -360,7 +413,9 @@ public class PasswordPolicyUtils {
 		String a[] = in.split("");
 		// Add all to list
 		for (int i = 0; i < a.length; i++) {
-			l.add(a[i]);
+			if (!"".equals(a[i])) {
+				l.add(a[i]);
+			}
 		}
 		return l;
 	}
