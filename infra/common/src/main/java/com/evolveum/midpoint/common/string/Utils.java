@@ -44,14 +44,14 @@ public class Utils {
 					OperationResultStatus.FATAL_ERROR, "SP-001", "Providide string policy cannot be null"));
 		}
 
-		if (null == sp.getLimitatitions()) {
+		if (null == sp.getLimitations()) {
 			LimitationsType sl = new LimitationsType();
 			sl.setCheckAgainstDictionary(false);
 			sl.setCheckPattern("");
 			sl.setMaxLength(-1);
 			sl.setMinLength(0);
 			sl.setMinUniqueChars(0);
-			sp.setLimitatitions(sl);
+			sp.setLimitations(sl);
 		}
 
 		if (null == sp.getCharacterClass()) {

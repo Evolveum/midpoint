@@ -4477,6 +4477,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 	<xsd:element name="operationalResult" type="tns:OperationalResultType" />
+
 <!-- TODO - check -->
 
 	<xsd:element name="passwordPolicy" type="tns:PasswordPolicyType" />
@@ -4551,7 +4552,7 @@
 	<xsd:complexType name="StringPolicyType">
 		<xsd:sequence>
 			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="limitatitions" type="tns:limitationsType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="limitations" type="tns:limitationsType" minOccurs="0" maxOccurs="1"/>
 			<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 	</xsd:complexType>
@@ -4578,7 +4579,7 @@
 			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
 			<xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="maxOccurs" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1" />
-			<xsd:element name="canBeFirst" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="mustBeFirst" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1" />
 			<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 	</xsd:complexType>

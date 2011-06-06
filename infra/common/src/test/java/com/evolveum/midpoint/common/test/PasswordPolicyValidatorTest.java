@@ -24,10 +24,32 @@ package com.evolveum.midpoint.common.test;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+
 import org.junit.Test;
 
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.password.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.password.PasswordPolicyException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
+
+import com.evolveum.midpoint.common.DOMUtil;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import static org.junit.Assert.*;
 
 public class PasswordPolicyValidatorTest {
 
@@ -36,44 +58,29 @@ public class PasswordPolicyValidatorTest {
 
 	public static final String BASE_PATH = "src/test/resources/";
 
+	private static final transient Trace logger = TraceManager.getTrace(PasswordPolicyValidatorTest.class);
+	
 	@Test
-	public void synteticValidatorTest() throws PasswordPolicyException {
-
-		PasswordPolicyType pp = new PasswordPolicyType();
-		com.evolveum.midpoint.common.password.Utils.initialize(pp);
-		com.evolveum.midpoint.common.password.Utils.generatePassword(pp);
-		
-	}
-		
-/*
-	@Test
-	public void minimalXMLPolicyTest() throws JAXBException {
+	public void XMLPasswordPolicy() {
 		String filename = "password-policy-minimal.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
-		JAXBElement<PasswordPolicyType> jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
-		PasswordPolicyType pp = jbe.getValue();
-		try { 
-			com.evolveum.midpoint.common.password.PolicyValidator.validate(pp);
-		} catch (Exception ex) {
-			ex.printStackTrace();
+		JAXBElement<PasswordPolicyType> jbe = null;
+		try {
+			 jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
-	}
-	
-	@Test
-	public void complexXMLPolicyTest() throws JAXBException {
-		String filename = "password-policy-complex.xml";
-		String pathname = BASE_PATH + filename;
-		File file = new File(pathname);
-		JAXBElement<PasswordPolicyType> jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+		
 		PasswordPolicyType pp = jbe.getValue();
-		try { 
-			com.evolveum.midpoint.common.password.PolicyValidator.validate(pp);
-		} catch (Exception ex) {
-			ex.printStackTrace();
+		
+		try {
+			String pswd = PasswordPolicyUtils.generatePassword(pp);
+			logger.info("Generated password: " + pswd ); 
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		assertTrue(com.evolveum.midpoint.common.password.PolicyValidator.validatePolicy(pp));
+		
 	}
-	*/
+
 }
