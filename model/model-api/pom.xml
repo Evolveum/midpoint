@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -22,13 +22,13 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Model</name>
-    <groupId>com.evolveum.midpoint</groupId>
-    <artifactId>model</artifactId>
+    <name>midPoint Model - api</name>
+    <groupId>com.evolveum.midpoint.model</groupId>
+    <artifactId>model-api</artifactId>
     <version>1.8-SNAPSHOT</version>
-    <packaging>pom</packaging>
+    <packaging>jar</packaging>
     <parent>
-        <artifactId>parent</artifactId>
+        <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint</groupId>
         <version>1.8-SNAPSHOT</version>
     </parent>
@@ -54,8 +54,11 @@
         <tag>HEAD</tag>
         <url>https://fisheye.evolveum.com/midpoint/</url>
     </scm>
-    <modules>
-    	<module>model-api</module>
-        <module>model-impl</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>com.evolveum.midpoint.infra</groupId>
+            <artifactId>common</artifactId>
+            <version>1.8-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>
