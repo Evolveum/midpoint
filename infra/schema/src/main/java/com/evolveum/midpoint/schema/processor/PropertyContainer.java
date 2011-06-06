@@ -22,9 +22,12 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  * Property container groups properties into logical blocks. The reason for
@@ -184,6 +187,22 @@ public class PropertyContainer {
 	 */
 	public Property findProperty(PropertyDefinition propertyDefinition) {
 		throw new IllegalStateException("not implemented yet.");
+	}
+	
+	public List<Element> serializePropertiesToDom(Document doc) {
+		if (getDefinition()==null) {
+			throw new IllegalStateException("Object definition missing, unable to serialize");
+		}
+		return getDefinition().serializePropertiesToDom(getProperties(), doc);
+	}
+	
+	public Element serializeToDom(Document doc) {
+		List<Element> elements = serializePropertiesToDom(doc);
+		Element container = doc.createElementNS(getName().getNamespaceURI(), getName().getLocalPart());
+		for (Element el : elements) {
+			container.appendChild(el);
+		}
+		return container;
 	}
 	
 	@Override

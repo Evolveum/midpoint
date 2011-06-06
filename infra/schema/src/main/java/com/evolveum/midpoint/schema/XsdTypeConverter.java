@@ -93,4 +93,15 @@ public class XsdTypeConverter {
 	static {
 		initTypeMap();
 	}
+
+	public static void toXsdElement(Object val, QName typeName, Element element) {
+		Class type = toJavaType(typeName);
+		if (type.equals(String.class)) {
+			element.setTextContent((String)val);
+		} else if (type.equals(int.class)) {
+			element.setTextContent(((Integer)val).toString());
+		} else {
+			throw new IllegalArgumentException("Unknown type for conversion: " + typeName);
+		}
+	}
 }

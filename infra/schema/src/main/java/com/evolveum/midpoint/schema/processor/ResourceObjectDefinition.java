@@ -272,6 +272,10 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		return parseProperties(elements, ResourceObjectAttribute.class);
 	}
 
+	public Set<ResourceObjectAttribute> parseIdentifiers(List<Element> elements) {
+		return parseProperties(elements, ResourceObjectAttribute.class,getIdentifiers());
+	}
+
 	public ResourceObjectAttributeDefinition findAttributeDefinition(QName elementQName) {
 		return findPropertyDefinition(elementQName,ResourceObjectAttributeDefinition.class);
 	}

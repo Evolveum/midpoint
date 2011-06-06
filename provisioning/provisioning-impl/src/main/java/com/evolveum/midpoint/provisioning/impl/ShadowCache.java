@@ -20,21 +20,32 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.processor.ResourceObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.sun.org.apache.xerces.internal.impl.xs.SchemaGrammar.Schema4Annotations;
+import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.xml.namespace.QName;
+import org.w3c.dom.Element;
 
 /**
  * This class manages the "cache" of ResourceObjectShadows in the repository.
@@ -95,35 +106,51 @@ public class ShadowCache {
 	 * @param resource
 	 * @return 
 	 */
-//	public ResourceObjectShadowType getObject(String oid, ResourceType resource, OperationResult parentResult) {
-//
-//		// Get the shadow from repository. There are identifiers that we need
-//		// for accessing the object by UCF.
-//		// Later, the repository object may have a fully cached object from.
-//        ObjectType repositoryObject = getRepositoryService().getObject(oid, null);
-//
-//		ResourceObjectShadowType repositoryShadow = (ResourceObjectShadowType)repositoryObject;
-//		
-//		// Get the fresh object from UCF
-//		
-//		ConnectorInstance connector = getConnectorInstance(resource);
-//		Schema schema = getResourceSchema(resource);
-//		
-//		QName objectClass = repositoryShadow.getObjectClass();
-//		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
-//		Set<ResourceObjectAttributeDefinition> identifierDefinitions = rod.getIdentifiers();
-//		
-//		// TODO: be smarter and pass the ResourceObjectDefinition instead object class
-//		connector.fetchObject(objectClass, identifiers, result)
-//
-//        return repositoryShadow;
-//		
-//	}
+	public ResourceObjectShadowType getObject(String oid, ResourceType resource, OperationResult parentResult) throws Exception {
+
+		// We are using parent result directly, not creating subresult.
+		// We want to hide the existence of shadow cache from the user.
+		
+		// Get the shadow from repository. There are identifiers that we need
+		// for accessing the object by UCF.
+		// Later, the repository object may have a fully cached object from.
+        ObjectContainerType repositoryObjectContainer = getRepositoryService().getObject(oid, null);
+		ResourceObjectShadowType repositoryShadow = (ResourceObjectShadowType)repositoryObjectContainer.getObject();
+		
+		// Get the fresh object from UCF
+		
+		ConnectorInstance connector = getConnectorInstance(resource);
+		Schema schema = getResourceSchema(resource);
+		
+		QName objectClass = repositoryShadow.getObjectClass();
+		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
+		
+		// Let's get all the identifiers from the Shadow <attributes> part
+		Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(repositoryShadow.getAttributes().getAny());
+		
+		ResourceObject ro = null;
+
+			// TODO: be smarter and pass the ResourceObjectDefinition instead object class
+			ro = connector.fetchObject(objectClass, identifiers, parentResult);
+
+			// TODO: Error handling
+		
+		// Let's replace the attribute values fetched from repository with the
+		// ResourceObject content fetched from resource. The resource is more
+		// fresh and the attributes more complete.
+		// TODO: Discovery
+		List<Element> xmlAttributes = ro.serializePropertiesToDom(repositoryShadow.getAttributes().getAny().get(0).getOwnerDocument());
+		repositoryShadow.getAttributes().getAny().clear();
+		repositoryShadow.getAttributes().getAny().addAll(xmlAttributes);
+		
+        return repositoryShadow;
+		
+	}
 
 	// TODO: native identification - special cases
 
 	private ConnectorInstance getConnectorInstance(ResourceType resource) {
-		// Add caching later
+		// TODO: Add caching later
 		return connectorManager.createConnectorInstance(resource);
 	}
 	

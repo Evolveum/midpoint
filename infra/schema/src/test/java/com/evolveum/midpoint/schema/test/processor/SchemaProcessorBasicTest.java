@@ -11,6 +11,7 @@ import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.DOMUtil;
+import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
 import org.junit.After;
@@ -20,6 +21,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 /**
  *
@@ -91,10 +93,23 @@ public class SchemaProcessorBasicTest {
 		// Set some value
 		prop1Inst.setValue("FOOBAR");
 		type1Inst.getProperties().add(prop1Inst);
+
+		// Same thing with the prop2 property (type int)
+		PropertyDefinition prop2Def = type1Def.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"prop2"));
+		Property prop2Inst = prop2Def.instantiate();
+		prop2Inst.setValue(321);
+		type1Inst.getProperties().add(prop2Inst);
+
 		
 		System.out.println("FirstType INST: "+type1Inst);
+		// Serialize to DOM
 		
+		Element xmlObject = type1Inst.serializeToDom(DOMUtil.getDocument());
+
 		// TODO: Serialize to XML and check
+		
+		System.out.println("Serialized: ");
+		System.out.println(DOMUtil.serializeDOMToString(xmlObject));
 	}
 	
 	@Test

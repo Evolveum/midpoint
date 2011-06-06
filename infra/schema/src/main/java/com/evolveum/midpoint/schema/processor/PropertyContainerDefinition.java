@@ -23,11 +23,13 @@ package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.util.QNameUtil;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 /**
@@ -118,7 +120,7 @@ public class PropertyContainerDefinition extends Definition {
 		return parseProperties(elements,clazz,null);
 	}
 	
-	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz, Set<PropertyDefinition> selection) {
+	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz, Set<? extends PropertyDefinition> selection) {
 		
 		Set<T> props = new HashSet<T>();
 		
@@ -176,6 +178,26 @@ public class PropertyContainerDefinition extends Definition {
 			props.add(prop);
 		}
 		return props;
+	}
+	
+	List<Element> serializePropertiesToDom(Set<Property> properties, Document doc) {
+		List<Element> elements = new ArrayList<Element>();
+		// This is not really correct. We should follow the ordering of elements
+		// in the schema so we produce valid XML
+		// TODO: FIXME
+		for (Property prop : properties) {
+			PropertyDefinition propDef = prop.getDefinition();
+			if (propDef==null) {
+				propDef = findPropertyDefinition(prop.getName());
+			}
+			Set<Object> values = prop.getValues();
+			for (Object val : values) {
+				Element element = doc.createElementNS(prop.getName().getNamespaceURI(), prop.getName().getLocalPart());
+				XsdTypeConverter.toXsdElement(val,propDef.getTypeName(),element);
+				elements.add(element);
+			}			
+		}
+		return elements;
 	}
 
 	@Override
