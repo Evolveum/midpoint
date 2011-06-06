@@ -31,6 +31,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.Token;
 import com.evolveum.midpoint.schema.processor.Definition;
+import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
@@ -42,13 +43,18 @@ import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
 import org.identityconnectors.framework.api.ConnectorFacade;
+import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.Name;
+import org.identityconnectors.framework.common.objects.ObjectClassUtil;
+import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.common.security.GuardedString;
+
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
@@ -57,8 +63,8 @@ import javax.xml.namespace.QName;
  * Implementation of ConnectorInstance for ICF connectors.
  * 
  * This class implements the ConnectorInstance interface. The methods are
- * converting the data from the "midPoint semantics" as seen by the 
- * ConnectorInstance interface to the "ICF semantics" as seen by the ICF 
+ * converting the data from the "midPoint semantics" as seen by the
+ * ConnectorInstance interface to the "ICF semantics" as seen by the ICF
  * framework.
  * 
  * @author Radovan Semancik
@@ -70,15 +76,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private static final String GROUP_OBJECTCLASS_LOCALNAME = "GroupObjectClass";
 	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
 	private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
-	
+
 	ConnectorFacade connector;
 	ResourceType resource;
 
-	public ConnectorInstanceIcfImpl(ConnectorFacade connector, ResourceType resource) {
+	public ConnectorInstanceIcfImpl(ConnectorFacade connector,
+			ResourceType resource) {
 		this.connector = connector;
 		this.resource = resource;
 	}
-	
+
 	private String getSchemaNamespace() {
 		return resource.getNamespace();
 	}
@@ -89,109 +96,136 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * Transforms native ICF schema to the midPoint representation.
 	 * 
 	 * @return midPoint resource schema.
-	 * @throws CommunicationException 
+	 * @throws CommunicationException
 	 */
 	@Override
-	public Schema fetchResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
+	public Schema fetchResourceSchema(OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException {
 
 		// Result type for this operation
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()+".fetchResourceSchema");
-		result.addContext("resource",resource);
-		
-		// Connector operation cannot create result for itself, so we need to create result for it
-		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName()+".schema");
-		icfResult.addContext("connector",connector.getClass());
-		
+		OperationResult result = parentResult
+				.createSubresult(ConnectorInstance.class.getName()
+						+ ".fetchResourceSchema");
+		result.addContext("resource", resource);
+
+		// Connector operation cannot create result for itself, so we need to
+		// create result for it
+		OperationResult icfResult = result
+				.createSubresult(ConnectorFacade.class.getName() + ".schema");
+		icfResult.addContext("connector", connector.getClass());
+
 		org.identityconnectors.framework.common.objects.Schema icfSchema = null;
 		try {
-			
-			// Fetch the schema from the connector (which actually gets that from the resource).
+
+			// Fetch the schema from the connector (which actually gets that
+			// from the resource).
 			icfSchema = connector.schema();
-		
+
 			icfResult.recordSuccess();
 		} catch (Exception ex) {
-			// ICF interface does not specify exceptions or other error conditions.
+			// ICF interface does not specify exceptions or other error
+			// conditions.
 			// Therefore this kind of heavy artilery is necessary.
 			// TODO maybe we can try to catch at least some specific exceptions
 			icfResult.recordFatalError(ex);
-			result.recordFatalError("ICF invocation failed");			
+			result.recordFatalError("ICF invocation failed");
 			// This is fatal. No point in continuing.
-			throw new GenericFrameworkException(ex);			
+			throw new GenericFrameworkException(ex);
 		}
-		
+
 		// New instance of midPoint schema object
 		Schema mpSchema = new Schema(getSchemaNamespace());
 		Set<Definition> definitions = mpSchema.getDefinitions();
 
 		// Let's convert every objectclass in the ICF schema ...
-		Set<ObjectClassInfo> objectClassInfoSet = icfSchema.getObjectClassInfo();
+		Set<ObjectClassInfo> objectClassInfoSet = icfSchema
+				.getObjectClassInfo();
 		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
 
 			// "Flat" ICF object class names needs to be mapped to QNames
-			QName objectClassXsdName = objectClassToQname(objectClassInfo.getType());
-			
+			QName objectClassXsdName = objectClassToQname(objectClassInfo
+					.getType());
+
 			// Element names does not really make much sense in Resource
 			// Objects as they are not usually used. But for the sake of
 			// completeness we are going to generate them.
 			// TODO: this may need to be moved to a separate method
 			QName objectElementName;
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-				objectElementName = new QName(getSchemaNamespace(),"account", SchemaConstants.NS_ICF_SCHEMA_PREFIX);
+				objectElementName = new QName(getSchemaNamespace(), "account",
+						SchemaConstants.NS_ICF_SCHEMA_PREFIX);
 			} else if (ObjectClass.GROUP_NAME.equals(objectClassInfo.getType())) {
-				objectElementName = new QName(getSchemaNamespace(),"group", SchemaConstants.NS_ICF_SCHEMA_PREFIX);
+				objectElementName = new QName(getSchemaNamespace(), "group",
+						SchemaConstants.NS_ICF_SCHEMA_PREFIX);
 			} else {
-				objectElementName = new QName(getSchemaNamespace(), objectClassInfo.getType(), SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
+				objectElementName = new QName(getSchemaNamespace(),
+						objectClassInfo.getType(),
+						SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 			}
 
-			// ResourceObjectDefinition is a midPpoint way how to represent an object class.
-			// The important thing here is the last "type" parameter (objectClassXsdName). The rest is more-or-less cosmetics.
-			ResourceObjectDefinition roDefinition = new ResourceObjectDefinition(mpSchema, objectElementName, objectElementName, objectClassXsdName);
+			// ResourceObjectDefinition is a midPpoint way how to represent an
+			// object class.
+			// The important thing here is the last "type" parameter
+			// (objectClassXsdName). The rest is more-or-less cosmetics.
+			ResourceObjectDefinition roDefinition = new ResourceObjectDefinition(
+					mpSchema, objectElementName, objectElementName,
+					objectClassXsdName);
 			definitions.add(roDefinition);
-			
-			// The __ACCOUNT__ objectclass in ICF is a default account objectclass. So mark it appropriately.
+
+			// The __ACCOUNT__ objectclass in ICF is a default account
+			// objectclass. So mark it appropriately.
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
 				roDefinition.setAccountType(true);
 				roDefinition.setDefaultAccountType(true);
 			}
-			
+
 			// Every object has UID in ICF, therefore add it right now
-			ResourceObjectAttributeDefinition uidDefinition = new ResourceObjectAttributeDefinition(roDefinition, SchemaConstants.ICFS_UID, SchemaConstants.ICFS_UID, SchemaConstants.XSD_STRING);
+			ResourceObjectAttributeDefinition uidDefinition = new ResourceObjectAttributeDefinition(
+					roDefinition, SchemaConstants.ICFS_UID,
+					SchemaConstants.ICFS_UID, SchemaConstants.XSD_STRING);
 			// Make it mandatory
 			uidDefinition.setMinOccurs(1);
 			uidDefinition.setMaxOccurs(1);
 			roDefinition.getDefinitions().add(uidDefinition);
 			// Uid is a primary identifier of every object (this is the ICF way)
 			roDefinition.getIdentifiers().add(uidDefinition);
-			
+
 			// TODO: may need also other annotations
-			
+
 			// Let's iterate over all attributes in this object class ...
-			Set<AttributeInfo> attributeInfoSet = objectClassInfo.getAttributeInfo();
+			Set<AttributeInfo> attributeInfoSet = objectClassInfo
+					.getAttributeInfo();
 			for (AttributeInfo attributeInfo : attributeInfoSet) {
 
-				QName attrXsdName = convertAttributeNameToQName(attributeInfo.getName());
-				
+				QName attrXsdName = convertAttributeNameToQName(attributeInfo
+						.getName());
+
 				QName attrXsdType = null;
 				if (GuardedString.class.equals(attributeInfo.getType())) {
-					// GuardedString is a special case. It is a ICF-specific type
+					// GuardedString is a special case. It is a ICF-specific
+					// type
 					// implementing Potemkin-like security. Use a temporary
 					// "nonsense" type for now, so this will fail in tests and
 					// will be fixed later
 					attrXsdType = SchemaConstants.R_PROTECTED_STRING_TYPE;
 				} else {
-					attrXsdType = XsdTypeConverter.toXsdType(attributeInfo.getType());
+					attrXsdType = XsdTypeConverter.toXsdType(attributeInfo
+							.getType());
 				}
-								
-				// Create ResourceObjectAttributeDefinition, which is midPoint way how to express attribute schema.
-				ResourceObjectAttributeDefinition roaDefinition = new ResourceObjectAttributeDefinition(roDefinition, attrXsdName, attrXsdName, attrXsdType);
+
+				// Create ResourceObjectAttributeDefinition, which is midPoint
+				// way how to express attribute schema.
+				ResourceObjectAttributeDefinition roaDefinition = new ResourceObjectAttributeDefinition(
+						roDefinition, attrXsdName, attrXsdName, attrXsdType);
 				roDefinition.getDefinitions().add(roaDefinition);
-				
-				// Now we are gooing to process flas such as optional and multi-valued
+
+				// Now we are gooing to process flas such as optional and
+				// multi-valued
 				Set<Flags> flagsSet = attributeInfo.getFlags();
-				//System.out.println(flagsSet);
+				// System.out.println(flagsSet);
 
 				roaDefinition.setMinOccurs(0);
-				roaDefinition.setMaxOccurs(1);				
+				roaDefinition.setMaxOccurs(1);
 				for (Flags flags : flagsSet) {
 					if (flags == Flags.REQUIRED) {
 						roaDefinition.setMinOccurs(1);
@@ -200,7 +234,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						roaDefinition.setMaxOccurs(-1);
 					}
 				}
-				
+
 				// TODO: process also other flags
 
 			}
@@ -210,75 +244,139 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return mpSchema;
 	}
 
-	
 	@Override
-	public ResourceObject fetchObject(QName objectClass, Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
-		
+	public ResourceObject fetchObject(QName objectClass,
+			Set<ResourceObjectAttribute> identifiers,
+			OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, GenericFrameworkException {
+
 		// Result type for this operation
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()+".fetchObject");
-		result.addParam("objectClass",objectClass);
-		result.addParam("identifiers",identifiers);
-		result.addContext("resource",resource);
-		
+		OperationResult result = parentResult
+				.createSubresult(ConnectorInstance.class.getName()
+						+ ".fetchObject");
+		result.addParam("objectClass", objectClass);
+		result.addParam("identifiers", identifiers);
+		result.addContext("resource", resource);
+
 		// Get UID from the set of idetifiers
 		Uid uid = getUid(identifiers);
 		if (uid == null) {
-            throw new IllegalArgumentException("Required attribute UID not found in identification set while attempting to fetch object identified by "+identifiers+" from recource "+resource.getName()+"(OID:"+resource.getOid()+")");
-        }
-		
+			throw new IllegalArgumentException(
+					"Required attribute UID not found in identification set while attempting to fetch object identified by "
+							+ identifiers
+							+ " from recource "
+							+ resource.getName()
+							+ "(OID:"
+							+ resource.getOid()
+							+ ")");
+		}
+
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 		if (objectClass == null) {
-            throw new IllegalArgumentException("Unable to detemine object class from QName "+objectClass+" while attempting to fetch object identified by "+identifiers+" from recource "+resource.getName()+"(OID:"+resource.getOid()+")");			
+			throw new IllegalArgumentException(
+					"Unable to detemine object class from QName "
+							+ objectClass
+							+ " while attempting to fetch object identified by "
+							+ identifiers + " from recource "
+							+ resource.getName() + "(OID:" + resource.getOid()
+							+ ")");
 		}
-		
-		// Connector operation cannot create result for itself, so we need to create result for it
-		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName()+".getObject");
-		icfResult.addParam("objectClass",icfObjectClass);
-		icfResult.addParam("uid",uid.getUidValue());
-		icfResult.addParam("options",null);
-		icfResult.addContext("connector",connector.getClass());
-		
+
+		// Connector operation cannot create result for itself, so we need to
+		// create result for it
+		OperationResult icfResult = result
+				.createSubresult(ConnectorFacade.class.getName() + ".getObject");
+		icfResult.addParam("objectClass", icfObjectClass);
+		icfResult.addParam("uid", uid.getUidValue());
+		icfResult.addParam("options", null);
+		icfResult.addContext("connector", connector.getClass());
+
 		ConnectorObject co = null;
 		try {
-			
+
 			// Invoke the ICF connector
-			co = connector.getObject(icfObjectClass,uid,null);
-			
+			co = connector.getObject(icfObjectClass, uid, null);
+
 			icfResult.recordSuccess();
 		} catch (Exception ex) {
-			// ICF interface does not specify exceptions or other error conditions.
+			// ICF interface does not specify exceptions or other error
+			// conditions.
 			// Therefore this kind of heavy artilery is necessary.
 			// TODO maybe we can try to catch at least some specific exceptions
 			icfResult.recordFatalError(ex);
-			result.recordFatalError("ICF invocation failed");			
+			result.recordFatalError("ICF invocation failed");
 			// This is fatal. No point in continuing.
 			throw new GenericFrameworkException(ex);
 		}
-		
-		if (co==null) {
+
+		if (co == null) {
 			result.recordFatalError("Object not found");
-			throw new ObjectNotFoundException("Object identified by "+identifiers+" was not found on resource "+ObjectTypeUtil.toShortString(resource));
+			throw new ObjectNotFoundException("Object identified by "
+					+ identifiers + " was not found on resource "
+					+ ObjectTypeUtil.toShortString(resource));
 		}
-		
-		ResourceObject ro = convertToResourceObject(co,null);
-		
+
+		ResourceObject ro = convertToResourceObject(co, null);
+
 		result.recordSuccess();
 		return ro;
 	}
 
 	@Override
-	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
+	public Set<ResourceObjectAttribute> addObject(ResourceObject object,
+			Set<Operation> additionalOperations, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException {
+
+		OperationResult result = parentResult
+				.createSubresult(ConnectorInstance.class.getName()
+						+ ".addObject");
+		result.addParam("resourceObject", object);
+		result.addParam("additionalOperations", additionalOperations);
+
+		// getting icf object class from resource object class
+		ObjectClass objectClass = objectClassToIcf(object.getDefinition()
+				.getTypeName());
+
+		// setting ifc attributes from resource object attributes
+		Set<Attribute> attributes = convertFromResourceObject(object);
+
+		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName()+".create");
+		icfResult.addParam("objectClass", objectClass);
+		icfResult.addParam("attributes", attributes);
+		icfResult.addParam("options", null);
+		icfResult.addContext("connector", connector);
+		
+		Uid uid = connector.create(objectClass, attributes,
+				new OperationOptionsBuilder().build());
+
+		ResourceObjectAttribute attribute = setUidAttribute(uid);
+		object.getAttributes().add(attribute);
+		
+		return object.getAttributes();
+	}
+
+	@Override
+	public void modifyObject(QName objectClass, Set<ResourceObjectAttribute> identifiers,
+			Set<Operation> changes, OperationResult parentResult)
+			throws ObjectNotFoundException, CommunicationException,
+			GenericFrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public void modifyObject(Set<ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
+	public void deleteObject(QName objectClass, Set<ResourceObjectAttribute> identifiers,
+			OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, GenericFrameworkException {
 
-	@Override
-	public void deleteObject(Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		OperationResult result = parentResult
+				.createSubresult(ConnectorInstance.class.getName()
+						+ ".deleteObject");
+		result.addParam("identifiers", identifiers);
+
+		ObjectClass objClass = objectClassToIcf(objectClass);
+		Uid uid = getUid(identifiers);	
+
+		connector.delete(objClass, uid, new OperationOptionsBuilder().build());
 	}
 
 	@Override
@@ -287,21 +385,27 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Token fetchCurrentToken(OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
+	public Token fetchCurrentToken(OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public List<Change> fetchChanges(Token lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
+	public List<Change> fetchChanges(Token lastToken,
+			OperationResult parentResult) throws CommunicationException,
+			GenericFrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public OperationResult test() {
-		OperationResult result = new OperationResult(ConnectorInstance.class.getName()+".test");
+		OperationResult result = new OperationResult(
+				ConnectorInstance.class.getName() + ".test");
 		result.addContext("resource", resource);
 
-		OperationResult connectionResult = result.createSubresult(ConnectorInstance.class.getName()+".test.connectorConnection");
+		OperationResult connectionResult = result
+				.createSubresult(ConnectorInstance.class.getName()
+						+ ".test.connectorConnection");
 		try {
 			connector.test();
 			connectionResult.recordSuccess();
@@ -313,68 +417,84 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void search(QName objectClass, final ResultHandler handler,OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
-		
+	public void search(QName objectClass, final ResultHandler handler,
+			OperationResult parentResult) throws CommunicationException,
+			GenericFrameworkException {
+
 		// Result type for this operation
-		final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()+".search");
-		result.addParam("objectClass",objectClass);
-		result.addContext("resource",resource);
-		
+		final OperationResult result = parentResult
+				.createSubresult(ConnectorInstance.class.getName() + ".search");
+		result.addParam("objectClass", objectClass);
+		result.addContext("resource", resource);
+
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 		if (objectClass == null) {
-            IllegalArgumentException ex = new IllegalArgumentException("Unable to detemine object class from QName "+objectClass+" while attempting to searcg objects in recource "+resource.getName()+"(OID:"+resource.getOid()+")");
+			IllegalArgumentException ex = new IllegalArgumentException(
+					"Unable to detemine object class from QName "
+							+ objectClass
+							+ " while attempting to searcg objects in recource "
+							+ resource.getName() + "(OID:" + resource.getOid()
+							+ ")");
 			result.recordFatalError("Unable to detemine object class", ex);
 			throw ex;
 		}
-		
+
 		ResultsHandler icfHandler = new ResultsHandler() {
-            @Override
-            public boolean handle(ConnectorObject connectorObject) {
-                // Convert ICF-specific connetor object to a generic ResourceObject
-                ResourceObject resourceObject = convertToResourceObject(connectorObject,null);
-                // .. and pass it to the handler
-                boolean cont = handler.handle(resourceObject);
+			@Override
+			public boolean handle(ConnectorObject connectorObject) {
+				// Convert ICF-specific connetor object to a generic
+				// ResourceObject
+				ResourceObject resourceObject = convertToResourceObject(
+						connectorObject, null);
+				// .. and pass it to the handler
+				boolean cont = handler.handle(resourceObject);
 				if (!cont) {
 					result.recordPartialError("Stopped on request from the handler");
 				}
-				return  cont;
-            }
-        };
+				return cont;
+			}
+		};
 
-		// Connector operation cannot create result for itself, so we need to create result for it
-		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName()+".getObject");
-		icfResult.addParam("objectClass",icfObjectClass);
-		icfResult.addContext("connector",connector.getClass());
+		// Connector operation cannot create result for itself, so we need to
+		// create result for it
+		OperationResult icfResult = result
+				.createSubresult(ConnectorFacade.class.getName() + ".getObject");
+		icfResult.addParam("objectClass", icfObjectClass);
+		icfResult.addContext("connector", connector.getClass());
 
 		try {
-			connector.search(icfObjectClass,null,icfHandler,null);
+			connector.search(icfObjectClass, null, icfHandler, null);
 		} catch (Exception ex) {
-			// ICF interface does not specify exceptions or other error conditions.
+			// ICF interface does not specify exceptions or other error
+			// conditions.
 			// Therefore this kind of heavy artilery is necessary.
 			// TODO maybe we can try to catch at least some specific exceptions
 			icfResult.recordFatalError(ex);
-			result.recordFatalError("ICF invocation failed");			
+			result.recordFatalError("ICF invocation failed");
 			// This is fatal. No point in continuing.
-			throw new GenericFrameworkException(ex);			
+			throw new GenericFrameworkException(ex);
 		}
-		
+
 		if (result.isUnknown()) {
 			result.recordSuccess();
 		}
 	}
-	
+
 	// UTILITY METHODS
-	
+
 	private QName convertAttributeNameToQName(String icfAttrName) {
-		QName attrXsdName = new QName(getSchemaNamespace(),icfAttrName,SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);						
+		QName attrXsdName = new QName(getSchemaNamespace(), icfAttrName,
+				SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 		// Handle special cases
 		if (Name.NAME.equals(icfAttrName)) {
-			// this is ICF __NAME__ attribute. It will look ugly in XML and may even cause problems.
+			// this is ICF __NAME__ attribute. It will look ugly in XML and may
+			// even cause problems.
 			// so convert to something more friendly such as icfs:name
 			attrXsdName = SchemaConstants.ICFS_NAME;
 		}
 		if (PASSWORD_ATTRIBUTE_NAME.equals(icfAttrName)) {
-			// Temporary hack. Password should go into credentials, not attributes
+			// Temporary hack. Password should go into credentials, not
+			// attributes
 			// TODO: fix this
 			attrXsdName = SchemaConstants.ICFS_PASSWORD;
 		}
@@ -382,75 +502,93 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private String convertAttributeNameToIcf(QName attrQName) {
-		// Attribute QNames in the resource instance namespace are converted "as is"
+		// Attribute QNames in the resource instance namespace are converted
+		// "as is"
 		if (attrQName.getNamespaceURI().equals(getSchemaNamespace())) {
 			return attrQName.getLocalPart();
 		}
-		
+
 		// Other namespace are special cases
-		
+
 		if (SchemaConstants.ICFS_NAME.equals(attrQName)) {
 			return Name.NAME;
 		}
-		
+
 		if (SchemaConstants.ICFS_PASSWORD.equals(attrQName)) {
 			return PASSWORD_ATTRIBUTE_NAME;
 		}
-		
+
 		// No mapping available
-		throw new IllegalArgumentException("No mapping from QName "+attrQName+" to an ICF attribute name");
+		throw new IllegalArgumentException("No mapping from QName " + attrQName
+				+ " to an ICF attribute name");
 	}
 
 	/**
 	 * Maps ICF native objectclass name to a midPoint QName objctclass name.
 	 * 
-	 * The mapping is "stateless" - it does not keep any mapping database or
-	 * any other state. There is a bi-directional mapping algorithm.
+	 * The mapping is "stateless" - it does not keep any mapping database or any
+	 * other state. There is a bi-directional mapping algorithm.
 	 * 
 	 * TODO: mind the special characters in the ICF objectclass names.
 	 */
-	private QName objectClassToQname(String icfObjectClassString) {		
-			if (ObjectClass.ACCOUNT_NAME.equals(icfObjectClassString)) {
-				return new QName(getSchemaNamespace(), ACCOUNT_OBJECTCLASS_LOCALNAME, SchemaConstants.NS_ICF_SCHEMA_PREFIX);
-			} else if (ObjectClass.GROUP_NAME.equals(icfObjectClassString)) {
-				return new QName(getSchemaNamespace(), GROUP_OBJECTCLASS_LOCALNAME, SchemaConstants.NS_ICF_SCHEMA_PREFIX);
-			} else {
-				return new QName(getSchemaNamespace(), CUSTOM_OBJECTCLASS_PREFIX + icfObjectClassString + CUSTOM_OBJECTCLASS_SUFFIX, SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
-			}
+	private QName objectClassToQname(String icfObjectClassString) {
+		if (ObjectClass.ACCOUNT_NAME.equals(icfObjectClassString)) {
+			return new QName(getSchemaNamespace(),
+					ACCOUNT_OBJECTCLASS_LOCALNAME,
+					SchemaConstants.NS_ICF_SCHEMA_PREFIX);
+		} else if (ObjectClass.GROUP_NAME.equals(icfObjectClassString)) {
+			return new QName(getSchemaNamespace(), GROUP_OBJECTCLASS_LOCALNAME,
+					SchemaConstants.NS_ICF_SCHEMA_PREFIX);
+		} else {
+			return new QName(getSchemaNamespace(), CUSTOM_OBJECTCLASS_PREFIX
+					+ icfObjectClassString + CUSTOM_OBJECTCLASS_SUFFIX,
+					SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
+		}
 	}
 
 	/**
 	 * Maps a midPoint QName objctclass to the ICF native objectclass name.
 	 * 
-	 * The mapping is "stateless" - it does not keep any mapping database or
-	 * any other state. There is a bi-directional mapping algorithm.
+	 * The mapping is "stateless" - it does not keep any mapping database or any
+	 * other state. There is a bi-directional mapping algorithm.
 	 * 
 	 * TODO: mind the special characters in the ICF objectclass names.
 	 */
 	private ObjectClass objectClassToIcf(QName qnameObjectClass) {
 		if (!getSchemaNamespace().equals(qnameObjectClass.getNamespaceURI())) {
-			throw new IllegalArgumentException("ObjectClass QName "+qnameObjectClass+" is not in the appropriate namespace for resource "+resource.getName()+"(OID:"+resource.getOid()+"), expected: "+getSchemaNamespace());
+			throw new IllegalArgumentException("ObjectClass QName "
+					+ qnameObjectClass
+					+ " is not in the appropriate namespace for resource "
+					+ resource.getName() + "(OID:" + resource.getOid()
+					+ "), expected: " + getSchemaNamespace());
 		}
 		String lname = qnameObjectClass.getLocalPart();
 		if (ACCOUNT_OBJECTCLASS_LOCALNAME.equals(lname)) {
 			return ObjectClass.ACCOUNT;
 		} else if (GROUP_OBJECTCLASS_LOCALNAME.equals(lname)) {
 			return ObjectClass.GROUP;
-		} else if (lname.startsWith(CUSTOM_OBJECTCLASS_PREFIX) && lname.endsWith(CUSTOM_OBJECTCLASS_SUFFIX)) {
-			String icfObjectClassName = lname.substring(CUSTOM_OBJECTCLASS_PREFIX.length(), lname.length()-CUSTOM_OBJECTCLASS_SUFFIX.length());
+		} else if (lname.startsWith(CUSTOM_OBJECTCLASS_PREFIX)
+				&& lname.endsWith(CUSTOM_OBJECTCLASS_SUFFIX)) {
+			String icfObjectClassName = lname.substring(
+					CUSTOM_OBJECTCLASS_PREFIX.length(), lname.length()
+							- CUSTOM_OBJECTCLASS_SUFFIX.length());
 			return new ObjectClass(icfObjectClassName);
 		} else {
-			throw new IllegalArgumentException("Cannot recognize objectclass QName "+qnameObjectClass+" for resource "+resource.getName()+"(OID:"+resource.getOid()+"), expected: "+getSchemaNamespace());
+			throw new IllegalArgumentException(
+					"Cannot recognize objectclass QName " + qnameObjectClass
+							+ " for resource " + resource.getName() + "(OID:"
+							+ resource.getOid() + "), expected: "
+							+ getSchemaNamespace());
 		}
 	}
 
-
 	/**
 	 * Looks up ICF Uid identifier in a (potentially multi-valued) set of
-	 * identifiers. Handy method to convert midPoint identifier style to an
-	 * ICF identifier style.
+	 * identifiers. Handy method to convert midPoint identifier style to an ICF
+	 * identifier style.
 	 * 
-	 * @param identifiers midPoint resource object identifiers
+	 * @param identifiers
+	 *            midPoint resource object identifiers
 	 * @return ICF UID or null
 	 */
 	private Uid getUid(Set<ResourceObjectAttribute> identifiers) {
@@ -462,48 +600,74 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return null;
 	}
 	
+	private ResourceObjectAttribute setUidAttribute(Uid uid){
+		ResourceObjectAttribute uidRoa = new ResourceObjectAttribute(
+				SchemaConstants.ICFS_UID);
+		uidRoa.setValue(uid.getUidValue());
+		return uidRoa;	
+	}
+
 	/**
 	 * Converts ICF ConnectorObject to the midPoint ResourceObject.
 	 * 
-	 * All the attributes are mapped using the same way as they are mapped in the
-	 * schema (which is actually no mapping at all now).
+	 * All the attributes are mapped using the same way as they are mapped in
+	 * the schema (which is actually no mapping at all now).
 	 * 
 	 * If an optional ResourceObjectDefinition was provided, the resulting
 	 * ResourceObject is schema-aware (getDefinition() method works). If no
-	 * ResourceObjectDefinition was provided, the object is schema-less.
-	 * TODO: this still needs to be implemented.
+	 * ResourceObjectDefinition was provided, the object is schema-less. TODO:
+	 * this still needs to be implemented.
 	 * 
-	 * @param co ICF ConnectorObject to convert
-	 * @param def ResourceObjectDefinition (from the schema) or null
+	 * @param co
+	 *            ICF ConnectorObject to convert
+	 * @param def
+	 *            ResourceObjectDefinition (from the schema) or null
 	 * @return new mapped ResourceObject instance.
 	 */
-	private ResourceObject convertToResourceObject(ConnectorObject co,ResourceObjectDefinition def) {
-		
+	private ResourceObject convertToResourceObject(ConnectorObject co,
+			ResourceObjectDefinition def) {
+
 		ResourceObject ro = null;
-		if (def!=null) {
+		if (def != null) {
 			ro = def.instantiate();
 		} else {
 			// We don't know the name here. ObjectClass is a type, not name.
 			// Therefore it will not help here even if we would have it.
 			ro = new ResourceObject();
 		}
-		
+
 		// Uid is always there
 		Uid uid = co.getUid();
-		ResourceObjectAttribute uidRoa = new ResourceObjectAttribute(SchemaConstants.ICFS_UID);
-		uidRoa.setValue(uid.getUidValue());
+		ResourceObjectAttribute uidRoa = setUidAttribute(uid);
 		ro.getAttributes().add(uidRoa);
-		
+
 		for (Attribute icfAttr : co.getAttributes()) {
-			QName qname = new QName(getSchemaNamespace(),icfAttr.getName());
+			QName qname = new QName(getSchemaNamespace(), icfAttr.getName());
 			ResourceObjectAttribute roa = new ResourceObjectAttribute(qname);
 			List<Object> icfValues = icfAttr.getValue();
 			roa.getValues().addAll(icfValues);
 			ro.getAttributes().add(roa);
 		}
-		
+
 		return ro;
 	}
 
 	
+	private Set<Attribute> convertFromResourceObject(ResourceObject object) {
+		Set<Attribute> attributes = new HashSet<Attribute>();
+		Set<ResourceObjectAttribute> resourceAttributes = object
+				.getAttributes();
+		for (ResourceObjectAttribute attribute : resourceAttributes) {
+			
+			String attrName = convertAttributeNameToIcf(attribute.getName());
+				Attribute connectorAttribute = AttributeBuilder.build(attrName,
+						attribute.getValues());
+
+			attributes.add(connectorAttribute);
+		}
+		return attributes;
+	}
+	
+	
+
 }
