@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<first xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns="http://schema.foo.com/bar"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:type="FirstType">
+            
+		<prop1>Barbar</prop1>
+		<prop2>123456</prop2>			
+</first>
+            

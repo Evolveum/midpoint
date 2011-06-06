@@ -5,7 +5,7 @@
 			xmlns:tns="http://schema.foo.com/bar"
             elementFormDefault="qualified">
             
-			<xsd:complexType name="type1">
+			<xsd:complexType name="FirstType">
 				<xsd:sequence>
 					<xsd:element name="prop1" type="xsd:string"/>
 					<xsd:element name="prop2" type="xsd:integer"/>

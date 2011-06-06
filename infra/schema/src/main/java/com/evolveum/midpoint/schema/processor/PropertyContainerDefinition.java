@@ -106,6 +106,14 @@ public class PropertyContainerDefinition extends Definition {
 		return new PropertyContainer(getNameOrDefaultName(), this);
 	}
 	
+	public PropertyContainer instantiate(QName name) {
+		return new PropertyContainer(name, this);
+	}
+	
+	public Set<Property> parseProperties(List<Element> elements) {
+		return parseProperties(elements,Property.class);
+	}
+	
 	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz) {
 		return parseProperties(elements,clazz,null);
 	}
