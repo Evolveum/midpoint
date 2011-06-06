@@ -258,4 +258,9 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	void setDisplayNameAttribute(ResourceObjectAttributeDefinition displayName) {
 		this.displayName = displayName;
 	}
+	
+	@Override
+	public ResourceObject instantiate() {
+		return new ResourceObject(getNameOrDefaultName(), this);
+	}
 }

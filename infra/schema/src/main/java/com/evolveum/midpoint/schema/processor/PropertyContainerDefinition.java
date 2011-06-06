@@ -94,6 +94,10 @@ public class PropertyContainerDefinition extends Definition {
 		this.propertyDefinitions = propertyDefinitions;
 	}
 	
+	public PropertyContainer instantiate() {
+		return new PropertyContainer(getNameOrDefaultName(), this);
+	}
+	
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();

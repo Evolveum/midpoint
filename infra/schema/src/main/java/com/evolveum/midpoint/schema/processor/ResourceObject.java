@@ -39,6 +39,15 @@ import javax.xml.namespace.QName;
  */
 public final class ResourceObject extends PropertyContainer {
 
+	public ResourceObject(QName name) {
+		super(name);
+	}
+
+	public ResourceObject(QName name, ResourceObjectDefinition definition) {
+		super(name, definition);
+	}
+
+	@Override
 	public ResourceObjectDefinition getDefinition() {
 		return (ResourceObjectDefinition) super.getDefinition();
 	}

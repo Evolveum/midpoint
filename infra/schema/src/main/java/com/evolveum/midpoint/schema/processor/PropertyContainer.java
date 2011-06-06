@@ -52,6 +52,15 @@ public class PropertyContainer {
 	private Set<Property> properties = new HashSet<Property>();
 	private PropertyContainerDefinition definition;
 
+	public PropertyContainer(QName name, PropertyContainerDefinition definition) {
+		this.name = name;
+		this.definition = definition;
+	}
+
+	public PropertyContainer(QName name) {
+		this.name = name;
+	}
+
 	/**
 	 * Returns the name of the property container.
 	 * 

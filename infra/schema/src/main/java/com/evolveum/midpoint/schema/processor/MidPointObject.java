@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import javax.xml.namespace.QName;
+
 /**
  * Common supertype for all identity objects. Defines basic properties that each
  * object must have to live in our system (identifier, name).
@@ -39,6 +41,16 @@ package com.evolveum.midpoint.schema.processor;
  * 
  */
 public class MidPointObject extends PropertyContainer {
+
+	public MidPointObject(QName name) {
+		super(name);
+	}
+
+	public MidPointObject(QName name, PropertyContainerDefinition definition) {
+		super(name, definition);
+	}
+	
+	// TODO: support OID
 
 	/**
 	 * Returns Object ID (OID).
