@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema.util;
+package com.evolveum.midpoint.common.result;
 
 import java.util.Map;
 import java.util.Map.Entry;
