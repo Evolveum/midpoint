@@ -432,6 +432,15 @@ public class ModelService implements ModelPortType {
 
 	}
 
+	// TODO: move somewhere ...to utils
+	public static void logException(Trace logger, String message, Exception ex, Object... objects) {
+		Validate.notNull(logger, "Logger can't be null.");
+		Validate.notNull(ex, "Exception can't be null.");
+
+		logger.error(message + ", reason: " + ex.getMessage(), objects);
+		logger.debug(message + ".", ex, objects);
+	}
+
 	@Override
 	public ObjectType getObject(java.lang.String oid, PropertyReferenceListType resolve,
 			Holder<OperationResultType> resultType) throws FaultMessage {
@@ -455,11 +464,13 @@ public class ModelService implements ModelPortType {
 			result = repositoryService.getObject(oid, resolve);
 
 		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
-			logger.error("### MODEL # Fault getObject(..): Repository invocation failed (getObject) : ", ex);
+			logException(logger, "### MODEL # Fault getObject(..): Repository invocation failed (getObject)",
+					ex);
 			throw createFaultMessage("Repository invocation failed (getObject)", ex.getFaultInfo(), ex, null);
 		} catch (RuntimeException ex) {
 			// Exceptions such as JBI messaging exceptions
-			logger.error("### MODEL # Fault getObject(..): Repository invocation failed (getObject) : ", ex);
+			logException(logger, "### MODEL # Fault getObject(..): Repository invocation failed (getObject)",
+					ex);
 			throw createFaultMessage("Repository invocation failed (getObject)", SystemFaultType.class,
 					false, ex, null);
 		}

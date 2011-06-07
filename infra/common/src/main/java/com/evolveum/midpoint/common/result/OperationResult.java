@@ -384,12 +384,16 @@ public class OperationResult implements Serializable {
 		for (int i = 0; i < indent; i++) {
 			sb.append(INDENT_STRING);
 		}
-		sb.append("op:");
+		sb.append("op: ");
 		sb.append(operation);
-		sb.append(" st:");
+		sb.append(" st: ");
 		sb.append(status);
-		sb.append(" msg:");
+		sb.append(" msg: ");
 		sb.append(message);
+		if (cause != null) {
+			sb.append(" causeMsg: ");
+			sb.append(cause.getMessage());
+		}
 		sb.append("\n");
 
 		for (OperationResult sub : getSubresults()) {
@@ -418,10 +422,11 @@ public class OperationResult implements Serializable {
 
 		LocalizedMessageType message = result.getLocalizedMessage();
 		String localizedMessage = message == null ? null : message.getKey();
+		List<Object> localizedArguments = message == null ? null : message.getArgument();
 
 		return new OperationResult(result.getOperation(), params,
 				OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
-				result.getMessageCode(), result.getMessage(), localizedMessage, message.getArgument(), null,
+				result.getMessageCode(), result.getMessage(), localizedMessage, localizedArguments, null,
 				subresults);
 	}
 

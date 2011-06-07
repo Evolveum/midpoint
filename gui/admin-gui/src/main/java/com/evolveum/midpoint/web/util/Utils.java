@@ -31,11 +31,12 @@ import com.evolveum.midpoint.api.logging.Trace;
  */
 public class Utils {
 
+	//TODO: object list as parameters to message {}
 	public static void logException(Trace logger, String message, Exception ex, Object... objects) {
 		Validate.notNull(logger, "Logger can't be null.");
 		Validate.notNull(ex, "Exception can't be null.");
 
-		logger.error(message + ", reason: " + ex.getMessage(), objects);
-		logger.debug(message + ".", ex, objects);
+		logger.error(message + ", reason: " + ex.getMessage());
+		logger.debug(message + ".", ex);
 	}
 }

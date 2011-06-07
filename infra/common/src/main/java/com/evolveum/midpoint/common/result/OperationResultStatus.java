@@ -58,6 +58,10 @@ public enum OperationResultStatus {
 	FATAL_ERROR;
 
 	public static OperationResultStatus parseStatusType(OperationResultStatusType statusType) {
+		if (statusType == null) {
+			return UNKNOWN;
+		}
+		
 		switch (statusType) {
 			case FATAL_ERROR:
 				return FATAL_ERROR;

@@ -41,7 +41,7 @@
 			<name>editable</name>
 			<required>false</required>
 		</attribute>
-	</tag>	
+	</tag>
 	<tag>
 		<tag-name>button</tag-name>
 		<component>
@@ -133,5 +133,11 @@
 			<name>readonly</name>
 			<required>false</required>
 		</attribute>
+	</tag>
+	<tag>
+		<tag-name>messages</tag-name>
+		<component>
+			<component-type>MidPointFacesMessages</component-type>
+		</component>
 	</tag>
 </facelet-taglib>

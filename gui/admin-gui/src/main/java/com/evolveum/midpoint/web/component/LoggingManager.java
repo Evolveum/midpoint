@@ -106,7 +106,9 @@ public class LoggingManager {
 			OperationResult result) {
 		Validate.notNull(logging, "Logging configuration can't be null.");
 
-		OperationResultType resultType = result.createOperationResultType();
+		final OperationResult saveConfigResult = new OperationResult("Save System Configuration");
+
+		OperationResultType resultTypeHolder = new OperationResultType();
 		try {
 			SystemConfigurationType oldSystem = getSystemConfiguration(result);
 			SystemConfigurationType newSystem = (SystemConfigurationType) JAXBUtil.clone(oldSystem);
@@ -114,33 +116,55 @@ public class LoggingManager {
 
 			ObjectModificationType change = CalculateXmlDiff.calculateChanges(oldSystem, newSystem);
 			change.setOid(SYSTEM_CONFIGURATION_OID);
-			model.modifyObject(change, new Holder<OperationResultType>(resultType));
+			model.modifyObject(change, new Holder<OperationResultType>(resultTypeHolder));
+			saveConfigResult.recordSuccess();
 
 			return logging;
 		} catch (JAXBException ex) {
-			Utils.logException(LOGGER, "Couldn't clone system configuration", ex);
-			// TODO: result error handling
+			String message = "Couldn't clone system configuration";
+			Utils.logException(LOGGER, message, ex);
+			saveConfigResult.recordFatalError(message, ex);
 		} catch (DiffException ex) {
-			Utils.logException(LOGGER, "Couldn't create diff for system configuration", ex);
-			// TODO: result error handling
+			String message = "Couldn't create diff for system configuration";
+			Utils.logException(LOGGER, message, ex);
+			saveConfigResult.recordFatalError(message, ex);
 		} catch (FaultMessage ex) {
-			Utils.logException(LOGGER, "Couldn't get system configuration", ex);
-			// TODO: result error handling
+			String message = "Couldn't get system configuration";
+			Utils.logException(LOGGER, message, ex);
+			saveConfigResult.recordFatalError(message, ex);
+		} finally {
+			OperationResult opResult = OperationResult.createOperationResult(resultTypeHolder);
+			saveConfigResult.getSubresults().addAll(opResult.getSubresults());
+
+			result.addSubresult(saveConfigResult);
 		}
 
 		return null;
 	}
 
 	private SystemConfigurationType getSystemConfiguration(OperationResult result) {
-		OperationResultType resultType = result.createOperationResultType();
+		final OperationResult getSystemConfigResult = new OperationResult("Get System Configuration");
+
+		OperationResultType resultTypeHolder = new OperationResultType();
+		resultTypeHolder.setOperation(getSystemConfigResult.getOperation());
+		
 		SystemConfigurationType config = new SystemConfigurationType();
 		try {
 			ObjectType object = model.getObject(SYSTEM_CONFIGURATION_OID, new PropertyReferenceListType(),
-					new Holder<OperationResultType>(resultType));
+					new Holder<OperationResultType>(resultTypeHolder));
 			config = (SystemConfigurationType) object;
+
+			getSystemConfigResult.recordSuccess();
 		} catch (FaultMessage ex) {
-			Utils.logException(LOGGER, "Couldn't get system configuration", ex);
-			// TODO: result error handling
+			String message = "Couldn't get system configuration";
+			Utils.logException(LOGGER, message, ex);
+
+			getSystemConfigResult.recordFatalError(message, ex);
+		} finally {
+			OperationResult opResult = OperationResult.createOperationResult(resultTypeHolder);
+			getSystemConfigResult.getSubresults().addAll(opResult.getSubresults());
+
+			result.addSubresult(getSystemConfigResult);
 		}
 
 		return config;
