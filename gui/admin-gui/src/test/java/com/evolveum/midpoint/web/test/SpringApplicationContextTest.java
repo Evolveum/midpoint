@@ -22,11 +22,8 @@
 
 package com.evolveum.midpoint.web.test;
 
-import com.evolveum.midpoint.web.dto.GuiUserDto;
-import com.evolveum.midpoint.web.model.ObjectManager;
-import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
-import com.evolveum.midpoint.web.model.UserDto;
-import com.evolveum.midpoint.web.model.UserManager;
+import static org.junit.Assert.assertNotNull;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -36,7 +33,14 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import static org.junit.Assert.*;
+
+import com.evolveum.midpoint.init.InitialSetup;
+import com.evolveum.midpoint.web.dto.GuiUserDto;
+import com.evolveum.midpoint.web.model.ObjectManager;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.UserDto;
+import com.evolveum.midpoint.web.model.UserManager;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * Test of spring application context initialization
@@ -46,11 +50,15 @@ import static org.junit.Assert.*;
  * @since 1.0.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/application-context-webapp.xml", "file:src/main/webapp/WEB-INF/application-context-security.xml", "classpath:applicationContext-test.xml"})
+@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/application-context-webapp.xml", "file:src/main/webapp/WEB-INF/application-context-security.xml", "file:src/main/webapp/WEB-INF/application-context-init.xml", "classpath:applicationContext-test.xml"})
 public class SpringApplicationContextTest {
 
     @Autowired(required=true)
     private ObjectTypeCatalog objectTypeCatalog;
+    @Autowired(required=true)
+    private ModelPortType modelService;
+    @Autowired(required=true)
+    private InitialSetup initialSetup;
 
 
     public SpringApplicationContextTest() {
@@ -78,6 +86,9 @@ public class SpringApplicationContextTest {
         ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class, GuiUserDto.class);
         UserManager userManager = (UserManager) (objectManager);
         assertNotNull(userManager);
+        
+        assertNotNull(modelService);
+        assertNotNull(initialSetup);
     }
 
 }
