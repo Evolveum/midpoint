@@ -366,7 +366,7 @@ class DomToSchemaProcessor {
 			StreamResult result = new StreamResult(out);
 
 			trans.transform(source, result);
-
+			System.out.println(new String(out.toByteArray()));
 			XSOMParser parser = createSchemaParser();
 			InputSource inSource = new InputSource(new ByteArrayInputStream(out.toByteArray()));
 			inSource.setSystemId("SystemId"); // HACK: it's here to make entity
