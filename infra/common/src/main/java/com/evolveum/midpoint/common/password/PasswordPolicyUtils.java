@@ -31,6 +31,7 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.result.OperationResultStatus;
+import com.evolveum.midpoint.common.string.StringPolicyUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CharacterClassType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordLifeTimeType;
@@ -60,7 +61,7 @@ public class PasswordPolicyUtils {
 
 		if (null == pp.getStringPolicy()) {
 			StringPolicyType sp = new StringPolicyType();
-			pp.setStringPolicy(com.evolveum.midpoint.common.string.Utils.initialize(sp));
+			pp.setStringPolicy(StringPolicyUtils.normalize(sp));
 
 		}
 

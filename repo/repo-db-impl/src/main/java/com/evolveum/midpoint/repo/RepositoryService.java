@@ -1700,7 +1700,7 @@ public class RepositoryService implements RepositoryPortType {
 //
 //            for (SimpleDomainObject user : users) {
 //                UserType userType = new UserType();
-//                Utils.copyPropertiesSilent(userType, user);
+//                StringPolicyUtils.copyPropertiesSilent(userType, user);
 //                Set<Account> accounts = (Set<Account>) ((User) user).getAccounts();
 //                for (Account account : accounts) {
 //                    if (account.getOid().equals(UUID.fromString(accountOid))) {

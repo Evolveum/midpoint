@@ -187,7 +187,7 @@ public class RepositoryServiceTest {
 //
 //        //RepositoryService instance = new RepositoryService();
 //        //instance.setGenericDao(genericDao);
-//        ObjectListType result = repositoryService.listObjects(Utils.getObjectType("UserType"), new PagingType());
+//        ObjectListType result = repositoryService.listObjects(StringPolicyUtils.getObjectType("UserType"), new PagingType());
 //
 //        assertNotNull(result.getObject());
 //        assertTrue(0 < result.getObject().size());
