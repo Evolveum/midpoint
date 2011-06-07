@@ -71,7 +71,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	
 	
 	@Override
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult) {
+	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult) throws Exception {
 		
 		// Result type for this operation
 		OperationResult result = parentResult
@@ -81,23 +81,20 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("resolve", resolve);
 		
 		ObjectType object = null;
-		try {
+
 			ObjectContainerType container = getRepositoryService().getObject(oid,resolve);
 			object = container.getObject();
-		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage fault) {
-			// TODO
-		}
+			// TODO: Error handling
+
 		
 		if (object instanceof ResourceObjectShadowType) {
 			//ResourceObjectShadowType shadow = (ResourceObjectShadowType)object;
 			// TODO: optimization needed: avoid multiple "gets" of the same object
 			ResourceObjectShadowType shadow = null;
-			try {
+			
 				shadow = getShadowCache().getObject(oid, null, result);
-			} catch (Exception ex) {
 				// TODO: error handling
 				
-			}
 			// TODO: object resolving
 			return shadow;
 		} else {

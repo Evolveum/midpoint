@@ -19,6 +19,14 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import java.io.FileNotFoundException;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Unmarshaller;
+import java.io.FileInputStream;
+import java.io.File;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
 import com.evolveum.midpoint.test.repository.BaseXDatabaseFactory;
@@ -32,10 +40,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import javax.xml.bind.JAXBContext;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -45,8 +56,11 @@ import static org.junit.Assert.*;
  */
 public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	
+	// Let's reuse the resource definition from UCF tests ... for now
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
-	private static final String RESOURCE_OPENDJ_OID = "";
+	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee";
+	private static final String FILENAME_ACCOUNT1 = "src/test/resources/impl/account1.xml";
+	private static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
 	
     protected static OpenDJUtil djUtil = new OpenDJUtil();
 	private JAXBContext jaxbctx;
@@ -55,9 +69,11 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private ShadowCache shadowCache;
 	private RepositoryPortType repositoryPort;
 	private ProvisioningService provisioningService;
+	private Unmarshaller unmarshaller;
 	
 	public ProvisioningServiceImplOpenDJTest() throws JAXBException {
 		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
+		unmarshaller = jaxbctx.createUnmarshaller();
 	}
 
 	@BeforeClass
@@ -80,8 +96,13 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		
 		repositoryPort = BaseXDatabaseFactory.getRepositoryPort();
 		
-		// TODO: setup repository content
+		// The default repository content is using old format of resource configuration
+		// We need a sample data in the new format, so we need to set it up
+		// manually.
 
+		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
+		addObjectFromFile(FILENAME_ACCOUNT1);
+		
 		shadowCache = new ShadowCache();
 		shadowCache.setConnectorManager(manager);
 		shadowCache.setRepositoryService(repositoryPort);
@@ -91,23 +112,35 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		provisioningServiceImpl.setRepositoryService(repositoryPort);
 		provisioningService = provisioningServiceImpl;
 		
-//		File file = new File(FILENAME_RESOURCE_OPENDJ);
-//        FileInputStream fis = new FileInputStream(file);
-//
-//        Unmarshaller u = jaxbctx.createUnmarshaller();
-//        Object object = u.unmarshal(fis);		
-//		resource = (ResourceType) ((JAXBElement) object).getValue();
-				
-
+		assertNotNull(provisioningService);
     }
 
+	private ObjectType addObjectFromFile(String filePath) throws FileNotFoundException, JAXBException, com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+		File file = new File(filePath);
+        FileInputStream fis = new FileInputStream(file);
+		Object object = unmarshaller.unmarshal(fis);		
+		ObjectType objectType = (ObjectType) ((JAXBElement) object).getValue();
+		ObjectContainerType container = new ObjectContainerType();
+		container.setObject(objectType);
+		repositoryPort.addObject(container);
+		return objectType;
+	}
+	
     @After
     public void shutdownUcf() throws Exception {
         BaseXDatabaseFactory.XMLServerStop();
     }
 
+    @Ignore
 	@Test
-	public void trivialTest() {
-		assertNotNull(provisioningService);
+	public void getObjectTest() throws Exception {
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".getObjectTest");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		
+		ObjectType object = provisioningService.getObject(ACCOUNT1_OID, resolve, result);
+		
+		assertNotNull(object);
+		
+		System.out.println(DebugUtil.prettyPrint(object));
 	}
 }

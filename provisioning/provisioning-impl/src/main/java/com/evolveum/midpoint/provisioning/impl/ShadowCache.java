@@ -19,9 +19,11 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.object.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.api.SchemaException;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
@@ -33,6 +35,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -41,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.sun.org.apache.xerces.internal.impl.xs.SchemaGrammar.Schema4Annotations;
 import java.util.List;
 import java.util.Set;
@@ -135,6 +140,13 @@ public class ShadowCache {
 		QName objectClass = repositoryShadow.getObjectClass();
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
 		
+		if (rod==null) {
+			// Unknown objectclass
+			SchemaException ex = new SchemaException("Object class "+objectClass+" is not known in schema of resource "+ObjectTypeUtil.toShortString(resource));
+			parentResult.recordFatalError("Object class "+objectClass+" is not known", ex);
+			throw ex;
+		}
+		
 		// Let's get all the identifiers from the Shadow <attributes> part
 		Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(repositoryShadow.getAttributes().getAny());
 		
@@ -164,12 +176,15 @@ public class ShadowCache {
 		return getConnectorManager().createConnectorInstance(resource);
 	}
 	
-	private Schema getResourceSchema(ResourceType resource) throws SchemaProcessorException {
+	private Schema getResourceSchema(ResourceType resource) throws SchemaProcessorException, SchemaException {
 		// Need to add some form of caching here.
 		// For now just parse it from the resource definition.
 		
-		// TODO: smarter search for schema, add to some utility class
-		return Schema.parse(resource.getSchema().getAny().get(0));
+		Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(resource);
+		if (schemaElement==null) {
+			throw new SchemaException("No schema found in definition of resource "+ObjectTypeUtil.toShortString(resource));
+		}
+		return Schema.parse(schemaElement);		
 	}
 	
 	private ResourceType getResource(String oid) throws com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {

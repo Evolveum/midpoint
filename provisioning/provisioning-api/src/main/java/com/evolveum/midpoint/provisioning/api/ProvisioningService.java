@@ -34,6 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
  */
 public interface ProvisioningService {
 	
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult result);
+	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult result) throws Exception;
 	
 }
