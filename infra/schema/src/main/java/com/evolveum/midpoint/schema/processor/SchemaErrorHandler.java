@@ -47,11 +47,13 @@ public class SchemaErrorHandler implements ErrorHandler {
 	@Override
 	public void error(SAXParseException e) throws SAXException {
 		print("[Error]", e);
+		throw e;
 	}
 
 	@Override
 	public void fatalError(SAXParseException e) throws SAXException {
 		print("[Fatal]", e);
+		throw e;
 	}
 
 	private void print(String header, SAXParseException e) {

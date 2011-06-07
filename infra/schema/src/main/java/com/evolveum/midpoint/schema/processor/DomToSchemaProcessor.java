@@ -74,6 +74,9 @@ class DomToSchemaProcessor {
 		Schema schema = initSchema(xsdSchema);
 
 		XSSchemaSet set = parseSchema(xsdSchema);
+		if (set == null) {
+			return schema;
+		}
 		Iterator<XSComplexType> iterator = set.iterateComplexTypes();
 		while (iterator.hasNext()) {
 			XSComplexType complexType = iterator.next();
