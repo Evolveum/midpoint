@@ -55,6 +55,8 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -217,6 +219,60 @@ public class RepositoryAccountTest {
 			UserType retrievedUser = accountOwnerContainer.getUser();
 			assertNotNull(retrievedUser);
 			assertEquals(userOid, retrievedUser.getOid());	
+		} finally {
+			// to be sure try to delete the object as part of cleanup
+			try {
+				repositoryService.deleteObject(resourceOid);
+			} catch (Exception ex) {
+				// ignore exceptions during cleanup
+			}
+			// to be sure try to delete the object as part of cleanup
+			try {
+				repositoryService.deleteObject(accountRefOid);
+			} catch (Exception ex) {
+				// ignore exceptions during cleanup
+			}
+			// to be sure try to delete the object as part of cleanup
+			try {
+				repositoryService.deleteObject(userOid);
+			} catch (Exception ex) {
+				// ignore exceptions during cleanup
+			}
+		}
+	}
+	
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testListResourceObjectShadows() throws Exception {
+		String userOid = "c0c010c0-d34d-b33f-f00d-111111111234";
+		String accountRefOid = "8254880d-6584-425a-af2e-58f8ca394bbb";
+		String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
+		try {
+			ObjectContainerType objectContainer = new ObjectContainerType();
+			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/resource-modified-removed-tags.xml"))).getValue();
+			objectContainer.setObject(resource);
+			repositoryService.addObject(objectContainer);
+
+			objectContainer = new ObjectContainerType();
+			AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil
+					.unmarshal(new File("src/test/resources/account-delete-account-ref.xml"))).getValue();
+			objectContainer.setObject(account);
+			repositoryService.addObject(objectContainer);
+
+			objectContainer = new ObjectContainerType();
+			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/user-account-ref.xml"))).getValue();
+			assertEquals(1, user.getAccountRef().size());
+			objectContainer.setObject(user);
+			repositoryService.addObject(objectContainer);
+
+			ResourceObjectShadowListType shadowsOnResource = repositoryService.listResourceObjectShadows(resourceOid, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE));
+			assertNotNull(shadowsOnResource);
+			List<ResourceObjectShadowType> shadows = shadowsOnResource.getObject();
+			assertNotNull(shadows);
+			assertEquals(accountRefOid, shadows.get(0).getOid());
+			
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
