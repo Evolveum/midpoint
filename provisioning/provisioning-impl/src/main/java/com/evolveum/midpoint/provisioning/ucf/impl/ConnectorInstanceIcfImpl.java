@@ -22,6 +22,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -31,12 +32,14 @@ import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.Token;
 import com.evolveum.midpoint.schema.processor.Definition;
+import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -48,6 +51,7 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClassUtil;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
+import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
@@ -338,7 +342,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				.getTypeName());
 
 		// setting ifc attributes from resource object attributes
-		Set<Attribute> attributes = convertFromResourceObject(object);
+		Set<Attribute> attributes = convertFromResourceObject(object.getAttributes());
 
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName()+".create");
 		icfResult.addParam("objectClass", objectClass);
@@ -360,7 +364,55 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			Set<Operation> changes, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		
+		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()+".modifyObject");
+		result.addParam("objectClass", objectClass);
+		result.addParam("identifiers", identifiers);
+		result.addParam("changes", changes);	
+		
+		ObjectClass objClass = objectClassToIcf(objectClass);
+		Uid uid = getUid(identifiers);
+		
+		Set<ResourceObjectAttribute> addValues = new HashSet<ResourceObjectAttribute>();
+		Set<ResourceObjectAttribute> updateValues = new HashSet<ResourceObjectAttribute>();
+		Set<ResourceObjectAttribute> valuesToRemove = new HashSet<ResourceObjectAttribute>();
+		
+		for (Operation operation : changes){
+			if (operation instanceof AttributeModificationOperation){
+				AttributeModificationOperation change = (AttributeModificationOperation) operation;
+				if (change.getChangeType().equals(PropertyModificationTypeType.add)){
+					Property property = change.getNewAttribute();
+					ResourceObjectAttribute addAttribute = new ResourceObjectAttribute(property.getName(), property.getDefinition(), property.getValues());
+					addValues.add(addAttribute);
+					
+				}
+				if (change.getChangeType().equals(PropertyModificationTypeType.delete)){
+					Property property = change.getNewAttribute();
+					ResourceObjectAttribute deleteAttribute = new ResourceObjectAttribute(property.getName(), property.getDefinition(), property.getValues());
+					valuesToRemove.add(deleteAttribute);				
+				}
+				if (change.getChangeType().equals(PropertyModificationTypeType.replace)){
+					Property property = change.getNewAttribute();
+					ResourceObjectAttribute updateAttribute = new ResourceObjectAttribute(property.getName(), property.getDefinition(), property.getValues());
+					updateValues.add(updateAttribute);
+					
+				}
+			}
+			
+		}
+		if (addValues!=null && !addValues.isEmpty()){
+			Set<Attribute> attributes = convertFromResourceObject(addValues);
+			connector.addAttributeValues(objClass, uid, attributes, new OperationOptionsBuilder().build());
+		}
+		if (updateValues!=null && !updateValues.isEmpty()){
+			Set<Attribute> attributes = convertFromResourceObject(updateValues);
+			connector.update(objClass, uid, attributes, new OperationOptionsBuilder().build());
+		}
+		if (valuesToRemove!=null && !valuesToRemove.isEmpty()){
+			Set<Attribute> attributes = convertFromResourceObject(valuesToRemove);
+			connector.removeAttributeValues(objClass, uid, attributes, new OperationOptionsBuilder().build());
+		}
+		
 	}
 
 	@Override
@@ -385,13 +437,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Token fetchCurrentToken(OperationResult parentResult)
+	public Token fetchCurrentToken(QName objectClass, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public List<Change> fetchChanges(Token lastToken,
+	public List<Change> fetchChanges(QName objectClass, Token lastToken,
 			OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException {
 		throw new UnsupportedOperationException("Not supported yet.");
@@ -653,10 +705,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	
-	private Set<Attribute> convertFromResourceObject(ResourceObject object) {
+	private Set<Attribute> convertFromResourceObject(Set<ResourceObjectAttribute> resourceAttributes) {
 		Set<Attribute> attributes = new HashSet<Attribute>();
-		Set<ResourceObjectAttribute> resourceAttributes = object
-				.getAttributes();
+		
 		for (ResourceObjectAttribute attribute : resourceAttributes) {
 			
 			String attrName = convertAttributeNameToIcf(attribute.getName());

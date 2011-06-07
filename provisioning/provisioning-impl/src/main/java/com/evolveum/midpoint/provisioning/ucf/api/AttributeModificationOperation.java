@@ -20,13 +20,14 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 
 /**
  * @author Radovan Semancik
  *
  */
 public final class AttributeModificationOperation extends Operation {
-	// private PropertyModificationTypeType changeType;
+	private PropertyModificationTypeType changeType;
 	private Property newAttribute;
 
 	public Property getNewAttribute() {
@@ -36,4 +37,14 @@ public final class AttributeModificationOperation extends Operation {
 	public void setNewAttribute(Property newAttribute) {
 		this.newAttribute = newAttribute;
 	}
+
+	public PropertyModificationTypeType getChangeType() {
+		return changeType;
+	}
+
+	public void setChangeType(PropertyModificationTypeType changeType) {
+		this.changeType = changeType;
+	}
+	
+	
 }

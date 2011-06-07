@@ -146,7 +146,8 @@ public class PropertyContainer {
 	 * @return display name for the property container type
 	 */
 	public String getDisplayName() {
-		return getDefinition() == null ? null : getDefinition().getDisplayName();
+		return getDefinition() == null ? null : getDefinition()
+				.getDisplayName();
 	}
 
 	/**
@@ -173,7 +174,12 @@ public class PropertyContainer {
 	 * @return found property or null
 	 */
 	public Property findProperty(QName propertyQName) {
-		throw new IllegalStateException("not implemented yet.");
+		for (Property property : properties) {
+			if (propertyQName.equals(property.getName())) {
+				return property;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -188,25 +194,28 @@ public class PropertyContainer {
 	public Property findProperty(PropertyDefinition propertyDefinition) {
 		throw new IllegalStateException("not implemented yet.");
 	}
-	
+
 	public List<Element> serializePropertiesToDom(Document doc) {
-		if (getDefinition()==null) {
-			throw new IllegalStateException("Object definition missing, unable to serialize");
+		if (getDefinition() == null) {
+			throw new IllegalStateException(
+					"Object definition missing, unable to serialize");
 		}
 		return getDefinition().serializePropertiesToDom(getProperties(), doc);
 	}
-	
+
 	public Element serializeToDom(Document doc) {
 		List<Element> elements = serializePropertiesToDom(doc);
-		Element container = doc.createElementNS(getName().getNamespaceURI(), getName().getLocalPart());
+		Element container = doc.createElementNS(getName().getNamespaceURI(),
+				getName().getLocalPart());
 		for (Element el : elements) {
 			container.appendChild(el);
 		}
 		return container;
 	}
-	
+
 	@Override
 	public String toString() {
-		return getClass().getSimpleName()+"("+getName()+"):"+getProperties();
+		return getClass().getSimpleName() + "(" + getName() + "):"
+				+ getProperties();
 	}
 }

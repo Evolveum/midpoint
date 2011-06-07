@@ -17,6 +17,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.eclipse.core.internal.resources.mapping.ChangeDescription;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
 import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
+import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
@@ -49,6 +51,7 @@ import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.test.repository.BaseXDatabaseFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -127,6 +130,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(this.getClass().getName()
 				+ ".testAdd");
 
+		
 		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema
 				.findContainerDefinitionByType(new QName(resource
 						.getNamespace(), "AccountObjectClass"));
@@ -172,9 +176,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 
 		Set<ResourceObjectAttribute> resourceAttributes = addSampleResourceObject(
 				"jack", "Jack", "Sparow");
-		// Set<Operation> operation = new HashSet<Operation>();
-		// Set<ResourceObjectAttribute> resourceAttributes =
-		// cc.addObject(resourceObject, operation, result);
+	
 		for (ResourceObjectAttribute resourceAttribute : resourceAttributes) {
 			if (SchemaConstants.ICFS_UID.equals(resourceAttribute.getName())) {
 				String uid = resourceAttribute.getValue(String.class);
@@ -218,5 +220,100 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		}
 
 	}
+	
+	@Test
+	public void testChangeModifyObject() throws Exception{
+		OperationResult result = new OperationResult(this.getClass().getName()
+				+ ".testModify");
 
+		Set<ResourceObjectAttribute> identifiers = addSampleResourceObject(
+				"john", "John", "Smith");
+		
+		Set<Operation> changes = new HashSet<Operation>();
+		
+		changes.add(createAddChange("employeeNumber", "123123123"));
+		changes.add(createReplaceChange("sn", "Smith007"));
+		changes.add(createAddChange("street", "Wall Street"));
+		changes.add(createDeleteChange("givenName", "John"));
+				
+		QName objectClass = new QName(resource.getNamespace(), "AccountObjectClass"); 
+		cc.modifyObject(objectClass, identifiers, changes, result);
+		
+		ResourceObject resObj = cc.fetchObject(objectClass, identifiers, result);
+		
+		assertNull(resObj.findAttribute(new QName(RESOURCE_NS, "givenName")));
+		
+		String addedEmployeeNumber =resObj.findAttribute(new QName(RESOURCE_NS, "employeeNumber")).getValue(String.class);
+		String changedSn = resObj.findAttribute(new QName(RESOURCE_NS, "sn")).getValue(String.class);
+		String addedStreet = resObj.findAttribute(new QName(RESOURCE_NS, "street")).getValue(String.class);
+
+		
+		System.out.println("changed employee number: " + addedEmployeeNumber);
+		System.out.println("changed sn: " + changedSn);
+		System.out.println("added street: " + addedStreet);
+
+
+		assertEquals("123123123", addedEmployeeNumber);
+		assertEquals("Smith007", changedSn);
+		assertEquals("Wall Street", addedStreet);
+		
+		
+	}
+	
+	private Property createProperty(String propertyName, String propertyValue){
+		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema
+		.findContainerDefinitionByType(new QName(resource
+				.getNamespace(), "AccountObjectClass"));
+		PropertyDefinition propertyDef = accountDefinition.findPropertyDefinition(new QName(resource.getNamespace(), propertyName));
+		Property property = propertyDef.instantiate();
+		property.setValue(propertyValue);
+		return property;
+	}
+	
+	
+	private AttributeModificationOperation createReplaceChange(String propertyName, String propertyValue){
+		AttributeModificationOperation attributeModification = new AttributeModificationOperation();
+		attributeModification.setChangeType(PropertyModificationTypeType.replace);	
+		Property property = createProperty(propertyName, propertyValue);	
+		attributeModification.setNewAttribute(property);
+		System.out.println("-------replace attribute modification-----");
+		System.out.println("property name: " +property.getName().getLocalPart());
+		System.out.println("property namespace: "+property.getName().getNamespaceURI());
+		System.out.println("property value: "+property.getValue(String.class));
+		System.out.println("-------replace attribute modification end-------");
+		return attributeModification;
+	}
+	
+	private AttributeModificationOperation createAddChange(String propertyName, String propertyValue){
+		AttributeModificationOperation attributeModification = new AttributeModificationOperation();
+		attributeModification.setChangeType(PropertyModificationTypeType.add);	
+		
+		Property property = createProperty(propertyName, propertyValue);	
+		
+		attributeModification.setNewAttribute(property);
+		System.out.println("-------add attribute modification-----");
+		System.out.println("property name: " +property.getName().getLocalPart());
+		System.out.println("property namespace: "+property.getName().getNamespaceURI());
+		System.out.println("property value: "+property.getValue(String.class));
+		System.out.println("-------add attribute modification end-------");
+		
+		return attributeModification;
+	}
+	
+
+	private AttributeModificationOperation createDeleteChange(String propertyName, String propertyValue){
+		AttributeModificationOperation attributeModification = new AttributeModificationOperation();
+		attributeModification.setChangeType(PropertyModificationTypeType.delete);	
+		
+		Property property = createProperty(propertyName, propertyValue);	
+		
+		attributeModification.setNewAttribute(property);
+		System.out.println("-------delete attribute modification-----");
+		System.out.println("property name: " +property.getName().getLocalPart());
+		System.out.println("property namespace: "+property.getName().getNamespaceURI());
+		System.out.println("property value: "+property.getValue(String.class));
+		System.out.println("-------delete attribute modification end-------");
+		
+		return attributeModification;
+	}
 }

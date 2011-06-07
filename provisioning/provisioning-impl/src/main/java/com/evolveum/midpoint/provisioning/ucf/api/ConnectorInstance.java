@@ -193,7 +193,7 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public Token fetchCurrentToken(OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public Token fetchCurrentToken(QName objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".
@@ -201,7 +201,7 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public List<Change> fetchChanges(Token lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public List<Change> fetchChanges(QName objectClass, Token lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	
