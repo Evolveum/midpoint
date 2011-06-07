@@ -135,7 +135,7 @@ public class ShadowCache {
 		// Get the fresh object from UCF
 		
 		ConnectorInstance connector = getConnectorInstance(resource);
-		Schema schema = getResourceSchema(resource);
+		Schema schema = getResourceSchema(resource,connector,parentResult);
 		
 		QName objectClass = repositoryShadow.getObjectClass();
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
@@ -150,10 +150,18 @@ public class ShadowCache {
 		// Let's get all the identifiers from the Shadow <attributes> part
 		Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(repositoryShadow.getAttributes().getAny());
 		
+		if (identifiers==null || identifiers.isEmpty()) {
+			// No identifiers found
+			SchemaException ex = new SchemaException("No identifiers found in the respository shadow "+ObjectTypeUtil.toShortString(repositoryShadow)+" with respect to resource "+ObjectTypeUtil.toShortString(resource));
+			parentResult.recordFatalError("No identifiers found in the respository shadow "+ObjectTypeUtil.toShortString(repositoryShadow), ex);
+			throw ex;			
+		}
+		
 		ResourceObject ro = null;
 
-			// TODO: be smarter and pass the ResourceObjectDefinition instead object class
-			ro = connector.fetchObject(objectClass, identifiers, parentResult);
+			// Passing ResourceObjectDefinition instead object class. The returned
+			// ResourceObject will have a proper links to the schema.
+			ro = connector.fetchObject(rod, identifiers, parentResult);
 
 			// TODO: Error handling
 		
@@ -176,15 +184,20 @@ public class ShadowCache {
 		return getConnectorManager().createConnectorInstance(resource);
 	}
 	
-	private Schema getResourceSchema(ResourceType resource) throws SchemaProcessorException, SchemaException {
+	private Schema getResourceSchema(ResourceType resource, ConnectorInstance connector, OperationResult parentResult) throws SchemaProcessorException, SchemaException, CommunicationException, GenericFrameworkException {
+
+		// TEMPORARY HACK: Fetch schema from connector
+		
+		return connector.fetchResourceSchema(parentResult);
+		
 		// Need to add some form of caching here.
 		// For now just parse it from the resource definition.
 		
-		Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(resource);
-		if (schemaElement==null) {
-			throw new SchemaException("No schema found in definition of resource "+ObjectTypeUtil.toShortString(resource));
-		}
-		return Schema.parse(schemaElement);		
+//		Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(resource);
+//		if (schemaElement==null) {
+//			throw new SchemaException("No schema found in definition of resource "+ObjectTypeUtil.toShortString(resource));
+//		}
+//		return Schema.parse(schemaElement);
 	}
 	
 	private ResourceType getResource(String oid) throws com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {

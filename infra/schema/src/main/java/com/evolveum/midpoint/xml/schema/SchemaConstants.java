@@ -123,6 +123,7 @@ public abstract class SchemaConstants {
 	public static final QName ICFS_PASSWORD = new QName(NS_ICF_SCHEMA, "password");
 	
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
+	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI,"schema",NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI,"string",NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_INTEGER = new QName(W3C_XML_SCHEMA_NS_URI,"integer",NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_BOOLEAN = new QName(W3C_XML_SCHEMA_NS_URI,"boolean",NS_W3C_XML_SCHEMA_PREFIX);
@@ -139,6 +140,7 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_CHANNEL, "import");
 
 	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";
+
 
 	static {
 

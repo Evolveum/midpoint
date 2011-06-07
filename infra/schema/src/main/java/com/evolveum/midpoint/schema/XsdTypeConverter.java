@@ -23,6 +23,8 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import java.util.HashMap;
 import java.util.Map;
 import javax.xml.namespace.QName;
+
+import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Element;
 
 /**
@@ -80,6 +82,9 @@ public class XsdTypeConverter {
 			return Integer.valueOf(stringContent);
 		} else if (type.equals(int.class)) {
 			return Integer.parseInt(stringContent);
+		} else if (type.equals(byte[].class)) {
+			byte[] decodedData = Base64.decodeBase64(xmlElement.getTextContent());
+			return decodedData;
 		} else {
 			throw new IllegalArgumentException("Unknown type for conversion: " + type);
 		}
@@ -100,6 +105,9 @@ public class XsdTypeConverter {
 			element.setTextContent((String)val);
 		} else if (type.equals(int.class)) {
 			element.setTextContent(((Integer)val).toString());
+		} else if (type.equals(byte[].class)) {
+			byte[] binaryData = (byte[]) val;
+			element.setTextContent(Base64.encodeBase64String(binaryData));
 		} else {
 			throw new IllegalArgumentException("Unknown type for conversion: " + typeName);
 		}

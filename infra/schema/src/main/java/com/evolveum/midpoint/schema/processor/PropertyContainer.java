@@ -195,7 +195,7 @@ public class PropertyContainer {
 		throw new IllegalStateException("not implemented yet.");
 	}
 
-	public List<Element> serializePropertiesToDom(Document doc) {
+	public List<Element> serializePropertiesToDom(Document doc) throws SchemaProcessorException {
 		if (getDefinition() == null) {
 			throw new IllegalStateException(
 					"Object definition missing, unable to serialize");
@@ -203,7 +203,7 @@ public class PropertyContainer {
 		return getDefinition().serializePropertiesToDom(getProperties(), doc);
 	}
 
-	public Element serializeToDom(Document doc) {
+	public Element serializeToDom(Document doc) throws SchemaProcessorException {
 		List<Element> elements = serializePropertiesToDom(doc);
 		Element container = doc.createElementNS(getName().getNamespaceURI(),
 				getName().getLocalPart());

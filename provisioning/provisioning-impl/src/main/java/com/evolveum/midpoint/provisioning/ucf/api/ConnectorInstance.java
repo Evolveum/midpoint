@@ -98,6 +98,8 @@ public interface ConnectorInstance {
 	 *				- nothing was fetched.
 	 */
 	public ResourceObject fetchObject(QName objectClass, Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+
+	public ResourceObject fetchObject(ResourceObjectDefinition resourceObjectDefinition, Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Schema aware-version of the fetchObject.

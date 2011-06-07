@@ -180,7 +180,7 @@ public class PropertyContainerDefinition extends Definition {
 		return props;
 	}
 	
-	List<Element> serializePropertiesToDom(Set<Property> properties, Document doc) {
+	List<Element> serializePropertiesToDom(Set<Property> properties, Document doc) throws SchemaProcessorException {
 		List<Element> elements = new ArrayList<Element>();
 		// This is not really correct. We should follow the ordering of elements
 		// in the schema so we produce valid XML
@@ -189,6 +189,9 @@ public class PropertyContainerDefinition extends Definition {
 			PropertyDefinition propDef = prop.getDefinition();
 			if (propDef==null) {
 				propDef = findPropertyDefinition(prop.getName());
+			}
+			if (propDef==null) {
+				throw new SchemaProcessorException("Definition of property "+prop+" not found");
 			}
 			Set<Object> values = prop.getValues();
 			for (Object val : values) {

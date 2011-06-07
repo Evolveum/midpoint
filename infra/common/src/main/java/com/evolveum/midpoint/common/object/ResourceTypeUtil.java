@@ -19,8 +19,13 @@
  */
 package com.evolveum.midpoint.common.object;
 
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -53,6 +58,15 @@ public class ResourceTypeUtil {
 		} else {
 			return null;
 		}
+	}
+	
+	public static Element getResourceXsdSchema(ResourceType resource) {
+		for (Element e : resource.getSchema().getAny()) {
+			if (QNameUtil.compareQName(SchemaConstants.XSD_SCHEMA_ELEMENT, e)) {
+				return e;
+			}
+		}
+		return null;
 	}
 	
 }
