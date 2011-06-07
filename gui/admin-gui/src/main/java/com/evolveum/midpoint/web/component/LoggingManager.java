@@ -74,8 +74,9 @@ public class LoggingManager {
 
 	public LoggingConfigurationType getConfiguration(OperationResult result) {
 		SystemConfigurationType system = getSystemConfiguration(result);
-		if (system == null)
+		if (system != null) {
 			logging = system.getLogging();
+		}
 		if (logging == null) {
 			logging = new LoggingConfigurationType();
 		}

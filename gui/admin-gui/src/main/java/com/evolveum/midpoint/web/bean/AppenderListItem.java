@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.web.bean;
 
+import java.util.Random;
+
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -49,7 +51,7 @@ public class AppenderListItem extends SelectableBean {
 
 	public String getName() {
 		if (StringUtils.isEmpty(name)) {
-			name = "Unknown-" + ((int) (Math.random() * 100));
+			name = "Unknown-" + new Random().nextInt(100);
 		}
 		return name;
 	}

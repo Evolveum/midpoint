@@ -251,10 +251,7 @@ public class PasswordService implements PasswordPortType {
 						return account;
 					}
 				}
-			}
-
-			if (results.getObject().size() == 0) {
-			}
+			}			
 			if (results.getObject().size() > 1) {
 				// TODO: Better error handling later
 				throw new IllegalStateException("More than one user found for " + userName);

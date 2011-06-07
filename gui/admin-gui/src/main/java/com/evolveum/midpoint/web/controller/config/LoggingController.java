@@ -60,7 +60,7 @@ public class LoggingController implements Serializable {
 	public static final String PAGE_NAVIGATION_LOGGING = "/config/logging?faces-redirect=true";
 	private static final long serialVersionUID = -8739729766074013883L;
 	@Autowired(required = true)
-	private LoggingManager loggingManager;
+	private transient LoggingManager loggingManager;
 	private List<LoggerListItem> loggers;
 	private List<AppenderListItem> appenders;
 	private boolean selectAllLoggers = false;

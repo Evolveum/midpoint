@@ -69,9 +69,9 @@ public class AceXmlInput extends HtmlInputHidden {
 		writeJavaScriptElement(context, writer, "ace-component.js");
 
 		Object object = getAttributeValue(AceXmlInput.ATTR_READONLY, context);
-		Boolean readonly = new Boolean(false);
+		Boolean readonly = false;
 		if (object instanceof String) {
-			readonly = new Boolean((String) object);
+			readonly = Boolean.valueOf((String) object);
 		} else if (object instanceof Boolean) {
 			readonly = (Boolean) object;
 		}

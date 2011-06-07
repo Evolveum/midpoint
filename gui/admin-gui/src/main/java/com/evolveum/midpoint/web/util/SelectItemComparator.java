@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.util;
 
+import java.io.Serializable;
 import java.util.Comparator;
 
 import javax.faces.model.SelectItem;
@@ -31,7 +32,9 @@ import org.apache.commons.lang.StringUtils;
  * @author lazyman
  *
  */
-public class SelectItemComparator implements Comparator<SelectItem> {
+public class SelectItemComparator implements Comparator<SelectItem>, Serializable {
+
+	private static final long serialVersionUID = -5008123879560484515L;
 
 	@Override
 	public int compare(SelectItem o1, SelectItem o2) {

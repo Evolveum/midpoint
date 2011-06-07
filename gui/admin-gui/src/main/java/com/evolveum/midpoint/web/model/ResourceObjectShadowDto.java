@@ -81,9 +81,7 @@ public class ResourceObjectShadowDto extends ExtensibleObjectDto {
 
 		List<Element> any = getResourceObjectShadowType().getAttributes().getAny();
 		for (Object o : any) {
-			if (o instanceof Element) {
-				elements.add((Element) o);
-			}
+			elements.add((Element) o);
 		}
 		return elements;
 	}
