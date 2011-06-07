@@ -44,51 +44,53 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * Test of spring application context initialization
- *
+ * 
  * @author $author$
  * @version $Revision$ $Date$
  * @since 1.0.0
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/application-context-webapp.xml", "file:src/main/webapp/WEB-INF/application-context-security.xml", "file:src/main/webapp/WEB-INF/application-context-init.xml", "classpath:applicationContext-test.xml"})
+@ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
+		"file:src/main/webapp/WEB-INF/application-context-security.xml",
+		"file:src/main/webapp/WEB-INF/application-context-init.xml", "classpath:applicationContext-test.xml" })
 public class SpringApplicationContextTest {
 
-    @Autowired(required=true)
-    private ObjectTypeCatalog objectTypeCatalog;
-    @Autowired(required=true)
-    private ModelPortType modelService;
-    @Autowired(required=true)
-    private InitialSetup initialSetup;
+	@Autowired(required = true)
+	private ObjectTypeCatalog objectTypeCatalog;
+	@Autowired(required = true)
+	private ModelPortType modelService;
+	@Autowired(required = true)
+	private InitialSetup initialSetup;
 
+	public SpringApplicationContextTest() {
+	}
 
-    public SpringApplicationContextTest() {
-    }
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+	}
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
+	@AfterClass
+	public static void tearDownClass() throws Exception {
+	}
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
+	@Before
+	public void setUp() {
+	}
 
-    @Before
-    public void setUp() {
-    }
+	@After
+	public void tearDown() {
+	}
 
-    @After
-    public void tearDown() {
-    }
+	@Test
+	public void initApplicationContext() {
+		assertNotNull(objectTypeCatalog.listSupportedObjectTypes());
+		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
+				GuiUserDto.class);
+		UserManager userManager = (UserManager) (objectManager);
+		assertNotNull(userManager);
 
-    @Test
-    public void initApplicationContext() {
-        assertNotNull(objectTypeCatalog.listSupportedObjectTypes());
-        ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class, GuiUserDto.class);
-        UserManager userManager = (UserManager) (objectManager);
-        assertNotNull(userManager);
-        
-        assertNotNull(modelService);
-        assertNotNull(initialSetup);
-    }
+		assertNotNull(modelService);
+		assertNotNull(initialSetup);
+	}
 
 }

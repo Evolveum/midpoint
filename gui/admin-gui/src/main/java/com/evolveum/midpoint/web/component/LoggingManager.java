@@ -74,7 +74,8 @@ public class LoggingManager {
 
 	public LoggingConfigurationType getConfiguration(OperationResult result) {
 		SystemConfigurationType system = getSystemConfiguration(result);
-		logging = system.getLogging();
+		if (system == null)
+			logging = system.getLogging();
 		if (logging == null) {
 			logging = new LoggingConfigurationType();
 		}
@@ -147,8 +148,8 @@ public class LoggingManager {
 
 		OperationResultType resultTypeHolder = new OperationResultType();
 		resultTypeHolder.setOperation(getSystemConfigResult.getOperation());
-		
-		SystemConfigurationType config = new SystemConfigurationType();
+
+		SystemConfigurationType config = null;
 		try {
 			ObjectType object = model.getObject(SYSTEM_CONFIGURATION_OID, new PropertyReferenceListType(),
 					new Holder<OperationResultType>(resultTypeHolder));
@@ -165,6 +166,10 @@ public class LoggingManager {
 			getSystemConfigResult.getSubresults().addAll(opResult.getSubresults());
 
 			result.addSubresult(getSystemConfigResult);
+		}
+
+		if (config == null) {
+			config = new SystemConfigurationType();
 		}
 
 		return config;
