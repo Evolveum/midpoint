@@ -39,6 +39,7 @@ import javax.faces.context.FacesContext;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.util.LangHashMap;
+import com.evolveum.midpoint.web.util.Utils;
 
 /**
  * 
@@ -49,7 +50,7 @@ public class Language implements Serializable {
 	private static final long serialVersionUID = -7653202257375931789L;
 	private final transient Trace logger = TraceManager.getTrace(Language.class);
 	private Map<String, String> messages = new LangHashMap();
-	private Locale currentLocale;	
+	private Locale currentLocale;
 
 	public Map<String, String> getMessages() {
 		return messages;
@@ -74,7 +75,6 @@ public class Language implements Serializable {
 	}
 
 	public void setCurrentLocale(Locale locale) {
-		logger.trace("setCurrentLocale::begin");
 		try {
 			if (locale == null) {
 				throw new IllegalArgumentException("Locale can't be null.");
@@ -98,9 +98,8 @@ public class Language implements Serializable {
 				throw new RuntimeException("Can't find resource bundle for locale '" + locale + "'.");
 			}
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			Utils.logException(logger, "Couldn't set locale '{}'", ex, locale);
 		}
-		logger.trace("setCurrentLocale::end");
 	}
 
 	public void setCurrentLanguage(final String locale) {

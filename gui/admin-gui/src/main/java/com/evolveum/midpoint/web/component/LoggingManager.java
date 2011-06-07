@@ -23,18 +23,25 @@ package com.evolveum.midpoint.web.component;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBException;
 import javax.xml.ws.Holder;
 
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
+import com.evolveum.midpoint.common.diff.DiffException;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.web.util.Utils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -52,61 +59,88 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 public class LoggingManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingManager.class);
-	public static final String SYSTEM_CONFIGURATION_OID = "SystemConfiguration";
+	public static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000002";
 	@Autowired(required = true)
 	private ModelPortType model;
-	private SystemConfigurationType system;
+	private LoggingConfigurationType logging;
 
 	@PostConstruct
 	public void init() {
-		updateLogger();
+		LOGGER.info("Initializing Logging Manager.");
+		OperationResult result = new OperationResult("Init Logging Manager");
+		updateLogger(result);
+		LOGGER.info(result.debugDump());
 	}
 
 	public LoggingConfigurationType getConfiguration(OperationResult result) {
-		if (system == null) {
-			system = loadConfiguration(result);
-		}
-		if (system == null || system.getLogging() == null) {
-			return new LoggingConfigurationType();
+		SystemConfigurationType system = getSystemConfiguration(result);
+		logging = system.getLogging();
+		if (logging == null) {
+			logging = new LoggingConfigurationType();
 		}
 
-		return system.getLogging();
+		return logging;
 	}
 
 	public void updateConfiguration(LoggingConfigurationType logging, OperationResult result) {
 		// TODO: save configuration
-
-		updateLogger();
-	}
-
-	public void updateLogger() {
-		OperationResult result = new OperationResult("Load Logging Configuration");
-		LoggingConfigurationType config = getConfiguration(result);
+		LoggingConfigurationType config = saveConfiguration(logging, result);
 		if (config == null) {
-			LOGGER.warn("Logging configuration was not found in system configuration.");
+			LOGGER.warn("System configuration is null, loggers won't be updated.");
 			return;
 		}
+		this.logging = config;
+
+		updateLogger(result);
+	}
+
+	public void updateLogger(OperationResult result) {
+		LoggingConfigurationType config = getConfiguration(result);
 
 		List<AppenderConfigurationType> appenders = config.getAppender();
 		List<LoggerConfigurationType> loggers = config.getLogger();
 		// TODO: update logger configuration
 	}
 
-	private void saveConfiguration(LoggingConfigurationType logging, OperationResult result) {
+	private LoggingConfigurationType saveConfiguration(LoggingConfigurationType logging,
+			OperationResult result) {
+		Validate.notNull(logging, "Logging configuration can't be null.");
 
+		OperationResultType resultType = result.createOperationResultType();
+		try {
+			SystemConfigurationType oldSystem = getSystemConfiguration(result);
+			SystemConfigurationType newSystem = (SystemConfigurationType) JAXBUtil.clone(oldSystem);
+			newSystem.setLogging(logging);
+
+			ObjectModificationType change = CalculateXmlDiff.calculateChanges(oldSystem, newSystem);
+			change.setOid(SYSTEM_CONFIGURATION_OID);
+			model.modifyObject(change, new Holder<OperationResultType>(resultType));
+
+			return logging;
+		} catch (JAXBException ex) {
+			Utils.logException(LOGGER, "Couldn't clone system configuration", ex);
+			// TODO: result error handling
+		} catch (DiffException ex) {
+			Utils.logException(LOGGER, "Couldn't create diff for system configuration", ex);
+			// TODO: result error handling
+		} catch (FaultMessage ex) {
+			Utils.logException(LOGGER, "Couldn't get system configuration", ex);
+			// TODO: result error handling
+		}
+
+		return null;
 	}
 
-	private SystemConfigurationType loadConfiguration(OperationResult result) {
+	private SystemConfigurationType getSystemConfiguration(OperationResult result) {
 		OperationResultType resultType = result.createOperationResultType();
-		SystemConfigurationType config = null;
+		SystemConfigurationType config = new SystemConfigurationType();
 		try {
 			ObjectType object = model.getObject(SYSTEM_CONFIGURATION_OID, new PropertyReferenceListType(),
 					new Holder<OperationResultType>(resultType));
 			config = (SystemConfigurationType) object;
 		} catch (FaultMessage ex) {
-			LOGGER.error("Couldn't get system configuration, reason: " + ex.getMessage());
-			// TODO: error handling
-			return null;
+			Utils.logException(LOGGER, "Couldn't get system configuration", ex);
+			// TODO: result error handling
 		}
 
 		return config;
