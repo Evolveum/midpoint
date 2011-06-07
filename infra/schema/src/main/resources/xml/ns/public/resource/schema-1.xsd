@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted 2011 [name of copyright owner]"
+ * Portions Copyrighted 2011 ForgeRock Inc.
+ * -->
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+    xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+    elementFormDefault="qualified">
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+                schemaLocation="../resource-schema-1.xsd"/>
+
+    <xsd:annotation>
+        <xsd:documentation>
+            TODO
+    
+        These definitions are to be considered only examples for now.
+
+     These will hopefuly get cleaned up and aligned
+     with existing common terminology and/or connectors.
+
+            Recommended namespace prefix: icfs
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="uid" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                UID unique identifier
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="name" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __NAME__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="password" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __PASSWORD__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="shortName" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __SHORT_NAME__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="desciption" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __DESCRIPTION__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="lastPasswordChangeDate" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __LAST_PASSWORD_CHANGE_DATE__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="passwordChangeInterval" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __PASSWORD_CHANGE_INTERVAL__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="lastLoginDate" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __LAST_LOGIN_DATE__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="groups" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __GROUPS__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="enable" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __ENABLE__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="enableDate" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __ENABLE_DATE__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="disableDate" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __DISABLE_DATE__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="lockOut" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __LOCK_OUT__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="passwordExpirationDate" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __PASSWORD_EXPIRATION_DATE__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="passwordExpired" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __PASSWORD_EXPIRED__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:element name="currentPassword" type="xsd:string">
+        <xsd:annotation>
+            <xsd:documentation>
+                __CURRENT_PASSWORD__ attribute
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+</xsd:schema>
+
