@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.provisioning.test.impl;
 
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import java.io.FileNotFoundException;
@@ -40,14 +41,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import javax.xml.bind.JAXBContext;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.w3c.dom.Element;
+
 import static org.junit.Assert.*;
 
 /**
@@ -131,7 +137,6 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
         BaseXDatabaseFactory.XMLServerStop();
     }
 
-    @Ignore
 	@Test
 	public void getObjectTest() throws Exception {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".getObjectTest");
@@ -142,5 +147,6 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		assertNotNull(object);
 		
 		System.out.println(DebugUtil.prettyPrint(object));
+		System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object, SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 	}
 }

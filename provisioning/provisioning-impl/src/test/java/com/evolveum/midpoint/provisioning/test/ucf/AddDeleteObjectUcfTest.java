@@ -1,3 +1,23 @@
+/*
+ * Copyright (c) 2011 Evolveum
+ * 
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ * 
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ * 
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * Portions Copyrighted 2011 [name of copyright owner]
+ */
+
 package com.evolveum.midpoint.provisioning.test.ucf;
 
 import static org.junit.Assert.*;
@@ -62,7 +82,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/ucf/opendj-resource-bad.xml";
 
-	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
+	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee";
 
 	protected static OpenDJUtil djUtil = new OpenDJUtil();
 	private JAXBContext jaxbctx;

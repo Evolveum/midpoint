@@ -52,7 +52,10 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
+
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /**
  * This class manages the "cache" of ResourceObjectShadows in the repository.
@@ -169,7 +172,10 @@ public class ShadowCache {
 		// ResourceObject content fetched from resource. The resource is more
 		// fresh and the attributes more complete.
 		// TODO: Discovery
-		List<Element> xmlAttributes = ro.serializePropertiesToDom(repositoryShadow.getAttributes().getAny().get(0).getOwnerDocument());
+		Element firstElement = repositoryShadow.getAttributes().getAny().get(0);
+		Document doc = firstElement.getOwnerDocument();
+		// TODO: Optimize the use of XML namespaces
+		List<Element> xmlAttributes = ro.serializePropertiesToDom(doc);
 		repositoryShadow.getAttributes().getAny().clear();
 		repositoryShadow.getAttributes().getAny().addAll(xmlAttributes);
 		

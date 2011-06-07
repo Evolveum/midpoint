@@ -33,6 +33,9 @@
 
     <xsd:annotation>
         <xsd:documentation>
+            !!!!!!!!!!!!!!!!!! DEPRECATED !!!!!!!!!!!!!!
+        	This file will be deleted
+        	
             Identity Connector configuration schema.
             
             Intended to be used in the &lt;configuration&gt; element in
