@@ -24,22 +24,26 @@ package com.evolveum.midpoint.xml.schema;
 
 //import com.evolveum.midpoint.api.logging.Trace;
 //import com.evolveum.midpoint.logging.TraceManager;
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
+
+import java.io.IOException;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
+import org.apache.xml.resolver.Catalog;
+import org.apache.xml.resolver.CatalogManager;
+import org.apache.xml.resolver.tools.CatalogResolver;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import org.apache.xml.resolver.CatalogManager;
-import org.apache.xml.resolver.Catalog;
-import org.apache.xml.resolver.tools.CatalogResolver;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
-import javax.xml.namespace.QName;
-import static javax.xml.XMLConstants.*;
 
 /**
  * @author Vilo Repan
@@ -116,18 +120,23 @@ public abstract class SchemaConstants {
 	public static final QName X_DOCUMENTATION = new QName(W3C_XML_SCHEMA_NS_URI, "documentation");
 	public static final QName I_DIAGNOSTICS_MESSAGE_ERROR = new QName(NS_C, "error");
 	public static final QName I_DIAGNOSTICS_MESSAGE_WARNING = new QName(NS_C, "error");
-	
+
 	public static final QName R_PROTECTED_STRING_TYPE = new QName(NS_RESOURCE, "ProtectedStringType");
 	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
 	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
 	public static final QName ICFS_PASSWORD = new QName(NS_ICF_SCHEMA, "password");
-	
+
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
-	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI,"schema",NS_W3C_XML_SCHEMA_PREFIX);
-	public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI,"string",NS_W3C_XML_SCHEMA_PREFIX);
-	public static final QName XSD_INTEGER = new QName(W3C_XML_SCHEMA_NS_URI,"integer",NS_W3C_XML_SCHEMA_PREFIX);
-	public static final QName XSD_BOOLEAN = new QName(W3C_XML_SCHEMA_NS_URI,"boolean",NS_W3C_XML_SCHEMA_PREFIX);
-	public static final QName XSD_BASE64BINARY = new QName(W3C_XML_SCHEMA_NS_URI,"base64Binary",NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI, "string",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_INTEGER = new QName(W3C_XML_SCHEMA_NS_URI, "integer",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_BOOLEAN = new QName(W3C_XML_SCHEMA_NS_URI, "boolean",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_BASE64BINARY = new QName(W3C_XML_SCHEMA_NS_URI, "base64Binary",
+			NS_W3C_XML_SCHEMA_PREFIX);
 
 	private static Map<Class, QName> objectTypeElementMap;
 
@@ -140,7 +149,6 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_CHANNEL, "import");
 
 	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";
-
 
 	static {
 
@@ -166,7 +174,8 @@ public abstract class SchemaConstants {
 		objectTypeElementMap.put(ResourceStateType.class, I_RESOURCE_STATE);
 		objectTypeElementMap.put(AccountShadowType.class, I_ACCOUNT);
 	}
-
+	
+	@SuppressWarnings("rawtypes")
 	public static QName getElementByObjectType(Class clazz) {
 		QName qname = objectTypeElementMap.get(clazz);
 		if (qname != null) {
