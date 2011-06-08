@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<systemConfiguration oid="00000000-0000-0000-0000-000000000002" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+    <name>SystemConfiguration</name>
+    <logging>
+        <logger>
+            <level>all</level>
+            <category>category1</category>
+            <category>category2</category>
+            <component>util</component>
+            <component>common</component>
+            <component>model</component>
+            <component>provisioning</component>
+            <component>repository</component>
+            <component>gui</component>
+            <package>com.evolveum.midpoint</package>
+            <appender>File Appender</appender>
+        </logger>
+        <appender xsi:type="FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <pattern>%d{HH:mm:ss,SSS} %-5p [%c] - %m%n</pattern>
+            <filePath>${catalina.base}/logs/idm.log</filePath>
+            <maxFileSize>1024</maxFileSize>
+        </appender>
+    </logging>
+</systemConfiguration>
