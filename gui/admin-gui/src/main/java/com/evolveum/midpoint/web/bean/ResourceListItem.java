@@ -39,7 +39,7 @@ public class ResourceListItem extends SelectableBean {
 	private String version;
 	private ResourceState state;
 	private ResourceSync sync;
-	private int progress;
+	private String progress;
 	private List<ResourceObjectType> objectTypes;
 
 	public ResourceListItem(String oid, String name, String type, String version) {
@@ -75,11 +75,11 @@ public class ResourceListItem extends SelectableBean {
 		return state.getOverall();
 	}
 
-	public int getProgress() {
+	public String getProgress() {
 		return progress;
 	}
 
-	public void setProgress(int progress) {
+	public void setProgress(String progress) {
 		this.progress = progress;
 	}
 

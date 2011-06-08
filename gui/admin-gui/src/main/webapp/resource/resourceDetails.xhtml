@@ -5,10 +5,10 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">Details for resource '#{resourceDetails.resource.name}'</ui:define>
+	<ui:define name="title">#{msg['page.resource.resourceDetails.title']} '#{resourceDetails.resource.name}'</ui:define>
 
 	<ui:define name="menu">
-		<ui:include src="./menu.xhtml" />
+		<ui:include src="./menuDetails.xhtml" />
 	</ui:define>
 
 	<ui:define name="content">
@@ -17,123 +17,137 @@
 				<ice:panelGroup>
 					<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
 						<f:facet name="header">
-							<h3>Resource</h3>
+							<h3>#{msg['page.resource.resourceDetails.resource']}</h3>
 						</f:facet>
-						<ice:outputLabel value="Oid" />
+						<ice:outputLabel value="#{msg['page.resource.resourceDetails.oid']}" />
 						<ice:outputText value="#{resourceDetails.resource.oid}" />
 
-						<ice:outputLabel value="Name" />
+						<ice:outputLabel value="#{msg['page.resource.resourceDetails.name']}" />
 						<ice:outputText value="#{resourceDetails.resource.name}" />
 
-						<ice:outputLabel value="Type" />
+						<ice:outputLabel value="#{msg['page.resource.resourceDetails.type']}" />
 						<ice:outputText value="#{resourceDetails.resource.type}" />
 
-						<ice:outputLabel value="Version" />
+						<ice:outputLabel value="#{msg['page.resource.resourceDetails.version']}" />
 						<ice:outputText value="#{resourceDetails.resource.version}" />
+						
+						<ice:outputLabel value="#{msg['page.resource.resourceDetails.progress']}" />
+						<ice:outputText value="#{resourceDetails.resource.progress}" />
 					</ice:panelGrid>
 					<ice:commandLink style="margin-top: 40px; display: block; text-decoration: underline;"
-						value="See debug pages" action="#{resourceDetails.showDebugPages}" />
+						value="#{msg['page.resource.resourceDetails.button.seeDebugPages']}" action="#{resourceDetails.showDebugPages}" />
 				</ice:panelGroup>
 
 				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
 					<f:facet name="header">
-						<h3>Connector Details</h3>
+						<h3>#{msg['page.resource.resourceDetails.connectorDetails']}</h3>
 					</f:facet>
-					<ice:outputLabel value="Overall status" />
+					<ice:outputLabel value="#{msg['page.resource.resourceDetails.overallStatus']}" />
 					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.overallStatus.icon}"
 						alt="#{resourceDetails.resource.overallStatus.title}" />
 
-					<ice:outputLabel value="Configuration validation" />
+					<ice:outputLabel value="#{msg['page.resource.resourceDetails.configurationValidation']}" />
 					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.state.confValidation.icon}"
 						alt="#{resourceDetails.resource.state.confValidation.title}" />
 
-					<ice:outputLabel value="Connection initialization" />
+					<ice:outputLabel value="#{msg['page.resource.resourceDetails.connectionInitialization']}" />
 					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.state.conInitialization.icon}"
 						alt="#{resourceDetails.resource.state.conInitialization.title}" />
 
-					<ice:outputLabel value="Connector connection" />
+					<ice:outputLabel value="#{msg['page.resource.resourceDetails.connectorConnection']}" />
 					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.state.conConnection.icon}"
 						alt="#{resourceDetails.resource.state.conConnection.title}" />
 
-					<ice:outputLabel value="Connector sanity" />
+					<ice:outputLabel value="#{msg['page.resource.resourceDetails.connectorSanity']}" />
 					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.state.conSanity.icon}"
 						alt="#{resourceDetails.resource.state.conSanity.title}" />
 
-					<ice:outputLabel value="Connector schema" />
+					<ice:outputLabel value="#{msg['page.resource.resourceDetails.connectorSchema']}" />
 					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.state.conSchema.icon}"
 						alt="#{resourceDetails.resource.state.conSchema.title}" />
 
-					<ice:outputLabel value="Extra test (#{resourceDetails.resource.state.extraName})" />
+					<ice:outputLabel>#{msg['page.resource.resourceDetails.extraTest']} (#{resourceDetails.resource.state.extraName})</ice:outputLabel>
 					<ice:graphicImage value="/resources/images/#{resourceDetails.resource.state.extra.icon}"
 						alt="#{resourceDetails.resource.state.extra.title}" />
 				</ice:panelGrid>
 			</ice:panelGrid>
 
-			<h3>Object Types</h3>
+			<h3>#{msg['page.resource.resourceDetails.objectTypes']}</h3>
 			<ice:dataTable rows="30" value="#{resourceDetails.resource.objectTypes}" var="item"
 				columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
-				columnWidths="150px, 150px, 150px, 250px, 120px" resizable="false">
+				columnWidths="150px, 170px, 100px, 220px, 200px" resizable="false">
 
 				<ice:column>
 					<f:facet name="header">
-						<ice:outputText value="displayName" />
+						<ice:outputText value="#{msg['page.resource.resourceDetails.table.displayName']}" />
 					</f:facet>
 					<ice:outputText>
-						<ice:commandLink styleClass="iceOutTxt" style="text-decoration: underline;"
-							value="#{item.displayName}">
+						<ice:commandLink styleClass="iceOutTxt" style="text-decoration: underline;" value="#{item.displayName}">
 							<f:param name="objectType" value="aaa" />
 						</ice:commandLink>
 					</ice:outputText>
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
-						<ice:outputText value="nativeObjectClass" />
+						<ice:outputText value="#{msg['page.resource.resourceDetails.table.nativeObjectClass']}" />
 					</f:facet>
 					<ice:outputText value="#{item.nativeObjectClass}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
-						<ice:outputText value="type" />
+						<ice:outputText value="#{msg['page.resource.resourceDetails.table.type']}" />
 					</f:facet>
 					<ice:outputText value="#{item.type}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
-						<ice:outputText value="help" />
+						<ice:outputText value="#{msg['page.resource.resourceDetails.table.help']}" />
 					</f:facet>
 					<ice:outputText value="#{item.help}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
 					</f:facet>
-					<ice:outputText>
-						<ice:commandLink styleClass="iceOutTxt" style="text-decoration: underline;"
-							value="List Objects">
-							<f:param name="objectType" value="aaa" />
-						</ice:commandLink>
-					</ice:outputText>
+					<ui:remove>
+						<ice:outputText>
+							<ice:commandLink styleClass="iceOutTxt" style="text-decoration: underline;" value="List Objects">
+								<f:param name="objectType" value="aaa" />
+							</ice:commandLink>
+						</ice:outputText>
+					</ui:remove>
+
+					<idm:button value="#{msg['page.resource.resourceDetails.button.list']}" img="/resources/images/table.png" />
+					<idm:button value="#{msg['page.resource.resourceDetails.button.import']}" img="/resources/images/drive_go.png" />
 				</ice:column>
 			</ice:dataTable>
-			<div>***Unused buttons will be removed later***</div>
 
 			<div class="button-bar">
-				<idm:button action="#{resourceList.updateController}" value="#{msg['Back']}"
+				<idm:button action="#{resourceList.updateController}" value="#{msg['page.resource.resourceDetails.button.back']}"
 					img="/resources/images/door_in.png" />
-				<idm:button value="Disable" img="/resources/images/drive_burn.png" id="disableResource" immediate="true" />
-				<idm:button id="deleteResource" buttonType="negative" value="Delete"
+				<idm:button id="deleteResource" buttonType="negative" value="#{msg['page.resource.resourceDetails.button.delete']}"
 					img="/resources/images/drive_delete.png" />
-				<idm:button action="#{resourceDetails.testConnection}" id="testConnectionButton" value="Test connection"
+				<idm:button action="#{resourceDetails.testConnection}" id="testConnectionButton" value="#{msg['page.resource.resourceDetails.button.testConnection']}"
 					img="/resources/images/connect.png" />
-				<idm:button action="#{resourceDetails.importFromResource}" id="ImportFromResourceButton"
-					value="Import accounts" img="/resources/images/drive_go.png" />
 
-				not used
+				<ui:remove>
+					<div style="display: inline-block; width: 80px;" />
 
-				<idm:button action="#{resourceTypeController.listAccounts}" id="listAccountsButton" value="List accounts"
-					img="/resources/images/table.png" />
+					<idm:button value="Import status" img="/resources/images/drive_go.png" />
+					<idm:button value="Synchronization status" img="/resources/images/arrow_refresh.png" />
+				</ui:remove>
 
-				<idm:button action="#{resourceTypeController.getImportStatus}" id="ImportStatusButton"
-					value="Import status" img="/resources/images/cog.png" />
+				<ui:remove>
+					<idm:button action="#{resourceDetails.importFromResource}" id="ImportFromResourceButton"
+						value="Import accounts" img="/resources/images/drive_go.png" />
+
+					<idm:button action="#{resourceTypeController.listAccounts}" id="listAccountsButton" value="List accounts"
+						img="/resources/images/table.png" />
+
+					<idm:button action="#{resourceTypeController.getImportStatus}" id="ImportStatusButton"
+						value="Import status" img="/resources/images/cog.png" />
+
+					<idm:button value="Disable" img="/resources/images/drive_burn.png" id="disableResource" immediate="true" />
+				</ui:remove>
 			</div>
 		</ice:form>
 	</ui:define>
