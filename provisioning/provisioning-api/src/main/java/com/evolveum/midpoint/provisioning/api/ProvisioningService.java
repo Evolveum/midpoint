@@ -20,6 +20,9 @@
 package com.evolveum.midpoint.provisioning.api;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 
@@ -34,6 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
  */
 public interface ProvisioningService {
 	
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult result) throws Exception;
+	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException;
 	
 }

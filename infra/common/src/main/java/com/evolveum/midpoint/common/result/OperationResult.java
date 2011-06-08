@@ -29,6 +29,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.schema.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
@@ -54,6 +55,7 @@ public class OperationResult implements Serializable {
 
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String INDENT_STRING = "  ";
+	public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
 	private String operation;
 	private OperationResultStatus status;
 	private Map<String, Object> params;
@@ -363,6 +365,12 @@ public class OperationResult implements Serializable {
 	public void recordPartialError(String message) {
 		recordStatus(OperationResultStatus.PARTIAL_ERROR, message);
 	}
+	
+	// TODO: switch to a localized message later
+	public void record(CommonException exception) {
+		// Exception is a fatal error in this context
+		recordFatalError(exception.getOperationResultMessage(), exception);
+	}
 
 	public void recordStatus(OperationResultStatus status, String message) {
 		this.status = status;
@@ -386,15 +394,39 @@ public class OperationResult implements Serializable {
 		}
 		sb.append("op: ");
 		sb.append(operation);
-		sb.append(" st: ");
+		sb.append(", st: ");
 		sb.append(status);
-		sb.append(" msg: ");
+		sb.append(", msg: ");
 		sb.append(message);
 		if (cause != null) {
-			sb.append(" causeMsg: ");
+			sb.append(", cause: ");
+			sb.append(cause.getClass().getSimpleName());
+			sb.append(":");
 			sb.append(cause.getMessage());
 		}
 		sb.append("\n");
+		
+		for (Map.Entry<String, Object> entry : getParams().entrySet()) {
+			for (int i = 0; i < indent+2; i++) {
+				sb.append(INDENT_STRING);
+			}
+			sb.append("p:");
+			sb.append(entry.getKey());
+			sb.append(": ");
+			sb.append(entry.getValue());
+			sb.append("\n");
+		}
+
+		for (Map.Entry<String, Object> entry : getContext().entrySet()) {
+			for (int i = 0; i < indent+2; i++) {
+				sb.append(INDENT_STRING);
+			}
+			sb.append("c:");
+			sb.append(entry.getKey());
+			sb.append(": ");
+			sb.append(entry.getValue());
+			sb.append("\n");
+		}
 
 		for (OperationResult sub : getSubresults()) {
 			sub.debugDumpIndent(sb, indent + 1);

@@ -23,12 +23,13 @@ import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.object.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.provisioning.api.SchemaException;
-import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
+import com.evolveum.midpoint.provisioning.ucf.api.UcfException;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
@@ -79,7 +80,7 @@ import org.w3c.dom.Node;
  */
 public class ShadowCache {
 	
-	private RepositoryPortType repositoryService;
+	private RepositoryWrapper repositoryService;
 	private ConnectorManager connectorManager;
 
     public ShadowCache() {
@@ -91,7 +92,7 @@ public class ShadowCache {
      *
      * @return the value of repositoryService
      */
-    public RepositoryPortType getRepositoryService() {
+    public RepositoryWrapper getRepositoryService() {
         return repositoryService;
     }
 
@@ -102,7 +103,7 @@ public class ShadowCache {
      * 
      * @param repositoryService new value of repositoryService
      */
-    public void setRepositoryService(RepositoryPortType repositoryService) {
+    public void setRepositoryService(RepositoryWrapper repositoryService) {
         this.repositoryService = repositoryService;
     }
 	
@@ -119,8 +120,11 @@ public class ShadowCache {
 	 * @param oid
 	 * @param resource
 	 * @return 
+	 * @throws ObjectNotFoundException 
+	 * @throws CommunicationException 
+	 * @throws SchemaException 
 	 */
-	public ResourceObjectShadowType getObject(String oid, ResourceType resource, OperationResult parentResult) throws Exception {
+	public ResourceObjectShadowType getObject(String oid, ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException {
 
 		// We are using parent result directly, not creating subresult.
 		// We want to hide the existence of shadow cache from the user.
@@ -128,17 +132,17 @@ public class ShadowCache {
 		// Get the shadow from repository. There are identifiers that we need
 		// for accessing the object by UCF.
 		// Later, the repository object may have a fully cached object from.
-        ObjectContainerType repositoryObjectContainer = getRepositoryService().getObject(oid, null);
-		ResourceObjectShadowType repositoryShadow = (ResourceObjectShadowType)repositoryObjectContainer.getObject();
+		ResourceObjectShadowType repositoryShadow = (ResourceObjectShadowType) getRepositoryService().getObject(oid, null, parentResult);
 		
 		if (resource==null) {
-			resource = getResource(ResourceObjectShadowUtil.getResourceOid(repositoryShadow));
+			resource = getResource(ResourceObjectShadowUtil.getResourceOid(repositoryShadow), parentResult);
+			// TODO: Add to the result or not?
 		}
 		
 		// Get the fresh object from UCF
-		
 		ConnectorInstance connector = getConnectorInstance(resource);
-		Schema schema = getResourceSchema(resource,connector,parentResult);
+		Schema schema = null;
+		schema = getResourceSchema(resource,connector,parentResult);
 		
 		QName objectClass = repositoryShadow.getObjectClass();
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
@@ -162,11 +166,20 @@ public class ShadowCache {
 		
 		ResourceObject ro = null;
 
+		try {
 			// Passing ResourceObjectDefinition instead object class. The returned
 			// ResourceObject will have a proper links to the schema.
 			ro = connector.fetchObject(rod, identifiers, parentResult);
 
-			// TODO: Error handling
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
+			// TODO: Discovery
+			throw new ObjectNotFoundException("Object "+identifiers+" not found on the Resource "+ObjectTypeUtil.toShortString(resource),ex);
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+			throw new CommunicationException("Error communicating with the connector",ex);
+		} catch (GenericFrameworkException ex) {
+			// No idea what to do with this. TODO: figure out
+			throw new RuntimeException("Generic error in connector "+connector+": "+ex.getMessage(),ex);
+		}
 		
 		// Let's replace the attribute values fetched from repository with the
 		// ResourceObject content fetched from resource. The resource is more
@@ -175,12 +188,16 @@ public class ShadowCache {
 		Element firstElement = repositoryShadow.getAttributes().getAny().get(0);
 		Document doc = firstElement.getOwnerDocument();
 		// TODO: Optimize the use of XML namespaces
-		List<Element> xmlAttributes = ro.serializePropertiesToDom(doc);
+		List<Element> xmlAttributes;
+		try {
+			xmlAttributes = ro.serializePropertiesToDom(doc);
+		} catch (SchemaProcessorException ex) {
+			throw new SchemaException("Schema error: "+ex.getMessage(),ex);
+		}
 		repositoryShadow.getAttributes().getAny().clear();
 		repositoryShadow.getAttributes().getAny().addAll(xmlAttributes);
 		
         return repositoryShadow;
-		
 	}
 
 	// TODO: native identification - special cases
@@ -190,11 +207,18 @@ public class ShadowCache {
 		return getConnectorManager().createConnectorInstance(resource);
 	}
 	
-	private Schema getResourceSchema(ResourceType resource, ConnectorInstance connector, OperationResult parentResult) throws SchemaProcessorException, SchemaException, CommunicationException, GenericFrameworkException {
+	private Schema getResourceSchema(ResourceType resource, ConnectorInstance connector, OperationResult parentResult) throws CommunicationException {
 
 		// TEMPORARY HACK: Fetch schema from connector
 		
-		return connector.fetchResourceSchema(parentResult);
+		try {
+			return connector.fetchResourceSchema(parentResult);
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+			throw new CommunicationException("Error communicating with the connector "+connector,ex);
+		} catch (GenericFrameworkException ex) {
+			// No idea what to do with this. TODO: figure out
+			throw new RuntimeException("Generic error in connector "+connector+": "+ex.getMessage(),ex);
+		}
 		
 		// Need to add some form of caching here.
 		// For now just parse it from the resource definition.
@@ -206,10 +230,9 @@ public class ShadowCache {
 //		return Schema.parse(schemaElement);
 	}
 	
-	private ResourceType getResource(String oid) throws com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+	private ResourceType getResource(String oid ,OperationResult parentResult) throws ObjectNotFoundException {
 		// TODO: add some caching
-		ObjectContainerType container = getRepositoryService().getObject(oid,null);
-		return (ResourceType) container.getObject();
+		return (ResourceType) getRepositoryService().getObject(oid,null,parentResult);
 	}
 	
     /**

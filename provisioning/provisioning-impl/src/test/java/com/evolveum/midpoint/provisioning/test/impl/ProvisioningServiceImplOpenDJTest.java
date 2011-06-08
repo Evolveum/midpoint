@@ -30,6 +30,10 @@ import java.io.FileInputStream;
 import java.io.File;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
+import com.evolveum.midpoint.provisioning.impl.RepositoryWrapper;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.test.repository.BaseXDatabaseFactory;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerIcfImpl;
@@ -67,6 +71,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee";
 	private static final String FILENAME_ACCOUNT1 = "src/test/resources/impl/account1.xml";
 	private static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
+	private static final String NON_EXISTENT_OID ="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 	
     protected static OpenDJUtil djUtil = new OpenDJUtil();
 	private JAXBContext jaxbctx;
@@ -109,13 +114,15 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
 		addObjectFromFile(FILENAME_ACCOUNT1);
 		
+		RepositoryWrapper repositoryWrapper = new RepositoryWrapper(repositoryPort);
+		
 		shadowCache = new ShadowCache();
 		shadowCache.setConnectorManager(manager);
-		shadowCache.setRepositoryService(repositoryPort);
+		shadowCache.setRepositoryService(repositoryWrapper);
 		
 		ProvisioningServiceImpl provisioningServiceImpl = new ProvisioningServiceImpl();
 		provisioningServiceImpl.setShadowCache(shadowCache);
-		provisioningServiceImpl.setRepositoryService(repositoryPort);
+		provisioningServiceImpl.setRepositoryService(repositoryWrapper);
 		provisioningService = provisioningServiceImpl;
 		
 		assertNotNull(provisioningService);
@@ -138,7 +145,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
     }
 
 	@Test
-	public void getObjectTest() throws Exception {
+	public void testGetObject() throws Exception {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".getObjectTest");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		
@@ -148,5 +155,32 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		
 		System.out.println(DebugUtil.prettyPrint(object));
 		System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object, SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+		
+		// TODO: check values
 	}
+	
+	/**
+	 * Let's try to fetch object that does not exist in the repository.
+	 */
+	@Test
+	public void testGetObjectNotFound() {
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".getObjectTest");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		
+		try {
+			ObjectType object = provisioningService.getObject(NON_EXISTENT_OID, resolve, result);
+			fail("Expected exception, but haven't got one");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+			System.out.println("NOT FOUND result:");
+			System.out.println(result.debugDump());
+			// TODO: check result
+		} catch (CommunicationException e) {
+			fail("Expected ObjectNotFoundException, but got"+e);
+		} catch (SchemaException e) {
+			fail("Expected ObjectNotFoundException, but got"+e);
+		}
+		
+	}
+	
 }

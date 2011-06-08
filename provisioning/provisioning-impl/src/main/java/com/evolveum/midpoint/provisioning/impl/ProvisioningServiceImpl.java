@@ -21,6 +21,9 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -39,7 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 public class ProvisioningServiceImpl implements ProvisioningService {
 	
 	private ShadowCache shadowCache;
-	private RepositoryPortType repositoryService;
+	private RepositoryWrapper repositoryService;
 
 	public ShadowCache getShadowCache() {
 		return shadowCache;
@@ -54,7 +57,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
      *
      * @return the value of repositoryService
      */
-    public RepositoryPortType getRepositoryService() {
+    public RepositoryWrapper getRepositoryService() {
         return repositoryService;
     }
 
@@ -65,35 +68,50 @@ public class ProvisioningServiceImpl implements ProvisioningService {
      * 
      * @param repositoryService new value of repositoryService
      */
-    public void setRepositoryService(RepositoryPortType repositoryService) {
+    public void setRepositoryService(RepositoryWrapper repositoryService) {
         this.repositoryService = repositoryService;
     }
 	
 	
 	@Override
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult) throws Exception {
+	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException {
 		
 		// Result type for this operation
 		OperationResult result = parentResult
-				.createSubresult(ProvisioningServiceImpl.class.getName()
-						+ ".fetchObject");
+				.createSubresult(ProvisioningService.class.getName()
+						+ ".getObject");
 		result.addParam("oid", oid);
 		result.addParam("resolve", resolve);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 		
 		ObjectType object = null;
 
-			ObjectContainerType container = getRepositoryService().getObject(oid,resolve);
-			object = container.getObject();
-			// TODO: Error handling
-
+		try {
+			object = getRepositoryService().getObject(oid, resolve, result);
+		} catch (ObjectNotFoundException e) {
+			result.record(e);
+			throw e;
+		}
+		// TODO: Error handling
 		
 		if (object instanceof ResourceObjectShadowType) {
 			//ResourceObjectShadowType shadow = (ResourceObjectShadowType)object;
 			// TODO: optimization needed: avoid multiple "gets" of the same object
-			ResourceObjectShadowType shadow = null;
 			
+			ResourceObjectShadowType shadow = null;			
+			try {
 				shadow = getShadowCache().getObject(oid, null, result);
-				// TODO: error handling
+			} catch (ObjectNotFoundException e) {
+				result.record(e);
+				throw e;
+			} catch (CommunicationException e) {
+				result.record(e);
+				throw e;
+			} catch (SchemaException e) {
+				result.record(e);
+				throw e;
+			}
+			// TODO: error handling
 				
 			// TODO: object resolving
 			return shadow;

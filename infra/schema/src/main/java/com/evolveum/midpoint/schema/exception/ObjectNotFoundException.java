@@ -18,37 +18,36 @@
  * "Portions Copyrighted 2011 [name of copyright owner]"
  * 
  */
-package com.evolveum.midpoint.provisioning.api;
+package com.evolveum.midpoint.schema.exception;
 
 /**
- * Error regarding schema.
- * 
- * E.g. Object class violation, missing object class, inconsistent schema, etc. 
+ * Object with specified criteria (OID) has not been found in the
+ * repository.
  * 
  * @author Radovan Semancik
  *
  */
-public class SchemaException extends Exception {
-	private static final long serialVersionUID = -6016220825724355014L;
+public class ObjectNotFoundException extends CommonException {
+	private static final long serialVersionUID = -9003686713018111855L;
 
-	public SchemaException() {
+	public ObjectNotFoundException() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
-	public SchemaException(String message, Throwable cause) {
+	public ObjectNotFoundException(String message, Throwable cause) {
 		super(message, cause);
-		// TODO Auto-generated constructor stub
 	}
 
-	public SchemaException(String message) {
+	public ObjectNotFoundException(String message) {
 		super(message);
-		// TODO Auto-generated constructor stub
 	}
 
-	public SchemaException(Throwable cause) {
+	public ObjectNotFoundException(Throwable cause) {
 		super(cause);
-		// TODO Auto-generated constructor stub
 	}
-
+	
+	@Override
+	public String getOperationResultMessage() {
+		return "Object not found";
+	}
 }
