@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.web.init;
+package com.evolveum.midpoint.init;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;

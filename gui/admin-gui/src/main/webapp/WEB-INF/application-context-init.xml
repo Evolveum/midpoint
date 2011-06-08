@@ -26,7 +26,7 @@
      http://www.springframework.org/schema/context
      http://www.springframework.org/schema/context/spring-context-3.0.xsd">
 
-	<bean id="initialSetup" class="com.evolveum.midpoint.web.init.InitialSetup" init-method="init" scope="singleton">
+	<bean id="initialSetup" class="com.evolveum.midpoint.init.InitialSetup" init-method="init" scope="singleton">
 		<constructor-arg name="modelService" ref="modelService" />
 	</bean>
 </beans>
