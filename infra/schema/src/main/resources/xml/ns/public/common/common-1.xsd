@@ -1180,7 +1180,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="offset" type="xsd:integer" minOccurs="0" default="0">
+			<xsd:element name="offset" type="xsd:int" default="0" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						The index of the first returned entry, starting with zero.
@@ -1193,7 +1193,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="maxSize" type="xsd:integer" minOccurs="0">
+			<xsd:element name="maxSize" type="xsd:int" default="2147483647" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						The maximum number of entries returned. The operation may
@@ -1246,8 +1246,9 @@
 
 	<xsd:complexType name="ObjectListType">
 		<xsd:sequence>
-			<xsd:element name="object" type="tns:ObjectType" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="object" type="tns:ObjectType" minOccurs="0" maxOccurs="unbounded" />			
 		</xsd:sequence>
+		<xsd:attribute name="count" type="xsd:int" />
 	</xsd:complexType>
 
 	<xsd:complexType name="CycleListType">

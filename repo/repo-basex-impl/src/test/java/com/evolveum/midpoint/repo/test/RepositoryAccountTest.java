@@ -22,12 +22,11 @@
 
 package com.evolveum.midpoint.repo.test;
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.math.BigInteger;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -43,15 +42,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.test.XmlAsserts;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -60,6 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
@@ -154,11 +153,8 @@ public class RepositoryAccountTest {
 			compareObjects(accountShadow, ((AccountShadowType) (retrievedObjectContainer.getObject())));
 
 			// list account objects with simple paging
-			PagingType pagingType = new PagingType();
-			pagingType.setMaxSize(BigInteger.valueOf(5));
-			pagingType.setOffset(BigInteger.valueOf(0));
-			pagingType.setOrderBy(Utils.fillPropertyReference("name"));
-			pagingType.setOrderDirection(OrderDirectionType.ASCENDING);
+			PagingType pagingType = PagingTypeFactory
+					.createPaging(0, 5, OrderDirectionType.ASCENDING, "name");
 			ObjectListType objects = repositoryService.listObjects(
 					QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE), pagingType);
 			assertEquals(1, objects.getObject().size());
@@ -202,8 +198,8 @@ public class RepositoryAccountTest {
 			repositoryService.addObject(objectContainer);
 
 			objectContainer = new ObjectContainerType();
-			AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil
-					.unmarshal(new File("src/test/resources/account-delete-account-ref.xml"))).getValue();
+			AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/account-delete-account-ref.xml"))).getValue();
 			objectContainer.setObject(account);
 			repositoryService.addObject(objectContainer);
 
@@ -218,7 +214,7 @@ public class RepositoryAccountTest {
 			assertNotNull(accountOwnerContainer);
 			UserType retrievedUser = accountOwnerContainer.getUser();
 			assertNotNull(retrievedUser);
-			assertEquals(userOid, retrievedUser.getOid());	
+			assertEquals(userOid, retrievedUser.getOid());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
@@ -240,7 +236,7 @@ public class RepositoryAccountTest {
 			}
 		}
 	}
-	
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testListResourceObjectShadows() throws Exception {
@@ -255,8 +251,8 @@ public class RepositoryAccountTest {
 			repositoryService.addObject(objectContainer);
 
 			objectContainer = new ObjectContainerType();
-			AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil
-					.unmarshal(new File("src/test/resources/account-delete-account-ref.xml"))).getValue();
+			AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/account-delete-account-ref.xml"))).getValue();
 			objectContainer.setObject(account);
 			repositoryService.addObject(objectContainer);
 
@@ -267,12 +263,13 @@ public class RepositoryAccountTest {
 			objectContainer.setObject(user);
 			repositoryService.addObject(objectContainer);
 
-			ResourceObjectShadowListType shadowsOnResource = repositoryService.listResourceObjectShadows(resourceOid, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE));
+			ResourceObjectShadowListType shadowsOnResource = repositoryService.listResourceObjectShadows(
+					resourceOid, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE));
 			assertNotNull(shadowsOnResource);
 			List<ResourceObjectShadowType> shadows = shadowsOnResource.getObject();
 			assertNotNull(shadows);
 			assertEquals(accountRefOid, shadows.get(0).getOid());
-			
+
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
@@ -294,5 +291,5 @@ public class RepositoryAccountTest {
 			}
 		}
 	}
-	
+
 }

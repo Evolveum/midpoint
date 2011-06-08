@@ -20,8 +20,6 @@
  */
 package com.evolveum.midpoint.schema;
 
-import java.math.BigInteger;
-
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
@@ -33,33 +31,36 @@ import com.evolveum.midpoint.xml.schema.XPathType;
 /**
  * 
  * @author lazyman
- *
+ * 
  */
 public abstract class PagingTypeFactory {
 
-	public static PagingType createPaging(int offset, int rows, OrderDirectionType order, String orderBy) {
-		PagingType paging = new PagingType();
+	public static PagingType createPaging(int offset, OrderDirectionType order, String orderBy) {
+		return createPaging(offset, Integer.MAX_VALUE, order, orderBy);
+	}
 
+	public static PagingType createPaging(int offset, int maxSize, OrderDirectionType order, String orderBy) {
+		PagingType paging = new PagingType();
 		PropertyReferenceType propertyReferenceType = fillPropertyReference(orderBy);
 		paging.setOrderBy(propertyReferenceType);
-		paging.setOffset(BigInteger.valueOf(offset));
-		paging.setMaxSize(BigInteger.valueOf(rows));
+		paging.setOffset(offset);
+		paging.setMaxSize(Integer.MAX_VALUE);
 		paging.setOrderDirection(order);
-		
+
 		return paging;
 	}
 
-    private static PropertyReferenceType fillPropertyReference(String resolve) {
-        PropertyReferenceType property = new PropertyReferenceType();
-        XPathType xpath = new XPathType(getPropertyName(resolve));
-        property.setProperty(xpath.toElement(SchemaConstants.NS_C, "property"));
-        return property;
-    }
+	private static PropertyReferenceType fillPropertyReference(String resolve) {
+		PropertyReferenceType property = new PropertyReferenceType();
+		XPathType xpath = new XPathType(getPropertyName(resolve));
+		property.setProperty(xpath.toElement(SchemaConstants.NS_C, "property"));
+		return property;
+	}
 
-    private static String getPropertyName(String name) {
-        if (null == name) {
-            return "";
-        }
-        return StringUtils.lowerCase(name);
-    }
+	private static String getPropertyName(String name) {
+		if (null == name) {
+			return "";
+		}
+		return StringUtils.lowerCase(name);
+	}
 }

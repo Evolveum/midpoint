@@ -25,7 +25,6 @@ package com.evolveum.midpoint.repo.test;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
-import java.math.BigInteger;
 
 import javax.xml.bind.JAXBElement;
 
@@ -39,8 +38,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
@@ -90,7 +89,7 @@ public class RepositoryAccountTest {
 	@After
 	public void tearDown() {
 	}
-	
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testAccount() throws Exception {
@@ -119,11 +118,8 @@ public class RepositoryAccountTest {
 					((AccountShadowType) (retrievedObjectContainer.getObject())).getCredentials()
 							.getPassword().getAny().toString());
 
-			PagingType pagingType = new PagingType();
-			pagingType.setMaxSize(BigInteger.valueOf(5));
-			pagingType.setOffset(BigInteger.valueOf(-1));
-			pagingType.setOrderBy(Utils.fillPropertyReference("name"));
-			pagingType.setOrderDirection(OrderDirectionType.ASCENDING);
+			PagingType pagingType = PagingTypeFactory.createPaging(-1, 5, OrderDirectionType.ASCENDING,
+					"name");
 			ObjectListType objects = repositoryService.listObjects(
 					QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_TYPE), pagingType);
 			assertEquals(1, objects.getObject().size());

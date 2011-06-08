@@ -22,10 +22,29 @@
 
 package com.evolveum.midpoint.repo.test;
 
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.common.Utils;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+
+import javax.xml.bind.JAXBElement;
+
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
@@ -41,22 +60,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import java.io.File;
-import java.math.BigInteger;
-import javax.xml.bind.JAXBElement;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import org.w3c.dom.Document;
-import static org.junit.Assert.*;
-import org.w3c.dom.Element;
 
 /**
  * 
@@ -101,11 +104,8 @@ public class RepositoryUserTest {
 	public void testUser() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111111";
 		try {
-			PagingType pagingType = new PagingType();
-			pagingType.setMaxSize(BigInteger.valueOf(5));
-			pagingType.setOffset(BigInteger.valueOf(-1));
-			pagingType.setOrderBy(Utils.fillPropertyReference("name"));
-			pagingType.setOrderDirection(OrderDirectionType.ASCENDING);
+			PagingType pagingType = PagingTypeFactory.createPaging(-1, 5, OrderDirectionType.ASCENDING,
+					"name");
 			ObjectListType objects = repositoryService.listObjects(
 					QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE), pagingType);
 			int actualSize = objects.getObject().size();

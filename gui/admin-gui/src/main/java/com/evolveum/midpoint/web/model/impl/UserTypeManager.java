@@ -23,7 +23,6 @@
 package com.evolveum.midpoint.web.model.impl;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -43,6 +42,7 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.AccountShadowDto;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
@@ -62,7 +62,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -291,14 +290,9 @@ public class UserTypeManager implements UserManager, Serializable {
 	@Override
 	public Collection<UserDto> list(PagingDto pagingDto) throws WebModelException {
 		try { // Call Web Service Operation
-				// TODO: more reasonable handling of paging info
-			PagingType paging = new PagingType();
+			PagingType paging = PagingTypeFactory.createPaging(pagingDto.getOffset(), pagingDto.getMaxSize(),
+					pagingDto.getDirection(), pagingDto.getOrderBy());
 
-			PropertyReferenceType propertyReferenceType = Utils.fillPropertyReference(pagingDto.getOrderBy());
-			paging.setOrderBy(propertyReferenceType);
-			paging.setOffset(BigInteger.valueOf(pagingDto.getOffset()));
-			paging.setMaxSize(BigInteger.valueOf(pagingDto.getMaxSize()));
-			paging.setOrderDirection(paging.getOrderDirection());
 			ObjectListType result = model.listObjects(Utils.getObjectType("UserType"), paging,
 					new Holder<OperationResultType>(new OperationResultType()));
 

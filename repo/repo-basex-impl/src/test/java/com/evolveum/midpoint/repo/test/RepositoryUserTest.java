@@ -28,7 +28,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.math.BigInteger;
 
 import javax.xml.bind.JAXBElement;
 
@@ -43,10 +42,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
@@ -110,11 +109,8 @@ public class RepositoryUserTest {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111111";
 		try {
 			//get actual number of user objects in the repo
-			PagingType pagingType = new PagingType();
-			pagingType.setMaxSize(BigInteger.valueOf(5));
-			pagingType.setOffset(BigInteger.valueOf(0));
-			pagingType.setOrderBy(Utils.fillPropertyReference("name"));
-			pagingType.setOrderDirection(OrderDirectionType.ASCENDING);
+			
+			PagingType pagingType = PagingTypeFactory.createPaging(0, 5, OrderDirectionType.ASCENDING, "name");
 			ObjectListType objects = repositoryService.listObjects(
 					QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE), pagingType);
 			int actualSize = objects.getObject().size();

@@ -25,7 +25,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,9 +55,9 @@ import org.xmldb.api.base.XMLDBException;
 import org.xmldb.api.modules.XPathQueryService;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
@@ -259,11 +258,11 @@ public class XmlRepositoryService implements RepositoryPortType {
 			query.append("for $x in //c:object where $x/@xsi:type=\"")
 					.append(objectType.substring(objectType.lastIndexOf("#") + 1)).append("\"");
 			if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
+				//TODO: IGOR REVIEW THIS CHANGES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				query.append("[fn:position() = ( ")
-						.append(paging.getOffset().multiply(paging.getMaxSize()))
+						.append(paging.getOffset() * paging.getMaxSize())
 						.append(" to ")
-						.append(paging.getOffset().add(BigInteger.valueOf(1L)).multiply(paging.getMaxSize())
-								.subtract(BigInteger.valueOf(1L))).append(") ] ");
+						.append(((paging.getOffset() +1) * paging.getMaxSize()) - 1).append(") ] ");
 			}
 			if (filters != null) {
 				for (Map.Entry<String, String> filterEntry : filters.entrySet()) {

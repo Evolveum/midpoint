@@ -24,8 +24,6 @@ package com.evolveum.midpoint.model;
 
 import static org.junit.Assert.fail;
 
-import java.math.BigInteger;
-
 import javax.xml.ws.Holder;
 
 import org.junit.Before;
@@ -92,8 +90,8 @@ public class ModelSearchObjectsTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void badPaging() throws FaultMessage {
 		PagingType paging = new PagingType();
-		paging.setMaxSize(BigInteger.valueOf(-1));
-		paging.setOffset(BigInteger.valueOf(-1));
+		paging.setMaxSize(-1);
+		paging.setOffset(-1);
 
 		modelService.searchObjects(new QueryType(), paging, new Holder<OperationResultType>(
 				new OperationResultType()));

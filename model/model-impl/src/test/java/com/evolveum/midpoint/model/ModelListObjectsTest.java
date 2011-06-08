@@ -33,7 +33,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -109,8 +108,8 @@ public class ModelListObjectsTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void badPaging() throws FaultMessage {
 		PagingType paging = new PagingType();
-		paging.setMaxSize(BigInteger.valueOf(-1));
-		paging.setOffset(BigInteger.valueOf(-1));
+		paging.setMaxSize(-1);
+		paging.setOffset(-1);
 
 		modelService.listObjects(Utils.getObjectType("UserType"), paging, new Holder<OperationResultType>(
 				new OperationResultType()));
