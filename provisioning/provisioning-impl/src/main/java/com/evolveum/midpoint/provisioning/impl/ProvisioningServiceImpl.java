@@ -146,8 +146,25 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult) {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
+		
+		// Result type for this operation
+		OperationResult result = parentResult
+				.createSubresult(ProvisioningService.class.getName()
+						+ ".listObjects");
+		result.addParam("objectType", objectType);
+		result.addParam("paging", paging);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		if (ResourceObjectShadowType.class.isAssignableFrom(objectType)) {
+			// Listing of shadows is not supported because this operation does not specify resource
+			// to search. Maybe we need another operation for this.
+			throw new NotImplementedException("Listing of shadows is not supported");
+			
+		} else {
+			// TODO: delegate to repository
+			throw new NotImplementedException();
+		}
+		
 	}
 
 	@Override

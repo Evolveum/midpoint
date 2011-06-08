@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.object.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.common.object.ResourceTypeUtil;
@@ -27,10 +28,12 @@ import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfException;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
@@ -49,7 +52,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.schema.XPathSegment;
+import com.evolveum.midpoint.xml.schema.XPathType;
 import com.sun.org.apache.xerces.internal.impl.xs.SchemaGrammar.Schema4Annotations;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -224,6 +231,53 @@ public class ShadowCache {
 		
         return repositoryShadow;
 	}
+	
+	/**
+	 * List all shadow objects of specified objectClass.
+	 * 
+	 * Not used now. Will be used in import.
+	 * Only provided for demonstration how to map ResourceObject to shadow.
+	 * 
+	 * !!! NOT TESTED !!!
+	 * 
+	 * @param resource
+	 * @param objectClass
+	 * @param handler
+	 * @param parentResult
+	 * @throws CommunicationException
+	 */
+	public void listShadows(ResourceType resource, QName objectClass, final ShadowHandler handler, OperationResult parentResult) throws CommunicationException {
+		
+		ConnectorInstance connector = getConnectorInstance(resource);
+		
+		ResultHandler resultHandler = new ResultHandler() {
+			
+			@Override
+			public boolean handle(ResourceObject object) {
+				
+				ResourceObjectShadowType shadow;
+				try {
+					shadow = lookupShadow(object);
+				} catch (SchemaProcessorException e) {
+					// TODO: better error handling
+					// TODO log it?
+					return false;
+				}
+				
+				// TODO: if shadow does not exists, create it now
+				
+				return handler.handle(shadow);
+			}
+		};
+		
+		try {
+			connector.search(objectClass, resultHandler, parentResult);
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
+			throw new CommunicationException(e.getMessage(),e);
+		} catch (GenericFrameworkException e) {
+			throw new GenericConnectorException(e.getMessage(),e);
+		}
+	}
 
 	
 	public String addShadow(ObjectType object, ScriptsType scripts, ResourceType resource, OperationResult parentResult) {
@@ -243,148 +297,76 @@ public class ShadowCache {
 	// OLD METHODS
 	// TODO: refactor to current needs
 	
-    /**
-     * TODO: useful object but probably should be private
-     * Note: This is needed in import and maybe also in the sync
-     * 
-     * Locates the appropriate Shadow in repository, updates it as necessary and
-     * returns updated shadow.
-     *
-     * The returned shadow object has all the values from the provided resource
-     * object (the implementation is merging values).
-     *
-     * This does not do any modifications. We are only storing identifiers in
-     * the shadows and we do not support renames yet. So we don't need to modify
-     * anything. The implementation only creates the shadow object if it does
-     * not exist yet.
-     *
-     * @param resourceObject new state of the resource object
-     * @return updated shadow object
-     */
-//    public ResourceObjectShadowType update(ResourceObject resourceObject, ResourceType resource) throws FaultMessage {
-//
-//        ResourceObjectShadowType shadow = getCurrentShadow(resourceObject, resource);
-//
-//        ObjectValueWriter objectValueWriter = new ObjectValueWriter();
-//
-//        if (shadow==null) {
-//            // We have to create new object
-//            //Holder holder = new Holder(new OperationalResultType());
-//            ObjectContainerType oct = new ObjectContainerType();
-//            // Account-only for now, more generic later
-//            shadow = new AccountShadowType();
-//            ObjectReferenceType resourceRef = new ObjectReferenceType();
-//            resourceRef.setOid(resource.getOid());
-//            shadow.setResourceRef(resourceRef);
-//            shadow.setAttributes(new ResourceObjectShadowType.Attributes());
-//
-//            // Not sure about this ....
-//            objectValueWriter.merge(resourceObject.getIdentifier(), shadow.getAttributes().getAny(), false);
-//
-//            shadow.setObjectClass(resourceObject.getDefinition().getQName());
-//
-//            // TODO: This has to be smarter, later
-//            shadow.setName((String)resourceObject.getIdentifier().getSingleJavaValue());
-//
-//            oct.setObject(shadow);
-//
-//            String oid = getRepositoryService().addObject(oct);
-//
-//            // Repository will assign OID, so put it back to the shadow
-//            shadow.setOid(oid);
-//        }
-//
-//        // Merge all the values from resourceObject to shadow now
-//
-//        objectValueWriter.merge(resourceObject,shadow.getAttributes().getAny(), false);
-//
-//        // For shadow that we are returning we want to set resource instead of
-//        // resourceRef. Resource is easiet to use and as we have it here anyway
-//        // it is not harn setting it.
-//        shadow.setResource(resource);
-//        shadow.setResourceRef(null);
-//        
-//        return shadow;
-//    }
 
     /**
      * Locates the appropriate Shadow in repository that corresponds to the
      * provided resource object.
-     *
-     * No update is done, just the current repository state is returned. This
-     * operation is NOT supposed for generic usage. It is expected to be used
-     * in the rare cases where old repository state is required
-     * (e.g. synchronization)
-     *
-     * TODO: Fix error handling (both runtime exceptions and Fault)
      * 
-     * @param resourceObject any state of resource objects, it just to contain
-     *        valid identifiers
      * @return current unchanged shadow object that corresponds to provided
      *         resource object or null if the object does not exist
+     * @throws SchemaProcessorException 
      */
-//    public ResourceObjectShadowType getCurrentShadowFromRepository(String oid, ResourceType resource) {
+    private ResourceObjectShadowType lookupShadow(ResourceObject resourceObject) throws SchemaProcessorException {
 
-//        QueryType query = createSearchShadowQuery(resourceObject);
-//        PagingType paging = new PagingType();
-//        
-//        // TODO: check for errors
-//        ObjectListType results;
-//
-//        results = getRepositoryService().searchObjects(query, paging);
-//
-//        if (results.getObject().size()==0) {
-//            return null;
-//        }
-//        if (results.getObject().size()>1) {
-//            // TODO: Better error handling later
-//            throw new IllegalStateException("More than one shadows found for "+resourceObject);
-//        }
-//
-//        return (ResourceObjectShadowType) results.getObject().get(0);
- //   }
+        QueryType query = createSearchShadowQuery(resourceObject);
+        PagingType paging = new PagingType();
+        
+        // TODO: check for errors
+        ObjectListType results;
+
+        results = getRepositoryService().searchObjects(query, paging);
+
+        if (results.getObject().size()==0) {
+            return null;
+        }
+        if (results.getObject().size()>1) {
+            // TODO: Better error handling later
+            throw new IllegalStateException("More than one shadows found for "+resourceObject);
+        }
+
+        return (ResourceObjectShadowType) results.getObject().get(0);
+   }
 
 
-//    protected QueryType createSearchShadowQuery(ResourceObject resourceObject) {
-//
-//        // We are going to query for attributes, so setup appropriate
-//        // XPath for the filter
-//        XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
-//        List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
-//        xpathSegments.add(xpathSegment);
-//        XPathType xpath = new XPathType(xpathSegments);
-//
-//        // Now we need to determine what is the identifer and set corrent
-//        // value for it in the filter
-//        ResourceAttribute identifier = resourceObject.getIdentifier();
-//
-//        List<Node> idNodes = identifier.getValues();
-//        // Only one value is supported for an identifier
-//        if (idNodes.size()>1) {
-//            // TODO: This should probably be switched to checked exception later
-//            throw new IllegalArgumentException("More than one identifier value is not supported");
-//        }
-//        if (idNodes.size()<1) {
-//            // TODO: This should probably be switched to checked exception later
-//            throw new IllegalArgumentException("The identifier has no value");
-//        }
-//        Element idElement = (Element) idNodes.get(0);
-//
-//        // We have all the data, we can construct the filter now
-//        Document doc = ShadowUtil.getXmlDocument();
-//        Element filter =
-//                QueryUtil.createAndFilter(doc,
-//                // TODO: The account type is hardcoded now, it should determined
-//                // from the shcema later, or maybe we can make it entirelly
-//                // generic (use ResourceObjectShadowType instead).
-//                QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_TYPE)),
-//                QueryUtil.createEqualFilter(doc, xpath, idElement));
-//
-//        QueryType query = new QueryType();
-//        query.setFilter(filter);
-//
-//        return query;
-//    }
+    private QueryType createSearchShadowQuery(ResourceObject resourceObject) throws SchemaProcessorException {
+
+        // We are going to query for attributes, so setup appropriate
+        // XPath for the filter
+        XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
+        List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
+        xpathSegments.add(xpathSegment);
+        XPathType xpath = new XPathType(xpathSegments);
+
+        // Now we need to determine what is the identifer and set corrent
+        // value for it in the filter
+        Property identifier = resourceObject.getIdentifier();
+
+        Set<Object> idValues = identifier.getValues();
+        // Only one value is supported for an identifier
+        if (idValues.size()>1) {
+            // TODO: This should probably be switched to checked exception later
+            throw new IllegalArgumentException("More than one identifier value is not supported");
+        }
+        if (idValues.size()<1) {
+            // TODO: This should probably be switched to checked exception later
+            throw new IllegalArgumentException("The identifier has no value");
+        }
+
+        // We have all the data, we can construct the filter now
+        Document doc = DOMUtil.getDocument();
+        Element filter =
+                QueryUtil.createAndFilter(doc,
+                // TODO: The account type is hardcoded now, it should determined
+                // from the shcema later, or maybe we can make it entirelly
+                // generic (use ResourceObjectShadowType instead).
+                QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_TYPE)),
+                QueryUtil.createEqualFilter(doc, xpath, identifier.serializeToDom(doc)));
+
+        QueryType query = new QueryType();
+        query.setFilter(filter);
+
+        return query;
+    }
 	
 	
 	// UTILITY METHODS

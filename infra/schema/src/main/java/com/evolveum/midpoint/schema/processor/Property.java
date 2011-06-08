@@ -21,10 +21,17 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 
 /**
  * Property is a specific characteristic of an object. It may be considered
@@ -231,6 +238,27 @@ public class Property {
 	 */
 	public String getHelp() {
 		return getDefinition() == null ? null : getDefinition().getHelp();
+	}
+	
+	public List<Element> serializeToDom(Document doc) throws SchemaProcessorException {
+		return serializeToDom(doc,null);
+	}
+	
+	List<Element> serializeToDom(Document doc,PropertyDefinition propDef) throws SchemaProcessorException {
+		List<Element> elements = new ArrayList<Element>();
+		if (propDef==null) {
+			propDef = getDefinition();
+		}
+		if (propDef==null) {
+			throw new SchemaProcessorException("Definition of property "+this+" not found");
+		}
+		Set<Object> values = getValues();
+		for (Object val : values) {
+			Element element = doc.createElementNS(getName().getNamespaceURI(), getName().getLocalPart());
+			XsdTypeConverter.toXsdElement(val,propDef.getTypeName(),element);
+			elements.add(element);
+		}			
+		return elements;
 	}
 	
 	@Override

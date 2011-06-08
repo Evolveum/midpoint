@@ -186,19 +186,11 @@ public class PropertyContainerDefinition extends Definition {
 		// in the schema so we produce valid XML
 		// TODO: FIXME
 		for (Property prop : properties) {
-			PropertyDefinition propDef = prop.getDefinition();
-			if (propDef==null) {
-				propDef = findPropertyDefinition(prop.getName());
+			if (prop.getDefinition()!=null) {
+				elements.addAll(prop.serializeToDom(doc));
+			} else {
+				elements.addAll(prop.serializeToDom(doc,findPropertyDefinition(prop.getName())));
 			}
-			if (propDef==null) {
-				throw new SchemaProcessorException("Definition of property "+prop+" not found");
-			}
-			Set<Object> values = prop.getValues();
-			for (Object val : values) {
-				Element element = doc.createElementNS(prop.getName().getNamespaceURI(), prop.getName().getLocalPart());
-				XsdTypeConverter.toXsdElement(val,propDef.getTypeName(),element);
-				elements.add(element);
-			}			
 		}
 		return elements;
 	}

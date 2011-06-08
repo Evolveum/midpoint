@@ -22,11 +22,16 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import javax.jws.WebParam;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
@@ -87,6 +92,11 @@ public class RepositoryWrapper {
 			// TODO Auto-generated catch block
 			throw new RuntimeException(faultInfo.getClass().getSimpleName()+": "+faultInfo.getMessage());
 		}
+	}
+
+	public ObjectListType searchObjects(QueryType query, PagingType paging) {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException();
 	}
 	
 	
