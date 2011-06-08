@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.NotImplementedException;
 
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -28,9 +30,15 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -88,22 +96,22 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("resolve", resolve);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 		
-		ObjectType object = null;
+		ObjectType repositoryObject = null;
 
 		try {
-			object = getRepositoryService().getObject(oid, resolve, result);
+			repositoryObject = getRepositoryService().getObject(oid, resolve, result);
 		} catch (ObjectNotFoundException e) {
 			result.record(e);
 			throw e;
 		}
 		
-		if (object instanceof ResourceObjectShadowType) {
+		if (repositoryObject instanceof ResourceObjectShadowType) {
 			//ResourceObjectShadowType shadow = (ResourceObjectShadowType)object;
 			// TODO: optimization needed: avoid multiple "gets" of the same object
 			
 			ResourceObjectShadowType shadow = null;			
 			try {
-				shadow = getShadowCache().getObject(oid, null, result);
+				shadow = getShadowCache().getShadow(oid, (ResourceObjectShadowType)repositoryObject, result);
 			} catch (ObjectNotFoundException e) {
 				result.record(e);
 				throw e;
@@ -118,7 +126,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// TODO: object resolving
 			return shadow;
 		} else {
-			return object;
+			return repositoryObject;
 		}
 
 	}
@@ -127,6 +135,63 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public String addObject(ObjectType object, ScriptsType scripts, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException, CommunicationException {
 		// TODO
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void synchronize(String oid, OperationResult parentResult) {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult) {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public ObjectListType searchObjects(Class objectType, QueryType query, PagingType paging, OperationResult parentResult)
+			throws SchemaException {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void deleteObject(String oid, ScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid, PropertyReferenceListType properties,
+			OperationResult parentResult) throws ObjectNotFoundException {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void launchImportFromResource(String resourceOid, QName objectClass) throws ObjectNotFoundException {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public TaskStatusType getImportStatus(String resourceOid) throws ObjectNotFoundException {
+		// TODO Auto-generated method stub
 		throw new NotImplementedException();
 	}
 	

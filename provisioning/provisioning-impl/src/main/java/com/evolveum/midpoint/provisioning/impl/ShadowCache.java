@@ -46,6 +46,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.sun.org.apache.xerces.internal.impl.xs.SchemaGrammar.Schema4Annotations;
@@ -55,6 +56,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -124,27 +126,27 @@ public class ShadowCache {
 	}
 
 	/**
-	 * Gets the object with specified OID
+	 * Gets the shadow with specified OID
 	 * 
 	 * The shadow will be read from the repository and missing information
 	 * will be fetched from the resource.
 	 * 
-	 * If no resource is specified, appropriate resource definition will
-	 * be fetched from the repository. Specifying resource is just an
-	 * optimization.
+	 * If no repositoryShadow is specified, the shadow will be retrieved from
+	 * the repository. This is just an optimization if the object was already
+	 * fetched (which is a usual case).
 	 * 
 	 * This method is using identification by OID. This is intended for normal
 	 * usage. Method that uses native identification will be provided later.
 	 * 
 	 * @param oid OID of shadow to get.
-	 * @param resource ResourceType where to get the object from (optional)
+	 * @param repositoryShadow shadow that was read from the repository
 	 * @return retrieved shadow (merged attributes from repository and resource)
 	 * @throws ObjectNotFoundException shadow was not found or object was not found
 	 * 				on the resource
 	 * @throws CommunicationException problem communicating with the resource 
 	 * @throws SchemaException problem processing schema or schema violation
 	 */
-	public ResourceObjectShadowType getObject(String oid, ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException {
+	public ResourceObjectShadowType getShadow(String oid, ResourceObjectShadowType repositoryShadow, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException {
 
 		// We are using parent result directly, not creating subresult.
 		// We want to hide the existence of shadow cache from the user.
@@ -152,11 +154,16 @@ public class ShadowCache {
 		// Get the shadow from repository. There are identifiers that we need
 		// for accessing the object by UCF.
 		// Later, the repository object may have a fully cached object from.
-		ResourceObjectShadowType repositoryShadow = (ResourceObjectShadowType) getRepositoryService().getObject(oid, null, parentResult);
-		
-		if (resource==null) {
-			resource = getResource(ResourceObjectShadowUtil.getResourceOid(repositoryShadow), parentResult);
+		if (repositoryShadow==null) {
+			repositoryShadow = (ResourceObjectShadowType) getRepositoryService().getObject(oid, null, parentResult);
 		}
+		
+		// Sanity check
+		if (!oid.equals(repositoryShadow.getOid())) {
+			throw new IllegalArgumentException("Provided OID is not equal to OID of repository shadow");
+		}
+		
+		ResourceType resource = getResource(ResourceObjectShadowUtil.getResourceOid(repositoryShadow), parentResult);
 		
 		// Get the fresh object from UCF
 		ConnectorInstance connector = getConnectorInstance(resource);
@@ -218,13 +225,28 @@ public class ShadowCache {
         return repositoryShadow;
 	}
 
-	// TODO: native identification - special cases
-
+	
+	public String addShadow(ObjectType object, ScriptsType scripts, ResourceType resource, OperationResult parentResult) {
+		// Add exceptions to "throws" as needed
+		
+		// TODO: store shadow to the repository (identifiers only)
+		// TODO: convert from XML to ResourceObject an call the connector
+		// ... or maybe the other way around ... Katka will find out :-)
+		
+		throw new NotImplementedException();
+	}
+	
+	
+	
+	// TODO: methods with native identification (Set<Attribute> identifier) instead of OID.
 	
 	// OLD METHODS
 	// TODO: refactor to current needs
 	
     /**
+     * TODO: useful object but probably should be private
+     * Note: This is needed in import and maybe also in the sync
+     * 
      * Locates the appropriate Shadow in repository, updates it as necessary and
      * returns updated shadow.
      *
