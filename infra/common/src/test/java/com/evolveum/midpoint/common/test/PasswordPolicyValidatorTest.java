@@ -119,7 +119,7 @@ public class PasswordPolicyValidatorTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		logger.error("Positive testing: passwordGeneratorComplexTest");
 		PasswordPolicyType pp = jbe.getValue();
 		OperationResult op = new OperationResult("passwordGeneratorComplexTest");
 		String psswd = PasswordGenerator.generate(pp, op);
@@ -131,6 +131,8 @@ public class PasswordPolicyValidatorTest {
 		for (StringLimitType l: pp.getStringPolicy().getLimitations().getLimit()) {
 			l.setMustBeFirst(true);
 		}
+		logger.error("Negative testing: passwordGeneratorComplexTest");
+		
 		psswd = PasswordGenerator.generate(pp, op);
 		assertNull(psswd);
 		assertTrue(op.getStatus() == OperationResultStatus.FATAL_ERROR);
@@ -139,6 +141,7 @@ public class PasswordPolicyValidatorTest {
 	/*******************************************************************************************/
 	@Test
 	public void XMLPasswordPolicy() {
+		
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
@@ -153,8 +156,8 @@ public class PasswordPolicyValidatorTest {
 
 		OperationResult op = new OperationResult("Generator testing");
 
-		String pswd = PasswordPolicyUtils.generatePassword(pp, op);
-		logger.info("Generated password: " + pswd);
+		//String pswd = PasswordPolicyUtils.generatePassword(pp, op);
+//		logger.info("Generated password: " + pswd);
 		// assertNotNull(pswd);
 		// assertTrue(op.isSuccess());
 	}

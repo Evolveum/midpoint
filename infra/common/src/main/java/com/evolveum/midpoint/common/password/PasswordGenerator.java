@@ -13,7 +13,6 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CharacterClassType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.StringLimitType;
 
@@ -56,8 +55,10 @@ public class PasswordGenerator {
 		Random rand = new Random(System.currentTimeMillis());
 		StringBuilder password = new StringBuilder();
 
-		// Try to find best characters to be first in password
-		HashMap<StringLimitType, ArrayList<String>> mustBeFirst = new HashMap();
+		/* **********************************
+		 * Try to find best characters to be first in password
+		 */
+		HashMap<StringLimitType, ArrayList<String>> mustBeFirst = new HashMap<StringLimitType, ArrayList<String>>();
 		for (StringLimitType l : lims.keySet()) {
 			if (l.isMustBeFirst()) {
 				mustBeFirst.put(l, lims.get(l));
@@ -66,7 +67,8 @@ public class PasswordGenerator {
 
 		// If any limitation was found
 		if (!mustBeFirst.isEmpty()) {
-			HashMap<Integer, ArrayList<String>> posibleFirstChars = cardinalityCounter(mustBeFirst, null);
+			HashMap<Integer, ArrayList<String>> posibleFirstChars = cardinalityCounter(mustBeFirst, null,
+					false, generatorResult);
 			int intersectionCardinality = mustBeFirst.keySet().size();
 			ArrayList<String> intersectionCharacters = posibleFirstChars.get(intersectionCardinality);
 			// If no intersection was found then raise error
@@ -83,12 +85,10 @@ public class PasswordGenerator {
 						tmp.appendSeparator(", ");
 						tmp.appendAll(mustBeFirst.get(l));
 						logger.error("L:" + l.getDescription() + " -> [" + tmp + "]");
-
 					}
 				}
 				// No more processing unrecoverable conflict
-				return null; 	//EXIT
-				
+				return null; // EXIT
 			} else {
 				if (logger.isDebugEnabled()) {
 					StrBuilder tmp = new StrBuilder();
@@ -99,29 +99,50 @@ public class PasswordGenerator {
 				// Generate random char into password from intersection
 				password.append(intersectionCharacters.get(rand.nextInt(intersectionCharacters.size())));
 			}
-
 		}
 
-		// Count kardinality of elements
-		HashMap<Integer, ArrayList<String>> chars = cardinalityCounter(lims, null);
+		/* **************************************
+		 * Generate rest to fullfill minimal criteria
+		 */
 
-		// 3. vytvor hash mapu znak->pocet vyskytov v mnozinach
-		// 4. najdi pravidla ktore maju must be first
-		// 1. sprav prienik class
-		// 2. vyber nahodny prvok z prieniku
+		// Count kardinality of elements
+		HashMap<Integer, ArrayList<String>> chars;
+		int card = 1;
+		for (int i = 0; i < minLen; i++) {
+			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), false, generatorResult);
+			// If something goes badly then go out
+			if (null == chars) {
+				return null;
+			}
+			for (; card < lims.keySet().size(); card++) {
+				if (chars.containsKey(card)) {
+					ArrayList validChars = chars.get(card);
+					password.append(validChars.get(rand.nextInt(validChars.size())));
+					logger.debug(password.toString());
+					break;
+				}
+			}
+		}
 
 		generatorResult.recordSuccess();
 		return sb.toString();
 	}
 
-	// Count cardinality
+	/******************************************************
+	 * Private helper methods
+	 ******************************************************/
+
+	/**
+	 * Count cardinality
+	 */
 	private static HashMap<Integer, ArrayList<String>> cardinalityCounter(
-			HashMap<StringLimitType, ArrayList<String>> lims, ArrayList<String> skipChars) {
+			HashMap<StringLimitType, ArrayList<String>> lims, ArrayList<String> password,
+			Boolean skipMatchedLims, OperationResult op) {
 		HashMap<String, Integer> counter = new HashMap<String, Integer>();
 
 		for (ArrayList<String> chars : lims.values()) {
 			for (String s : chars) {
-				if (null == skipChars || !skipChars.contains(s)) {
+				if (null == password || !password.contains(s)) {
 					if (null == counter.get(s)) {
 						counter.put(s, 1);
 					} else {
@@ -130,6 +151,27 @@ public class PasswordGenerator {
 				}
 			}
 		}
+
+		// If need to remoeve disabled chars (allready reached limitations)
+		if (null != password) {
+			for (StringLimitType l : lims.keySet()) {
+				int i = charIntersectionCounter(lims.get(l), password);
+				if (i > l.getMaxOccurs()) {
+					OperationResult o = new OperationResult("Limitation check :" + l.getDescription());
+					o.recordFatalError("Exceeded maximal value for this limitation. " + i + ">"
+							+ l.getMaxOccurs());
+					op.addSubresult(o);
+					return null;
+				} else if (i == l.getMaxOccurs() || (i >= l.getMinOccurs() && skipMatchedLims)) {
+					// limitation matched remove all used chars
+					logger.debug("Skip " + l.getDescription());
+					for (String charToRemove : lims.get(l)) {
+						counter.remove(charToRemove);
+					}
+				}
+			}
+		}
+
 		// Transpone to better format
 		HashMap<Integer, ArrayList<String>> ret = new HashMap<Integer, ArrayList<String>>();
 		for (String s : counter.keySet()) {
@@ -142,9 +184,16 @@ public class PasswordGenerator {
 		return ret;
 	}
 
-	/******************************************************
-	 * Private helper methods
-	 ******************************************************/
+	private static int charIntersectionCounter(ArrayList<String> a, ArrayList<String> b) {
+		int ret = 0;
+		for (String s : b) {
+			if (a.contains(s)) {
+				ret++;
+			}
+		}
+		return ret;
+	}
+
 	/**
 	 * Convert string to array of substrings
 	 */
@@ -160,7 +209,7 @@ public class PasswordGenerator {
 		return l;
 	}
 
-	/*
+	/**
 	 * Prepare usable list of strings for generator
 	 */
 
