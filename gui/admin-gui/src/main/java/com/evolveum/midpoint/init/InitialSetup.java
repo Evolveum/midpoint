@@ -8,11 +8,11 @@ import javax.xml.ws.Holder;
 
 import org.apache.commons.io.IOUtils;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.web.util.Utils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -60,7 +60,7 @@ public class InitialSetup {
 					.unmarshal(stream);
 			modelService.addObject(config.getValue(), new Holder<OperationResultType>(resultType));
 		} catch (Exception ex) {
-			Utils.logException(TRACE, "Couldn't import system configuration.", ex);
+			LoggingUtils.logException(TRACE, "Couldn't import system configuration.", ex);
 		} finally {
 			if (stream != null) {
 				IOUtils.closeQuietly(stream);

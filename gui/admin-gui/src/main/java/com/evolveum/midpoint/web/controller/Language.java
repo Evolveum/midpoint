@@ -36,10 +36,10 @@ import java.util.ResourceBundle;
 import javax.faces.application.Application;
 import javax.faces.context.FacesContext;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.util.LangHashMap;
-import com.evolveum.midpoint.web.util.Utils;
 
 /**
  * 
@@ -98,7 +98,7 @@ public class Language implements Serializable {
 				throw new RuntimeException("Can't find resource bundle for locale '" + locale + "'.");
 			}
 		} catch (Exception ex) {
-			Utils.logException(logger, "Couldn't set locale '{}'", ex, locale);
+			LoggingUtils.logException(logger, "Couldn't set locale '{}'", ex, locale);
 		}
 	}
 

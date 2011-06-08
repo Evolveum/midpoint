@@ -37,7 +37,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableVal
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
@@ -126,5 +128,15 @@ public class ModelController {
 	public TaskStatusType getImportStatus(String resourceOid, OperationResult result) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	private boolean isManagedByProvisioning(ObjectType object) {
+		if (object instanceof ResourceObjectShadowType) {
+			return true;
+		}
+		if (object instanceof ResourceType) {
+			return true;
+		}
+		return false;
 	}
 }

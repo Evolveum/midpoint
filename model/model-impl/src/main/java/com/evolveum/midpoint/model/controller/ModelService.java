@@ -25,7 +25,10 @@ import javax.xml.ws.Holder;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
+import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -41,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
@@ -52,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 // @Service
 public class ModelService implements ModelPortType {
 
+	private static final Trace LOGGER = TraceManager.getTrace(ModelService.class);
 	@Autowired(required = true)
 	private ModelController model;
 
@@ -60,7 +65,12 @@ public class ModelService implements ModelPortType {
 		notNullArgument(object, "Object must not be null.");
 		notNullResultHolder(result);
 
-		return model.addObject(object, OperationResult.createOperationResult(result.value));
+		try {
+			return model.addObject(object, OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL addObject() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	@Override
@@ -70,7 +80,12 @@ public class ModelService implements ModelPortType {
 		notNullArgument(resolve, "Property reference list  must not be null.");
 		notNullResultHolder(result);
 
-		return model.getObject(oid, resolve, OperationResult.createOperationResult(result.value));
+		try {
+			return model.getObject(oid, resolve, OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL getObject() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	@Override
@@ -80,7 +95,12 @@ public class ModelService implements ModelPortType {
 		notNullArgument(paging, "Paging  must not be null.");
 		notNullResultHolder(result);
 
-		return model.listObjects(objectType, paging, OperationResult.createOperationResult(result.value));
+		try {
+			return model.listObjects(objectType, paging, OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL listObjects() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	@Override
@@ -90,7 +110,12 @@ public class ModelService implements ModelPortType {
 		notNullArgument(paging, "Paging  must not be null.");
 		notNullResultHolder(result);
 
-		return model.searchObjects(query, paging, OperationResult.createOperationResult(result.value));
+		try {
+			return model.searchObjects(query, paging, OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL searchObjects() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	@Override
@@ -99,7 +124,12 @@ public class ModelService implements ModelPortType {
 		notNullArgument(change, "Object modification must not be null.");
 		notNullResultHolder(result);
 
-		model.modifyObject(change, OperationResult.createOperationResult(result.value));
+		try {
+			model.modifyObject(change, OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL modifyObject() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	@Override
@@ -107,7 +137,12 @@ public class ModelService implements ModelPortType {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
 		notNullResultHolder(result);
 
-		model.deleteObject(oid, OperationResult.createOperationResult(result.value));
+		try {
+			model.deleteObject(oid, OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL deleteObject() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	@Override
@@ -117,8 +152,13 @@ public class ModelService implements ModelPortType {
 		notNullArgument(properties, "Property reference list must not be null.");
 		notNullResultHolder(result);
 
-		return model.getPropertyAvailableValues(oid, properties,
-				OperationResult.createOperationResult(result.value));
+		try {
+			return model.getPropertyAvailableValues(oid, properties,
+					OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL getPropertyAvailableValues() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	@Override
@@ -127,7 +167,13 @@ public class ModelService implements ModelPortType {
 		notEmptyArgument(accountOid, "Account oid must not be null or empty.");
 		notNullResultHolder(result);
 
-		return model.listAccountShadowOwner(accountOid, OperationResult.createOperationResult(result.value));
+		try {
+			return model.listAccountShadowOwner(accountOid,
+					OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL listAccountShadowOwner() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	@Override
@@ -137,8 +183,13 @@ public class ModelService implements ModelPortType {
 		notEmptyArgument(resourceObjectShadowType, "Resource object shadow type must not be null or empty.");
 		notNullResultHolder(result);
 
-		return model.listResourceObjectShadows(resourceOid, resourceObjectShadowType,
-				OperationResult.createOperationResult(result.value));
+		try {
+			return model.listResourceObjectShadows(resourceOid, resourceObjectShadowType,
+					OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjectShadows() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	@Override
@@ -149,8 +200,13 @@ public class ModelService implements ModelPortType {
 		notNullArgument(paging, "Paging  must not be null.");
 		notNullResultHolder(result);
 
-		return model.listResourceObjects(resourceOid, objectType, paging,
-				OperationResult.createOperationResult(result.value));
+		try {
+			return model.listResourceObjects(resourceOid, objectType, paging,
+					OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjects() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	@Override
@@ -159,7 +215,12 @@ public class ModelService implements ModelPortType {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notNullResultHolder(result);
 
-		return model.testResource(resourceOid, OperationResult.createOperationResult(result.value));
+		try {
+			return model.testResource(resourceOid, OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	@Override
@@ -169,8 +230,13 @@ public class ModelService implements ModelPortType {
 		notEmptyArgument(objectClass, "Object class must not be null or empty.");
 		notNullResultHolder(result);
 
-		return model.launchImportFromResource(resourceOid, objectClass,
-				OperationResult.createOperationResult(result.value));
+		try {
+			return model.launchImportFromResource(resourceOid, objectClass,
+					OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL launchImportFromResource() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	@Override
@@ -179,7 +245,12 @@ public class ModelService implements ModelPortType {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notNullResultHolder(result);
 
-		return model.getImportStatus(resourceOid, OperationResult.createOperationResult(result.value));
+		try {
+			return model.getImportStatus(resourceOid, OperationResult.createOperationResult(result.value));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "# MODEL getImportStatus() failed.", ex);
+			throw createSystemFault(ex);
+		}
 	}
 
 	private void notNullResultHolder(Holder<OperationResultType> holder) throws FaultMessage {
@@ -202,5 +273,12 @@ public class ModelService implements ModelPortType {
 	private FaultMessage createIllegalArgumentFault(String message) {
 		FaultType faultType = new IllegalArgumentFaultType();
 		return new FaultMessage(message, faultType);
+	}
+
+	private FaultMessage createSystemFault(Exception ex) {
+		FaultType faultType = new SystemFaultType();
+		faultType.setMessage(ex.getMessage());
+
+		return new FaultMessage(ex.getMessage(), faultType, ex);
 	}
 }

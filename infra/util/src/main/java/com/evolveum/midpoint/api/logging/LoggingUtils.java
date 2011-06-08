@@ -18,20 +18,18 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.web.util;
+package com.evolveum.midpoint.api.logging;
 
 import org.apache.commons.lang.Validate;
-
-import com.evolveum.midpoint.api.logging.Trace;
 
 /**
  * 
  * @author lazyman
  * 
  */
-public class Utils {
+public class LoggingUtils {
 
-	//TODO: object list as parameters to message {}
+	// TODO: object list as parameters to message {}
 	public static void logException(Trace logger, String message, Exception ex, Object... objects) {
 		Validate.notNull(logger, "Logger can't be null.");
 		Validate.notNull(ex, "Exception can't be null.");

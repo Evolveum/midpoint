@@ -31,13 +31,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.web.util.Utils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
@@ -124,15 +124,15 @@ public class LoggingManager {
 			return logging;
 		} catch (JAXBException ex) {
 			String message = "Couldn't clone system configuration";
-			Utils.logException(LOGGER, message, ex);
+			LoggingUtils.logException(LOGGER, message, ex);
 			saveConfigResult.recordFatalError(message, ex);
 		} catch (DiffException ex) {
 			String message = "Couldn't create diff for system configuration";
-			Utils.logException(LOGGER, message, ex);
+			LoggingUtils.logException(LOGGER, message, ex);
 			saveConfigResult.recordFatalError(message, ex);
 		} catch (FaultMessage ex) {
 			String message = "Couldn't get system configuration";
-			Utils.logException(LOGGER, message, ex);
+			LoggingUtils.logException(LOGGER, message, ex);
 			saveConfigResult.recordFatalError(message, ex);
 		} finally {
 			OperationResult opResult = OperationResult.createOperationResult(resultTypeHolder);
@@ -159,7 +159,7 @@ public class LoggingManager {
 			getSystemConfigResult.recordSuccess();
 		} catch (FaultMessage ex) {
 			String message = "Couldn't get system configuration";
-			Utils.logException(LOGGER, message, ex);
+			LoggingUtils.logException(LOGGER, message, ex);
 
 			getSystemConfigResult.recordFatalError(message, ex);
 		} finally {

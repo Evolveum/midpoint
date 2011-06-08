@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.GuiUserDtoList;
@@ -45,7 +46,6 @@ import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.web.util.Utils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 
@@ -93,10 +93,10 @@ public class UserListController implements Serializable {
 			// TODO: handle exception
 			userDetailsController.setUser(user);
 		} catch (WebModelException ex) {
-			Utils.logException(TRACE, "Can't select user, WebModelException error occured", ex);
+			LoggingUtils.logException(TRACE, "Can't select user, WebModelException error occured", ex);
 			FacesUtils.addErrorMessage("Can't select user, WebModelException error occured.", ex);
 		} catch (Exception ex) {
-			Utils.logException(TRACE, "Can't select user, unknown error occured", ex);
+			LoggingUtils.logException(TRACE, "Can't select user, unknown error occured", ex);
 			FacesUtils.addErrorMessage("Can't select user, unknown error occured.", ex);
 		}
 
@@ -122,7 +122,7 @@ public class UserListController implements Serializable {
 				userList.getUsers().add(guiUserDto);
 			}
 		} catch (WebModelException ex) {
-			Utils.logException(TRACE, "List users failed", ex);
+			LoggingUtils.logException(TRACE, "List users failed", ex);
 			// TODO: faces utils error add
 		}
 	}
@@ -162,7 +162,7 @@ public class UserListController implements Serializable {
 				try {
 					userManager.delete(guiUserDto.getOid());
 				} catch (WebModelException ex) {
-					Utils.logException(TRACE, "Delete user failed", ex);
+					LoggingUtils.logException(TRACE, "Delete user failed", ex);
 					FacesUtils.addErrorMessage("Delete user failed: " + ex.getMessage());
 				}
 			}
@@ -185,7 +185,8 @@ public class UserListController implements Serializable {
 			try {
 				guiUserDto = (GuiUserDto) (userManager.get(searchOid, new PropertyReferenceListType()));
 			} catch (WebModelException ex) {
-				Utils.logException(TRACE, "Get user with oid {} failed", ex, new Object[] { searchOid });
+				LoggingUtils.logException(TRACE, "Get user with oid {} failed", ex,
+						new Object[] { searchOid });
 				FacesUtils.addErrorMessage("Get user failed, reason: " + ex.getTitle() + ", "
 						+ ex.getMessage());
 				return;
