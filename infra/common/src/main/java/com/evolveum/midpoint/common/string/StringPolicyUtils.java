@@ -72,51 +72,6 @@ public class StringPolicyUtils {
 			sp.setCharacterClass(cct);
 		}
 
-		// normalize values in character classes and add them directly to
-		// limitation (dereference)
-		for (StringLimitType l : sp.getLimitations().getLimit()) {
-			// If character class is referenced dereference it
-			if (l.getCharacterClass().getRef() != null) {
-				l.getCharacterClass().setValue(
-						collectCharacterClass(sp.getCharacterClass(), l.getCharacterClass().getRef()));
-			} else if (l.getCharacterClass().getValue() != null) {
-				// do nothing just to have notice everything is OK
-			} else {
-				// need to add default character class from policy
-				l.getCharacterClass().setValue(collectCharacterClass(sp.getCharacterClass(), null));
-			}
-		}
 		return sp;
-	}
-
-	/*
-	 * Prepare usable list of strings for generator
-	 */
-
-	private static String collectCharacterClass(CharacterClassType cc, QName ref) {
-		StrBuilder l = new StrBuilder();
-		if (null == cc) {
-			throw new IllegalArgumentException("Character class cannot be null");
-		}
-
-		if (null != cc.getValue() && (null == ref || ref.equals(cc.getName()))) {
-			l.append(cc.getValue());
-		} else if (null != cc.getCharacterClass() && !cc.getCharacterClass().isEmpty()) {
-			// Process all sub lists
-			for (CharacterClassType subClass : cc.getCharacterClass()) {
-				// If we found requested name or no name defined
-				if (null == ref || ref.equals(cc.getName())) {
-					l.append(collectCharacterClass(subClass, null));
-				} else {
-					l.append(collectCharacterClass(subClass, ref));
-				}
-			}
-		}
-		// Remove duplicity in return;
-		HashSet<String> h = new HashSet<String>();
-		for (String s : l.toString().split("")) {
-			h.add(s);
-		}
-		return new StrBuilder().appendAll(h).toString();
 	}
 }

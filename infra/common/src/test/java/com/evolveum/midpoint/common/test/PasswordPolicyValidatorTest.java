@@ -33,8 +33,10 @@ import org.junit.Test;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.password.PasswordGenerator;
 import com.evolveum.midpoint.common.password.PasswordPolicyUtils;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.common.string.StringPolicyUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
 
@@ -42,6 +44,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.StringLimitType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import javax.xml.bind.JAXBException;
@@ -86,6 +89,7 @@ public class PasswordPolicyValidatorTest {
 				.compareTo(sp.getCharacterClass().getValue()));
 	}
 
+	/*******************************************************************************************/
 	@Test
 	public void stringPolicyUtilsComplexTest() {
 		String filename = "password-policy-complex.xml";
@@ -102,7 +106,37 @@ public class PasswordPolicyValidatorTest {
 		StringPolicyType sp = pp.getStringPolicy();
 		StringPolicyUtils.normalize(sp);
 	}
+	
+	/*******************************************************************************************/
+	@Test
+	public void passwordGeneratorComplexTest() {
+		String filename = "password-policy-complex.xml";
+		String pathname = BASE_PATH + filename;
+		File file = new File(pathname);
+		JAXBElement<PasswordPolicyType> jbe = null;
+		try {
+			jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
+		PasswordPolicyType pp = jbe.getValue();
+		OperationResult op = new OperationResult("passwordGeneratorComplexTest");
+		String psswd = PasswordGenerator.generate(pp, op);
+		
+		assertTrue(op.isSuccess());
+		assertNotNull(psswd);
+		
+		//Switch to all must be first :-) to test if there is error
+		for (StringLimitType l: pp.getStringPolicy().getLimitations().getLimit()) {
+			l.setMustBeFirst(true);
+		}
+		psswd = PasswordGenerator.generate(pp, op);
+		assertNull(psswd);
+		assertTrue(op.getStatus() == OperationResultStatus.FATAL_ERROR);
+	}
+	
+	/*******************************************************************************************/
 	@Test
 	public void XMLPasswordPolicy() {
 		String filename = "password-policy-complex.xml";

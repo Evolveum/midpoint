@@ -54,7 +54,7 @@ public class PasswordPolicyUtils {
 	 * @return
 	 * @throws PasswordPolicyException
 	 */
-	public static PasswordPolicyType initialize(PasswordPolicyType pp) {
+	public static PasswordPolicyType normalize(PasswordPolicyType pp) {
 		if (null == pp) {
 			throw new IllegalArgumentException("Password policy cannot be null");
 		}
@@ -62,7 +62,8 @@ public class PasswordPolicyUtils {
 		if (null == pp.getStringPolicy()) {
 			StringPolicyType sp = new StringPolicyType();
 			pp.setStringPolicy(StringPolicyUtils.normalize(sp));
-
+		} else {
+			pp.setStringPolicy(StringPolicyUtils.normalize(pp.getStringPolicy()));
 		}
 
 		if (null == pp.getLifetime()) {
@@ -95,7 +96,7 @@ public class PasswordPolicyUtils {
 			throw new IllegalArgumentException("Provided password policy is NULL");
 		}
 		// Add missing and default parts
-		pp = initialize(pp);
+		pp = normalize(pp);
 
 		// Get global borders
 		int minSize = pp.getStringPolicy().getLimitations().getMinLength();
