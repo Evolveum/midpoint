@@ -5,7 +5,7 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component" xmlns:c="http://java.sun.com/jsp/jstl/core"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{lang.messages['page.config.debugView.title']}</ui:define>
+	<ui:define name="title">#{msg['page.config.debugView.title']}</ui:define>
 
 	<ui:define name="menu">
 		<ui:include src="./menu.xhtml" />
@@ -14,13 +14,13 @@
 	<ui:define name="content">
 		<ice:form>
 			<ice:selectBooleanCheckbox value="#{debugView.editOther}" immediate="true" partialSubmit="true"
-				style="margin-bottom: 7px;">#{lang.messages['page.config.debugView.editOther']}
+				style="margin-bottom: 7px;">#{msg['page.config.debugView.editOther']}
 			</ice:selectBooleanCheckbox>
 			<ice:panelGrid columns="4" cellpadding="7" cellspacing="7" rendered="#{debugView.editOther}">
-				<ice:outputLabel value="#{lang.messages['page.config.debugView.name']}" />
+				<ice:outputLabel value="#{msg['page.config.debugView.name']}" />
 				<ice:inputText id="editOtherName" value="#{debugView.editOtherName}" required="true" />
 				<idm:button action="#{debugView.editOtherObject}"
-					value="#{lang.messages['page.config.debugView.button.edit']}" img="/resources/images/page_white_code.png"
+					value="#{msg['page.config.debugView.button.edit']}" img="/resources/images/page_white_code.png"
 					id="backButton" />
 				<ice:message for="editOtherName" errorClass="error" />
 			</ice:panelGrid>
@@ -29,17 +29,17 @@
 		<hr />
 
 		<ice:panelGrid columns="2" cellpadding="7" cellspacing="7" rendered="#{debugView.viewEditable}">
-			<ice:outputLabel value="#{lang.messages['page.config.debugView.oid']}" />
+			<ice:outputLabel value="#{msg['page.config.debugView.oid']}" />
 			<ice:outputLabel value="#{debugView.object.oid}" />
 
-			<ice:outputLabel value="#{lang.messages['page.config.debugView.name']}" />
+			<ice:outputLabel value="#{msg['page.config.debugView.name']}" />
 			<ice:outputLabel value="#{debugView.object.name}" />
 		</ice:panelGrid>
 
 		<ice:form rendered="#{debugView.viewEditable}">
 			<ice:selectBooleanCheckbox value="#{debugView.editable}" immediate="true" partialSubmit="true"
 				style="margin-bottom: 7px;">
-					#{lang.messages['page.config.debugView.edit']}
+					#{msg['page.config.debugView.edit']}
 					</ice:selectBooleanCheckbox>
 			<ui:remove>
 				<ice:inputTextarea style="width: 967px; height: 350px;" value="#{debugView.xml}"
@@ -53,11 +53,11 @@
 			<idm:xmlInput id="editor" width="978" height="600" readonly="#{not debugView.editable}"
 				value="#{debugView.xml}" />
 			<div class="button-bar">
-				<idm:button action="#{debugView.back}" value="#{lang.messages['page.config.debugView.button.back']}"
+				<idm:button action="#{debugView.back}" value="#{msg['page.config.debugView.button.back']}"
 					img="/resources/images/door_in.png" id="backButton" immediate="true" />
 
 				<idm:button action="#{debugView.savePerformed}" id="saveButton" buttonType="positive"
-					value="#{lang.messages['page.config.debugView.button.save']}" img="/resources/images/disk.png" />
+					value="#{msg['page.config.debugView.button.save']}" img="/resources/images/disk.png" />
 			</div>
 		</ice:form>
 	</ui:define>

@@ -20,6 +20,9 @@
  */
 package com.evolveum.midpoint.web.bean;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -37,6 +40,7 @@ public class ResourceListItem extends SelectableBean {
 	private ResourceState state;
 	private ResourceSync sync;
 	private int progress;
+	private List<ResourceObjectType> objectTypes;
 
 	public ResourceListItem(String oid, String name, String type, String version) {
 		if (StringUtils.isEmpty(oid)) {
@@ -91,5 +95,12 @@ public class ResourceListItem extends SelectableBean {
 			sync = new ResourceSync();
 		}
 		return sync;
+	}
+
+	public List<ResourceObjectType> getObjectTypes() {
+		if (objectTypes == null) {
+			objectTypes = new ArrayList<ResourceObjectType>();
+		}
+		return objectTypes;
 	}
 }

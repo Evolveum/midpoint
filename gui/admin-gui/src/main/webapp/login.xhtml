@@ -5,27 +5,27 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{lang.messages['page.login.title']}</ui:define>
+	<ui:define name="title">#{msg['page.login.title']}</ui:define>
 
 	<ui:define name="sidebar"></ui:define>
 
 	<ui:define name="content">
 		<ice:form id="loginForm" partialSubmit="false">
 			<ice:panelGrid columns="3" cellpadding="5" cellspacing="5">
-				<ice:outputLabel for="userName" value="#{lang.messages['page.login.username']}" />
+				<ice:outputLabel for="userName" value="#{msg['page.login.username']}" />
 				<ice:inputText id="userName" value="#{loginController.userName}" required="true"
-					requiredMessage="#{lang.messages['field.required']}" />
+					requiredMessage="#{msg['field.required']}" />
 				<h:message for="userName" errorClass="error" />
 
-				<ice:outputLabel for="password" value="#{lang.messages['page.login.password']}" />
+				<ice:outputLabel for="password" value="#{msg['page.login.password']}" />
 				<ice:inputSecret id="password" value="#{loginController.password}" required="true"
-					requiredMessage="#{lang.messages['field.required']}" />
+					requiredMessage="#{msg['field.required']}" />
 				<h:message for="password" errorClass="error" />
 
 				<f:facet name="footer">
 					<div class="button-bar">
 						<idm:button action="#{loginController.login}" id="loginButton"
-							value="#{lang.messages['page.login.button']}" img="/resources/images/key.png" />
+							value="#{msg['page.login.button']}" img="/resources/images/key.png" />
 					</div>
 				</f:facet>
 			</ice:panelGrid>

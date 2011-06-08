@@ -30,7 +30,10 @@ import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.web.bean.DebugObject;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
+import com.evolveum.midpoint.web.controller.TemplateController;
+import com.evolveum.midpoint.web.controller.config.DebugViewController;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
@@ -45,6 +48,10 @@ public class ResourceDetailsController implements Serializable {
 	private static final Trace TRACE = TraceManager.getTrace(ResourceDetailsController.class);
 	@Autowired(required = true)
 	private transient ModelPortType model;
+	@Autowired(required = true)
+	private transient DebugViewController debugView;
+	@Autowired(required = true)
+	private transient TemplateController template;
 	private ResourceListItem resource;
 
 	public ResourceListItem getResource() {
@@ -66,6 +73,18 @@ public class ResourceDetailsController implements Serializable {
 
 		ResourceListController.testConnection(resource, model);
 		return null;
+	}
+
+	public String showDebugPages() {
+		debugView.setObject(new DebugObject(getResource().getOid(), getResource().getName()));
+		debugView.setEditOther(false);
+		String returnPage = debugView.viewObject();
+		if (DebugViewController.PAGE_NAVIGATION_VIEW.equals(returnPage)) {
+			template.setSelectedLeftId("leftViewEdit");
+			template.setSelectedTopId("topConfiguration");
+		}
+
+		return DebugViewController.PAGE_NAVIGATION_VIEW;
 	}
 
 	public String importFromResource() {

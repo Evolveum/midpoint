@@ -26,11 +26,9 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.ResourceBundle;
 
 import javax.faces.application.Application;
@@ -39,7 +37,6 @@ import javax.faces.context.FacesContext;
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.web.util.LangHashMap;
 
 /**
  * 
@@ -49,16 +46,7 @@ public class Language implements Serializable {
 
 	private static final long serialVersionUID = -7653202257375931789L;
 	private final transient Trace logger = TraceManager.getTrace(Language.class);
-	private Map<String, String> messages = new LangHashMap();
 	private Locale currentLocale;
-
-	public Map<String, String> getMessages() {
-		return messages;
-	}
-
-	public String translate(String key) {
-		return messages.get(key);
-	}
 
 	public Locale getCurrentLocale() {
 		if (currentLocale == null) {
@@ -83,14 +71,6 @@ public class Language implements Serializable {
 			Application application = FacesContext.getCurrentInstance().getApplication();
 			ResourceBundle bundle = ResourceBundle.getBundle(application.getMessageBundle(), locale);
 			if (bundle != null) {
-				messages = new LangHashMap();
-
-				Enumeration<String> enumer = bundle.getKeys();
-				while (enumer.hasMoreElements()) {
-					String key = enumer.nextElement();
-					messages.put(key, bundle.getString(key));
-				}
-
 				this.currentLocale = locale;
 
 				FacesContext.getCurrentInstance().getViewRoot().setLocale(this.currentLocale);

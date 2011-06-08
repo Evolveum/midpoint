@@ -15,28 +15,28 @@
 <composite:implementation>
 	<ice:panelPopup modal="true" autoCentre="true" visible="#{debugXPath.showBrowser}">
 		<f:facet name="header">
-			<ice:outputText value="#{lang.messages['page.composite.browser.title']}" />
+			<ice:outputText value="#{msg['page.composite.browser.title']}" />
 		</f:facet>
 		<f:facet name="body">
 			<ice:form>
 				<ice:panelTabSet style="width: 100%;" selectedIndex="#{userDetails.selectedTab}">
-					<ice:panelTab label="#{lang.messages['page.composite.browser.name.title']}"
-						title="#{lang.messages['page.composite.browser.name.description']}">
+					<ice:panelTab label="#{msg['page.composite.browser.name.title']}"
+						title="#{msg['page.composite.browser.name.description']}">
 						<ice:panelGrid columns="3" cellspacing="5">
-							<ice:outputText value="#{lang.messages['page.composite.browser.name']}" />
+							<ice:outputText value="#{msg['page.composite.browser.name']}" />
 							<ice:inputText value="#{cc.attrs.bean.name}" />
-							<idm:button value="#{lang.messages['page.composite.browser.name.search']}"
+							<idm:button value="#{msg['page.composite.browser.name.search']}"
 								action="#{cc.attrs.bean.searchByName}" img="/resources/images/magnifier.png" />
 						</ice:panelGrid>
 					</ice:panelTab>
-					<ice:panelTab label="#{lang.messages['page.composite.browser.type.title']}"
-						title="#{lang.messages['page.composite.browser.type.description']}">
+					<ice:panelTab label="#{msg['page.composite.browser.type.title']}"
+						title="#{msg['page.composite.browser.type.description']}">
 						<ice:panelGrid columns="3" cellspacing="5">
-							<ice:outputText value="#{lang.messages['page.composite.browser.type']}" />
+							<ice:outputText value="#{msg['page.composite.browser.type']}" />
 							<ice:selectOneMenu style="width: auto;" value="#{cc.attrs.bean.type}">
 								<f:selectItems value="#{cc.attrs.bean.types}" />
 							</ice:selectOneMenu>
-							<idm:button value="#{lang.messages['page.composite.browser.type.list']}"
+							<idm:button value="#{msg['page.composite.browser.type.list']}"
 								action="#{cc.attrs.bean.searchByType}" img="/resources/images/magnifier.png" />
 						</ice:panelGrid>
 					</ice:panelTab>
@@ -46,7 +46,7 @@
 					resizable="false">
 					<ice:column>
 						<f:facet name="header">
-							<ice:outputLabel value="#{lang.messages['page.composite.browser.table.name']}" />
+							<ice:outputLabel value="#{msg['page.composite.browser.table.name']}" />
 						</f:facet>
 						<ice:commandLink style="text-decoration: underline;" value="#{item.name}" action="#{cc.attrs.okAction}">
 							<f:param name="objectOid" value="#{item.oid}" />
@@ -54,13 +54,13 @@
 					</ice:column>
 					<ice:column>
 						<f:facet name="header">
-							<ice:outputLabel value="#{lang.messages['page.composite.browser.table.type']}" />
+							<ice:outputLabel value="#{msg['page.composite.browser.table.type']}" />
 						</f:facet>
 						<ice:outputText value="#{item.type}" />
 					</ice:column>
 					<ice:column>
 						<f:facet name="header">
-							<ice:outputLabel value="#{lang.messages['page.composite.browser.table.oid']}" />
+							<ice:outputLabel value="#{msg['page.composite.browser.table.oid']}" />
 						</f:facet>
 						<ice:outputText value="#{item.oid}" />
 					</ice:column>
@@ -69,7 +69,7 @@
 				<comp:paging bean="#{cc.attrs.bean}" />				
 
 				<div class="button-bar">
-					<idm:button value="#{lang.messages['page.composite.browser.button.cancel']}" buttonType="negative"
+					<idm:button value="#{msg['page.composite.browser.button.cancel']}" buttonType="negative"
 						action="#{cc.attrs.cancelAction}" />
 				</div>
 			</ice:form>

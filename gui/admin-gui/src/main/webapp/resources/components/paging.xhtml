@@ -12,14 +12,14 @@
 
 <composite:implementation>
 	<ice:panelGroup styleClass="container-auto" style="text-align: center;">
-		<idm:button img="/resources/images/resultset_first.png" value="#{lang.messages['page.paginator.first']}"
+		<idm:button img="/resources/images/resultset_first.png" value="#{msg['page.paginator.first']}"
 			action="#{cc.attrs.bean.listFirst}" enabled="#{cc.attrs.bean.firstEnabled}" />
 		<idm:button img="/resources/images/resultset_previous.png"
-			value="#{lang.messages['page.paginator.previous']}" action="#{cc.attrs.bean.listPrevious}"
+			value="#{msg['page.paginator.previous']}" action="#{cc.attrs.bean.listPrevious}"
 			enabled="#{cc.attrs.bean.previousEnabled}" />
-		<idm:button img="/resources/images/resultset_next.png" value="#{lang.messages['page.paginator.next']}"
+		<idm:button img="/resources/images/resultset_next.png" value="#{msg['page.paginator.next']}"
 			action="#{cc.attrs.bean.listNext}" enabled="#{cc.attrs.bean.nextEnabled}" />
-		<idm:button img="/resources/images/resultset_last.png" value="#{lang.messages['page.paginator.last']}"
+		<idm:button img="/resources/images/resultset_last.png" value="#{msg['page.paginator.last']}"
 			action="#{cc.attrs.bean.listLast}" enabled="#{cc.attrs.bean.lastEnabled}" />
 	</ice:panelGroup>
 </composite:implementation>

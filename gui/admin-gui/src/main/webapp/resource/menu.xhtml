@@ -4,9 +4,9 @@
 	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<idm:leftMenuContainer name="#{lang.messages['page.template.top.resources']}">
-		<idm:leftMenuItem id="leftResourceList" name="#{lang.messages['page.resource.index.title']}" action="#{resourceList.updateController}" />
-		<idm:leftMenuItem id="leftResourceCreate" name="#{lang.messages['page.resource.create.title']}" action="/resource/create/resourceCreate?faces-redirect=true" />		
+	<idm:leftMenuContainer name="#{msg['page.template.top.resources']}">
+		<idm:leftMenuItem id="leftResourceList" name="#{msg['page.resource.index.title']}" action="#{resourceList.updateController}" />
+		<idm:leftMenuItem id="leftResourceCreate" name="#{msg['page.resource.create.title']}" action="/resource/create/resourceCreate?faces-redirect=true" />		
 		<idm:leftMenuItem id="leftResourceConfig" name="Deprecated (old)" action="#{resourceTypeController.listResources}" />
 	</idm:leftMenuContainer>
 	<idm:leftMenuContainer name="Import">

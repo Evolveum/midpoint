@@ -5,25 +5,25 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{lang.messages['page.error.title']}</ui:define>
+	<ui:define name="title">#{msg['page.error.title']}</ui:define>
 
 	<ui:define name="sidebar"></ui:define>
 
 	<ui:define name="content">
-		#{lang.messages['page.error.titletext']}	
+		#{msg['page.error.titletext']}	
 		<ice:panelGrid columns="2" cellpadding="5" cellspacing="5" style="margin-top: 10px;">
-			<ice:outputText value="#{lang.messages['page.error.tabletitle']}" />
+			<ice:outputText value="#{msg['page.error.tabletitle']}" />
 			<ice:outputText value="#{error.title}" />
 
-			<ice:outputText value="#{lang.messages['page.error.tabledescription']}" />
+			<ice:outputText value="#{msg['page.error.tabledescription']}" />
 			<ice:outputText value="#{error.description}" />
 
-			<ice:outputText value="#{lang.messages['page.error.tableother']}" />
+			<ice:outputText value="#{msg['page.error.tableother']}" />
 			<ice:outputText value="#{error.otherDescription}" />
 		</ice:panelGrid>
 		<ice:form style="margin-top: 10px;">
 			<idm:button action="/index?faces-redirect=true" id="homeButton"
-				value="#{lang.messages['page.error.button']}" img="/resources/images/house.png" />
+				value="#{msg['page.error.button']}" img="/resources/images/house.png" />
 		</ice:form>
 	</ui:define>
 </ui:composition>

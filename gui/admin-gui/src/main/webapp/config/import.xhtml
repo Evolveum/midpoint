@@ -5,7 +5,7 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component" xmlns:ace="http://www.icefaces.org/icefaces/components"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{lang.messages['page.config.import.title']}</ui:define>
+	<ui:define name="title">#{msg['page.config.import.title']}</ui:define>
 
 	<ui:define name="menu">
 		<ui:include src="./menu.xhtml" />
@@ -21,11 +21,11 @@
 			<idm:xmlInput id="editor" height="600" readonly="false" value="#{import.editor}" />
 			<ul style="margin-top: 10px;">
 				<li><ice:selectBooleanCheckbox value="#{import.overwrite}">
-					#{lang.messages['page.config.import.overwrite']}
+					#{msg['page.config.import.overwrite']}
 					</ice:selectBooleanCheckbox>
 				</li>
 				<li><ice:selectBooleanCheckbox value="#{import.showFileUpload}" immediate="true" partialSubmit="true">
-					#{lang.messages['page.config.import.uploadFile']}</ice:selectBooleanCheckbox>
+					#{msg['page.config.import.uploadFile']}</ice:selectBooleanCheckbox>
 				</li>
 			</ul>
 			<ace:fileEntry style="margin-top: 5px;" id="fileEntryComp" fileEntryListener="#{import.uploadFile}"
@@ -34,7 +34,7 @@
 			<div class="button-bar">
 				<ice:panelGroup rendered="#{import.showFileUpload}">
 					<div class="buttons">
-						<h:commandButton value="#{lang.messages['page.config.import.button.uploadObject']}"
+						<h:commandButton value="#{msg['page.config.import.button.uploadObject']}"
 							styleClass="button positive fileUpload" />
 					</div>
 				</ice:panelGroup>
@@ -42,7 +42,7 @@
 				<ui:remove>
 					<!-- this button can't be used because ace:fileEntry needs standard full submit, not ajax submit -->
 				</ui:remove>
-				<idm:button value="#{lang.messages['page.config.import.button.uploadObject']}" buttonType="positive"
+				<idm:button value="#{msg['page.config.import.button.uploadObject']}" buttonType="positive"
 					action="#{import.upload}" img="/resources/images/add.png" partialSubmit="false" immediate="false"
 					rendered="#{not import.showFileUpload}" />
 			</div>

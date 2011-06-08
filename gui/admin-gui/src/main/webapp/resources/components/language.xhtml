@@ -10,7 +10,7 @@
     <composite:interface />
 
     <composite:implementation>
-        #{lang.messages['app.language']}:
+        #{msg['app.language']}:
             <ui:repeat value="#{lang.supportedLocales}" var="locale">
                 <ice:commandLink immediate="true">
                     <ice:graphicImage value="/resources/images/flag/#{locale.language}.png" alt="#{locale.language}" style="border:0px; margin-left:3px; margin-right:3px;"/>

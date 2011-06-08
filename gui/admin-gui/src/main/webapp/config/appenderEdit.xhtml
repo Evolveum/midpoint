@@ -5,7 +5,7 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component" xmlns:ace="http://www.icefaces.org/icefaces/components"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{lang.messages['page.config.appenderEdit.title']}</ui:define>
+	<ui:define name="title">#{msg['page.config.appenderEdit.title']}</ui:define>
 
 	<ui:define name="menu">
 		<ui:include src="./menu.xhtml" />
@@ -14,34 +14,34 @@
 	<ui:define name="content">
 		<ice:form>
 			<h:panelGrid columns="3" cellspacing="7px">
-				<ice:outputLabel value="#{lang.messages['page.config.appenderEdit.name']}" />
+				<ice:outputLabel value="#{msg['page.config.appenderEdit.name']}" />
 				<ice:inputText id="name" value="#{appenderEdit.item.name}" required="true" />
 				<ice:message for="name" errorClass="error" />
 
-				<ice:outputLabel value="#{lang.messages['page.config.appenderEdit.type']}" />
+				<ice:outputLabel value="#{msg['page.config.appenderEdit.type']}" />
 				<ice:selectOneMenu id="type" value="#{appenderEdit.item.typeString}" partialSubmit="true">
 					<f:selectItems value="#{logging.types}" />
 				</ice:selectOneMenu>
 				<ice:message for="type" errorClass="error" />
 
-				<ice:outputLabel value="#{lang.messages['page.config.appenderEdit.pattern']}" />
+				<ice:outputLabel value="#{msg['page.config.appenderEdit.pattern']}" />
 				<ice:inputText id="pattern" value="#{appenderEdit.item.pattern}" size="60" required="true" />
 				<ice:message for="pattern" errorClass="error" />
 				
-				<ice:outputLabel value="#{lang.messages['page.config.appenderEdit.filePath']}" rendered="#{appenderEdit.item.fileType}" />
+				<ice:outputLabel value="#{msg['page.config.appenderEdit.filePath']}" rendered="#{appenderEdit.item.fileType}" />
 				<ice:inputText id="filePath" value="#{appenderEdit.item.filePath}" rendered="#{appenderEdit.item.fileType}" required="true" />
 				<ice:message for="filePath" errorClass="error" rendered="#{appenderEdit.item.fileType}" />
 
-				<ice:outputLabel value="#{lang.messages['page.config.appenderEdit.maxFileSize']}" rendered="#{appenderEdit.item.fileType}" />
+				<ice:outputLabel value="#{msg['page.config.appenderEdit.maxFileSize']}" rendered="#{appenderEdit.item.fileType}" />
 				<ice:inputText id="maxFileSize" value="#{appenderEdit.item.maxFileSize}" rendered="#{appenderEdit.item.fileType}" required="true" />
 				<ice:message for="maxFileSize" errorClass="error" rendered="#{appenderEdit.item.fileType}" />				
 			</h:panelGrid>
 
 			<div class="button-bar">
-				<idm:button value="#{lang.messages['page.config.appenderEdit.button.back']}"
+				<idm:button value="#{msg['page.config.appenderEdit.button.back']}"
 					img="/resources/images/door_in.png" action="#{appenderEdit.backPerformed}" />
 
-				<idm:button value="#{lang.messages['page.config.appenderEdit.button.save']}" buttonType="positive"
+				<idm:button value="#{msg['page.config.appenderEdit.button.save']}" buttonType="positive"
 					img="/resources/images/disk.png" action="#{appenderEdit.savePerformed}" />
 			</div>
 		</ice:form>

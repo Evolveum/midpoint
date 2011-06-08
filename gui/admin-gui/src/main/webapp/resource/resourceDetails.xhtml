@@ -32,7 +32,7 @@
 						<ice:outputText value="#{resourceDetails.resource.version}" />
 					</ice:panelGrid>
 					<ice:commandLink style="margin-top: 40px; display: block; text-decoration: underline;"
-						value="See debug pages" />
+						value="See debug pages" action="#{resourceDetails.showDebugPages}"/>
 				</ice:panelGroup>
 
 				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
@@ -73,44 +73,8 @@
 			<div>***Here goes table with data types of resource***</div>
 			<div>***Unused buttons will be removed later***</div>
 
-			<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
-				<f:facet name="header">
-					<h3>Import Status</h3>
-				</f:facet>
-
-				<ice:outputText value="Running" />
-				<ice:outputText value="#{resourceTypeController.status.running}" />
-				
-				<ice:outputText value="Launch time" />
-				<ice:outputText value="#{resourceTypeController.status.launchTime}" />
-
-				<ice:outputText value="Finish time" />
-				<ice:outputText value="#{resourceTypeController.status.finishTime}" />
-
-				<ice:outputText value="Progress" />
-				<ice:outputText value="#{resourceTypeController.status.progress}" />				
-
-				<ice:outputText value="Last status" />
-				<ice:outputText value="#{resourceTypeController.status.lastStatus}" />
-
-				<ice:outputText value="Number of errors" />
-				<ice:outputText value="#{resourceTypeController.status.numberOfErrors}" />
-
-				<ice:outputText value="Last error" />
-				<ice:panelGroup />
-
-				<ice:outputText value="Message: " styleClass="importStatus" />
-				<ice:outputText value="#{resourceTypeController.status.lastError.message}" />
-
-				<ice:outputText value="Detail: " styleClass="importStatus" />
-				<ice:outputText value="#{resourceTypeController.status.lastError.details}" />
-
-				<ice:outputText value="Timestamp: " styleClass="importStatus" />
-				<ice:outputText value="#{resourceTypeController.status.lastError.timestamp}" />
-			</ice:panelGrid>
-
 			<div class="button-bar">
-				<idm:button action="#{resourceList.updateController}" value="#{lang.messages['Back']}"
+				<idm:button action="#{resourceList.updateController}" value="#{msg['Back']}"
 					img="/resources/images/door_in.png" />
 				<idm:button value="Disable" img="/resources/images/drive_burn.png" id="disableResource" immediate="true" />
 				<idm:button id="deleteResource" buttonType="negative" value="Delete"

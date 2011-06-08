@@ -4,23 +4,23 @@
 	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<idm:leftMenuContainer name="#{lang.messages['page.template.top.configuration']}">
-		<idm:leftMenuItem id="leftBasic" name="#{lang.messages['page.config.index.title']}"
+	<idm:leftMenuContainer name="#{msg['page.template.top.configuration']}">
+		<idm:leftMenuItem id="leftBasic" name="#{msg['page.config.index.title']}"
 			action="/config/index?faces-redirect=true" />
-		<idm:leftMenuItem id="leftLogging" name="#{lang.messages['page.config.logging.title']}" action="#{logging.initController}" />
+		<idm:leftMenuItem id="leftLogging" name="#{msg['page.config.logging.title']}" action="#{logging.initController}" />
 		<idm:leftMenuItem id="leftTraces" name="Traces (old)" action="/config/trace?faces-redirect=true" />
 	</idm:leftMenuContainer>
-	<idm:leftMenuContainer name="#{lang.messages['page.config.menu.debugging']}">
-		<idm:leftMenuItem id="leftViewEdit" name="#{lang.messages['page.config.debugView.title']}"
+	<idm:leftMenuContainer name="#{msg['page.config.menu.debugging']}">
+		<idm:leftMenuItem id="leftViewEdit" name="#{msg['page.config.debugView.title']}"
 			action="#{debugView.initController}" />
-		<idm:leftMenuItem id="leftList" name="#{lang.messages['page.config.debugList.title']}"
+		<idm:leftMenuItem id="leftList" name="#{msg['page.config.debugList.title']}"
 			action="#{debugList.initController}" />
 
-		<idm:leftMenuItem id="leftXpath" name="#{lang.messages['page.config.debugXPath.title']}"
+		<idm:leftMenuItem id="leftXpath" name="#{msg['page.config.debugXPath.title']}"
 			action="#{debugXPath.cleanupController}" />
 	</idm:leftMenuContainer>
-	<idm:leftMenuContainer name="#{lang.messages['page.config.menu.import']}">
-		<idm:leftMenuItem id="leftImport" name="#{lang.messages['page.config.import.title']}"
+	<idm:leftMenuContainer name="#{msg['page.config.menu.import']}">
+		<idm:leftMenuItem id="leftImport" name="#{msg['page.config.import.title']}"
 			action="/config/import?faces-redirect=true" />
 	</idm:leftMenuContainer>
 </ui:composition>

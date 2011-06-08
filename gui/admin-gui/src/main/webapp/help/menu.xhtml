@@ -4,8 +4,8 @@
 	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<idm:leftMenuContainer name="Help">
-		<idm:leftMenuItem id="leftAbout" name="About midPoint" action="/help/index?faces-redirect=true" />
-		<idm:leftMenuItem id="leftAboutSystem" name="About System" action="/help/system?faces-redirect=true" />
+	<idm:leftMenuContainer name="#{msg['Help']}">
+		<idm:leftMenuItem id="leftAbout" name="#{msg['About midPoint']}" action="/help/index?faces-redirect=true" />
+		<idm:leftMenuItem id="leftAboutSystem" name="#{msg['About System']}" action="/help/system?faces-redirect=true" />
 	</idm:leftMenuContainer>
 </ui:composition>

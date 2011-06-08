@@ -17,11 +17,11 @@
 	<h:body>
 		<div id="header">
 			<div id="login-box">
-				<span> <ice:outputLabel value="#{lang.messages['page.template.loggedInAs']}"
+				<span> <ice:outputLabel value="#{msg['page.template.loggedInAs']}"
 						rendered="#{security.isUserLoggedIn}" /> <em>&nbsp; <ice:outputLabel
 							value="#{security.shortUserName}" rendered="#{security.isUserLoggedIn}" /> </em> </span> <span> <ice:form
 						rendered="#{not security.isUserLoggedIn}" style="display: inline;">			
-	                    #{lang.messages['page.template.language']}:
+	                    #{msg['page.template.language']}:
 		            <ui:repeat value="#{lang.supportedLocales}" var="locale">
 							<ice:commandLink immediate="true">
 								<ice:graphicImage value="/resources/images/flag/#{locale.language}.png" alt="#{locale.language}"
@@ -34,13 +34,13 @@
 				<f:verbatim styleClass="delimiter" rendered="#{security.isUserLoggedIn}">|</f:verbatim>
 				<span> <ice:outputLink rendered="#{security.isUserLoggedIn}"
 						value="#{facesContext.externalContext.requestContextPath}/j_spring_security_logout">
-						<span>#{lang.messages['page.template.logout']}</span>
+						<span>#{msg['page.template.logout']}</span>
 					</ice:outputLink> </span>
 
 				<f:verbatim styleClass="delimiter" rendered="#{security.isUserLoggedIn}">|</f:verbatim>
 				<ice:outputLink value="#{facesContext.externalContext.requestContextPath}/help/index.iface"
 					rendered="#{security.isUserLoggedIn}">
-					<span>#{lang.messages['page.template.help']}</span>
+					<span>#{msg['page.template.help']}</span>
 				</ice:outputLink>
 				<ice:panelGroup style="padding-right: 10px; display: inline-block;">&nbsp;</ice:panelGroup>
 			</div>
@@ -55,33 +55,33 @@
 			<div class="container">
 				<idm:topMenu selected="#{template.selectedTopId}">
 					<idm:topMenuItem id="topHome" action="/index?faces-redirect=true"
-						name="#{lang.messages['page.template.top.home']}"
-						description="#{lang.messages['page.template.top.description.home']}" />
+						name="#{msg['page.template.top.home']}"
+						description="#{msg['page.template.top.description.home']}" />
 					<idm:topMenuItem id="topAccounts" action="#{userList.fillTableList}"
-						name="#{lang.messages['page.template.top.accounts']}"
-						description="#{lang.messages['page.template.top.description.accounts']}" />
+						name="#{msg['page.template.top.accounts']}"
+						description="#{msg['page.template.top.description.accounts']}" />
 					<ui:remove>
 						<idm:topMenuItem id="topWorkItems" action="/work/index?faces-redirect=true"
-							name="#{lang.messages['page.template.top.workitems']}"
-							description="#{lang.messages['page.template.top.description.workitems']}" />
+							name="#{msg['page.template.top.workitems']}"
+							description="#{msg['page.template.top.description.workitems']}" />
 					</ui:remove>
 					<idm:topMenuItem id="topRoles" action="/role/index?faces-redirect=true"
-						name="#{lang.messages['page.template.top.roles']}"
-						description="#{lang.messages['page.template.top.description.roles']}" />
+						name="#{msg['page.template.top.roles']}"
+						description="#{msg['page.template.top.description.roles']}" />
 					<idm:topMenuItem id="topResources" action="#{resourceList.updateController}"
-						name="#{lang.messages['page.template.top.resources']}"
-						description="#{lang.messages['page.template.top.description.resources']}" />
+						name="#{msg['page.template.top.resources']}"
+						description="#{msg['page.template.top.description.resources']}" />
 					<ui:remove>
 						<idm:topMenuItem id="topServerTasks" action="/server/index?faces-redirect=true"
-							name="#{lang.messages['page.template.top.servertasks']}"
-							description="#{lang.messages['page.template.top.description.servertasks']}" />
+							name="#{msg['page.template.top.servertasks']}"
+							description="#{msg['page.template.top.description.servertasks']}" />
 						<idm:topMenuItem id="topReports" action="/report/index?faces-redirect=true"
-							name="#{lang.messages['page.template.top.reports']}"
-							description="#{lang.messages['page.template.top.description.reports']}" />
+							name="#{msg['page.template.top.reports']}"
+							description="#{msg['page.template.top.description.reports']}" />
 					</ui:remove>
 					<idm:topMenuItem id="topConfiguration" action="/config/index?faces-redirect=true"
-						name="#{lang.messages['page.template.top.configuration']}"
-						description="#{lang.messages['page.template.top.description.configuration']}" />
+						name="#{msg['page.template.top.configuration']}"
+						description="#{msg['page.template.top.description.configuration']}" />
 				</idm:topMenu>
 			</div>
 		</h:panelGroup>
@@ -126,7 +126,7 @@
 		<div class="clear"></div>
 		<div id="footer">
 			<div class="container">
-				<p id="credit">#{lang.messages['page.template.copyright']}</p>
+				<p id="credit">#{msg['page.template.copyright']}</p>
 			</div>
 		</div>
 	</h:body>
