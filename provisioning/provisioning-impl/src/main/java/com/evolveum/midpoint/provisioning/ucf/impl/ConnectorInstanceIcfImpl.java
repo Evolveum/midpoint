@@ -231,6 +231,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		}
 
+		result.recordSuccess();
 		return mpSchema;
 	}
 
@@ -264,7 +265,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		try {
 
 			// Invoke the ICF connector
-			co = fetchConnectorObject(icfObjectClass, uid, parentResult);
+			co = fetchConnectorObject(icfObjectClass, uid, result);
 
 		} catch (CommunicationException ex) {
 			result.recordFatalError("ICF invocation failed due to communication problem");
@@ -318,7 +319,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		try {
 
 			// Invoke the ICF connector
-			co = fetchConnectorObject(icfObjectClass, uid, parentResult);
+			co = fetchConnectorObject(icfObjectClass, uid, result);
 
 		} catch (CommunicationException ex) {
 			result.recordFatalError("ICF invocation failed due to communication problem");
@@ -363,6 +364,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			co = connector.getObject(icfObjectClass, uid, null);
 
 			icfResult.recordSuccess();
+			icfResult.setReturnValue(co);
 		} catch (Exception ex) {
 			// ICF interface does not specify exceptions or other error
 			// conditions.

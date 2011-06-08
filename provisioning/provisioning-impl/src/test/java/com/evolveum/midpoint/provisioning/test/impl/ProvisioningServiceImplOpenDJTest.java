@@ -71,6 +71,8 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee";
 	private static final String FILENAME_ACCOUNT1 = "src/test/resources/impl/account1.xml";
 	private static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
+	private static final String FILENAME_ACCOUNT_BAD = "src/test/resources/impl/account-bad.xml";
+	private static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
 	private static final String NON_EXISTENT_OID ="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 	
     protected static OpenDJUtil djUtil = new OpenDJUtil();
@@ -113,6 +115,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
 		addObjectFromFile(FILENAME_ACCOUNT1);
+		addObjectFromFile(FILENAME_ACCOUNT_BAD);
 		
 		RepositoryWrapper repositoryWrapper = new RepositoryWrapper(repositoryPort);
 		
@@ -163,7 +166,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	 * Let's try to fetch object that does not exist in the repository.
 	 */
 	@Test
-	public void testGetObjectNotFound() {
+	public void testGetObjectNotFoundRepo() {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".getObjectTest");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		
@@ -172,8 +175,14 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			fail("Expected exception, but haven't got one");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
-			System.out.println("NOT FOUND result:");
+			
+			// Just to close the top-level result.
+			result.recordFatalError("Error :-)");
+			
+			System.out.println("NOT FOUND REPO result:");
 			System.out.println(result.debugDump());
+			
+			assertFalse(result.hasUnknownStatus());
 			// TODO: check result
 		} catch (CommunicationException e) {
 			fail("Expected ObjectNotFoundException, but got"+e);
@@ -182,5 +191,36 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		}
 		
 	}
-	
+
+	/**
+	 * Let's try to fetch object that does exit in the repository but does not
+	 * exist in the resource.
+	 */
+	@Test
+	public void testGetObjectNotFoundResource() {
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".getObjectTest");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		
+		try {
+			ObjectType object = provisioningService.getObject(ACCOUNT_BAD_OID, resolve, result);
+			fail("Expected exception, but haven't got one");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+
+			// Just to close the top-level result.
+			result.recordFatalError("Error :-)");
+			
+			System.out.println("NOT FOUND RESOURCE result:");
+			System.out.println(result.debugDump());
+			
+			assertFalse(result.hasUnknownStatus());
+			// TODO: check result
+		} catch (CommunicationException e) {
+			fail("Expected ObjectNotFoundException, but got"+e);
+		} catch (SchemaException e) {
+			fail("Expected ObjectNotFoundException, but got"+e);
+		}
+		
+	}
+
 }

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.object.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -111,18 +112,37 @@ public class ShadowCache {
 		return connectorManager;
 	}
 	
+	/**
+	 * Set the value of connector manager.
+	 * 
+	 * Expected to be injected.
+	 * 
+	 * @param connectorManager
+	 */
 	public void setConnectorManager(ConnectorManager connectorManager) {
 		this.connectorManager = connectorManager;
 	}
 
 	/**
-	 * OID identitfication - normal usage
-	 * @param oid
-	 * @param resource
-	 * @return 
-	 * @throws ObjectNotFoundException 
-	 * @throws CommunicationException 
-	 * @throws SchemaException 
+	 * Gets the object with specified OID
+	 * 
+	 * The shadow will be read from the repository and missing information
+	 * will be fetched from the resource.
+	 * 
+	 * If no resource is specified, appropriate resource definition will
+	 * be fetched from the repository. Specifying resource is just an
+	 * optimization.
+	 * 
+	 * This method is using identification by OID. This is intended for normal
+	 * usage. Method that uses native identification will be provided later.
+	 * 
+	 * @param oid OID of shadow to get.
+	 * @param resource ResourceType where to get the object from (optional)
+	 * @return retrieved shadow (merged attributes from repository and resource)
+	 * @throws ObjectNotFoundException shadow was not found or object was not found
+	 * 				on the resource
+	 * @throws CommunicationException problem communicating with the resource 
+	 * @throws SchemaException problem processing schema or schema violation
 	 */
 	public ResourceObjectShadowType getObject(String oid, ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException {
 
@@ -136,7 +156,6 @@ public class ShadowCache {
 		
 		if (resource==null) {
 			resource = getResource(ResourceObjectShadowUtil.getResourceOid(repositoryShadow), parentResult);
-			// TODO: Add to the result or not?
 		}
 		
 		// Get the fresh object from UCF
@@ -149,8 +168,8 @@ public class ShadowCache {
 		
 		if (rod==null) {
 			// Unknown objectclass
-			SchemaException ex = new SchemaException("Object class "+objectClass+" is not known in schema of resource "+ObjectTypeUtil.toShortString(resource));
-			parentResult.recordFatalError("Object class "+objectClass+" is not known", ex);
+			SchemaException ex = new SchemaException("Object class "+objectClass+" defined in the repository shadow is not known in schema of resource "+ObjectTypeUtil.toShortString(resource));
+			parentResult.recordFatalError("Object class "+objectClass+" defined in the repository shadow is not known in resource schema", ex);
 			throw ex;
 		}
 		
@@ -177,8 +196,7 @@ public class ShadowCache {
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 			throw new CommunicationException("Error communicating with the connector",ex);
 		} catch (GenericFrameworkException ex) {
-			// No idea what to do with this. TODO: figure out
-			throw new RuntimeException("Generic error in connector "+connector+": "+ex.getMessage(),ex);
+			throw new GenericConnectorException("Generic error in connector "+connector+": "+ex.getMessage(),ex);
 		}
 		
 		// Let's replace the attribute values fetched from repository with the
@@ -202,38 +220,9 @@ public class ShadowCache {
 
 	// TODO: native identification - special cases
 
-	private ConnectorInstance getConnectorInstance(ResourceType resource) {
-		// TODO: Add caching later
-		return getConnectorManager().createConnectorInstance(resource);
-	}
 	
-	private Schema getResourceSchema(ResourceType resource, ConnectorInstance connector, OperationResult parentResult) throws CommunicationException {
-
-		// TEMPORARY HACK: Fetch schema from connector
-		
-		try {
-			return connector.fetchResourceSchema(parentResult);
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
-			throw new CommunicationException("Error communicating with the connector "+connector,ex);
-		} catch (GenericFrameworkException ex) {
-			// No idea what to do with this. TODO: figure out
-			throw new RuntimeException("Generic error in connector "+connector+": "+ex.getMessage(),ex);
-		}
-		
-		// Need to add some form of caching here.
-		// For now just parse it from the resource definition.
-		
-//		Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(resource);
-//		if (schemaElement==null) {
-//			throw new SchemaException("No schema found in definition of resource "+ObjectTypeUtil.toShortString(resource));
-//		}
-//		return Schema.parse(schemaElement);
-	}
-	
-	private ResourceType getResource(String oid ,OperationResult parentResult) throws ObjectNotFoundException {
-		// TODO: add some caching
-		return (ResourceType) getRepositoryService().getObject(oid,null,parentResult);
-	}
+	// OLD METHODS
+	// TODO: refactor to current needs
 	
     /**
      * Locates the appropriate Shadow in repository, updates it as necessary and
@@ -374,6 +363,40 @@ public class ShadowCache {
 //
 //        return query;
 //    }
-
 	
+	
+	// UTILITY METHODS
+	
+	private ConnectorInstance getConnectorInstance(ResourceType resource) {
+		// TODO: Add caching later
+		return getConnectorManager().createConnectorInstance(resource);
+	}
+	
+	private Schema getResourceSchema(ResourceType resource, ConnectorInstance connector, OperationResult parentResult) throws CommunicationException {
+
+		// TEMPORARY HACK: Fetch schema from connector
+		
+		try {
+			return connector.fetchResourceSchema(parentResult);
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+			throw new CommunicationException("Error communicating with the connector "+connector,ex);
+		} catch (GenericFrameworkException ex) {
+			throw new GenericConnectorException("Generic error in connector "+connector+": "+ex.getMessage(),ex);
+		}
+		
+		// Need to add some form of caching here.
+		// For now just parse it from the resource definition.
+		
+//		Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(resource);
+//		if (schemaElement==null) {
+//			throw new SchemaException("No schema found in definition of resource "+ObjectTypeUtil.toShortString(resource));
+//		}
+//		return Schema.parse(schemaElement);
+	}
+	
+	private ResourceType getResource(String oid ,OperationResult parentResult) throws ObjectNotFoundException {
+		// TODO: add some caching
+		return (ResourceType) getRepositoryService().getObject(oid,null,parentResult);
+	}
+		
 }

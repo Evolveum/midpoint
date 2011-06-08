@@ -19,14 +19,18 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import org.apache.commons.lang.NotImplementedException;
+
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -92,7 +96,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.record(e);
 			throw e;
 		}
-		// TODO: Error handling
 		
 		if (object instanceof ResourceObjectShadowType) {
 			//ResourceObjectShadowType shadow = (ResourceObjectShadowType)object;
@@ -111,7 +114,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				result.record(e);
 				throw e;
 			}
-			// TODO: error handling
 				
 			// TODO: object resolving
 			return shadow;
@@ -119,6 +121,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			return object;
 		}
 
+	}
+
+	@Override
+	public String addObject(ObjectType object, ScriptsType scripts, OperationResult parentResult)
+			throws ObjectAlreadyExistsException, SchemaException, CommunicationException {
+		// TODO
+		throw new NotImplementedException();
 	}
 	
 }

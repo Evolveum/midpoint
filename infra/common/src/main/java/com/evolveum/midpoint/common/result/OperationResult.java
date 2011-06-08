@@ -29,6 +29,7 @@ import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.schema.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
@@ -54,12 +55,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 public class OperationResult implements Serializable {
 
 	private static final long serialVersionUID = -2467406395542291044L;
-	private static final String INDENT_STRING = "  ";
+	private static final String INDENT_STRING = "    ";
 	public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
 	private String operation;
 	private OperationResultStatus status;
 	private Map<String, Object> params;
 	private Map<String, Object> context;
+	private Object returnValue;
+	// This is necessary as "null" may be a valid return value and we need to distinguish
+	// if the value of "null" was set or someone forgot to set the return value.
+	private boolean returnValueSet = false;
 	private long token;
 	private String messageCode;
 	private String message;
@@ -276,6 +281,15 @@ public class OperationResult implements Serializable {
 	public void addContext(String contextName, Object value) {
 		getContext().put(contextName, value);
 	}
+	
+	public Object getReturnValue() {
+		return returnValue;
+	}
+	
+	public void setReturnValue(Object returnValue) {
+		returnValueSet = true;
+		this.returnValue = returnValue;
+	}
 
 	/**
 	 * @return Contains random long number, for better searching in logs.
@@ -366,8 +380,15 @@ public class OperationResult implements Serializable {
 		recordStatus(OperationResultStatus.PARTIAL_ERROR, message);
 	}
 	
-	// TODO: switch to a localized message later
+	/**
+	 * Records result from a common exception type.
+	 * This automatically determines status and also sets
+	 * appropriate message.
+	 *  
+	 * @param exception common exception
+	 */
 	public void record(CommonException exception) {
+		// TODO: switch to a localized message later
 		// Exception is a fatal error in this context
 		recordFatalError(exception.getOperationResultMessage(), exception);
 	}
@@ -375,6 +396,25 @@ public class OperationResult implements Serializable {
 	public void recordStatus(OperationResultStatus status, String message) {
 		this.status = status;
 		this.message = message;
+	}
+	
+	/**
+	 * Returns true if result status is UNKNOWN or any of the subresult
+	 * status is unknown (recursive).
+	 * 
+	 * May come handy in tests to check if all the operations fill out the
+	 * status as they should.
+	 */
+	public boolean hasUnknownStatus() {
+		if (status == OperationResultStatus.UNKNOWN) {
+			return true;
+		}
+		for (OperationResult subresult : getSubresults()) {
+			if (subresult.hasUnknownStatus()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
@@ -392,7 +432,7 @@ public class OperationResult implements Serializable {
 		for (int i = 0; i < indent; i++) {
 			sb.append(INDENT_STRING);
 		}
-		sb.append("op: ");
+		sb.append("*op* ");
 		sb.append(operation);
 		sb.append(", st: ");
 		sb.append(status);
@@ -410,10 +450,10 @@ public class OperationResult implements Serializable {
 			for (int i = 0; i < indent+2; i++) {
 				sb.append(INDENT_STRING);
 			}
-			sb.append("p:");
+			sb.append("[p]");
 			sb.append(entry.getKey());
-			sb.append(": ");
-			sb.append(entry.getValue());
+			sb.append("=");
+			sb.append(DebugUtil.prettyPrint(entry.getValue()));
 			sb.append("\n");
 		}
 
@@ -421,11 +461,20 @@ public class OperationResult implements Serializable {
 			for (int i = 0; i < indent+2; i++) {
 				sb.append(INDENT_STRING);
 			}
-			sb.append("c:");
+			sb.append("[c]");
 			sb.append(entry.getKey());
-			sb.append(": ");
-			sb.append(entry.getValue());
+			sb.append("=");
+			sb.append(DebugUtil.prettyPrint(entry.getValue()));
 			sb.append("\n");
+		}
+		
+		if (returnValueSet) {
+			for (int i = 0; i < indent+2; i++) {
+				sb.append(INDENT_STRING);
+			}
+			sb.append("[r]=");
+			sb.append(DebugUtil.prettyPrint(returnValue));
+			sb.append("\n");			
 		}
 
 		for (OperationResult sub : getSubresults()) {

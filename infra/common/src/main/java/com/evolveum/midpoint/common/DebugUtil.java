@@ -619,4 +619,18 @@ public class DebugUtil {
 			return ("Error marshalling the object: " + ex.getMessage());
 		}
 	}
+
+	public static String prettyPrint(Object value) {
+		if (value == null) {
+			return "null";
+		}
+		// TODO: temporary hack. Maybe we can use
+		// reflection instead of horde of if-s
+		if (value instanceof ObjectType) {
+			ObjectType object = (ObjectType) value;
+			return prettyPrint(object);
+		} else {
+			return value.toString();
+		}
+	}
 }
