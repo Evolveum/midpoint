@@ -32,7 +32,7 @@
 						<ice:outputText value="#{resourceDetails.resource.version}" />
 					</ice:panelGrid>
 					<ice:commandLink style="margin-top: 40px; display: block; text-decoration: underline;"
-						value="See debug pages" action="#{resourceDetails.showDebugPages}"/>
+						value="See debug pages" action="#{resourceDetails.showDebugPages}" />
 				</ice:panelGroup>
 
 				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
@@ -70,7 +70,50 @@
 			</ice:panelGrid>
 
 			<h3>Object Types</h3>
-			<div>***Here goes table with data types of resource***</div>
+			<ice:dataTable rows="30" value="#{resourceDetails.resource.objectTypes}" var="item"
+				columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
+				columnWidths="150px, 150px, 150px, 250px, 120px" resizable="false">
+
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputText value="displayName" />
+					</f:facet>
+					<ice:outputText>
+						<ice:commandLink styleClass="iceOutTxt" style="text-decoration: underline;"
+							value="#{item.displayName}">
+							<f:param name="objectType" value="aaa" />
+						</ice:commandLink>
+					</ice:outputText>
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputText value="nativeObjectClass" />
+					</f:facet>
+					<ice:outputText value="#{item.nativeObjectClass}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputText value="type" />
+					</f:facet>
+					<ice:outputText value="#{item.type}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputText value="help" />
+					</f:facet>
+					<ice:outputText value="#{item.help}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+					</f:facet>
+					<ice:outputText>
+						<ice:commandLink styleClass="iceOutTxt" style="text-decoration: underline;"
+							value="List Objects">
+							<f:param name="objectType" value="aaa" />
+						</ice:commandLink>
+					</ice:outputText>
+				</ice:column>
+			</ice:dataTable>
 			<div>***Unused buttons will be removed later***</div>
 
 			<div class="button-bar">

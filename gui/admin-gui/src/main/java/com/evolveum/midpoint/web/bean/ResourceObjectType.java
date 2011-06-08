@@ -22,6 +22,10 @@ package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang.Validate;
+
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+
 /**
  * 
  * @author lazyman
@@ -29,4 +33,48 @@ import java.io.Serializable;
  */
 public class ResourceObjectType implements Serializable {
 
+	private static final long serialVersionUID = 540057301300463142L;
+	private String displayName;
+	private String nativeObjectClass;
+	private String help;
+	private String type;
+
+	public ResourceObjectType(ResourceObjectDefinition definition) {
+		Validate.notNull(definition, "Resource object definition can't be null.");
+
+		displayName = definition.getDisplayName();
+		nativeObjectClass = definition.getNativeObjectClass();
+		help = definition.getHelp();
+		if (definition.getTypeName() != null) {
+			type = definition.getTypeName().getLocalPart();
+		}
+	}
+
+	public String getDisplayName() {
+		if (displayName == null) {
+			return "";
+		}
+		return displayName;
+	}
+
+	public String getNativeObjectClass() {
+		if (nativeObjectClass == null) {
+			return "";
+		}
+		return nativeObjectClass;
+	}
+
+	public String getHelp() {
+		if (help == null) {
+			return "";
+		}
+		return help;
+	}
+
+	public String getType() {
+		if (type == null) {
+			return "";
+		}
+		return type;
+	}
 }

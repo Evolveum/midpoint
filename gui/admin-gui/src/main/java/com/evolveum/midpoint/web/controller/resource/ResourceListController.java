@@ -22,6 +22,7 @@ package com.evolveum.midpoint.web.controller.resource;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
 
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
@@ -39,7 +40,12 @@ import org.w3c.dom.Node;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.processor.Definition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
+import com.evolveum.midpoint.web.bean.ResourceObjectType;
 import com.evolveum.midpoint.web.bean.ResourceState;
 import com.evolveum.midpoint.web.bean.ResourceStatus;
 import com.evolveum.midpoint.web.bean.SortedResourceList;
@@ -55,6 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType.ExtraTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
@@ -251,7 +258,29 @@ public class ResourceListController implements Serializable {
 		String type = getConnectorInfo("bundleName", resource);
 		String version = getConnectorInfo("bundleVersion", resource);
 
-		return new ResourceListItem(resource.getOid(), resource.getName(), type, version);
+		ResourceListItem item = new ResourceListItem(resource.getOid(), resource.getName(), type, version);
+		XmlSchemaType xmlSchema = resource.getSchema();
+		if (xmlSchema == null || xmlSchema.getAny().isEmpty()) {
+			return item;
+		}
+
+		try {
+			Schema schema = Schema.parse(xmlSchema.getAny().get(0));
+			Set<Definition> definitions = schema.getDefinitions();
+			for (Definition definition : definitions) {
+				if (!(definition instanceof ResourceObjectDefinition)) {
+					continue;
+				}
+
+				ResourceObjectDefinition objectDefinition = (ResourceObjectDefinition) definition;
+				item.getObjectTypes().add(new ResourceObjectType(objectDefinition));
+			}
+		} catch (SchemaProcessorException ex) {
+			FacesUtils.addErrorMessage("Couldn't parse schema for resource '" + resource.getName()
+					+ "', reason: " + ex.getMessage());
+		}
+
+		return item;
 	}
 
 	private String getConnectorInfo(String name, ResourceType resource) {
