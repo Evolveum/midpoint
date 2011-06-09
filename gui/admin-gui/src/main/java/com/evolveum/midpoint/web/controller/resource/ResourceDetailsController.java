@@ -33,6 +33,7 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.DebugObject;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
+import com.evolveum.midpoint.web.bean.ResourceObjectType;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.config.DebugViewController;
 import com.evolveum.midpoint.web.util.FacesUtils;
@@ -133,31 +134,53 @@ public class ResourceDetailsController implements Serializable {
 		template.setSelectedLeftId(ResourceSyncController.NAVIGATION_LEFT);
 		return ResourceSyncController.PAGE_NAVIGATION;
 	}
-	
+
 	public String listPerformed() {
 		String objectType = FacesUtils.getRequestParameter(PARAM_OBJECT_TYPE);
 		if (StringUtils.isEmpty(objectType)) {
 			FacesUtils.addErrorMessage("Can't list objects. Object type not defined.");
 			return null;
 		}
-		
+
 		return null;
 	}
-	
+
 	public String importPerformed() {
 		String objectType = FacesUtils.getRequestParameter(PARAM_OBJECT_TYPE);
 		if (StringUtils.isEmpty(objectType)) {
 			FacesUtils.addErrorMessage("Can't import objects. Object type not defined.");
 			return null;
 		}
+
+		String objectClass = null;
+		for (ResourceObjectType resObjectType : getResource().getObjectTypes()) {
+			if (objectType.equals(resObjectType.getQualifiedType())) {
+				objectClass = resObjectType.getNativeObjectClass();
+				break;
+			}
+		}
+
+		if (StringUtils.isEmpty(objectClass)) {
+			FacesUtils.addErrorMessage("Can't import objects. Object class for object type '" + objectType
+					+ "' not found.");
+			return null;
+		}
 		
-		
+		try {
+			OperationResultType result = new OperationResultType();
+			model.launchImportFromResource(getResource().getOid(), objectClass,
+					new Holder<OperationResultType>(result));
+		} catch (FaultMessage ex) {
+
+			return null;
+		}
+
 		template.setSelectedLeftId(ResourceImportController.NAVIGATION_LEFT);
 		return ResourceImportController.PAGE_NAVIGATION;
 	}
-	
+
 	public String deletePerformed() {
-		
+
 		template.setSelectedLeftId(ResourceListController.NAVIGATION_LEFT);
 		return ResourceListController.PAGE_NAVIGATION;
 	}

@@ -65,11 +65,15 @@ public class ModelService implements ModelPortType {
 		notNullArgument(object, "Object must not be null.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service Add Object");
 		try {
-			return model.addObject(object, OperationResult.createOperationResult(result.value));
+			String oid = model.addObject(object, operationResult);
+			handleOperationResult(operationResult, result);
+
+			return oid;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL addObject() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL addObject() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
 	}
 
@@ -80,11 +84,15 @@ public class ModelService implements ModelPortType {
 		notNullArgument(resolve, "Property reference list  must not be null.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service Get Object");
 		try {
-			return model.getObject(oid, resolve, OperationResult.createOperationResult(result.value));
+			ObjectType object = model.getObject(oid, resolve, operationResult);
+			handleOperationResult(operationResult, result);
+
+			return object;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL getObject() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL getObject() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
 	}
 
@@ -95,11 +103,15 @@ public class ModelService implements ModelPortType {
 		notNullArgument(paging, "Paging  must not be null.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service List Objects");
 		try {
-			return model.listObjects(objectType, paging, OperationResult.createOperationResult(result.value));
+			ObjectListType list = model.listObjects(objectType, paging, operationResult);
+			handleOperationResult(operationResult, result);
+
+			return list;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL listObjects() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL listObjects() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
 	}
 
@@ -110,11 +122,15 @@ public class ModelService implements ModelPortType {
 		notNullArgument(paging, "Paging  must not be null.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service Search Objects");
 		try {
-			return model.searchObjects(query, paging, OperationResult.createOperationResult(result.value));
+			ObjectListType list = model.searchObjects(query, paging, operationResult);
+			handleOperationResult(operationResult, result);
+
+			return list;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL searchObjects() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL searchObjects() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
 	}
 
@@ -124,11 +140,13 @@ public class ModelService implements ModelPortType {
 		notNullArgument(change, "Object modification must not be null.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service Modify Object");
 		try {
-			model.modifyObject(change, OperationResult.createOperationResult(result.value));
+			model.modifyObject(change, operationResult);
+			handleOperationResult(operationResult, result);
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL modifyObject() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL modifyObject() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
 	}
 
@@ -137,11 +155,13 @@ public class ModelService implements ModelPortType {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service Delete Object");
 		try {
-			model.deleteObject(oid, OperationResult.createOperationResult(result.value));
+			model.deleteObject(oid, operationResult);
+			handleOperationResult(operationResult, result);
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL deleteObject() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL deleteObject() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
 	}
 
@@ -152,12 +172,16 @@ public class ModelService implements ModelPortType {
 		notNullArgument(properties, "Property reference list must not be null.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service Get Property Available Values");
 		try {
-			return model.getPropertyAvailableValues(oid, properties,
-					OperationResult.createOperationResult(result.value));
+			PropertyAvailableValuesListType list = model.getPropertyAvailableValues(oid, properties,
+					operationResult);
+			handleOperationResult(operationResult, result);
+
+			return list;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL getPropertyAvailableValues() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL getPropertyAvailableValues() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
 	}
 
@@ -167,12 +191,15 @@ public class ModelService implements ModelPortType {
 		notEmptyArgument(accountOid, "Account oid must not be null or empty.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service List Account Shadow Owner");
 		try {
-			return model.listAccountShadowOwner(accountOid,
-					OperationResult.createOperationResult(result.value));
+			UserType user = model.listAccountShadowOwner(accountOid, operationResult);
+			handleOperationResult(operationResult, result);
+
+			return user;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL listAccountShadowOwner() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL listAccountShadowOwner() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
 	}
 
@@ -183,12 +210,16 @@ public class ModelService implements ModelPortType {
 		notEmptyArgument(resourceObjectShadowType, "Resource object shadow type must not be null or empty.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service List Resource Object Shadows");
 		try {
-			return model.listResourceObjectShadows(resourceOid, resourceObjectShadowType,
-					OperationResult.createOperationResult(result.value));
+			ResourceObjectShadowListType list = model.listResourceObjectShadows(resourceOid,
+					resourceObjectShadowType, operationResult);
+			handleOperationResult(operationResult, result);
+
+			return list;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjectShadows() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjectShadows() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
 	}
 
@@ -200,12 +231,15 @@ public class ModelService implements ModelPortType {
 		notNullArgument(paging, "Paging  must not be null.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service List Resource Objects");
 		try {
-			return model.listResourceObjects(resourceOid, objectType, paging,
-					OperationResult.createOperationResult(result.value));
+			ObjectListType list = model.listResourceObjects(resourceOid, objectType, paging, operationResult);
+			handleOperationResult(operationResult, result);
+
+			return list;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjects() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjects() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
 	}
 
@@ -215,11 +249,15 @@ public class ModelService implements ModelPortType {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service Test Resource");
 		try {
-			return model.testResource(resourceOid, OperationResult.createOperationResult(result.value));
+			ResourceTestResultType test = model.testResource(resourceOid, operationResult);
+			handleOperationResult(operationResult, result);
+
+			return test;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
 	}
 
@@ -230,12 +268,15 @@ public class ModelService implements ModelPortType {
 		notEmptyArgument(objectClass, "Object class must not be null or empty.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service Launch Import From Resource");
 		try {
-			return model.launchImportFromResource(resourceOid, objectClass,
-					OperationResult.createOperationResult(result.value));
+			EmptyType empty = model.launchImportFromResource(resourceOid, objectClass, operationResult);
+			handleOperationResult(operationResult, result);
+
+			return empty;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL launchImportFromResource() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL launchImportFromResource() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
 	}
 
@@ -245,12 +286,21 @@ public class ModelService implements ModelPortType {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notNullResultHolder(result);
 
+		OperationResult operationResult = new OperationResult("Model Service Get Import Status");
 		try {
-			return model.getImportStatus(resourceOid, OperationResult.createOperationResult(result.value));
+			TaskStatusType task = model.getImportStatus(resourceOid, operationResult);
+			handleOperationResult(operationResult, result);
+
+			return task;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL getImportStatus() failed.", ex);
-			throw createSystemFault(ex);
+			LoggingUtils.logException(LOGGER, "# MODEL getImportStatus() failed", ex);
+			throw createSystemFault(ex, operationResult);
 		}
+	}
+
+	private void handleOperationResult(OperationResult result, Holder<OperationResultType> holder) {
+		OperationResultType res = result.createOperationResultType();
+		holder.value.getPartialResults().add(res);
 	}
 
 	private void notNullResultHolder(Holder<OperationResultType> holder) throws FaultMessage {
@@ -275,9 +325,11 @@ public class ModelService implements ModelPortType {
 		return new FaultMessage(message, faultType);
 	}
 
-	private FaultMessage createSystemFault(Exception ex) {
+	private FaultMessage createSystemFault(Exception ex, OperationResult result) {
 		FaultType faultType = new SystemFaultType();
 		faultType.setMessage(ex.getMessage());
+
+		// TODO: add result to fault
 
 		return new FaultMessage(ex.getMessage(), faultType, ex);
 	}

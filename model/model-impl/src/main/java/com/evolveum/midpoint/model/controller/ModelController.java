@@ -64,68 +64,102 @@ public class ModelController {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 
+		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult result) {
+		Validate.notEmpty(oid, "Oid must not be null or empty.");
+		Validate.notNull(resolve, "Property reference list must not be null.");
+		Validate.notNull(result, "Result type must not be null.");
+		
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public ObjectListType listObjects(String objectType, PagingType paging, OperationResult result) {
+		Validate.notEmpty(objectType, "Object type must not be null or empty.");
+		Validate.notNull(paging, "Paging must not be null.");
+		Validate.notNull(result, "Result type must not be null.");
+		
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult result) {
+		Validate.notNull(query, "Query must not be null.");
+		Validate.notNull(paging, "Paging must not be null.");
+		Validate.notNull(result, "Result type must not be null.");		
+		
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public Object modifyObject(ObjectModificationType change, OperationResult result) {
+		Validate.notNull(change, "Object modification must not be null.");
+		Validate.notNull(result, "Result type must not be null.");
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public void deleteObject(String oid, OperationResult result) {
+		Validate.notEmpty(oid, "Oid must not be null or empty.");
+		Validate.notNull(result, "Result type must not be null.");
 		// TODO Auto-generated method stub
-
 	}
 
 	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
 			PropertyReferenceListType properties, OperationResult result) {
+		Validate.notEmpty(oid, "Oid must not be null or empty.");
+		Validate.notNull(properties, "Property reference list must not be null.");
+		Validate.notNull(result, "Result type must not be null.");
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public UserType listAccountShadowOwner(String accountOid, OperationResult result) {
+		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
+		Validate.notNull(result, "Result type must not be null.");
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public ResourceObjectShadowListType listResourceObjectShadows(String resourceOid,
 			String resourceObjectShadowType, OperationResult result) {
+		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+		Validate.notNull(result, "Result type must not be null.");
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public ObjectListType listResourceObjects(String resourceOid, String objectType, PagingType paging,
 			OperationResult result) {
+		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+		Validate.notEmpty(objectType, "Object type must not be null or empty.");
+		Validate.notNull(paging, "Paging must not be null.");
+		Validate.notNull(result, "Result type must not be null.");
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public ResourceTestResultType testResource(String resourceOid, OperationResult result) {
+		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+		Validate.notNull(result, "Result type must not be null.");
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public EmptyType launchImportFromResource(String resourceOid, String objectClass, OperationResult result) {
+		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+		Validate.notEmpty(objectClass, "Object class must not be null or empty.");
+		Validate.notNull(result, "Result type must not be null.");
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public TaskStatusType getImportStatus(String resourceOid, OperationResult result) {
+		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+		Validate.notNull(result, "Result type must not be null.");
 		// TODO Auto-generated method stub
 		return null;
 	}

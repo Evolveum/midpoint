@@ -15,15 +15,16 @@
 	
 	<types>
 		<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl">
-			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" schemaLocation="common-1.xsd"/>
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" schemaLocation="common-1.xsd"/>			
 
 			<xsd:complexType name="FaultType" abstract="true">
 				<xsd:sequence>
 					<xsd:element name="message" type="xsd:string" />
+					<xsd:element name="operationResult" type="c:OperationalResultType" />
 				</xsd:sequence>
 			</xsd:complexType>
 
-			<xsd:element name="fault" type="tns:FaultType" />
+			<xsd:element name="fault" type="tns:FaultType" />			
 
 			<xsd:complexType name="SystemFaultType">
 				<xsd:annotation>
@@ -190,7 +191,7 @@
 	</types>
 	
 	<message name="FaultMessage">
-		<part name="fault" element="tns:fault" /> 	
+		<part name="fault" element="tns:fault" />		
 	</message>
 	
 </definitions>
