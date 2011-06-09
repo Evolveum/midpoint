@@ -3,13 +3,8 @@
 	xmlns:h="http://java.sun.com/jsf/html" xmlns:comp="http://java.sun.com/jsf/composite/components"
 	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
-
-	<idm:leftMenuContainer name="#{msg['page.template.top.resources']}">
-		<idm:leftMenuItem id="leftResourceList" name="#{msg['page.resource.index.title']}" action="#{resourceList.updateController}" />
-		<idm:leftMenuItem id="leftResourceCreate" name="#{msg['page.resource.create.title']}" action="/resource/create/resourceCreate?faces-redirect=true" />		
-		<idm:leftMenuItem id="leftResourceConfig" name="Deprecated (old)" action="#{resourceTypeController.listResources}" />
-	</idm:leftMenuContainer>
-	<idm:leftMenuContainer name="#{msg['page.resource.resourceDetails.menu.resourceDetails']}">
+	
+	<idm:leftMenuContainer name="#{msg['page.resource.menuDetails.resourceDetails']}">
 		<idm:leftMenuItem id="leftResourceDetails" name="#{msg['page.resource.resourceDetails.title']}" action="/resource/resourceDetails?faces-redirect=true"/>
 		<idm:leftMenuItem id="leftImportStatus" name="#{msg['page.resource.import.title']}" action="/resource/import?faces-redirect=true"/>
 		<idm:leftMenuItem id="leftSyncStatus" name="#{msg['page.resource.synchronization.title']}" action="/resource/synchronization?faces-redirect=true"/>

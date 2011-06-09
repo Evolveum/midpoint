@@ -52,6 +52,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.schema.ResourceAttributeDefinition;
 import com.evolveum.midpoint.provisioning.schema.util.SchemaParserException;
 import com.evolveum.midpoint.web.bean.AccountFormBean;
+import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.dto.GuiAccountShadowDto;
 import com.evolveum.midpoint.web.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.dto.GuiUserDto;
@@ -89,7 +90,9 @@ public class UserDetailsController implements Serializable {
 	private static final Trace TRACE = TraceManager.getTrace(UserDetailsController.class);
 	private static final String TAB_USER = "0";
 	@Autowired(required = true)
-	private ObjectTypeCatalog objectTypeCatalog;
+	private transient TemplateController template;
+	@Autowired(required = true)
+	private ObjectTypeCatalog objectTypeCatalog;	
 	private boolean editMode = false;
 	private GuiUserDto user;
 	private List<AccountFormBean> accountList;
@@ -204,7 +207,8 @@ public class UserDetailsController implements Serializable {
 
 	public String backPerformed() {
 		clearController();
-
+		template.setSelectedLeftId("leftList");
+		
 		return UserListController.PAGE_NAVIGATION;
 	}
 

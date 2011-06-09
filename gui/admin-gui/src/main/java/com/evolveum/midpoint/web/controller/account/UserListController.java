@@ -38,6 +38,7 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.GuiUserDtoList;
+import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
@@ -64,6 +65,8 @@ public class UserListController implements Serializable {
 	private static final String PARAM_USER_OID = "userOid";
 	@Autowired(required = true)
 	private transient UserDetailsController userDetailsController;
+	@Autowired(required = true)
+	private transient TemplateController template;
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog objectTypeCatalog;
 	private GuiUserDtoList userList = new GuiUserDtoList("name");
@@ -98,6 +101,8 @@ public class UserListController implements Serializable {
 			LoggingUtils.logException(TRACE, "Can't select user, unknown error occured", ex);
 			FacesUtils.addErrorMessage("Can't select user, unknown error occured.", ex);
 		}
+		
+		template.setSelectedLeftId("leftUserDetails");
 
 		return UserDetailsController.PAGE_NAVIGATION;
 	}
@@ -247,6 +252,8 @@ public class UserListController implements Serializable {
 
 	public String fillTableList() {
 		listUsers();
+		
+		template.setSelectedLeftId("leftList");
 		return PAGE_NAVIGATION;
 	}
 
