@@ -57,8 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 @Scope("session")
 public class UserListController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_LIST = "/account/index?faces-redirect=true";
-	public static final String PAGE_NAVIGATION_DETAILS = "/account/userDetails?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/account/index?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_DELETE = "/account/deleteUser?faces-redirect=true";
 	private static final long serialVersionUID = -6520469747022260260L;
 	private static final Trace TRACE = TraceManager.getTrace(UserListController.class);
@@ -100,7 +99,7 @@ public class UserListController implements Serializable {
 			FacesUtils.addErrorMessage("Can't select user, unknown error occured.", ex);
 		}
 
-		return PAGE_NAVIGATION_DETAILS;
+		return UserDetailsController.PAGE_NAVIGATION;
 	}
 
 	public void listUsers() {
@@ -248,7 +247,7 @@ public class UserListController implements Serializable {
 
 	public String fillTableList() {
 		listUsers();
-		return PAGE_NAVIGATION_LIST;
+		return PAGE_NAVIGATION;
 	}
 
 	public GuiUserDtoList getUserList() {

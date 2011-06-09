@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 @Scope("session")
 public class ResourceDetailsController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_LIST = "/resource/index?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/resource/resourceDetails?faces-redirect=true";
 	private static final long serialVersionUID = 8325385127604325634L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceDetailsController.class);
 	@Autowired(required = true)
@@ -79,12 +79,12 @@ public class ResourceDetailsController implements Serializable {
 		debugView.setObject(new DebugObject(getResource().getOid(), getResource().getName()));
 		debugView.setEditOther(false);
 		String returnPage = debugView.viewObject();
-		if (DebugViewController.PAGE_NAVIGATION_VIEW.equals(returnPage)) {
+		if (DebugViewController.PAGE_NAVIGATION.equals(returnPage)) {
 			template.setSelectedLeftId("leftViewEdit");
-			template.setSelectedTopId("topConfiguration");
+			template.setSelectedTopId(TemplateController.TOP_CONFIGURATION);
 		}
 
-		return DebugViewController.PAGE_NAVIGATION_VIEW;
+		return returnPage;
 	}
 
 	public String importFromResource() {
@@ -117,5 +117,17 @@ public class ResourceDetailsController implements Serializable {
 		}
 
 		return null;
+	}
+
+	public String showImportStatus() {
+
+		template.setSelectedLeftId("leftImportStatus");
+		return ResourceImportController.PAGE_NAVIGATION;
+	}
+
+	public String showSyncStatus() {
+
+		template.setSelectedLeftId("leftSyncStatus");
+		return ResourceSyncController.PAGE_NAVIGATION;
 	}
 }

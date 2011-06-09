@@ -66,7 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 public class DebugViewController implements Serializable {
 
 	public static final String PAGE_NAVIGATION_LIST = "/config/debugList?faces-redirect=true";
-	public static final String PAGE_NAVIGATION_VIEW = "/config/debugView?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/config/debugView?faces-redirect=true";
 	private static final long serialVersionUID = -6260309359121248206L;
 	private static final Trace TRACE = TraceManager.getTrace(DebugViewController.class);
 	@Autowired(required = true)
@@ -135,7 +135,7 @@ public class DebugViewController implements Serializable {
 		xml = null;
 		editable = false;
 
-		return PAGE_NAVIGATION_VIEW;
+		return PAGE_NAVIGATION;
 	}
 
 	public String back() {
@@ -210,7 +210,7 @@ public class DebugViewController implements Serializable {
 			return PAGE_NAVIGATION_LIST;
 		}
 
-		return PAGE_NAVIGATION_VIEW;
+		return PAGE_NAVIGATION;
 	}
 
 	public String savePerformed() {

@@ -91,7 +91,7 @@ public class UserCreateController implements Serializable {
 
 		userListController.fillTableList();
 
-		return UserListController.PAGE_NAVIGATION_LIST;
+		return UserListController.PAGE_NAVIGATION;
 	}
 
 	public void cancel(ActionEvent evt) {

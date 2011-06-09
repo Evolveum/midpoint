@@ -84,6 +84,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 @Scope("session")
 public class UserDetailsController implements Serializable {
 
+	public static final String PAGE_NAVIGATION = "/account/userDetails?faces-redirect=true";
 	private static final long serialVersionUID = -4537350724118181063L;
 	private static final Trace TRACE = TraceManager.getTrace(UserDetailsController.class);
 	private static final String TAB_USER = "0";
@@ -204,7 +205,7 @@ public class UserDetailsController implements Serializable {
 	public String backPerformed() {
 		clearController();
 
-		return UserListController.PAGE_NAVIGATION_LIST;
+		return UserListController.PAGE_NAVIGATION;
 	}
 
 	/**

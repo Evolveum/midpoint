@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.bean.ResourceObjectType;
 import com.evolveum.midpoint.web.bean.ResourceState;
 import com.evolveum.midpoint.web.bean.ResourceStatus;
 import com.evolveum.midpoint.web.bean.SortedResourceList;
+import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
@@ -74,12 +75,13 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 @Scope("session")
 public class ResourceListController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_LIST = "/resource/index?faces-redirect=true";
-	public static final String PAGE_NAVIGATION_DETAILS = "/resource/resourceDetails?faces-redirect=true";
+	public static final String PAGE_NAVIGATION = "/resource/index?faces-redirect=true";
 	private static final long serialVersionUID = 8325385127604325633L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceListController.class);
 	@Autowired(required = true)
 	private transient ModelPortType model;
+	@Autowired(required = true)
+	private transient TemplateController template;
 	@Autowired(required = true)
 	private transient ResourceDetailsController resourceDetails;
 	private static final String PARAM_RESOURCE_OID = "resourceOid";
@@ -148,8 +150,9 @@ public class ResourceListController implements Serializable {
 		}
 
 		resourceDetails.setResource(resourceItem);
+		template.setSelectedLeftId("leftResourceDetails");
 
-		return PAGE_NAVIGATION_DETAILS;
+		return ResourceDetailsController.PAGE_NAVIGATION;
 	}
 
 	private ResourceListItem getResourceItem(String resourceOid) {
@@ -251,7 +254,7 @@ public class ResourceListController implements Serializable {
 			return null;
 		}
 
-		return PAGE_NAVIGATION_LIST;
+		return PAGE_NAVIGATION;
 	}
 
 	private ResourceListItem createResourceListItem(ResourceType resource) {
