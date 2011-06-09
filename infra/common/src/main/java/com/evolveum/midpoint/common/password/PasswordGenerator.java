@@ -111,9 +111,15 @@ public class PasswordGenerator {
 		for (int i = 0; i < minLen; i++) {
 			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), false, generatorResult);
 			// If something goes badly then go out
-			if (null == chars) {
+			if (null == chars ) {
 				return null;
+			} 
+			
+			if ( chars.isEmpty()) {
+				logger.debug("Minimal criterias was met.");
+				break;
 			}
+			
 			for (; card < lims.keySet().size(); card++) {
 				if (chars.containsKey(card)) {
 					ArrayList validChars = chars.get(card);
@@ -140,19 +146,38 @@ public class PasswordGenerator {
 			Boolean skipMatchedLims, OperationResult op) {
 		HashMap<String, Integer> counter = new HashMap<String, Integer>();
 
-		for (ArrayList<String> chars : lims.values()) {
-			for (String s : chars) {
-				if (null == password || !password.contains(s)) {
-					if (null == counter.get(s)) {
-						counter.put(s, 1);
-					} else {
-						counter.put(s, counter.get(s) + 1);
+		for (StringLimitType l : lims.keySet()) {
+			ArrayList<String> chars = lims.get(l);
+			int i = 0;
+			if (null != password) {
+				i = charIntersectionCounter(lims.get(l), password);
+			}
+			// If max is exceed then error unable to continue
+			if (i > l.getMaxOccurs()) {
+				OperationResult o = new OperationResult("Limitation check :" + l.getDescription());
+				o.recordFatalError("Exceeded maximal value for this limitation. " + i + ">"
+						+ l.getMaxOccurs());
+				op.addSubresult(o);
+				return null;
+				// if max is all ready reached or skip enabled for minimal skip
+				// counting
+			} else if (i == l.getMaxOccurs() || i >= l.getMinOccurs()) {
+				continue;
+				// other cases minimum is not reached
+			} else {
+				for (String s : chars) {
+					if (null == password || !password.contains(s)) {
+						if (null == counter.get(s)) {
+							counter.put(s, 1);
+						} else {
+							counter.put(s, counter.get(s) + 1);
+						}
 					}
 				}
 			}
 		}
 
-		// If need to remoeve disabled chars (allready reached limitations)
+		// If need to remove disabled chars (already reached limitations)
 		if (null != password) {
 			for (StringLimitType l : lims.keySet()) {
 				int i = charIntersectionCounter(lims.get(l), password);
@@ -162,7 +187,7 @@ public class PasswordGenerator {
 							+ l.getMaxOccurs());
 					op.addSubresult(o);
 					return null;
-				} else if (i == l.getMaxOccurs() || (i >= l.getMinOccurs() && skipMatchedLims)) {
+				} else if (i == l.getMaxOccurs()) {
 					// limitation matched remove all used chars
 					logger.debug("Skip " + l.getDescription());
 					for (String charToRemove : lims.get(l)) {
