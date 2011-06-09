@@ -135,6 +135,7 @@ public class PasswordPolicyValidatorTest {
 			assertNotNull(psswd);
 			
 		}
+		//genereata to meet as possible
 		logger.error("-------------------------");
 		// Generate up to possible
 		for (int i = 0; i < 100; i++) {
@@ -156,6 +157,7 @@ public class PasswordPolicyValidatorTest {
 		logger.error("Negative testing: passwordGeneratorComplexTest");
 		psswd = PasswordGenerator.generate(pp, op);
 		assertNull(psswd);
+		op.computeStatus();
 		assertTrue(op.getStatus() == OperationResultStatus.FATAL_ERROR);
 	}
 

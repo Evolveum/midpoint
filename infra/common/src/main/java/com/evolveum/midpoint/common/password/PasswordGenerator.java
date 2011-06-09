@@ -79,7 +79,7 @@ public class PasswordGenerator {
 		// If any limitation was found to be first
 		if (!mustBeFirst.isEmpty()) {
 			HashMap<Integer, ArrayList<String>> posibleFirstChars = cardinalityCounter(mustBeFirst, null,
-					false, generatorResult);
+					false, false, generatorResult);
 			int intersectionCardinality = mustBeFirst.keySet().size();
 			ArrayList<String> intersectionCharacters = posibleFirstChars.get(intersectionCardinality);
 			// If no intersection was found then raise error
@@ -113,14 +113,21 @@ public class PasswordGenerator {
 		}
 
 		/* **************************************
-		 * Generate rest to fullfill minimal criteria
+		 * Generate rest to fulfill minimal criteria
 		 */
 
-		// Count kardinality of elements
+		boolean uniquenessReached = false;
+		
+		// Count cardinality of elements
 		HashMap<Integer, ArrayList<String>> chars;
 		for (int i = 0; i < minLen; i++) {
+			
+			//Check if still unique chars are needed
+			 if (password.length() >= unique) {
+				 uniquenessReached = true;
+			 }
 			//Find all usable characters
-			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), false, generatorResult);
+			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), false, uniquenessReached , generatorResult);	//TODO
 			// If something goes badly then go out
 			if (null == chars ) {
 				return null;
@@ -162,17 +169,27 @@ public class PasswordGenerator {
 				//no more characters are needed
 				break;
 			}
+			
+			//Check if still unique chars are needed
+			if (password.length() >= unique) {
+				 uniquenessReached = true;
+			 }
 			//find all usable characters
-			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), true, generatorResult);
+			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), true, uniquenessReached, generatorResult);	//TODO
+			
 			// If something goes badly then go out
 			if (null == chars ) {
+				// we hope this never happend.
+				generatorResult.recordFatalError("No valid characters to generate, but no all limitation are reached");
 				return null;
 			} 
 			
+			//if selection is empty then no more characters and we can close our work
 			if ( chars.isEmpty()) {
 				break;
 			}
 			
+			//Find lowest possible cardinality and then generate char
 			for (int card = 1 ; card < lims.keySet().size(); card++) {
 				if (chars.containsKey(card)) {
 					ArrayList<String> validChars = chars.get(card);
@@ -208,7 +225,7 @@ public class PasswordGenerator {
 	 */
 	private static HashMap<Integer, ArrayList<String>> cardinalityCounter(
 			HashMap<StringLimitType, ArrayList<String>> lims, ArrayList<String> password,
-			Boolean skipMatchedLims, OperationResult op) {
+			Boolean skipMatchedLims, boolean uniquenessReached, OperationResult op) {
 		HashMap<String, Integer> counter = new HashMap<String, Integer>();
 
 		for (StringLimitType l : lims.keySet()) {
@@ -233,7 +250,7 @@ public class PasswordGenerator {
 				continue;
 			} 
 				for (String s : chars) {
-					if (null == password || !password.contains(s)) {
+					if (null == password || ! password.contains(s) || uniquenessReached ) {
 						if (null == counter.get(s)) {
 							counter.put(s, 1);
 						} else {
