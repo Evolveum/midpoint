@@ -39,6 +39,7 @@ public class ResourceListItem extends SelectableBean {
 	private String version;
 	private ResourceState state;
 	private ResourceSync sync;
+	private ResourceImport resImport;
 	private String progress;
 	private List<ResourceObjectType> objectTypes;
 
@@ -95,6 +96,13 @@ public class ResourceListItem extends SelectableBean {
 			sync = new ResourceSync();
 		}
 		return sync;
+	}
+
+	public ResourceImport getResImport() {
+		if (resImport == null) {
+			resImport = new ResourceImport();
+		}
+		return resImport;
 	}
 
 	public List<ResourceObjectType> getObjectTypes() {

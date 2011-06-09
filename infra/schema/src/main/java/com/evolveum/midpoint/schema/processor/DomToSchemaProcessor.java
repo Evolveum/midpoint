@@ -159,10 +159,6 @@ class DomToSchemaProcessor {
 						: nativeAttrElement.getTextContent();
 
 				XSType type = element.getType();
-				if (qname.getLocalPart().contains("NAME")) {
-					System.out.println(type.getName());
-				}
-
 				ResourceObjectAttributeDefinition attribute = new ResourceObjectAttributeDefinition(qname,
 						null, new QName(type.getTargetNamespace(), type.getName()));
 				if (!StringUtils.isEmpty(nativeAttributeName)) {

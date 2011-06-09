@@ -123,7 +123,7 @@ fieldset {
 
 .iceOutTxt {
     font-family: Arial, Helvetica, sans-serif;
-    color: #000000;
+    /* color: #000000; */
     padding-left: 0px;
     padding-right: 0px;
     padding-top: 2px;
@@ -301,7 +301,7 @@ fieldset {
 */
 .iceDatTbl { /* was iceDataTblOutline */
     background-color: #FFFFFF;
-    border: 1px solid #ABABAB;
+    border: 1px solid #aaaaaa;
     margin: 10px;
 }
 
@@ -311,19 +311,25 @@ fieldset {
 
 .iceDatTblColHdr , .iceDatTblColHdr1, .iceDatTblColHdr2, .iceDatTblColGrpHdrCol, .iceDatTblFtr{ 
 /* was iceTblHeader */
-    background-color: #EFEFEF;
-    background-image: url( "./css-images/table_col_header.gif" );
+    /* background-color: #EFEFEF;
+    background-image: url( "./css-images/table_col_header.gif" ); */
+    background-color: #546048;
+    
     background-position: bottom;
     background-repeat: repeat-x;
     font-weight: normal;
     text-align: center;
-    color: #000000;
-    border-right: 1px solid #CCCCCC;
-    border-top: 1px solid #CCCCCC;
+    color: #fff;
+    border-right: 1px solid #aaa;
+    border-top: 1px solid #aaa;
     padding-left: 5px;
     padding-right: 5px;
     padding-top: 4px;
     padding-bottom: 4px;
+}
+
+.iceDatTblActvSrtHdr a.iceCmdSrtHdr span.iceOutTxt table {
+	color: #fff;	
 }
 
 .iceDatTblResHdlr {
@@ -2485,8 +2491,9 @@ Disabled classes for the calendar controls
 */
 .iceCmdSrtHdr {
     text-decoration: none;
-    /*border: 1px solid #ABABAB;*/
-    color: #333333;
+    /*border: 1px solid #ABABAB;
+    color: #333333;*/
+    color: #fff;
     width: 100%;
     height: 100%;
     padding: 0px;
@@ -2513,6 +2520,7 @@ Disabled classes for the calendar controls
     background-position: center;
     width:10px;
     height:10px;
+    margin-left: 5px;
 }
 .iceCmdSrtHdrAsc{
     background-image: url('./css-images/column_sort_asc.gif');

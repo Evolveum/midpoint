@@ -5,13 +5,18 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{msg['page.role.index.title']}</ui:define>
+	<ui:define name="title">#{msg['page.resource.synchronization.title']} 'blabla'</ui:define>
 
 	<ui:define name="menu">
-		<ui:include src="./menu.xhtml" />
+		<ui:include src="./menuDetails.xhtml" />
 	</ui:define>
 
 	<ui:define name="content">
-		Role stuff :)))
+		<ice:form>
+			<div class="button-bar">
+				<idm:button action="/resource/resourceDetails?faces-redirect=true" value="#{msg['page.button.back']}"
+					img="/resources/images/door_in.png" />
+			</div>
+		</ice:form>
 	</ui:define>
 </ui:composition>

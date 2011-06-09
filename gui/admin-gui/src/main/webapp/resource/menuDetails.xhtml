@@ -10,7 +10,7 @@
 		<idm:leftMenuItem id="leftResourceConfig" name="Deprecated (old)" action="#{resourceTypeController.listResources}" />
 	</idm:leftMenuContainer>
 	<idm:leftMenuContainer name="#{msg['page.resource.resourceDetails.menu.statusDetails']}">
-		<idm:leftMenuItem id="leftImportStatus" name="#{msg['page.resource.resourceDetails.menu.importStatus']}"/>
-		<idm:leftMenuItem id="leftSyncStatus" name="#{msg['page.resource.resourceDetails.menu.syncStatus']}"/>
+		<idm:leftMenuItem id="leftImportStatus" name="#{msg['page.resource.import.title']}" action="/resource/import?faces-redirect=true"/>
+		<idm:leftMenuItem id="leftSyncStatus" name="#{msg['page.resource.synchronization.title']}" action="/resource/synchronization?faces-redirect=true"/>
 	</idm:leftMenuContainer>
 </ui:composition>
