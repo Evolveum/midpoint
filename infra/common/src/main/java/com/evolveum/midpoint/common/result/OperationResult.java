@@ -17,6 +17,9 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2011 Viliam repan
+ * Portions Copyrighted 2011 Radovan Semancik
+ * Portions Copyrighted 2011 Peter Prochazka
  */
 package com.evolveum.midpoint.common.result;
 
@@ -62,7 +65,8 @@ public class OperationResult implements Serializable {
 	private Map<String, Object> params;
 	private Map<String, Object> context;
 	private Object returnValue;
-	// This is necessary as "null" may be a valid return value and we need to distinguish
+	// This is necessary as "null" may be a valid return value and we need to
+	// distinguish
 	// if the value of "null" was set or someone forgot to set the return value.
 	private boolean returnValueSet = false;
 	private long token;
@@ -281,11 +285,11 @@ public class OperationResult implements Serializable {
 	public void addContext(String contextName, Object value) {
 		getContext().put(contextName, value);
 	}
-	
+
 	public Object getReturnValue() {
 		return returnValue;
 	}
-	
+
 	public void setReturnValue(Object returnValue) {
 		returnValueSet = true;
 		this.returnValue = returnValue;
@@ -350,6 +354,10 @@ public class OperationResult implements Serializable {
 		recordStatus(OperationResultStatus.PARTIAL_ERROR, cause);
 	}
 
+	public void recordWarning(Exception cause) {
+		recordStatus(OperationResultStatus.WARNING, cause);
+	}
+
 	public void recordStatus(OperationResultStatus status, Exception cause) {
 		this.status = status;
 		this.cause = cause;
@@ -366,6 +374,10 @@ public class OperationResult implements Serializable {
 		recordStatus(OperationResultStatus.PARTIAL_ERROR, message, cause);
 	}
 
+	public void recordWarning(String message, Exception cause) {
+		recordStatus(OperationResultStatus.WARNING, message, cause);
+	}
+
 	public void recordStatus(OperationResultStatus status, String message, Exception cause) {
 		this.status = status;
 		this.message = message;
@@ -379,13 +391,17 @@ public class OperationResult implements Serializable {
 	public void recordPartialError(String message) {
 		recordStatus(OperationResultStatus.PARTIAL_ERROR, message);
 	}
-	
+
+	public void recordWarning(String message) {
+		recordStatus(OperationResultStatus.WARNING, message);
+	}
+
 	/**
-	 * Records result from a common exception type.
-	 * This automatically determines status and also sets
-	 * appropriate message.
-	 *  
-	 * @param exception common exception
+	 * Records result from a common exception type. This automatically
+	 * determines status and also sets appropriate message.
+	 * 
+	 * @param exception
+	 *            common exception
 	 */
 	public void record(CommonException exception) {
 		// TODO: switch to a localized message later
@@ -397,10 +413,10 @@ public class OperationResult implements Serializable {
 		this.status = status;
 		this.message = message;
 	}
-	
+
 	/**
-	 * Returns true if result status is UNKNOWN or any of the subresult
-	 * status is unknown (recursive).
+	 * Returns true if result status is UNKNOWN or any of the subresult status
+	 * is unknown (recursive).
 	 * 
 	 * May come handy in tests to check if all the operations fill out the
 	 * status as they should.
@@ -445,9 +461,9 @@ public class OperationResult implements Serializable {
 			sb.append(cause.getMessage());
 		}
 		sb.append("\n");
-		
+
 		for (Map.Entry<String, Object> entry : getParams().entrySet()) {
-			for (int i = 0; i < indent+2; i++) {
+			for (int i = 0; i < indent + 2; i++) {
 				sb.append(INDENT_STRING);
 			}
 			sb.append("[p]");
@@ -458,7 +474,7 @@ public class OperationResult implements Serializable {
 		}
 
 		for (Map.Entry<String, Object> entry : getContext().entrySet()) {
-			for (int i = 0; i < indent+2; i++) {
+			for (int i = 0; i < indent + 2; i++) {
 				sb.append(INDENT_STRING);
 			}
 			sb.append("[c]");
@@ -467,14 +483,14 @@ public class OperationResult implements Serializable {
 			sb.append(DebugUtil.prettyPrint(entry.getValue()));
 			sb.append("\n");
 		}
-		
+
 		if (returnValueSet) {
-			for (int i = 0; i < indent+2; i++) {
+			for (int i = 0; i < indent + 2; i++) {
 				sb.append(INDENT_STRING);
 			}
 			sb.append("[r]=");
 			sb.append(DebugUtil.prettyPrint(returnValue));
-			sb.append("\n");			
+			sb.append("\n");
 		}
 
 		for (OperationResult sub : getSubresults()) {

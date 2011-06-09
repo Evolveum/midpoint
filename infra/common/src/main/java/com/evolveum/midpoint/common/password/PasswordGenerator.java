@@ -1,4 +1,31 @@
+/*
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2011 Peter Prochazka
+ */
+
 package com.evolveum.midpoint.common.password;
+/**
+ * 
+ *  @author mamut
+ *  
+ */
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,7 +88,14 @@ public class PasswordGenerator {
 		// Get global limitations
 		int minLen = pp.getStringPolicy().getLimitations().getMinLength();
 		int maxLen = pp.getStringPolicy().getLimitations().getMaxLength();
-		int unique = pp.getStringPolicy().getLimitations().getMinUniqueChars();	// TODO disable uniqueness
+		int unique = pp.getStringPolicy().getLimitations().getMinUniqueChars();
+		
+		//test correctness of definition
+		if (unique > minLen ) {
+			minLen = unique;
+			OperationResult reportBug  =  new OperationResult("Global limitation check");
+			reportBug.recordWarning("There is more required uniq characters then definied minimum. Raise minimum to number of required uniq chars.");
+		}
 
 		// Initialize generator
 		StringBuilder password = new StringBuilder();
@@ -127,7 +161,7 @@ public class PasswordGenerator {
 				 uniquenessReached = true;
 			 }
 			//Find all usable characters
-			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), false, uniquenessReached , generatorResult);	//TODO
+			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), false, uniquenessReached , generatorResult);
 			// If something goes badly then go out
 			if (null == chars ) {
 				return null;
@@ -175,7 +209,7 @@ public class PasswordGenerator {
 				 uniquenessReached = true;
 			 }
 			//find all usable characters
-			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), true, uniquenessReached, generatorResult);	//TODO
+			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), true, uniquenessReached, generatorResult);
 			
 			// If something goes badly then go out
 			if (null == chars ) {
