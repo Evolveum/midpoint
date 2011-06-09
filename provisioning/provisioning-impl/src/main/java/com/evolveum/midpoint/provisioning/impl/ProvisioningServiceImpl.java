@@ -61,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 public class ProvisioningServiceImpl implements ProvisioningService {
 	
 	private ShadowCache shadowCache;
-	private RepositoryWrapper repositoryService;
+	private RepositoryService repositoryService;
 
 	public ShadowCache getShadowCache() {
 		return shadowCache;
@@ -76,7 +76,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
      *
      * @return the value of repositoryService
      */
-    public RepositoryWrapper getRepositoryService() {
+    public RepositoryService getRepositoryService() {
         return repositoryService;
     }
 
@@ -87,7 +87,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
      * 
      * @param repositoryService new value of repositoryService
      */
-    public void setRepositoryService(RepositoryWrapper repositoryService) {
+    public void setRepositoryService(RepositoryService repositoryService) {
         this.repositoryService = repositoryService;
     }
 	
@@ -175,7 +175,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public ObjectListType searchObjects(Class objectType, QueryType query, PagingType paging, OperationResult parentResult)
+	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException {
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();

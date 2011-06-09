@@ -93,7 +93,7 @@ import org.w3c.dom.Node;
  */
 public class ShadowCache {
 	
-	private RepositoryWrapper repositoryService;
+	private RepositoryService repositoryService;
 	private ConnectorManager connectorManager;
 
     public ShadowCache() {
@@ -105,7 +105,7 @@ public class ShadowCache {
      *
      * @return the value of repositoryService
      */
-    public RepositoryWrapper getRepositoryService() {
+    public RepositoryService getRepositoryService() {
         return repositoryService;
     }
 
@@ -116,7 +116,7 @@ public class ShadowCache {
      * 
      * @param repositoryService new value of repositoryService
      */
-    public void setRepositoryService(RepositoryWrapper repositoryService) {
+    public void setRepositoryService(RepositoryService repositoryService) {
         this.repositoryService = repositoryService;
     }
 	
@@ -249,7 +249,7 @@ public class ShadowCache {
 	 * @param parentResult
 	 * @throws CommunicationException
 	 */
-	public void listShadows(ResourceType resource, QName objectClass, final ShadowHandler handler, OperationResult parentResult) throws CommunicationException {
+	public void listShadows(ResourceType resource, QName objectClass, final ShadowHandler handler, final OperationResult parentResult) throws CommunicationException {
 		
 		ConnectorInstance connector = getConnectorInstance(resource);
 		
@@ -260,8 +260,12 @@ public class ShadowCache {
 				
 				ResourceObjectShadowType shadow;
 				try {
-					shadow = lookupShadow(object);
+					shadow = lookupShadow(object,parentResult);
 				} catch (SchemaProcessorException e) {
+					// TODO: better error handling
+					// TODO log it?
+					return false;
+				} catch (SchemaException e) {
 					// TODO: better error handling
 					// TODO log it?
 					return false;
@@ -304,12 +308,14 @@ public class ShadowCache {
     /**
      * Locates the appropriate Shadow in repository that corresponds to the
      * provided resource object.
+     * @param parentResult 
      * 
      * @return current unchanged shadow object that corresponds to provided
      *         resource object or null if the object does not exist
      * @throws SchemaProcessorException 
+     * @throws SchemaException 
      */
-    private ResourceObjectShadowType lookupShadow(ResourceObject resourceObject) throws SchemaProcessorException {
+    private ResourceObjectShadowType lookupShadow(ResourceObject resourceObject, OperationResult parentResult) throws SchemaProcessorException, SchemaException {
 
         QueryType query = createSearchShadowQuery(resourceObject);
         PagingType paging = new PagingType();
@@ -317,7 +323,7 @@ public class ShadowCache {
         // TODO: check for errors
         ObjectListType results;
 
-        results = getRepositoryService().searchObjects(query, paging);
+        results = getRepositoryService().searchObjects(query, paging, parentResult);
 
         if (results.getObject().size()==0) {
             return null;
@@ -401,7 +407,7 @@ public class ShadowCache {
 //		return Schema.parse(schemaElement);
 	}
 	
-	private ResourceType getResource(String oid ,OperationResult parentResult) throws ObjectNotFoundException {
+	private ResourceType getResource(String oid ,OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		// TODO: add some caching
 		return (ResourceType) getRepositoryService().getObject(oid,null,parentResult);
 	}

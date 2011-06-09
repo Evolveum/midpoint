@@ -20,18 +20,26 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.List;
+
 import javax.jws.WebParam;
 
 import org.apache.commons.lang.NotImplementedException;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
@@ -51,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
  * @author Radovan Semancik
  * 
  */
-public class RepositoryWrapper {
+public class RepositoryWrapper implements RepositoryService {
 
 	RepositoryPortType repository;
 
@@ -102,6 +110,59 @@ public class RepositoryWrapper {
 	public ObjectListType searchObjects(QueryType query, PagingType paging) {
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();
+	}
+
+	@Override
+	public String addObject(ObjectType object, OperationResult parentResult) throws ObjectAlreadyExistsException,
+			SchemaException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
+			throws SchemaException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void modifyObject(ObjectModificationType objectChange, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid, PropertyReferenceListType properties,
+			OperationResult parentResult) throws ObjectNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public UserType listAccountShadowOwner(String accountOid) throws ObjectNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid, Class resourceObjectShadowType)
+			throws ObjectNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 	

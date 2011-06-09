@@ -1,80 +1,66 @@
-/*
+/**
  * Copyright (c) 2011 Evolveum
- * 
+ *
  * The contents of this file are subject to the terms
  * of the Common Development and Distribution License
  * (the License). You may not use this file except in
  * compliance with the License.
- * 
+ *
  * You can obtain a copy of the License at
  * http://www.opensource.org/licenses/cddl1 or
  * CDDLv1.0.txt file in the source code distribution.
  * See the License for the specific language governing
  * permission and limitations under the License.
- * 
+ *
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
- * Portions Copyrighted 2011 [name of copyright owner]
+ * "Portions Copyrighted 2011 [name of copyright owner]"
+ * 
  */
-package com.evolveum.midpoint.provisioning.api;
+package com.evolveum.midpoint.provisioning.impl;
 
-import javax.xml.namespace.QName;
+import java.util.List;
 
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
+ * The new repository service definition.
+ * 
  * WORK IN PROGRESS
- * 
- * There be dragons.
- * Beware the dog.
- * Do not trespass.
- * 
- * This is supposed to replace provisioning-1.wsdl
  * 
  * @author Radovan Semancik
  */
-public interface ProvisioningService {
-	
+public interface RepositoryService {
+
 	/**
 	 * Returns object for provided OID.
      * 
      * Must fail if object with the OID does not exists.
      * 
-     * Resource Object Shadows:
-     * The resource object shadow attributes may be retrieved from
-     * the local database, directly form the resource or a
-     * combination of both. The retrieval may fail due to resource
-     * failure, network failure or similar external cases. The
-     * retrieval may also take relatively long time (e.g. until it
-     * times out).
-     * 
 	 * @param oid OID of the object to get
 	 * @param resolve list of properties to resolve in the fetched object
 	 * @param result parent OperationResult (in/out)
-	 * @return Object fetched from repository and/or resource
+	 * @return Object fetched from repository
 	 * 
 	 * @throws ObjectNotFoundException requested object does not exist
-	 * @throws CommunicationException error communicating with the resource
 	 * @throws SchemaException error dealing with resource schema
 	 * @throws IllegalArgumentException wrong OID format, etc.
-	 * @throws GenericConnectorException unknown connector framework error
 	 */
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
-			throws ObjectNotFoundException, CommunicationException, SchemaException;
+		throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * Add new object.
@@ -104,32 +90,13 @@ public interface ProvisioningService {
 	 * 
 	 * @throws ObjectAlreadyExistsException object with specified identifiers already exists, cannot add
 	 * @throws SchemaException error dealing with resource schema, e.g. schema violation
-	 * @throws CommunicationException error communicating with the resource
 	 * @throws IllegalArgumentException wrong OID format, etc.
-	 * @throws GenericConnectorException unknown connector framework error
 	 */
-	public String addObject(ObjectType object, ScriptsType scripts, OperationResult parentResult) 
-			throws ObjectAlreadyExistsException, SchemaException, CommunicationException;
-	
+	public String addObject(ObjectType object, OperationResult parentResult) 
+			throws ObjectAlreadyExistsException, SchemaException;
 	
 	/**
-	 * Collect external changes on a resource and call the business logic
-     * with the accumulated change data.
-     * 
-     * This method will be invoked by scheduler/sync thread.
-     * 
-     * TODO: Better description
-     * 
-	 * @param oid OID of the resource for which to attempt synchronization
-	 * @param parentResult parent OperationResult (in/out)
-	 * 
-	 * @throws GenericConnectorException unknown connector framework error
-	 */
-	public void synchronize(String oid, OperationResult parentResult);
-	
-	/**
-	 * Returns all objects of specified type that are available
-     * to the implementation.
+	 * Returns all objects of specified type in the repository.
      * 
      * This can be considered as a simplified search operation.
      * 
@@ -144,12 +111,11 @@ public interface ProvisioningService {
 	 * @return all objects of specified type (subject to paging)
 	 * 
 	 * @throws IllegalArgumentException wrong object type
-	 * @throws GenericConnectorException unknown connector framework error
 	 */
 	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult);
 	
 	/**
-	 * Search for objects. Searches through all
+	 * Search for objects in the repository. Searches through all
      * object types. Returns a list of objects that match search
      * criteria.
      * 
@@ -165,12 +131,11 @@ public interface ProvisioningService {
 	 * @return all objects of specified type that match search criteria (subject to paging)
 	 * 
 	 * @throws IllegalArgumentException wrong object type
-	 * @throws GenericConnectorException unknown connector framework error
 	 * @throws SchemaException unknown property used in search query
 	 */
 	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException;
-	
+
 	/**
 	 * Modifies object using relative change description.
      * Must fail if user with provided OID does not exists.
@@ -195,9 +160,8 @@ public interface ProvisioningService {
 	 * @throws ObjectNotFoundException specified object does not exist
 	 * @throws SchemaException resulting object would violate the schema
 	 * @throws IllegalArgumentException wrong OID format, described change is not applicable
-	 * @throws GenericConnectorException unknown connector framework error
 	 */
-	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts, OperationResult parentResult)
+	public void modifyObject(ObjectModificationType objectChange, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 	
 	/**
@@ -206,14 +170,12 @@ public interface ProvisioningService {
      * Should be atomic.
 	 * 
 	 * @param oid OID of object to delete
-	 * @param scripts scripts that should be executed before of after operation
 	 * @param parentResult parent OperationResult (in/out)
 	 * 
 	 * @throws ObjectNotFoundException specified object does not exist
 	 * @throws IllegalArgumentException wrong OID format, described change is not applicable
-	 * @throws GenericConnectorException unknown connector framework error
 	 */
-	public void deleteObject(String oid, ScriptsType scripts, OperationResult parentResult)
+	public void deleteObject(String oid, OperationResult parentResult)
 			throws ObjectNotFoundException;
 	
 	/**
@@ -235,71 +197,53 @@ public interface ProvisioningService {
 	 * 
 	 * @throws ObjectNotFoundException specified object does not exist
 	 * @throws IllegalArgumentException wrong OID format
-	 * @throws GenericConnectorException unknown connector framework error
 	 */
 	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid, PropertyReferenceListType properties, OperationResult parentResult)
 			throws ObjectNotFoundException;
 	
 	/**
-	 * Test the resouce connection and basic resource connector
-     * functionality.
+	 * Returns the User object representing owner of specified account
+     * (account shadow).
      * 
-     * This operation will NOT throw exception in case the resource
-     * connection fails. It such case it will indicate the failure in
-     * the return message, but the operation itself succeeds.
-     * The operations fails only if the provided arguments are wrong,
-     * in case of system error, system misconfiguration, etc.
+     * May return null if there is no owner
+     * specified for the account.
+     * 
+     * May only be called with OID of AccountShadow object.
+     * 
+     * Implements the backward "owns" association between account
+     * shadow and user. Forward association is implemented by property
+     * "account" of user object.
+     * 
+     * This is a "list" operation even though it may return at most
+     * one owner. However the operation implies searching the repository
+     * for an owner, which may be less efficient that following a direct
+     * association. Hence it is called "list" to indicate that there
+     * may be non-negligible overhead.
 	 * 
-	 * @param resourceOid OID of resource to test
-	 * @return results of executed tests
+	 * @param accountOid OID of account shadow
+	 * @return User object representing owner of specified account
+	 * 
+ 	 * @throws ObjectNotFoundException specified object does not exist
+	 * @throws IllegalArgumentException wrong OID format
+	 */
+	public UserType listAccountShadowOwner(String accountOid) throws ObjectNotFoundException;
+	
+	/**
+	 * Search for resource object shadows of a specified type that
+     * belong to the specified resource. Returns a list of such object
+     * shadows or empty list if nothing was found.
+     * 
+     * Implements the backward "has" association between resource and
+     * resource object shadows. Forward association is implemented by
+     * property "resource" of resource object shadow.
+     * 
+     * May only be called with OID of Resource object.
+	 * 
+	 * @param resourceOid OID of resource definition (ResourceType)
+	 * @return resource object shadows of a specified type from specified resource
 	 * 
 	 * @throws ObjectNotFoundException specified object does not exist
 	 * @throws IllegalArgumentException wrong OID format
-	 * @throws GenericConnectorException unknown connector framework error
 	 */
-	public OperationResult testResource(String resourceOid)
-			throws ObjectNotFoundException;
-	
-	/**
-	 * Launch import task that will import all the accounts from the
-     * resource.
-     * 
-     * WARNING: This operation is not considered public. It is a
-     * temporary solution until we have full-featured cycle management.
-     * It may be removed any time without a warning.
-     * 
-     * DO NOT USE IT unless you are really sure you know what you
-     * are doing.
-	 * 
-	 * @param resourceOid OID of resource to import from
-	 * @param objectClass object class to import
-	 *  
-	 * @throws ObjectNotFoundException specified resource is not found
-	 * @throws IllegalArgumentException wrong OID format
-	 * @throws GenericConnectorException unknown connector framework error
-	 */
-    public void launchImportFromResource(String resourceOid, QName objectClass)
-    		throws ObjectNotFoundException;
-	
-    /**
-     * Get the status report of the running or recently finished import
-     * task.
-     * 
-     * WARNING: This operation is not considered public. It is a
-     * temporary solution until we have full-featured cycle management.
-     * It may be removed any time without a warning.
-     * 
-     * DO NOT USE IT unless you are really sure you know what you
-     * are doing.
-	 *                  
-     * @param resourceOid OID of resource to query
-     * @return status of running or last import task
-     * 
-     * @throws ObjectNotFoundException specified resource is not found
-	 * @throws IllegalArgumentException wrong OID format
-	 * @throws GenericConnectorException unknown connector framework error
-     */
-    public TaskStatusType getImportStatus(String resourceOid)
-    		throws ObjectNotFoundException;
-    
+	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid, Class resourceObjectShadowType) throws ObjectNotFoundException;
 }
