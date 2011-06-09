@@ -195,6 +195,16 @@ public class PropertyContainer {
 		throw new IllegalStateException("not implemented yet.");
 	}
 
+	/**
+	 * Serialize properties to DOM.
+	 * 
+	 * The properties are serialized to DOM and returned as a list.
+	 * The property container element is not serialized. 
+	 * 
+	 * @param doc DOM Document
+	 * @return list of serialized properties
+	 * @throws SchemaProcessorException the schema definition is missing or is inconsistent
+	 */
 	public List<Element> serializePropertiesToDom(Document doc) throws SchemaProcessorException {
 		if (getDefinition() == null) {
 			throw new IllegalStateException(
@@ -203,6 +213,20 @@ public class PropertyContainer {
 		return getDefinition().serializePropertiesToDom(getProperties(), doc);
 	}
 
+	/**
+	 * Serialize entire property container to DOM.
+	 * 
+	 * Entire property container is returned wrapped in a
+	 * single DOM element. The properties are serialized
+	 * as sub-elements.
+	 * 
+	 * List of DOM elements is returned. The property container
+	 * must have a schema definition (see getDefinition())
+	 * 
+	 * @param doc DOM Document
+	 * @return serialized property container as DOM element
+	 * @throws SchemaProcessorException the schema definition is missing or is inconsistent
+	 */
 	public Element serializeToDom(Document doc) throws SchemaProcessorException {
 		List<Element> elements = serializePropertiesToDom(doc);
 		Element container = doc.createElementNS(getName().getNamespaceURI(),

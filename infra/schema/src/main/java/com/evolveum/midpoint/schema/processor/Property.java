@@ -240,10 +240,31 @@ public class Property {
 		return getDefinition() == null ? null : getDefinition().getHelp();
 	}
 	
+	/**
+	 * Serializes property to DOM element(s).
+	 * 
+	 * The property name will be used as an element QName.
+	 * The values will be in the element content. Single-value
+	 * properties will produce one element (on none), multi-valued
+	 * properies may produce several elements. All of the elements will
+	 * have the same QName.
+	 * 
+	 * The property must have a definition (getDefinition() must not
+	 * return null).
+	 * 
+	 * @param doc DOM Document
+	 * @return property serialized to DOM
+	 * @throws SchemaProcessorException No definition or inconsistent definition 
+	 */
 	public List<Element> serializeToDom(Document doc) throws SchemaProcessorException {
 		return serializeToDom(doc,null);
 	}
 	
+	/**
+	 * Same as serializeToDom(Document doc) but allows external definition.
+	 * 
+	 * Package-private. Useful for some internal calls inside schema processor.
+	 */
 	List<Element> serializeToDom(Document doc,PropertyDefinition propDef) throws SchemaProcessorException {
 		List<Element> elements = new ArrayList<Element>();
 		if (propDef==null) {

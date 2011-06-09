@@ -61,7 +61,17 @@ import org.w3c.dom.Element;
 import static org.junit.Assert.*;
 
 /**
- *
+ * Test for provisioning service implementation.
+ * 
+ * This test will initialize mock repository and fill-in some test data.
+ * The "default" repository objects cannot be used, as the new provisioning
+ * service implementation assumes a slightly different connector configuration
+ * that was used in the OpenIDM.
+ * 
+ * This test will initialize embedded OpenDJ as a target resource.
+ * 
+ * The test calls the new Provisioning Service Interface (java). No WSDL mess.
+ * 
  * @author Radovan Semancik
  */
 public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {

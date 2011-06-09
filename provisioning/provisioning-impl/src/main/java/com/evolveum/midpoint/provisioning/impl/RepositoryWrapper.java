@@ -41,6 +41,11 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 /**
  * TEMPORARY HACK: wrapper to adapt old repository interface to the new one
  * 
+ * This is a class that adapts existing (WSDL) repository interface to a new interface.
+ * The new interface is not yet applied to repository, but it eventually will be. And
+ * we do not want to change the new provisioning code again, so let's create the
+ * new code in a way that suits new interface. 
+ * 
  * WORK IN PROGRESS
  * 
  * @author Radovan Semancik

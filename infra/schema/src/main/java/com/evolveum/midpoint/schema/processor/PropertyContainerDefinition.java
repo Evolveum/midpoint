@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
+
+import org.springframework.beans.PropertyAccessException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -112,15 +114,48 @@ public class PropertyContainerDefinition extends Definition {
 		return new PropertyContainer(name, this);
 	}
 	
+	/**
+	 * Parses properties from a list of elements.
+	 * 
+	 * The elements must describe properties as defined by this
+	 * PropertyContainerDefinition. Serializes all the elements
+	 * from the provided list.
+	 * 
+	 * min/max constraints are not checked now
+	 * TODO: maybe we need to check them
+	 * 
+	 * @param elements list of elements with serialized properties
+	 * @return set of deserialized properties
+	 */
 	public Set<Property> parseProperties(List<Element> elements) {
 		return parseProperties(elements,Property.class);
 	}
 	
+	/**
+	 * Same as parseProperties(List<Element> elements), but casts returned
+	 * properties to a specific type. It is used by subclasses, such as
+	 * ResourceObjectDefinition that return Attribute instead of Property.
+	 * 
+	 * @param <T> class to return
+	 * @param elements elements list of elements with serialized properties
+	 * @param clazz class to return
+	 * @return set of deserialized properties
+	 */
 	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz) {
 		return parseProperties(elements,clazz,null);
 	}
 	
+	/**
+	 * Same as parseProperties(List<Element> elements, Class<T> clazz), but
+	 * selects only some of the properties to parse. Other properties are
+	 * ignored.
+	 * 
+	 * Useful to parse identifiers out of complete object or similar things.
+	 * Used by subclasses.
+	 */
 	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz, Set<? extends PropertyDefinition> selection) {
+		
+		// TODO: more robustness in handling schema violations (min/max constraints, etc.)
 		
 		Set<T> props = new HashSet<T>();
 		
@@ -180,6 +215,20 @@ public class PropertyContainerDefinition extends Definition {
 		return props;
 	}
 	
+	/**
+	 * Serializes provided properties to DOM.
+	 * 
+	 * The method assumes that the provided properties are part of the property container
+	 * that this definition defines. It will produce a list of DOM elements containing
+	 * all the properties serialized to DOM.
+	 * 
+	 * @see Property
+	 * 
+	 * @param properties set of properties to serialize
+	 * @param doc DOM document
+	 * @return serialized properties
+	 * @throws SchemaProcessorException in case property definition is not found or is inconsistent
+	 */
 	List<Element> serializePropertiesToDom(Set<Property> properties, Document doc) throws SchemaProcessorException {
 		List<Element> elements = new ArrayList<Element>();
 		// This is not really correct. We should follow the ordering of elements

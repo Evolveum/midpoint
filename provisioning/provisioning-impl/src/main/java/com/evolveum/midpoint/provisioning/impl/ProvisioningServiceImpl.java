@@ -44,11 +44,18 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 /**
+ * Implementation of provisioning service.
+ * 
+ * It is just a "dispatcher" that routes interface calls to appropriate places.
+ * E.g. the operations regarding resource definitions are routed directly to the
+ * repository, operations of shadow objects are routed to the shadow cache and so on.
+ * 
  * WORK IN PROGRESS
  * 
  * There be dragons.
  * Beware the dog.
  * Do not trespass.
+ * 
  * @author Radovan Semancik
  */
 public class ProvisioningServiceImpl implements ProvisioningService {

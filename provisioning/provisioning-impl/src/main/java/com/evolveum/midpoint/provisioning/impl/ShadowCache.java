@@ -74,17 +74,20 @@ import org.w3c.dom.Node;
  * In short, this class takes care of aligning the shadow objects in repository
  * with the real state of the resource.
  * 
- * The repository is considered a cache when it comes to Shadow objects. That's
- * why they are called shadows after all. When a new state (values) of the
- * resource object is detected, the shadow in the repository should be updated.
+ * The repository content is considered a "cache" when it comes to Shadow objects. 
+ * That's why they are called "shadow" objects after all. When a new state (values)
+ * of the resource object is detected, the shadow in the repository should be updated.
  * No matter if that was detected by synchronization, reconciliation or an
  * ordinary get from resource. This class is supposed to do that.
  *
- * Now it assumes we are only storing primary identifier in the repository.
+ * Therefore all operations that deal with "shadows" should pass through this
+ * class. It forms yet another layer of the provisioning subsystem.
+ *
+ * Current implementation assumes we are only storing primary identifier in the repository.
  * That should be made configurable later. It also only support Account objects
  * now.
  * 
- * This is work in progress ...
+ * This is WORK IN PROGRESS ...
  *
  * @author Radovan Semancik
  */
