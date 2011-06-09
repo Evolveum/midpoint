@@ -22,6 +22,8 @@ package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -38,6 +40,7 @@ public class ResourceObjectType implements Serializable {
 	private String nativeObjectClass;
 	private String help;
 	private String type;
+	private String qualifiedType;
 
 	public ResourceObjectType(ResourceObjectDefinition definition) {
 		Validate.notNull(definition, "Resource object definition can't be null.");
@@ -46,8 +49,20 @@ public class ResourceObjectType implements Serializable {
 		nativeObjectClass = definition.getNativeObjectClass();
 		help = definition.getHelp();
 		if (definition.getTypeName() != null) {
-			type = definition.getTypeName().getLocalPart();
+			QName qname = definition.getTypeName();
+			type = qname.getLocalPart();
+
+			StringBuilder builder = new StringBuilder();
+			builder.append("{");
+			builder.append(qname.getNamespaceURI());
+			builder.append("}");
+			builder.append(type);
+			qualifiedType = builder.toString();
 		}
+	}
+
+	public String getQualifiedType() {
+		return qualifiedType;
 	}
 
 	public String getDisplayName() {

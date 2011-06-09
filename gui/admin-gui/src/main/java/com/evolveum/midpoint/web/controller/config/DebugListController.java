@@ -20,7 +20,6 @@
  */
 package com.evolveum.midpoint.web.controller.config;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -57,8 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 @Controller("debugList")
 @Scope("session")
 public class DebugListController extends ListController<DebugObject> {
-
-	public static final String PAGE_NAVIGATION_LIST = "/config/debugList?faces-redirect=true";
+	
+	public static final String PAGE_NAVIGATION = "/config/debugList?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_VIEW = "/config/debugView?faces-redirect=true";
 	public static final String PARAM_DELETE_OBJECT_OID = "deleteObjectOid";
 	public static final String PARAM_VIEW_OBJECT_OID = "viewObjectOid";
@@ -110,7 +109,7 @@ public class DebugListController extends ListController<DebugObject> {
 		offset = 0;
 		rowsCount = 30;
 
-		return PAGE_NAVIGATION_LIST;
+		return PAGE_NAVIGATION;
 	}
 
 	public boolean isShowTable() {
@@ -216,7 +215,7 @@ public class DebugListController extends ListController<DebugObject> {
 		}
 		if (object == null) {
 			FacesUtils.addErrorMessage("Couldn't find object with oid '" + objectOid + "' in session.");
-			return PAGE_NAVIGATION_LIST;
+			return PAGE_NAVIGATION;
 		}
 
 		debugView.setObject(object);

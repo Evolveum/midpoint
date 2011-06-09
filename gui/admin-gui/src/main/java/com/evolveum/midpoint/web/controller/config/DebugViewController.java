@@ -65,8 +65,8 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 @Scope("session")
 public class DebugViewController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_LIST = "/config/debugList?faces-redirect=true";
 	public static final String PAGE_NAVIGATION = "/config/debugView?faces-redirect=true";
+	public static final String NAVIGATION_LEFT = "leftViewEdit";
 	private static final long serialVersionUID = -6260309359121248206L;
 	private static final Trace TRACE = TraceManager.getTrace(DebugViewController.class);
 	@Autowired(required = true)
@@ -142,7 +142,7 @@ public class DebugViewController implements Serializable {
 		initController();
 		template.setSelectedLeftId("leftList");
 
-		return PAGE_NAVIGATION_LIST;
+		return DebugListController.PAGE_NAVIGATION;
 	}
 
 	public String editOtherObject() {
@@ -171,11 +171,11 @@ public class DebugViewController implements Serializable {
 		} catch (FaultMessage ex) {
 			FacesUtils.addErrorMessage("Couldn't search for object '" + object.getName() + "'.", ex);
 			TRACE.debug("Couldn't search for object '" + object.getName() + "'.", ex);
-			return PAGE_NAVIGATION_LIST;
+			return DebugListController.PAGE_NAVIGATION;
 		} catch (JAXBException ex) {
 			FacesUtils.addErrorMessage("Unknown error occured.", ex);
 			TRACE.debug("Unknown error occured.", ex);
-			return PAGE_NAVIGATION_LIST;
+			return DebugListController.PAGE_NAVIGATION;
 		}
 
 		return viewObject();
@@ -184,7 +184,7 @@ public class DebugViewController implements Serializable {
 	public String viewObject() {
 		if (object == null) {
 			FacesUtils.addErrorMessage("Debug object not defined.");
-			return PAGE_NAVIGATION_LIST;
+			return DebugListController.PAGE_NAVIGATION;
 		}
 
 		try {
@@ -199,15 +199,15 @@ public class DebugViewController implements Serializable {
 					"Couldn't get object '" + object.getName() + "' with oid '" + object.getOid() + "'.", ex);
 			TRACE.debug("Couldn't get object '" + object.getName() + "' with oid '" + object.getOid() + "'.",
 					ex);
-			return PAGE_NAVIGATION_LIST;
+			return DebugListController.PAGE_NAVIGATION;
 		} catch (JAXBException ex) {
 			FacesUtils.addErrorMessage("Couldn't show object '" + object.getName() + "' in editor.", ex);
 			TRACE.debug("Couldn't show object '" + object.getName() + "' in editor.", ex);
-			return PAGE_NAVIGATION_LIST;
+			return DebugListController.PAGE_NAVIGATION;
 		} catch (Exception ex) {
 			FacesUtils.addErrorMessage("Unknown error occured.", ex);
 			TRACE.debug("Unknown error occured.", ex);
-			return PAGE_NAVIGATION_LIST;
+			return DebugListController.PAGE_NAVIGATION;
 		}
 
 		return PAGE_NAVIGATION;
@@ -230,7 +230,7 @@ public class DebugViewController implements Serializable {
 			ObjectType oldObject = container.getObject();
 			if (oldObject == null) {
 				FacesUtils.addErrorMessage("Object " + object.getName() + "' doesn't exist.");
-				return PAGE_NAVIGATION_LIST;
+				return DebugListController.PAGE_NAVIGATION;
 			}
 
 			ObjectModificationType objectChange = CalculateXmlDiff.calculateChanges(oldObject, newObject);
@@ -238,18 +238,18 @@ public class DebugViewController implements Serializable {
 		} catch (FaultMessage ex) {
 			FacesUtils.addErrorMessage("Couln't update object '" + object.getName() + "'.", ex);
 			// TODO: logging
-			
+
 			return null;
 		} catch (DiffException ex) {
 			FacesUtils.addErrorMessage("Couln't create diff for object '" + object.getName() + "'.", ex);
 			// TODO: logging
-			
+
 			return null;
 		}
 
 		template.setSelectedLeftId("leftList");
 
-		return PAGE_NAVIGATION_LIST;
+		return DebugListController.PAGE_NAVIGATION;
 	}
 
 	private ObjectType getObjectFromXml(String xml) {

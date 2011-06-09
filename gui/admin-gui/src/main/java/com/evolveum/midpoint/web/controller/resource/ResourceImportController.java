@@ -38,13 +38,14 @@ import com.evolveum.midpoint.web.controller.TemplateController;
 public class ResourceImportController implements Serializable {
 
 	public static final String PAGE_NAVIGATION = "/resource/import?faces-redirect=true";
+	public static final String NAVIGATION_LEFT = "leftImportStatus";
 	private static final long serialVersionUID = 7495585784483264092L;
 	@Autowired(required = true)
 	private TemplateController template;
 
 	public String backPerformed() {
-		template.setSelectedLeftId("leftResourceDetails");
-
+		
+		template.setSelectedLeftId(ResourceDetailsController.NAVIGATION_LEFT);
 		return ResourceDetailsController.PAGE_NAVIGATION;
 	}
 }

@@ -24,6 +24,7 @@ import java.io.Serializable;
 
 import javax.xml.ws.Holder;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -44,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 public class ResourceDetailsController implements Serializable {
 
 	public static final String PAGE_NAVIGATION = "/resource/resourceDetails?faces-redirect=true";
+	public static final String NAVIGATION_LEFT = "leftResourceDetails";
+	public static final String PARAM_OBJECT_TYPE = "objectType";
 	private static final long serialVersionUID = 8325385127604325634L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceDetailsController.class);
 	@Autowired(required = true)
@@ -80,7 +83,7 @@ public class ResourceDetailsController implements Serializable {
 		debugView.setEditOther(false);
 		String returnPage = debugView.viewObject();
 		if (DebugViewController.PAGE_NAVIGATION.equals(returnPage)) {
-			template.setSelectedLeftId("leftViewEdit");
+			template.setSelectedLeftId(DebugViewController.NAVIGATION_LEFT);
 			template.setSelectedTopId(TemplateController.TOP_CONFIGURATION);
 		}
 
@@ -121,13 +124,41 @@ public class ResourceDetailsController implements Serializable {
 
 	public String showImportStatus() {
 
-		template.setSelectedLeftId("leftImportStatus");
+		template.setSelectedLeftId(ResourceImportController.NAVIGATION_LEFT);
 		return ResourceImportController.PAGE_NAVIGATION;
 	}
 
 	public String showSyncStatus() {
 
-		template.setSelectedLeftId("leftSyncStatus");
+		template.setSelectedLeftId(ResourceSyncController.NAVIGATION_LEFT);
 		return ResourceSyncController.PAGE_NAVIGATION;
+	}
+	
+	public String listPerformed() {
+		String objectType = FacesUtils.getRequestParameter(PARAM_OBJECT_TYPE);
+		if (StringUtils.isEmpty(objectType)) {
+			FacesUtils.addErrorMessage("Can't list objects. Object type not defined.");
+			return null;
+		}
+		
+		return null;
+	}
+	
+	public String importPerformed() {
+		String objectType = FacesUtils.getRequestParameter(PARAM_OBJECT_TYPE);
+		if (StringUtils.isEmpty(objectType)) {
+			FacesUtils.addErrorMessage("Can't import objects. Object type not defined.");
+			return null;
+		}
+		
+		
+		template.setSelectedLeftId(ResourceImportController.NAVIGATION_LEFT);
+		return ResourceImportController.PAGE_NAVIGATION;
+	}
+	
+	public String deletePerformed() {
+		
+		template.setSelectedLeftId(ResourceListController.NAVIGATION_LEFT);
+		return ResourceListController.PAGE_NAVIGATION;
 	}
 }

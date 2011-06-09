@@ -31,12 +31,13 @@
 
 						<ice:outputLabel value="#{msg['page.resource.resourceDetails.version']}" />
 						<ice:outputText value="#{resourceDetails.resource.version}" />
-						
+
 						<ice:outputLabel value="#{msg['page.resource.resourceDetails.progress']}" />
 						<ice:outputText value="#{resourceDetails.resource.progress}" />
 					</ice:panelGrid>
 					<ice:commandLink style="margin-top: 40px; display: block; text-decoration: underline;"
-						value="#{msg['page.resource.resourceDetails.button.seeDebugPages']}" action="#{resourceDetails.showDebugPages}" />
+						value="#{msg['page.resource.resourceDetails.button.seeDebugPages']}"
+						action="#{resourceDetails.showDebugPages}" />
 				</ice:panelGroup>
 
 				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
@@ -117,27 +118,31 @@
 						</ice:outputText>
 					</ui:remove>
 
-					<idm:button value="#{msg['page.resource.resourceDetails.button.list']}" img="/resources/images/table.png" />
-					<idm:button value="#{msg['page.resource.resourceDetails.button.import']}" img="/resources/images/drive_go.png" />
+					<idm:button value="#{msg['page.resource.resourceDetails.button.list']}" img="/resources/images/table.png"
+						action="#{resourceDetails.listPerformed}">
+						<f:param name="objectType" value="#{item.qualifiedType}" />
+					</idm:button>
+					<idm:button value="#{msg['page.resource.resourceDetails.button.import']}"
+						img="/resources/images/drive_go.png" action="#{resourceDetails.importPerformed}">
+						<f:param name="objectType" value="#{item.qualifiedType}" />
+					</idm:button>
 				</ice:column>
 			</ice:dataTable>
 
 			<div class="button-bar">
 				<idm:button action="#{resourceList.updateController}" value="#{msg['page.button.back']}"
 					img="/resources/images/door_in.png" />
-				<idm:button id="deleteResource" buttonType="negative" value="#{msg['page.button.delete']}"
-					img="/resources/images/drive_delete.png" />
-				<idm:button action="#{resourceDetails.testConnection}" id="testConnectionButton" value="#{msg['page.resource.resourceDetails.button.testConnection']}"
-					img="/resources/images/connect.png" />
+				<idm:button buttonType="negative" value="#{msg['page.button.delete']}"
+					img="/resources/images/drive_delete.png" action="#{resourceDetails.deletePerformed}"/>
+				<idm:button action="#{resourceDetails.testConnection}" id="testConnectionButton"
+					value="#{msg['page.resource.resourceDetails.button.testConnection']}" img="/resources/images/connect.png" />
 
 				<ui:remove>
 					<div style="display: inline-block; width: 80px;" />
 
 					<idm:button value="Import status" img="/resources/images/drive_go.png" />
 					<idm:button value="Synchronization status" img="/resources/images/arrow_refresh.png" />
-				</ui:remove>
 
-				<ui:remove>
 					<idm:button action="#{resourceDetails.importFromResource}" id="ImportFromResourceButton"
 						value="Import accounts" img="/resources/images/drive_go.png" />
 

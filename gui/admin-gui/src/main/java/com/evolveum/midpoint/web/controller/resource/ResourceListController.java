@@ -76,6 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 public class ResourceListController implements Serializable {
 
 	public static final String PAGE_NAVIGATION = "/resource/index?faces-redirect=true";
+	public static final String NAVIGATION_LEFT = "leftResourceList";
 	private static final long serialVersionUID = 8325385127604325633L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceListController.class);
 	@Autowired(required = true)
@@ -150,8 +151,8 @@ public class ResourceListController implements Serializable {
 		}
 
 		resourceDetails.setResource(resourceItem);
-		template.setSelectedLeftId("leftResourceDetails");
-
+		
+		template.setSelectedLeftId(ResourceDetailsController.NAVIGATION_LEFT);
 		return ResourceDetailsController.PAGE_NAVIGATION;
 	}
 
