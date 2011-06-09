@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.common.password;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
@@ -20,21 +21,32 @@ public class PasswordGenerator {
 
 	private static final transient Trace logger = TraceManager.getTrace(PasswordGenerator.class);
 
-	public static String generate(PasswordPolicyType pp, OperationResult generatorResult) {
-		StringBuilder sb = new StringBuilder();
+	private static final Random rand =  new Random(System.currentTimeMillis());
+	
+	
+	public static String generate(PasswordPolicyType pp, OperationResult inputResult) {
+		return generate(pp, false, inputResult);
+	}
+	
+	public static String generate(PasswordPolicyType pp, boolean generateMinimalSize, OperationResult inputResult) {
+		
 		if (null == pp) {
 			throw new IllegalArgumentException("Provided password policy can not be null.");
 		}
 
-		if (null == generatorResult) {
+		if (null == inputResult) {
 			throw new IllegalArgumentException("Provided operation result cannot be null");
 		}
-
+		//Define result from generator
+		OperationResult generatorResult = new OperationResult("Password generator running policy :" + pp.getName());
+		inputResult.addSubresult(generatorResult);
+		
+		//setup default values where missing
 		PasswordPolicyUtils.normalize(pp);
 
 		// Optimize usage of limits ass hashmap of limitas and key is set of
 		// valid chars for each limitation
-		HashMap<StringLimitType, ArrayList<String>> lims = new HashMap();
+		HashMap<StringLimitType, ArrayList<String>> lims = new HashMap<StringLimitType, ArrayList<String>>();
 		for (StringLimitType l : pp.getStringPolicy().getLimitations().getLimit()) {
 			if (null != l.getCharacterClass().getValue()) {
 				lims.put(l, stringTokenizer(l.getCharacterClass().getValue()));
@@ -49,10 +61,9 @@ public class PasswordGenerator {
 		// Get global limitations
 		int minLen = pp.getStringPolicy().getLimitations().getMinLength();
 		int maxLen = pp.getStringPolicy().getLimitations().getMaxLength();
-		int unique = pp.getStringPolicy().getLimitations().getMinUniqueChars();
+		int unique = pp.getStringPolicy().getLimitations().getMinUniqueChars();	// TODO disable uniqueness
 
 		// Initialize generator
-		Random rand = new Random(System.currentTimeMillis());
 		StringBuilder password = new StringBuilder();
 
 		/* **********************************
@@ -64,8 +75,8 @@ public class PasswordGenerator {
 				mustBeFirst.put(l, lims.get(l));
 			}
 		}
-
-		// If any limitation was found
+		
+		// If any limitation was found to be first
 		if (!mustBeFirst.isEmpty()) {
 			HashMap<Integer, ArrayList<String>> posibleFirstChars = cardinalityCounter(mustBeFirst, null,
 					false, generatorResult);
@@ -94,7 +105,7 @@ public class PasswordGenerator {
 					StrBuilder tmp = new StrBuilder();
 					tmp.appendSeparator(", ");
 					tmp.appendAll(intersectionCharacters);
-					logger.debug("Generate first character intersection items [" + tmp + "] into password.");
+					logger.trace("Generate first character intersection items [" + tmp + "] into password.");
 				}
 				// Generate random char into password from intersection
 				password.append(intersectionCharacters.get(rand.nextInt(intersectionCharacters.size())));
@@ -107,8 +118,8 @@ public class PasswordGenerator {
 
 		// Count kardinality of elements
 		HashMap<Integer, ArrayList<String>> chars;
-		int card = 1;
 		for (int i = 0; i < minLen; i++) {
+			//Find all usable characters
 			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), false, generatorResult);
 			// If something goes badly then go out
 			if (null == chars ) {
@@ -116,21 +127,75 @@ public class PasswordGenerator {
 			} 
 			
 			if ( chars.isEmpty()) {
-				logger.debug("Minimal criterias was met.");
+				logger.trace("Minimal criterias was met. No more characters");
 				break;
 			}
-			
-			for (; card < lims.keySet().size(); card++) {
+			//Find lowest possible cardinality and then generate char
+			for (int card = 1 ; card < lims.keySet().size(); card++) {
 				if (chars.containsKey(card)) {
-					ArrayList validChars = chars.get(card);
+					ArrayList<String> validChars = chars.get(card);
 					password.append(validChars.get(rand.nextInt(validChars.size())));
-					logger.debug(password.toString());
+					logger.trace(password.toString());
 					break;
 				}
 			}
 		}
 
+		// test if maximum is not exceeded
+		if ( password.length() > maxLen ){
+			generatorResult.recordFatalError("Unable to meet minimal criterian and not exceed maximxal size of password.");
+			return null;
+		}
+		
+		/* ***************************************
+		 *  Generate chars to not exceed maximal
+		 */
+		
+		for (int i = 0; i < minLen; i++) {
+			// test if max is reached
+			if ( password.length() == maxLen ){
+				// no more characters maximal size is reached
+				break;
+			}
+			
+			if ( password.length() >= minLen  && generateMinimalSize) {
+				//no more characters are needed
+				break;
+			}
+			//find all usable characters
+			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), true, generatorResult);
+			// If something goes badly then go out
+			if (null == chars ) {
+				return null;
+			} 
+			
+			if ( chars.isEmpty()) {
+				break;
+			}
+			
+			for (int card = 1 ; card < lims.keySet().size(); card++) {
+				if (chars.containsKey(card)) {
+					ArrayList<String> validChars = chars.get(card);
+					password.append(validChars.get(rand.nextInt(validChars.size())));
+					logger.trace(password.toString());
+					break;
+				}
+			}
+		}
+		
+		if ( password.length() < minLen ){
+			generatorResult.recordFatalError("Unable generate password and meet minimal size of password." + password.length() + "<" + minLen);
+			return null;
+		}
+		
 		generatorResult.recordSuccess();
+		
+		//Shuffle output to solve pattern like output
+		StrBuilder sb = new StrBuilder(password.substring(0,1));
+		ArrayList<String> shuffleBuffer = stringTokenizer(password.substring(1));
+		Collections.shuffle(shuffleBuffer);
+		sb.appendAll(shuffleBuffer);
+		
 		return sb.toString();
 	}
 
@@ -161,10 +226,12 @@ public class PasswordGenerator {
 				return null;
 				// if max is all ready reached or skip enabled for minimal skip
 				// counting
-			} else if (i == l.getMaxOccurs() || i >= l.getMinOccurs()) {
+			} else if (i == l.getMaxOccurs()) {
 				continue;
 				// other cases minimum is not reached
-			} else {
+			} else if (i>= l.getMinOccurs() && ! skipMatchedLims) {
+				continue;
+			} 
 				for (String s : chars) {
 					if (null == password || !password.contains(s)) {
 						if (null == counter.get(s)) {
@@ -174,7 +241,7 @@ public class PasswordGenerator {
 						}
 					}
 				}
-			}
+			
 		}
 
 		// If need to remove disabled chars (already reached limitations)
@@ -189,7 +256,7 @@ public class PasswordGenerator {
 					return null;
 				} else if (i == l.getMaxOccurs()) {
 					// limitation matched remove all used chars
-					logger.debug("Skip " + l.getDescription());
+					logger.trace("Skip " + l.getDescription());
 					for (String charToRemove : lims.get(l)) {
 						counter.remove(charToRemove);
 					}

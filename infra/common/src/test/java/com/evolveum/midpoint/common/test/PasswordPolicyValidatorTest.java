@@ -106,7 +106,7 @@ public class PasswordPolicyValidatorTest {
 		StringPolicyType sp = pp.getStringPolicy();
 		StringPolicyUtils.normalize(sp);
 	}
-	
+
 	/*******************************************************************************************/
 	@Test
 	public void passwordGeneratorComplexTest() {
@@ -122,26 +122,47 @@ public class PasswordPolicyValidatorTest {
 		logger.error("Positive testing: passwordGeneratorComplexTest");
 		PasswordPolicyType pp = jbe.getValue();
 		OperationResult op = new OperationResult("passwordGeneratorComplexTest");
-		String psswd = PasswordGenerator.generate(pp, op);
+		String psswd;
+		// generate minimal size passwd
+		for (int i = 0; i < 100; i++) {
+			psswd = PasswordGenerator.generate(pp, true ,op);
+			logger.error("Generated password:" + psswd);
+			op.computeStatus();
+			if ( ! op.isSuccess()) {
+				logger.error("Result:" + op.debugDump());
+			}
+			assertTrue(op.isSuccess());
+			assertNotNull(psswd);
+			
+		}
+		logger.error("-------------------------");
+		// Generate up to possible
+		for (int i = 0; i < 100; i++) {
+			psswd = PasswordGenerator.generate(pp, false ,op);
+			logger.error("Generated password:" + psswd);
+			op.computeStatus();
+			if ( ! op.isSuccess()) {
+				logger.error("Result:" + op.debugDump());
+			}
+			assertTrue(op.isSuccess());
+			assertNotNull(psswd);
+			
+		}
 		
-		assertTrue(op.isSuccess());
-		assertNotNull(psswd);
-		
-		//Switch to all must be first :-) to test if there is error
-		for (StringLimitType l: pp.getStringPolicy().getLimitations().getLimit()) {
+		// Switch to all must be first :-) to test if there is error
+		for (StringLimitType l : pp.getStringPolicy().getLimitations().getLimit()) {
 			l.setMustBeFirst(true);
 		}
 		logger.error("Negative testing: passwordGeneratorComplexTest");
-		
 		psswd = PasswordGenerator.generate(pp, op);
 		assertNull(psswd);
 		assertTrue(op.getStatus() == OperationResultStatus.FATAL_ERROR);
 	}
-	
+
 	/*******************************************************************************************/
 	@Test
 	public void XMLPasswordPolicy() {
-		
+
 		String filename = "password-policy-complex.xml";
 		String pathname = BASE_PATH + filename;
 		File file = new File(pathname);
@@ -156,8 +177,8 @@ public class PasswordPolicyValidatorTest {
 
 		OperationResult op = new OperationResult("Generator testing");
 
-		//String pswd = PasswordPolicyUtils.generatePassword(pp, op);
-//		logger.info("Generated password: " + pswd);
+		// String pswd = PasswordPolicyUtils.generatePassword(pp, op);
+		// logger.info("Generated password: " + pswd);
 		// assertNotNull(pswd);
 		// assertTrue(op.isSuccess());
 	}
