@@ -37,13 +37,13 @@ import org.w3c.dom.NamedNodeMap;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.web.bean.DiagnosticMessage;
+import com.evolveum.midpoint.web.bean.TaskStatus;
 import com.evolveum.midpoint.web.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.dto.GuiTestResultDto;
 import com.evolveum.midpoint.web.model.AccountShadowDto;
-import com.evolveum.midpoint.web.model.DiagnosticMessageDto;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceDto;
-import com.evolveum.midpoint.web.model.TaskStatusDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -83,7 +83,7 @@ public class ResourceTypeController implements Serializable {
 	private GuiResourceDto resourceDto;
 	private List<AccountShadowDto> accounts;
 	private GuiTestResultDto guiTestResult;
-	private TaskStatusDto status;
+	private TaskStatus status;
 
 	public String backPerformed() {
 		for (GuiResourceDto res : resources) {
@@ -233,14 +233,14 @@ public class ResourceTypeController implements Serializable {
 		return;
 	}
 
-	private TaskStatusDto convertTaskStatusResults(TaskStatusType taskStatusType) {
-		TaskStatusDto taskStatus = new TaskStatusDto();
+	private TaskStatus convertTaskStatusResults(TaskStatusType taskStatusType) {
+		TaskStatus taskStatus = new TaskStatus();
 		if (taskStatusType.getFinishTime() != null) {
 			taskStatus.setFinishTime(taskStatusType.getFinishTime().toXMLFormat());
 		}
 		DiagnosticsMessageType lastError = null;
 		if ((lastError = taskStatusType.getLastError()) != null) {
-			DiagnosticMessageDto diagnosticMessage = new DiagnosticMessageDto();
+			DiagnosticMessage diagnosticMessage = new DiagnosticMessage();
 
 			if (lastError.getDetails() != null) {
 				diagnosticMessage.setDetails(lastError.getDetails());
@@ -389,11 +389,11 @@ public class ResourceTypeController implements Serializable {
 		this.guiTestResult = guiTestResult;
 	}
 
-	public TaskStatusDto getStatus() {
+	public TaskStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(TaskStatusDto status) {
+	public void setStatus(TaskStatus status) {
 		this.status = status;
 	}
 

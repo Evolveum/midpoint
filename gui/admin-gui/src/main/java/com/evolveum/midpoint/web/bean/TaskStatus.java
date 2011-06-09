@@ -20,27 +20,28 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.model;
+package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
+
 
 /**
  * 
  * @author Katuska
  */
-public class TaskStatusDto implements Serializable {
+public class TaskStatus implements Serializable {
 
 	private static final long serialVersionUID = -5358337966691482206L;
 	private String finishTime;
 	private String lastStatus;
-	private DiagnosticMessageDto lastError;
+	private DiagnosticMessage lastError;
 	private String name;
 	private String launchTime;
 	private String numberOfErrors;
 	private String progress;
 	private String running;
 
-	public TaskStatusDto() {
+	public TaskStatus() {
 	}
 
 	public String getFinishTime() {
@@ -51,11 +52,11 @@ public class TaskStatusDto implements Serializable {
 		this.finishTime = finishTime;
 	}
 
-	public DiagnosticMessageDto getLastError() {
+	public DiagnosticMessage getLastError() {
 		return lastError;
 	}
 
-	public void setLastError(DiagnosticMessageDto lastError) {
+	public void setLastError(DiagnosticMessage lastError) {
 		this.lastError = lastError;
 	}
 

@@ -17,48 +17,30 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
-package com.evolveum.midpoint.web.model;
+package com.evolveum.midpoint.web.controller.resource;
 
 import java.io.Serializable;
 
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+
+import com.evolveum.midpoint.web.controller.util.ListController;
+
 /**
  * 
- * @author Katuska
+ * @author lazyman
+ *
  */
-public class DiagnosticMessageDto implements Serializable {
+@Controller("listObjects")
+@Scope("session")
+public class ListObjectsController extends ListController<Object> implements Serializable {
+	
+	private static final long serialVersionUID = -3538520581983462635L;
 
-	private static final long serialVersionUID = 7568834241228899775L;
-	private String message;
-	private String details;
-	private String timestamp;
-
-	public DiagnosticMessageDto() {
-	}
-
-	public String getDetails() {
-		return details;
-	}
-
-	public void setDetails(String details) {
-		this.details = details;
-	}
-
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
-	}
-
-	public String getTimestamp() {
-		return timestamp;
-	}
-
-	public void setTimestamp(String timestamp) {
-		this.timestamp = timestamp;
+	@Override
+	protected String listObjects() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

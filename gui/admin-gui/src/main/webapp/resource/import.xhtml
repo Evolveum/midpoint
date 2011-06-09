@@ -15,39 +15,38 @@
 	<ui:define name="content">
 		<ice:form>
 			<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
-				<f:facet name="header">
-					<h3>Import Status</h3>
-				</f:facet>
-
+				<ice:outputText value="Name" />
+				<ice:outputText value="#{resourceImport.status.name}" />
+	
 				<ice:outputText value="Running" />
-				<ice:outputText value="#{resourceTypeController.status.running}" />
+				<ice:outputText value="#{resourceImport.status.running}" />
 
 				<ice:outputText value="Launch time" />
-				<ice:outputText value="#{resourceTypeController.status.launchTime}" />
+				<ice:outputText value="#{resourceImport.status.launchTime}" />
 
 				<ice:outputText value="Finish time" />
-				<ice:outputText value="#{resourceTypeController.status.finishTime}" />
+				<ice:outputText value="#{resourceImport.status.finishTime}" />
 
 				<ice:outputText value="Progress" />
-				<ice:outputText value="#{resourceTypeController.status.progress}" />
+				<ice:outputText value="#{resourceImport.status.progress}" />
 
 				<ice:outputText value="Last status" />
-				<ice:outputText value="#{resourceTypeController.status.lastStatus}" />
+				<ice:outputText value="#{resourceImport.status.lastStatus}" />
 
 				<ice:outputText value="Number of errors" />
-				<ice:outputText value="#{resourceTypeController.status.numberOfErrors}" />
+				<ice:outputText value="#{resourceImport.status.numberOfErrors}" />
 
 				<ice:outputText value="Last error" />
 				<ice:panelGroup />
 
 				<ice:outputText value="Message: " styleClass="importStatus" />
-				<ice:outputText value="#{resourceTypeController.status.lastError.message}" />
+				<ice:outputText value="#{resourceImport.status.lastError.message}" />
 
 				<ice:outputText value="Detail: " styleClass="importStatus" />
-				<ice:outputText value="#{resourceTypeController.status.lastError.details}" />
+				<ice:outputText value="#{resourceImport.status.lastError.details}" />
 
 				<ice:outputText value="Timestamp: " styleClass="importStatus" />
-				<ice:outputText value="#{resourceTypeController.status.lastError.timestamp}" />
+				<ice:outputText value="#{resourceImport.status.lastError.timestamp}" />
 			</ice:panelGrid>
 
 			<div class="button-bar">

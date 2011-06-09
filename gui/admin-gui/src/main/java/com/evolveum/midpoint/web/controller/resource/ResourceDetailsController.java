@@ -29,15 +29,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.bean.DebugObject;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.bean.ResourceObjectType;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.config.DebugViewController;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
@@ -49,11 +53,13 @@ public class ResourceDetailsController implements Serializable {
 	public static final String NAVIGATION_LEFT = "leftResourceDetails";
 	public static final String PARAM_OBJECT_TYPE = "objectType";
 	private static final long serialVersionUID = 8325385127604325634L;
-	private static final Trace TRACE = TraceManager.getTrace(ResourceDetailsController.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceDetailsController.class);
 	@Autowired(required = true)
 	private transient ModelPortType model;
 	@Autowired(required = true)
 	private transient DebugViewController debugView;
+	@Autowired(required = true)
+	private transient ResourceImportController importController;
 	@Autowired(required = true)
 	private transient TemplateController template;
 	private ResourceListItem resource;
@@ -91,42 +97,44 @@ public class ResourceDetailsController implements Serializable {
 		return returnPage;
 	}
 
-	public String importFromResource() {
-		if (resource == null) {
-			FacesUtils.addErrorMessage("Resource must be selected");
+	public String importPerformed() {
+		String objectType = FacesUtils.getRequestParameter(PARAM_OBJECT_TYPE);
+		if (StringUtils.isEmpty(objectType)) {
+			FacesUtils.addErrorMessage("Can't import objects. Object type not defined.");
 			return null;
 		}
 
-		try {
-			// TODO: HACK: this should be determined from the resource schema.
-			// But ICF always generates the name for __ACCOUNT__ like this.
-			String objectClass = "Account";
-
-			TRACE.debug("Calling launchImportFromResource({})", resource.getOid());
-			model.launchImportFromResource(resource.getOid(), objectClass, new Holder<OperationResultType>(
-					new OperationResultType()));
-		} catch (FaultMessage ex) {
-			String message = (ex.getFaultInfo().getMessage() != null) ? ex.getFaultInfo().getMessage() : ex
-					.getMessage();
-			FacesUtils.addErrorMessage("Launching import from resource failed: " + message);
-			TRACE.error("Launching import from resources failed.", ex);
-		} catch (RuntimeException ex) {
-			// Due to insane preferrence of runtime exception in "modern" Java
-			// we need to catch all of them. These may happen in JBI layer and
-			// we are not even sure which exceptions to cacht.
-			// To a rough hole a rough patch.
-			FacesUtils.addErrorMessage("Launching import from resource failed. Runtime error: "
-					+ ex.getClass().getSimpleName() + ": " + ex.getMessage());
-			TRACE.error("Launching import from resources failed. Runtime error.", ex);
+		String objectClass = getObjectClass(objectType);
+		if (StringUtils.isEmpty(objectClass)) {
+			FacesUtils.addErrorMessage("Can't import objects. Object class for object type '" + objectType
+					+ "' not found.");
+			return null;
 		}
 
-		return null;
+		String nextPage = null;
+		try {
+			OperationResultType result = new OperationResultType();
+			model.launchImportFromResource(getResource().getOid(), objectClass,
+					new Holder<OperationResultType>(result));
+
+			importController.setResource(getResource());
+			nextPage = importController.initController();
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't launch import", ex);
+			// TODO: result and error handling
+		}
+
+		if (ResourceImportController.PAGE_NAVIGATION.equals(nextPage)) {
+			template.setSelectedLeftId(ResourceImportController.NAVIGATION_LEFT);
+		}
+		return nextPage;
 	}
 
-	public String showImportStatus() {
+	public String deletePerformed() {
+		// TODO: delete dialog & stuff
 
-		template.setSelectedLeftId(ResourceImportController.NAVIGATION_LEFT);
-		return ResourceImportController.PAGE_NAVIGATION;
+		template.setSelectedLeftId(ResourceListController.NAVIGATION_LEFT);
+		return ResourceListController.PAGE_NAVIGATION;
 	}
 
 	public String showSyncStatus() {
@@ -142,46 +150,36 @@ public class ResourceDetailsController implements Serializable {
 			return null;
 		}
 
-		return null;
-	}
-
-	public String importPerformed() {
-		String objectType = FacesUtils.getRequestParameter(PARAM_OBJECT_TYPE);
-		if (StringUtils.isEmpty(objectType)) {
-			FacesUtils.addErrorMessage("Can't import objects. Object type not defined.");
-			return null;
-		}
-
-		String objectClass = null;
-		for (ResourceObjectType resObjectType : getResource().getObjectTypes()) {
-			if (objectType.equals(resObjectType.getQualifiedType())) {
-				objectClass = resObjectType.getNativeObjectClass();
-				break;
-			}
-		}
-
+		String objectClass = getObjectClass(objectType);
 		if (StringUtils.isEmpty(objectClass)) {
 			FacesUtils.addErrorMessage("Can't import objects. Object class for object type '" + objectType
 					+ "' not found.");
 			return null;
 		}
-		
-		try {
-			OperationResultType result = new OperationResultType();
-			model.launchImportFromResource(getResource().getOid(), objectClass,
-					new Holder<OperationResultType>(result));
-		} catch (FaultMessage ex) {
 
-			return null;
+		String nextPage = null;
+		try {
+			OperationResultType resultType = new OperationResultType();
+			ObjectListType list = model.listResourceObjects(getResource().getOid(), objectClass,
+					PagingTypeFactory.createPaging(0, 30, OrderDirectionType.ASCENDING, "name"),
+					new Holder<OperationResultType>(resultType));			
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
 		}
 
-		template.setSelectedLeftId(ResourceImportController.NAVIGATION_LEFT);
-		return ResourceImportController.PAGE_NAVIGATION;
+		// TODO: list objects...
+		return nextPage;
 	}
 
-	public String deletePerformed() {
+	private String getObjectClass(String objectType) {
+		for (ResourceObjectType resObjectType : getResource().getObjectTypes()) {
+			if (objectType.equals(resObjectType.getQualifiedType())) {
+				// TODO: use native object class
+				// objectClass = resObjectType.getNativeObjectClass();
+				return resObjectType.getType();
+			}
+		}
 
-		template.setSelectedLeftId(ResourceListController.NAVIGATION_LEFT);
-		return ResourceListController.PAGE_NAVIGATION;
+		return null;
 	}
 }

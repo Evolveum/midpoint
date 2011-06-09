@@ -22,11 +22,23 @@ package com.evolveum.midpoint.web.controller.resource;
 
 import java.io.Serializable;
 
+import javax.xml.ws.Holder;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.web.bean.ResourceListItem;
+import com.evolveum.midpoint.web.bean.TaskStatus;
 import com.evolveum.midpoint.web.controller.TemplateController;
+import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * 
@@ -40,12 +52,66 @@ public class ResourceImportController implements Serializable {
 	public static final String PAGE_NAVIGATION = "/resource/import?faces-redirect=true";
 	public static final String NAVIGATION_LEFT = "leftImportStatus";
 	private static final long serialVersionUID = 7495585784483264092L;
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceImportController.class);
 	@Autowired(required = true)
 	private TemplateController template;
+	@Autowired(required = true)
+	private ModelPortType model;
+	private ResourceListItem resource;
+	private TaskStatus status;
+
+	public ResourceListItem getResource() {
+		return resource;
+	}
+
+	public void setResource(ResourceListItem resource) {
+		this.resource = resource;
+	}
+
+	public TaskStatus getStatus() {
+		if (status == null) {
+			status = new TaskStatus();
+		}
+		return status;
+	}
+
+	public String initController() {
+		String nextPage = null;
+		try {
+			OperationResultType resultType = new OperationResultType();
+			TaskStatusType statusType = model.getImportStatus(getResource().getOid(),
+					new Holder<OperationResultType>(resultType));
+			if (statusType != null) {
+				this.status = createStatus(statusType);
+				nextPage = PAGE_NAVIGATION;
+			} else {
+				FacesUtils.addErrorMessage("Couldn't get import status. TODO: resultType handling.");
+			}
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get import status", ex);
+			// TODO: handle operation result
+		}
+
+		if (PAGE_NAVIGATION.equals(nextPage)) {
+			template.setSelectedLeftId(NAVIGATION_LEFT);
+		}
+		return nextPage;
+	}
 
 	public String backPerformed() {
-		
 		template.setSelectedLeftId(ResourceDetailsController.NAVIGATION_LEFT);
 		return ResourceDetailsController.PAGE_NAVIGATION;
+	}
+
+	private TaskStatus createStatus(TaskStatusType statusType) {
+		TaskStatus status = new TaskStatus();
+		if (statusType == null) {
+			return status;
+		}
+		status.setName(statusType.getName());
+
+		//TODO: translate statusType to status
+		
+		return status;
 	}
 }
