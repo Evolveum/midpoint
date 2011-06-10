@@ -21,23 +21,16 @@
  */
 package com.evolveum.midpoint.common.password;
 
-import java.security.spec.PSSParameterSpec;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+
 import java.util.HashSet;
-import java.util.Random;
-
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.text.StrBuilder;
+import java.util.List;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.common.string.StringPolicyUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CharacterClassType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LimitationsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordLifeTimeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
@@ -81,6 +74,35 @@ public class PasswordPolicyUtils {
 		return;
 	}
 
+	
+
+	/**
+	 * Check provided password against provided policy
+	 * 
+	 * @param password
+	 *            - password to check
+	 * @param policies
+	 *            - Password List of policies used to check
+	 * @param result
+	 *            - Operation result of password validator.
+	 * @return true if password meet all criteria , false if any criteria is not
+	 *         met
+	 */
+
+	public static boolean validatePassword(String password, List <PasswordPolicyType> policies, OperationResult result) {
+		boolean ret=true;
+		//iterate through policies 
+		for (PasswordPolicyType pp: policies) {
+			OperationResult op = validatePassword(password, pp);
+			result.addSubresult(op);
+			//if one fail then result is failure
+			if (ret == true && ! op.isSuccess()) {
+				ret = false;
+			}
+		}
+		return ret;
+	}
+	
 	/**
 	 * Check provided password against provided policy
 	 * 
