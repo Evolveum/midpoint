@@ -74,4 +74,52 @@ public class StringPolicyUtils {
 
 		return sp;
 	}
+	
+	/**
+	 * Prepare usable list of strings for generator
+	 * 
+	 */
+
+	
+	public static String collectCharacterClass(CharacterClassType cc, QName ref) {
+		StrBuilder l = new StrBuilder();
+		if (null == cc) {
+			throw new IllegalArgumentException("Character class cannot be null");
+		}
+
+		if (null != cc.getValue() && (null == ref || ref.equals(cc.getName()))) {
+			l.append(cc.getValue());
+		} else if (null != cc.getCharacterClass() && !cc.getCharacterClass().isEmpty()) {
+			// Process all sub lists
+			for (CharacterClassType subClass : cc.getCharacterClass()) {
+				// If we found requested name or no name defined
+				if (null == ref || ref.equals(cc.getName())) {
+					l.append(collectCharacterClass(subClass, null));
+				} else {
+					l.append(collectCharacterClass(subClass, ref));
+				}
+			}
+		}
+		// Remove duplicity in return;
+		HashSet<String> h = new HashSet<String>();
+		for (String s : l.toString().split("")) {
+			h.add(s);
+		}
+		return new StrBuilder().appendAll(h).toString();
+	}
+	
+	/**
+	 * Convert string to array 
+	 * @param in
+	 * @return ArrayList
+	 */
+	public static ArrayList<String> stringTokenizer(String in) {
+		ArrayList<String> l = new ArrayList<String>();
+		String a[] = in.split("");
+		// Add all to list , STrat at 1 because a[0] contains ""
+		for (int i = 1; i < a.length; i++) {
+			l.add(a[i]);
+		}
+		return l;
+	}
 }

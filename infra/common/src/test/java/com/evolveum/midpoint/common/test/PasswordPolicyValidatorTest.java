@@ -149,6 +149,14 @@ public class PasswordPolicyValidatorTest {
 			assertNotNull(psswd);
 			
 		}
+		op = new OperationResult("passwordGeneratorComplexTest");
+		// Make switch some cosistency
+		pp.getStringPolicy().getLimitations().setMinLength(2);
+		pp.getStringPolicy().getLimitations().setMinUniqueChars(5);
+		psswd = PasswordGenerator.generate(pp, op);
+		op.computeStatus();
+		assertNotNull(psswd);
+		assertTrue(op.isAcceptable());
 		
 		// Switch to all must be first :-) to test if there is error
 		for (StringLimitType l : pp.getStringPolicy().getLimitations().getLimit()) {
@@ -161,6 +169,36 @@ public class PasswordPolicyValidatorTest {
 		assertTrue(op.getStatus() == OperationResultStatus.FATAL_ERROR);
 	}
 
+	/*******************************************************************************************/
+	@Test
+	public void passwordValidationTest() {
+		String filename = "password-policy-complex.xml";
+		String pathname = BASE_PATH + filename;
+		File file = new File(pathname);
+		JAXBElement<PasswordPolicyType> jbe = null;
+		try {
+			jbe = (JAXBElement<PasswordPolicyType>) JAXBUtil.unmarshal(file);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		logger.error("Positive testing: passwordGeneratorComplexTest");
+		PasswordPolicyType pp = jbe.getValue();
+		
+		//Test on all cases
+		assertTrue(pwdValidHelper("582a**A", pp));
+		assertFalse(pwdValidHelper("58", pp));
+		assertFalse(pwdValidHelper("333a**aGaa", pp));
+		assertFalse(pwdValidHelper("AAA4444", pp));
+	}
+	
+	private boolean pwdValidHelper(String password, PasswordPolicyType pp) {
+		OperationResult op = new OperationResult("Password Validator test with password:" + password);
+		PasswordPolicyUtils.validatePassword(password, pp, op);
+		op.computeStatus();
+		logger.error(op.debugDump());
+		return (op.isSuccess());
+	}
+	
 	/*******************************************************************************************/
 	@Test
 	public void XMLPasswordPolicy() {

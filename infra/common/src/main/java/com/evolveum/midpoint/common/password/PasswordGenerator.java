@@ -21,6 +21,7 @@
  */
 
 package com.evolveum.midpoint.common.password;
+
 /**
  * 
  *  @author mamut
@@ -39,6 +40,7 @@ import org.apache.commons.lang.text.StrBuilder;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.string.StringPolicyUtils;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CharacterClassType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PasswordPolicyType;
@@ -48,15 +50,15 @@ public class PasswordGenerator {
 
 	private static final transient Trace logger = TraceManager.getTrace(PasswordGenerator.class);
 
-	private static final Random rand =  new Random(System.currentTimeMillis());
-	
-	
+	private static final Random rand = new Random(System.currentTimeMillis());
+
 	public static String generate(PasswordPolicyType pp, OperationResult inputResult) {
 		return generate(pp, false, inputResult);
 	}
-	
-	public static String generate(PasswordPolicyType pp, boolean generateMinimalSize, OperationResult inputResult) {
-		
+
+	public static String generate(PasswordPolicyType pp, boolean generateMinimalSize,
+			OperationResult inputResult) {
+
 		if (null == pp) {
 			throw new IllegalArgumentException("Provided password policy can not be null.");
 		}
@@ -64,11 +66,12 @@ public class PasswordGenerator {
 		if (null == inputResult) {
 			throw new IllegalArgumentException("Provided operation result cannot be null");
 		}
-		//Define result from generator
-		OperationResult generatorResult = new OperationResult("Password generator running policy :" + pp.getName());
+		// Define result from generator
+		OperationResult generatorResult = new OperationResult("Password generator running policy :"
+				+ pp.getName());
 		inputResult.addSubresult(generatorResult);
-		
-		//setup default values where missing
+
+		// setup default values where missing
 		PasswordPolicyUtils.normalize(pp);
 
 		// Optimize usage of limits ass hashmap of limitas and key is set of
@@ -76,12 +79,10 @@ public class PasswordGenerator {
 		HashMap<StringLimitType, ArrayList<String>> lims = new HashMap<StringLimitType, ArrayList<String>>();
 		for (StringLimitType l : pp.getStringPolicy().getLimitations().getLimit()) {
 			if (null != l.getCharacterClass().getValue()) {
-				lims.put(l, stringTokenizer(l.getCharacterClass().getValue()));
+				lims.put(l, StringPolicyUtils.stringTokenizer(l.getCharacterClass().getValue()));
 			} else {
-				lims.put(
-						l,
-						stringTokenizer(collectCharacterClass(pp.getStringPolicy().getCharacterClass(), l
-								.getCharacterClass().getRef())));
+				lims.put(l, StringPolicyUtils.stringTokenizer(StringPolicyUtils.collectCharacterClass(pp
+						.getStringPolicy().getCharacterClass(), l.getCharacterClass().getRef())));
 			}
 		}
 
@@ -89,12 +90,13 @@ public class PasswordGenerator {
 		int minLen = pp.getStringPolicy().getLimitations().getMinLength();
 		int maxLen = pp.getStringPolicy().getLimitations().getMaxLength();
 		int unique = pp.getStringPolicy().getLimitations().getMinUniqueChars();
-		
-		//test correctness of definition
-		if (unique > minLen ) {
+
+		// test correctness of definition
+		if (unique > minLen) {
 			minLen = unique;
-			OperationResult reportBug  =  new OperationResult("Global limitation check");
-			reportBug.recordWarning("There is more required uniq characters then definied minimum. Raise minimum to number of required uniq chars.");
+			OperationResult reportBug = new OperationResult("Global limitation check");
+			reportBug
+					.recordWarning("There is more required uniq characters then definied minimum. Raise minimum to number of required uniq chars.");
 		}
 
 		// Initialize generator
@@ -109,7 +111,7 @@ public class PasswordGenerator {
 				mustBeFirst.put(l, lims.get(l));
 			}
 		}
-		
+
 		// If any limitation was found to be first
 		if (!mustBeFirst.isEmpty()) {
 			HashMap<Integer, ArrayList<String>> posibleFirstChars = cardinalityCounter(mustBeFirst, null,
@@ -151,28 +153,29 @@ public class PasswordGenerator {
 		 */
 
 		boolean uniquenessReached = false;
-		
+
 		// Count cardinality of elements
 		HashMap<Integer, ArrayList<String>> chars;
 		for (int i = 0; i < minLen; i++) {
-			
-			//Check if still unique chars are needed
-			 if (password.length() >= unique) {
-				 uniquenessReached = true;
-			 }
-			//Find all usable characters
-			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), false, uniquenessReached , generatorResult);
+
+			// Check if still unique chars are needed
+			if (password.length() >= unique) {
+				uniquenessReached = true;
+			}
+			// Find all usable characters
+			chars = cardinalityCounter(lims, StringPolicyUtils.stringTokenizer(password.toString()), false,
+					uniquenessReached, generatorResult);
 			// If something goes badly then go out
-			if (null == chars ) {
+			if (null == chars) {
 				return null;
-			} 
-			
-			if ( chars.isEmpty()) {
+			}
+
+			if (chars.isEmpty()) {
 				logger.trace("Minimal criterias was met. No more characters");
 				break;
 			}
-			//Find lowest possible cardinality and then generate char
-			for (int card = 1 ; card < lims.keySet().size(); card++) {
+			// Find lowest possible cardinality and then generate char
+			for (int card = 1; card < lims.keySet().size(); card++) {
 				if (chars.containsKey(card)) {
 					ArrayList<String> validChars = chars.get(card);
 					password.append(validChars.get(rand.nextInt(validChars.size())));
@@ -183,48 +186,52 @@ public class PasswordGenerator {
 		}
 
 		// test if maximum is not exceeded
-		if ( password.length() > maxLen ){
-			generatorResult.recordFatalError("Unable to meet minimal criterian and not exceed maximxal size of password.");
+		if (password.length() > maxLen) {
+			generatorResult
+					.recordFatalError("Unable to meet minimal criterian and not exceed maximxal size of password.");
 			return null;
 		}
-		
+
 		/* ***************************************
-		 *  Generate chars to not exceed maximal
+		 * Generate chars to not exceed maximal
 		 */
-		
+
 		for (int i = 0; i < minLen; i++) {
 			// test if max is reached
-			if ( password.length() == maxLen ){
+			if (password.length() == maxLen) {
 				// no more characters maximal size is reached
 				break;
 			}
-			
-			if ( password.length() >= minLen  && generateMinimalSize) {
-				//no more characters are needed
+
+			if (password.length() >= minLen && generateMinimalSize) {
+				// no more characters are needed
 				break;
 			}
-			
-			//Check if still unique chars are needed
+
+			// Check if still unique chars are needed
 			if (password.length() >= unique) {
-				 uniquenessReached = true;
-			 }
-			//find all usable characters
-			chars = cardinalityCounter(lims, stringTokenizer(password.toString()), true, uniquenessReached, generatorResult);
-			
+				uniquenessReached = true;
+			}
+			// find all usable characters
+			chars = cardinalityCounter(lims, StringPolicyUtils.stringTokenizer(password.toString()), true,
+					uniquenessReached, generatorResult);
+
 			// If something goes badly then go out
-			if (null == chars ) {
+			if (null == chars) {
 				// we hope this never happend.
-				generatorResult.recordFatalError("No valid characters to generate, but no all limitation are reached");
+				generatorResult
+						.recordFatalError("No valid characters to generate, but no all limitation are reached");
 				return null;
-			} 
-			
-			//if selection is empty then no more characters and we can close our work
-			if ( chars.isEmpty()) {
+			}
+
+			// if selection is empty then no more characters and we can close
+			// our work
+			if (chars.isEmpty()) {
 				break;
 			}
-			
-			//Find lowest possible cardinality and then generate char
-			for (int card = 1 ; card < lims.keySet().size(); card++) {
+
+			// Find lowest possible cardinality and then generate char
+			for (int card = 1; card < lims.keySet().size(); card++) {
 				if (chars.containsKey(card)) {
 					ArrayList<String> validChars = chars.get(card);
 					password.append(validChars.get(rand.nextInt(validChars.size())));
@@ -233,20 +240,21 @@ public class PasswordGenerator {
 				}
 			}
 		}
-		
-		if ( password.length() < minLen ){
-			generatorResult.recordFatalError("Unable generate password and meet minimal size of password." + password.length() + "<" + minLen);
+
+		if (password.length() < minLen) {
+			generatorResult.recordFatalError("Unable generate password and meet minimal size of password."
+					+ password.length() + "<" + minLen);
 			return null;
 		}
-		
+
 		generatorResult.recordSuccess();
-		
-		//Shuffle output to solve pattern like output
-		StrBuilder sb = new StrBuilder(password.substring(0,1));
-		ArrayList<String> shuffleBuffer = stringTokenizer(password.substring(1));
+
+		// Shuffle output to solve pattern like output
+		StrBuilder sb = new StrBuilder(password.substring(0, 1));
+		ArrayList<String> shuffleBuffer = StringPolicyUtils.stringTokenizer(password.substring(1));
 		Collections.shuffle(shuffleBuffer);
 		sb.appendAll(shuffleBuffer);
-		
+
 		return sb.toString();
 	}
 
@@ -280,19 +288,19 @@ public class PasswordGenerator {
 			} else if (i == l.getMaxOccurs()) {
 				continue;
 				// other cases minimum is not reached
-			} else if (i>= l.getMinOccurs() && ! skipMatchedLims) {
+			} else if (i >= l.getMinOccurs() && !skipMatchedLims) {
 				continue;
-			} 
-				for (String s : chars) {
-					if (null == password || ! password.contains(s) || uniquenessReached ) {
-						if (null == counter.get(s)) {
-							counter.put(s, 1);
-						} else {
-							counter.put(s, counter.get(s) + 1);
-						}
+			}
+			for (String s : chars) {
+				if (null == password || !password.contains(s) || uniquenessReached) {
+					if (null == counter.get(s)) {
+						counter.put(s, 1);
+					} else {
+						counter.put(s, counter.get(s) + 1);
 					}
 				}
-			
+			}
+
 		}
 
 		// If need to remove disabled chars (already reached limitations)
@@ -335,51 +343,5 @@ public class PasswordGenerator {
 			}
 		}
 		return ret;
-	}
-
-	/**
-	 * Convert string to array of substrings
-	 */
-	private static ArrayList<String> stringTokenizer(String input) {
-		ArrayList<String> l = new ArrayList<String>();
-		String a[] = input.split("");
-		// Add all to list
-		for (int i = 0; i < a.length; i++) {
-			if (!"".equals(a[i])) {
-				l.add(a[i]);
-			}
-		}
-		return l;
-	}
-
-	/**
-	 * Prepare usable list of strings for generator
-	 */
-
-	private static String collectCharacterClass(CharacterClassType cc, QName ref) {
-		StrBuilder l = new StrBuilder();
-		if (null == cc) {
-			throw new IllegalArgumentException("Character class cannot be null");
-		}
-
-		if (null != cc.getValue() && (null == ref || ref.equals(cc.getName()))) {
-			l.append(cc.getValue());
-		} else if (null != cc.getCharacterClass() && !cc.getCharacterClass().isEmpty()) {
-			// Process all sub lists
-			for (CharacterClassType subClass : cc.getCharacterClass()) {
-				// If we found requested name or no name defined
-				if (null == ref || ref.equals(cc.getName())) {
-					l.append(collectCharacterClass(subClass, null));
-				} else {
-					l.append(collectCharacterClass(subClass, ref));
-				}
-			}
-		}
-		// Remove duplicity in return;
-		HashSet<String> h = new HashSet<String>();
-		for (String s : l.toString().split("")) {
-			h.add(s);
-		}
-		return new StrBuilder().appendAll(h).toString();
 	}
 }

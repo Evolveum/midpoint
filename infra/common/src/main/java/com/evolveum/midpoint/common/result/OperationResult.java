@@ -89,6 +89,10 @@ public class OperationResult implements Serializable {
 		this(operation, null, OperationResultStatus.SUCCESS, token, messageCode, message, null, null, null);
 	}
 
+	public OperationResult(String operation, OperationResultStatus status,  String message) {
+		this(operation, null, status, 0, null, message, null, null, null);
+	}
+
 	public OperationResult(String operation, OperationResultStatus status, String messageCode, String message) {
 		this(operation, null, status, 0, messageCode, message, null, null, null);
 	}
