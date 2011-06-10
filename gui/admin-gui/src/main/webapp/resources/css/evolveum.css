@@ -431,3 +431,13 @@ button.positive,.buttons a.positive,.buttons input.positive {
 	color: #004CFF;
 	font-weight: bold;
 }
+
+.userDetailsResourceTableRow1 {
+	
+}
+
+.userDetailsResourceTableRow2 {
+	width: 150px;
+	padding-left: 10px;
+	vertical-align: top;
+}
