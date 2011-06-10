@@ -23,6 +23,9 @@
 package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
+import java.util.Date;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
 
 /**
  * 
@@ -33,9 +36,18 @@ public class DiagnosticMessage implements Serializable {
 	private static final long serialVersionUID = 7568834241228899775L;
 	private String message;
 	private String details;
-	private String timestamp;
+	private Date timestamp;
 
-	public DiagnosticMessage() {
+	public DiagnosticMessage(DiagnosticsMessageType message) {
+		if (message == null) {
+			return;
+		}
+
+		setMessage(message.getMessage());
+		setDetails(message.getDetails());
+		if (message.getTimestamp() != null) {
+			setTimestamp(message.getTimestamp().toGregorianCalendar().getTime());
+		}
 	}
 
 	public String getDetails() {
@@ -54,11 +66,15 @@ public class DiagnosticMessage implements Serializable {
 		this.message = message;
 	}
 
-	public String getTimestamp() {
+	public String getTimestampString() {
+		return TaskStatus.formatDate(getTimestamp());
+	}
+
+	public Date getTimestamp() {
 		return timestamp;
 	}
 
-	public void setTimestamp(String timestamp) {
+	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
 	}
 }

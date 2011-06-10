@@ -23,7 +23,11 @@
 package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 
 /**
  * 
@@ -31,80 +35,124 @@ import java.io.Serializable;
  */
 public class TaskStatus implements Serializable {
 
+	public static final String DATE_PATTERN = "EEE, d. MMM yyyy HH:mm:ss.SSS";
 	private static final long serialVersionUID = -5358337966691482206L;
-	private String finishTime;
-	private String lastStatus;
-	private DiagnosticMessage lastError;
 	private String name;
-	private String launchTime;
-	private String numberOfErrors;
-	private String progress;
-	private String running;
+	private Date launchTime;
+	private Date finishTime;
+	private String lastStatus;
+	private long numberOfErrors;
+	private DiagnosticMessage lastError;
+	private long progress;
+	private boolean running;
 
-	public TaskStatus() {
-	}
+	public TaskStatus(TaskStatusType statusType) {
+		if (statusType == null) {
+			return;
+		}
 
-	public String getFinishTime() {
-		return finishTime;
-	}
+		setName(statusType.getName());
+		setRunning(statusType.isRunning());
+		setLastStatus(statusType.getLastStatus());
 
-	public void setFinishTime(String finishTime) {
-		this.finishTime = finishTime;
-	}
+		if (statusType.getFinishTime() != null) {
+			setFinishTime(statusType.getFinishTime().toGregorianCalendar().getTime());
+		}
+		if (statusType.getLaunchTime() != null) {
+			setLaunchTime(statusType.getLaunchTime().toGregorianCalendar().getTime());
+		}
+		if (statusType.getProgress() != null) {
+			setProgress(statusType.getProgress());
+		}
+		if (statusType.getNumberOfErrors() != null) {
+			setNumberOfErrors(statusType.getNumberOfErrors());
+		}
 
-	public DiagnosticMessage getLastError() {
-		return lastError;
-	}
-
-	public void setLastError(DiagnosticMessage lastError) {
-		this.lastError = lastError;
-	}
-
-	public String getLastStatus() {
-		return lastStatus;
-	}
-
-	public void setLastStatus(String lastStatus) {
-		this.lastStatus = lastStatus;
-	}
-
-	public String getLaunchTime() {
-		return launchTime;
-	}
-
-	public void setLaunchTime(String launchTime) {
-		this.launchTime = launchTime;
+		if (statusType.getLastError() == null) {
+			return;
+		}
+		
+		lastError = new DiagnosticMessage(statusType.getLastError());
 	}
 
 	public String getName() {
 		return name;
 	}
 
+	public Date getLaunchTime() {
+		return launchTime;
+	}
+
+	public String getLaunchTimeString() {
+		return formatDate(getLaunchTime());
+	}
+
+	public String getFinishTimeString() {
+		return formatDate(getFinishTime());
+	}
+
+	static String formatDate(Date date) {
+		if (date == null) {
+			return null;
+		}
+
+		DateFormat dateFormat = new SimpleDateFormat(DATE_PATTERN);
+		return dateFormat.format(date);
+	}
+
+	public Date getFinishTime() {
+		return finishTime;
+	}
+
+	public String getLastStatus() {
+		return lastStatus;
+	}
+
+	public DiagnosticMessage getLastError() {
+		return lastError;
+	}
+
+	public long getProgress() {
+		return progress;
+	}
+
+	public boolean isRunning() {
+		return running;
+	}
+
+	public long getNumberOfErrors() {
+		return numberOfErrors;
+	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
 
-	public String getNumberOfErrors() {
-		return numberOfErrors;
+	public void setLaunchTime(Date launchTime) {
+		this.launchTime = launchTime;
 	}
 
-	public void setNumberOfErrors(String numberOfErrors) {
-		this.numberOfErrors = numberOfErrors;
+	public void setFinishTime(Date finishTime) {
+		this.finishTime = finishTime;
 	}
 
-	public String getProgress() {
-		return progress;
+	public void setLastStatus(String lastStatus) {
+		this.lastStatus = lastStatus;
 	}
 
-	public void setProgress(String progress) {
+	public void setLastError(DiagnosticMessage lastError) {
+		this.lastError = lastError;
+	}
+
+	public void setProgress(long progress) {
 		this.progress = progress;
 	}
 
-	public String getRunning() {
-		return running;
+	public void setRunning(boolean running) {
+		this.running = running;
 	}
 
-	public void setRunning(String running) {
-		this.running = running;
+	public void setNumberOfErrors(long numberOfErrors) {
+		this.numberOfErrors = numberOfErrors;
 	}
 }

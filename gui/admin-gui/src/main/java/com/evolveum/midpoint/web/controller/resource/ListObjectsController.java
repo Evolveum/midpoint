@@ -58,7 +58,7 @@ public class ListObjectsController extends ListController<ObjectBean> implements
 	private static final long serialVersionUID = -3538520581983462635L;
 	private static final Trace LOGGER = TraceManager.getTrace(ListObjectsController.class);
 	@Autowired(required = true)
-	private ModelPortType model;
+	private transient ModelPortType model;
 	private ResourceListItem resource;
 	private String objectClass;
 

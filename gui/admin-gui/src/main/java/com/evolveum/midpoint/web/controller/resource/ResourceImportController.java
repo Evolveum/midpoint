@@ -54,9 +54,9 @@ public class ResourceImportController implements Serializable {
 	private static final long serialVersionUID = 7495585784483264092L;
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceImportController.class);
 	@Autowired(required = true)
-	private TemplateController template;
+	private transient TemplateController template;
 	@Autowired(required = true)
-	private ModelPortType model;
+	private transient ModelPortType model;
 	private ResourceListItem resource;
 	private TaskStatus status;
 
@@ -70,7 +70,7 @@ public class ResourceImportController implements Serializable {
 
 	public TaskStatus getStatus() {
 		if (status == null) {
-			status = new TaskStatus();
+			status = new TaskStatus(null);
 		}
 		return status;
 	}
@@ -82,7 +82,7 @@ public class ResourceImportController implements Serializable {
 			TaskStatusType statusType = model.getImportStatus(getResource().getOid(),
 					new Holder<OperationResultType>(resultType));
 			if (statusType != null) {
-				this.status = createStatus(statusType);
+				this.status = new TaskStatus(statusType);
 				nextPage = PAGE_NAVIGATION;
 			} else {
 				FacesUtils.addErrorMessage("Couldn't get import status. TODO: resultType handling.");
@@ -101,17 +101,5 @@ public class ResourceImportController implements Serializable {
 	public String backPerformed() {
 		template.setSelectedLeftId(ResourceDetailsController.NAVIGATION_LEFT);
 		return ResourceDetailsController.PAGE_NAVIGATION;
-	}
-
-	private TaskStatus createStatus(TaskStatusType statusType) {
-		TaskStatus status = new TaskStatus();
-		if (statusType == null) {
-			return status;
-		}
-		status.setName(statusType.getName());
-
-		//TODO: translate statusType to status
-		
-		return status;
 	}
 }
