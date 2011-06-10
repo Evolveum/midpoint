@@ -36,7 +36,7 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypeEnum;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
-import com.evolveum.midpoint.web.bean.DebugObject;
+import com.evolveum.midpoint.web.bean.ObjectBean;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ListController;
 import com.evolveum.midpoint.web.util.FacesUtils;
@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
  */
 @Controller("debugList")
 @Scope("session")
-public class DebugListController extends ListController<DebugObject> {
+public class DebugListController extends ListController<ObjectBean> {
 	
 	public static final String PAGE_NAVIGATION = "/config/debugList?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_VIEW = "/config/debugView?faces-redirect=true";
@@ -156,7 +156,7 @@ public class DebugListController extends ListController<DebugObject> {
 
 		getObjects().clear();
 		for (ObjectType object : result.getObject()) {
-			getObjects().add(new DebugObject(object.getOid(), object.getName()));
+			getObjects().add(new ObjectBean(object.getOid(), object.getName()));
 		}
 
 		return null;
@@ -206,8 +206,8 @@ public class DebugListController extends ListController<DebugObject> {
 			return null;
 		}
 
-		DebugObject object = null;
-		for (DebugObject dObject : getObjects()) {
+		ObjectBean object = null;
+		for (ObjectBean dObject : getObjects()) {
 			if (objectOid.equals(dObject.getOid())) {
 				object = dObject;
 				break;

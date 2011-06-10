@@ -33,7 +33,7 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
-import com.evolveum.midpoint.web.bean.DebugObject;
+import com.evolveum.midpoint.web.bean.ObjectBean;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.bean.ResourceObjectType;
 import com.evolveum.midpoint.web.controller.TemplateController;
@@ -61,6 +61,8 @@ public class ResourceDetailsController implements Serializable {
 	@Autowired(required = true)
 	private transient ResourceImportController importController;
 	@Autowired(required = true)
+	private transient ListObjectsController listObjects;
+	@Autowired(required = true)
 	private transient TemplateController template;
 	private ResourceListItem resource;
 
@@ -86,7 +88,7 @@ public class ResourceDetailsController implements Serializable {
 	}
 
 	public String showDebugPages() {
-		debugView.setObject(new DebugObject(getResource().getOid(), getResource().getName()));
+		debugView.setObject(new ObjectBean(getResource().getOid(), getResource().getName()));
 		debugView.setEditOther(false);
 		String returnPage = debugView.viewObject();
 		if (DebugViewController.PAGE_NAVIGATION.equals(returnPage)) {
@@ -157,18 +159,9 @@ public class ResourceDetailsController implements Serializable {
 			return null;
 		}
 
-		String nextPage = null;
-		try {
-			OperationResultType resultType = new OperationResultType();
-			ObjectListType list = model.listResourceObjects(getResource().getOid(), objectClass,
-					PagingTypeFactory.createPaging(0, 30, OrderDirectionType.ASCENDING, "name"),
-					new Holder<OperationResultType>(resultType));			
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
-		}
-
-		// TODO: list objects...
-		return nextPage;
+		listObjects.setResource(getResource());
+		listObjects.setObjectClass(objectClass);
+		return listObjects.listFirst();
 	}
 
 	private String getObjectClass(String objectType) {

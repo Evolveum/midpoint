@@ -145,7 +145,12 @@ public class HtmlButton extends HtmlCommandLink {
 
 		ValueExpression buttonType = getValueExpression(ATTR_BUTTON_TYPE);
 		if (buttonType == null) {
-			return BUTTON_TYPE_DEFAULT;
+			Object value = getAttributes().get(ATTR_BUTTON_TYPE);
+			if (value == null) {
+				return BUTTON_TYPE_DEFAULT;
+			} else {
+				return value.toString();
+			}
 		}
 		return (String) buttonType.getValue(context.getELContext());
 	}

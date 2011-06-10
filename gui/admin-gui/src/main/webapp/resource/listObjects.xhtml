@@ -5,7 +5,7 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{msg['page.resource.listObjects.title']} 'blabla'</ui:define>
+	<ui:define name="title">#{msg['page.resource.listObjects.title']} '#{listObjects.objectClass}'</ui:define>
 
 	<ui:define name="menu">
 		<ui:include src="./menu.xhtml" />
@@ -14,10 +14,26 @@
 
 	<ui:define name="content">
 		<ice:form>
+			<ice:dataTable rows="15" value="#{listObjects.objects}" var="item" columnWidths="300px, 150px, 270px"
+				resizable="false">
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputLabel value="#{msg['Oid']}" />
+					</f:facet>
+					<ice:outputText value="#{item.oid}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputLabel value="#{msg['Name']}" />
+					</f:facet>
+					<ice:outputText value="#{item.oid}" />
+				</ice:column>
+			</ice:dataTable>
+
+			<comp:paging bean="#{listObjects}" />
 
 			<div class="button-bar">
-				<idm:button value="#{msg['page.button.back']}"
-					img="/resources/images/door_in.png" />
+				<idm:button value="#{msg['page.button.back']}" img="/resources/images/door_in.png" />
 			</div>
 		</ice:form>
 	</ui:define>

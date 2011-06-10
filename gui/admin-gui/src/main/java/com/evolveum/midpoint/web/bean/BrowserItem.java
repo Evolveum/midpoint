@@ -20,32 +20,20 @@
  */
 package com.evolveum.midpoint.web.bean;
 
-import java.io.Serializable;
 
 /**
  * 
  * @author lazyman
  * 
  */
-public class BrowserItem implements Serializable {
+public class BrowserItem extends ObjectBean {
 
 	private static final long serialVersionUID = -1239170551953243552L;
-	private String oid;
-	private String name;
 	private String type;
 
 	public BrowserItem(String oid, String name, String type) {
-		this.oid = oid;
-		this.name = name;
+		super(oid, name);
 		this.type = type;
-	}
-
-	public String getOid() {
-		return oid;
-	}
-
-	public String getName() {
-		return name;
 	}
 
 	public String getType() {

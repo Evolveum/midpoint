@@ -41,7 +41,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.validator.ObjectHandler;
 import com.evolveum.midpoint.validator.ValidationMessage;
 import com.evolveum.midpoint.validator.Validator;
-import com.evolveum.midpoint.web.bean.DebugObject;
+import com.evolveum.midpoint.web.bean.ObjectBean;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
@@ -75,7 +75,7 @@ public class DebugViewController implements Serializable {
 	private transient RepositoryPortType repositoryService;
 	private boolean editOther = false;
 	private String editOtherName;
-	private DebugObject object;
+	private ObjectBean object;
 	private boolean editable = false;
 	private String xml;
 
@@ -98,11 +98,11 @@ public class DebugViewController implements Serializable {
 		this.editOther = editOther;
 	}
 
-	public DebugObject getObject() {
+	public ObjectBean getObject() {
 		return object;
 	}
 
-	public void setObject(DebugObject object) {
+	public void setObject(ObjectBean object) {
 		this.object = object;
 	}
 
@@ -166,7 +166,7 @@ public class DebugViewController implements Serializable {
 				return null;
 			}
 			ObjectType objectType = objects.get(0);
-			object = new DebugObject(objectType.getOid(), objectType.getName());
+			object = new ObjectBean(objectType.getOid(), objectType.getName());
 			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
 		} catch (FaultMessage ex) {
 			FacesUtils.addErrorMessage("Couldn't search for object '" + object.getName() + "'.", ex);
@@ -191,7 +191,7 @@ public class DebugViewController implements Serializable {
 			ObjectContainerType container = repositoryService.getObject(object.getOid(),
 					new PropertyReferenceListType());
 			ObjectType objectType = container.getObject();
-			object = new DebugObject(objectType.getOid(), objectType.getName());
+			object = new ObjectBean(objectType.getOid(), objectType.getName());
 
 			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
 		} catch (FaultMessage ex) {

@@ -29,13 +29,13 @@ import org.apache.commons.lang.StringUtils;
  * @author lazyman
  * 
  */
-public class DebugObject implements Serializable {
+public class ObjectBean implements Serializable {
 
 	private static final long serialVersionUID = 7834659389991367819L;
 	private String name;
 	private String oid;
 
-	public DebugObject(String oid, String name) {
+	public ObjectBean(String oid, String name) {
 		if (StringUtils.isEmpty(oid)) {
 			throw new IllegalArgumentException("Oid can't be null.");
 		}
