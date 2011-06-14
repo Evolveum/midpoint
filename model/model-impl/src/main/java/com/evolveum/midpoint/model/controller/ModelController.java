@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import javax.xml.ws.Holder;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -28,20 +30,22 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ProvisioningTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
@@ -56,32 +60,60 @@ public class ModelController {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 	@Autowired(required = true)
-	private ProvisioningPortType provisioning;
+	private transient ProvisioningPortType provisioning;
 	@Autowired(required = true)
-	private RepositoryPortType repository;
+	private transient RepositoryPortType repository;
 
 	public String addObject(ObjectType object, OperationResult result) {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
+		Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
 
-		// TODO Auto-generated method stub
-		return null;
+		String oid = null;
+		if (ProvisioningTypes.isManagedByProvisioning(object)) {
+			oid = addProvisioningObject(object, result);
+		} else {
+			oid = addRepositoryObject(object, result);
+		}
+
+		return oid;
 	}
 
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult result) {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(resolve, "Property reference list must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
-		
-		// TODO Auto-generated method stub
-		return null;
+
+		// TODO: error handling
+		ObjectType object = null;
+		try {
+			ObjectContainerType container = repository.getObject(oid, resolve);
+			if (container == null || container.getObject() == null) {
+				// TODO: throw somethig...
+			}
+			if (ProvisioningTypes.isManagedByProvisioning(container.getObject())) {
+				// TODO: remove Holder add there OperationResult 'result' after provisioning is updated
+				container = provisioning.getObject(oid, resolve, new Holder<OperationalResultType>());
+			}
+			
+			object = container.getObject();
+		} catch (FaultMessage ex) {
+
+		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
+
+		}
+
+		resolveObjectAttributes(object, resolve, result);
+
+		return object;
 	}
 
 	public ObjectListType listObjects(String objectType, PagingType paging, OperationResult result) {
 		Validate.notEmpty(objectType, "Object type must not be null or empty.");
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
-		
+		ModelUtils.validatePaging(paging);
+
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -89,8 +121,9 @@ public class ModelController {
 	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult result) {
 		Validate.notNull(query, "Query must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
-		Validate.notNull(result, "Result type must not be null.");		
-		
+		Validate.notNull(result, "Result type must not be null.");
+		ModelUtils.validatePaging(paging);
+
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -138,6 +171,7 @@ public class ModelController {
 		Validate.notEmpty(objectType, "Object type must not be null or empty.");
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
+		ModelUtils.validatePaging(paging);
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -164,13 +198,22 @@ public class ModelController {
 		return null;
 	}
 
-	private boolean isManagedByProvisioning(ObjectType object) {
-		if (object instanceof ResourceObjectShadowType) {
-			return true;
+	private String addProvisioningObject(ObjectType objet, OperationResult result) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private String addRepositoryObject(ObjectType object, OperationResult result) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	private void resolveObjectAttributes(ObjectType object, PropertyReferenceListType resolve,
+			OperationResult result) {
+		if (object == null) {
+			return;
 		}
-		if (object instanceof ResourceType) {
-			return true;
-		}
-		return false;
+
+		// TODO Auto-generated method stub
 	}
 }

@@ -33,7 +33,7 @@ ice.onLoad(function() {
 	});
 });
 
-function loadEditor() {	
+function loadEditor() {
 	var editor = ace.edit("j_idt53:editorReal");
 	editor.setTheme("ace/theme/eclipse");
 

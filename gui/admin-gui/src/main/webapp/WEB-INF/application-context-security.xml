@@ -34,6 +34,7 @@
 
 		<intercept-url pattern="/" access="permitAll" />
 		<intercept-url pattern="/favicon.ico" access="permitAll" />
+		<intercept-url pattern="/xmlhttp/css/**" access="permitAll" />
 		<intercept-url pattern="/resources/css/**" access="permitAll" />
 		<intercept-url pattern="/resources/images/**" access="permitAll" />
 		<intercept-url pattern="/javax.faces.resource/**" access="permitAll" />

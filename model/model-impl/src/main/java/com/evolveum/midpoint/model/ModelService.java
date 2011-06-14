@@ -40,7 +40,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
@@ -51,6 +50,8 @@ import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
+import com.evolveum.midpoint.schema.ProvisioningTypes;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.patch.PatchException;
@@ -128,7 +129,7 @@ public class ModelService implements ModelPortType {
 		}
 
 		String result;
-		if (isManagedByProvisioning(object)) {
+		if (ProvisioningTypes.isManagedByProvisioning(object)) {
 			result = addProvisioningObject(object);
 		} else {
 			if (object instanceof UserType) {
@@ -475,7 +476,7 @@ public class ModelService implements ModelPortType {
 					false, ex, null);
 		}
 
-		if (isManagedByProvisioning(result.getObject())) {
+		if (ProvisioningTypes.isManagedByProvisioning(result.getObject())) {
 
 			try { // Call Web Service Operation
 				OperationalResultType operationalResult = new OperationalResultType();
@@ -601,7 +602,7 @@ public class ModelService implements ModelPortType {
 		Validate.notNull(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter listObjects({})", objectType);
 
-		if (isObjectTypeManagedByProvisioning(objectType)) {
+		if (ProvisioningTypes.isObjectTypeManagedByProvisioning(objectType)) {
 			try { // Call Web Service Operation
 
 				OperationalResultType operationalResult = new OperationalResultType();
@@ -727,7 +728,7 @@ public class ModelService implements ModelPortType {
 		}
 		ObjectType object = objectContainer.getObject();
 
-		if (isManagedByProvisioning(object)) {
+		if (ProvisioningTypes.isManagedByProvisioning(object)) {
 			OperationalResultType operationalResult = new OperationalResultType();
 			Holder<OperationalResultType> holder = new Holder<OperationalResultType>(operationalResult);
 
@@ -1272,24 +1273,6 @@ public class ModelService implements ModelPortType {
 			throw createFaultMessage("Repository invocation failed (listResourceObjectShadows)",
 					ex.getFaultInfo(), ex, null);
 		}
-	}
-
-	private boolean isManagedByProvisioning(ObjectType object) {
-		if (object instanceof ResourceObjectShadowType) {
-			return true;
-		}
-		if (object instanceof ResourceType) {
-			return true;
-		}
-		return false;
-	}
-
-	private boolean isObjectTypeManagedByProvisioning(String objectType) {
-		if ((Utils.getObjectType("ResourceType").equals(objectType))
-				|| (Utils.getObjectType("AccountType").equals(objectType))) {
-			return true;
-		}
-		return false;
 	}
 
 	private FaultMessage createFaultMessage(String message, FaultType faultType, Exception ex,

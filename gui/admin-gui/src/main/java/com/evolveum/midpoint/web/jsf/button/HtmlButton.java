@@ -96,6 +96,8 @@ public class HtmlButton extends HtmlCommandLink {
 		writer.writeAttribute("class", buttonType, null);
 		writer.writeText(value, null);
 		writer.endElement("span");
+		
+		super.encodeChildren(context);
 	}
 
 	@Override
