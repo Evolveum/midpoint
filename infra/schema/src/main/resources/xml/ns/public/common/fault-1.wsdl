@@ -20,7 +20,7 @@
 			<xsd:complexType name="FaultType" abstract="true">
 				<xsd:sequence>
 					<xsd:element name="message" type="xsd:string" />
-					<xsd:element name="operationResult" type="c:OperationalResultType" />
+					<xsd:element name="operationResult" type="c:OperationResultType" />
 				</xsd:sequence>
 			</xsd:complexType>
 

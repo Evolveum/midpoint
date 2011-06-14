@@ -328,8 +328,7 @@ public class ModelService implements ModelPortType {
 	private FaultMessage createSystemFault(Exception ex, OperationResult result) {
 		FaultType faultType = new SystemFaultType();
 		faultType.setMessage(ex.getMessage());
-
-		// TODO: add result to fault
+		faultType.setOperationResult(result.createOperationResultType());
 
 		return new FaultMessage(ex.getMessage(), faultType, ex);
 	}
