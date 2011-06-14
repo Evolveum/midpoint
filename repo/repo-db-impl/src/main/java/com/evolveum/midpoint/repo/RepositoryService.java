@@ -42,6 +42,7 @@ import com.evolveum.midpoint.model.SimpleDomainObject;
 import com.evolveum.midpoint.model.StringProperty;
 import com.evolveum.midpoint.model.UserTemplate;
 import com.evolveum.midpoint.repo.spring.GenericDao;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.constants.MidPointConstants;
 import com.evolveum.midpoint.util.patch.PatchException;
@@ -1421,7 +1422,7 @@ public class RepositoryService implements RepositoryPortType {
 
         logger.info("### REPOSITORY # Enter listObjects({})", objectType);
         try {
-            if (Utils.getObjectType("UserType").equals(objectType)) {
+            if (ObjectTypes.USER.getObjectTypeUri().equals(objectType)) {
 //                List<SimpleDomainObject> users = genericDao.findAllOfType("User");
                 PagingRepositoryType pagingType = new PagingRepositoryType();
                 pagingType.fillPagingProperties(paging);
@@ -1434,34 +1435,34 @@ public class RepositoryService implements RepositoryPortType {
                 return listOfObjects;
             }
 
-            if (Utils.getObjectType("AccountShadowType").equals(objectType)) {
+            if (ObjectTypes.ACCOUNT.getObjectTypeUri().equals(objectType)) {
                 List<SimpleDomainObject> accounts = genericDao.findAllOfType("Account");
                 ObjectListType listOfObjects = convertListOfObjects(accounts, AccountShadowType.class);
                 logger.info("### REPOSITORY # Exit listObjects(..) : {}", DebugUtil.prettyPrint(listOfObjects));
                 return listOfObjects;
             }
 
-            if (Utils.getObjectType("ResourceType").equals(objectType)) {
+            if (ObjectTypes.RESOURCE.getObjectTypeUri().equals(objectType)) {
                 List<SimpleDomainObject> resources = genericDao.findAllOfType("Resource");
                 ObjectListType listOfObjects = convertListOfObjects(resources, ResourceType.class);
                 logger.info("### REPOSITORY # Exit listObjects(..) : {}", DebugUtil.prettyPrint(listOfObjects));
                 return listOfObjects;
             }
 
-            if (Utils.getObjectType("ResourceStateType").equals(objectType)) {
+            if (ObjectTypes.RESOURCE_STATE.getObjectTypeUri().equals(objectType)) {
                 List<SimpleDomainObject> resourceStates = genericDao.findAllOfType("ResourceState");
                 ObjectListType listOfObjects = convertListOfObjects(resourceStates, ResourceStateType.class);
                 logger.info("### REPOSITORY # Exit listObjects(..) : {}", DebugUtil.prettyPrint(listOfObjects));
                 return listOfObjects;
             }
 
-            if (Utils.getObjectType("UserTemplateType").equals(objectType)) {
+            if (ObjectTypes.USER_TEMPLATE.getObjectTypeUri().equals(objectType)) {
                 List<SimpleDomainObject> userTemplates = genericDao.findAllOfType("UserTemplate");
                 ObjectListType listOfObjects = convertListOfObjects(userTemplates, UserTemplateType.class);
                 logger.info("### REPOSITORY # Exit listObjects(..) : {}", DebugUtil.prettyPrint(listOfObjects));
                 return listOfObjects;
             }
-            if (Utils.getObjectType("GenericObjectType").equals(objectType)) {
+            if (ObjectTypes.GENERIC_OBJECT.getObjectTypeUri().equals(objectType)) {
                 List<SimpleDomainObject> genericEntities = genericDao.findAllOfType("GenericEntityBase");
                 ObjectListType listOfObjects = convertListOfObjects(genericEntities, GenericObjectType.class);
                 logger.info("### REPOSITORY # Exit listObjects(..) : {}", DebugUtil.prettyPrint(listOfObjects));
@@ -1729,7 +1730,7 @@ public class RepositoryService implements RepositoryPortType {
         if (genericDao.findById(UUID.fromString(resourceOid)) != null) {
 
             //TODO: reimplement - retrieve all accounts on the resource by proper query on DB, not filter them in applications
-            if (Utils.getObjectType("AccountShadowType").equals(resourceObjectShadowType)) {
+            if (ObjectTypes.ACCOUNT.getObjectTypeUri().equals(resourceObjectShadowType)) {
 
                 List<SimpleDomainObject> accounts = genericDao.findAllOfType(Account.class.getSimpleName());
                 List<AccountShadowType> accountTypeList = new ArrayList<AccountShadowType>();

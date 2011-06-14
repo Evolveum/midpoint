@@ -40,6 +40,7 @@ import org.w3c.dom.Node;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -235,7 +236,7 @@ public class ResourceListController implements Serializable {
 
 	public String updateController() {
 		try {
-			String objectType = Utils.getObjectType("ResourceType");
+			String objectType = ObjectTypes.RESOURCE.getObjectTypeUri();
 			ObjectListType objectList = model.listObjects(objectType, new PagingType(),
 					new Holder<OperationResultType>(new OperationResultType()));
 			List<ObjectType> objects = objectList.getObject();

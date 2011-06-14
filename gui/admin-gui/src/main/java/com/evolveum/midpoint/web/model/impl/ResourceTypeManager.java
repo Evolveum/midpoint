@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.web.model.PagingDto;
 import com.evolveum.midpoint.web.model.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.PropertyChange;
@@ -74,7 +75,7 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 	@Override
 	public Collection<ResourceDto> list() {
 		try { // Call Web Service Operation
-			String objectType = Utils.getObjectType("ResourceType");
+			String objectType = ObjectTypes.RESOURCE.getObjectTypeUri();
 			// TODO: more reasonable handling of paging info
 			PagingType paging = new PagingType();
 			ObjectListType result = model.listObjects(objectType, paging, new Holder<OperationResultType>(

@@ -54,6 +54,7 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.model.SimpleDomainObject;
 import com.evolveum.midpoint.repo.RepositoryService;
 import com.evolveum.midpoint.repo.spring.GenericDao;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
@@ -338,7 +339,7 @@ public class RepositoryServiceTest {
 
 	@Test
 	public void testListObjects() throws FaultMessage {
-		ObjectListType objectListType = repositoryService.listObjects(Utils.getObjectType("AccountShadowType"),
+		ObjectListType objectListType = repositoryService.listObjects(ObjectTypes.ACCOUNT.getObjectTypeUri(),
 				new PagingType());
 		assertNotNull(objectListType.getObject());
 		assertEquals(1, objectListType.getObject().size());
@@ -351,7 +352,7 @@ public class RepositoryServiceTest {
 	@Test
 	public void testListUsers() throws FaultMessage {
 		PagingType pagingType = PagingTypeFactory.createPaging(-1, 5, OrderDirectionType.ASCENDING, "name");
-		ObjectListType objectListType = repositoryService.listObjects(Utils.getObjectType("UserType"),
+		ObjectListType objectListType = repositoryService.listObjects(ObjectTypes.USER.getObjectTypeUri(),
 				pagingType);
 		assertNotNull(objectListType.getObject());
 		// assertEquals(1, objectListType.getObject().size());
@@ -423,7 +424,7 @@ public class RepositoryServiceTest {
 	@Test
 	public void testListResourceObjectShadows() throws FaultMessage {
 		ResourceObjectShadowListType result = repositoryService.listResourceObjectShadows(
-				"d0db5be9-cb93-401f-b6c1-86ffffe4cd5e", Utils.getObjectType("AccountShadowType"));
+				"d0db5be9-cb93-401f-b6c1-86ffffe4cd5e", ObjectTypes.ACCOUNT.getObjectTypeUri());
 		assertNotNull(result.getObject());
 		assertEquals(1, result.getObject().size());
 		assertEquals("cptjack", result.getObject().get(0).getName());
@@ -433,7 +434,7 @@ public class RepositoryServiceTest {
 	public void testListResourceDoesNotExistObjectShadows() {
 		try {
 			repositoryService.listResourceObjectShadows("00000000-0000-0000-0000-000000000000",
-					Utils.getObjectType("AccountShadowType"));
+					ObjectTypes.ACCOUNT.getObjectTypeUri());
 		} catch (FaultMessage ex) {
 			if (ex.getFaultInfo() instanceof ObjectNotFoundFaultType) {
 				return;

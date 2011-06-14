@@ -22,6 +22,7 @@ package com.evolveum.midpoint.schema;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
@@ -62,6 +63,10 @@ public enum ObjectTypes {
 	public QName getQName() {
 		return value;
 	}
+	
+	public String getObjectTypeUri() {
+		return QNameUtil.qNameToUri(getQName());
+	}
 
 	public static ObjectTypes getObjectType(String value) {
 		for (ObjectTypes type : values()) {
@@ -71,5 +76,13 @@ public enum ObjectTypes {
 		}
 
 		return null;
+	}
+	
+	public static String getObjectTypeUri(String objectName) {
+		for (ObjectTypes type : values()) {
+			return QNameUtil.qNameToUri(type.getQName());
+		}
+
+		throw new IllegalArgumentException("UnsupportedObjectType" + objectName);
 	}
 }

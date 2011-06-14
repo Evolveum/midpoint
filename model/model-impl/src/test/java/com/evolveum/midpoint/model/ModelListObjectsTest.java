@@ -51,6 +51,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.model.test.util.UserTypeComparator;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
@@ -111,8 +112,8 @@ public class ModelListObjectsTest {
 		paging.setMaxSize(-1);
 		paging.setOffset(-1);
 
-		modelService.listObjects(Utils.getObjectType("UserType"), paging, new Holder<OperationResultType>(
-				new OperationResultType()));
+		modelService.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging,
+				new Holder<OperationResultType>(new OperationResultType()));
 		fail("Illegal argument exception was not thrown.");
 	}
 
@@ -123,12 +124,12 @@ public class ModelListObjectsTest {
 		final ObjectListType expectedUserList = ((JAXBElement<ObjectListType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "user-list.xml"))).getValue();
 
-		when(repositoryService.listObjects(eq(Utils.getObjectType("UserType")), any(PagingType.class)))
+		when(repositoryService.listObjects(eq(ObjectTypes.USER.getObjectTypeUri()), any(PagingType.class)))
 				.thenReturn(expectedUserList);
-		final ObjectListType returnedUserList = modelService.listObjects(Utils.getObjectType("UserType"),
+		final ObjectListType returnedUserList = modelService.listObjects(ObjectTypes.USER.getObjectTypeUri(),
 				new PagingType(), new Holder<OperationResultType>(new OperationResultType()));
 
-		verify(repositoryService, times(1)).listObjects(eq(Utils.getObjectType("UserType")),
+		verify(repositoryService, times(1)).listObjects(eq(ObjectTypes.USER.getObjectTypeUri()),
 				any(PagingType.class));
 		testObjectListTypes(expectedUserList, returnedUserList);
 	}

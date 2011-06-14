@@ -50,6 +50,7 @@ import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.ProvisioningTypes;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -387,7 +388,7 @@ public class ModelService implements ModelPortType {
 					// modified object change will be later send to repository
 					ObjectReferenceType accountRef = new ObjectReferenceType();
 					accountRef.setOid(accountOid);
-					accountRef.setType(QNameUtil.uriToQName(Utils.getObjectType("AccountShadowType")));
+					accountRef.setType(ObjectTypes.ACCOUNT.getQName());
 
 					Element accountRefElement = null;
 					try {
@@ -1255,7 +1256,7 @@ public class ModelService implements ModelPortType {
 				"Resource shadow type must not be null or empty.");
 		Validate.notNull(resultType, "Result type must not be null.");
 
-		if (!Utils.getObjectType("AccountShadowType").equals(resourceObjectShadowType)) {
+		if (!ObjectTypes.ACCOUNT.getObjectTypeUri().equals(resourceObjectShadowType)) {
 			throw new IllegalArgumentException("Currently model (repository) "
 					+ "can list only resource objects of type AccountType.");
 		}

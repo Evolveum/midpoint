@@ -38,6 +38,7 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.web.model.AccountShadowDto;
 import com.evolveum.midpoint.web.model.AccountShadowManager;
 import com.evolveum.midpoint.web.model.PagingDto;
@@ -75,7 +76,7 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 		try { // Call Web Service Operation
 				// TODO: more reasonable handling of paging info
 			PagingType paging = new PagingType();
-			ObjectListType result = port.listObjects(Utils.getObjectType("AccountShadowType"), paging,
+			ObjectListType result = port.listObjects(ObjectTypes.ACCOUNT.getObjectTypeUri(), paging,
 					new Holder<OperationResultType>(new OperationResultType()));
 			List<ObjectType> objects = result.getObject();
 			Collection<AccountShadowDto> items = new ArrayList<AccountShadowDto>(objects.size());

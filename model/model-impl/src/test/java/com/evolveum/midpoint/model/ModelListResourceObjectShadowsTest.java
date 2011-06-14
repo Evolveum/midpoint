@@ -49,6 +49,7 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.test.util.ResourceObjectShadowTypeComparator;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -116,13 +117,13 @@ public class ModelListResourceObjectShadowsTest {
 			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
 
 		final String resourceOid = "abababab-abab-abab-abab-000000000001";
-		when(repositoryService.listResourceObjectShadows(resourceOid, Utils.getObjectType("AccountShadowType")))
+		when(repositoryService.listResourceObjectShadows(resourceOid, ObjectTypes.ACCOUNT.getObjectTypeUri()))
 				.thenThrow(
 						new com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage(
 								"Resource with oid '" + resourceOid + "' not found.",
 								new ObjectNotFoundFaultType()));
 
-		modelService.listResourceObjectShadows(resourceOid, Utils.getObjectType("AccountShadowType"),
+		modelService.listResourceObjectShadows(resourceOid, ObjectTypes.ACCOUNT.getObjectTypeUri(),
 				new Holder<OperationResultType>(new OperationResultType()));
 
 		fail("Fault must be thrown");
@@ -130,9 +131,9 @@ public class ModelListResourceObjectShadowsTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void badResourceShadowType() throws FaultMessage {
-		modelService.listResourceObjectShadows("abababab-abab-abab-abab-000000000001", Utils
-				.getObjectType("GenericObjectType"), new Holder<OperationResultType>(
-				new OperationResultType()));
+		modelService.listResourceObjectShadows("abababab-abab-abab-abab-000000000001",
+				ObjectTypes.GENERIC_OBJECT.getObjectTypeUri(), new Holder<OperationResultType>(
+						new OperationResultType()));
 
 		fail("Fault must be thrown");
 	}
@@ -147,12 +148,12 @@ public class ModelListResourceObjectShadowsTest {
 				.unmarshal(new File(TEST_FOLDER, "resource-object-shadow-list.xml"))).getValue();
 		trace.warn("TODO: File resource-object-shadow-list.xml doesn't contain proper resource object shadow list.");
 
-		when(repositoryService.listResourceObjectShadows(resourceOid, Utils.getObjectType("AccountShadowType")))
+		when(repositoryService.listResourceObjectShadows(resourceOid, ObjectTypes.ACCOUNT.getObjectTypeUri()))
 				.thenReturn(expected);
 
 		final ResourceObjectShadowListType returned = modelService.listResourceObjectShadows(resourceOid,
-				Utils.getObjectType("AccountShadowType"),
-				new Holder<OperationResultType>(new OperationResultType()));
+				ObjectTypes.ACCOUNT.getObjectTypeUri(), new Holder<OperationResultType>(
+						new OperationResultType()));
 
 		assertNotNull(expected);
 		assertNotNull(returned);

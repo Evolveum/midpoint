@@ -133,7 +133,7 @@ public class DebugListController extends ListController<ObjectBean> {
 		}
 		TRACE.info("listObjects start for object type {}", objectType);
 
-		String xsdName = Utils.getObjectType(objectType);
+		String xsdName = ObjectTypes.getObjectTypeUri(objectType);
 		ObjectListType result = null;
 		try {
 			PagingType paging = PagingTypeFactory.createPaging(offset, rowsCount,

@@ -152,7 +152,7 @@ public class BrowserBean extends ListController<BrowserItem> {
 		try {
 			PagingType paging = PagingTypeFactory.createPaging(getOffset(), getRowsCount(),
 					OrderDirectionType.ASCENDING, "name");
-			result = model.listObjects(Utils.getObjectType(type), paging, new Holder<OperationResultType>(
+			result = model.listObjects(ObjectTypes.getObjectTypeUri(type), paging, new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
 			String message = (ex.getFaultInfo().getMessage() != null ? ex.getFaultInfo().getMessage() : ex

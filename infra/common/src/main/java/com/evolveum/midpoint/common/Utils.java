@@ -35,6 +35,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.constants.MidPointConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -52,40 +53,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  */
 public class Utils {
 
-	private static final Trace logger = TraceManager.getTrace(Utils.class);
-
-	public static String getObjectType(String objectName) {
-		if (SchemaConstants.I_USER_TYPE.getLocalPart().equals(objectName)) {
-			return QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE);
-		}
-
-		if (SchemaConstants.I_ACCOUNT_TYPE.getLocalPart().equals(objectName)) {
-			return QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_TYPE);
-		}
-		
-		if (SchemaConstants.I_ACCOUNT_SHADOW_TYPE.getLocalPart().equals(objectName)) {
-			return QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
-		}
-
-		if (SchemaConstants.I_RESOURCE_TYPE.getLocalPart().equals(objectName)) {
-			return QNameUtil.qNameToUri(SchemaConstants.I_RESOURCE_TYPE);
-		}
-
-		if (SchemaConstants.I_RESOURCE_STATE_TYPE.getLocalPart().equals(objectName)) {
-			return QNameUtil.qNameToUri(SchemaConstants.I_RESOURCE_STATE_TYPE);
-		}
-
-		if (SchemaConstants.I_USER_TEMPLATE_TYPE.getLocalPart().equals(objectName)) {
-			return QNameUtil.qNameToUri(SchemaConstants.I_USER_TEMPLATE_TYPE);
-		}
-
-		if (SchemaConstants.I_GENERIC_OBJECT_TYPE.getLocalPart().equals(objectName)) {
-			return QNameUtil.qNameToUri(SchemaConstants.I_GENERIC_OBJECT_TYPE);
-		}
-
-		throw new IllegalArgumentException("UnsupportedObjectType = " + objectName);
-
-	}
+	private static final Trace LOGGER = TraceManager.getTrace(Utils.class);
 
 	public static String getPropertyName(String name) {
 		if (null == name) {
@@ -99,13 +67,13 @@ public class Utils {
 		try {
 			result = BeanUtils.getProperty(object, property);
 		} catch (IllegalAccessException ex) {
-			logger.warn("Failed to get property for instances {}, {}. Error message was {}", new Object[] {
+			LOGGER.warn("Failed to get property for instances {}, {}. Error message was {}", new Object[] {
 					object.getClass().getName(), property, ex.getMessage() });
 		} catch (InvocationTargetException ex) {
-			logger.warn("Failed to get property for instances {}, {}. Error message was {}", new Object[] {
+			LOGGER.warn("Failed to get property for instances {}, {}. Error message was {}", new Object[] {
 					object.getClass().getName(), property, ex.getMessage() });
 		} catch (NoSuchMethodException ex) {
-			logger.warn("Failed to get property for instances {}, {}. Error message was {}", new Object[] {
+			LOGGER.warn("Failed to get property for instances {}, {}. Error message was {}", new Object[] {
 					object.getClass().getName(), property, ex.getMessage() });
 		}
 		return result;
@@ -160,16 +128,16 @@ public class Utils {
 				}
 			}
 		} catch (NoSuchMethodException ex) {
-			logger.warn("Failed to copy properties for instances {}, {}. Error message was {}", new Object[] {
+			LOGGER.warn("Failed to copy properties for instances {}, {}. Error message was {}", new Object[] {
 					source, target, ex.getMessage() });
 		} catch (SecurityException ex) {
-			logger.warn("Failed to copy properties for instances {}, {}. Error message was {}", new Object[] {
+			LOGGER.warn("Failed to copy properties for instances {}, {}. Error message was {}", new Object[] {
 					source, target, ex.getMessage() });
 		} catch (IllegalAccessException ex) {
-			logger.warn("Failed to copy properties for instances {}, {}. Error message was {}", new Object[] {
+			LOGGER.warn("Failed to copy properties for instances {}, {}. Error message was {}", new Object[] {
 					source, target, ex.getMessage() });
 		} catch (InvocationTargetException ex) {
-			logger.warn("Failed to copy properties for instances {}, {}. Error message was {}", new Object[] {
+			LOGGER.warn("Failed to copy properties for instances {}, {}. Error message was {}", new Object[] {
 					source, target, ex.getMessage() });
 		}
 	}
@@ -186,7 +154,7 @@ public class Utils {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 

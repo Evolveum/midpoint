@@ -32,6 +32,7 @@ import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -73,7 +74,7 @@ public class LinkAccountAction extends BaseAction {
 
 			ObjectReferenceType accountRef = new ObjectReferenceType();
 			accountRef.setOid(resourceShadow.getOid());
-			accountRef.setType(QNameUtil.uriToQName(Utils.getObjectType("AccountShadowType")));
+			accountRef.setType(ObjectTypes.ACCOUNT.getQName());
 			userType.getAccountRef().add(accountRef);
 
 			try {

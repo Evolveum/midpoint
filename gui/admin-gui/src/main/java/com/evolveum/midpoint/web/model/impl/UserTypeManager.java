@@ -42,6 +42,7 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.AccountShadowDto;
@@ -191,7 +192,7 @@ public class UserTypeManager implements UserManager, Serializable {
 		try { // Call Web Service Operation
 				// TODO: more reasonable handling of paging info
 			PagingType paging = new PagingType();
-			ObjectListType result = model.listObjects(Utils.getObjectType("UserType"), paging,
+			ObjectListType result = model.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging,
 					new Holder<OperationResultType>(new OperationResultType()));
 
 			List<ObjectType> users = result.getObject();
@@ -293,7 +294,7 @@ public class UserTypeManager implements UserManager, Serializable {
 			PagingType paging = PagingTypeFactory.createPaging(pagingDto.getOffset(), pagingDto.getMaxSize(),
 					pagingDto.getDirection(), pagingDto.getOrderBy());
 
-			ObjectListType result = model.listObjects(Utils.getObjectType("UserType"), paging,
+			ObjectListType result = model.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging,
 					new Holder<OperationResultType>(new OperationResultType()));
 
 			List<ObjectType> users = result.getObject();
