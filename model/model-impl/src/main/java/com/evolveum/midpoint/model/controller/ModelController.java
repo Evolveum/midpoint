@@ -20,8 +20,13 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -29,6 +34,8 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ProvisioningTypes;
@@ -36,14 +43,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
@@ -51,6 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -90,17 +103,13 @@ public class ModelController {
 		// TODO: error handling
 		ObjectType object = null;
 		try {
-			object = getObjectFromRepository(oid, resolve);
+			object = getObjectFromRepository(oid, resolve, result);
 			if (ProvisioningTypes.isManagedByProvisioning(object)) {
-				// TODO: remove Holder add there OperationResult 'result' after
-				// provisioning is updated
-				ObjectContainerType container = provisioning.getObject(oid, resolve,
-						new Holder<OperationalResultType>());
-				object = container.getObject();
+				object = getObjectFromProvisioning(oid, resolve, result);
 			}
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object from provisioning", ex);
-			// TODO: error handling
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get object", ex);
+			// TODO: error handling ?????
 		}
 
 		resolveObjectAttributes(object, resolve, result);
@@ -167,7 +176,7 @@ public class ModelController {
 		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
-		ObjectType object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType());
+		ObjectType object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(), result);
 		if (ProvisioningTypes.isManagedByProvisioning(object)) {
 			modifyProvisioningObjectWithExclusion(change, accountOid, result, object);
 		} else {
@@ -179,12 +188,12 @@ public class ModelController {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
-		ObjectType object = getObjectFromRepository(oid, new PropertyReferenceListType());
+		ObjectType object = getObjectFromRepository(oid, new PropertyReferenceListType(), result);
 		try {
 			if (ProvisioningTypes.isManagedByProvisioning(object)) {
 				// TODO: remove Holder add there OperationResult after
 				// provisioning is updated
-				ScriptsType scripts = getScripts(object);
+				ScriptsType scripts = getScripts(object, result);
 				provisioning.deleteObject(oid, scripts, new Holder<OperationalResultType>());
 			} else {
 				if (object instanceof UserType) {
@@ -316,11 +325,13 @@ public class ModelController {
 		}
 	}
 
-	private ObjectType getObjectFromRepository(String oid, PropertyReferenceListType resolve) {
+	private ObjectType getObjectFromRepository(String oid, PropertyReferenceListType resolve,
+			OperationResult result) {
 		ObjectType object = null;
 
 		// TODO: fix error handling and operation result
 		try {
+			// TODO: add OperationResult after repository is updated
 			ObjectContainerType container = repository.getObject(oid, resolve);
 			if (container != null) {
 				object = container.getObject();
@@ -329,6 +340,30 @@ public class ModelController {
 			}
 		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from repository", ex, oid);
+			// TODO: error handling
+		}
+
+		return object;
+	}
+
+	private ObjectType getObjectFromProvisioning(String oid, PropertyReferenceListType resolve,
+			OperationResult result) {
+		ObjectType object = null;
+
+		// TODO: fix error handling and operation result
+		try {
+			// TODO: remove Holder add there OperationResult 'result' after
+			// provisioning is updated
+			ObjectContainerType container = provisioning.getObject(oid, resolve,
+					new Holder<OperationalResultType>());
+			if (container != null) {
+				object = container.getObject();
+			} else {
+				// TODO: throw some exception...
+			}
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from provisioning", ex, oid);
+			// TODO: error handling
 		}
 
 		return object;
@@ -346,7 +381,7 @@ public class ModelController {
 		try {
 			// TODO: remove Holder add there OperationResult 'result' after
 			// provisioning is updated
-			ScriptsType scripts = getScripts(object);
+			ScriptsType scripts = getScripts(object, result);
 			return provisioning.addObject(container, scripts, new Holder<OperationalResultType>());
 		} catch (FaultMessage ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object {} to provisioning", ex, object.getName());
@@ -383,10 +418,176 @@ public class ModelController {
 		}
 
 		if (object instanceof UserType) {
-			
+			resolveUserAttributes((UserType) object, resolve, result);
 		} else if (object instanceof AccountShadowType) {
-			
+			resolveAccountAttributes((AccountShadowType) object, resolve, result);
 		}
+	}
+
+	private void resolveUserAttributes(UserType user, PropertyReferenceListType resolve,
+			OperationResult result) {
+		if (!Utils.haveToResolve("Account", resolve)) {
+			return;
+		}
+
+		List<ObjectReferenceType> refToBeDeleted = new ArrayList<ObjectReferenceType>();
+		for (ObjectReferenceType accountRef : user.getAccountRef()) {
+			AccountShadowType account = null;
+			try {
+				ObjectType object = getObjectFromProvisioning(accountRef.getOid(), resolve, result);
+				if (!(object instanceof AccountShadowType)) {
+					// TODO: throw better exception...
+					throw new RuntimeException("Bad object type returned for referenced oid.");
+				}
+				user.getAccount().add(account);
+				refToBeDeleted.add(accountRef);
+
+				resolveAccountAttributes(account, resolve, result);
+			} catch (Exception ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't resolve account with oid {}", ex,
+						accountRef.getOid());
+				// TODO: error handling
+			}
+		}
+		user.getAccountRef().removeAll(refToBeDeleted);
+	}
+
+	private void resolveAccountAttributes(AccountShadowType account, PropertyReferenceListType resolve,
+			OperationResult result) {
+		if (!Utils.haveToResolve("Resource", resolve)) {
+			return;
+		}
+
+		ObjectReferenceType reference = account.getResourceRef();
+		if (reference == null || StringUtils.isEmpty(reference.getOid())) {
+			LOGGER.debug("Skipping resolving resource for account {}, resource reference is null or "
+					+ "doesn't contain oid.", new Object[] { account.getName() });
+		}
+
+		try {
+			ObjectType object = getObjectFromProvisioning(account.getResourceRef().getOid(), resolve, result);
+			if (!(object instanceof ResourceType)) {
+				// TODO: throw better exception...
+				throw new RuntimeException("Bad object type returned for referenced oid.");
+			}
+			account.setResource((ResourceType) object);
+			account.setResourceRef(null);
+		} catch (Exception ex) {
+			LoggingUtils
+					.logException(LOGGER, "Couldn't resolve resource with oid {}", ex, reference.getOid());
+			// TODO: error handling
+		}
+	}
+
+	private ScriptsType getScripts(ObjectType object, OperationResult result) {
+		ScriptsType scripts = null;
+		if (object instanceof ResourceType) {
+			ResourceType resource = (ResourceType) object;
+			scripts = resource.getScripts();
+		} else if (object instanceof ResourceObjectShadowType) {
+			ResourceObjectShadowType resourceObject = (ResourceObjectShadowType) object;
+			if (resourceObject.getResource() != null) {
+				scripts = resourceObject.getResource().getScripts();
+			} else {
+				ObjectReferenceType reference = resourceObject.getResourceRef();
+				ObjectType resObject = getObjectFromProvisioning(reference.getOid(),
+						new PropertyReferenceListType(), result);
+				if (!(resObject instanceof ResourceType)) {
+					// TODO: throw better exception...
+					throw new RuntimeException("Bad object type returned for referenced oid.");
+				}
+
+				scripts = ((ResourceType) resObject).getScripts();
+			}
+		}
+
+		if (scripts == null) {
+			scripts = new ScriptsType();
+		}
+
+		return scripts;
+	}
+
+	private void deleteUserAccounts(UserType user, OperationResult result) {
+		List<AccountShadowType> accountsToBeDeleted = new ArrayList<AccountShadowType>();
+		for (AccountShadowType account : user.getAccount()) {
+			if (deleteAccount(account, result)) {
+				accountsToBeDeleted.add(account);
+			}
+		}
+		user.getAccount().removeAll(accountsToBeDeleted);
+
+		List<ObjectReferenceType> refsToBeDeleted = new ArrayList<ObjectReferenceType>();
+		for (ObjectReferenceType accountRef : user.getAccountRef()) {
+			try {
+				ObjectType object = getObjectFromProvisioning(accountRef.getOid(),
+						new PropertyReferenceListType(), result);
+				if (!(object instanceof AccountShadowType)) {
+					// TODO: throw better exception...
+					throw new RuntimeException("Bad object type returned for referenced oid.");
+				}
+
+				AccountShadowType account = (AccountShadowType) object;
+				if (deleteAccount(account, result)) {
+					refsToBeDeleted.add(accountRef);
+				}
+			} catch (Exception ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't delete account with oid {}", ex,
+						accountRef.getOid());
+				// TODO: error handling
+			}
+		}
+		user.getAccountRef().removeAll(refsToBeDeleted);
+
+		// TODO: save updated user, create property changes
+		ObjectModificationType change = createUserModification(accountsToBeDeleted, refsToBeDeleted);
+		change.setOid(user.getOid());
+		try {
+			repository.modifyObject(change);
+		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't update user {} after accounts was deleted", ex,
+					user.getName());
+			// TODO: error handling
+		}
+	}
+
+	private ObjectModificationType createUserModification(List<AccountShadowType> accountsToBeDeleted,
+			List<ObjectReferenceType> refsToBeDeleted) {
+		ObjectModificationType change = new ObjectModificationType();
+		for (ObjectReferenceType reference : refsToBeDeleted) {
+			PropertyModificationType propertyChangeType = ObjectTypeUtil.createPropertyModificationType(
+					PropertyModificationTypeType.delete, null, new QName(SchemaConstants.NS_C, "accountRef"),
+					reference);
+
+			change.getPropertyModification().add(propertyChangeType);
+		}
+
+		for (AccountShadowType account : accountsToBeDeleted) {
+			PropertyModificationType propertyChangeType = ObjectTypeUtil.createPropertyModificationType(
+					PropertyModificationTypeType.delete, null, new QName(SchemaConstants.NS_C, "account"),
+					account.getOid());
+
+			change.getPropertyModification().add(propertyChangeType);
+		}
+
+		return change;
+	}
+
+	private boolean deleteAccount(AccountShadowType account, OperationResult result) {
+		boolean deleted = false;
+		try {
+			ScriptsType scripts = getScripts(account, result);
+			provisioning.deleteObject(account.getOid(), scripts, new Holder<OperationalResultType>());
+			deleted = true;
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't delete account with oid {}", ex, account.getOid());
+			// TODO: error handling
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't delete account with oid {}", ex, account.getOid());
+			// TODO: error handling
+		}
+
+		return deleted;
 	}
 
 	private void modifyProvisioningObjectWithExclusion(ObjectModificationType change, String accountOid,
@@ -399,11 +600,6 @@ public class ModelController {
 		// TODO Auto-generated method stub
 	}
 
-	private void deleteUserAccounts(UserType object, OperationResult result) {
-		// TODO Auto-generated method stub
-
-	}
-
 	private void preprocessUser(UserType user, OperationResult result) {
 		// TODO Auto-generated method stub
 
@@ -412,11 +608,5 @@ public class ModelController {
 	private void preprocessAccount(AccountShadowType account, OperationResult result) {
 		// TODO insert credentials to account if needed
 
-	}
-
-	private ScriptsType getScripts(ObjectType object) {
-		// TODO Auto-generated method stub
-
-		return new ScriptsType();
 	}
 }

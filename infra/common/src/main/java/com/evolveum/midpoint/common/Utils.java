@@ -35,8 +35,6 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.schema.ObjectTypes;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.constants.MidPointConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
