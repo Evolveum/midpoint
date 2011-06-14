@@ -32,7 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.schema.ObjectTypeEnum;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.ListController;
@@ -58,7 +58,7 @@ public class BrowserBean extends ListController<BrowserItem> {
 	private static final Trace LOGGER = TraceManager.getTrace(BrowserBean.class);
 	private static final List<SelectItem> types = new ArrayList<SelectItem>();
 	static {
-		for (ObjectTypeEnum type : ObjectTypeEnum.values()) {
+		for (ObjectTypes type : ObjectTypes.values()) {
 			types.add(new SelectItem(type.getValue(), FacesUtils.translateKey(type.getLocalizationKey())));
 		}
 
@@ -178,7 +178,7 @@ public class BrowserBean extends ListController<BrowserItem> {
 		getObjects().clear();
 		for (ObjectType object : result.getObject()) {
 			// TODO: refactor - object type from class name??? wtf
-			ObjectTypeEnum objectType = ObjectTypeEnum.getObjectType(object.getClass().getSimpleName());
+			ObjectTypes objectType = ObjectTypes.getObjectType(object.getClass().getSimpleName());
 
 			String localizationKey = objectType == null ? "Unknown" : objectType.getLocalizationKey();
 			getObjects().add(

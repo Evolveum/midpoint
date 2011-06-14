@@ -38,10 +38,8 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 public enum ProvisioningTypes {
 
 	RESOURCE_OBJECT(ResourceObjectShadowType.class, SchemaConstants.I_RESOURCE_OBJECT_SHADOW),
-	// TODO: should by probably this qname:
-	// SchemaConstants.I_ACCOUNT_SHADOW_TYPE !!! AccountType is from schema
-	// handling
-	ACCOUNT_SHADOW_TYPE(AccountShadowType.class, SchemaConstants.I_ACCOUNT_TYPE),
+
+	ACCOUNT_SHADOW_TYPE(AccountShadowType.class, SchemaConstants.I_ACCOUNT_SHADOW_TYPE),
 
 	RESOURCE_TYPE(ResourceType.class, SchemaConstants.I_RESOURCE_TYPE);
 

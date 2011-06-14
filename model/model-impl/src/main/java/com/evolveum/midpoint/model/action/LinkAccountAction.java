@@ -73,7 +73,7 @@ public class LinkAccountAction extends BaseAction {
 
 			ObjectReferenceType accountRef = new ObjectReferenceType();
 			accountRef.setOid(resourceShadow.getOid());
-			accountRef.setType(QNameUtil.uriToQName(Utils.getObjectType("AccountType")));
+			accountRef.setType(QNameUtil.uriToQName(Utils.getObjectType("AccountShadowType")));
 			userType.getAccountRef().add(accountRef);
 
 			try {

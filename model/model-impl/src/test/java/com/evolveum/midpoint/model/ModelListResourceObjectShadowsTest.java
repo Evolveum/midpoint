@@ -116,13 +116,13 @@ public class ModelListResourceObjectShadowsTest {
 			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
 
 		final String resourceOid = "abababab-abab-abab-abab-000000000001";
-		when(repositoryService.listResourceObjectShadows(resourceOid, Utils.getObjectType("AccountType")))
+		when(repositoryService.listResourceObjectShadows(resourceOid, Utils.getObjectType("AccountShadowType")))
 				.thenThrow(
 						new com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage(
 								"Resource with oid '" + resourceOid + "' not found.",
 								new ObjectNotFoundFaultType()));
 
-		modelService.listResourceObjectShadows(resourceOid, Utils.getObjectType("AccountType"),
+		modelService.listResourceObjectShadows(resourceOid, Utils.getObjectType("AccountShadowType"),
 				new Holder<OperationResultType>(new OperationResultType()));
 
 		fail("Fault must be thrown");
@@ -147,11 +147,11 @@ public class ModelListResourceObjectShadowsTest {
 				.unmarshal(new File(TEST_FOLDER, "resource-object-shadow-list.xml"))).getValue();
 		trace.warn("TODO: File resource-object-shadow-list.xml doesn't contain proper resource object shadow list.");
 
-		when(repositoryService.listResourceObjectShadows(resourceOid, Utils.getObjectType("AccountType")))
+		when(repositoryService.listResourceObjectShadows(resourceOid, Utils.getObjectType("AccountShadowType")))
 				.thenReturn(expected);
 
 		final ResourceObjectShadowListType returned = modelService.listResourceObjectShadows(resourceOid,
-				Utils.getObjectType("AccountType"),
+				Utils.getObjectType("AccountShadowType"),
 				new Holder<OperationResultType>(new OperationResultType()));
 
 		assertNotNull(expected);

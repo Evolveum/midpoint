@@ -121,7 +121,7 @@ public class RepositoryAccountTest {
 			PagingType pagingType = PagingTypeFactory.createPaging(-1, 5, OrderDirectionType.ASCENDING,
 					"name");
 			ObjectListType objects = repositoryService.listObjects(
-					QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_TYPE), pagingType);
+					QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE), pagingType);
 			assertEquals(1, objects.getObject().size());
 			assertEquals(oid, objects.getObject().get(0).getOid());
 		} finally {

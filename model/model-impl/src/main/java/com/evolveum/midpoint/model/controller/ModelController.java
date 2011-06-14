@@ -32,7 +32,7 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ProvisioningTypes;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -182,10 +182,9 @@ public class ModelController {
 		ObjectType object = getObjectFromRepository(oid, new PropertyReferenceListType());
 		try {
 			if (ProvisioningTypes.isManagedByProvisioning(object)) {
-				// TODO: remove Holder add there OperationResult 'result' after
+				// TODO: remove Holder add there OperationResult after
 				// provisioning is updated
-				// TODO: get scripts!!!
-				ScriptsType scripts = new ScriptsType();
+				ScriptsType scripts = getScripts(object);
 				provisioning.deleteObject(oid, scripts, new Holder<OperationalResultType>());
 			} else {
 				if (object instanceof UserType) {
@@ -266,7 +265,7 @@ public class ModelController {
 			LoggingUtils.logException(LOGGER, "Couldn't list resource objects of type {} for resource "
 					+ "with oid {}", ex, objectType, resourceOid);
 			// TODO: error handling
-			
+
 			throw new RuntimeException();
 		}
 	}
@@ -274,23 +273,47 @@ public class ModelController {
 	public ResourceTestResultType testResource(String resourceOid, OperationResult result) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			// TODO: remove Holder add there OperationResult 'result' after
+			// provisioning is updated
+			return provisioning.testResource(resourceOid);
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't test status for resource {}", ex, resourceOid);
+			// TODO: error handling
+
+			throw new RuntimeException();
+		}
 	}
 
-	public EmptyType launchImportFromResource(String resourceOid, String objectClass, OperationResult result) {
+	public void launchImportFromResource(String resourceOid, String objectClass, OperationResult result) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notEmpty(objectClass, "Object class must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			// TODO: add there OperationResult after provisioning is updated
+			provisioning.launchImportFromResource(resourceOid, objectClass);
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't launch import for objects of type {} on resource "
+					+ "with oid {}", ex, objectClass, resourceOid);
+			// TODO: error handling
+		}
 	}
 
 	public TaskStatusType getImportStatus(String resourceOid, OperationResult result) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
-		// TODO Auto-generated method stub
-		return null;
+
+		try {
+			// TODO: add there OperationResult after provisioning is updated
+			return provisioning.getImportStatus(resourceOid);
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get import status for resource {}", ex, resourceOid);
+			// TODO: error handling
+
+			throw new RuntimeException();
+		}
 	}
 
 	private ObjectType getObjectFromRepository(String oid, PropertyReferenceListType resolve) {
@@ -305,20 +328,52 @@ public class ModelController {
 				// TODO: throw some exception...
 			}
 		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from repository.", ex, oid);
+			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from repository", ex, oid);
 		}
 
 		return object;
 	}
 
-	private String addProvisioningObject(ObjectType objet, OperationResult result) {
-		// TODO Auto-generated method stub
-		return null;
+	private String addProvisioningObject(ObjectType object, OperationResult result) {
+		if (object instanceof AccountShadowType) {
+			AccountShadowType account = (AccountShadowType) object;
+			preprocessAccount(account, result);
+		}
+
+		ObjectContainerType container = new ObjectContainerType();
+		container.setObject(object);
+
+		try {
+			// TODO: remove Holder add there OperationResult 'result' after
+			// provisioning is updated
+			ScriptsType scripts = getScripts(object);
+			return provisioning.addObject(container, scripts, new Holder<OperationalResultType>());
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't add object {} to provisioning", ex, object.getName());
+			// TODO: error handling
+
+			throw new RuntimeException();
+		}
 	}
 
 	private String addRepositoryObject(ObjectType object, OperationResult result) {
-		// TODO Auto-generated method stub
-		return null;
+		if (object instanceof UserType) {
+			UserType user = (UserType) object;
+			preprocessUser(user, result);
+		}
+
+		ObjectContainerType container = new ObjectContainerType();
+		container.setObject(object);
+
+		try {
+			// TODO: add there OperationResult after repository is updated
+			return repository.addObject(container);
+		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't add object {} to repository", ex, object.getName());
+			// TODO: error handling
+
+			throw new RuntimeException();
+		}
 	}
 
 	private void resolveObjectAttributes(ObjectType object, PropertyReferenceListType resolve,
@@ -327,7 +382,11 @@ public class ModelController {
 			return;
 		}
 
-		// TODO Auto-generated method stub
+		if (object instanceof UserType) {
+			
+		} else if (object instanceof AccountShadowType) {
+			
+		}
 	}
 
 	private void modifyProvisioningObjectWithExclusion(ObjectModificationType change, String accountOid,
@@ -343,5 +402,21 @@ public class ModelController {
 	private void deleteUserAccounts(UserType object, OperationResult result) {
 		// TODO Auto-generated method stub
 
+	}
+
+	private void preprocessUser(UserType user, OperationResult result) {
+		// TODO Auto-generated method stub
+
+	}
+
+	private void preprocessAccount(AccountShadowType account, OperationResult result) {
+		// TODO insert credentials to account if needed
+
+	}
+
+	private ScriptsType getScripts(ObjectType object) {
+		// TODO Auto-generated method stub
+
+		return new ScriptsType();
 	}
 }

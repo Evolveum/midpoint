@@ -75,7 +75,7 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 		try { // Call Web Service Operation
 				// TODO: more reasonable handling of paging info
 			PagingType paging = new PagingType();
-			ObjectListType result = port.listObjects(Utils.getObjectType("AccountType"), paging,
+			ObjectListType result = port.listObjects(Utils.getObjectType("AccountShadowType"), paging,
 					new Holder<OperationResultType>(new OperationResultType()));
 			List<ObjectType> objects = result.getObject();
 			Collection<AccountShadowDto> items = new ArrayList<AccountShadowDto>(objects.size());

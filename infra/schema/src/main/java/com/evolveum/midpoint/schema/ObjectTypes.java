@@ -20,29 +20,33 @@
  */
 package com.evolveum.midpoint.schema;
 
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
+
 /**
  * 
  * @author lazyman
  * 
  */
-public enum ObjectTypeEnum {
+public enum ObjectTypes {
 
-	ACCOUNT("schema.objectTypes.account", "AccountType"),
+	ACCOUNT("schema.objectTypes.account", SchemaConstants.I_ACCOUNT_SHADOW_TYPE),
 
-	GENERIC_OBJECT("schema.objectTypes.genericObject", "GenericObjectType"),
+	GENERIC_OBJECT("schema.objectTypes.genericObject", SchemaConstants.I_GENERIC_OBJECT_TYPE),
 
-	RESOURCE("schema.objectTypes.resource", "ResourceType"),
+	RESOURCE("schema.objectTypes.resource", SchemaConstants.I_RESOURCE_TYPE),
 
-	RESOURCE_STATE("schema.objectTypes.resourceState", "ResourceStateType"),
+	RESOURCE_STATE("schema.objectTypes.resourceState", SchemaConstants.I_RESOURCE_STATE_TYPE),
 
-	USER("schema.objectTypes.user", "UserType"),
+	USER("schema.objectTypes.user", SchemaConstants.I_USER_TYPE),
 
-	USER_TEMPLATE("schema.objectTypes.userTemplate", "UserTemplateType");
+	USER_TEMPLATE("schema.objectTypes.userTemplate", SchemaConstants.I_USER_TEMPLATE_TYPE);
 
 	private String localizationKey;
-	private String value;
+	private QName value;
 
-	private ObjectTypeEnum(String key, String value) {
+	private ObjectTypes(String key, QName value) {
 		this.localizationKey = key;
 		this.value = value;
 	}
@@ -52,11 +56,15 @@ public enum ObjectTypeEnum {
 	}
 
 	public String getValue() {
+		return value.getLocalPart();
+	}
+
+	public QName getQName() {
 		return value;
 	}
 
-	public static ObjectTypeEnum getObjectType(String value) {
-		for (ObjectTypeEnum type : values()) {
+	public static ObjectTypes getObjectType(String value) {
+		for (ObjectTypes type : values()) {
 			if (type.getValue().equals(value)) {
 				return type;
 			}

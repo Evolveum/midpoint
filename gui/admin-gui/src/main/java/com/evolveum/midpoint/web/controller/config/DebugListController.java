@@ -34,7 +34,7 @@ import org.springframework.stereotype.Controller;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.schema.ObjectTypeEnum;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.bean.ObjectBean;
 import com.evolveum.midpoint.web.controller.TemplateController;
@@ -65,7 +65,7 @@ public class DebugListController extends ListController<ObjectBean> {
 	private static final Trace TRACE = TraceManager.getTrace(DebugListController.class);
 	private static final List<SelectItem> objectTypes = new ArrayList<SelectItem>();
 	static {
-		for (ObjectTypeEnum type : ObjectTypeEnum.values()) {
+		for (ObjectTypes type : ObjectTypes.values()) {
 			objectTypes.add(new SelectItem(type.getValue(),
 					FacesUtils.translateKey(type.getLocalizationKey())));
 		}

@@ -50,8 +50,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public abstract class SchemaConstants {
 
-	// private static transient Trace logger =
-	// TraceManager.getTrace(SchemaConstants.class);
 	private static final CatalogResolver catalogResolver;
 	private static boolean resolverInitialized = false;
 	// identity schema is not used, all definitions are in common schema - it is
@@ -60,8 +58,6 @@ public abstract class SchemaConstants {
 	// W3C_XML_SCHEMA_NS_URI public static final String NS_XSD =
 	// "http://www.w3.org/2001/XMLSchema";
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-	// Identity schema and common shcema has the same URL (OPENIDM-124)
-	public static final String NS_IDENTITY = "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 	public static final String NS_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd";
 	public static final String NS_ICF_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd";
 	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd";
@@ -103,10 +99,10 @@ public abstract class SchemaConstants {
 	public static final QName I_ATTRIBUTES = new QName(NS_C, "attributes");
 	public static final QName I_PROPERTY_CONTAINER_REFERENCE_PATH = new QName(NS_C, "path");
 	public static final QName I_FILTER_TYPE = new QName(NS_C, "FilterType");
-	public static final QName I_RESOURCE_STATE_TYPE = new QName(NS_IDENTITY, "ResourceStateType");
-	public static final QName I_VALUE_ASSIGNMENT_SOURCE = new QName(NS_IDENTITY, "source");
-	public static final QName I_VALUE_ASSIGNMENT_TARGET = new QName(NS_IDENTITY, "target");
-	public static final QName I_VALUE_ASSIGNMENT_FILTER = new QName(NS_IDENTITY, "valueFilter");
+	public static final QName I_RESOURCE_STATE_TYPE = new QName(NS_C, "ResourceStateType");
+	public static final QName I_VALUE_ASSIGNMENT_SOURCE = new QName(NS_C, "source");
+	public static final QName I_VALUE_ASSIGNMENT_TARGET = new QName(NS_C, "target");
+	public static final QName I_VALUE_ASSIGNMENT_FILTER = new QName(NS_C, "valueFilter");
 	public static final QName I_SYNCHRONIZATION_TYPE = new QName(NS_C, "SynchronizationType");
 	public static final QName I_SYNCHRONIZATION = new QName(NS_C, "synchronization");
 	public static final QName I_SCRIPTS_TYPE = new QName(NS_C, "ScriptsType");
@@ -174,7 +170,7 @@ public abstract class SchemaConstants {
 		objectTypeElementMap.put(ResourceStateType.class, I_RESOURCE_STATE);
 		objectTypeElementMap.put(AccountShadowType.class, I_ACCOUNT);
 	}
-	
+
 	@SuppressWarnings("rawtypes")
 	public static QName getElementByObjectType(Class clazz) {
 		QName qname = objectTypeElementMap.get(clazz);

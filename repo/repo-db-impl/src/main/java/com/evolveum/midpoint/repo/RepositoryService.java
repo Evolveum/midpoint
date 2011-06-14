@@ -1434,7 +1434,7 @@ public class RepositoryService implements RepositoryPortType {
                 return listOfObjects;
             }
 
-            if (Utils.getObjectType("AccountType").equals(objectType)) {
+            if (Utils.getObjectType("AccountShadowType").equals(objectType)) {
                 List<SimpleDomainObject> accounts = genericDao.findAllOfType("Account");
                 ObjectListType listOfObjects = convertListOfObjects(accounts, AccountShadowType.class);
                 logger.info("### REPOSITORY # Exit listObjects(..) : {}", DebugUtil.prettyPrint(listOfObjects));
@@ -1729,7 +1729,7 @@ public class RepositoryService implements RepositoryPortType {
         if (genericDao.findById(UUID.fromString(resourceOid)) != null) {
 
             //TODO: reimplement - retrieve all accounts on the resource by proper query on DB, not filter them in applications
-            if (Utils.getObjectType("AccountType").equals(resourceObjectShadowType)) {
+            if (Utils.getObjectType("AccountShadowType").equals(resourceObjectShadowType)) {
 
                 List<SimpleDomainObject> accounts = genericDao.findAllOfType(Account.class.getSimpleName());
                 List<AccountShadowType> accountTypeList = new ArrayList<AccountShadowType>();

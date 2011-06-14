@@ -338,7 +338,7 @@ public class RepositoryServiceTest {
 
 	@Test
 	public void testListObjects() throws FaultMessage {
-		ObjectListType objectListType = repositoryService.listObjects(Utils.getObjectType("AccountType"),
+		ObjectListType objectListType = repositoryService.listObjects(Utils.getObjectType("AccountShadowType"),
 				new PagingType());
 		assertNotNull(objectListType.getObject());
 		assertEquals(1, objectListType.getObject().size());
@@ -423,7 +423,7 @@ public class RepositoryServiceTest {
 	@Test
 	public void testListResourceObjectShadows() throws FaultMessage {
 		ResourceObjectShadowListType result = repositoryService.listResourceObjectShadows(
-				"d0db5be9-cb93-401f-b6c1-86ffffe4cd5e", Utils.getObjectType("AccountType"));
+				"d0db5be9-cb93-401f-b6c1-86ffffe4cd5e", Utils.getObjectType("AccountShadowType"));
 		assertNotNull(result.getObject());
 		assertEquals(1, result.getObject().size());
 		assertEquals("cptjack", result.getObject().get(0).getName());
@@ -433,7 +433,7 @@ public class RepositoryServiceTest {
 	public void testListResourceDoesNotExistObjectShadows() {
 		try {
 			repositoryService.listResourceObjectShadows("00000000-0000-0000-0000-000000000000",
-					Utils.getObjectType("AccountType"));
+					Utils.getObjectType("AccountShadowType"));
 		} catch (FaultMessage ex) {
 			if (ex.getFaultInfo() instanceof ObjectNotFoundFaultType) {
 				return;

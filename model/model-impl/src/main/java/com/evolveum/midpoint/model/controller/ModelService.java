@@ -270,10 +270,10 @@ public class ModelService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service Launch Import From Resource");
 		try {
-			EmptyType empty = model.launchImportFromResource(resourceOid, objectClass, operationResult);
+			model.launchImportFromResource(resourceOid, objectClass, operationResult);
 			handleOperationResult(operationResult, result);
 
-			return empty;
+			return new EmptyType();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL launchImportFromResource() failed", ex);
 			throw createSystemFault(ex, operationResult);

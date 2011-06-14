@@ -62,6 +62,10 @@ public class Utils {
 		if (SchemaConstants.I_ACCOUNT_TYPE.getLocalPart().equals(objectName)) {
 			return QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_TYPE);
 		}
+		
+		if (SchemaConstants.I_ACCOUNT_SHADOW_TYPE.getLocalPart().equals(objectName)) {
+			return QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
+		}
 
 		if (SchemaConstants.I_RESOURCE_TYPE.getLocalPart().equals(objectName)) {
 			return QNameUtil.qNameToUri(SchemaConstants.I_RESOURCE_TYPE);
@@ -170,28 +174,32 @@ public class Utils {
 		}
 	}
 
-	public static boolean toResolve(String propertyName, PropertyReferenceListType resolve) {
+	public static boolean haveToResolve(String propertyName, PropertyReferenceListType resolve) {
 		for (PropertyReferenceType property : resolve.getProperty()) {
 			XPathType xpath = new XPathType(property.getProperty());
 			List<XPathSegment> segments = xpath.toSegments();
 			if (!CollectionUtils.isEmpty(segments)) {
-				if (getPropertyName(propertyName).equals(segments.get(0).getQName().getLocalPart())) {
-					return true;
-				}
+				continue;
+			}
+
+			if (getPropertyName(propertyName).equals(segments.get(0).getQName().getLocalPart())) {
+				return true;
 			}
 		}
+		
 		return false;
 	}
 
 	public static void unresolveResource(ResourceObjectShadowType shadow) {
-		if (null != shadow.getResource()) {
-			ObjectReferenceType ort = new ObjectReferenceType();
-			ort.setOid(shadow.getResource().getOid());
-			ort.setType(SchemaConstants.I_RESOURCE_TYPE);
-			shadow.setResourceRef(ort);
-			shadow.setResource(null);
-
+		if (shadow == null || shadow.getResource() == null) {
+			return;
 		}
+
+		ObjectReferenceType reference = new ObjectReferenceType();
+		reference.setOid(shadow.getResource().getOid());
+		reference.setType(SchemaConstants.I_RESOURCE_TYPE);
+		shadow.setResourceRef(reference);
+		shadow.setResource(null);
 	}
 
 	public static void unresolveResourceForAccounts(List<? extends ResourceObjectShadowType> shadows) {

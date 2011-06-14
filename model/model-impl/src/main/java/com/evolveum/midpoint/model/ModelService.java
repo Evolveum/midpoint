@@ -387,7 +387,7 @@ public class ModelService implements ModelPortType {
 					// modified object change will be later send to repository
 					ObjectReferenceType accountRef = new ObjectReferenceType();
 					accountRef.setOid(accountOid);
-					accountRef.setType(QNameUtil.uriToQName(Utils.getObjectType("AccountType")));
+					accountRef.setType(QNameUtil.uriToQName(Utils.getObjectType("AccountShadowType")));
 
 					Element accountRefElement = null;
 					try {
@@ -504,7 +504,7 @@ public class ModelService implements ModelPortType {
 		ObjectType objectType = result.getObject();
 		if (objectType instanceof UserType) {
 			UserType userType = (UserType) objectType;
-			if (Utils.toResolve("Account", resolve)) {
+			if (Utils.haveToResolve("Account", resolve)) {
 				for (ObjectReferenceType accountRef : userType.getAccountRef()) {
 					AccountShadowType account;
 					try {
@@ -529,7 +529,7 @@ public class ModelService implements ModelPortType {
 
 				// resource in account will be resolved only if accounts should
 				// be resolved ???
-				if (Utils.toResolve("Resource", resolve)) {
+				if (Utils.haveToResolve("Resource", resolve)) {
 					for (AccountShadowType account : userType.getAccount()) {
 						ResourceType resourceType;
 						try {
@@ -557,7 +557,7 @@ public class ModelService implements ModelPortType {
 		}
 		if (objectType instanceof AccountShadowType) {
 			AccountShadowType accountShadowType = (AccountShadowType) objectType;
-			if (Utils.toResolve("Resource", resolve)) {
+			if (Utils.haveToResolve("Resource", resolve)) {
 				ResourceType resourceType;
 				try {
 					resourceType = resolveResource(accountShadowType.getResourceRef().getOid());
@@ -1152,7 +1152,7 @@ public class ModelService implements ModelPortType {
 
 					PropertyModificationType propertyChangeType = ObjectTypeUtil
 							.createPropertyModificationType(PropertyModificationTypeType.delete, null,
-									new QName(SchemaConstants.NS_IDENTITY, "accountRef"), refToDelete);
+									new QName(SchemaConstants.NS_C, "accountRef"), refToDelete);
 
 					ObjectModificationType objectChange = new ObjectModificationType();
 					objectChange.setOid(oid);
@@ -1255,7 +1255,7 @@ public class ModelService implements ModelPortType {
 				"Resource shadow type must not be null or empty.");
 		Validate.notNull(resultType, "Result type must not be null.");
 
-		if (!Utils.getObjectType("AccountType").equals(resourceObjectShadowType)) {
+		if (!Utils.getObjectType("AccountShadowType").equals(resourceObjectShadowType)) {
 			throw new IllegalArgumentException("Currently model (repository) "
 					+ "can list only resource objects of type AccountType.");
 		}
