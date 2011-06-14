@@ -39,6 +39,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.Utils;
@@ -53,7 +54,6 @@ import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.ProvisioningTypes;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -117,8 +117,8 @@ public class ModelService implements ModelPortType {
 	@Override
 	public java.lang.String addObject(ObjectType object, Holder<OperationResultType> resultType)
 			throws FaultMessage {
-		Validate.notNull(object, "Object must not be null.");
-		Validate.notNull(resultType, "Result type must not be null.");
+		notNullArgument(object, "Object must not be null.");
+		notNullArgument(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter addObject({})", DebugUtil.prettyPrint(object));
 
 		String name = object.getName();
@@ -282,8 +282,8 @@ public class ModelService implements ModelPortType {
 	}
 
 	public UserType listAccountShadowOwnerSilent(String accountOid, Holder<OperationResultType> resultType) {
-		Validate.notNull(resultType, "Result type must not be null.");
 		try {
+			notNullArgument(resultType, "Result type must not be null.");
 			return listAccountShadowOwner(accountOid, resultType);
 		} catch (FaultMessage ex) {
 			logger.error("Couldn't find owner for account with oid {}, reason: {}", accountOid,
@@ -431,24 +431,14 @@ public class ModelService implements ModelPortType {
 		ObjectContainerType result = provisioningService.getObject(resourceOid, resolve, holder);
 		logger.trace("resolveResource result = {}", result);
 		return (ResourceType) result.getObject();
-
-	}
-
-	// TODO: move somewhere ...to utils
-	public static void logException(Trace logger, String message, Exception ex, Object... objects) {
-		Validate.notNull(logger, "Logger can't be null.");
-		Validate.notNull(ex, "Exception can't be null.");
-
-		logger.error(message + ", reason: " + ex.getMessage(), objects);
-		logger.debug(message + ".", ex, objects);
 	}
 
 	@Override
 	public ObjectType getObject(java.lang.String oid, PropertyReferenceListType resolve,
 			Holder<OperationResultType> resultType) throws FaultMessage {
-		Validate.isTrue(StringUtils.isNotEmpty(oid), "Oid must not be null or empty.");
-		Validate.notNull(resolve, "Property reference list type must not be null.");
-		Validate.notNull(resultType, "Result type must not be null.");
+		notEmptyArgument(oid, "Oid must not be null or empty.");
+		notNullArgument(resolve, "Property reference list type must not be null.");
+		notNullArgument(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter getObject({},{})", oid, DebugUtil.prettyPrint(resolve));
 
 		if (logger.isDebugEnabled()) {
@@ -466,13 +456,13 @@ public class ModelService implements ModelPortType {
 			result = repositoryService.getObject(oid, resolve);
 
 		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
-			logException(logger, "### MODEL # Fault getObject(..): Repository invocation failed (getObject)",
-					ex);
+			LoggingUtils.logException(logger,
+					"### MODEL # Fault getObject(..): Repository invocation failed (getObject)", ex);
 			throw createFaultMessage("Repository invocation failed (getObject)", ex.getFaultInfo(), ex, null);
 		} catch (RuntimeException ex) {
 			// Exceptions such as JBI messaging exceptions
-			logException(logger, "### MODEL # Fault getObject(..): Repository invocation failed (getObject)",
-					ex);
+			LoggingUtils.logException(logger,
+					"### MODEL # Fault getObject(..): Repository invocation failed (getObject)", ex);
 			throw createFaultMessage("Repository invocation failed (getObject)", SystemFaultType.class,
 					false, ex, null);
 		}
@@ -592,15 +582,15 @@ public class ModelService implements ModelPortType {
 	@Override
 	public ObjectListType listObjects(java.lang.String objectType, PagingType paging,
 			Holder<OperationResultType> resultType) throws FaultMessage {
-		Validate.isTrue(StringUtils.isNotEmpty(objectType), "Object type must not be null.");
-		Validate.notNull(paging, "Paging must not be null.");
+		notEmptyArgument(objectType, "Object type must not be null.");
+		notNullArgument(paging, "Paging must not be null.");
 		if (paging.getMaxSize() != null && paging.getMaxSize().longValue() < 0) {
-			throw new IllegalArgumentException("Paging max size must be more than 0.");
+			throw createIllegalArgumentFault("Paging max size must be more than 0.");
 		}
 		if (paging.getOffset() != null && paging.getOffset().longValue() < 0) {
-			throw new IllegalArgumentException("Paging offset index must be more than 0.");
+			throw createIllegalArgumentFault("Paging offset index must be more than 0.");
 		}
-		Validate.notNull(resultType, "Result type must not be null.");
+		notNullArgument(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter listObjects({})", objectType);
 
 		if (ProvisioningTypes.isObjectTypeManagedByProvisioning(objectType)) {
@@ -647,18 +637,18 @@ public class ModelService implements ModelPortType {
 	public ObjectListType searchObjects(QueryType filter, PagingType paging,
 			Holder<OperationResultType> resultType) throws FaultMessage {
 		if (filter == null) {
-			throw new IllegalArgumentException("Object type must not be null.");
+			throw createIllegalArgumentFault("Object type must not be null.");
 		}
 		if (paging == null) {
-			throw new IllegalArgumentException("Paging must not be null.");
+			throw createIllegalArgumentFault("Paging must not be null.");
 		}
 		if (paging.getMaxSize() != null && paging.getMaxSize().longValue() < 0) {
-			throw new IllegalArgumentException("Paging max size must be more than 0.");
+			throw createIllegalArgumentFault("Paging max size must be more than 0.");
 		}
 		if (paging.getOffset() != null && paging.getOffset().longValue() < 0) {
-			throw new IllegalArgumentException("Paging offset index must be more than 0.");
+			throw createIllegalArgumentFault("Paging offset index must be more than 0.");
 		}
-		Validate.notNull(resultType, "Result type must not be null.");
+		notNullArgument(resultType, "Result type must not be null.");
 		// search object is simple proxy to repository
 		logger.info("### MODEL # Enter searchObjects({})", filter);
 		try {
@@ -677,7 +667,7 @@ public class ModelService implements ModelPortType {
 	@Override
 	public void modifyObject(ObjectModificationType objectChange, Holder<OperationResultType> resultType)
 			throws FaultMessage {
-		Validate.notNull(resultType, "Result type must not be null.");
+		notNullArgument(resultType, "Result type must not be null.");
 		modifyObjectWithExclusion(objectChange, null, resultType);
 	}
 
@@ -694,9 +684,9 @@ public class ModelService implements ModelPortType {
 	@Deprecated
 	public void modifyObjectWithExclusion(ObjectModificationType objectChange, String accountOid,
 			Holder<OperationResultType> resultType) throws FaultMessage {
-		Validate.notNull(resultType, "Result type must not be null.");
+		notNullArgument(resultType, "Result type must not be null.");
 		if (objectChange == null) {
-			throw new IllegalArgumentException("Object change must not be null.");
+			throw createIllegalArgumentFault("Object change must not be null.");
 		}
 
 		logger.info("### MODEL # Enter modifyObjectWithExclusion({})", DebugUtil.prettyPrint(objectChange));
@@ -1089,8 +1079,8 @@ public class ModelService implements ModelPortType {
 	@Override
 	public void deleteObject(java.lang.String oid, Holder<OperationResultType> resultType)
 			throws FaultMessage {
-		Validate.isTrue(StringUtils.isNotEmpty(oid), "Oid must not be null or empty.");
-		Validate.notNull(resultType, "Result type must not be null.");
+		notEmptyArgument(oid, "Oid must not be null or empty.");
+		notNullArgument(resultType, "Result type must not be null.");
 
 		logger.info("### MODEL # Enter deleteObject({})", oid);
 		// Workaround: to get type of object we will ask repository
@@ -1218,8 +1208,8 @@ public class ModelService implements ModelPortType {
 	@Override
 	public PropertyAvailableValuesListType getPropertyAvailableValues(java.lang.String oid,
 			PropertyReferenceListType properties, Holder<OperationResultType> resultType) throws FaultMessage {
-		Validate.isTrue(StringUtils.isNotEmpty(oid), "Oid must not be null or empty.");
-		Validate.notNull(resultType, "Result type must not be null.");
+		notEmptyArgument(oid, "Oid must not be null or empty.");
+		notNullArgument(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter getPropertyAvailableValues({},{})", oid,
 				DebugUtil.prettyPrint(properties));
 		PropertyAvailableValuesListType propertyAvailableValues = new PropertyAvailableValuesListType();
@@ -1231,8 +1221,8 @@ public class ModelService implements ModelPortType {
 	@Override
 	public UserType listAccountShadowOwner(java.lang.String accountOid, Holder<OperationResultType> resultType)
 			throws FaultMessage {
-		Validate.isTrue(StringUtils.isNotEmpty(accountOid), "Account oid must not be null or empty.");
-		Validate.notNull(resultType, "Result type must not be null.");
+		notEmptyArgument(accountOid, "Account oid must not be null or empty.");
+		notNullArgument(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter listAccountShadowOwner({})", accountOid);
 		try {
 			UserContainerType result = repositoryService.listAccountShadowOwner(accountOid);
@@ -1251,14 +1241,13 @@ public class ModelService implements ModelPortType {
 	public ResourceObjectShadowListType listResourceObjectShadows(java.lang.String resourceOid,
 			java.lang.String resourceObjectShadowType, Holder<OperationResultType> resultType)
 			throws FaultMessage {
-		Validate.isTrue(StringUtils.isNotEmpty(resourceOid), "Resource oid must not be null or empty.");
-		Validate.isTrue(StringUtils.isNotEmpty(resourceObjectShadowType),
-				"Resource shadow type must not be null or empty.");
-		Validate.notNull(resultType, "Result type must not be null.");
+		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
+		notEmptyArgument(resourceObjectShadowType, "Resource shadow type must not be null or empty.");
+		notNullArgument(resultType, "Result type must not be null.");
 
 		if (!ObjectTypes.ACCOUNT.getObjectTypeUri().equals(resourceObjectShadowType)) {
-			throw new IllegalArgumentException("Currently model (repository) "
-					+ "can list only resource objects of type AccountType.");
+			throw createIllegalArgumentFault("Currently model (repository) "
+					+ "can list only resource objects of type AccountType.");			
 		}
 		logger.info("### MODEL # Enter listResourceObjectShadows({},{})", resourceOid,
 				resourceObjectShadowType);
@@ -1326,7 +1315,7 @@ public class ModelService implements ModelPortType {
 	@Override
 	public ResourceTestResultType testResource(String resourceOid, Holder<OperationResultType> resultType)
 			throws FaultMessage {
-		Validate.notNull(resultType, "Result type must not be null.");
+		notNullArgument(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter testResource({})", resourceOid);
 
 		ResourceTestResultType result = null;
@@ -1355,7 +1344,7 @@ public class ModelService implements ModelPortType {
 	@Override
 	public ObjectListType listResourceObjects(String resourceOid, String objectType, PagingType paging,
 			Holder<OperationResultType> resultType) throws FaultMessage {
-		Validate.notNull(resultType, "Result type must not be null.");
+		notNullArgument(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter listResourceObjects({},{},...)", resourceOid, objectType);
 
 		ObjectListType result = null;
@@ -1388,7 +1377,7 @@ public class ModelService implements ModelPortType {
 	@Override
 	public EmptyType launchImportFromResource(String resourceOid, String objectClass,
 			Holder<OperationResultType> resultType) throws FaultMessage {
-		Validate.notNull(resultType, "Result type must not be null.");
+		notNullArgument(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter launchImportFromResource({},{})", resourceOid, objectClass);
 
 		EmptyType result = null;
@@ -1419,8 +1408,8 @@ public class ModelService implements ModelPortType {
 	@Override
 	public TaskStatusType getImportStatus(String resourceOid, Holder<OperationResultType> resultType)
 			throws FaultMessage {
-		Validate.isTrue(StringUtils.isNotEmpty(resourceOid), "Resource Oid must not be null or empty.");
-		Validate.notNull(resultType, "Result type must not be null.");
+		notEmptyArgument(resourceOid, "Resource Oid must not be null or empty.");
+		notNullArgument(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter getImportStatus({})", resourceOid);
 
 		TaskStatusType result = null;
@@ -1446,5 +1435,22 @@ public class ModelService implements ModelPortType {
 
 		logger.info("### MODEL # Exit getImportStatus({}): {}", resourceOid, result);
 		return result;
+	}
+
+	private void notEmptyArgument(String object, String message) throws FaultMessage {
+		if (StringUtils.isEmpty(object)) {
+			throw createIllegalArgumentFault(message);
+		}
+	}
+
+	private void notNullArgument(Object object, String message) throws FaultMessage {
+		if (object == null) {
+			throw createIllegalArgumentFault(message);
+		}
+	}
+
+	private FaultMessage createIllegalArgumentFault(String message) {
+		FaultType faultType = new IllegalArgumentFaultType();
+		return new FaultMessage(message, faultType);
 	}
 }

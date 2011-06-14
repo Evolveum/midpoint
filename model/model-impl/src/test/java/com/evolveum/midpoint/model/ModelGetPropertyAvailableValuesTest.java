@@ -69,14 +69,14 @@ public class ModelGetPropertyAvailableValuesTest {
 		Mockito.reset(provisioningService, repositoryService);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void nullOid() throws FaultMessage {
 		modelService.getPropertyAvailableValues(null, new PropertyReferenceListType(),
 				new Holder<OperationResultType>(new OperationResultType()));
 		fail("Illegal argument excetion must be thrown");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void emptyOid() throws FaultMessage {
 		modelService.getPropertyAvailableValues("", new PropertyReferenceListType(),
 				new Holder<OperationResultType>(new OperationResultType()));

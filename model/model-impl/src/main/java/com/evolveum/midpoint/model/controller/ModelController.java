@@ -110,6 +110,8 @@ public class ModelController {
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object", ex);
 			// TODO: error handling ?????
+			
+			throw new RuntimeException();
 		}
 
 		resolveObjectAttributes(object, resolve, result);
@@ -341,6 +343,8 @@ public class ModelController {
 		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from repository", ex, oid);
 			// TODO: error handling
+			
+			throw new RuntimeException();
 		}
 
 		return object;

@@ -77,13 +77,13 @@ public class ModelGetImportStatusTest {
 		Mockito.reset(provisioningService, repositoryService);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void nullResourceOid() throws FaultMessage {
 		modelService.getImportStatus(null, new Holder<OperationResultType>(new OperationResultType()));
 		fail("Illegal argument exception was not thrown.");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void emptyResourceOid() throws FaultMessage {
 		modelService.getImportStatus("", new Holder<OperationResultType>(new OperationResultType()));
 		fail("Illegal argument exception was not thrown.");

@@ -81,27 +81,27 @@ public class ModelGetObjectTest {
 		Mockito.reset(provisioningService, repositoryService);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void testGetNullOid() throws FaultMessage {
 		modelService.getObject(null, new PropertyReferenceListType(), new Holder<OperationResultType>(
 				new OperationResultType()));
 		fail("get must fail");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void testGetEmptyOid() throws FaultMessage {
 		modelService.getObject("", new PropertyReferenceListType(), new Holder<OperationResultType>(
 				new OperationResultType()));
 		fail("get must fail");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void testGetNullOidAndPropertyRef() throws FaultMessage {
 		modelService.getObject(null, null, new Holder<OperationResultType>(new OperationResultType()));
 		fail("get must fail");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void testGetNullPropertyRef() throws FaultMessage {
 		modelService.getObject("001", null, new Holder<OperationResultType>(new OperationResultType()));
 		fail("get must fail");

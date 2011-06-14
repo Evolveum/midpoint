@@ -91,13 +91,13 @@ public class ModelAddObjectTest {
 		Mockito.reset(provisioningService, repositoryService);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void addNullContainer() throws FaultMessage {
 		modelService.addObject(null, new Holder<OperationResultType>(new OperationResultType()));
 		fail("add must fail");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void addNullObject() throws FaultMessage {
 		modelService.addObject(null, new Holder<OperationResultType>(new OperationResultType()));
 		fail("add must fail");

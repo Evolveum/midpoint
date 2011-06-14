@@ -82,7 +82,7 @@ public class ModelDeleteObjectTest {
 		Mockito.reset(provisioningService, repositoryService);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void testDeleteNull() throws FaultMessage {
 		modelService.deleteObject(null, new Holder<OperationResultType>(new OperationResultType()));
 		fail("delete must fail");

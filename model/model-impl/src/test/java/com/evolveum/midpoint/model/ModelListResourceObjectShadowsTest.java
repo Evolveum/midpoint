@@ -84,28 +84,28 @@ public class ModelListResourceObjectShadowsTest {
 		Mockito.reset(provisioningService, repositoryService);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void nullResourceOid() throws FaultMessage {
 		modelService.listResourceObjectShadows(null, "notRelevant", new Holder<OperationResultType>(
 				new OperationResultType()));
 		fail("Illegal argument excetion must be thrown");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void emptyResourceOid() throws FaultMessage {
 		modelService.listResourceObjectShadows(null, "notRelevant", new Holder<OperationResultType>(
 				new OperationResultType()));
 		fail("Illegal argument excetion must be thrown");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void nullShadowType() throws FaultMessage {
 		modelService.listResourceObjectShadows("1", null, new Holder<OperationResultType>(
 				new OperationResultType()));
 		fail("Illegal argument excetion must be thrown");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void emptyShadowType() throws FaultMessage {
 		modelService.listResourceObjectShadows("1", "", new Holder<OperationResultType>(
 				new OperationResultType()));
@@ -129,7 +129,7 @@ public class ModelListResourceObjectShadowsTest {
 		fail("Fault must be thrown");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void badResourceShadowType() throws FaultMessage {
 		modelService.listResourceObjectShadows("abababab-abab-abab-abab-000000000001",
 				ObjectTypes.GENERIC_OBJECT.getObjectTypeUri(), new Holder<OperationResultType>(

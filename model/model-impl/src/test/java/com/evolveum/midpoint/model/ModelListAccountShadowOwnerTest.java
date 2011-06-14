@@ -76,13 +76,13 @@ public class ModelListAccountShadowOwnerTest {
 		Mockito.reset(provisioningService, repositoryService);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void nullAccountOid() throws FaultMessage {
 		modelService.listAccountShadowOwner(null, new Holder<OperationResultType>(new OperationResultType()));
 		fail("Illegal argument excetion must be thrown");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void emptyAccountOid() throws FaultMessage {
 		modelService.listAccountShadowOwner("", new Holder<OperationResultType>(new OperationResultType()));
 		fail("Illegal argument excetion must be thrown");

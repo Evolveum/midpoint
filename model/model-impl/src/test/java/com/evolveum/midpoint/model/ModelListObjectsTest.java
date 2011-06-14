@@ -87,26 +87,26 @@ public class ModelListObjectsTest {
 		Mockito.reset(provisioningService, repositoryService);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void nullObjectType() throws FaultMessage {
 		modelService.listObjects(null, new PagingType(), new Holder<OperationResultType>(
 				new OperationResultType()));
 		fail("Illegal argument exception was not thrown.");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void nullObjectTypeAndPaging() throws FaultMessage {
 		modelService.listObjects(null, null, new Holder<OperationResultType>(new OperationResultType()));
 		fail("Illegal argument exception was not thrown.");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void nullPaging() throws FaultMessage {
 		modelService.listObjects("", null, new Holder<OperationResultType>(new OperationResultType()));
 		fail("Illegal argument exception was not thrown.");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expected = FaultMessage.class)
 	public void badPaging() throws FaultMessage {
 		PagingType paging = new PagingType();
 		paging.setMaxSize(-1);
