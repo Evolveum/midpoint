@@ -50,7 +50,6 @@ public class Test001loginPage {
 		selenium.type("loginForm:userName", "administrator");
 		selenium.type("loginForm:password", "secret");
 		selenium.click("loginForm:loginButton");
-		//selenium.click("css=span.regular");
 		selenium.waitForPageToLoad("30000");
 		assertEquals(baseUrl+"/index.iface", selenium.getLocation());
 	}
@@ -64,10 +63,10 @@ public class Test001loginPage {
 		selenium.type("loginForm:userName", "administrator");
 		selenium.type("loginForm:password", "secreta");
 		selenium.click("loginForm:loginButton");
-		//selenium.click("css=span.regular");
 		selenium.waitForPageToLoad("30000");
 		assertNotSame(baseUrl+"idm/index.iface", selenium.getLocation());
 		assertTrue(selenium.isTextPresent("Invalid username and/or password."));
+		
 		//test empty form
 		selenium.type("loginForm:userName", "");
 		selenium.type("loginForm:password", "");
