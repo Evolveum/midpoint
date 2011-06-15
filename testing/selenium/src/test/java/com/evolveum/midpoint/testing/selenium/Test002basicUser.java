@@ -72,10 +72,11 @@ public class Test002basicUser {
 	private void waitForText(String text) {
 		for (int i = 0; i < 60; i++) {
 			try {
-				Thread.sleep(1000);
+				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 			}
 			if (selenium.isTextPresent(text))
+				assertTrue(selenium.isTextPresent(text));
 				break;
 		}
 		assertTrue(selenium.isTextPresent(text));
@@ -90,12 +91,43 @@ public class Test002basicUser {
 		selenium.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/index.iface", selenium.getLocation());
 		assertTrue(selenium.isTextPresent("New User"));
+		
 		selenium.click(findNextLink("leftCreate"));
 		waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", selenium.getLocation());
 		
-		System.out.println(Arrays.asList(selenium.getAllFields()));
-
+		selenium.type("j_idt44:name", "selena");
+		selenium.type("j_idt44:givenName", "selena");
+		selenium.type("j_idt44:familyName", "wilson");
+		selenium.type("j_idt44:fullName", "Selena Wilson");
+		selenium.type("j_idt44:email", "");
+		selenium.type("j_idt44:locality", "");
+		selenium.type("j_idt44:password1", "qwe123.Q");
+		selenium.type("j_idt44:password2", "qwe123.Q");
+		selenium.type("j_idt44:enabled", "false");
+		selenium.type("j_idt44:webAccessEnabled", "false");
+		selenium.click("j_idt44:createUser");
+		waitForText("User created successfully");
+		assertTrue(selenium.isTextPresent("Selena Wilson"));
+	
+		selenium.click(findNextLink("leftCreate"));
+		waitForText("Web access enabled");
+		assertEquals(baseUrl + "/account/userCreate.iface", selenium.getLocation());
+		
+		selenium.type("j_idt44:name", "leila");
+		selenium.type("j_idt44:givenName", "Leila");
+		selenium.type("j_idt44:familyName", "Walker");
+		selenium.type("j_idt44:fullName", "Leila Walker");
+		selenium.type("j_idt44:email", "leila@walker.com");
+		selenium.type("j_idt44:locality", "nowhere");
+		selenium.type("j_idt44:password1", "qwe123.Q");
+		selenium.type("j_idt44:password2", "qwe123.Q");
+		selenium.type("j_idt44:enabled", "true");
+		selenium.type("j_idt44:webAccessEnabled", "true");
+		selenium.click("j_idt44:createUser");
+		waitForText("User created successfully");
+		assertTrue(selenium.isTextPresent("Leila Walker"));
+		
 	}
 /*
 	@Test
