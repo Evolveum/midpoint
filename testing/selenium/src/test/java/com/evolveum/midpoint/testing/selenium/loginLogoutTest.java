@@ -12,30 +12,45 @@ import java.util.regex.Pattern;
 public class loginLogoutTest {
 
 	WebDriverBackedSelenium selenium;
+	static String baseUrl="http://localhost:8080/idm";
 	
+	@Before
+	public void start() {
+		WebDriver driver = new FirefoxDriver();
+		selenium = new WebDriverBackedSelenium(driver, baseUrl);
+	}
 
 	@Test
 	public void positiveLoginTest() {
 
-		WebDriver driver = new FirefoxDriver();
-		String baseUrl = "http://localhost:8080/";
-		selenium = new WebDriverBackedSelenium(driver, baseUrl);
-		selenium.start();
-
-		selenium.open("/idm/");
+		
+		selenium.open("/");
 		selenium.waitForPageToLoad("30000");
-		assertEquals("midPoint", selenium.getTitle());
+		
+		selenium.type("loginForm:userName", "administrator");
+		selenium.type("loginForm:password", "secret");
+		selenium.click("loginForm:loginButton");
 		//selenium.click("css=span.regular");
-		//selenium.waitForPageToLoad("30000");
-		//assertEquals("midPoint", selenium.getTitle());
-		//selenium.click("css=#j_idt24 > span");
-		//selenium.waitForPageToLoad("30000");
-		//assertEquals("midPoint", selenium.getTitle());
-		//selenium.type("loginForm:userName", "huhulak");
-		//selenium.type("loginForm:password", "huhulesne");
-		//selenium.click("css=span.regular");
-		//assertEquals("", selenium.getAttribute("Invalid username and/or password."));		
-		selenium.stop();
+		selenium.waitForPageToLoad("30000");
+		assertEquals(baseUrl+"/index.iface", selenium.getLocation());
+	}
+	
+	@Test
+	public void negativeLoginTest() {
 
+		selenium.open("/");
+		selenium.waitForPageToLoad("30000");
+		
+		selenium.type("loginForm:userName", "administrator");
+		selenium.type("loginForm:password", "secreta");
+		selenium.click("loginForm:loginButton");
+		//selenium.click("css=span.regular");
+		selenium.waitForPageToLoad("30000");
+		assertNotSame(baseUrl+"idm/index.iface", selenium.getLocation());
+		
+	}
+	@After
+	public void stop() {
+		selenium.stop();
 	}
 }
