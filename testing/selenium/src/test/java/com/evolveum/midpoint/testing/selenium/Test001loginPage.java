@@ -29,7 +29,7 @@ import org.openqa.selenium.WebDriverBackedSelenium;
 import org.junit.*;
 import static org.junit.Assert.*;
 
-public class loginLogoutTest {
+public class Test001loginPage {
 
 	WebDriverBackedSelenium selenium;
 	static String baseUrl="http://localhost:8080/idm";
