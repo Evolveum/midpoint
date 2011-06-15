@@ -149,28 +149,6 @@ public class ObjectTypeUtil {
 
         return propertyChange;
     }
-
-    public static AccountType getAccountTypeDefinitionFromSchemaHandling(ResourceObjectShadowType accountShadow, ResourceType resource) {
-        Validate.notNull(accountShadow);
-        Validate.notNull(resource);
-        SchemaHandlingType schemaHandling = resource.getSchemaHandling();
-        QName accountObjectClass = accountShadow.getObjectClass();
-        
-        for (AccountType accountType : schemaHandling.getAccountType()) {
-            if (accountObjectClass.equals(accountType.getObjectClass())) {
-                return accountType;
-            }
-        }
-
-        //no suitable definition found, then use default account
-        for (AccountType accountType : schemaHandling.getAccountType()) {
-            if (accountType.isDefault()) {
-                return accountType;
-            }
-        }
-
-        throw new IllegalArgumentException("Provided wrong AccountShadow or SchemaHandling. No AccountType definition found for provided account's object class: " + accountObjectClass);
-    }
 	
 	public static String toShortString(ObjectType object) {
 		return object.getName()+"(OID:"+object.getOid()+")";

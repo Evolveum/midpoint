@@ -48,7 +48,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.XmlUtil;
@@ -56,12 +55,14 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.filter.Filter;
 import com.evolveum.midpoint.model.filter.FilterManager;
 import com.evolveum.midpoint.provisioning.schema.ResourceAttributeDefinition;
 import com.evolveum.midpoint.provisioning.schema.ResourceObjectDefinition;
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
 import com.evolveum.midpoint.provisioning.schema.util.DOMToSchemaParser;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
@@ -143,7 +144,7 @@ public class SchemaHandling extends XPathUtil {
 		Validate.notNull(user, "user is null");
 		Validate.notNull(accountShadow, "accountShadow is null");
 
-		AccountType accountType = ObjectTypeUtil.getAccountTypeDefinitionFromSchemaHandling(accountShadow,
+		AccountType accountType = ModelUtils.getAccountTypeDefinitionFromSchemaHandling(accountShadow,
 				resource);
 		List<AttributeDescriptionType> attributesHandling = accountType.getAttribute();
 
@@ -191,7 +192,7 @@ public class SchemaHandling extends XPathUtil {
 
 		// Prerequisite: resourceRef was resolved to resource
 		ResourceType resource = accountShadow.getResource();
-		AccountType accountType = ObjectTypeUtil.getAccountTypeDefinitionFromSchemaHandling(accountShadow,
+		AccountType accountType = ModelUtils.getAccountTypeDefinitionFromSchemaHandling(accountShadow,
 				resource);
 		List<AttributeDescriptionType> attributesHandling = accountType.getAttribute();
 

@@ -54,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
  * @author lazyman
  * 
  */
-//@Service
+// @Service
 public class ModelService implements ModelPortType {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelService.class);

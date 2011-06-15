@@ -20,7 +20,24 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import javax.xml.namespace.QName;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.Validate;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.model.ModelService;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.RandomString;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -36,5 +53,48 @@ public class ModelUtils {
 		if (paging.getOffset() != null && paging.getOffset().longValue() < 0) {
 			throw new IllegalArgumentException("Paging offset index must be more than 0.");
 		}
+	}
+
+	public static AccountType getAccountTypeDefinitionFromSchemaHandling(
+			ResourceObjectShadowType accountShadow, ResourceType resource) {
+		Validate.notNull(accountShadow);
+		Validate.notNull(resource);
+		
+		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
+		QName accountObjectClass = accountShadow.getObjectClass();
+
+		for (AccountType accountType : schemaHandling.getAccountType()) {
+			if (accountObjectClass.equals(accountType.getObjectClass())) {
+				return accountType;
+			}
+		}
+
+		// no suitable definition found, then use default account
+		for (AccountType accountType : schemaHandling.getAccountType()) {
+			if (accountType.isDefault()) {
+				return accountType;
+			}
+		}
+
+		throw new IllegalArgumentException("Provided wrong AccountShadow or SchemaHandling. "
+				+ "No AccountType definition found for provided account's object class: "
+				+ accountObjectClass);
+	}
+
+	public static void generatePassword(AccountShadowType account, int length) {
+		String pwd = "";
+		if (length > 0) {
+			pwd = new RandomString(length).nextString();
+		}
+
+		CredentialsType.Password password = ModelService.getPassword(account);
+		if (password.getAny() != null) {
+			return;
+		}
+
+		Document document = DOMUtil.getDocument();
+		Element hash = document.createElementNS(SchemaConstants.NS_C, "c:base64");
+		hash.setTextContent(Base64.encodeBase64String(pwd.getBytes()));
+		password.setAny(hash);
 	}
 }

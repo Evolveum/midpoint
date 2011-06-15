@@ -56,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
@@ -103,14 +104,14 @@ public class ModelController {
 		// TODO: error handling
 		ObjectType object = null;
 		try {
-			object = getObjectFromRepository(oid, resolve, result);
+			object = getObjectFromRepository(oid, resolve, result, ObjectType.class);
 			if (ProvisioningTypes.isManagedByProvisioning(object)) {
-				object = getObjectFromProvisioning(oid, resolve, result);
+				object = getObjectFromProvisioning(oid, resolve, result, ObjectType.class);
 			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object", ex);
 			// TODO: error handling ?????
-			
+
 			throw new RuntimeException();
 		}
 
@@ -178,7 +179,8 @@ public class ModelController {
 		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
-		ObjectType object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(), result);
+		ObjectType object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(), result,
+				ObjectType.class);
 		if (ProvisioningTypes.isManagedByProvisioning(object)) {
 			modifyProvisioningObjectWithExclusion(change, accountOid, result, object);
 		} else {
@@ -190,7 +192,8 @@ public class ModelController {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
-		ObjectType object = getObjectFromRepository(oid, new PropertyReferenceListType(), result);
+		ObjectType object = getObjectFromRepository(oid, new PropertyReferenceListType(), result,
+				ObjectType.class);
 		try {
 			if (ProvisioningTypes.isManagedByProvisioning(object)) {
 				// TODO: remove Holder add there OperationResult after
@@ -327,47 +330,48 @@ public class ModelController {
 		}
 	}
 
-	private ObjectType getObjectFromRepository(String oid, PropertyReferenceListType resolve,
-			OperationResult result) {
-		ObjectType object = null;
-
-		// TODO: fix error handling and operation result
-		try {
-			// TODO: add OperationResult after repository is updated
-			ObjectContainerType container = repository.getObject(oid, resolve);
-			if (container != null) {
-				object = container.getObject();
-			} else {
-				// TODO: throw some exception...
-			}
-		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from repository", ex, oid);
-			// TODO: error handling
-			
-			throw new RuntimeException();
-		}
-
-		return object;
+	private <T> T getObjectFromRepository(String oid, PropertyReferenceListType resolve,
+			OperationResult result, Class<T> clazz) {
+		return getObject(oid, resolve, result, clazz, false);
 	}
 
-	private ObjectType getObjectFromProvisioning(String oid, PropertyReferenceListType resolve,
-			OperationResult result) {
-		ObjectType object = null;
+	private <T> T getObjectFromProvisioning(String oid, PropertyReferenceListType resolve,
+			OperationResult result, Class<T> clazz) {
+		return getObject(oid, resolve, result, clazz, true);
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T getObject(String oid, PropertyReferenceListType resolve, OperationResult result,
+			Class<T> clazz, boolean fromProvisioning) {
+		T object = null;
 
 		// TODO: fix error handling and operation result
 		try {
-			// TODO: remove Holder add there OperationResult 'result' after
-			// provisioning is updated
-			ObjectContainerType container = provisioning.getObject(oid, resolve,
-					new Holder<OperationalResultType>());
-			if (container != null) {
-				object = container.getObject();
+			ObjectContainerType container = null;
+			if (fromProvisioning) {
+				// TODO: remove Holder add there OperationResult 'result' after
+				// provisioning is updated
+				container = provisioning.getObject(oid, resolve, new Holder<OperationalResultType>());
 			} else {
-				// TODO: throw some exception...
+				// TODO: add OperationResult after repository is updated
+				container = repository.getObject(oid, resolve);
+			}
+			if (container == null || !clazz.isInstance(container.getObject())) {
+				// TODO: throw better exception...
+				throw new RuntimeException("Bad object type returned for referenced oid.");
+			} else {
+				object = (T) container.getObject();
 			}
 		} catch (FaultMessage ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from provisioning", ex, oid);
 			// TODO: error handling
+
+			throw new RuntimeException();
+		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from repository", ex, oid);
+			// TODO: error handling
+
+			throw new RuntimeException();
 		}
 
 		return object;
@@ -436,13 +440,9 @@ public class ModelController {
 
 		List<ObjectReferenceType> refToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
-			AccountShadowType account = null;
 			try {
-				ObjectType object = getObjectFromProvisioning(accountRef.getOid(), resolve, result);
-				if (!(object instanceof AccountShadowType)) {
-					// TODO: throw better exception...
-					throw new RuntimeException("Bad object type returned for referenced oid.");
-				}
+				AccountShadowType account = getObjectFromProvisioning(accountRef.getOid(), resolve, result,
+						AccountShadowType.class);
 				user.getAccount().add(account);
 				refToBeDeleted.add(accountRef);
 
@@ -469,12 +469,9 @@ public class ModelController {
 		}
 
 		try {
-			ObjectType object = getObjectFromProvisioning(account.getResourceRef().getOid(), resolve, result);
-			if (!(object instanceof ResourceType)) {
-				// TODO: throw better exception...
-				throw new RuntimeException("Bad object type returned for referenced oid.");
-			}
-			account.setResource((ResourceType) object);
+			ResourceType resource = getObjectFromProvisioning(account.getResourceRef().getOid(), resolve,
+					result, ResourceType.class);
+			account.setResource(resource);
 			account.setResourceRef(null);
 		} catch (Exception ex) {
 			LoggingUtils
@@ -494,14 +491,9 @@ public class ModelController {
 				scripts = resourceObject.getResource().getScripts();
 			} else {
 				ObjectReferenceType reference = resourceObject.getResourceRef();
-				ObjectType resObject = getObjectFromProvisioning(reference.getOid(),
-						new PropertyReferenceListType(), result);
-				if (!(resObject instanceof ResourceType)) {
-					// TODO: throw better exception...
-					throw new RuntimeException("Bad object type returned for referenced oid.");
-				}
-
-				scripts = ((ResourceType) resObject).getScripts();
+				ResourceType resObject = getObjectFromProvisioning(reference.getOid(),
+						new PropertyReferenceListType(), result, ResourceType.class);
+				scripts = resObject.getScripts();
 			}
 		}
 
@@ -524,14 +516,8 @@ public class ModelController {
 		List<ObjectReferenceType> refsToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
 			try {
-				ObjectType object = getObjectFromProvisioning(accountRef.getOid(),
-						new PropertyReferenceListType(), result);
-				if (!(object instanceof AccountShadowType)) {
-					// TODO: throw better exception...
-					throw new RuntimeException("Bad object type returned for referenced oid.");
-				}
-
-				AccountShadowType account = (AccountShadowType) object;
+				AccountShadowType account = getObjectFromProvisioning(accountRef.getOid(),
+						new PropertyReferenceListType(), result, AccountShadowType.class);
 				if (deleteAccount(account, result)) {
 					refsToBeDeleted.add(accountRef);
 				}
@@ -594,6 +580,34 @@ public class ModelController {
 		return deleted;
 	}
 
+	private void preprocessAccount(AccountShadowType account, OperationResult result) {
+		// TODO insert credentials to account if needed
+		ResourceType resource = account.getResource();
+		if (resource == null) {
+			resource = getObjectFromProvisioning(account.getResourceRef().getOid(),
+					new PropertyReferenceListType(), result, ResourceType.class);
+		}
+
+		if (resource == null || resource.getSchemaHandling() == null) {
+			return;
+		}
+
+		AccountType accountType = ModelUtils.getAccountTypeDefinitionFromSchemaHandling(account, resource);
+		if (accountType == null || accountType.getCredentials() == null) {
+			return;
+		}
+
+		AccountType.Credentials credentials = accountType.getCredentials();
+		int randomPasswordLength = -1;
+		if (credentials.getRandomPasswordLength() != null) {
+			randomPasswordLength = credentials.getRandomPasswordLength().intValue();
+		}
+
+		if (randomPasswordLength != -1) {
+			ModelUtils.generatePassword(account, randomPasswordLength);
+		}
+	}
+
 	private void modifyProvisioningObjectWithExclusion(ObjectModificationType change, String accountOid,
 			OperationResult result, ObjectType object) {
 		// TODO Auto-generated method stub
@@ -606,11 +620,6 @@ public class ModelController {
 
 	private void preprocessUser(UserType user, OperationResult result) {
 		// TODO Auto-generated method stub
-
-	}
-
-	private void preprocessAccount(AccountShadowType account, OperationResult result) {
-		// TODO insert credentials to account if needed
 
 	}
 }

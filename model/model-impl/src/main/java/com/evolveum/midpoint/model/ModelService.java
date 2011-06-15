@@ -32,7 +32,6 @@ import javax.xml.ws.Holder;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -49,6 +48,7 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -250,8 +250,7 @@ public class ModelService implements ModelPortType {
 			return -1;
 		}
 
-		AccountType accountType = ObjectTypeUtil
-				.getAccountTypeDefinitionFromSchemaHandling(account, resource);
+		AccountType accountType = ModelUtils.getAccountTypeDefinitionFromSchemaHandling(account, resource);
 		if (accountType == null || accountType.getCredentials() == null) {
 			return -1;
 		}
@@ -1020,7 +1019,7 @@ public class ModelService implements ModelPortType {
 			resource = resolveResource(account.getResourceRef().getOid());
 		}
 
-		SchemaHandlingType.AccountType handling = ObjectTypeUtil.getAccountTypeDefinitionFromSchemaHandling(
+		SchemaHandlingType.AccountType handling = ModelUtils.getAccountTypeDefinitionFromSchemaHandling(
 				account, resource);
 		if (handling == null || handling.getCredentials() == null) {
 			return false;
@@ -1247,7 +1246,7 @@ public class ModelService implements ModelPortType {
 
 		if (!ObjectTypes.ACCOUNT.getObjectTypeUri().equals(resourceObjectShadowType)) {
 			throw createIllegalArgumentFault("Currently model (repository) "
-					+ "can list only resource objects of type AccountType.");			
+					+ "can list only resource objects of type AccountType.");
 		}
 		logger.info("### MODEL # Enter listResourceObjectShadows({},{})", resourceOid,
 				resourceObjectShadowType);
