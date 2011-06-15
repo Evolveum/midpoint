@@ -89,6 +89,7 @@ public abstract class SchemaConstants {
 	public static final QName I_ACCOUNT_TYPE = new QName(NS_C, "AccountType");
 	public static final QName I_ACCOUNT_SHADOW_TYPE = new QName(NS_C, "AccountShadowType");
 	public static final QName I_RESOURCE_TYPE = new QName(NS_C, "ResourceType");
+	public static final QName I_CONNECTOR_TYPE = new QName(NS_C, "ConnectorType");
 	public static final QName I_SCHEMA = new QName(NS_C, "schema");
 	public static final QName I_ACCOUNT = new QName(NS_C, "account");
 	public static final QName I_RESOURCE_OBJECT_SHADOW = new QName(NS_C, "resourceObjectShadow");
@@ -144,7 +145,7 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_CHANNEL, "discovery");
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_CHANNEL, "import");
 
-	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";
+	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";	
 
 	static {
 

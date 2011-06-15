@@ -33,7 +33,7 @@
 		<locale-config>
 			<default-locale>en</default-locale>
 			<supported-locale>en</supported-locale>
-			<supported-locale>no</supported-locale>
+			<supported-locale>ru</supported-locale>
 			<supported-locale>de</supported-locale>
 			<supported-locale>cs</supported-locale>
 			<supported-locale>sk</supported-locale>

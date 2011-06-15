@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -37,11 +38,13 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  */
 public enum ProvisioningTypes {
 
-	RESOURCE_OBJECT(ResourceObjectShadowType.class, SchemaConstants.I_RESOURCE_OBJECT_SHADOW),
+	RESOURCE_OBJECT_SHADOW(ResourceObjectShadowType.class, SchemaConstants.I_RESOURCE_OBJECT_SHADOW),
 
-	ACCOUNT_SHADOW_TYPE(AccountShadowType.class, SchemaConstants.I_ACCOUNT_SHADOW_TYPE),
+	ACCOUNT_SHADOW(AccountShadowType.class, SchemaConstants.I_ACCOUNT_SHADOW_TYPE),
 
-	RESOURCE_TYPE(ResourceType.class, SchemaConstants.I_RESOURCE_TYPE);
+	RESOURCE(ResourceType.class, SchemaConstants.I_RESOURCE_TYPE),
+	
+	CONNECTOR(ConnectorType.class, SchemaConstants.I_CONNECTOR_TYPE);
 
 	private Class<? extends ObjectType> clazz;
 	private QName name;

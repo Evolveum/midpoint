@@ -178,6 +178,10 @@ public class ModelController {
 		Validate.notNull(change, "Object modification must not be null.");
 		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		
+		if (change.getPropertyModification().isEmpty()) {
+			return;
+		}
 
 		ObjectType object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(), result,
 				ObjectType.class);
@@ -619,7 +623,13 @@ public class ModelController {
 	}
 
 	private void preprocessUser(UserType user, OperationResult result) {
-		// TODO Auto-generated method stub
+		for (AccountShadowType account : user.getAccount()) {
+			ObjectReferenceType ref = account.getResourceRef();
+			if (account.getName() == null && account.getOid() == null && ref != null
+					&& SchemaConstants.I_RESOURCE_TYPE.equals(ref.getType())) {
+				
+			}
+		}
 
 	}
 }
