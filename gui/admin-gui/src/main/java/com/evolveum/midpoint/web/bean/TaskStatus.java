@@ -23,10 +23,9 @@
 package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 
 /**
@@ -35,7 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
  */
 public class TaskStatus implements Serializable {
 
-	public static final String DATE_PATTERN = "EEE, d. MMM yyyy HH:mm:ss.SSS";
 	private static final long serialVersionUID = -5358337966691482206L;
 	private String name;
 	private Date launchTime;
@@ -84,20 +82,11 @@ public class TaskStatus implements Serializable {
 	}
 
 	public String getLaunchTimeString() {
-		return formatDate(getLaunchTime());
+		return FacesUtils.formatDate(getLaunchTime());
 	}
 
 	public String getFinishTimeString() {
-		return formatDate(getFinishTime());
-	}
-
-	static String formatDate(Date date) {
-		if (date == null) {
-			return null;
-		}
-
-		DateFormat dateFormat = new SimpleDateFormat(DATE_PATTERN);
-		return dateFormat.format(date);
+		return FacesUtils.formatDate(getFinishTime());
 	}
 
 	public Date getFinishTime() {

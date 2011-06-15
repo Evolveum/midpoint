@@ -38,7 +38,6 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.Definition;
@@ -86,6 +85,8 @@ public class ResourceListController implements Serializable {
 	private transient TemplateController template;
 	@Autowired(required = true)
 	private transient ResourceDetailsController resourceDetails;
+	@Autowired(required=true)
+	private transient ResourceSyncController resourceSync;
 	private static final String PARAM_RESOURCE_OID = "resourceOid";
 	private static final String DEFAULT_SORT_COLUMN = "name";
 	private boolean selectAll = false;
@@ -132,8 +133,8 @@ public class ResourceListController implements Serializable {
 	public void selectPerformed(ValueChangeEvent evt) {
 		ControllerUtil.selectPerformed(evt, getResourceList());
 	}
-
-	public String showResourceDetails() {
+	
+	private ResourceListItem getSelectedResourceItem() {
 		String resourceOid = FacesUtils.getRequestParameter(PARAM_RESOURCE_OID);
 		if (StringUtils.isEmpty(resourceOid)) {
 			FacesUtils.addErrorMessage("Resource oid not defined in request.");
@@ -150,7 +151,16 @@ public class ResourceListController implements Serializable {
 			FacesUtils.addErrorMessage("Resource details controller was not autowired.");
 			return null;
 		}
+		
+		return resourceItem;
+	}
 
+	public String showResourceDetails() {
+		ResourceListItem resourceItem = getSelectedResourceItem();
+		if (resourceItem == null) {
+			return null;
+		}
+		
 		resourceDetails.setResource(resourceItem);
 		
 		template.setSelectedLeftId(ResourceDetailsController.NAVIGATION_LEFT);
@@ -310,5 +320,18 @@ public class ResourceListController implements Serializable {
 		}
 
 		return resources;
+	}
+	
+	public String showSyncStatus() {
+		ResourceListItem resourceItem = getSelectedResourceItem();
+		if (resourceItem == null) {
+			return null;
+		}
+		
+		resourceDetails.setResource(resourceItem);
+		resourceSync.setResource(resourceItem);
+		
+		template.setSelectedLeftId(ResourceSyncController.NAVIGATION_LEFT);
+		return ResourceSyncController.PAGE_NAVIGATION;
 	}
 }

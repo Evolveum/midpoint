@@ -7,6 +7,6 @@
 	<idm:leftMenuContainer name="#{msg['page.resource.menuDetails.resourceDetails']}">
 		<idm:leftMenuItem id="leftResourceDetails" name="#{msg['page.resource.resourceDetails.title']}" action="/resource/resourceDetails?faces-redirect=true"/>
 		<idm:leftMenuItem id="leftImportStatus" name="#{msg['page.resource.import.title']}" action="#{resourceImport.initController}"/>
-		<idm:leftMenuItem id="leftSyncStatus" name="#{msg['page.resource.synchronization.title']}" action="/resource/synchronization?faces-redirect=true"/>
+		<idm:leftMenuItem id="leftSyncStatus" name="#{msg['page.resource.synchronization.title']}" action="#{resourceDetails.showSyncStatus}"/>
 	</idm:leftMenuContainer>
 </ui:composition>

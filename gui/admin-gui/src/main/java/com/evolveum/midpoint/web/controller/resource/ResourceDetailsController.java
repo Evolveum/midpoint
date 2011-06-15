@@ -60,6 +60,8 @@ public class ResourceDetailsController implements Serializable {
 	@Autowired(required = true)
 	private transient ListObjectsController listObjects;
 	@Autowired(required = true)
+	private transient ResourceSyncController resourceSync;
+	@Autowired(required = true)
 	private transient TemplateController template;
 	private ResourceListItem resource;
 
@@ -137,7 +139,8 @@ public class ResourceDetailsController implements Serializable {
 	}
 
 	public String showSyncStatus() {
-
+		resourceSync.setResource(resource);
+		
 		template.setSelectedLeftId(ResourceSyncController.NAVIGATION_LEFT);
 		return ResourceSyncController.PAGE_NAVIGATION;
 	}

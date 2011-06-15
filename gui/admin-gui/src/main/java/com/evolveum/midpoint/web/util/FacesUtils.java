@@ -22,7 +22,10 @@
 
 package com.evolveum.midpoint.web.util;
 
+import java.text.DateFormat;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ResourceBundle;
 
 import javax.faces.application.Application;
@@ -46,7 +49,8 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
  */
 public abstract class FacesUtils {
 
-	private static final Trace TRACE = TraceManager.getTrace(FacesUtils.class);
+	public static final String DATE_PATTERN = "EEE, d. MMM yyyy HH:mm:ss.SSS";
+	private static final Trace TRACE = TraceManager.getTrace(FacesUtils.class);	
 
 	public static String getRequestParameter(String name) {
 		if (StringUtils.isEmpty(name)) {
@@ -73,7 +77,7 @@ public abstract class FacesUtils {
 
 		String translation = null;
 		if (ProjectStage.Development.equals(application.getProjectStage())) {
-			translation = "!" + key + "!";
+			translation = "???" + key + "???";
 		} else {
 			translation = key;
 		}
@@ -82,14 +86,9 @@ public abstract class FacesUtils {
 			ResourceBundle bundle = ResourceBundle.getBundle(application.getMessageBundle(), FacesContext
 					.getCurrentInstance().getViewRoot().getLocale());
 
-			if (bundle != null) {
-				translation = bundle.getString(key);
-			} else {
-				TRACE.warn("Couldn't find key '" + key + "'.");
-
-			}
+			translation = bundle.getString(key);
 		} catch (Exception ex) {
-			TRACE.warn("Couldn't get resource bundle, reason: " + ex.getMessage());
+			TRACE.warn("Couldn't find key '" + key + "', reason: " + ex.getMessage());
 		}
 
 		return translation;
@@ -236,5 +235,14 @@ public abstract class FacesUtils {
 		}
 
 		return builder.toString();
+	}
+
+	public static String formatDate(Date date) {
+		if (date == null) {
+			return null;
+		}
+	
+		DateFormat dateFormat = new SimpleDateFormat(DATE_PATTERN);
+		return dateFormat.format(date);
 	}
 }

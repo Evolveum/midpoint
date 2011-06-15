@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.controller.TemplateController;
 
 /**
@@ -42,10 +43,27 @@ public class ResourceSyncController implements Serializable {
 	private static final long serialVersionUID = 7495585784483264032L;
 	@Autowired(required = true)
 	private TemplateController template;
+	private ResourceListItem resource;
+	
+	public ResourceListItem getResource() {		
+		return resource;
+	}
+	
+	public void setResource(ResourceListItem resource) {
+		this.resource = resource;
+	}
 
 	public String backPerformed() {
 		template.setSelectedLeftId("leftResourceDetails");
 
 		return ResourceDetailsController.PAGE_NAVIGATION;
+	}
+	
+	public boolean showEnableSync() {
+		if (resource != null) {
+			return resource.getSync().isEnabled();
+		}
+		
+		return false;
 	}
 }

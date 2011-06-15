@@ -72,7 +72,7 @@
 							<ice:outputText id="syncTxt" value="Sync" />
 						</ice:commandSortHeader>
 					</f:facet>
-					<ice:commandLink immediate="true" action="/resource/synchronization?faces-redirect=true"
+					<ice:commandLink immediate="true" action="#{resourceList.showSyncStatus}"
 						style="display: block; width: 100%; text-align: center;">
 						<f:param name="resourceOid" value="#{item.oid}" />
 						<ice:graphicImage value="/resources/images/#{item.sync.syncImage}" title="#{item.sync.syncTitle}"

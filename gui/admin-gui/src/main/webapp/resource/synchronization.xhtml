@@ -5,18 +5,41 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{msg['page.resource.synchronization.title']} 'blabla'</ui:define>
+	<ui:define name="title">#{msg['page.resource.synchronization.title']} '#{resourceSync.resource.name}'</ui:define>
 
-	<ui:define name="menu">	
+	<ui:define name="menu">
 		<ui:include src="./menu.xhtml" />
 		<ui:include src="./menuDetails.xhtml" />
 	</ui:define>
 
 	<ui:define name="content">
 		<ice:form>
+			<ice:panelGrid columns="2" cellspacing="7" cellpadding="7">
+				<ice:outputLabel value="#{msg['page.resource.synchronization.status']}" />
+				<ice:outputLabel value="#{resourceSync.resource.sync.status}" />
+
+				<ice:outputLabel value="#{msg['page.resource.synchronization.pollingInterval']}" />
+				<ice:outputLabel value="#{resourceSync.resource.sync.pollingInterval}" />
+
+				<ice:outputLabel value="#{msg['page.resource.synchronization.lastTimeRunning']}" />
+				<ice:outputLabel value="#{resourceSync.resource.sync.lastRunTimeString}" />
+
+				<ice:outputLabel value="#{msg['page.resource.synchronization.timeToProcess']}" />
+				<ice:outputLabel value="#{resourceSync.resource.sync.timeToProcess}" />
+
+				<ice:outputLabel value="#{msg['page.resource.synchronization.resultOfLastSynchronization']}" />
+				<ice:outputLabel value="#{resourceSync.resource.sync.message}" />
+			</ice:panelGrid>
 			<div class="button-bar">
 				<idm:button action="#{resourceSync.backPerformed}" value="#{msg['page.button.back']}"
 					img="/resources/images/door_in.png" />
+
+				<idm:button action="#{resourceSync.backPerformed}" value="#{msg['page.button.enableSync']}"
+					img="/resources/images/arrow_refresh.png" buttonType="positive" rendered="#{resourceSync.showEnableSync}" />
+
+				<idm:button action="#{resourceSync.backPerformed}" value="#{msg['page.button.disableSync']}"
+					img="/resources/images/arrow_refresh_gray.png" buttonType="negative"
+					rendered="#{not resourceSync.showEnableSync}" />
 			</div>
 		</ice:form>
 	</ui:define>

@@ -21,30 +21,89 @@
 package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
+import java.util.Date;
+
+import com.evolveum.midpoint.web.util.FacesUtils;
 
 /**
  * 
  * @author lazyman
- *
+ * 
  */
 public class ResourceSync implements Serializable {
 
 	private static final long serialVersionUID = -7590740268253015859L;
-	
+
 	private boolean enabled;
+	private int pollingInterval;
+	private Date lastRunTime;
+	private long timeToProcess;
+	private String message;
 	
+	public boolean isEnabled() {
+		return enabled;
+	}
+
 	public String getSyncImage() {
 		if (enabled) {
 			return "arrow_refresh.png";
 		}
-		
+
 		return "arrow_refresh_gray.png";
 	}
-	
+
 	public String getSyncTitle() {
 		if (enabled) {
 			return "Synchronization enabled";
 		}
 		return "Synchronization disabled";
+	}
+
+	public String getStatus() {
+		if (enabled) {
+			return FacesUtils.translateKey("Enabled");
+		}
+
+		return FacesUtils.translateKey("Disabled");
+	}
+
+	public int getPollingInterval() {
+		return pollingInterval;
+	}
+
+	public void setPollingInterval(int pollingInterval) {
+		this.pollingInterval = pollingInterval;
+	}
+
+	public String getLastRunTimeString() {
+		if (getLastRunTime() == null) {
+			return "Unknown";
+		}
+
+		return FacesUtils.formatDate(getLastRunTime());
+	}
+
+	public Date getLastRunTime() {
+		return lastRunTime;
+	}
+
+	public void setLastRunTime(Date lastRunTime) {
+		this.lastRunTime = lastRunTime;
+	}
+
+	public long getTimeToProcess() {
+		return timeToProcess;
+	}
+
+	public void setTimeToProcess(long timeToProcess) {
+		this.timeToProcess = timeToProcess;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
 	}
 }
