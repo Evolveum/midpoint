@@ -41,7 +41,7 @@ public class Test002basicUser {
 
 	@Before
 	public void start() {
-		System.out.println("Starting ...");
+
 		WebDriver driver = new FirefoxDriver();
 		selenium = new WebDriverBackedSelenium(driver, baseUrl);
 		selenium.setBrowserLogLevel("5");
@@ -49,20 +49,19 @@ public class Test002basicUser {
 		selenium.open("/");
 		waitForText("Login");
 
-		System.out.println("Logging  ...");
 		selenium.type("loginForm:userName", "administrator");
 		selenium.type("loginForm:password", "secret");
 		selenium.click("loginForm:loginButton");
 		waitForText("Administrator");
 
 		assertEquals(baseUrl + "/index.iface", selenium.getLocation());
-		System.out.println("DONE");
+
 	}
 
 	@After
 	public void stop() {
 		selenium.stop();
-		System.out.println("Stop ...");
+
 	}
 
 	private String findNextLink(String part) {
@@ -75,42 +74,22 @@ public class Test002basicUser {
 	}
 
 	private void waitForText(String text) {
-		System.out.print("waiting for:" + text);
 		for (int i = 0; i < 300; i++) {
 			try {
-				Thread.sleep(100);
+				Thread.sleep(3000);
 			} catch (InterruptedException e) {
 			}
 			System.out.print(".");
 			if (selenium.isTextPresent(text)) {
-				System.out.print(" -> ");
-				try {
-					Thread.sleep(3000);
-				} catch (InterruptedException e) {
-				}
-				System.out.println("GO");
-				System.out.println("\tFields :" + Arrays.asList(selenium.getAllFields()));
-				System.out.println("\tLinks  :" + Arrays.asList(selenium.getAllLinks()));
-				System.out.println("\tButtons:" + Arrays.asList(selenium.getAllButtons()));
 				return;
 			}
 		}
 		assertTrue(selenium.isTextPresent(text));
 	}
 
-	private void sleep(int sec) {
-		for (; sec > 0; sec--) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-			}
-		}
-	}
-
 	// Based on MID-2 jira scenarios
 	@Test
-	public void addUserTest() throws InterruptedException {
-		System.out.println("addUserTest()");
+	public void test01addUser() throws InterruptedException {
 
 		selenium.click(findNextLink("topAccount"));
 		selenium.waitForPageToLoad("30000");
@@ -120,6 +99,7 @@ public class Test002basicUser {
 		selenium.click(findNextLink("leftCreate"));
 		waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", selenium.getLocation());
+
 		// Minimal requirements
 		selenium.type("j_idt44:name", "selena");
 		selenium.type("j_idt44:givenName", "selena");
@@ -135,7 +115,6 @@ public class Test002basicUser {
 		waitForText("User created successfully");
 		assertTrue(selenium.isTextPresent("Selena Wilson"));
 
-		sleep(3);
 		selenium.click(findNextLink("leftCreate"));
 		waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", selenium.getLocation());
@@ -153,13 +132,12 @@ public class Test002basicUser {
 		selenium.click("j_idt44:createUser");
 		waitForText("User created successfully");
 		assertTrue(selenium.isTextPresent("Leila Walker"));
-		
-		sleep(3);
+
 		selenium.click(findNextLink("leftCreate"));
 		waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", selenium.getLocation());
-		
-		// All fields filled
+
+		// try to insert twice
 		selenium.type("j_idt44:name", "leila");
 		selenium.type("j_idt44:givenName", "Leila");
 		selenium.type("j_idt44:familyName", "Walker");
@@ -173,8 +151,7 @@ public class Test002basicUser {
 		waitForText("Failed to create user");
 		assertTrue(selenium.isTextPresent("could not insert"));
 		assertTrue(selenium.isTextPresent("ConstraintViolationException"));
-		
-		sleep(3);
+
 		// test missing name and password not match
 		selenium.type("j_idt44:name", "");
 		selenium.type("j_idt44:givenName", "Joe");
@@ -190,7 +167,6 @@ public class Test002basicUser {
 		assertTrue(selenium.isTextPresent("Please check password fields."));
 		assertTrue(selenium.isTextPresent("Passwords doesn't match"));
 
-		sleep(3);
 		selenium.type("j_idt44:name", "joe");
 		selenium.type("j_idt44:givenName", "Joe");
 		selenium.type("j_idt44:familyName", "Dead");
@@ -203,7 +179,6 @@ public class Test002basicUser {
 		selenium.click("j_idt44:createUser");
 		waitForText("Value is required");
 
-		sleep(3);
 		selenium.type("j_idt44:name", "joe");
 		selenium.type("j_idt44:givenName", "");
 		selenium.type("j_idt44:familyName", "Dead");
@@ -216,7 +191,6 @@ public class Test002basicUser {
 		selenium.click("j_idt44:createUser");
 		waitForText("Value is required");
 
-		sleep(3);
 		selenium.type("j_idt44:name", "joe");
 		selenium.type("j_idt44:givenName", "Joe");
 		selenium.type("j_idt44:familyName", "");
@@ -229,7 +203,6 @@ public class Test002basicUser {
 		selenium.click("j_idt44:createUser");
 		waitForText("Value is required");
 
-		sleep(3);
 		selenium.type("j_idt44:name", "joe");
 		selenium.type("j_idt44:givenName", "Joe");
 		selenium.type("j_idt44:familyName", "Dead");
@@ -241,16 +214,28 @@ public class Test002basicUser {
 		selenium.click("j_idt44:webAccessEnabled");
 		selenium.click("j_idt44:createUser");
 		waitForText("Value is required");
-
 	}
 
 	@Test
-	public void searchTest() {
+	public void test02searchUser() {
 		System.out.println("searchTest()");
+
+		selenium.click(findNextLink("topAccount"));
+		selenium.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/index.iface", selenium.getLocation());
+		assertTrue(selenium.isTextPresent("New User"));
+
+		for (String l : selenium.getAllLinks()) {
+			System.out.println(l + " -> " + selenium.getValue(l));
+			System.out.println(l + " -> " + selenium.getSelectedId(l));
+			System.out.println(l + " -> " + selenium.getText(l));
+		}
 	}
 
-	/*
-	 * @Test public void deleteUserTest() { //login(); //String a[] =
-	 * selenium.getAllLinks(); //System.out.println(selenium.getAllLinks()); }
-	 */
+	
+	// @Test
+	// public void deleteUserTest() { 
+		 
+	// }
+	 
 }
