@@ -77,7 +77,7 @@ public class DebugListController extends ListController<ObjectBean> {
 	private transient TemplateController template;
 	@Autowired(required = true)
 	private transient DebugViewController debugView;
-	private String objectType = "UserType";
+	private String objectType = ObjectTypes.USER.getValue();
 	private boolean showPopup = false;
 	private String oidToDelete;
 
