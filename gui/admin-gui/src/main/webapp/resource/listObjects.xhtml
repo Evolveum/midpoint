@@ -39,7 +39,8 @@
 			<comp:paging bean="#{listObjects}" />
 
 			<div class="button-bar">
-				<idm:button value="#{msg['page.button.back']}" img="/resources/images/door_in.png" />
+				<idm:button value="#{msg['page.button.back']}" img="/resources/images/door_in.png"
+					action="/resource/resourceDetails?faces-redirect=true" />
 			</div>
 		</ice:form>
 	</ui:define>
