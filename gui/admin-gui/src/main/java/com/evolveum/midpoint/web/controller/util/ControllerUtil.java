@@ -24,12 +24,22 @@ import java.util.List;
 
 import javax.faces.event.PhaseId;
 import javax.faces.event.ValueChangeEvent;
+import javax.xml.ws.Holder;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.bean.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
@@ -38,6 +48,34 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * 
  */
 public class ControllerUtil {
+
+	private static final Trace LOGGER = TraceManager.getTrace(ControllerUtil.class);
+
+	@SuppressWarnings("unchecked")
+	public static <T> T getObjectFromModel(String oid, ModelPortType model, OperationResult result,
+			Class<T> clazz) {
+		// TODO: operation result handling
+
+		OperationResult opResult = new OperationResult("Get Object");
+		result.addSubresult(opResult);
+		try {
+			ObjectType object = model.getObject(oid, new PropertyReferenceListType(),
+					new Holder<OperationResultType>(opResult.createOperationResultType()));
+
+			if (clazz.isInstance(object)) {
+				opResult.recordSuccess();
+				return (T) object;
+			} else {
+				opResult.recordFatalError("Object type '" + object.getClass().getSimpleName()
+						+ "' is not expected (" + clazz.getSimpleName() + ").");
+			}
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {}", ex, oid);
+			opResult.recordFatalError("Couldn't get object from model.", ex);
+		}
+
+		return null;
+	}
 
 	public static Element createQuery(String username) {
 		Document document = DOMUtil.getDocument();

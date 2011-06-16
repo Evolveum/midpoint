@@ -39,8 +39,7 @@ public class ResourceObjectType implements Serializable {
 	private String displayName;
 	private String nativeObjectClass;
 	private String help;
-	private String type;
-	private String qualifiedType;
+	private QName type;
 
 	public ResourceObjectType(ResourceObjectDefinition definition) {
 		Validate.notNull(definition, "Resource object definition can't be null.");
@@ -49,20 +48,20 @@ public class ResourceObjectType implements Serializable {
 		nativeObjectClass = definition.getNativeObjectClass();
 		help = definition.getHelp();
 		if (definition.getTypeName() != null) {
-			QName qname = definition.getTypeName();
-			type = qname.getLocalPart();
-
-			StringBuilder builder = new StringBuilder();
-			builder.append("{");
-			builder.append(qname.getNamespaceURI());
-			builder.append("}");
-			builder.append(type);
-			qualifiedType = builder.toString();
+			this.type = definition.getTypeName();
 		}
 	}
 
 	public String getQualifiedType() {
-		return qualifiedType;
+		if (type == null) {
+			return "";
+		}
+		StringBuilder builder = new StringBuilder();
+		builder.append("{");
+		builder.append(type.getNamespaceURI());
+		builder.append("}");
+		builder.append(type.getLocalPart());
+		return builder.toString();
 	}
 
 	public String getDisplayName() {
@@ -86,10 +85,14 @@ public class ResourceObjectType implements Serializable {
 		return help;
 	}
 
-	public String getType() {
+	public QName getType() {
+		return type;
+	}
+
+	public String getSimpleType() {
 		if (type == null) {
 			return "";
 		}
-		return type;
+		return type.getLocalPart();
 	}
 }

@@ -169,7 +169,7 @@ public class ResourceDetailsController implements Serializable {
 			if (objectType.equals(resObjectType.getQualifiedType())) {
 				// TODO: use native object class
 				// objectClass = resObjectType.getNativeObjectClass();
-				return resObjectType.getType();
+				return resObjectType.getSimpleType();
 			}
 		}
 
