@@ -23,6 +23,7 @@
 package com.evolveum.midpoint.web.test;
 
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.AccountShadowDto;
 import com.evolveum.midpoint.web.model.PagingDto;
 import com.evolveum.midpoint.web.model.PropertyAvailableValues;
@@ -173,4 +174,11 @@ public class UserTypeManagerMock implements UserManager {
     public Collection<UserDto> list(PagingDto pagingDto) throws WebModelException {
         return userTypeList.values();
     }
+
+	@Override
+	public List<UserDto> search(QueryType search, PagingDto paging, OperationResult result)
+			throws WebModelException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
