@@ -75,8 +75,8 @@
 					<ice:commandLink immediate="true" action="#{resourceList.showSyncStatus}"
 						style="display: block; width: 100%; text-align: center;">
 						<f:param name="resourceOid" value="#{item.oid}" />
-						<ice:graphicImage value="/resources/images/#{item.sync.syncImage}" title="#{item.sync.syncTitle}"
-							alt="#{item.sync.syncTitle}" />
+						<ice:graphicImage title="#{item.sync.syncTitle}" alt="#{item.sync.syncTitle}"
+							value="/resources/images/#{item.sync.enabled eq 'true' ? 'arrow_refresh.png' : 'arrow_refresh_gray.png'}" />
 					</ice:commandLink>
 				</ice:column>
 				<ice:column>
@@ -88,8 +88,8 @@
 					<ice:commandLink immediate="true" action="/resource/import?faces-redirect=true"
 						style="display: block; width: 100%; text-align: center;">
 						<f:param name="resourceOid" value="#{item.oid}" />
-						<ice:graphicImage value="/resources/images/#{item.resImport.importImage}" title="#{item.resImport.importTitle}"
-							alt="#{item.resImport.importTitle}" />
+						<ice:graphicImage title="#{item.resImport.importTitle}" alt="#{item.resImport.importTitle}"
+							value="/resources/images/#{item.resImport.enabled eq 'true' ? 'drive_go.png' : 'drive_go_gray.png'}" />
 					</ice:commandLink>
 				</ice:column>
 				<ice:column>

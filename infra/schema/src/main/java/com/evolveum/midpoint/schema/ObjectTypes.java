@@ -68,23 +68,17 @@ public enum ObjectTypes {
 		return QNameUtil.qNameToUri(getQName());
 	}
 
-	public static ObjectTypes getObjectType(String value) {
+	public static ObjectTypes getObjectType(String objectName) {
 		for (ObjectTypes type : values()) {
-			if (type.getValue().equals(value)) {
+			if (type.getValue().equals(objectName)) {
 				return type;
 			}
 		}
 
-		return null;
+		throw new IllegalArgumentException("UnsupportedObjectType" + objectName);
 	}
 
 	public static String getObjectTypeUri(String objectName) {
-		for (ObjectTypes type : values()) {
-			if (type.getValue().equals(objectName)) {
-				return QNameUtil.qNameToUri(type.getQName());
-			}
-		}
-
-		throw new IllegalArgumentException("UnsupportedObjectType" + objectName);
+		return getObjectType(objectName).getObjectTypeUri();
 	}
 }

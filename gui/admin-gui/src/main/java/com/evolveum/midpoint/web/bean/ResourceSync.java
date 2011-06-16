@@ -44,14 +44,6 @@ public class ResourceSync implements Serializable {
 		return enabled;
 	}
 
-	public String getSyncImage() {
-		if (enabled) {
-			return "arrow_refresh.png";
-		}
-
-		return "arrow_refresh_gray.png";
-	}
-
 	public String getSyncTitle() {
 		if (enabled) {
 			return "Synchronization enabled";

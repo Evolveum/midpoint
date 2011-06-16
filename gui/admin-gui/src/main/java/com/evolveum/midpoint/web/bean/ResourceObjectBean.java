@@ -20,31 +20,28 @@
  */
 package com.evolveum.midpoint.web.bean;
 
-import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 
  * @author lazyman
- *
+ * 
  */
-public class ResourceImport implements Serializable {
+public class ResourceObjectBean extends ObjectBean {
 
-	private static final long serialVersionUID = -7590740268253015859L;
-	
-	private boolean enabled;
-	
-	public boolean isEnabled() {
-		return enabled;
+	private static final long serialVersionUID = 3229226312145337162L;
+	private Map<String, String> attributes;
+
+	public ResourceObjectBean(String oid, String name, Map<String, String> attributes) {
+		super(oid, name);
+		this.attributes = attributes;
 	}
-	
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-	
-	public String getImportTitle() {
-		if (enabled) {
-			return "Import running";
+
+	public Map<String, String> getAttributes() {
+		if (attributes == null) {
+			attributes = new HashMap<String, String>();
 		}
-		return "Import not running";
+		return attributes;
 	}
 }
