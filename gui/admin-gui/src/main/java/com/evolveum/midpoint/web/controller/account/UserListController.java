@@ -21,12 +21,11 @@
  */
 package com.evolveum.midpoint.web.controller.account;
 
-import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import javax.faces.event.ActionEvent;
-import javax.faces.event.PhaseId;
 import javax.faces.event.ValueChangeEvent;
 
 import org.apache.commons.lang.StringUtils;
@@ -36,9 +35,11 @@ import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.web.bean.GuiUserDtoList;
 import com.evolveum.midpoint.web.controller.TemplateController;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.controller.util.SearchableListController;
 import com.evolveum.midpoint.web.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
@@ -47,8 +48,10 @@ import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.web.util.GuiUserDtoComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 
 /**
  * 
@@ -56,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
  */
 @Controller("userList")
 @Scope("session")
-public class UserListController implements Serializable {
+public class UserListController extends SearchableListController<GuiUserDto> {
 
 	public static final String PAGE_NAVIGATION = "/account/index?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_DELETE = "/account/deleteUser?faces-redirect=true";
@@ -69,13 +72,14 @@ public class UserListController implements Serializable {
 	private transient TemplateController template;
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog objectTypeCatalog;
-	private GuiUserDtoList userList = new GuiUserDtoList("name");
 	private GuiUserDto user;
-	private String searchOid;
+	private String searchName;
 	private boolean selectAll = false;
-	private int offset = 0;
-	private int rowsCount = 20;
 	private boolean showPopup = false;
+
+	public UserListController() {
+		super("name");
+	}
 
 	public String showUserDetails() {
 		String userOid = FacesUtils.getRequestParameter(PARAM_USER_OID);
@@ -101,57 +105,10 @@ public class UserListController implements Serializable {
 			LoggingUtils.logException(TRACE, "Can't select user, unknown error occured", ex);
 			FacesUtils.addErrorMessage("Can't select user, unknown error occured.", ex);
 		}
-		
+
 		template.setSelectedLeftId("leftUserDetails");
 
 		return UserDetailsController.PAGE_NAVIGATION;
-	}
-
-	public void listUsers() {
-		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
-				GuiUserDto.class);
-		UserManager userManager = (UserManager) (objectManager);
-
-		userList.getUsers().clear();
-		OrderDirectionType direction = OrderDirectionType.ASCENDING;
-		if (!userList.isAscending()) {
-			direction = OrderDirectionType.DESCENDING;
-		}
-		TRACE.debug("sortColumn name : {}", userList.getSortColumnName());
-		try {
-			Collection<UserDto> list = (Collection<UserDto>) userManager.list(new PagingDto(userList
-					.getSortColumnName(), offset, rowsCount, direction));
-			for (UserDto userDto : list) {
-				GuiUserDto guiUserDto = (GuiUserDto) userDto;
-				userList.getUsers().add(guiUserDto);
-			}
-		} catch (WebModelException ex) {
-			LoggingUtils.logException(TRACE, "List users failed", ex);
-			// TODO: faces utils error add
-		}
-	}
-
-	public void listLast() {
-		offset = -1;
-		listUsers();
-	}
-
-	public void listNext() {
-		offset += rowsCount;
-		listUsers();
-	}
-
-	public void listFirst() {
-		offset = 0;
-		listUsers();
-	}
-
-	public void listPrevious() {
-		if (offset < rowsCount) {
-			return;
-		}
-		offset -= rowsCount;
-		listUsers();
 	}
 
 	public void deleteUsers() {
@@ -159,7 +116,7 @@ public class UserListController implements Serializable {
 		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
 				GuiUserDto.class);
 		UserManager userManager = (UserManager) (objectManager);
-		for (GuiUserDto guiUserDto : userList.getUsers()) {
+		for (GuiUserDto guiUserDto : getObjects()) {
 			TRACE.info("delete user {} is selected {}", guiUserDto.getFullName(), guiUserDto.isSelected());
 
 			if (guiUserDto.isSelected()) {
@@ -172,32 +129,70 @@ public class UserListController implements Serializable {
 			}
 
 		}
-		listUsers();
+		listFirst();
 	}
 
 	public void searchUser(ActionEvent evt) {
-		if (searchOid == null || searchOid.isEmpty()) {
-			FacesUtils.addErrorMessage("Can't search, reason: User ID must not be null or empty.");
-			return;
+		if (StringUtils.isEmpty(searchName)) {
+			setQuery(null);
+		} else {
+			setQuery(createQuery(searchName));
 		}
+
+		listFirst();
+	}
+
+	@Override
+	protected String listObjects() {
 		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
 				GuiUserDto.class);
 		UserManager userManager = (UserManager) (objectManager);
-		listUsers();
-		if (null != searchOid) {
-			GuiUserDto guiUserDto = null;
-			try {
-				guiUserDto = (GuiUserDto) (userManager.get(searchOid, new PropertyReferenceListType()));
-			} catch (WebModelException ex) {
-				LoggingUtils.logException(TRACE, "Get user with oid {} failed", ex,
-						new Object[] { searchOid });
-				FacesUtils.addErrorMessage("Get user failed, reason: " + ex.getTitle() + ", "
-						+ ex.getMessage());
-				return;
-			}
-			userList.getUsers().clear();
-			userList.getUsers().add(guiUserDto);
+
+		OrderDirectionType direction = OrderDirectionType.ASCENDING;
+		if (!isAscending()) {
+			direction = OrderDirectionType.DESCENDING;
 		}
+		PagingDto paging = new PagingDto(getSortColumnName(), getOffset(), getRowsCount(), direction);
+
+		getObjects().clear();
+		if (getQuery() == null) {
+			// we're listing objects
+			try {
+				Collection<UserDto> list = (Collection<UserDto>) userManager.list(paging);
+				for (UserDto userDto : list) {
+					getObjects().add((GuiUserDto) userDto);
+				}
+			} catch (WebModelException ex) {
+				LoggingUtils.logException(TRACE, "List users failed", ex);
+				// TODO: faces utils error add
+			}
+		} else {
+			// we're searching for objects
+			OperationResult result = new OperationResult("Search");
+			try {
+				List<UserDto> users = userManager.search(getQuery(), paging, result);
+				for (UserDto userDto : users) {
+					getObjects().add((GuiUserDto) userDto);
+				}
+			} catch (WebModelException ex) {
+				LoggingUtils.logException(TRACE, "Couldn't search user with name {}", ex, searchName);
+				// TODO: error handling
+			}
+		}
+
+		return null;
+	}
+
+	private QueryType createQuery(String name) {
+		QueryType query = new QueryType();
+		query.setFilter(ControllerUtil.createQuery(name));
+
+		return query;
+	}
+
+	@Override
+	protected void sort() {
+		Collections.sort(getObjects(), new GuiUserDtoComparator(getSortColumnName(), isAscending()));
 	}
 
 	public boolean isSelectAll() {
@@ -209,60 +204,27 @@ public class UserListController implements Serializable {
 	}
 
 	public void selectAllPerformed(ValueChangeEvent event) {
-		if (event.getPhaseId() != PhaseId.INVOKE_APPLICATION) {
-			event.setPhaseId(PhaseId.INVOKE_APPLICATION);
-			event.queue();
-		} else {
-			boolean selectAll = ((Boolean) event.getNewValue()).booleanValue();
-			for (GuiUserDto guiUser : userList.getUsers()) {
-				guiUser.setSelected(selectAll);
-			}
-		}
+		ControllerUtil.selectAllPerformed(event, getObjects());
 	}
 
 	public void selectPerformed(ValueChangeEvent evt) {
-		if (evt.getPhaseId() != PhaseId.INVOKE_APPLICATION) {
-			evt.setPhaseId(PhaseId.INVOKE_APPLICATION);
-			evt.queue();
-		} else {
-			boolean selected = ((Boolean) evt.getNewValue()).booleanValue();
-			if (!selected) {
-				selectAll = false;
-			} else {
-				boolean selectedAll = true;
-				for (GuiUserDto item : userList.getUsers()) {
-					if (!item.isSelected()) {
-						selectedAll = false;
-						break;
-					}
-				}
-				this.selectAll = selectedAll;
-			}
-		}
+		this.selectAll = ControllerUtil.selectPerformed(evt, getObjects());
 	}
 
 	public void sortItem(ActionEvent e) {
-		userList.sort();
+		sort();
 	}
 
 	public String deleteAction() {
-		listUsers();
+		listFirst();
 		return PAGE_NAVIGATION_DELETE;
 	}
 
 	public String fillTableList() {
-		listUsers();
-		
+		listFirst();
+
 		template.setSelectedLeftId("leftList");
 		return PAGE_NAVIGATION;
-	}
-
-	public GuiUserDtoList getUserList() {
-		return userList;
-	}
-
-	public List<GuiUserDto> getUserData() {
-		return userList.getUsers();
 	}
 
 	public GuiUserDto getUser() {
@@ -273,20 +235,12 @@ public class UserListController implements Serializable {
 		this.user = user;
 	}
 
-	public String getSearchOid() {
-		return searchOid;
+	public String getSearchName() {
+		return searchName;
 	}
 
-	public void setSearchOid(String searchOid) {
-		this.searchOid = searchOid;
-	}
-
-	public int getRowsCount() {
-		return rowsCount;
-	}
-
-	public void setRowsCount(int rowsCount) {
-		this.rowsCount = rowsCount;
+	public void setSearchName(String searchName) {
+		this.searchName = searchName;
 	}
 
 	public boolean isShowPopup() {
@@ -300,7 +254,7 @@ public class UserListController implements Serializable {
 	public void showConfirmDelete() {
 		boolean selected = false;
 
-		for (GuiUserDto user : userList.getUsers()) {
+		for (GuiUserDto user : getObjects()) {
 			if (user != null && user.isSelected()) {
 				selected = true;
 				break;

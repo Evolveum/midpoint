@@ -17,23 +17,17 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
-package com.evolveum.midpoint.web.model;
-
-import java.util.List;
-
-import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+package com.evolveum.midpoint.web.bean;
 
 /**
  * 
- * @author semancik
+ * @author lazyman
+ *
  */
-public interface UserManager extends ObjectManager<UserDto> {
+public interface Selectable {
 
-	AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException;
+	void setSelected(boolean selected);
 	
-	List<UserDto> search(QueryType search, PagingDto paging, OperationResult result) throws WebModelException;
+	boolean isSelected();
 }

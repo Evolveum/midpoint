@@ -27,15 +27,17 @@ import java.io.Serializable;
  * @author lazyman
  * 
  */
-public abstract class SelectableBean implements Serializable {
+public abstract class SelectableBean implements Selectable, Serializable {
 
 	private static final long serialVersionUID = -4633831854961883496L;
 	private boolean selected;
 
+	@Override
 	public void setSelected(boolean selected) {
 		this.selected = selected;
 	}
 
+	@Override
 	public boolean isSelected() {
 		return selected;
 	}

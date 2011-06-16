@@ -44,6 +44,10 @@ public abstract class ListController<T> implements Serializable {
 		}
 		return objects;
 	}
+	
+	public void setOffset(int offset) {
+		this.offset = offset;
+	}
 
 	public int getOffset() {
 		return offset;

@@ -32,7 +32,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
@@ -56,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 @Controller("debugList")
 @Scope("session")
 public class DebugListController extends ListController<ObjectBean> {
-	
+
 	public static final String PAGE_NAVIGATION = "/config/debugList?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_VIEW = "/config/debugView?faces-redirect=true";
 	public static final String PARAM_DELETE_OBJECT_OID = "deleteObjectOid";
@@ -79,8 +78,6 @@ public class DebugListController extends ListController<ObjectBean> {
 	@Autowired(required = true)
 	private transient DebugViewController debugView;
 	private String objectType = "UserType";
-	private int offset = 0;
-	private int rowsCount = 30;
 	private boolean showPopup = false;
 	private String oidToDelete;
 
@@ -96,18 +93,14 @@ public class DebugListController extends ListController<ObjectBean> {
 		return objectType;
 	}
 
-	public int getRowsCount() {
-		return rowsCount;
-	}
-
 	public boolean isShowPopup() {
 		return showPopup;
 	}
 
 	public String initController() {
 		getObjects().clear();
-		offset = 0;
-		rowsCount = 30;
+		setOffset(0);
+		setRowsCount(30);
 
 		return PAGE_NAVIGATION;
 	}
@@ -136,7 +129,7 @@ public class DebugListController extends ListController<ObjectBean> {
 		String xsdName = ObjectTypes.getObjectTypeUri(objectType);
 		ObjectListType result = null;
 		try {
-			PagingType paging = PagingTypeFactory.createPaging(offset, rowsCount,
+			PagingType paging = PagingTypeFactory.createPaging(getOffset(), getRowsCount(),
 					OrderDirectionType.ASCENDING, "name");
 			result = repositoryService.listObjects(xsdName, paging);
 		} catch (FaultMessage ex) {

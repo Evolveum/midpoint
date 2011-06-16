@@ -43,14 +43,14 @@
 						<div style="width: 20px; display: inline-block;" />
 
 						<ice:outputText value="#{msg['page.account.index.searchName']}" />
-						<ice:inputText value="#{userList.searchOid}" immediate="true" />
+						<ice:inputText value="#{userList.searchName}" immediate="true" />
 						<idm:button actionListener="#{userList.searchUser}"
 							value="#{msg['page.account.index.search']}" id="searchButton"
 							img="/resources/images/magnifier.png" />
 					</ice:panelGroup>
 
-					<ice:dataTable id="userTable" rows="#{userList.rowsCount}" value="#{userList.userData}" var="user"
-						sortColumn="#{userList.userList.sortColumnName}" sortAscending="#{userList.userList.ascending}"
+					<ice:dataTable id="userTable" rows="#{userList.rowsCount}" value="#{userList.objects}" var="user"
+						sortColumn="#{userList.sortColumnName}" sortAscending="#{userList.ascending}"
 						columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
 						columnWidths="auto, 140px, 140px, 140px, 220px, 230px" resizable="false">
 						<ice:column>

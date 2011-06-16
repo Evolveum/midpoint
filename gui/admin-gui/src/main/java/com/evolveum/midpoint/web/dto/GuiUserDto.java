@@ -29,6 +29,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.web.bean.Selectable;
 import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
@@ -39,7 +40,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * 
  * @author katuska
  */
-public class GuiUserDto extends UserDto {
+public class GuiUserDto extends UserDto implements Selectable {
 
 	private static final long serialVersionUID = -8265669830268114388L;
 	private static final Trace TRACE = TraceManager.getTrace(GuiUserDto.class);
@@ -69,12 +70,13 @@ public class GuiUserDto extends UserDto {
 	public GuiUserDto() {
 	}
 
+	@Override
 	public boolean isSelected() {
 		return selected;
 	}
 
+	@Override
 	public void setSelected(boolean selected) {
-		TRACE.info("setting user.selected with value {}", selected);
 		this.selected = selected;
 	}
 

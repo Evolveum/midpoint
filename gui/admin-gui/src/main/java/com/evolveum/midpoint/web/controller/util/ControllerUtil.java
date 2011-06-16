@@ -29,7 +29,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.bean.SelectableBean;
+import com.evolveum.midpoint.web.bean.Selectable;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
@@ -70,7 +70,7 @@ public class ControllerUtil {
 		return true;
 	}
 
-	public static boolean selectPerformed(ValueChangeEvent evt, List<? extends SelectableBean> beans) {
+	public static boolean selectPerformed(ValueChangeEvent evt, List<? extends Selectable> beans) {
 		boolean selectedAll = false;
 		if (isEventAvailable(evt)) {
 			boolean selected = ((Boolean) evt.getNewValue()).booleanValue();
@@ -78,7 +78,7 @@ public class ControllerUtil {
 				selectedAll = false;
 			} else {
 				selectedAll = true;
-				for (SelectableBean item : beans) {
+				for (Selectable item : beans) {
 					if (!item.isSelected()) {
 						selectedAll = false;
 						break;
@@ -90,10 +90,10 @@ public class ControllerUtil {
 		return selectedAll;
 	}
 
-	public static void selectAllPerformed(ValueChangeEvent evt, List<? extends SelectableBean> beans) {
+	public static void selectAllPerformed(ValueChangeEvent evt, List<? extends Selectable> beans) {
 		if (isEventAvailable(evt)) {
 			boolean selectAll = ((Boolean) evt.getNewValue()).booleanValue();
-			for (SelectableBean item : beans) {
+			for (Selectable item : beans) {
 				item.setSelected(selectAll);
 			}
 		}

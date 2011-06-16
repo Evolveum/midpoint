@@ -37,10 +37,12 @@ import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
@@ -59,10 +61,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -80,7 +84,7 @@ public class UserTypeManager implements UserManager, Serializable {
 	private Class<?> constructUserType;
 
 	@Autowired(required = true)
-	private ObjectTypeCatalog objectTypeCatalog;
+	private transient ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
 	private transient ModelPortType model;
 
@@ -90,18 +94,16 @@ public class UserTypeManager implements UserManager, Serializable {
 
 	@Override
 	public void delete(String oid) throws WebModelException {
-		TRACE.info("oid = {}", new Object[] { oid });
+		TRACE.debug("delete (oid = {} )", new Object[] { oid });
 		Validate.notNull(oid);
 
-		try { // Call Web Service Operation
+		try {
 			model.deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			TRACE.error("Delete user failed for oid = {}", oid);
-			TRACE.error("Exception was: ", ex);
+			LoggingUtils.logException(TRACE, "Delete user failed for oid {}", ex, oid);
 			throw new WebModelException(ex.getFaultInfo().getMessage(),
 					"[Web Service Error] Delete user failed for oid " + oid);
 		}
-
 	}
 
 	@Override
@@ -109,8 +111,8 @@ public class UserTypeManager implements UserManager, Serializable {
 		Validate.notNull(newObject);
 
 		try { // Call Web Service Operation
-			java.lang.String result = model.addObject(newObject.getXmlObject(),
-					new Holder<OperationResultType>(new OperationResultType()));
+			String result = model.addObject(newObject.getXmlObject(), new Holder<OperationResultType>(
+					new OperationResultType()));
 			return result;
 		} catch (FaultMessage fault) {
 			String message = fault.getFaultInfo().getMessage();
@@ -220,31 +222,20 @@ public class UserTypeManager implements UserManager, Serializable {
 
 	@Override
 	public UserDto get(String oid, PropertyReferenceListType resolve) throws WebModelException {
-		TRACE.info("oid = {}", new Object[] { oid });
+		TRACE.debug("oid = {}", new Object[] { oid });
 		Validate.notNull(oid);
 
-		try { // Call Web Service Operation
+		try {
 			ObjectType result = model.getObject(oid, resolve, new Holder<OperationResultType>(
 					new OperationResultType()));
-			// ObjectStage stage = new ObjectStage();
-			// stage.setObject((UserType) result.getObject());
+			UserDto userDto = createNewUser((UserType) result);
 
-			UserDto userDto = (UserDto) constructUserType.newInstance();
-			userDto.setXmlObject((UserType) result);
-			// userDto.setStage(stage);
 			return userDto;
 		} catch (FaultMessage ex) {
 			TRACE.error("User lookup for oid = {}", oid);
 			TRACE.error("Exception was: ", ex);
 			throw new WebModelException(ex.getFaultInfo().getMessage(), "Failed to get user with oid " + oid,
 					ex);
-		} catch (IllegalAccessException ex) {
-			TRACE.error("Class or its nullary constructor is not accessible: {}", ex);
-			throw new WebModelException("Class or its nullary constructor is not accessible",
-					"Internal Error", ex);
-		} catch (InstantiationException ex) {
-			TRACE.error("Instantiation failed: {}", ex);
-			throw new WebModelException("Instantiation failed", "Internal Error", ex);
 		} catch (RuntimeException ex) {
 			// We want to catch also runtime exceptions here. These are severe
 			// internal errors (bugs) or system errors (out of memory). But
@@ -284,8 +275,17 @@ public class UserTypeManager implements UserManager, Serializable {
 	}
 
 	@Override
-	public UserDto create() {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public UserDto create() throws WebModelException {
+		try {
+			UserDto userDto = (UserDto) constructUserType.newInstance();
+			userDto.setXmlObject(new UserType());
+			return userDto;
+		} catch (InstantiationException ex) {
+			throw new WebModelException(ex.getMessage(), "Instatiation failed.");
+		} catch (IllegalAccessException ex) {
+			throw new WebModelException(ex.getMessage(),
+					"Class or its nullary constructor is not accessible.");
+		}
 	}
 
 	@Override
@@ -300,8 +300,7 @@ public class UserTypeManager implements UserManager, Serializable {
 			List<ObjectType> users = result.getObject();
 			List<UserDto> guiUsers = new ArrayList<UserDto>();
 			for (ObjectType userType : users) {
-				UserDto userDto = (UserDto) constructUserType.newInstance();
-				userDto.setXmlObject(userType);
+				UserDto userDto = createNewUser((UserType) userType);
 				guiUsers.add(userDto);
 			}
 
@@ -309,14 +308,42 @@ public class UserTypeManager implements UserManager, Serializable {
 		} catch (FaultMessage ex) {
 
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] list user failed");
-		} catch (InstantiationException ex) {
+		}
+	}
 
-			throw new WebModelException(ex.getMessage(), "Instatiation failed.");
-		} catch (IllegalAccessException ex) {
+	@Override
+	public List<UserDto> search(QueryType query, PagingDto pagingDto, OperationResult result)
+			throws WebModelException {
+		Validate.notNull(query, "Query must not be null.");
+		Validate.notNull(result, "Result must not be null.");
 
-			throw new WebModelException(ex.getMessage(),
-					"Class or its nullary constructor is not accessible.");
+		PagingType paging = null;
+		if (pagingDto != null) {
+			paging = PagingTypeFactory.createPaging(pagingDto.getOffset(), pagingDto.getMaxSize(),
+					pagingDto.getDirection(), pagingDto.getOrderBy());
+		} else {
+			paging = PagingTypeFactory.createListAllPaging(OrderDirectionType.ASCENDING, "name");
+		}
+		List<UserDto> users = new ArrayList<UserDto>();
+		try {
+			ObjectListType list = model.searchObjects(query, paging,
+					new Holder<OperationResultType>(result.createOperationResultType()));
+			for (ObjectType object : list.getObject()) {
+				UserDto userDto = createNewUser((UserType) object);
+				users.add(userDto);
+			}
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(TRACE, "Couldn't search users", ex);
+			// TODO: handle error
 		}
 
+		return users;
+	}
+
+	private UserDto createNewUser(UserType user) throws WebModelException {
+		UserDto userDto = create();
+		userDto.setXmlObject(user);
+
+		return userDto;
 	}
 }
