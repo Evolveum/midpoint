@@ -95,7 +95,7 @@ public class Test002basicUser {
 		selenium.click(findNextLink("leftCreate"));
 		waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", selenium.getLocation());
-		
+		//Minimal requirements
 		selenium.type("j_idt44:name", "selena");
 		selenium.type("j_idt44:givenName", "selena");
 		selenium.type("j_idt44:familyName", "wilson");
@@ -104,7 +104,7 @@ public class Test002basicUser {
 		selenium.type("j_idt44:locality", "");
 		selenium.type("j_idt44:password1", "qwe123.Q");
 		selenium.type("j_idt44:password2", "qwe123.Q");
-		selenium.type("j_idt44:enabled", "false");
+		selenium.type("j_idt44:enabled", "true");
 		selenium.type("j_idt44:webAccessEnabled", "false");
 		selenium.click("j_idt44:createUser");
 		waitForText("User created successfully");
@@ -113,7 +113,8 @@ public class Test002basicUser {
 		selenium.click(findNextLink("leftCreate"));
 		waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", selenium.getLocation());
-		
+	
+		//All fields filled
 		selenium.type("j_idt44:name", "leila");
 		selenium.type("j_idt44:givenName", "Leila");
 		selenium.type("j_idt44:familyName", "Walker");
@@ -127,6 +128,74 @@ public class Test002basicUser {
 		selenium.click("j_idt44:createUser");
 		waitForText("User created successfully");
 		assertTrue(selenium.isTextPresent("Leila Walker"));
+	
+		//test missing name and password not match
+		selenium.type("j_idt44:name", "");
+		selenium.type("j_idt44:givenName", "Joe");
+		selenium.type("j_idt44:familyName", "Dead");
+		selenium.type("j_idt44:fullName", "Joe Dead");
+		selenium.type("j_idt44:email", "leila@walker.com");
+		selenium.type("j_idt44:locality", "nowhere");
+		selenium.type("j_idt44:password1", "qwe123.Q");
+		selenium.type("j_idt44:password2", "qwe213.Q");
+		selenium.type("j_idt44:enabled", "true");
+		selenium.type("j_idt44:webAccessEnabled", "true");
+		selenium.click("j_idt44:createUser");
+		waitForText("Value is required");
+		assertTrue(selenium.isTextPresent("Please check password fields."));
+		assertTrue(selenium.isTextPresent("Passwords doesn't match"));
+		
+		selenium.type("j_idt44:name", "joe");
+		selenium.type("j_idt44:givenName", "Joe");
+		selenium.type("j_idt44:familyName", "Dead");
+		selenium.type("j_idt44:fullName", "Joe Dead");
+		selenium.type("j_idt44:email", "leila@walker.com");
+		selenium.type("j_idt44:locality", "nowhere");
+		selenium.type("j_idt44:password1", "");
+		selenium.type("j_idt44:password2", "");
+		selenium.type("j_idt44:enabled", "true");
+		selenium.type("j_idt44:webAccessEnabled", "true");
+		selenium.click("j_idt44:createUser");
+		waitForText("Value is required");
+		
+		selenium.type("j_idt44:name", "joe");
+		selenium.type("j_idt44:givenName", "");
+		selenium.type("j_idt44:familyName", "Dead");
+		selenium.type("j_idt44:fullName", "Joe Dead");
+		selenium.type("j_idt44:email", "leila@walker.com");
+		selenium.type("j_idt44:locality", "nowhere");
+		selenium.type("j_idt44:password1", "qwe123.Q");
+		selenium.type("j_idt44:password2", "qwe213.Q");
+		selenium.type("j_idt44:enabled", "true");
+		selenium.type("j_idt44:webAccessEnabled", "true");
+		selenium.click("j_idt44:createUser");
+		waitForText("Value is required");
+		
+		selenium.type("j_idt44:name", "joe");
+		selenium.type("j_idt44:givenName", "Joe");
+		selenium.type("j_idt44:familyName", "");
+		selenium.type("j_idt44:fullName", "Joe Dead");
+		selenium.type("j_idt44:email", "leila@walker.com");
+		selenium.type("j_idt44:locality", "nowhere");
+		selenium.type("j_idt44:password1", "qwe123.Q");
+		selenium.type("j_idt44:password2", "qwe213.Q");
+		selenium.type("j_idt44:enabled", "true");
+		selenium.type("j_idt44:webAccessEnabled", "true");
+		selenium.click("j_idt44:createUser");
+		waitForText("Value is required");
+		
+		selenium.type("j_idt44:name", "joe");
+		selenium.type("j_idt44:givenName", "Joe");
+		selenium.type("j_idt44:familyName", "Dead");
+		selenium.type("j_idt44:fullName", "");
+		selenium.type("j_idt44:email", "leila@walker.com");
+		selenium.type("j_idt44:locality", "nowhere");
+		selenium.type("j_idt44:password1", "qwe123.Q");
+		selenium.type("j_idt44:password2", "qwe213.Q");
+		selenium.type("j_idt44:enabled", "true");
+		selenium.type("j_idt44:webAccessEnabled", "true");
+		selenium.click("j_idt44:createUser");
+		waitForText("Value is required");
 		
 	}
 /*
