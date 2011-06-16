@@ -53,10 +53,11 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.8.1</version>
         <configuration>
-         <forkMode>never</forkMode>
+         <forkMode>pertest</forkMode>
         <parallel>classes</parallel>
        <perCoreThreadCount>false</perCoreThreadCount>
       <threadCount>1</threadCount>
+<runOrder>alphabetical</runOrder>
        
         </configuration>
       </plugin>

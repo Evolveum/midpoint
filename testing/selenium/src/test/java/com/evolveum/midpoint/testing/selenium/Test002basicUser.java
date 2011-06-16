@@ -55,7 +55,7 @@ public class Test002basicUser {
 		selenium.type("loginForm:userName", "administrator");
 		selenium.type("loginForm:password", "secret");
 		selenium.click("loginForm:loginButton");
-		waitForText("Welcome to MidPoint");
+		waitForText("Administrator");
 		
 		assertEquals(baseUrl + "/index.iface", selenium.getLocation());
 	}
@@ -69,15 +69,17 @@ public class Test002basicUser {
 		return "";
 	}
 
-	private void waitForText(String text) {
+	private void waitForText(String text)  {
+		System.out.print("waiting for:" + text);
 		for (int i = 0; i < 60; i++) {
 			try {
-				Thread.sleep(2000);
+				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 			}
-			if (selenium.isTextPresent(text))
+			if (selenium.isTextPresent(text)) {
 				assertTrue(selenium.isTextPresent(text));
-				break;
+				return;
+			}
 		}
 		assertTrue(selenium.isTextPresent(text));
 	}

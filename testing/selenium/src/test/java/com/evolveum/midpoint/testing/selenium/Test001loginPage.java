@@ -45,12 +45,12 @@ public class Test001loginPage {
 
 		
 		selenium.open("/");
-		selenium.waitForPageToLoad("30000");
+		selenium.waitForPageToLoad("10000");
 		
 		selenium.type("loginForm:userName", "administrator");
 		selenium.type("loginForm:password", "secret");
 		selenium.click("loginForm:loginButton");
-		selenium.waitForPageToLoad("30000");
+		selenium.waitForPageToLoad("10000");
 		assertEquals(baseUrl+"/index.iface", selenium.getLocation());
 	}
 	
@@ -58,12 +58,12 @@ public class Test001loginPage {
 	public void negativeLoginTest() {
 
 		selenium.open("/");
-		selenium.waitForPageToLoad("30000");
+		selenium.waitForPageToLoad("10000");
 		//Test invalid user name
 		selenium.type("loginForm:userName", "administrator");
 		selenium.type("loginForm:password", "secreta");
 		selenium.click("loginForm:loginButton");
-		selenium.waitForPageToLoad("30000");
+		selenium.waitForPageToLoad("10000");
 		assertNotSame(baseUrl+"idm/index.iface", selenium.getLocation());
 		assertTrue(selenium.isTextPresent("Invalid username and/or password."));
 		
