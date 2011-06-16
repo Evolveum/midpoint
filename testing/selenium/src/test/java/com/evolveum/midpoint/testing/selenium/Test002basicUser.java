@@ -55,7 +55,7 @@ public class Test002basicUser {
 		selenium.type("loginForm:userName", "administrator");
 		selenium.type("loginForm:password", "secret");
 		selenium.click("loginForm:loginButton");
-		waitForText("Welcome to midPoint");
+		waitForText("Welcome to MidPoint");
 		
 		assertEquals(baseUrl + "/index.iface", selenium.getLocation());
 	}
