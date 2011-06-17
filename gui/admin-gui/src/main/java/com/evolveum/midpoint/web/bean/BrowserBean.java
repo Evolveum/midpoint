@@ -30,7 +30,6 @@ import javax.xml.ws.Holder;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;

@@ -94,9 +94,18 @@ public class ResourceListController extends SortableListController<ResourceListI
 	@Autowired(required = true)
 	private transient ResourceSyncController resourceSync;
 	private boolean selectAll = false;
+	private boolean showPopup = false;
 
 	public ResourceListController() {
 		super("name");
+	}
+	
+	public boolean isShowPopup() {
+		return showPopup;
+	}
+	
+	public void hideConfirmDelete(){
+		showPopup = false;
 	}
 
 	public boolean isSelectAll() {
@@ -286,6 +295,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 		return ResourceSyncController.PAGE_NAVIGATION;
 	}
 
+	//TODO: MOVE TO MODEL !!!!!!!!!!!!!!!!!!!!!!! test before delete resource
 	private List<ResourceListItem> testResourcesBeforeDelete() {
 		List<ResourceListItem> toBeDeleted = new ArrayList<ResourceListItem>();
 		for (ResourceListItem item : getObjects()) {
@@ -309,7 +319,6 @@ public class ResourceListController extends SortableListController<ResourceListI
 							"Couldn't list resource objects of type {} for resource {}", ex,
 							objectType.getSimpleType(), item.getName());
 					// TODO: error handling
-					
 					canDelete = false;
 				}
 			}
@@ -321,18 +330,30 @@ public class ResourceListController extends SortableListController<ResourceListI
 
 		return toBeDeleted;
 	}
+	
+	public void deletePerformed() {
+		showPopup = true;
+	}
 
-	public String deletePerformed() {
-		List<ResourceListItem> toBeDeleted = testResourcesBeforeDelete();
-		for (ResourceListItem item : toBeDeleted) {
-//			try {
-//				// TODO: holder and result
-//				model.deleteObject(item.getOid(), new Holder<OperationResultType>());				
-				getObjects().remove(item);
-//			} catch (FaultMessage ex) {
-//
-//			}
-		}
+	public String deleteResources() {
+		hideConfirmDelete();
+		
+		List<ResourceListItem> toBeDeleted = new ArrayList<ResourceListItem>();
+		for (ResourceListItem item : getObjects()) {
+			if (!item.isSelected()) {
+				continue;
+			}
+			try {
+				// TODO: holder and result
+				model.deleteObject(item.getOid(), new Holder<OperationResultType>());				
+				toBeDeleted.add(item);
+			} catch (FaultMessage ex) {
+				LoggingUtils.logException(TRACE, "Couldn't delete resource {}", ex, item.getName());
+				//TODO: error handling
+				FacesUtils.addErrorMessage("Couldn't delete resource.", ex);
+			}
+		}		
+		getObjects().removeAll(toBeDeleted);
 
 		return PAGE_NAVIGATION;
 	}

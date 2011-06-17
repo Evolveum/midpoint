@@ -13,6 +13,21 @@
 
 	<ui:define name="content">
 		<ice:form>
+			<ice:panelPopup modal="true" autoCentre="true" visible="#{resourceList.showPopup}">
+					<f:facet name="header">
+						<ice:outputText value="#{msg['Confirm delete']}" />
+					</f:facet>
+					<f:facet id="confirm" name="body">
+						<ice:outputText value="#{msg['Delete selected resources?']}" />
+						<div class="button-bar">
+							<ice:commandButton id="deleteResourceYes" value="#{msg['Yes']}"
+								action="#{resourceList.deleteResources}" />
+							<ice:commandButton id="deleteResourceNo" value="#{msg['No']}"
+								action="#{resourceList.hideConfirmDelete}" />
+						</div>
+					</f:facet>
+				</ice:panelPopup>
+				
 			<ice:dataTable id="resourceTable" rows="50" value="#{resourceList.objects}" var="item"
 				sortColumn="#{resourceList.sortColumnName}" sortAscending="#{resourceList.ascending}"
 				columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
