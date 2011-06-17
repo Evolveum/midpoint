@@ -38,6 +38,7 @@ xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
             <my:location key="work">There</my:location>
             <my:location key="somewhere">There there over the corner</my:location>
         </my:locations>
+        <my:timeformat>%d{HH:mm:ss,SSS}</my:timeformat>
     </c:extension>
     <c:objectType>http://myself.me/schemas/objects#SampleConfigType</c:objectType>
 </c:genericObject>

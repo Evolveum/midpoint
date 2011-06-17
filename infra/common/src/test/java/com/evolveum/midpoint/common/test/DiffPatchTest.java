@@ -22,28 +22,20 @@
 
 package com.evolveum.midpoint.common.test;
 
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.common.diff.MidPointDifferenceListener;
-import com.evolveum.midpoint.common.diff.OidQualifier;
-import com.evolveum.midpoint.common.patch.PatchXml;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
+
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.StringBufferInputStream;
-import java.util.List;
-import org.custommonkey.xmlunit.DetailedDiff;
-import org.custommonkey.xmlunit.Diff;
-import org.custommonkey.xmlunit.Difference;
-import org.custommonkey.xmlunit.DifferenceConstants;
-import org.custommonkey.xmlunit.XMLUnit;
-import static junit.framework.Assert.*;
+
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.xml.sax.InputSource;
+
+import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
+import com.evolveum.midpoint.common.patch.PatchXml;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 
 /**
  *

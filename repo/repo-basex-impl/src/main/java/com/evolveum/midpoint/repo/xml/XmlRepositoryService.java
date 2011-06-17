@@ -84,7 +84,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
 
 public class XmlRepositoryService implements RepositoryPortType {
 
-	private static final Trace logger = TraceManager.getTrace(XmlRepositoryService.class);
+	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryService.class);
 	private Collection collection;
 
 	// FIXME: switch to new version JAXB utils and remove local
@@ -106,7 +106,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 			// into stream to avoid generation of xml declaration
 			this.marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
 		} catch (JAXBException e) {
-			logger.error("Problem initializing XML Repository Service", e);
+			TRACE.error("Problem initializing XML Repository Service", e);
 			throw new RuntimeException("Problem initializing XML Repository Service", e);
 		}
 
@@ -123,13 +123,13 @@ public class XmlRepositoryService implements RepositoryPortType {
 			xmlStreamWriter.flush();
 			return new String(out.toByteArray(), "UTF-8");
 		} catch (XMLStreamException e) {
-			logger.error("JAXB object marshal to Xml stream failed", e);
+			TRACE.error("JAXB object marshal to Xml stream failed", e);
 			throw new JAXBException("JAXB object marshal to Xml stream failed", e);
 		} catch (FactoryConfigurationError e) {
-			logger.error("JAXB object marshal to Xml stream failed", e);
+			TRACE.error("JAXB object marshal to Xml stream failed", e);
 			throw new JAXBException("JAXB object marshal to Xml stream failed", e);
 		} catch (UnsupportedEncodingException e) {
-			logger.error("UTF-8 is unsupported encoding", e);
+			TRACE.error("UTF-8 is unsupported encoding", e);
 			throw new JAXBException("UTF-8 is unsupported encoding", e);
 		}
 	}
@@ -145,24 +145,28 @@ public class XmlRepositoryService implements RepositoryPortType {
 			payload.setOid(oid);
 
 			String serializedObject = marshalWrap(payload, SchemaConstants.C_OBJECT);
+			// FIXME: try to find another solution how to escape XQuery special characters in XMLs 
+			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
+			serializedObject = StringUtils.replace(serializedObject, "}", "}}");
 
 			// Receive the XPath query service.
 			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
 
 			StringBuilder query = new StringBuilder(
 					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n")
-					.append("insert node ").append(serializedObject).append(" into //c:objects");
+					.append("let $x := ").append(serializedObject).append("\n")
+					.append("return insert node $x into //c:objects");
 
-			logger.trace("generated query: " + query);
+			TRACE.trace("generated query: " + query);
 
 			service.query(query.toString());
 
 			return oid;
 		} catch (JAXBException ex) {
-			logger.error("Failed to (un)marshal object", ex);
+			TRACE.error("Failed to (un)marshal object", ex);
 			throw new FaultMessage("Failed to (un)marshal object", new IllegalArgumentFaultType(), ex);
 		} catch (XMLDBException ex) {
-			logger.error("Reported error by XML Database", ex);
+			TRACE.error("Reported error by XML Database", ex);
 			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
 		}
 	}
@@ -181,7 +185,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
 			query.append("for $x in //c:object where $x/@oid=\"").append(oid).append("\" return $x");
 
-			logger.trace("generated query: " + query);
+			TRACE.trace("generated query: " + query);
 
 			// Execute the query and receives all results.
 			ResourceSet set = service.query(query.toString());
@@ -194,7 +198,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 				Resource res = iter.nextResource();
 
 				if (null != objectContainer) {
-					logger.error("More than one object with oid {} found", oid);
+					TRACE.error("More than one object with oid {} found", oid);
 					throw new FaultMessage("More than one object with oid " + oid + " found",
 							new ObjectAlreadyExistsFaultType());
 				}
@@ -209,13 +213,13 @@ public class XmlRepositoryService implements RepositoryPortType {
 				}
 			}
 		} catch (UnsupportedEncodingException ex) {
-			logger.error("UTF-8 is unsupported encoding", ex);
+			TRACE.error("UTF-8 is unsupported encoding", ex);
 			throw new FaultMessage("UTF-8 is unsupported encoding", new SystemFaultType(), ex);
 		} catch (JAXBException ex) {
-			logger.error("Failed to (un)marshal object", ex);
+			TRACE.error("Failed to (un)marshal object", ex);
 			throw new FaultMessage("Failed to (un)marshal object", new IllegalArgumentFaultType(), ex);
 		} catch (XMLDBException ex) {
-			logger.error("Reported error by XML Database", ex);
+			TRACE.error("Reported error by XML Database", ex);
 			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
 		} finally {
 			try {
@@ -234,7 +238,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters)
 			throws FaultMessage {
 		if (StringUtils.isEmpty(objectType)) {
-			logger.error("objectType is empty");
+			TRACE.error("objectType is empty");
 			throw new FaultMessage("objectType is empty", new IllegalArgumentFaultType());
 		}
 
@@ -289,7 +293,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 			}
 			query.append(" return $x ");
 
-			logger.trace("generated query: " + query);
+			TRACE.trace("generated query: " + query);
 
 			// Execute the query and receives all results.
 			ResourceSet set = service.query(query.toString());
@@ -311,13 +315,13 @@ public class XmlRepositoryService implements RepositoryPortType {
 				}
 			}
 		} catch (UnsupportedEncodingException ex) {
-			logger.error("UTF-8 is unsupported encoding", ex);
+			TRACE.error("UTF-8 is unsupported encoding", ex);
 			throw new FaultMessage("UTF-8 is unsupported encoding", new SystemFaultType(), ex);
 		} catch (JAXBException ex) {
-			logger.error("Failed to (un)marshal object", ex);
+			TRACE.error("Failed to (un)marshal object", ex);
 			throw new FaultMessage("Failed to (un)marshal object", new IllegalArgumentFaultType(), ex);
 		} catch (XMLDBException ex) {
-			logger.error("Reported error by XML Database", ex);
+			TRACE.error("Reported error by XML Database", ex);
 			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
 		} finally {
 			try {
@@ -352,7 +356,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 			}
 
 			if (!StringUtils.equals(SchemaConstants.NS_C, child.getNamespaceURI())) {
-				logger.warn("Found query's filter element from unsupported namespace. Ignoring filter {}",
+				TRACE.warn("Found query's filter element from unsupported namespace. Ignoring filter {}",
 						child);
 				continue;
 			}
@@ -458,15 +462,15 @@ public class XmlRepositoryService implements RepositoryPortType {
 					.append("replace node //c:object[@oid=\"").append(objectChange.getOid())
 					.append("\"] with ").append(serializedObject);
 
-			logger.trace("generated query: " + query);
+			TRACE.trace("generated query: " + query);
 
 			service.query(query.toString());
 
 		} catch (PatchException ex) {
-			logger.error("Failed to modify object", ex);
+			TRACE.error("Failed to modify object", ex);
 			throw new FaultMessage("Failed to modify object", new IllegalArgumentFaultType(), ex);
 		} catch (XMLDBException ex) {
-			logger.error("Reported error by XML Database", ex);
+			TRACE.error("Reported error by XML Database", ex);
 			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
 		}
 	}
@@ -489,7 +493,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 			service.query(QUERY.toString());
 
 		} catch (XMLDBException ex) {
-			logger.error("Reported error by XML Database", ex);
+			TRACE.error("Reported error by XML Database", ex);
 			throw new FaultMessage("Reported error by XML Database", new SystemFaultType());
 		} finally {
 			try {
