@@ -23,6 +23,7 @@
 package com.evolveum.midpoint.testing.selenium;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.WebDriver;
@@ -80,7 +81,7 @@ public class Test002basicUser {
 	private void waitForText(String text) {
 		for (int i = 0; i < 300; i++) {
 			try {
-				Thread.sleep(3000);
+				Thread.sleep(300);
 			} catch (InterruptedException e) {
 			}
 			if (selenium.isTextPresent(text)) {
@@ -89,7 +90,7 @@ public class Test002basicUser {
 		}
 		assertTrue(selenium.isTextPresent(text));
 	}
-
+/*
 	// Based on MID-2 jira scenarios
 	@Test
 	public void test01addUser() {
@@ -223,20 +224,25 @@ public class Test002basicUser {
 		selenium.click("createUserForm:createUser");
 		waitForText("Value is required");
 	}
-
+*/
 	@Test
-	public void test02searchUser() {
+	public void test02searchUser() throws InterruptedException {
 		logger.info("searchTest()");
 
 		selenium.click(findNextLink("topAccount"));
 		selenium.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/index.iface", selenium.getLocation());
 		assertTrue(selenium.isTextPresent("New User"));
- 
+
+		//get hashmap and login
+		HashMap<String,String> h = new HashMap<String,String>(); 
 		for (String l : selenium.getAllLinks()) {
-			logger.info(l + " -> " + selenium.getValue(l));
-			logger.info(l + " -> " + selenium.getSelectedId(l));
-			logger.info(l + " -> " + selenium.getText(l));
+			if ( ! l.contains("Table") || ! l.contains("name")) continue;
+			h.put(selenium.getText(l),l.replace(":name",""));
+		}
+		
+		for (String k: h.keySet()) {
+			logger.info(k + " -> " + h.get(k));
 		}
 	}
 
