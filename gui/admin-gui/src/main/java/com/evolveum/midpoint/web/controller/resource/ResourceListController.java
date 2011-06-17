@@ -20,7 +20,8 @@
  */
 package com.evolveum.midpoint.web.controller.resource;
 
-import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -37,7 +38,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.Definition;
@@ -48,16 +51,18 @@ import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.bean.ResourceObjectType;
 import com.evolveum.midpoint.web.bean.ResourceState;
 import com.evolveum.midpoint.web.bean.ResourceStatus;
-import com.evolveum.midpoint.web.bean.SortedResourceList;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.controller.util.SortableListController;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.web.util.ResourceItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType.ExtraTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -73,10 +78,11 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
  */
 @Controller("resourceList")
 @Scope("session")
-public class ResourceListController implements Serializable {
+public class ResourceListController extends SortableListController<ResourceListItem> {
 
 	public static final String PAGE_NAVIGATION = "/resource/index?faces-redirect=true";
 	public static final String NAVIGATION_LEFT = "leftResourceList";
+	private static final String PARAM_RESOURCE_OID = "resourceOid";
 	private static final long serialVersionUID = 8325385127604325633L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceListController.class);
 	@Autowired(required = true)
@@ -85,12 +91,13 @@ public class ResourceListController implements Serializable {
 	private transient TemplateController template;
 	@Autowired(required = true)
 	private transient ResourceDetailsController resourceDetails;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private transient ResourceSyncController resourceSync;
-	private static final String PARAM_RESOURCE_OID = "resourceOid";
-	private static final String DEFAULT_SORT_COLUMN = "name";
 	private boolean selectAll = false;
-	private SortedResourceList resources;
+
+	public ResourceListController() {
+		super("name");
+	}
 
 	public boolean isSelectAll() {
 		return selectAll;
@@ -100,40 +107,18 @@ public class ResourceListController implements Serializable {
 		this.selectAll = selectAll;
 	}
 
-	public boolean isAscending() {
-		return getResources().isAscending();
-	}
-
-	public void setAscending(boolean ascending) {
-		getResources().setAscending(ascending);
-	}
-
-	public String getSortColumnName() {
-		return getResources().getSortColumnName();
-	}
-
-	public void setSortColumnName(String sortColumnName) {
-		getResources().setSortColumnName(sortColumnName);
-	}
-
-	public List<ResourceListItem> getResourceList() {
-		SortedResourceList resources = getResources();
-
-		return resources.getResources();
-	}
-
 	public void selectAllPerformed(ValueChangeEvent evt) {
-		ControllerUtil.selectAllPerformed(evt, getResourceList());
+		ControllerUtil.selectAllPerformed(evt, getObjects());
 	}
 
 	public void sortList(ActionEvent evt) {
-		resources.sort();
+		sort();
 	}
 
 	public void selectPerformed(ValueChangeEvent evt) {
-		ControllerUtil.selectPerformed(evt, getResourceList());
+		this.selectAll = ControllerUtil.selectPerformed(evt, getObjects());
 	}
-	
+
 	private ResourceListItem getSelectedResourceItem() {
 		String resourceOid = FacesUtils.getRequestParameter(PARAM_RESOURCE_OID);
 		if (StringUtils.isEmpty(resourceOid)) {
@@ -151,7 +136,7 @@ public class ResourceListController implements Serializable {
 			FacesUtils.addErrorMessage("Resource details controller was not autowired.");
 			return null;
 		}
-		
+
 		return resourceItem;
 	}
 
@@ -160,15 +145,15 @@ public class ResourceListController implements Serializable {
 		if (resourceItem == null) {
 			return null;
 		}
-		
+
 		resourceDetails.setResource(resourceItem);
-		
+
 		template.setSelectedLeftId(ResourceDetailsController.NAVIGATION_LEFT);
 		return ResourceDetailsController.PAGE_NAVIGATION;
 	}
 
 	private ResourceListItem getResourceItem(String resourceOid) {
-		for (ResourceListItem item : getResourceList()) {
+		for (ResourceListItem item : getObjects()) {
 			if (item.getOid().equals(resourceOid)) {
 				return item;
 			}
@@ -231,42 +216,17 @@ public class ResourceListController implements Serializable {
 			StringBuilder builder = new StringBuilder();
 			builder.append(message.getMessage());
 			if (!StringUtils.isEmpty(message.getDetails())) {
-				builder.append(" Reason: ");
+				builder.append("Reason: ");
 				builder.append(message.getDetails());
 			}
 			if (message.getTimestamp() != null) {
-				builder.append(" Time: ");
+				builder.append("Time: ");
 				builder.append(message.getTimestamp().toGregorianCalendar().getTime());
 			}
 			FacesUtils.addErrorMessage(builder.toString());
 		}
 
 		return status;
-	}
-
-	public String updateController() {
-		try {
-			String objectType = ObjectTypes.RESOURCE.getObjectTypeUri();
-			ObjectListType objectList = model.listObjects(objectType, new PagingType(),
-					new Holder<OperationResultType>(new OperationResultType()));
-			List<ObjectType> objects = objectList.getObject();
-
-			List<ResourceListItem> list = getResourceList();
-			list.clear();
-			for (ObjectType object : objects) {
-				list.add(createResourceListItem((ResourceType) object));
-			}
-			resources.sort();
-		} catch (FaultMessage ex) {
-			String message = (ex.getFaultInfo().getMessage() != null) ? ex.getFaultInfo().getMessage() : ex
-					.getMessage();
-			FacesUtils.addErrorMessage("List resources failed.");
-			FacesUtils.addErrorMessage("Exception was: " + message);
-			TRACE.error("List resources failed.", ex);
-			return null;
-		}
-
-		return PAGE_NAVIGATION;
 	}
 
 	private ResourceListItem createResourceListItem(ResourceType resource) {
@@ -313,25 +273,99 @@ public class ResourceListController implements Serializable {
 		return "Unknown";
 	}
 
-	private SortedResourceList getResources() {
-		if (resources == null) {
-			resources = new SortedResourceList();
-			resources.setSortColumnName(DEFAULT_SORT_COLUMN);
-		}
-
-		return resources;
-	}
-	
 	public String showSyncStatus() {
 		ResourceListItem resourceItem = getSelectedResourceItem();
 		if (resourceItem == null) {
 			return null;
 		}
-		
+
 		resourceDetails.setResource(resourceItem);
 		resourceSync.setResource(resourceItem);
-		
+
 		template.setSelectedLeftId(ResourceSyncController.NAVIGATION_LEFT);
 		return ResourceSyncController.PAGE_NAVIGATION;
+	}
+
+	private List<ResourceListItem> testResourcesBeforeDelete() {
+		List<ResourceListItem> toBeDeleted = new ArrayList<ResourceListItem>();
+		for (ResourceListItem item : getObjects()) {
+			OperationResult result = new OperationResult("List Resource Object Shadows");
+
+			boolean canDelete = true;
+			for (ResourceObjectType objectType : item.getObjectTypes()) {
+				try {
+					ResourceObjectShadowListType list = model.listResourceObjectShadows(item.getOid(),
+							objectType.getSimpleType(),
+							new Holder<OperationResultType>(result.createOperationResultType()));
+					if (list != null && !list.getObject().isEmpty()) {
+						FacesUtils.addErrorMessage("Can't delete resource '" + item.getName()
+								+ "', it's referenced by " + list.getObject().size() + " objects of type '"
+								+ objectType.getSimpleType() + "'.");
+						canDelete = false;
+						break;
+					}
+				} catch (FaultMessage ex) {
+					LoggingUtils.logException(TRACE,
+							"Couldn't list resource objects of type {} for resource {}", ex,
+							objectType.getSimpleType(), item.getName());
+					// TODO: error handling
+					
+					canDelete = false;
+				}
+			}
+
+			if (canDelete) {
+				toBeDeleted.add(item);
+			}
+		}
+
+		return toBeDeleted;
+	}
+
+	public String deletePerformed() {
+		List<ResourceListItem> toBeDeleted = testResourcesBeforeDelete();
+		for (ResourceListItem item : toBeDeleted) {
+//			try {
+//				// TODO: holder and result
+//				model.deleteObject(item.getOid(), new Holder<OperationResultType>());				
+				getObjects().remove(item);
+//			} catch (FaultMessage ex) {
+//
+//			}
+		}
+
+		return PAGE_NAVIGATION;
+	}
+
+	@Override
+	protected void sort() {
+		Collections.sort(getObjects(), new ResourceItemComparator(getSortColumnName(), isAscending()));
+	}
+
+	@Override
+	protected String listObjects() {
+		try {
+			String objectType = ObjectTypes.RESOURCE.getObjectTypeUri();
+			ObjectListType objectList = model.listObjects(objectType, new PagingType(),
+					new Holder<OperationResultType>(new OperationResultType()));
+			List<ObjectType> objects = objectList.getObject();
+
+			List<ResourceListItem> list = getObjects();
+			list.clear();
+			for (ObjectType object : objects) {
+				list.add(createResourceListItem((ResourceType) object));
+			}
+			sort();
+		} catch (FaultMessage ex) {
+			String message = (ex.getFaultInfo().getMessage() != null) ? ex.getFaultInfo().getMessage() : ex
+					.getMessage();
+			FacesUtils.addErrorMessage("List resources failed.");
+			FacesUtils.addErrorMessage("Exception was: " + message);
+			TRACE.error("List resources failed.", ex);
+			return null;
+		}
+
+		template.setSelectedLeftId(NAVIGATION_LEFT);
+		return PAGE_NAVIGATION;
 	}
 }

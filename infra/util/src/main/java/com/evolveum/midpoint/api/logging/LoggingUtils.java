@@ -20,6 +20,10 @@
  */
 package com.evolveum.midpoint.api.logging;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import org.apache.commons.lang.Validate;
 
 /**
@@ -29,12 +33,15 @@ import org.apache.commons.lang.Validate;
  */
 public class LoggingUtils {
 
-	// TODO: object list as parameters to message {}
 	public static void logException(Trace logger, String message, Exception ex, Object... objects) {
 		Validate.notNull(logger, "Logger can't be null.");
 		Validate.notNull(ex, "Exception can't be null.");
 
-		logger.error(message + ", reason: " + ex.getMessage());
+		List<Object> args = new ArrayList<Object>();
+		args.addAll(Arrays.asList(objects));
+		args.add(ex.getMessage());
+
+		logger.error(message + ", reason: {}", args.toArray());
 		logger.debug(message + ".", ex);
 	}
 }

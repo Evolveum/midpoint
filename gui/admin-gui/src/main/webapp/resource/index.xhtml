@@ -13,7 +13,7 @@
 
 	<ui:define name="content">
 		<ice:form>
-			<ice:dataTable id="resourceTable" rows="50" value="#{resourceList.resourceList}" var="item"
+			<ice:dataTable id="resourceTable" rows="50" value="#{resourceList.objects}" var="item"
 				sortColumn="#{resourceList.sortColumnName}" sortAscending="#{resourceList.ascending}"
 				columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
 				columnWidths="auto, 200px, 220px, 120px, 30px, 30px, 40px, 225px" resizable="false">
@@ -106,7 +106,7 @@
 				</ui:remove>
 
 				<idm:button id="deleteResource" buttonType="negative" value="Delete"
-					img="/resources/images/drive_delete.png" />
+					img="/resources/images/drive_delete.png" action="#{resourceList.deletePerformed}" />
 			</div>
 		</ice:form>
 	</ui:define>
