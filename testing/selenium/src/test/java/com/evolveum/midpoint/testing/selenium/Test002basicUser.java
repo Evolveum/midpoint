@@ -250,24 +250,24 @@ public class Test002basicUser {
 
 		selenium.type("admin-content:searchName", "leila");
 		selenium.click("admin-content:searchButton");
-		waitForText("ListUsers");
+		waitForText("List Users");
 		assertTrue(selenium.isTextPresent("Leila Walker"));
 		assertFalse(selenium.isTextPresent("Selena Wilson"));
 
 		selenium.type("admin-content:searchName", "selena");
 		selenium.click("admin-content:searchButton");
-		waitForText("ListUsers");
+		waitForText("List Users");
 
 		selenium.type("admin-content:searchName", "");
 		selenium.click("admin-content:searchButton");
-		waitForText("ListUsers");
+		waitForText("List Users");
 		assertTrue(selenium.isTextPresent("Leila Walker"));
 		assertTrue(selenium.isTextPresent("Selena Wilson"));
 
 	}
-
+	
 	@Test
-	public void test03deleteUser() {
+	public void test99deleteUser() {
 		selenium.click(findNextLink("topAccount"));
 		selenium.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/index.iface", selenium.getLocation());
@@ -292,6 +292,20 @@ public class Test002basicUser {
 		waitForText("List Users");
 		assertFalse(selenium.isTextPresent("Leila Walker"));
 
-	}
+		for (String l: h.keySet()) {
+			h.remove(l);
+		}
+	
+		for (String l : selenium.getAllLinks()) {
+			if (!l.contains("Table") || !l.contains("name"))
+				continue;
+			h.put(selenium.getText(l), l.replace("name", ""));
+		}
 
+		selenium.click(h.get("selena") + "deleteCheckbox");
+		selenium.click("admin-content:deleteUser");
+		waitForText("Confirm delete");
+		selenium.click("admin-content:deleteUserYes");
+		waitForText("List Users");
+	}
 }
