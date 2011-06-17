@@ -36,14 +36,14 @@
 						<div style="width: 50px; display: inline-block;" />
 
 						<ice:outputText value="#{msg['page.account.index.rowsCount']}" />
-						<ice:inputText value="#{userList.rowsCount}" size="1" />
+						<ice:inputText id="pageSize" value="#{userList.rowsCount}" size="1" />
 						<idm:button value="#{msg['page.account.index.refresh']}" action="#{userList.listFirst}"
 							id="relistButton" img="/resources/images/arrow_rotate_clockwise.png" />
 
 						<div style="width: 20px; display: inline-block;" />
 
 						<ice:outputText value="#{msg['page.account.index.searchName']}" />
-						<ice:inputText value="#{userList.searchName}" immediate="true" />
+						<ice:inputText id="searchName" value="#{userList.searchName}" immediate="true" />
 						<idm:button actionListener="#{userList.searchUser}"
 							value="#{msg['page.account.index.search']}" id="searchButton"
 							img="/resources/images/magnifier.png" />
@@ -108,13 +108,13 @@
 						</ice:column>
 					</ice:dataTable>
 					<ice:panelGroup styleClass="container-auto" style="text-align: center;">
-						<idm:button img="/resources/images/resultset_first.png" value="#{msg['page.paginator.first']}"
+						<idm:button id="goToFirst" img="/resources/images/resultset_first.png" value="#{msg['page.paginator.first']}"
 							action="#{userList.listFirst}" />
-						<idm:button img="/resources/images/resultset_previous.png"
+						<idm:button id="goToPrevious" img="/resources/images/resultset_previous.png"
 							value="#{msg['page.paginator.previous']}" action="#{userList.listPrevious}" />
-						<idm:button img="/resources/images/resultset_next.png" value="#{msg['page.paginator.next']}"
+						<idm:button id="goToNext" img="/resources/images/resultset_next.png" value="#{msg['page.paginator.next']}"
 							action="#{userList.listNext}" />
-						<idm:button img="/resources/images/resultset_last.png" value="#{msg['page.paginator.last']}"
+						<idm:button id="goToLast" img="/resources/images/resultset_last.png" value="#{msg['page.paginator.last']}"
 							action="#{userList.listLast}" />
 					</ice:panelGroup>
 				</ice:panelGrid>

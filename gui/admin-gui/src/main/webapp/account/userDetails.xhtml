@@ -15,7 +15,7 @@
 	<ui:define name="content">
 		<ice:form id="admin-content">
 			<ice:panelTabSet id="icePnlTbSet" style="width: 100%;" selectedIndex="#{userDetails.selectedTab}">
-				<ice:panelTab label="#{msg['page.account.detail.tab.user.title']}"
+				<ice:panelTab id="userTab" label="#{msg['page.account.detail.tab.user.title']}"
 					title="#{msg['page.account.detail.tab.user.description']}">
 					<ice:panelGrid columns="2" cellpadding="7" cellspacing="7"
 						id="userDetailsGrid">
@@ -89,7 +89,7 @@
 						</ice:panelGroup>
 					</ice:panelGrid>
 				</ice:panelTab>
-				<ice:panelTab rendered="true" label="#{msg['page.account.detail.tab.accounts.title']}"
+				<ice:panelTab id="accountsTab" rendered="true" label="#{msg['page.account.detail.tab.accounts.title']}"
 					icon="resources/images/drive.png"
 					title="#{msg['page.account.detail.tab.accounts.description']}">
 					<ice:outputText style="margin-bottom: 10px; display: block;"
