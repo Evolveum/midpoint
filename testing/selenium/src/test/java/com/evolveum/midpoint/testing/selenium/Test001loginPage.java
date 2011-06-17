@@ -27,12 +27,18 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverBackedSelenium;
 
 import org.junit.*;
+
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.logging.TraceManager;
+
 import static org.junit.Assert.*;
 
 public class Test001loginPage {
 
 	WebDriverBackedSelenium selenium;
 	static String baseUrl="http://localhost:8080/idm";
+
+	private static final transient Trace logger = TraceManager.getTrace(Test001loginPage.class);
 	
 	@Before
 	public void start() {
