@@ -62,7 +62,7 @@ public class Test001loginPage {
 	
 	@Test
 	public void negativeLoginTest() {
-
+		logger.info("negativeLoginTest");
 		selenium.open("/");
 		selenium.waitForPageToLoad("10000");
 		//Test invalid user name

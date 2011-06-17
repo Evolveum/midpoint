@@ -18,12 +18,12 @@
 					<f:facet name="header">
 						<ice:outputText value="#{msg['page.account.index.confirm.title']}" />
 					</f:facet>
-					<f:facet name="body">
+					<f:facet id="confirm" name="body">
 						<ice:outputText value="#{msg['page.account.index.confirm']}" />
 						<div class="button-bar">
-							<ice:commandButton value="#{msg['page.account.index.confirm.yes']}"
+							<ice:commandButton id="deleteUserYes" value="#{msg['page.account.index.confirm.yes']}"
 								action="#{userList.deleteUsers}" />
-							<ice:commandButton value="#{msg['page.account.index.confirm.no']}"
+							<ice:commandButton id="deleteUserNo" value="#{msg['page.account.index.confirm.no']}"
 								action="#{userList.hideConfirmDelete}" />
 						</div>
 					</f:facet>

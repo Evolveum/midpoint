@@ -33,7 +33,6 @@ import org.junit.*;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.thoughtworks.selenium.SeleniumException;
 
 import static org.junit.Assert.*;
 
@@ -41,7 +40,7 @@ public class Test002basicUser {
 
 	WebDriverBackedSelenium selenium;
 	static String baseUrl = "http://localhost:8080/idm";
-	
+
 	private static final transient Trace logger = TraceManager.getTrace(Test002basicUser.class);
 
 	@Before
@@ -90,7 +89,7 @@ public class Test002basicUser {
 		}
 		assertTrue(selenium.isTextPresent(text));
 	}
-/*
+
 	// Based on MID-2 jira scenarios
 	@Test
 	public void test01addUser() {
@@ -224,7 +223,7 @@ public class Test002basicUser {
 		selenium.click("createUserForm:createUser");
 		waitForText("Value is required");
 	}
-*/
+
 	@Test
 	public void test02searchUser() throws InterruptedException {
 		logger.info("searchTest()");
@@ -234,22 +233,65 @@ public class Test002basicUser {
 		assertEquals(baseUrl + "/account/index.iface", selenium.getLocation());
 		assertTrue(selenium.isTextPresent("New User"));
 
-		//get hashmap and login
-		HashMap<String,String> h = new HashMap<String,String>(); 
+		// get hashmap and login
+		HashMap<String, String> h = new HashMap<String, String>();
 		for (String l : selenium.getAllLinks()) {
-			if ( ! l.contains("Table") || ! l.contains("name")) continue;
-			h.put(selenium.getText(l),l.replace(":name",""));
+			if (!l.contains("Table") || !l.contains("name"))
+				continue;
+			h.put(selenium.getText(l), l.replace(":name", ""));
 		}
-		
-		for (String k: h.keySet()) {
+
+		for (String k : h.keySet()) {
 			logger.info(k + " -> " + h.get(k));
 		}
+
+		assertTrue(selenium.isTextPresent("Leila Walker"));
+		assertTrue(selenium.isTextPresent("Selena Wilson"));
+
+		selenium.type("admin-content:searchName", "leila");
+		selenium.click("admin-content:searchButton");
+		waitForText("ListUsers");
+		assertTrue(selenium.isTextPresent("Leila Walker"));
+		assertFalse(selenium.isTextPresent("Selena Wilson"));
+
+		selenium.type("admin-content:searchName", "selena");
+		selenium.click("admin-content:searchButton");
+		waitForText("ListUsers");
+
+		selenium.type("admin-content:searchName", "");
+		selenium.click("admin-content:searchButton");
+		waitForText("ListUsers");
+		assertTrue(selenium.isTextPresent("Leila Walker"));
+		assertTrue(selenium.isTextPresent("Selena Wilson"));
+
 	}
 
-	
-	// @Test
-	// public void deleteUserTest() { 
-		 
-	// }
-	 
+	@Test
+	public void test03deleteUser() {
+		selenium.click(findNextLink("topAccount"));
+		selenium.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/index.iface", selenium.getLocation());
+		assertTrue(selenium.isTextPresent("New User"));
+
+		// get hashmap and login
+		HashMap<String, String> h = new HashMap<String, String>();
+		for (String l : selenium.getAllLinks()) {
+			if (!l.contains("Table") || !l.contains("name"))
+				continue;
+			h.put(selenium.getText(l), l.replace("name", ""));
+		}
+
+		selenium.click(h.get("leila") + "deleteCheckbox");
+		selenium.click("admin-content:deleteUser");
+		waitForText("Confirm delete");
+		selenium.click("admin-content:deleteUserNo");
+		waitForText("List Users");
+		selenium.click("admin-content:deleteUser");
+		waitForText("Confirm delete");
+		selenium.click("admin-content:deleteUserYes");
+		waitForText("List Users");
+		assertFalse(selenium.isTextPresent("Leila Walker"));
+
+	}
+
 }
