@@ -25,6 +25,9 @@ package com.evolveum.midpoint.web.model;
 import java.util.List;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.PagingDto;
+import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 
 /**

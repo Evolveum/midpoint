@@ -20,19 +20,22 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.model;
+package com.evolveum.midpoint.web.model.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
 
 /**
  * 
- * @author Katuska
+ * @author semancik
  */
-public class GenericObjectDto extends ObjectDto {
+public abstract class ExtensibleObjectDto extends ObjectDto {
 
-	private static final long serialVersionUID = -2855273139925483488L;
+	private static final long serialVersionUID = 268510980551245638L;
 
-	public GenericObjectDto(ObjectType object) {
+	public ExtensibleObjectDto(ExtensibleObjectType object) {
 		super(object);
+	}
+
+	public ExtensibleObjectDto() {
 	}
 }

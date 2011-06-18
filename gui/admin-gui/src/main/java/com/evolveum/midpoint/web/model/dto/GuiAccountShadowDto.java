@@ -20,22 +20,14 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.model;
+package com.evolveum.midpoint.web.model.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 
 /**
  * 
- * @author semancik
+ * @author katuska
  */
-public class AccountShadowDto extends ResourceObjectShadowDto {
+public class GuiAccountShadowDto extends AccountShadowDto {
 
-	private static final long serialVersionUID = -7908853369766852050L;
-
-	public AccountShadowDto(AccountShadowType object) {
-		super(object);
-	}
-
-	public AccountShadowDto() {
-	}
+	private static final long serialVersionUID = -1664375917978879455L;
 }

@@ -20,15 +20,38 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.dto;
+package com.evolveum.midpoint.web.model.dto;
 
-import com.evolveum.midpoint.web.model.AccountShadowDto;
+import java.util.Set;
+import javax.xml.namespace.QName;
 
 /**
- * 
- * @author katuska
+ *
+ * @author semancik
  */
-public class GuiAccountShadowDto extends AccountShadowDto {
+public final class PropertyChange {
 
-	private static final long serialVersionUID = -1664375917978879455L;
+    public enum ChangeType { ADD, DELETE, REPLACE };
+
+    private QName propertyName;
+    private ChangeType changeType;
+    private Set<Object> values;
+
+    public PropertyChange(QName name, ChangeType type, Set<Object> values) {
+        propertyName = name;
+        changeType = type;
+        this.values = values;
+    }
+
+    public QName getPropertyName() {
+        return propertyName;
+    }
+
+    public ChangeType getChangeType() {
+        return changeType;
+    }
+
+    public Set<Object> getValues() {
+        return values;
+    }
 }

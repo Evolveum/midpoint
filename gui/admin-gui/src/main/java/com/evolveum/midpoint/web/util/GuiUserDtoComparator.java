@@ -24,7 +24,7 @@ package com.evolveum.midpoint.web.util;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.web.dto.GuiUserDto;
+import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 
 /**
  * 

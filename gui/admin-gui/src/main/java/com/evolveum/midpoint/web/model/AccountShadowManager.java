@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**

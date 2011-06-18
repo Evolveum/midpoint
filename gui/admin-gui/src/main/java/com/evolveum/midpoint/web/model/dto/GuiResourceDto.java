@@ -20,11 +20,10 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.dto;
+package com.evolveum.midpoint.web.model.dto;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.web.model.ResourceDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**

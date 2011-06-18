@@ -20,22 +20,33 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.model;
+package com.evolveum.midpoint.web.model.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
+import java.io.Serializable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 
 /**
  * 
  * @author semancik
  */
-public abstract class ExtensibleObjectDto extends ObjectDto {
+public class ObjectReferenceDto implements Serializable {
 
-	private static final long serialVersionUID = 268510980551245638L;
+	private static final long serialVersionUID = 6496361232990738597L;
+	private ObjectReferenceType objectReference;
 
-	public ExtensibleObjectDto(ExtensibleObjectType object) {
-		super(object);
+	public ObjectReferenceDto(ObjectReferenceType objectReference) {
+		if (objectReference == null) {
+			throw new IllegalArgumentException("Object reference type can't be null.");
+		}
+		this.objectReference = objectReference;
 	}
 
-	public ExtensibleObjectDto() {
+	ObjectReferenceType getObjectReferenceType() {
+		return objectReference;
+	}
+
+	public String getOid() {
+		return getObjectReferenceType().getOid();
 	}
 }

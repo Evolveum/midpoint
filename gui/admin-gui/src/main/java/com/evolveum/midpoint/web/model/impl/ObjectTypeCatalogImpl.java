@@ -22,9 +22,9 @@
 
 package com.evolveum.midpoint.web.model.impl;
 
-import com.evolveum.midpoint.web.model.ObjectDto;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -34,26 +34,26 @@ import org.apache.commons.lang.Validate;
 public class ObjectTypeCatalogImpl implements ObjectTypeCatalog {
 
 	private static final long serialVersionUID = -8993202087773409957L;
-	private Map<Class<? extends ObjectType>, ObjectManager> supportedObjectManagers = new HashMap<Class<? extends ObjectType>, ObjectManager>();
+	private Map<Class<? extends ObjectType>, ObjectManager> managers = new HashMap<Class<? extends ObjectType>, ObjectManager>();
 
 	@Override
-	public Set<Class> listSupportedObjectTypes() {
-		Set supportedObjectTypes = supportedObjectManagers.keySet();
+	public Set<Class<? extends ObjectType>> listSupportedObjectTypes() {
+		Set<Class<? extends ObjectType>> supportedObjectTypes = managers.keySet();
 		return supportedObjectTypes;
 	}
 
 	public <T extends ObjectType> void add(Class<T> type, ObjectManager<?> objectManager) {
-		supportedObjectManagers.put(type, objectManager);
+		managers.put(type, objectManager);
 	}
 
 	public void setSupportedObjectManagers(Map<Class<? extends ObjectType>, ObjectManager> objectManagers) {
 		Validate.notNull(objectManagers);
-		supportedObjectManagers = objectManagers;
+		managers = objectManagers;
 	}
 
 	@Override
 	public <T extends ObjectDto, C extends T> ObjectManager<T> getObjectManager(Class<T> managerType,
 			Class<C> dtoType) {
-		return supportedObjectManagers.get(dtoType);
+		return managers.get(dtoType);
 	}
 }

@@ -20,19 +20,19 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.model;
+package com.evolveum.midpoint.web.model.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceStateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 
 /**
- *
+ * 
  * @author Vilo Repan
  */
-public class ResourceStateDto extends ObjectDto {
+public class UserTemplateDto extends ObjectDto {
 
-	private static final long serialVersionUID = -1170598753163899233L;
+	private static final long serialVersionUID = 866533225746657448L;
 
-	public ResourceStateDto(ResourceStateType resourceState) {
-        super(resourceState);
-    }
+	public UserTemplateDto(UserTemplateType userTemplate) {
+		super(userTemplate);
+	}
 }

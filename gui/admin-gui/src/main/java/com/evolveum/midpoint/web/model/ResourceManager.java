@@ -24,6 +24,9 @@ package com.evolveum.midpoint.web.model;
 
 import java.util.List;
 
+import com.evolveum.midpoint.web.model.dto.ResourceDto;
+import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
+
 /**
  * 
  * TODO

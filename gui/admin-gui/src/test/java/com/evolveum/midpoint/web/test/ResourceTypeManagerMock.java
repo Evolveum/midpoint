@@ -22,14 +22,14 @@
 
 package com.evolveum.midpoint.web.test;
 
-import com.evolveum.midpoint.web.model.PagingDto;
-import com.evolveum.midpoint.web.model.PropertyAvailableValues;
-import com.evolveum.midpoint.web.model.PropertyChange;
-import com.evolveum.midpoint.web.model.ResourceDto;
 import com.evolveum.midpoint.web.model.ResourceManager;
-import com.evolveum.midpoint.web.model.ResourceObjectShadowDto;
-import com.evolveum.midpoint.web.model.UserDto;
 import com.evolveum.midpoint.web.model.WebModelException;
+import com.evolveum.midpoint.web.model.dto.PagingDto;
+import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
+import com.evolveum.midpoint.web.model.dto.PropertyChange;
+import com.evolveum.midpoint.web.model.dto.ResourceDto;
+import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
+import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import java.util.ArrayList;
 import java.util.Collection;

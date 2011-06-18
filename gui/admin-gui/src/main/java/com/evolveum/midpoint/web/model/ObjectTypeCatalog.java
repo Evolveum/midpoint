@@ -25,6 +25,9 @@ package com.evolveum.midpoint.web.model;
 import java.io.Serializable;
 import java.util.Set;
 
+import com.evolveum.midpoint.web.model.dto.ObjectDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+
 /**
  * GUI Model Interface.
  * 
@@ -47,7 +50,7 @@ public interface ObjectTypeCatalog extends Serializable {
 	 * 
 	 * @return list of supported object types (in form of Java classes)
 	 */
-	Set<Class> listSupportedObjectTypes();
+	Set<Class<? extends ObjectType>> listSupportedObjectTypes();
 
 	/**
 	 * Returns instance of ObjectManager appropriate for specified class.

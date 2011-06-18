@@ -40,8 +40,8 @@ import com.evolveum.midpoint.provisioning.schema.ResourceObjectDefinition;
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
 import com.evolveum.midpoint.provisioning.schema.util.DOMToSchemaParser;
 import com.evolveum.midpoint.provisioning.schema.util.SchemaParserException;
-import com.evolveum.midpoint.web.model.AccountShadowDto;
-import com.evolveum.midpoint.web.model.ResourceDto;
+import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**

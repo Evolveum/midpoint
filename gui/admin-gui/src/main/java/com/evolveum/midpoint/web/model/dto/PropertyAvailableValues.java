@@ -20,19 +20,14 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.model;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
+package com.evolveum.midpoint.web.model.dto;
 
 /**
- * 
- * @author Vilo Repan
+ *
+ * @author semancik
  */
-public class UserTemplateDto extends ObjectDto {
+public final class PropertyAvailableValues {
 
-	private static final long serialVersionUID = 866533225746657448L;
+    // TODO
 
-	public UserTemplateDto(UserTemplateType userTemplate) {
-		super(userTemplate);
-	}
 }

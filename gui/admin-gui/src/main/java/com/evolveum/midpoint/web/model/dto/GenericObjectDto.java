@@ -20,38 +20,19 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.web.model;
+package com.evolveum.midpoint.web.model.dto;
 
-import java.util.Set;
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
- *
- * @author semancik
+ * 
+ * @author Katuska
  */
-public final class PropertyChange {
+public class GenericObjectDto extends ObjectDto {
 
-    public enum ChangeType { ADD, DELETE, REPLACE };
+	private static final long serialVersionUID = -2855273139925483488L;
 
-    private QName propertyName;
-    private ChangeType changeType;
-    private Set<Object> values;
-
-    public PropertyChange(QName name, ChangeType type, Set<Object> values) {
-        propertyName = name;
-        changeType = type;
-        this.values = values;
-    }
-
-    public QName getPropertyName() {
-        return propertyName;
-    }
-
-    public ChangeType getChangeType() {
-        return changeType;
-    }
-
-    public Set<Object> getValues() {
-        return values;
-    }
+	public GenericObjectDto(ObjectType object) {
+		super(object);
+	}
 }
