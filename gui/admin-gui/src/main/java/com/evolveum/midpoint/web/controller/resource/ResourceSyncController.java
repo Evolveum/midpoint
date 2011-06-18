@@ -59,7 +59,7 @@ public class ResourceSyncController implements Serializable {
 		return ResourceDetailsController.PAGE_NAVIGATION;
 	}
 	
-	public boolean showEnableSync() {
+	public boolean isSyncEnabled() {
 		if (resource != null) {
 			return resource.getSync().isEnabled();
 		}

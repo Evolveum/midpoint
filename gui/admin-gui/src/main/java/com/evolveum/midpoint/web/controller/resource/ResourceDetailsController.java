@@ -138,6 +138,13 @@ public class ResourceDetailsController implements Serializable {
 		return ResourceListController.PAGE_NAVIGATION;
 	}
 
+	public String showImportStatus() {
+		importController.setResource(resource);
+		
+		template.setSelectedLeftId(ResourceImportController.NAVIGATION_LEFT);
+		return ResourceImportController.PAGE_NAVIGATION;
+	}
+
 	public String showSyncStatus() {
 		resourceSync.setResource(resource);
 		

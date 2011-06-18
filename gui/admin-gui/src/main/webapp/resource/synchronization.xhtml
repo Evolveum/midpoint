@@ -35,11 +35,11 @@
 					img="/resources/images/door_in.png" />
 
 				<idm:button action="#{resourceSync.backPerformed}" value="#{msg['page.button.enableSync']}"
-					img="/resources/images/arrow_refresh.png" buttonType="positive" rendered="#{resourceSync.showEnableSync}" />
+					img="/resources/images/arrow_refresh.png" buttonType="positive" rendered="#{not resourceSync.syncEnabled}" />
 
 				<idm:button action="#{resourceSync.backPerformed}" value="#{msg['page.button.disableSync']}"
 					img="/resources/images/arrow_refresh_gray.png" buttonType="negative"
-					rendered="#{not resourceSync.showEnableSync}" />
+					rendered="#{resourceSync.syncEnabled}" />
 			</div>
 		</ice:form>
 	</ui:define>

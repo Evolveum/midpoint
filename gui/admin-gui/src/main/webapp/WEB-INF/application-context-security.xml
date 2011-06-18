@@ -81,6 +81,6 @@
 	</beans:bean>
 
 	<authentication-manager alias="authenticationManager">
-		<authentication-provider ref='midPointAuthenticationProvider' />
+		<authentication-provider ref="midPointAuthenticationProvider" />
 	</authentication-manager>
 </beans:beans>
