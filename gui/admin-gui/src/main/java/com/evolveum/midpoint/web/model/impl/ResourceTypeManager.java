@@ -93,18 +93,6 @@ public class ResourceTypeManager extends ResourceManager {
 	}
 
 	@Override
-	public void delete(String oid) throws WebModelException {
-		Validate.notNull(oid);
-		try {
-			getModel().deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
-		} catch (FaultMessage ex) {
-			throw new WebModelException(ex.getMessage(),
-					"[Web Service Error] Failed to delete resource with oid " + oid);
-		}
-
-	}
-
-	@Override
 	public <T extends ResourceObjectShadowType> List<ResourceObjectShadowDto<T>> listObjectShadows(
 			String oid, Class<T> resourceObjectShadowType) {
 		Validate.notNull(oid);

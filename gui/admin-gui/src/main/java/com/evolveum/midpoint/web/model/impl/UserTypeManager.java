@@ -89,20 +89,6 @@ public class UserTypeManager extends UserManager {
 	}
 
 	@Override
-	public void delete(String oid) throws WebModelException {
-		TRACE.debug("delete (oid = {} )", new Object[] { oid });
-		Validate.notNull(oid);
-
-		try {
-			model.deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(TRACE, "Delete user failed for oid {}", ex, oid);
-			throw new WebModelException(ex.getFaultInfo().getMessage(),
-					"[Web Service Error] Delete user failed for oid " + oid);
-		}
-	}
-
-	@Override
 	public String add(UserDto newObject) throws WebModelException {
 		Validate.notNull(newObject);
 

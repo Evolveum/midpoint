@@ -66,19 +66,6 @@ public class AccountShadowTypeManager extends AccountShadowManager {
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] Add account failed");
 		}
-
-	}
-
-	@Override
-	public void delete(String oid) throws WebModelException {
-		TRACE.info("oid = {}", new Object[] { oid });
-		Validate.notNull(oid);
-
-		try { // Call Web Service Operation
-			getModel().deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
-		} catch (FaultMessage ex) {
-			throw new WebModelException(ex.getMessage(), "[Web Service Error] Delete account failed.");
-		}
 	}
 
 	@Override

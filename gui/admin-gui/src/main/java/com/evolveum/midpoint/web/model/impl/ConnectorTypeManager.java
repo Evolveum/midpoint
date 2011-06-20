@@ -49,7 +49,7 @@ public class ConnectorTypeManager extends ObjectManagerImpl<ConnectorDto> {
 	}
 
 	@Override
-	public void delete(String oid) throws WebModelException {
+	public void delete(String oid) {
 		throw new UnsupportedOperationException("Not supported for this type.");
 	}
 

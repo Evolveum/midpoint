@@ -100,9 +100,11 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 
 			// TODO: handle exception
 			userDetailsController.setUser(user);
-//		} catch (WebModelException ex) {
-//			LoggingUtils.logException(TRACE, "Can't select user, WebModelException error occured", ex);
-//			FacesUtils.addErrorMessage("Can't select user, WebModelException error occured.", ex);
+			// } catch (WebModelException ex) {
+			// LoggingUtils.logException(TRACE,
+			// "Can't select user, WebModelException error occured", ex);
+			// FacesUtils.addErrorMessage("Can't select user, WebModelException error occured.",
+			// ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(TRACE, "Can't select user, unknown error occured", ex);
 			FacesUtils.addErrorMessage("Can't select user, unknown error occured.", ex);
@@ -124,7 +126,7 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 			if (guiUserDto.isSelected()) {
 				try {
 					userManager.delete(guiUserDto.getOid());
-				} catch (WebModelException ex) {
+				} catch (Exception ex) {
 					LoggingUtils.logException(TRACE, "Delete user failed", ex);
 					FacesUtils.addErrorMessage("Delete user failed: " + ex.getMessage());
 				}
@@ -160,15 +162,15 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 		getObjects().clear();
 		if (getQuery() == null) {
 			// we're listing objects
-//			try {
-				Collection<UserDto> list = (Collection<UserDto>) userManager.list(paging);
-				for (UserDto userDto : list) {
-					getObjects().add((GuiUserDto) userDto);
-				}
-//			} catch (WebModelException ex) {
-//				LoggingUtils.logException(TRACE, "List users failed", ex);
-//				// TODO: faces utils error add
-//			}
+			// try {
+			Collection<UserDto> list = (Collection<UserDto>) userManager.list(paging);
+			for (UserDto userDto : list) {
+				getObjects().add((GuiUserDto) userDto);
+			}
+			// } catch (WebModelException ex) {
+			// LoggingUtils.logException(TRACE, "List users failed", ex);
+			// // TODO: faces utils error add
+			// }
 		} else {
 			// we're searching for objects
 			OperationResult result = new OperationResult("Search");

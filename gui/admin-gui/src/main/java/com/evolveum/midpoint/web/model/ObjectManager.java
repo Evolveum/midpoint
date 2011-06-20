@@ -113,7 +113,7 @@ public interface ObjectManager<T> {
 	 * 
 	 * @param oid
 	 */
-	void delete(String oid) throws WebModelException;
+	void delete(String oid);
 
 	/**
 	 * TODO

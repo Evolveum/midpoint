@@ -158,6 +158,33 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 	}
 
 	@Override
+	public void delete(String oid) {
+		Validate.notNull(oid, "Object oid must not be null or empty.");
+		LOGGER.debug("Deleting object '" + oid + "'.");
+
+		OperationResult result = new OperationResult("Delete Object");
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(
+				result.createOperationResultType());
+		try {
+			getModel().deleteObject(oid, holder);
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordSuccess();
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't delete object {} from model", ex, oid);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't delete object {} from model", ex, oid);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		}
+
+		printResults(LOGGER, result);
+	}
+
+	@Override
 	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
