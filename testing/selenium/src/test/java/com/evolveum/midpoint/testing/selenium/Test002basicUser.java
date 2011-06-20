@@ -300,6 +300,7 @@ public class Test002basicUser {
 		waitForText("List Users");
 		assertFalse(selenium.isTextPresent("Leila Walker"));
 
+		logger.info("Removing set");
 		for (String l: h.keySet()) {
 			h.remove(l);
 		}
@@ -307,6 +308,7 @@ public class Test002basicUser {
 		for (String l : selenium.getAllLinks()) {
 			if (!l.contains("Table") || !l.contains("name"))
 				continue;
+			logger.info("Adding:" + selenium.getText(l), l.replace("name", ""));
 			h.put(selenium.getText(l), l.replace("name", ""));
 		}
 		
