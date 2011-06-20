@@ -108,7 +108,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 		} catch (JAXBException e) {
 			TRACE.error("Problem initializing XML Repository Service", e);
 			throw new RuntimeException("Problem initializing XML Repository Service", e);
-		}
+		} 	
 
 	}
 
@@ -187,12 +187,8 @@ public class XmlRepositoryService implements RepositoryPortType {
 
 			TRACE.trace("generated query: " + query);
 
-			// Execute the query and receives all results.
 			ResourceSet set = service.query(query.toString());
-
-			// Create a result iterator.
 			ResourceIterator iter = set.getIterator();
-
 			// Loop through all result items.
 			while (iter.hasMoreResources()) {
 				Resource res = iter.nextResource();
@@ -262,7 +258,6 @@ public class XmlRepositoryService implements RepositoryPortType {
 			query.append("for $x in //c:object where $x/@xsi:type=\"")
 					.append(objectType.substring(objectType.lastIndexOf("#") + 1)).append("\"");
 			if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
-				//TODO: IGOR REVIEW THIS CHANGES !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 				query.append("[fn:position() = ( ")
 						.append(paging.getOffset() * paging.getMaxSize())
 						.append(" to ")
@@ -270,7 +265,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 			}
 			if (filters != null) {
 				for (Map.Entry<String, String> filterEntry : filters.entrySet()) {
-					// FIXME: now only refs are search by attributes values
+					// FIXME: now only refs are searched by attributes values
 					if (StringUtils.contains(filterEntry.getKey(), "Ref")) {
 						// search based on attribute value
 						query.append(" and $x/").append(filterEntry.getKey()).append("/@oid='")
@@ -295,13 +290,8 @@ public class XmlRepositoryService implements RepositoryPortType {
 
 			TRACE.trace("generated query: " + query);
 
-			// Execute the query and receives all results.
 			ResourceSet set = service.query(query.toString());
-
-			// Create a result iterator.
 			ResourceIterator iter = set.getIterator();
-
-			// Loop through all result items.
 			while (iter.hasMoreResources()) {
 				Resource res = iter.nextResource();
 
@@ -394,8 +384,12 @@ public class XmlRepositoryService implements RepositoryPortType {
 				throw new IllegalArgumentException("Query filter contains empty list of values to search by");
 			}
 			// FIXME: possible problem with prefixes
-			String lastPathSegment = firstChild.getPrefix() + ":" + firstChild.getLocalName();
-
+			String lastPathSegment;
+			if (!StringUtils.isEmpty(firstChild.getPrefix())) {
+				lastPathSegment = firstChild.getPrefix() + ":" + firstChild.getLocalName();
+			} else {
+				lastPathSegment = "c:" + firstChild.getLocalName();
+			}
 			// some search filters does not contain element's text value, for
 			// these filters the value is stored in attribute
 			String criteriaValue = StringUtils.trim(firstChild.getTextContent());
@@ -555,7 +549,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 		List<ObjectType> objects = retrievedObjects.getObject();
 
 		if (null == retrievedObjects || objects == null || objects.size() == 0) {
-			throw new FaultMessage("No object found", new ObjectNotFoundFaultType());
+			return null;
 		}
 		if (objects.size() > 1) {
 			throw new FaultMessage("Found incorrect number of objects " + objects.size(),
