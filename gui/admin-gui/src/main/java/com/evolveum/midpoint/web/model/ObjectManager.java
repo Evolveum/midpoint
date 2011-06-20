@@ -28,7 +28,6 @@ import java.util.Set;
 
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
-import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 
@@ -47,13 +46,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
  * @author semancik
  */
 public interface ObjectManager<T> {
-	
+
 	/**
 	 * List objects according to paging parameters.
 	 * 
 	 * @return all objects from the repository.
 	 */
-	Collection<UserDto> list(PagingType paging) throws WebModelException;
+	Collection<T> list(PagingType paging) throws WebModelException;
 
 	/**
 	 * List all objects.
@@ -96,10 +95,10 @@ public interface ObjectManager<T> {
 	/**
 	 * Modify the object.
 	 * 
-	 * The method will change the object to a new state. It is not guranteed
+	 * The method will change the object to a new state. It is not guaranteed
 	 * that the object will be in the state specified by changedObject parameter
-	 * when stored in the repository because many update may be running in
-	 * paralel.
+	 * when stored in the repository because many updates may be running in
+	 * parallel.
 	 * 
 	 * TODO Should not be normally used.
 	 * 

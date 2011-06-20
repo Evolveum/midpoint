@@ -74,6 +74,7 @@
 	<bean id="guiAccountShadowDtoManager" class="com.evolveum.midpoint.web.model.impl.AccountShadowTypeManager" scope="singleton">
 		<constructor-arg name="constructAccountShadowType" value="com.evolveum.midpoint.web.model.dto.GuiAccountShadowDto" />
 	</bean>
+	<bean id="connectorTypeManager" class="com.evolveum.midpoint.web.model.impl.ConnectorTypeManager" scope="singleton" />
 
 	<bean id="objectTypeCatalog" class="com.evolveum.midpoint.web.model.impl.ObjectTypeCatalogImpl" scope="singleton">
 		<property name="supportedObjectManagers">
@@ -95,6 +96,12 @@
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType</value>
 					</key>
 					<ref bean="guiAccountShadowDtoManager" />
+				</entry>
+				<entry>
+					<key>
+						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType</value>
+					</key>
+					<ref bean="connectorTypeManager" />
 				</entry>
 			</map>
 		</property>

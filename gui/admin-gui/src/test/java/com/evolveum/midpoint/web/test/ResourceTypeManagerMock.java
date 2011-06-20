@@ -36,7 +36,6 @@ import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
-import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 
@@ -105,7 +104,7 @@ public class ResourceTypeManagerMock implements ResourceManager {
 	}
 
 	@Override
-	public Collection<UserDto> list(PagingType paging) throws WebModelException {
+	public Collection<ResourceDto> list(PagingType paging) throws WebModelException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

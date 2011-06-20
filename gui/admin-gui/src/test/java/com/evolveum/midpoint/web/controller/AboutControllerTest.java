@@ -16,7 +16,7 @@ import static junit.framework.Assert.*;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
-		"classpath:applicationContext-test.xml" })
+		"classpath:application-context-test.xml" })
 public class AboutControllerTest {
 
 	@Autowired(required = true)

@@ -35,64 +35,66 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.evolveum.midpoint.web.bean.XPathVariableBean;
 
 /**
- *
+ * 
  * @author Katuska
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"file:src/main/webapp/WEB-INF/application-context-webapp.xml", "file:src/main/webapp/WEB-INF/application-context-security.xml", "classpath:applicationContext-test.xml"})
+@ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
+		"file:src/main/webapp/WEB-INF/application-context-security.xml",
+		"classpath:application-context-test.xml" })
 public class XPathDebugControllerTest {
 
-    @Autowired
-    XPathDebugController xpathController;
+	@Autowired
+	XPathDebugController xpathController;
 
-    public XPathDebugControllerTest() {
-    }
+	public XPathDebugControllerTest() {
+	}
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+	}
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
+	@AfterClass
+	public static void tearDownClass() throws Exception {
+	}
 
-    @Before
-    public void setUp() {
-    }
+	@Before
+	public void setUp() {
+	}
 
-    @After
-    public void tearDown() {
-    }
+	@After
+	public void tearDown() {
+	}
 
-    private void setAttributes() {
-        xpathController.cleanupController();
-        String expression = "declare namespace x='http://xxx.com/'; concat($x:foo,' ',$x:bar)";
-        xpathController.setExpression(expression);
+	private void setAttributes() {
+		xpathController.cleanupController();
+		String expression = "declare namespace x='http://xxx.com/'; concat($x:foo,' ',$x:bar)";
+		xpathController.setExpression(expression);
 
-        xpathController.addVariablePerformed();
-        XPathVariableBean variable1 = xpathController.getVariables().get(0);
-        variable1.setType("String");
-        variable1.setValue("salala");
-        variable1.setVariableName("x:foo");
-        
-        xpathController.addVariablePerformed();
-        XPathVariableBean variable2 = xpathController.getVariables().get(0);        
-        variable2.setType("String");
-        variable2.setValue("tralala");
-        variable2.setVariableName("x:bar");
+		xpathController.addVariablePerformed();
+		XPathVariableBean variable1 = xpathController.getVariables().get(0);
+		variable1.setType("String");
+		variable1.setValue("salala");
+		variable1.setVariableName("x:foo");
 
-        xpathController.setReturnType("String");
-    }
+		xpathController.addVariablePerformed();
+		XPathVariableBean variable2 = xpathController.getVariables().get(0);
+		variable2.setType("String");
+		variable2.setValue("tralala");
+		variable2.setVariableName("x:bar");
 
-    @Test
-    public void testEvaluate() throws Exception {
-        setAttributes();
-        String result = xpathController.evaluate();
-        System.out.println("result: " + result);
-    }
-    // TODO add test methods here.
-    // The methods must be annotated with annotation @Test. For example:
-    //
-    // @Test
-    // public void hello() {}
+		xpathController.setReturnType("String");
+	}
+
+	@Test
+	public void testEvaluate() throws Exception {
+		setAttributes();
+		String result = xpathController.evaluate();
+		System.out.println("result: " + result);
+	}
+	// TODO add test methods here.
+	// The methods must be annotated with annotation @Test. For example:
+	//
+	// @Test
+	// public void hello() {}
 }
