@@ -33,18 +33,23 @@ import javax.xml.ws.Holder;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
+import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
@@ -60,62 +65,43 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 public class ResourceTypeManager implements ResourceManager, Serializable {
 
 	private static final long serialVersionUID = 8238616310118713517L;
-	private static final Trace TRACE = TraceManager.getTrace(ResourceTypeManager.class);
-	private Class<?> constructResourceType;
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeManager.class);
+	private Class<? extends ResourceDto> constructResourceType;
 
 	@Autowired(required = true)
 	private transient ModelPortType model;
 
-	public ResourceTypeManager(Class<?> constructResourceType) {
+	public ResourceTypeManager(Class<? extends ResourceDto> constructResourceType) {
 		this.constructResourceType = constructResourceType;
 	}
 
 	@Override
-	public Collection<ResourceDto> list() {
-		try { // Call Web Service Operation
-			String objectType = ObjectTypes.RESOURCE.getObjectTypeUri();
-			// TODO: more reasonable handling of paging info
-			PagingType paging = new PagingType();
-			ObjectListType result = model.listObjects(objectType, paging, new Holder<OperationResultType>(
-					new OperationResultType()));
-			List<ObjectType> objects = result.getObject();
-			Collection<ResourceDto> items = new ArrayList<ResourceDto>(objects.size());
-
-			for (ObjectType o : objects) {
-				ResourceDto resourceDto = (ResourceDto) constructResourceType.newInstance();
-				resourceDto.setXmlObject((ResourceType) o);
-				items.add(resourceDto);
-			}
-
-			return items;
-		} catch (Exception ex) {
-			TRACE.error("List resources failed");
-			TRACE.error("Exception was: ", ex);
-			return null;
-		}
+	public Collection<ResourceDto> list() throws WebModelException {
+		PagingType paging = PagingTypeFactory.createListAllPaging(OrderDirectionType.ASCENDING, "name");
+		return list(paging);
 	}
 
 	@Override
 	public ResourceDto get(String oid, PropertyReferenceListType resolve) throws WebModelException {
-		TRACE.info("oid = {}", new Object[] { oid });
+		LOGGER.info("oid = {}", new Object[] { oid });
 		Validate.notNull(oid);
 		try { // Call Web Service Operation
 			ObjectType result = model.getObject(oid, resolve, new Holder<OperationResultType>(
 					new OperationResultType()));
 
-			ResourceDto resourceDto = (ResourceDto) constructResourceType.newInstance();
+			ResourceDto resourceDto = constructResourceType.newInstance();
 			resourceDto.setXmlObject((ResourceType) result);
 
 			return resourceDto;
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "Failed to get resource with oid " + oid);
 		} catch (InstantiationException ex) {
-			TRACE.error("Instantiation failed: {}", ex);
+			LOGGER.error("Instantiation failed: {}", ex);
 			return null;
 			// throw new WebModelException(ex.getMessage(),
 			// "Instatiation failed.");
 		} catch (IllegalAccessException ex) {
-			TRACE.error("Class or its nullary constructor is not accessible: {}", ex);
+			LOGGER.error("Class or its nullary constructor is not accessible: {}", ex);
 			return null;
 			// throw new WebModelException(ex.getMessage(),
 			// "Class or its nullary constructor is not accessible.");
@@ -124,7 +110,11 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 
 	@Override
 	public ResourceDto create() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		try {
+			return constructResourceType.newInstance();
+		} catch (Exception ex) {
+			throw new IllegalStateException("Couldn't create instance of '" + constructResourceType + "'.");
+		}
 	}
 
 	@Override
@@ -165,29 +155,62 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 	}
 
 	@Override
-	public List<ResourceObjectShadowDto> listObjectShadows(String oid, Class<?> resourceObjectShadowType) {
+	public <T extends ResourceObjectShadowType> List<ResourceObjectShadowDto<T>> listObjectShadows(
+			String oid, Class<T> resourceObjectShadowType) {
 		Validate.notNull(oid);
 		try {
 			ResourceObjectShadowListType resourceObjectShadowListType = model.listResourceObjectShadows(oid,
 					resourceObjectShadowType.getName(), new Holder<OperationResultType>(
 							new OperationResultType()));
-			List<ResourceObjectShadowDto> resourceObjectShadowDtoList = new ArrayList<ResourceObjectShadowDto>();
+			List<ResourceObjectShadowDto<T>> resourceObjectShadowDtoList = new ArrayList<ResourceObjectShadowDto<T>>();
 			for (ResourceObjectShadowType resourceObjectShadow : resourceObjectShadowListType.getObject()) {
-				ResourceObjectShadowDto resourceObjectShadowDto = new ResourceObjectShadowDto(
+				ResourceObjectShadowDto<T> resourceObjectShadowDto = new ResourceObjectShadowDto<T>(
 						resourceObjectShadow);
 				resourceObjectShadowDtoList.add(resourceObjectShadowDto);
 			}
 			return resourceObjectShadowDtoList;
 		} catch (Exception ex) {
-			TRACE.error("Delete user failed for oid = {}", oid);
-			TRACE.error("Exception was: ", ex);
+			LOGGER.error("Delete user failed for oid = {}", oid);
+			LOGGER.error("Exception was: ", ex);
 			return null;
 		}
 
 	}
 
 	@Override
-	public Collection<ResourceDto> list(PagingType paging) throws WebModelException {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public Collection<ResourceDto> list(PagingType paging) {
+		LOGGER.debug("Listing resources.");
+
+		OperationResult result = new OperationResult("List Resources");
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(
+				result.createOperationResultType());
+
+		Collection<ResourceDto> collection = new ArrayList<ResourceDto>();
+		try {
+			ObjectListType list = model.listObjects(ObjectTypes.RESOURCE.getObjectTypeUri(), paging, holder);
+			if (list != null) {
+				for (ObjectType o : list.getObject()) {
+					ResourceDto resourceDto = create();
+					resourceDto.setXmlObject((ResourceType) o);
+					collection.add(resourceDto);
+				}
+			}
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordSuccess();
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list resources from model", ex);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		}
+
+		if (!result.isSuccess()) {
+			FacesUtils.addMessage(result);
+		}
+		
+		LOGGER.trace(result.debugDump());
+
+		return collection;
 	}
 }

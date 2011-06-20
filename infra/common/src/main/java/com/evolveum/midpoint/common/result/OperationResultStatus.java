@@ -61,7 +61,7 @@ public enum OperationResultStatus {
 		if (statusType == null) {
 			return UNKNOWN;
 		}
-		
+
 		switch (statusType) {
 			case FATAL_ERROR:
 				return FATAL_ERROR;
@@ -76,8 +76,12 @@ public enum OperationResultStatus {
 		}
 	}
 
-	public OperationResultStatusType createStatusType() {
-		switch (this) {
+	public static OperationResultStatusType createStatusType(OperationResultStatus status) {
+		if (status == null) {
+			return OperationResultStatusType.WARNING;
+		}
+
+		switch (status) {
 			case SUCCESS:
 				return OperationResultStatusType.SUCCESS;
 			case WARNING:
@@ -89,5 +93,9 @@ public enum OperationResultStatus {
 			default:
 				return OperationResultStatusType.WARNING;
 		}
+	}
+
+	public OperationResultStatusType createStatusType() {
+		return createStatusType(this);
 	}
 }

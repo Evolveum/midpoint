@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -37,6 +39,7 @@ import com.evolveum.midpoint.schema.exception.CommonException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ParamsType;
 
 /**
  * Nested Operation Result.
@@ -89,7 +92,7 @@ public class OperationResult implements Serializable {
 		this(operation, null, OperationResultStatus.SUCCESS, token, messageCode, message, null, null, null);
 	}
 
-	public OperationResult(String operation, OperationResultStatus status,  String message) {
+	public OperationResult(String operation, OperationResultStatus status, String message) {
 		this(operation, null, status, 0, null, message, null, null, null);
 	}
 
@@ -532,8 +535,44 @@ public class OperationResult implements Serializable {
 	}
 
 	public OperationResultType createOperationResultType() {
-		// TODO: finish this!
+		return createOperationResultType(this);
+	}
 
-		return new OperationResultType();
+	private OperationResultType createOperationResultType(OperationResult opResult) {
+		OperationResultType result = new OperationResultType();
+		result.setToken(opResult.getToken());
+		result.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
+		result.setOperation(opResult.getOperation());
+		result.setMessage(opResult.getMessage());
+		result.setMessageCode(opResult.getMessageCode());
+
+		if (StringUtils.isNotEmpty(opResult.getLocalizationMessage())) {
+			LocalizedMessageType message = new LocalizedMessageType();
+			message.setKey(opResult.getLocalizationMessage());
+			if (opResult.getLocalizationArguments() != null) {
+				message.getArgument().addAll(opResult.getLocalizationArguments());
+			}
+			result.setLocalizedMessage(message);
+		}
+
+		Set<Entry<String, Object>> params = opResult.getParams().entrySet();
+		if (!params.isEmpty()) {
+			ParamsType paramsType = new ParamsType();
+			result.setParams(paramsType);
+
+			for (Entry<String, Object> entry : params) {
+				EntryType entryType = new EntryType();
+				entryType.setKey(entry.getKey());
+				entry.setValue(entry.getValue().toString());
+
+				paramsType.getEntry().add(entryType);
+			}
+		}
+
+		for (OperationResult subResult : opResult.getSubresults()) {
+			result.getPartialResults().add(opResult.createOperationResultType(subResult));
+		}
+
+		return result;
 	}
 }

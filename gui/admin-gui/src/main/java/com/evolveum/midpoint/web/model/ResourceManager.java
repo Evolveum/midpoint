@@ -26,6 +26,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 /**
  * 
@@ -35,6 +36,6 @@ import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
  */
 public interface ResourceManager extends ObjectManager<ResourceDto> {
 
-	List<ResourceObjectShadowDto> listObjectShadows(String oid, Class<?> resourceObjectShadowType);
-
+	<T extends ResourceObjectShadowType> List<ResourceObjectShadowDto<T>> listObjectShadows(String oid,
+			Class<T> resourceObjectShadowType);
 }

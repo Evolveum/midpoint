@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.web.controller.resource;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -54,6 +55,12 @@ import com.evolveum.midpoint.web.bean.ResourceStatus;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.SortableListController;
+import com.evolveum.midpoint.web.model.ObjectManager;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.ResourceManager;
+import com.evolveum.midpoint.web.model.WebModelException;
+import com.evolveum.midpoint.web.model.dto.ResourceDto;
+import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.ResourceItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
@@ -64,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType.ExtraTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
@@ -86,6 +94,8 @@ public class ResourceListController extends SortableListController<ResourceListI
 	private static final long serialVersionUID = 8325385127604325633L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceListController.class);
 	@Autowired(required = true)
+	private transient ObjectTypeCatalog objectTypeCatalog;
+	@Autowired(required = true)
 	private transient ModelPortType model;
 	@Autowired(required = true)
 	private transient TemplateController template;
@@ -99,12 +109,12 @@ public class ResourceListController extends SortableListController<ResourceListI
 	public ResourceListController() {
 		super("name");
 	}
-	
+
 	public boolean isShowPopup() {
 		return showPopup;
 	}
-	
-	public void hideConfirmDelete(){
+
+	public void hideConfirmDelete() {
 		showPopup = false;
 	}
 
@@ -295,7 +305,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 		return ResourceSyncController.PAGE_NAVIGATION;
 	}
 
-	//TODO: MOVE TO MODEL !!!!!!!!!!!!!!!!!!!!!!! test before delete resource
+	// TODO: MOVE TO MODEL !!!!!!!!!!!!!!!!!!!!!!! test before delete resource
 	private List<ResourceListItem> testResourcesBeforeDelete() {
 		List<ResourceListItem> toBeDeleted = new ArrayList<ResourceListItem>();
 		for (ResourceListItem item : getObjects()) {
@@ -330,14 +340,14 @@ public class ResourceListController extends SortableListController<ResourceListI
 
 		return toBeDeleted;
 	}
-	
+
 	public void deletePerformed() {
 		showPopup = true;
 	}
 
 	public String deleteResources() {
 		hideConfirmDelete();
-		
+
 		List<ResourceListItem> toBeDeleted = new ArrayList<ResourceListItem>();
 		for (ResourceListItem item : getObjects()) {
 			if (!item.isSelected()) {
@@ -345,14 +355,14 @@ public class ResourceListController extends SortableListController<ResourceListI
 			}
 			try {
 				// TODO: holder and result
-				model.deleteObject(item.getOid(), new Holder<OperationResultType>());				
+				model.deleteObject(item.getOid(), new Holder<OperationResultType>());
 				toBeDeleted.add(item);
 			} catch (FaultMessage ex) {
 				LoggingUtils.logException(TRACE, "Couldn't delete resource {}", ex, item.getName());
-				//TODO: error handling
+				// TODO: error handling
 				FacesUtils.addErrorMessage("Couldn't delete resource.", ex);
 			}
-		}		
+		}
 		getObjects().removeAll(toBeDeleted);
 
 		return PAGE_NAVIGATION;
@@ -363,28 +373,54 @@ public class ResourceListController extends SortableListController<ResourceListI
 		Collections.sort(getObjects(), new ResourceItemComparator(getSortColumnName(), isAscending()));
 	}
 
+	private ResourceManager getResourceManager() {
+		ObjectManager<ResourceDto> manager = objectTypeCatalog.getObjectManager(ResourceType.class,
+				ResourceDto.class);
+
+		return (ResourceManager) manager;
+	}
+
 	@Override
 	protected String listObjects() {
 		try {
-			String objectType = ObjectTypes.RESOURCE.getObjectTypeUri();
-			ObjectListType objectList = model.listObjects(objectType, new PagingType(),
-					new Holder<OperationResultType>(new OperationResultType()));
-			List<ObjectType> objects = objectList.getObject();
+			ResourceManager manager = getResourceManager();
+			Collection<ResourceDto> resources = manager.list();
 
 			List<ResourceListItem> list = getObjects();
 			list.clear();
-			for (ObjectType object : objects) {
-				list.add(createResourceListItem((ResourceType) object));
+			for (ResourceDto resource : resources) {
+				list.add(createResourceListItem(resource.getXmlObject()));
 			}
 			sort();
-		} catch (FaultMessage ex) {
-			String message = (ex.getFaultInfo().getMessage() != null) ? ex.getFaultInfo().getMessage() : ex
-					.getMessage();
-			FacesUtils.addErrorMessage("List resources failed.");
-			FacesUtils.addErrorMessage("Exception was: " + message);
-			TRACE.error("List resources failed.", ex);
+		} catch (Exception ex) {
+			final String message = "Unknown error occured while listing resources";
+			
+			LoggingUtils.logException(TRACE, message, ex);
+			FacesUtils.addErrorMessage(message);
+			
 			return null;
 		}
+
+//		try {
+//			String objectType = ObjectTypes.RESOURCE.getObjectTypeUri();
+//			ObjectListType objectList = model.listObjects(objectType, new PagingType(),
+//					new Holder<OperationResultType>(new OperationResultType()));
+//			List<ObjectType> objects = objectList.getObject();
+//
+//			List<ResourceListItem> list = getObjects();
+//			list.clear();
+//			for (ObjectType object : objects) {
+//				list.add(createResourceListItem((ResourceType) object));
+//			}
+//			sort();
+//		} catch (FaultMessage ex) {
+//			String message = (ex.getFaultInfo().getMessage() != null) ? ex.getFaultInfo().getMessage() : ex
+//					.getMessage();
+//			FacesUtils.addErrorMessage("List resources failed.");
+//			FacesUtils.addErrorMessage("Exception was: " + message);
+//			TRACE.error("List resources failed.", ex);
+//			return null;
+//		}
 
 		template.setSelectedLeftId(NAVIGATION_LEFT);
 		return PAGE_NAVIGATION;

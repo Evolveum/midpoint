@@ -92,7 +92,7 @@ public class ConnectorTypeManager implements ObjectManager<ConnectorDto> {
 	public ConnectorDto get(String oid, PropertyReferenceListType resolve) throws WebModelException {
 		LOGGER.debug("Getting connector with oid {}.", new Object[] { oid });
 
-		OperationResult result = new OperationResult("Get Connector Type");
+		OperationResult result = new OperationResult("Get Connector");
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(
 				result.createOperationResultType());
 
@@ -129,9 +129,9 @@ public class ConnectorTypeManager implements ObjectManager<ConnectorDto> {
 
 	@Override
 	public Collection<ConnectorDto> list(PagingType paging) throws WebModelException {
-		LOGGER.debug("Listing connectors with.");
+		LOGGER.debug("Listing connectors.");
 
-		OperationResult result = new OperationResult("Get Connector Type");
+		OperationResult result = new OperationResult("Get Connectors");
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(
 				result.createOperationResultType());
 
@@ -160,6 +160,8 @@ public class ConnectorTypeManager implements ObjectManager<ConnectorDto> {
 		if (!result.isSuccess()) {
 			FacesUtils.addMessage(result);
 		}
+		
+		LOGGER.trace(result.debugDump());
 
 		return collection;
 	}
