@@ -193,7 +193,7 @@ public class ModelService implements ModelPortType {
 
 				ObjectReferenceType accountRef = new ObjectReferenceType();
 				accountRef.setOid(oid);
-				accountRef.setType(SchemaConstants.I_ACCOUNT_TYPE);
+				accountRef.setType(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
 				newAccountRefs.add(accountRef);
 			} catch (com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage ex) {
 				String message = ex.getMessage();

@@ -1416,7 +1416,7 @@ public class ProvisioningService implements ProvisioningPortType {
 
         Element filter =
                 QueryUtil.createAndFilter(doc,
-                QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_TYPE)),
+                QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
                 QueryUtil.createEqualFilter(doc, xpath, uid));
 
         QueryType query = new QueryType();

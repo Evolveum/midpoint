@@ -223,7 +223,7 @@ public class RepositorySearchTest {
 		List<Element> values = new ArrayList<Element>();
 
 		Element filter = QueryUtil.createAndFilter(doc,
-				QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_TYPE)),
+				QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
 				QueryUtil.createEqualFilter(doc, xpath, values));
 
 		QueryType query = new QueryType();
@@ -248,7 +248,7 @@ public class RepositorySearchTest {
 				.getFirstChild());
 
 		Element filter = QueryUtil.createAndFilter(doc,
-				QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_TYPE)),
+				QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
 				QueryUtil.createEqualFilter(doc, xpath, values));
 
 		System.out.println(DOMUtil.serializeDOMToString(filter));
