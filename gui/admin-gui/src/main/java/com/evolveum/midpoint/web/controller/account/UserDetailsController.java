@@ -168,20 +168,20 @@ public class UserDetailsController implements Serializable {
 			ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
 					UserDto.class);
 			UserManager userManager = (UserManager) (objectManager);
-			try {
+//			try {
 				this.user = (GuiUserDto) userManager.get(user.getOid(), Utils.getResolveResourceList());
 				accountList = createFormBeanList(this.user.getAccount(), false);
 				getAvailableResourceList().clear();
 				availableResourceList = createResourceList(this.user.getAccount());
-			} catch (WebModelException ex) {
-				StringBuilder message = new StringBuilder();
-				message.append("Get user failed. Reason: ");
-				message.append(ex.getTitle());
-				message.append(" (");
-				message.append(ex.getMessage());
-				message.append(").");
-				FacesUtils.addErrorMessage(message.toString());
-			}
+//			} catch (WebModelException ex) {
+//				StringBuilder message = new StringBuilder();
+//				message.append("Get user failed. Reason: ");
+//				message.append(ex.getTitle());
+//				message.append(" (");
+//				message.append(ex.getMessage());
+//				message.append(").");
+//				FacesUtils.addErrorMessage(message.toString());
+//			}
 		} else {
 			// here we know that setter's parameter user is null
 			this.user = null;

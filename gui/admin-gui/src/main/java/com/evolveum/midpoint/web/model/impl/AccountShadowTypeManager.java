@@ -22,7 +22,6 @@
 
 package com.evolveum.midpoint.web.model.impl;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -50,12 +49,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
-public class AccountShadowTypeManager implements AccountShadowManager, Serializable {
+public class AccountShadowTypeManager extends AccountShadowManager {
 
 	private static final long serialVersionUID = 4540270042561861862L;
 	private static final Trace TRACE = TraceManager.getTrace(AccountShadowTypeManager.class);
@@ -89,31 +87,6 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 			return null;
 		}
 
-	}
-
-	@Override
-	public AccountShadowDto get(String oid, PropertyReferenceListType resolve) throws WebModelException {
-		TRACE.info("oid = {}", new Object[] { oid });
-		Validate.notNull(oid);
-		try { // Call Web Service Operation
-			ObjectType result = port.getObject(oid, resolve, new Holder<OperationResultType>(
-					new OperationResultType()));
-
-			AccountShadowDto accountShadowDto = (AccountShadowDto) constructAccountShadowType.newInstance();
-			accountShadowDto.setXmlObject((AccountShadowType) result);
-
-			return accountShadowDto;
-		} catch (FaultMessage ex) {
-			TRACE.error("Account lookup for oid = {} failed", oid);
-			TRACE.error("Exception was: ", ex);
-			throw new WebModelException(ex.getMessage(), "Failed to get account with oid " + oid);
-		} catch (InstantiationException ex) {
-			TRACE.error("Instantiation failed: {}", ex);
-			return null;
-		} catch (IllegalAccessException ex) {
-			TRACE.error("Class or its nullary constructor is not accessible: {}", ex);
-			return null;
-		}
 	}
 
 	@Override

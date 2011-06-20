@@ -22,7 +22,6 @@
 
 package com.evolveum.midpoint.web.model.impl;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -31,7 +30,6 @@ import java.util.Set;
 import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
@@ -45,31 +43,24 @@ import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
-import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * 
  * @author katuska
  */
-public class ResourceTypeManager implements ResourceManager, Serializable {
+public class ResourceTypeManager extends ResourceManager {
 
 	private static final long serialVersionUID = 8238616310118713517L;
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeManager.class);
 	private Class<? extends ResourceDto> constructResourceType;
-
-	@Autowired(required = true)
-	private transient ModelPortType model;
 
 	public ResourceTypeManager(Class<? extends ResourceDto> constructResourceType) {
 		this.constructResourceType = constructResourceType;
@@ -77,35 +68,7 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 
 	@Override
 	public Collection<ResourceDto> list() throws WebModelException {
-		PagingType paging = PagingTypeFactory.createListAllPaging(OrderDirectionType.ASCENDING, "name");
-		return list(paging);
-	}
-
-	@Override
-	public ResourceDto get(String oid, PropertyReferenceListType resolve) throws WebModelException {
-		LOGGER.info("oid = {}", new Object[] { oid });
-		Validate.notNull(oid);
-		try { // Call Web Service Operation
-			ObjectType result = model.getObject(oid, resolve, new Holder<OperationResultType>(
-					new OperationResultType()));
-
-			ResourceDto resourceDto = constructResourceType.newInstance();
-			resourceDto.setXmlObject((ResourceType) result);
-
-			return resourceDto;
-		} catch (FaultMessage ex) {
-			throw new WebModelException(ex.getMessage(), "Failed to get resource with oid " + oid);
-		} catch (InstantiationException ex) {
-			LOGGER.error("Instantiation failed: {}", ex);
-			return null;
-			// throw new WebModelException(ex.getMessage(),
-			// "Instatiation failed.");
-		} catch (IllegalAccessException ex) {
-			LOGGER.error("Class or its nullary constructor is not accessible: {}", ex);
-			return null;
-			// throw new WebModelException(ex.getMessage(),
-			// "Class or its nullary constructor is not accessible.");
-		}
+		return list(PagingTypeFactory.createListAllPaging());
 	}
 
 	@Override
@@ -122,8 +85,8 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 		Validate.notNull(newObject);
 
 		try { // Call Web Service Operation
-			String result = model.addObject(newObject.getXmlObject(), new Holder<OperationResultType>(
-					new OperationResultType()));
+			String result = getModel().addObject(newObject.getXmlObject(),
+					new Holder<OperationResultType>(new OperationResultType()));
 			return result;
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] Add resource failed");
@@ -141,7 +104,7 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 	public void delete(String oid) throws WebModelException {
 		Validate.notNull(oid);
 		try {
-			model.deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
+			getModel().deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(),
 					"[Web Service Error] Failed to delete resource with oid " + oid);
@@ -159,9 +122,9 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 			String oid, Class<T> resourceObjectShadowType) {
 		Validate.notNull(oid);
 		try {
-			ResourceObjectShadowListType resourceObjectShadowListType = model.listResourceObjectShadows(oid,
-					resourceObjectShadowType.getName(), new Holder<OperationResultType>(
-							new OperationResultType()));
+			ResourceObjectShadowListType resourceObjectShadowListType = getModel().listResourceObjectShadows(
+					oid, resourceObjectShadowType.getName(),
+					new Holder<OperationResultType>(new OperationResultType()));
 			List<ResourceObjectShadowDto<T>> resourceObjectShadowDtoList = new ArrayList<ResourceObjectShadowDto<T>>();
 			for (ResourceObjectShadowType resourceObjectShadow : resourceObjectShadowListType.getObject()) {
 				ResourceObjectShadowDto<T> resourceObjectShadowDto = new ResourceObjectShadowDto<T>(
@@ -180,6 +143,7 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 	@Override
 	public Collection<ResourceDto> list(PagingType paging) {
 		LOGGER.debug("Listing resources.");
+		Validate.notNull(paging);
 
 		OperationResult result = new OperationResult("List Resources");
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(
@@ -187,7 +151,8 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 
 		Collection<ResourceDto> collection = new ArrayList<ResourceDto>();
 		try {
-			ObjectListType list = model.listObjects(ObjectTypes.RESOURCE.getObjectTypeUri(), paging, holder);
+			ObjectListType list = getModel().listObjects(ObjectTypes.RESOURCE.getObjectTypeUri(), paging,
+					holder);
 			if (list != null) {
 				for (ObjectType o : list.getObject()) {
 					ResourceDto resourceDto = create();
@@ -205,11 +170,7 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 			result.recordFatalError(ex);
 		}
 
-		if (!result.isSuccess()) {
-			FacesUtils.addMessage(result);
-		}
-		
-		LOGGER.trace(result.debugDump());
+		printResults(LOGGER, result);
 
 		return collection;
 	}

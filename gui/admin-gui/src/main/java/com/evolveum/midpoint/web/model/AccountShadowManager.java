@@ -23,13 +23,16 @@
 package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.impl.ObjectManagerImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
  * @author semancik
  */
-public interface AccountShadowManager extends ObjectManager<AccountShadowDto> {
+public abstract class AccountShadowManager extends ObjectManagerImpl<AccountShadowDto> {
+
+	private static final long serialVersionUID = 3793939681394774533L;
 
 	/**
 	 * TODO
@@ -39,6 +42,5 @@ public interface AccountShadowManager extends ObjectManager<AccountShadowDto> {
 	 * @param oid
 	 * @return
 	 */
-	UserType listOwner(String oid) throws WebModelException;
-
+	public abstract UserType listOwner(String oid) throws WebModelException;
 }

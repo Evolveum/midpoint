@@ -35,6 +35,10 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  */
 public abstract class PagingTypeFactory {
 	
+	public static PagingType createListAllPaging() {
+		return createListAllPaging(OrderDirectionType.ASCENDING, "name");
+	}
+	
 	public static PagingType createListAllPaging(OrderDirectionType order, String orderBy) {
 		return createPaging(0, order, orderBy);
 	}

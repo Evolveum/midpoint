@@ -100,9 +100,9 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 
 			// TODO: handle exception
 			userDetailsController.setUser(user);
-		} catch (WebModelException ex) {
-			LoggingUtils.logException(TRACE, "Can't select user, WebModelException error occured", ex);
-			FacesUtils.addErrorMessage("Can't select user, WebModelException error occured.", ex);
+//		} catch (WebModelException ex) {
+//			LoggingUtils.logException(TRACE, "Can't select user, WebModelException error occured", ex);
+//			FacesUtils.addErrorMessage("Can't select user, WebModelException error occured.", ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(TRACE, "Can't select user, unknown error occured", ex);
 			FacesUtils.addErrorMessage("Can't select user, unknown error occured.", ex);

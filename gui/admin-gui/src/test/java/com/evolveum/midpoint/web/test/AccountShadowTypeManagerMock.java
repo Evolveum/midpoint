@@ -42,7 +42,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  * @author katuska
  */
-public class AccountShadowTypeManagerMock implements AccountShadowManager {
+public class AccountShadowTypeManagerMock extends AccountShadowManager {
+
+	private static final long serialVersionUID = -3348284676547881994L;
 
 	Map<String, AccountShadowDto> accountTypeList = new HashMap<String, AccountShadowDto>();
 

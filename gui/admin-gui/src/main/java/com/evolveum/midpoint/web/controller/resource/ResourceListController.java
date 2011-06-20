@@ -43,7 +43,6 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -58,20 +57,14 @@ import com.evolveum.midpoint.web.controller.util.SortableListController;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
-import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
-import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.ResourceItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType.ExtraTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
@@ -394,33 +387,12 @@ public class ResourceListController extends SortableListController<ResourceListI
 			sort();
 		} catch (Exception ex) {
 			final String message = "Unknown error occured while listing resources";
-			
+
 			LoggingUtils.logException(TRACE, message, ex);
 			FacesUtils.addErrorMessage(message);
-			
+
 			return null;
 		}
-
-//		try {
-//			String objectType = ObjectTypes.RESOURCE.getObjectTypeUri();
-//			ObjectListType objectList = model.listObjects(objectType, new PagingType(),
-//					new Holder<OperationResultType>(new OperationResultType()));
-//			List<ObjectType> objects = objectList.getObject();
-//
-//			List<ResourceListItem> list = getObjects();
-//			list.clear();
-//			for (ObjectType object : objects) {
-//				list.add(createResourceListItem((ResourceType) object));
-//			}
-//			sort();
-//		} catch (FaultMessage ex) {
-//			String message = (ex.getFaultInfo().getMessage() != null) ? ex.getFaultInfo().getMessage() : ex
-//					.getMessage();
-//			FacesUtils.addErrorMessage("List resources failed.");
-//			FacesUtils.addErrorMessage("Exception was: " + message);
-//			TRACE.error("List resources failed.", ex);
-//			return null;
-//		}
 
 		template.setSelectedLeftId(NAVIGATION_LEFT);
 		return PAGE_NAVIGATION;

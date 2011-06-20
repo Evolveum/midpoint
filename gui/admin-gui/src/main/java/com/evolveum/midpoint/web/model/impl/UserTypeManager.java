@@ -22,7 +22,6 @@
 
 package com.evolveum.midpoint.web.model.impl;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -75,7 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
  * 
  * @author katuska
  */
-public class UserTypeManager implements UserManager, Serializable {
+public class UserTypeManager extends UserManager {
 
 	private static final long serialVersionUID = -3457278299468312767L;
 	private static final Trace TRACE = TraceManager.getTrace(UserTypeManager.class);
@@ -219,33 +218,6 @@ public class UserTypeManager implements UserManager, Serializable {
 	}
 
 	@Override
-	public UserDto get(String oid, PropertyReferenceListType resolve) throws WebModelException {
-		TRACE.debug("oid = {}", new Object[] { oid });
-		Validate.notNull(oid);
-
-		try {
-			ObjectType result = model.getObject(oid, resolve, new Holder<OperationResultType>(
-					new OperationResultType()));
-			UserDto userDto = createNewUser((UserType) result);
-
-			return userDto;
-		} catch (FaultMessage ex) {
-			TRACE.error("User lookup for oid = {}", oid);
-			TRACE.error("Exception was: ", ex);
-			throw new WebModelException(ex.getFaultInfo().getMessage(), "Failed to get user with oid " + oid,
-					ex);
-		} catch (RuntimeException ex) {
-			// We want to catch also runtime exceptions here. These are severe
-			// internal errors (bugs) or system errors (out of memory). But
-			// we want at least to let user know that something bad happened
-			// here
-			TRACE.error("Runtime exception: {}", ex);
-			throw new WebModelException(ex.getMessage(), "Internal Error", ex);
-		}
-
-	}
-
-	@Override
 	public AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException {
 		AccountShadowDto accountShadowDto = new AccountShadowDto();
 		AccountShadowType accountShadowType = new AccountShadowType();
@@ -253,7 +225,8 @@ public class UserTypeManager implements UserManager, Serializable {
 		// TODO: workaround, till we switch to staging
 		// ResourceTypeManager rtm = new
 		// ResourceTypeManager(GuiResourceDto.class);
-		ResourceTypeManager rtm = (ResourceTypeManager) objectTypeCatalog.getObjectManager(ResourceType. class, ResourceDto.class);
+		ResourceTypeManager rtm = (ResourceTypeManager) objectTypeCatalog.getObjectManager(
+				ResourceType.class, ResourceDto.class);
 		ResourceDto resourceDto;
 		try {
 			resourceDto = rtm.get(resourceOid, new PropertyReferenceListType());

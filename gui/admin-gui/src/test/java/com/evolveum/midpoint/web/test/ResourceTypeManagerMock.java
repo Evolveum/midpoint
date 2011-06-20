@@ -43,7 +43,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
  * 
  * @author katuska
  */
-public class ResourceTypeManagerMock implements ResourceManager {
+public class ResourceTypeManagerMock extends ResourceManager {
+
+	private static final long serialVersionUID = -2673752961587849731L;
 
 	Map<String, ResourceDto> resourceTypeList = new HashMap<String, ResourceDto>();
 

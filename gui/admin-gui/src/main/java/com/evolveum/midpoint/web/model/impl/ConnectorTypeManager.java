@@ -27,7 +27,7 @@ import java.util.Set;
 
 import javax.xml.ws.Holder;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
@@ -35,37 +35,30 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
-import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
-import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * 
  * @author lazyman
  * 
  */
-public class ConnectorTypeManager implements ObjectManager<ConnectorDto> {
+public class ConnectorTypeManager extends ObjectManagerImpl<ConnectorDto> {
 
+	private static final long serialVersionUID = 2332102491422179112L;
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorTypeManager.class);
-	@Autowired(required = true)
-	private transient ModelPortType model;
 
 	@Override
 	public Collection<ConnectorDto> list() throws WebModelException {
-		PagingType paging = PagingTypeFactory.createListAllPaging(OrderDirectionType.ASCENDING, "name");
-		return list(paging);
+		return list(PagingTypeFactory.createListAllPaging());
 	}
 
 	@Override
@@ -89,40 +82,6 @@ public class ConnectorTypeManager implements ObjectManager<ConnectorDto> {
 	}
 
 	@Override
-	public ConnectorDto get(String oid, PropertyReferenceListType resolve) throws WebModelException {
-		LOGGER.debug("Getting connector with oid {}.", new Object[] { oid });
-
-		OperationResult result = new OperationResult("Get Connector");
-		Holder<OperationResultType> holder = new Holder<OperationResultType>(
-				result.createOperationResultType());
-
-		ConnectorDto connector = null;
-		try {
-			ObjectType object = model.getObject(oid, resolve, holder);
-			connector = new ConnectorDto((ConnectorType) object);
-
-			result = OperationResult.createOperationResult(holder.value);
-			result.recordSuccess();
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get connector {} from model", ex, oid);
-
-			result = OperationResult.createOperationResult(holder.value);
-			result.recordFatalError(ex);
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get connector {} from model", ex, oid);
-
-			result = OperationResult.createOperationResult(holder.value);
-			result.recordFatalError(ex);
-		}
-
-		if (!result.isSuccess()) {
-			FacesUtils.addMessage(result);
-		}
-
-		return connector;
-	}
-
-	@Override
 	public ConnectorDto create() throws WebModelException {
 		return new ConnectorDto();
 	}
@@ -130,6 +89,7 @@ public class ConnectorTypeManager implements ObjectManager<ConnectorDto> {
 	@Override
 	public Collection<ConnectorDto> list(PagingType paging) throws WebModelException {
 		LOGGER.debug("Listing connectors.");
+		Validate.notNull(paging);
 
 		OperationResult result = new OperationResult("Get Connectors");
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(
@@ -137,7 +97,7 @@ public class ConnectorTypeManager implements ObjectManager<ConnectorDto> {
 
 		Collection<ConnectorDto> collection = new ArrayList<ConnectorDto>();
 		try {
-			ObjectListType list = model.listObjects(ObjectTypes.CONNECTOR.getValue(), paging, holder);
+			ObjectListType list = getModel().listObjects(ObjectTypes.CONNECTOR.getValue(), paging, holder);
 			if (list != null) {
 				for (ObjectType object : list.getObject()) {
 					collection.add(new ConnectorDto((ConnectorType) object));
@@ -157,11 +117,7 @@ public class ConnectorTypeManager implements ObjectManager<ConnectorDto> {
 			result.recordFatalError(ex);
 		}
 
-		if (!result.isSuccess()) {
-			FacesUtils.addMessage(result);
-		}
-		
-		LOGGER.trace(result.debugDump());
+		printResults(LOGGER, result);
 
 		return collection;
 	}

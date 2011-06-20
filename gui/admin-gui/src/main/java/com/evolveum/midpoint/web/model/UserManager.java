@@ -27,6 +27,7 @@ import java.util.List;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
+import com.evolveum.midpoint.web.model.impl.ObjectManagerImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 
@@ -34,10 +35,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
  * 
  * @author semancik
  */
-public interface UserManager extends ObjectManager<UserDto> {
+public abstract class UserManager extends ObjectManagerImpl<UserDto> {
 
-	AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException;
+	public abstract AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException;
 
-	List<UserDto> search(QueryType search, PagingType paging, OperationResult result)
+	public abstract List<UserDto> search(QueryType search, PagingType paging, OperationResult result)
 			throws WebModelException;
 }

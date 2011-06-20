@@ -68,7 +68,7 @@ public interface ObjectManager<T> {
 	 *            OID of object to return
 	 * @return complete object retrieved from the repository
 	 */
-	T get(String oid, PropertyReferenceListType resolve) throws WebModelException;
+	T get(String oid, PropertyReferenceListType resolve);
 
 	/**
 	 * Create an empty object.
