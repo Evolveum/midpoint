@@ -90,6 +90,14 @@ public class Test002basicUser {
 		assertTrue(selenium.isTextPresent(text));
 	}
 
+	
+	private void sleep(long time) {
+		try  { 
+			Thread.sleep(time*1000);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
 	// Based on MID-2 jira scenarios
 	@Test
 	public void test01addUser() {
@@ -301,10 +309,14 @@ public class Test002basicUser {
 				continue;
 			h.put(selenium.getText(l), l.replace("name", ""));
 		}
-
+		
+		sleep(5);
 		selenium.click(h.get("selena") + "deleteCheckbox");
+		sleep(5);
 		selenium.click("admin-content:deleteUser");
+		sleep(5);
 		waitForText("Confirm delete");
+		sleep(5);
 		selenium.click("admin-content:deleteUserYes");
 		waitForText("List Users");
 	}
