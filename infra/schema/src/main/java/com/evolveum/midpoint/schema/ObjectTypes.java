@@ -33,6 +33,8 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 public enum ObjectTypes {
 
 	ACCOUNT("schema.objectTypes.account", SchemaConstants.I_ACCOUNT_SHADOW_TYPE),
+	
+	CONNECTOR("schema.objectTypes.connector", SchemaConstants.I_CONNECTOR_TYPE),
 
 	GENERIC_OBJECT("schema.objectTypes.genericObject", SchemaConstants.I_GENERIC_OBJECT_TYPE),
 
