@@ -90,7 +90,7 @@ public interface ObjectManager<T> {
 	 * 
 	 * @return OID of stored object
 	 */
-	String add(T newObject) throws WebModelException;
+	String add(T newObject);
 
 	/**
 	 * Modify the object.

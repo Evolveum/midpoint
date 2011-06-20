@@ -31,7 +31,6 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
@@ -86,24 +85,6 @@ public class UserTypeManager extends UserManager {
 
 	public UserTypeManager(Class<?> constructUserType) {
 		this.constructUserType = constructUserType;
-	}
-
-	@Override
-	public String add(UserDto newObject) throws WebModelException {
-		Validate.notNull(newObject);
-
-		try { // Call Web Service Operation
-			String result = model.addObject(newObject.getXmlObject(), new Holder<OperationResultType>(
-					new OperationResultType()));
-			return result;
-		} catch (FaultMessage fault) {
-			String message = fault.getFaultInfo().getMessage();
-			if (StringUtils.isEmpty(message)) {
-				message = fault.getMessage();
-			}
-			throw new WebModelException(message, "Web Service Error");
-		}
-
 	}
 
 	@Override

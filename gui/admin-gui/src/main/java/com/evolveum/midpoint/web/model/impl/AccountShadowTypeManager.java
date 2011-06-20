@@ -48,24 +48,11 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 public class AccountShadowTypeManager extends AccountShadowManager {
 
 	private static final long serialVersionUID = 4540270042561861862L;
-	private static final Trace TRACE = TraceManager.getTrace(AccountShadowTypeManager.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AccountShadowTypeManager.class);
 	private Class<? extends AccountShadowDto> constructAccountShadowType;
 
 	public AccountShadowTypeManager(Class<? extends AccountShadowDto> constructAccountShadowType) {
 		this.constructAccountShadowType = constructAccountShadowType;
-	}
-
-	@Override
-	public String add(AccountShadowDto accountShadowDto) throws WebModelException {
-		Validate.notNull(accountShadowDto);
-
-		try { // Call Web Service Operation
-			String result = getModel().addObject(accountShadowDto.getXmlObject(),
-					new Holder<OperationResultType>(new OperationResultType()));
-			return result;
-		} catch (FaultMessage ex) {
-			throw new WebModelException(ex.getMessage(), "[Web Service Error] Add account failed");
-		}
 	}
 
 	@Override

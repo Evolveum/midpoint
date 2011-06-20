@@ -35,7 +35,6 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.web.model.ResourceManager;
-import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
@@ -43,7 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
 /**
  * 
@@ -70,21 +68,6 @@ public class ResourceTypeManager extends ResourceManager {
 		}
 
 		return resource;
-	}
-
-	@Override
-	public String add(ResourceDto newObject) throws WebModelException {
-		Validate.notNull(newObject);
-
-		try { // Call Web Service Operation
-			String result = getModel().addObject(newObject.getXmlObject(),
-					new Holder<OperationResultType>(new OperationResultType()));
-			return result;
-		} catch (FaultMessage ex) {
-			throw new WebModelException(ex.getMessage(), "[Web Service Error] Add resource failed");
-
-		}
-
 	}
 
 	@Override

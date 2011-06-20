@@ -39,7 +39,7 @@ public class ConnectorTypeManager extends ObjectManagerImpl<ConnectorDto> {
 	private static final long serialVersionUID = 2332102491422179112L;
 
 	@Override
-	public String add(ConnectorDto newObject) throws WebModelException {
+	public String add(ConnectorDto newObject) {
 		throw new UnsupportedOperationException("Not supported for this type.");
 	}
 

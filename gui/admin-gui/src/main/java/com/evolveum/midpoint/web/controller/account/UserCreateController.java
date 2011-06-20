@@ -34,7 +34,6 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserManager;
-import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
@@ -66,14 +65,15 @@ public class UserCreateController implements Serializable {
 	}
 
 	public String create() {
-		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class, UserDto.class);
+		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+				UserDto.class);
 		UserManager userManager = (UserManager) (objectManager);
 		String oid = null;
 		try {
 			oid = userManager.add(user);
-		} catch (WebModelException ex) {
-			// TODO: Update the message content from the exception
-			FacesUtils.addErrorMessage("Failed to create user:" + ex.getTitle() + " " + ex.getMessage());
+		} catch (Exception ex) {
+			// TODO: error handling
+			FacesUtils.addErrorMessage("Failed to create user:" + ex.getMessage());
 			TRACE.error("Failed to create user {}, exception {}", user, ex);
 			return null;
 		}

@@ -185,6 +185,37 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 	}
 
 	@Override
+	public String add(T object) {
+		Validate.notNull(object, "Object must not be null.");
+		LOGGER.debug("Adding object '" + object.getName() + "'.");
+
+		OperationResult result = new OperationResult("Add Object");
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(
+				result.createOperationResultType());
+		
+		String oid = null;
+		try {
+			oid = getModel().addObject(object.getXmlObject(), holder);
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordSuccess();
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't add object {} from model", ex, object.getName());
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't add object {} from model", ex, object.getName());
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		}
+
+		printResults(LOGGER, result);
+		
+		return oid;
+	}
+
+	@Override
 	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
