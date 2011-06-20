@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
  * 
  * @author semancik
  */
-public class ResourceDto extends ExtensibleObjectDto {
+public class ResourceDto extends ExtensibleObjectDto<ResourceType> {
 
 	private static final long serialVersionUID = -2599530038158817244L;
 
@@ -49,23 +49,19 @@ public class ResourceDto extends ExtensibleObjectDto {
 		super(object);
 	}
 
-	ResourceType getResourceType() {
-		return (ResourceType) getXmlObject();
-	}
-
 	public String getType() {
-		return getResourceType().getType();
+		return getXmlObject().getType();
 	}
 
 	public void setType(String value) {
-		getResourceType().setType(value);
+		getXmlObject().setType(value);
 	}
 
 	public Element getSchema() {
 		// TODO: Make this smarter ... if possible
-		XmlSchemaType schema = getResourceType().getSchema();
+		XmlSchemaType schema = getXmlObject().getSchema();
 		if (schema != null && schema.getAny().size() != 0) {
-			return (Element) getResourceType().getSchema().getAny().get(0);
+			return (Element) getXmlObject().getSchema().getAny().get(0);
 		}
 
 		return null;
@@ -79,7 +75,7 @@ public class ResourceDto extends ExtensibleObjectDto {
 	// getResourceType().setSchemaHandling(value);
 	// }
 	public List<Element> getConfiguration() {
-		return getResourceType().getConfiguration().getAny();
+		return getXmlObject().getConfiguration().getAny();
 	}
 
 	public void setConfiguration(Configuration value) {
@@ -88,11 +84,11 @@ public class ResourceDto extends ExtensibleObjectDto {
 
 	public List<AccountTypeDto> getAccountTypes() {
 		List<AccountTypeDto> accountTypeList = new ArrayList<AccountTypeDto>();
-		if (getResourceType() == null || getResourceType().getSchemaHandling() == null) {
+		if (getXmlObject() == null || getXmlObject().getSchemaHandling() == null) {
 			return accountTypeList;
 		}
 
-		List<SchemaHandlingType.AccountType> list = getResourceType().getSchemaHandling().getAccountType();
+		List<SchemaHandlingType.AccountType> list = getXmlObject().getSchemaHandling().getAccountType();
 		for (SchemaHandlingType.AccountType accountType : list) {
 			accountTypeList.add(new AccountTypeDto(accountType.getName(), accountType.getObjectClass(),
 					accountType.isDefault()));

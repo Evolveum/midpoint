@@ -30,10 +30,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
  * 
  * @author semancik
  */
-public abstract class ObjectDto implements Serializable {
+public abstract class ObjectDto<T extends ObjectType> implements Serializable {
 
 	private static final long serialVersionUID = 5319506185994423879L;
-	private ObjectType xmlObject;
+	private T xmlObject;
 
 	ObjectDto() {
 		xmlObject = null;
@@ -45,11 +45,11 @@ public abstract class ObjectDto implements Serializable {
 	 * 
 	 * @param object
 	 */
-	public ObjectDto(ObjectType object) {
+	public ObjectDto(T object) {
 		xmlObject = object;
 	}
 
-	public ObjectType getXmlObject() {
+	public T getXmlObject() {
 		if (xmlObject != null) {
 			return xmlObject;
 		}
@@ -62,7 +62,7 @@ public abstract class ObjectDto implements Serializable {
 	 * 
 	 * @param xmlObject
 	 */
-	public void setXmlObject(ObjectType xmlObject) {
+	public void setXmlObject(T xmlObject) {
 		this.xmlObject = xmlObject;
 	}
 

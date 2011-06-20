@@ -22,17 +22,17 @@
 
 package com.evolveum.midpoint.web.model.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 
 /**
  * 
  * @author Katuska
  */
-public class GenericObjectDto extends ObjectDto {
+public class GenericObjectDto extends ObjectDto<GenericObjectType> {
 
 	private static final long serialVersionUID = -2855273139925483488L;
 
-	public GenericObjectDto(ObjectType object) {
+	public GenericObjectDto(GenericObjectType object) {
 		super(object);
 	}
 }

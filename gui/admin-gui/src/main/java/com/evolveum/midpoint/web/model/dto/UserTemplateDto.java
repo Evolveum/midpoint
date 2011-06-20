@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
  * 
  * @author Vilo Repan
  */
-public class UserTemplateDto extends ObjectDto {
+public class UserTemplateDto extends ObjectDto<UserTemplateType> {
 
 	private static final long serialVersionUID = 866533225746657448L;
 

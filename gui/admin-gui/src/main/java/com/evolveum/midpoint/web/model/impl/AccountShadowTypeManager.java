@@ -100,7 +100,7 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 					new OperationResultType()));
 
 			AccountShadowDto accountShadowDto = (AccountShadowDto) constructAccountShadowType.newInstance();
-			accountShadowDto.setXmlObject(result);
+			accountShadowDto.setXmlObject((AccountShadowType) result);
 
 			return accountShadowDto;
 		} catch (FaultMessage ex) {

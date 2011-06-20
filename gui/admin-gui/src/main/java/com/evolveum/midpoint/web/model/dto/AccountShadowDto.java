@@ -28,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
  * 
  * @author semancik
  */
-public class AccountShadowDto extends ResourceObjectShadowDto {
+public class AccountShadowDto extends ResourceObjectShadowDto<AccountShadowType> {
 
 	private static final long serialVersionUID = -7908853369766852050L;
 

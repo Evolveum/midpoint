@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.model.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -32,13 +33,16 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.WebModelException;
-import com.evolveum.midpoint.web.model.dto.ConnectorTypeDto;
+import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
+import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
@@ -52,25 +56,25 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
  * @author lazyman
  * 
  */
-public class ConnectorTypeManager implements ObjectManager<ConnectorTypeDto> {
+public class ConnectorTypeManager implements ObjectManager<ConnectorDto> {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorTypeManager.class);
 	@Autowired(required = true)
 	private transient ModelPortType model;
 
 	@Override
-	public Collection<ConnectorTypeDto> list() throws WebModelException {
+	public Collection<ConnectorDto> list() throws WebModelException {
 		PagingType paging = PagingTypeFactory.createListAllPaging(OrderDirectionType.ASCENDING, "name");
 		return list(paging);
 	}
 
 	@Override
-	public String add(ConnectorTypeDto newObject) throws WebModelException {
+	public String add(ConnectorDto newObject) throws WebModelException {
 		throw new UnsupportedOperationException("Not supported for this type.");
 	}
 
 	@Override
-	public Set<PropertyChange> submit(ConnectorTypeDto changedObject) throws WebModelException {
+	public Set<PropertyChange> submit(ConnectorDto changedObject) throws WebModelException {
 		throw new UnsupportedOperationException("Not supported for this type.");
 	}
 
@@ -85,37 +89,78 @@ public class ConnectorTypeManager implements ObjectManager<ConnectorTypeDto> {
 	}
 
 	@Override
-	public ConnectorTypeDto get(String oid, PropertyReferenceListType resolve) throws WebModelException {
+	public ConnectorDto get(String oid, PropertyReferenceListType resolve) throws WebModelException {
 		LOGGER.debug("Getting connector with oid {}.", new Object[] { oid });
-		
+
 		OperationResult result = new OperationResult("Get Connector Type");
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(
 				result.createOperationResultType());
 
-		ConnectorTypeDto connector = null;
+		ConnectorDto connector = null;
 		try {
 			ObjectType object = model.getObject(oid, resolve, holder);
-			connector = new ConnectorTypeDto((ConnectorType) object);
+			connector = new ConnectorDto((ConnectorType) object);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordSuccess();
 		} catch (FaultMessage ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get connector {} from model", ex, oid);
-			// TODO: error handling
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get connector {} from model", ex, oid);
-			// TODO: error handling
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		}
+
+		if (!result.isSuccess()) {
+			FacesUtils.addMessage(result);
 		}
 
 		return connector;
 	}
 
 	@Override
-	public ConnectorTypeDto create() throws WebModelException {
-		// TODO Auto-generated method stub
-		return null;
+	public ConnectorDto create() throws WebModelException {
+		return new ConnectorDto();
 	}
 
 	@Override
-	public Collection<ConnectorTypeDto> list(PagingType paging) throws WebModelException {
-		// TODO Auto-generated method stub
-		return null;
+	public Collection<ConnectorDto> list(PagingType paging) throws WebModelException {
+		LOGGER.debug("Listing connectors with.");
+
+		OperationResult result = new OperationResult("Get Connector Type");
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(
+				result.createOperationResultType());
+
+		Collection<ConnectorDto> collection = new ArrayList<ConnectorDto>();
+		try {
+			ObjectListType list = model.listObjects(ObjectTypes.CONNECTOR.getValue(), paging, holder);
+			if (list != null) {
+				for (ObjectType object : list.getObject()) {
+					collection.add(new ConnectorDto((ConnectorType) object));
+				}
+			}
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordSuccess();
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list connectors from model", ex);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list connectors from model", ex);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		}
+
+		if (!result.isSuccess()) {
+			FacesUtils.addMessage(result);
+		}
+
+		return collection;
 	}
 }

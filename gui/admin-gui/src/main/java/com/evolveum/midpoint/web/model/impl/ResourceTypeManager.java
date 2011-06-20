@@ -49,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
@@ -82,7 +83,7 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 
 			for (ObjectType o : objects) {
 				ResourceDto resourceDto = (ResourceDto) constructResourceType.newInstance();
-				resourceDto.setXmlObject(o);
+				resourceDto.setXmlObject((ResourceType) o);
 				items.add(resourceDto);
 			}
 
@@ -103,7 +104,7 @@ public class ResourceTypeManager implements ResourceManager, Serializable {
 					new OperationResultType()));
 
 			ResourceDto resourceDto = (ResourceDto) constructResourceType.newInstance();
-			resourceDto.setXmlObject(result);
+			resourceDto.setXmlObject((ResourceType) result);
 
 			return resourceDto;
 		} catch (FaultMessage ex) {

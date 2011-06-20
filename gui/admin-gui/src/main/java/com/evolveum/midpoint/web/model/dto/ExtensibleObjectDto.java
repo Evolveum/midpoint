@@ -23,17 +23,19 @@
 package com.evolveum.midpoint.web.model.dto;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
  * 
  * @author semancik
  */
-public abstract class ExtensibleObjectDto extends ObjectDto {
+public abstract class ExtensibleObjectDto<T extends ObjectType> extends ObjectDto<T> {
 
 	private static final long serialVersionUID = 268510980551245638L;
 
+	@SuppressWarnings("unchecked")
 	public ExtensibleObjectDto(ExtensibleObjectType object) {
-		super(object);
+		super((T) object);
 	}
 
 	public ExtensibleObjectDto() {

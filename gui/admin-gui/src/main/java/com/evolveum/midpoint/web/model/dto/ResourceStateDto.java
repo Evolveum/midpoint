@@ -25,14 +25,14 @@ package com.evolveum.midpoint.web.model.dto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceStateType;
 
 /**
- *
+ * 
  * @author Vilo Repan
  */
-public class ResourceStateDto extends ObjectDto {
+public class ResourceStateDto extends ObjectDto<ResourceStateType> {
 
 	private static final long serialVersionUID = -1170598753163899233L;
 
 	public ResourceStateDto(ResourceStateType resourceState) {
-        super(resourceState);
-    }
+		super(resourceState);
+	}
 }

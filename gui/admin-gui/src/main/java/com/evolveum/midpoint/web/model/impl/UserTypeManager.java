@@ -199,7 +199,7 @@ public class UserTypeManager implements UserManager, Serializable {
 			List<UserDto> guiUsers = new ArrayList<UserDto>();
 			for (ObjectType userType : users) {
 				UserDto userDto = (UserDto) constructUserType.newInstance();
-				userDto.setXmlObject(userType);
+				userDto.setXmlObject((UserType) userType);
 				guiUsers.add(userDto);
 			}
 

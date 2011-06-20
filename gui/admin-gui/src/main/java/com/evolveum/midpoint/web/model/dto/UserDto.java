@@ -33,53 +33,49 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  * @author semancik
  */
-public class UserDto extends ExtensibleObjectDto {
+public class UserDto extends ExtensibleObjectDto<UserType> {
 
 	private static final long serialVersionUID = 2178456879571587946L;
 
-	public UserDto() {
+	public UserDto() {		
 	}
 
 	public UserDto(UserType object) {
 		super(object);
 	}
 
-	private UserType getUserType() {
-		return (UserType) getXmlObject();
-	}
-
 	public String getFullName() {
-		return getUserType().getFullName();
+		return getXmlObject().getFullName();
 	}
 
 	public void setFullName(String value) {
-		getUserType().setFullName(value);
+		getXmlObject().setFullName(value);
 	}
 
 	public String getGivenName() {
-		return getUserType().getGivenName();
+		return getXmlObject().getGivenName();
 	}
 
 	public void setGivenName(String value) {
-		getUserType().setGivenName(value);
+		getXmlObject().setGivenName(value);
 	}
 
 	public String getFamilyName() {
-		return getUserType().getFamilyName();
+		return getXmlObject().getFamilyName();
 	}
 
 	public void setFamilyName(String value) {
-		getUserType().setFamilyName(value);
+		getXmlObject().setFamilyName(value);
 	}
 
 	public void setEmail(String email) {
-		List<String> list = getUserType().getEMailAddress();
+		List<String> list = getXmlObject().getEMailAddress();
 		list.clear();
 		list.add(email);
 	}
 
 	public String getEmail() {
-		List<String> list = getUserType().getEMailAddress();
+		List<String> list = getXmlObject().getEMailAddress();
 		if (list.size() == 0) {
 			return null;
 		}
@@ -87,23 +83,23 @@ public class UserDto extends ExtensibleObjectDto {
 	}
 
 	public String getHonorificPrefix() {
-		return getUserType().getHonorificPrefix();
+		return getXmlObject().getHonorificPrefix();
 	}
 
 	public void setHonorificPrefix(String value) {
-		getUserType().setHonorificPrefix(value);
+		getXmlObject().setHonorificPrefix(value);
 	}
 
 	public String getHonorificSuffix() {
-		return getUserType().getHonorificSuffix();
+		return getXmlObject().getHonorificSuffix();
 	}
 
 	public void setHonorificSuffix(String value) {
-		getUserType().setHonorificSuffix(value);
+		getXmlObject().setHonorificSuffix(value);
 	}
 
 	public List<AccountShadowDto> getAccount() {
-		List<AccountShadowType> accounts = getUserType().getAccount();
+		List<AccountShadowType> accounts = getXmlObject().getAccount();
 		List<AccountShadowDto> accountDtos = new ArrayList<AccountShadowDto>();
 
 		for (AccountShadowType account : accounts) {
@@ -113,7 +109,7 @@ public class UserDto extends ExtensibleObjectDto {
 	}
 
 	public List<ObjectReferenceDto> getAccountRef() {
-		List<ObjectReferenceType> accountRefs = getUserType().getAccountRef();
+		List<ObjectReferenceType> accountRefs = getXmlObject().getAccountRef();
 		List<ObjectReferenceDto> accountRefDtos = new ArrayList<ObjectReferenceDto>();
 
 		for (ObjectReferenceType ref : accountRefs) {
@@ -124,18 +120,18 @@ public class UserDto extends ExtensibleObjectDto {
 	}
 
 	public String getEmployeeNumber() {
-		return getUserType().getEmployeeNumber();
+		return getXmlObject().getEmployeeNumber();
 	}
 
 	public void setEmployeeNumber(String value) {
-		getUserType().setEmployeeNumber(value);
+		getXmlObject().setEmployeeNumber(value);
 	}
 
 	public String getLocality() {
-		return getUserType().getLocality();
+		return getXmlObject().getLocality();
 	}
 
 	public void setLocality(String value) {
-		getUserType().setLocality(value);
+		getXmlObject().setLocality(value);
 	}
 }
