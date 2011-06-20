@@ -25,7 +25,6 @@ package com.evolveum.midpoint.web.model;
 import java.io.Serializable;
 import java.util.Set;
 
-import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
@@ -55,14 +54,13 @@ public interface ObjectTypeCatalog extends Serializable {
 	/**
 	 * Returns instance of ObjectManager appropriate for specified class.
 	 * 
-	 * @param <T>
-	 *            stadard object type (in form of Java classes)
 	 * @param <C>
+	 *            stadard object type (in form of Java classes)
+	 * @param <T>
 	 *            custom DTO class
-	 * @param type
-	 *            custom DTO class
+	 * @param objectType
+	 * @param dtoType
 	 * @return
 	 */
-	<T extends ObjectDto, C extends T> ObjectManager<T> getObjectManager(Class<T> managerType,
-			Class<C> dtoType);
+	<C extends ObjectType, T> ObjectManager<T> getObjectManager(Class<C> objectType, Class<T> dtoType);
 }

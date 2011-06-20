@@ -56,9 +56,9 @@ import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.jsf.form.AttributeType;
 import com.evolveum.midpoint.web.jsf.form.FormAttribute;
 import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinition;
+import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinition.Flag;
 import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinitionBuilder;
 import com.evolveum.midpoint.web.jsf.form.FormObject;
-import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinition.Flag;
 import com.evolveum.midpoint.web.model.AccountShadowManager;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
@@ -66,7 +66,6 @@ import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
-import com.evolveum.midpoint.web.model.dto.GuiAccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -75,6 +74,7 @@ import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -92,7 +92,7 @@ public class UserDetailsController implements Serializable {
 	@Autowired(required = true)
 	private transient TemplateController template;
 	@Autowired(required = true)
-	private ObjectTypeCatalog objectTypeCatalog;	
+	private ObjectTypeCatalog objectTypeCatalog;
 	private boolean editMode = false;
 	private GuiUserDto user;
 	private List<AccountFormBean> accountList;
@@ -165,8 +165,8 @@ public class UserDetailsController implements Serializable {
 		// version from model
 		// Requirement: we will need resolved accountRefs to accounts
 		if (null != user) {
-			ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
-					GuiUserDto.class);
+			ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+					UserDto.class);
 			UserManager userManager = (UserManager) (objectManager);
 			try {
 				this.user = (GuiUserDto) userManager.get(user.getOid(), Utils.getResolveResourceList());
@@ -208,7 +208,7 @@ public class UserDetailsController implements Serializable {
 	public String backPerformed() {
 		clearController();
 		template.setSelectedLeftId("leftList");
-		
+
 		return UserListController.PAGE_NAVIGATION;
 	}
 
@@ -219,11 +219,11 @@ public class UserDetailsController implements Serializable {
 	public void savePerformed(ActionEvent evt) {
 		try {
 			// for add account we have to call method modify for User Object
-			ObjectManager<UserDto> usrManager = objectTypeCatalog.getObjectManager(UserDto.class,
-					GuiUserDto.class);
+			ObjectManager<UserDto> usrManager = objectTypeCatalog.getObjectManager(UserType.class,
+					UserDto.class);
 			UserManager userManager = (UserManager) (usrManager);
 			ObjectManager<AccountShadowDto> accManager = objectTypeCatalog.getObjectManager(
-					AccountShadowDto.class, GuiAccountShadowDto.class);
+					AccountShadowType.class, AccountShadowDto.class);
 			AccountShadowManager accountManager = (AccountShadowManager) (accManager);
 
 			// new accounts are processed as modification of user in one
@@ -335,7 +335,7 @@ public class UserDetailsController implements Serializable {
 			}
 
 			ObjectManager<AccountShadowDto> accManager = objectTypeCatalog.getObjectManager(
-					AccountShadowDto.class, GuiAccountShadowDto.class);
+					AccountShadowType.class, AccountShadowDto.class);
 			AccountShadowManager accountManager = (AccountShadowManager) (accManager);
 			accountManager.submit(account);
 		}
@@ -367,8 +367,8 @@ public class UserDetailsController implements Serializable {
 
 		List<AccountShadowDto> newAccounts = new ArrayList<AccountShadowDto>();
 		for (ResourceDto resource : selectedResources) {
-			ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
-					GuiUserDto.class);
+			ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+					UserDto.class);
 			UserManager userManager = (UserManager) (objectManager);
 			AccountShadowDto account = null;
 			try {
@@ -433,8 +433,8 @@ public class UserDetailsController implements Serializable {
 	}
 
 	private List<ResourceDto> listResources() {
-		ObjectManager<ResourceDto> manager = objectTypeCatalog.getObjectManager(ResourceDto.class,
-				GuiResourceDto.class);
+		ObjectManager<ResourceDto> manager = objectTypeCatalog.getObjectManager(ResourceType.class,
+				ResourceDto.class);
 		ResourceManager resManager = (ResourceManager) (manager);
 
 		List<ResourceDto> resources = new ArrayList<ResourceDto>();

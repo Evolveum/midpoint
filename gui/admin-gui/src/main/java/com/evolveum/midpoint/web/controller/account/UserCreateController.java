@@ -66,8 +66,7 @@ public class UserCreateController implements Serializable {
 	}
 
 	public String create() {
-		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
-				GuiUserDto.class);
+		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class, UserDto.class);
 		UserManager userManager = (UserManager) (objectManager);
 		String oid = null;
 		try {

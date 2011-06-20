@@ -26,11 +26,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.web.model.dto.ObjectDto;
-import com.evolveum.midpoint.web.model.dto.PagingDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.UserDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 
 /**
@@ -47,14 +46,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
  * 
  * @author semancik
  */
-public interface ObjectManager<T extends ObjectDto> {
+public interface ObjectManager<T> {
 	
 	/**
 	 * List objects according to paging parameters.
 	 * 
 	 * @return all objects from the repository.
 	 */
-	Collection<UserDto> list(PagingDto pagingDto) throws WebModelException;
+	Collection<UserDto> list(PagingType paging) throws WebModelException;
 
 	/**
 	 * List all objects.

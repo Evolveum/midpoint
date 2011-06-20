@@ -22,19 +22,20 @@
 
 package com.evolveum.midpoint.web.model.impl;
 
-import com.evolveum.midpoint.web.model.ObjectManager;
-import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
-import com.evolveum.midpoint.web.model.dto.ObjectDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.lang.Validate;
+
+import com.evolveum.midpoint.web.model.ObjectManager;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 public class ObjectTypeCatalogImpl implements ObjectTypeCatalog {
 
 	private static final long serialVersionUID = -8993202087773409957L;
-	private Map<Class<? extends ObjectType>, ObjectManager> managers = new HashMap<Class<? extends ObjectType>, ObjectManager>();
+	private Map<Class<? extends ObjectType>, ObjectManager<?>> managers = new HashMap<Class<? extends ObjectType>, ObjectManager<?>>();
 
 	@Override
 	public Set<Class<? extends ObjectType>> listSupportedObjectTypes() {
@@ -46,14 +47,14 @@ public class ObjectTypeCatalogImpl implements ObjectTypeCatalog {
 		managers.put(type, objectManager);
 	}
 
-	public void setSupportedObjectManagers(Map<Class<? extends ObjectType>, ObjectManager> objectManagers) {
+	public void setSupportedObjectManagers(Map<Class<? extends ObjectType>, ObjectManager<?>> objectManagers) {
 		Validate.notNull(objectManagers);
 		managers = objectManagers;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends ObjectDto, C extends T> ObjectManager<T> getObjectManager(Class<T> managerType,
-			Class<C> dtoType) {
-		return managers.get(dtoType);
+	public <C extends ObjectType, T> ObjectManager<T> getObjectManager(Class<C> objectType, Class<T> dtoType) {
+		return (ObjectManager<T>) managers.get(objectType);
 	}
 }

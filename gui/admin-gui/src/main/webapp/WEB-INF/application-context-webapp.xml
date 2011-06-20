@@ -80,19 +80,19 @@
 			<map>
 				<entry>
 					<key>
-						<value>com.evolveum.midpoint.web.model.dto.GuiUserDto</value>
+						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.UserType</value>
 					</key>
 					<ref bean="guiUserDtoManager" />
 				</entry>
 				<entry>
 					<key>
-						<value>com.evolveum.midpoint.web.model.dto.GuiResourceDto</value>
+						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType</value>
 					</key>
 					<ref bean="guiResourceDtoManager" />
 				</entry>
 				<entry>
 					<key>
-						<value>com.evolveum.midpoint.web.model.dto.GuiAccountShadowDto</value>
+						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType</value>
 					</key>
 					<ref bean="guiAccountShadowDtoManager" />
 				</entry>

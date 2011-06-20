@@ -42,7 +42,6 @@ import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.web.model.AccountShadowManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
-import com.evolveum.midpoint.web.model.dto.PagingDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.UserDto;
@@ -188,7 +187,7 @@ public class AccountShadowTypeManager implements AccountShadowManager, Serializa
 	}
 
 	@Override
-	public Collection<UserDto> list(PagingDto pagingDto) throws WebModelException {
+	public Collection<UserDto> list(PagingType paging) throws WebModelException {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }

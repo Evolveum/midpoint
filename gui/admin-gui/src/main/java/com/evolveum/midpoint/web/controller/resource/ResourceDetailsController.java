@@ -111,7 +111,8 @@ public class ResourceDetailsController implements Serializable {
 					+ "' not found.");
 			return null;
 		}
-
+		LOGGER.debug("Importing object class {}.", new Object[] { objectClass });
+		
 		String nextPage = null;
 		try {
 			OperationResultType result = new OperationResultType();
@@ -140,14 +141,14 @@ public class ResourceDetailsController implements Serializable {
 
 	public String showImportStatus() {
 		importController.setResource(resource);
-		
+
 		template.setSelectedLeftId(ResourceImportController.NAVIGATION_LEFT);
 		return ResourceImportController.PAGE_NAVIGATION;
 	}
 
 	public String showSyncStatus() {
 		resourceSync.setResource(resource);
-		
+
 		template.setSelectedLeftId(ResourceSyncController.NAVIGATION_LEFT);
 		return ResourceSyncController.PAGE_NAVIGATION;
 	}

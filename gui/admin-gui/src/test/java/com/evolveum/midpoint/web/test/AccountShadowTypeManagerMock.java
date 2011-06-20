@@ -22,14 +22,6 @@
 
 package com.evolveum.midpoint.web.test;
 
-import com.evolveum.midpoint.web.model.AccountShadowManager;
-import com.evolveum.midpoint.web.model.WebModelException;
-import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
-import com.evolveum.midpoint.web.model.dto.PagingDto;
-import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
-import com.evolveum.midpoint.web.model.dto.PropertyChange;
-import com.evolveum.midpoint.web.model.dto.UserDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -37,66 +29,76 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.evolveum.midpoint.web.model.AccountShadowManager;
+import com.evolveum.midpoint.web.model.WebModelException;
+import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
+import com.evolveum.midpoint.web.model.dto.PropertyChange;
+import com.evolveum.midpoint.web.model.dto.UserDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+
 /**
- *
+ * 
  * @author katuska
  */
-public class AccountShadowTypeManagerMock implements AccountShadowManager{
+public class AccountShadowTypeManagerMock implements AccountShadowManager {
 
-    Map<String, AccountShadowDto> accountTypeList = new HashMap<String, AccountShadowDto>();
+	Map<String, AccountShadowDto> accountTypeList = new HashMap<String, AccountShadowDto>();
 
-    private final Class constructAccountShadowType;
+	private final Class constructAccountShadowType;
 
-    public AccountShadowTypeManagerMock(Class constructAccountShadowType) {
-        this.constructAccountShadowType = constructAccountShadowType;
-    }
+	public AccountShadowTypeManagerMock(Class constructAccountShadowType) {
+		this.constructAccountShadowType = constructAccountShadowType;
+	}
 
-    @Override
-    public UserType listOwner(String oid) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+	@Override
+	public UserType listOwner(String oid) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-    @Override
-    public Collection<AccountShadowDto> list() {
-        return accountTypeList.values();
-    }
+	@Override
+	public Collection<AccountShadowDto> list() {
+		return accountTypeList.values();
+	}
 
-    @Override
-    public AccountShadowDto get(String oid, PropertyReferenceListType resolve) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+	@Override
+	public AccountShadowDto get(String oid, PropertyReferenceListType resolve) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-    @Override
-    public AccountShadowDto create() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+	@Override
+	public AccountShadowDto create() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-    @Override
-    public String add(AccountShadowDto newObject) {
-        accountTypeList.clear();
-       newObject.setOid(UUID.randomUUID().toString());
-        accountTypeList.put(newObject.getOid(), newObject);
-        return newObject.getOid();
-    }
+	@Override
+	public String add(AccountShadowDto newObject) {
+		accountTypeList.clear();
+		newObject.setOid(UUID.randomUUID().toString());
+		accountTypeList.put(newObject.getOid(), newObject);
+		return newObject.getOid();
+	}
 
-    @Override
-    public Set<PropertyChange> submit(AccountShadowDto changedObject) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+	@Override
+	public Set<PropertyChange> submit(AccountShadowDto changedObject) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-    @Override
-    public void delete(String oid) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+	@Override
+	public void delete(String oid) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-    @Override
-    public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+	@Override
+	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
-    @Override
-    public Collection<UserDto> list(PagingDto pagingDto) throws WebModelException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
+	@Override
+	public Collection<UserDto> list(PagingType paging) throws WebModelException {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 
 }

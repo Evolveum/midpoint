@@ -38,8 +38,8 @@ import com.evolveum.midpoint.init.InitialSetup;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserManager;
-import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
@@ -84,13 +84,12 @@ public class SpringApplicationContextTest {
 	@Test
 	public void initApplicationContext() {
 		assertNotNull(objectTypeCatalog.listSupportedObjectTypes());
-		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
-				GuiUserDto.class);
+		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+				UserDto.class);
 		UserManager userManager = (UserManager) (objectManager);
 		assertNotNull(userManager);
 
 		assertNotNull(modelService);
 		assertNotNull(initialSetup);
 	}
-
 }

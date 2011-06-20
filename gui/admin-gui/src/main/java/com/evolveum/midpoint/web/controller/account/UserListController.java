@@ -37,6 +37,7 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.SearchableListController;
@@ -45,13 +46,14 @@ import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
-import com.evolveum.midpoint.web.model.dto.PagingDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.GuiUserDtoComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
@@ -89,8 +91,8 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 		}
 
 		try {
-			ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
-					GuiUserDto.class);
+			ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+					UserDto.class);
 			UserManager userManager = (UserManager) (objectManager);
 			TRACE.info("userSelectionListener start");
 			user = (GuiUserDto) userManager.get(userOid, new PropertyReferenceListType());
@@ -113,8 +115,8 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 
 	public void deleteUsers() {
 		showPopup = false;
-		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
-				GuiUserDto.class);
+		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+				UserDto.class);
 		UserManager userManager = (UserManager) (objectManager);
 		for (GuiUserDto guiUserDto : getObjects()) {
 			TRACE.info("delete user {} is selected {}", guiUserDto.getFullName(), guiUserDto.isSelected());
@@ -144,15 +146,16 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 
 	@Override
 	protected String listObjects() {
-		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserDto.class,
-				GuiUserDto.class);
+		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+				UserDto.class);
 		UserManager userManager = (UserManager) (objectManager);
 
 		OrderDirectionType direction = OrderDirectionType.ASCENDING;
 		if (!isAscending()) {
 			direction = OrderDirectionType.DESCENDING;
 		}
-		PagingDto paging = new PagingDto(getSortColumnName(), getOffset(), getRowsCount(), direction);
+		PagingType paging = PagingTypeFactory.createPaging(getOffset(), getRowsCount(), direction,
+				getSortColumnName());
 
 		getObjects().clear();
 		if (getQuery() == null) {

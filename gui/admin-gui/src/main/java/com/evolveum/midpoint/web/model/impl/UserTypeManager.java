@@ -50,8 +50,6 @@ import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
-import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
-import com.evolveum.midpoint.web.model.dto.PagingDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
@@ -255,8 +253,7 @@ public class UserTypeManager implements UserManager, Serializable {
 		// TODO: workaround, till we switch to staging
 		// ResourceTypeManager rtm = new
 		// ResourceTypeManager(GuiResourceDto.class);
-		ResourceTypeManager rtm = (ResourceTypeManager) objectTypeCatalog.getObjectManager(ResourceDto.class,
-				GuiResourceDto.class);
+		ResourceTypeManager rtm = (ResourceTypeManager) objectTypeCatalog.getObjectManager(ResourceType. class, ResourceDto.class);
 		ResourceDto resourceDto;
 		try {
 			resourceDto = rtm.get(resourceOid, new PropertyReferenceListType());
@@ -289,11 +286,8 @@ public class UserTypeManager implements UserManager, Serializable {
 	}
 
 	@Override
-	public Collection<UserDto> list(PagingDto pagingDto) throws WebModelException {
+	public Collection<UserDto> list(PagingType paging) throws WebModelException {
 		try { // Call Web Service Operation
-			PagingType paging = PagingTypeFactory.createPaging(pagingDto.getOffset(), pagingDto.getMaxSize(),
-					pagingDto.getDirection(), pagingDto.getOrderBy());
-
 			ObjectListType result = model.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging,
 					new Holder<OperationResultType>(new OperationResultType()));
 
@@ -312,16 +306,12 @@ public class UserTypeManager implements UserManager, Serializable {
 	}
 
 	@Override
-	public List<UserDto> search(QueryType query, PagingDto pagingDto, OperationResult result)
+	public List<UserDto> search(QueryType query, PagingType paging, OperationResult result)
 			throws WebModelException {
 		Validate.notNull(query, "Query must not be null.");
 		Validate.notNull(result, "Result must not be null.");
 
-		PagingType paging = null;
-		if (pagingDto != null) {
-			paging = PagingTypeFactory.createPaging(pagingDto.getOffset(), pagingDto.getMaxSize(),
-					pagingDto.getDirection(), pagingDto.getOrderBy());
-		} else {
+		if (paging == null) {
 			paging = PagingTypeFactory.createListAllPaging(OrderDirectionType.ASCENDING, "name");
 		}
 		List<UserDto> users = new ArrayList<UserDto>();
