@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.evolveum.midpoint.web.model.ResourceManager;
-import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
@@ -106,7 +105,7 @@ public class ResourceTypeManagerMock extends ResourceManager {
 	}
 
 	@Override
-	public Collection<ResourceDto> list(PagingType paging) throws WebModelException {
+	public Collection<ResourceDto> list(PagingType paging) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

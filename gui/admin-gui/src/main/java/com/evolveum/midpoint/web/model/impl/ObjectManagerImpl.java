@@ -21,6 +21,9 @@
 package com.evolveum.midpoint.web.model.impl;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import javax.xml.ws.Holder;
 
@@ -31,11 +34,16 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
+import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
@@ -67,11 +75,10 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 		logger.debug(result.debugDump());
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public T get(String oid, PropertyReferenceListType resolve) {
-		LOGGER.debug("Getting connector with oid {}.", new Object[] { oid });
-		Validate.notNull(oid);
+		Validate.notNull(oid, "Object oid must not be null or empty.");
+		LOGGER.debug("Get object with oid {}.", new Object[] { oid });
 
 		OperationResult result = new OperationResult("Get Object");
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(
@@ -80,18 +87,17 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 		T object = null;
 		try {
 			ObjectType objectType = getModel().getObject(oid, resolve, holder);
-			object = create();
-			object.setXmlObject(objectType);
+			object = createObject(objectType);
 
 			result = OperationResult.createOperationResult(holder.value);
 			result.recordSuccess();
 		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get connector {} from model", ex, oid);
+			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
 
 			result = OperationResult.createOperationResult(holder.value);
 			result.recordFatalError(ex);
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get connector {} from model", ex, oid);
+			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
 
 			result = OperationResult.createOperationResult(holder.value);
 			result.recordFatalError(ex);
@@ -100,5 +106,59 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 		printResults(LOGGER, result);
 
 		return object;
+	}
+
+	@SuppressWarnings("unchecked")
+	private T createObject(ObjectType objectType) {
+		T object = create();
+		object.setXmlObject(objectType);
+
+		return object;
+	}
+
+	@Override
+	public Collection<T> list() {
+		return list(PagingTypeFactory.createListAllPaging());
+	}
+
+	protected Collection<T> list(PagingType paging, ObjectTypes type) {
+		Validate.notNull(paging, "Paging must not be null.");
+		Validate.notNull(type, "Object type must not be null.");
+		LOGGER.debug("Listing '" + type.getValue() + "' objects.");
+
+		OperationResult result = new OperationResult("Get Connectors");
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(
+				result.createOperationResultType());
+
+		Collection<T> collection = new ArrayList<T>();
+		try {
+			ObjectListType list = getModel().listObjects(type.getObjectTypeUri(), paging, holder);
+			if (list != null) {
+				for (ObjectType objectType : list.getObject()) {
+					collection.add(createObject(objectType));
+				}
+			}
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordSuccess();
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list {} objects from model", ex, type.getValue());
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list {} objects from model", ex, type.getValue());
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		}
+
+		printResults(LOGGER, result);
+
+		return collection;
+	}
+
+	@Override
+	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }

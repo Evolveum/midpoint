@@ -31,25 +31,18 @@ import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
-import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.WebModelException;
-import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
 /**
@@ -67,17 +60,16 @@ public class ResourceTypeManager extends ResourceManager {
 	}
 
 	@Override
-	public Collection<ResourceDto> list() throws WebModelException {
-		return list(PagingTypeFactory.createListAllPaging());
-	}
-
-	@Override
 	public ResourceDto create() {
+		ResourceDto resource = null;
 		try {
-			return constructResourceType.newInstance();
+			resource = constructResourceType.newInstance();
+			// resource.setXmlObject(new ResourceType());
 		} catch (Exception ex) {
 			throw new IllegalStateException("Couldn't create instance of '" + constructResourceType + "'.");
 		}
+
+		return resource;
 	}
 
 	@Override
@@ -113,11 +105,6 @@ public class ResourceTypeManager extends ResourceManager {
 	}
 
 	@Override
-	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
 	public <T extends ResourceObjectShadowType> List<ResourceObjectShadowDto<T>> listObjectShadows(
 			String oid, Class<T> resourceObjectShadowType) {
 		Validate.notNull(oid);
@@ -142,36 +129,6 @@ public class ResourceTypeManager extends ResourceManager {
 
 	@Override
 	public Collection<ResourceDto> list(PagingType paging) {
-		LOGGER.debug("Listing resources.");
-		Validate.notNull(paging);
-
-		OperationResult result = new OperationResult("List Resources");
-		Holder<OperationResultType> holder = new Holder<OperationResultType>(
-				result.createOperationResultType());
-
-		Collection<ResourceDto> collection = new ArrayList<ResourceDto>();
-		try {
-			ObjectListType list = getModel().listObjects(ObjectTypes.RESOURCE.getObjectTypeUri(), paging,
-					holder);
-			if (list != null) {
-				for (ObjectType o : list.getObject()) {
-					ResourceDto resourceDto = create();
-					resourceDto.setXmlObject((ResourceType) o);
-					collection.add(resourceDto);
-				}
-			}
-
-			result = OperationResult.createOperationResult(holder.value);
-			result.recordSuccess();
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list resources from model", ex);
-
-			result = OperationResult.createOperationResult(holder.value);
-			result.recordFatalError(ex);
-		}
-
-		printResults(LOGGER, result);
-
-		return collection;
+		return list(paging, ObjectTypes.RESOURCE);
 	}
 }

@@ -49,7 +49,6 @@ import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
-import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
@@ -182,42 +181,6 @@ public class UserTypeManager extends UserManager {
 	}
 
 	@Override
-	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public Collection<UserDto> list() throws WebModelException {
-		try { // Call Web Service Operation
-				// TODO: more reasonable handling of paging info
-			PagingType paging = new PagingType();
-			ObjectListType result = model.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging,
-					new Holder<OperationResultType>(new OperationResultType()));
-
-			List<ObjectType> users = result.getObject();
-			List<UserDto> guiUsers = new ArrayList<UserDto>();
-			for (ObjectType userType : users) {
-				UserDto userDto = (UserDto) constructUserType.newInstance();
-				userDto.setXmlObject((UserType) userType);
-				guiUsers.add(userDto);
-			}
-
-			return guiUsers;
-		} catch (FaultMessage ex) {
-			throw new WebModelException(ex.getFaultInfo().getMessage(),
-					"[Web Service Error] list user failed");
-		} catch (InstantiationException ex) {
-
-			throw new WebModelException(ex.getMessage(), "Instatiation failed.");
-		} catch (IllegalAccessException ex) {
-
-			throw new WebModelException(ex.getMessage(),
-					"Class or its nullary constructor is not accessible.");
-		}
-
-	}
-
-	@Override
 	public AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException {
 		AccountShadowDto accountShadowDto = new AccountShadowDto();
 		AccountShadowType accountShadowType = new AccountShadowType();
@@ -245,37 +208,19 @@ public class UserTypeManager extends UserManager {
 	}
 
 	@Override
-	public UserDto create() throws WebModelException {
+	public UserDto create() {
 		try {
 			UserDto userDto = (UserDto) constructUserType.newInstance();
 			userDto.setXmlObject(new UserType());
 			return userDto;
-		} catch (InstantiationException ex) {
-			throw new WebModelException(ex.getMessage(), "Instatiation failed.");
-		} catch (IllegalAccessException ex) {
-			throw new WebModelException(ex.getMessage(),
-					"Class or its nullary constructor is not accessible.");
+		} catch (Exception ex) {
+			throw new IllegalStateException("Couldn't create instance of '" + constructUserType + "'.");
 		}
 	}
 
 	@Override
-	public Collection<UserDto> list(PagingType paging) throws WebModelException {
-		try { // Call Web Service Operation
-			ObjectListType result = model.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging,
-					new Holder<OperationResultType>(new OperationResultType()));
-
-			List<ObjectType> users = result.getObject();
-			List<UserDto> guiUsers = new ArrayList<UserDto>();
-			for (ObjectType userType : users) {
-				UserDto userDto = createNewUser((UserType) userType);
-				guiUsers.add(userDto);
-			}
-
-			return guiUsers;
-		} catch (FaultMessage ex) {
-
-			throw new WebModelException(ex.getMessage(), "[Web Service Error] list user failed");
-		}
+	public Collection<UserDto> list(PagingType paging) {
+		return list(paging, ObjectTypes.USER);
 	}
 
 	@Override

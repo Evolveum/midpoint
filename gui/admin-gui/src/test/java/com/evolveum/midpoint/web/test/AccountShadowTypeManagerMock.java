@@ -30,7 +30,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import com.evolveum.midpoint.web.model.AccountShadowManager;
-import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -98,7 +97,7 @@ public class AccountShadowTypeManagerMock extends AccountShadowManager {
 	}
 
 	@Override
-	public Collection<AccountShadowDto> list(PagingType paging) throws WebModelException {
+	public Collection<AccountShadowDto> list(PagingType paging) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 

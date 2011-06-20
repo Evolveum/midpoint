@@ -185,7 +185,7 @@ public class UserTypeManagerMock extends UserManager {
 	}
 
 	@Override
-	public Collection<UserDto> list(PagingType paging) throws WebModelException {
+	public Collection<UserDto> list(PagingType paging) {
 		return userTypeList.values();
 	}
 

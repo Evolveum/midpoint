@@ -438,21 +438,21 @@ public class UserDetailsController implements Serializable {
 		ResourceManager resManager = (ResourceManager) (manager);
 
 		List<ResourceDto> resources = new ArrayList<ResourceDto>();
-		try {
+//		try {
 			Collection<ResourceDto> list = resManager.list();
 			if (list != null) {
 				resources.addAll(list);
 			}
-		} catch (WebModelException ex) {
-			StringBuilder message = new StringBuilder();
-			message.append(FacesUtils.translateKey("resource.list.failed"));
-			message.append(" Reason: ");
-			message.append(ex.getTitle());
-			message.append(" (");
-			message.append(ex.getMessage());
-			message.append(").");
-			FacesUtils.addErrorMessage(message.toString());
-		}
+//		} catch (WebModelException ex) {
+//			StringBuilder message = new StringBuilder();
+//			message.append(FacesUtils.translateKey("resource.list.failed"));
+//			message.append(" Reason: ");
+//			message.append(ex.getTitle());
+//			message.append(" (");
+//			message.append(ex.getMessage());
+//			message.append(").");
+//			FacesUtils.addErrorMessage(message.toString());
+//		}
 
 		return resources;
 	}

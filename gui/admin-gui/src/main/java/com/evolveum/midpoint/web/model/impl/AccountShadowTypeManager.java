@@ -22,15 +22,12 @@
 
 package com.evolveum.midpoint.web.model.impl;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
@@ -41,52 +38,21 @@ import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.web.model.AccountShadowManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
-import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 public class AccountShadowTypeManager extends AccountShadowManager {
 
 	private static final long serialVersionUID = 4540270042561861862L;
 	private static final Trace TRACE = TraceManager.getTrace(AccountShadowTypeManager.class);
-	private Class<?> constructAccountShadowType;
+	private Class<? extends AccountShadowDto> constructAccountShadowType;
 
-	public AccountShadowTypeManager(Class<?> constructAccountShadowType) {
+	public AccountShadowTypeManager(Class<? extends AccountShadowDto> constructAccountShadowType) {
 		this.constructAccountShadowType = constructAccountShadowType;
-	}
-
-	@Autowired
-	private transient ModelPortType port;
-
-	@Override
-	public Collection<AccountShadowDto> list() {
-
-		try { // Call Web Service Operation
-				// TODO: more reasonable handling of paging info
-			PagingType paging = new PagingType();
-			ObjectListType result = port.listObjects(ObjectTypes.ACCOUNT.getObjectTypeUri(), paging,
-					new Holder<OperationResultType>(new OperationResultType()));
-			List<ObjectType> objects = result.getObject();
-			Collection<AccountShadowDto> items = new ArrayList<AccountShadowDto>(objects.size());
-			for (Object o : objects) {
-				AccountShadowType accountType = (AccountShadowType) o;
-				items.add((new AccountShadowDto(accountType)));
-			}
-			return items;
-		} catch (Exception ex) {
-			TRACE.error("List accounts failed");
-			TRACE.error("Exception was: ", ex);
-			return null;
-		}
-
 	}
 
 	@Override
@@ -94,8 +60,8 @@ public class AccountShadowTypeManager extends AccountShadowManager {
 		Validate.notNull(accountShadowDto);
 
 		try { // Call Web Service Operation
-			String result = port.addObject(accountShadowDto.getXmlObject(), new Holder<OperationResultType>(
-					new OperationResultType()));
+			String result = getModel().addObject(accountShadowDto.getXmlObject(),
+					new Holder<OperationResultType>(new OperationResultType()));
 			return result;
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] Add account failed");
@@ -109,7 +75,7 @@ public class AccountShadowTypeManager extends AccountShadowManager {
 		Validate.notNull(oid);
 
 		try { // Call Web Service Operation
-			port.deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
+			getModel().deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] Delete account failed.");
 		}
@@ -120,8 +86,8 @@ public class AccountShadowTypeManager extends AccountShadowManager {
 		Validate.notNull(oid);
 
 		try {
-			UserType userType = port.listAccountShadowOwner(oid, new Holder<OperationResultType>(
-					new OperationResultType()));
+			UserType userType = getModel().listAccountShadowOwner(oid,
+					new Holder<OperationResultType>(new OperationResultType()));
 			return userType;
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(), "[Web Service Error] List owner failed.");
@@ -130,7 +96,14 @@ public class AccountShadowTypeManager extends AccountShadowManager {
 
 	@Override
 	public AccountShadowDto create() {
-		throw new UnsupportedOperationException("Not supported yet.");
+		try {
+			AccountShadowDto account = constructAccountShadowType.newInstance();
+			// resource.setXmlObject(new ResourceType());
+			return account;
+		} catch (Exception ex) {
+			throw new IllegalStateException("Couldn't create instance of '" + constructAccountShadowType
+					+ "'.");
+		}
 	}
 
 	@Override
@@ -140,7 +113,7 @@ public class AccountShadowTypeManager extends AccountShadowManager {
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),
 					changedObject.getXmlObject());
 			if (changes != null && changes.getOid() != null) {
-				port.modifyObject(changes, new Holder<OperationResultType>(new OperationResultType()));
+				getModel().modifyObject(changes, new Holder<OperationResultType>(new OperationResultType()));
 			}
 		} catch (FaultMessage ex) {
 			throw new WebModelException(ex.getMessage(),
@@ -154,12 +127,7 @@ public class AccountShadowTypeManager extends AccountShadowManager {
 	}
 
 	@Override
-	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
-
-	@Override
-	public Collection<AccountShadowDto> list(PagingType paging) throws WebModelException {
-		throw new UnsupportedOperationException("Not supported yet.");
+	public Collection<AccountShadowDto> list(PagingType paging) {
+		return list(paging, ObjectTypes.ACCOUNT);
 	}
 }

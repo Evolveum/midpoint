@@ -160,15 +160,15 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 		getObjects().clear();
 		if (getQuery() == null) {
 			// we're listing objects
-			try {
+//			try {
 				Collection<UserDto> list = (Collection<UserDto>) userManager.list(paging);
 				for (UserDto userDto : list) {
 					getObjects().add((GuiUserDto) userDto);
 				}
-			} catch (WebModelException ex) {
-				LoggingUtils.logException(TRACE, "List users failed", ex);
-				// TODO: faces utils error add
-			}
+//			} catch (WebModelException ex) {
+//				LoggingUtils.logException(TRACE, "List users failed", ex);
+//				// TODO: faces utils error add
+//			}
 		} else {
 			// we're searching for objects
 			OperationResult result = new OperationResult("Search");

@@ -52,14 +52,14 @@ public interface ObjectManager<T> {
 	 * 
 	 * @return all objects from the repository.
 	 */
-	Collection<T> list(PagingType paging) throws WebModelException;
+	Collection<T> list(PagingType paging);
 
 	/**
 	 * List all objects.
 	 * 
 	 * @return all objects from the repository.
 	 */
-	Collection<T> list() throws WebModelException;
+	Collection<T> list();
 
 	/**
 	 * Lookup object by OID.
@@ -77,7 +77,7 @@ public interface ObjectManager<T> {
 	 * 
 	 * @return
 	 */
-	T create() throws WebModelException;
+	T create();
 
 	/**
 	 * Add new object to the repository.
