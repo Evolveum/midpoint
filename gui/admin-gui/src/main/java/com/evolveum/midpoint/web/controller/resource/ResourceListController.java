@@ -28,7 +28,6 @@ import java.util.Set;
 
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
-import javax.xml.bind.JAXBElement;
 import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.StringUtils;
@@ -49,28 +48,21 @@ import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.bean.ResourceObjectType;
-import com.evolveum.midpoint.web.bean.ResourceState;
-import com.evolveum.midpoint.web.bean.ResourceStatus;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.SortableListController;
-import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.ResourceItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType.ExtraTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * 
@@ -88,8 +80,6 @@ public class ResourceListController extends SortableListController<ResourceListI
 	private static final Trace TRACE = TraceManager.getTrace(ResourceListController.class);
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog objectTypeCatalog;
-	@Autowired(required = true)
-	private transient ModelPortType model;
 	@Autowired(required = true)
 	private transient TemplateController template;
 	@Autowired(required = true)
@@ -187,58 +177,14 @@ public class ResourceListController extends SortableListController<ResourceListI
 			return;
 		}
 
-		testConnection(resource, model);
-	}
-
-	static void testConnection(ResourceListItem resourceItem, ModelPortType model) {
 		try {
-			ResourceTestResultType result = model.testResource(resourceItem.getOid(),
-					new Holder<OperationResultType>(new OperationResultType()));
-			updateResourceState(resourceItem.getState(), result);
-		} catch (FaultMessage ex) {
-			String message = "Couldn't test conection on resource '" + resourceItem.getName() + "'.";
-			FacesUtils.addErrorMessage(message, ex);
-			TRACE.trace(message, ex);
+			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+			ResourceTestResultType result = manager.testConnection(resource.getOid());
+			ControllerUtil.updateResourceState(resource.getState(), result);
+		} catch (Exception ex) {
+			LoggingUtils.logException(TRACE, "Couldn't test resource {}", ex, resource.getName());
+			FacesUtils.addErrorMessage("Couldn't test resource '" + resource.getName() + "'.", ex);
 		}
-	}
-
-	private static void updateResourceState(ResourceState state, ResourceTestResultType result) {
-		ExtraTest extra = result.getExtraTest();
-		if (extra != null) {
-			state.setExtraName(extra.getName());
-			state.setExtra(getStatusFromResultType(extra.getResult()));
-		}
-		state.setConConnection(getStatusFromResultType(result.getConnectorConnection()));
-		state.setConfValidation(getStatusFromResultType(result.getConfigurationValidation()));
-		state.setConInitialization(getStatusFromResultType(result.getConnectorInitialization()));
-		state.setConSanity(getStatusFromResultType(result.getConnectorSanity()));
-		state.setConSchema(getStatusFromResultType(result.getConnectorSchema()));
-	}
-
-	private static ResourceStatus getStatusFromResultType(TestResultType result) {
-		if (result == null) {
-			return ResourceStatus.NOT_TESTED;
-		}
-
-		ResourceStatus status = result.isSuccess() ? ResourceStatus.SUCCESS : ResourceStatus.ERROR;
-
-		List<JAXBElement<DiagnosticsMessageType>> messages = result.getErrorOrWarning();
-		for (JAXBElement<DiagnosticsMessageType> element : messages) {
-			DiagnosticsMessageType message = element.getValue();
-			StringBuilder builder = new StringBuilder();
-			builder.append(message.getMessage());
-			if (!StringUtils.isEmpty(message.getDetails())) {
-				builder.append("Reason: ");
-				builder.append(message.getDetails());
-			}
-			if (message.getTimestamp() != null) {
-				builder.append("Time: ");
-				builder.append(message.getTimestamp().toGregorianCalendar().getTime());
-			}
-			FacesUtils.addErrorMessage(builder.toString());
-		}
-
-		return status;
 	}
 
 	private ResourceListItem createResourceListItem(ResourceType resource) {
@@ -299,40 +245,41 @@ public class ResourceListController extends SortableListController<ResourceListI
 	}
 
 	// TODO: MOVE TO MODEL !!!!!!!!!!!!!!!!!!!!!!! test before delete resource
-	private List<ResourceListItem> testResourcesBeforeDelete() {
-		List<ResourceListItem> toBeDeleted = new ArrayList<ResourceListItem>();
-		for (ResourceListItem item : getObjects()) {
-			OperationResult result = new OperationResult("List Resource Object Shadows");
-
-			boolean canDelete = true;
-			for (ResourceObjectType objectType : item.getObjectTypes()) {
-				try {
-					ResourceObjectShadowListType list = model.listResourceObjectShadows(item.getOid(),
-							objectType.getSimpleType(),
-							new Holder<OperationResultType>(result.createOperationResultType()));
-					if (list != null && !list.getObject().isEmpty()) {
-						FacesUtils.addErrorMessage("Can't delete resource '" + item.getName()
-								+ "', it's referenced by " + list.getObject().size() + " objects of type '"
-								+ objectType.getSimpleType() + "'.");
-						canDelete = false;
-						break;
-					}
-				} catch (FaultMessage ex) {
-					LoggingUtils.logException(TRACE,
-							"Couldn't list resource objects of type {} for resource {}", ex,
-							objectType.getSimpleType(), item.getName());
-					// TODO: error handling
-					canDelete = false;
-				}
-			}
-
-			if (canDelete) {
-				toBeDeleted.add(item);
-			}
-		}
-
-		return toBeDeleted;
-	}
+//	private List<ResourceListItem> testResourcesBeforeDelete() {
+//		List<ResourceListItem> toBeDeleted = new ArrayList<ResourceListItem>();
+//		for (ResourceListItem item : getObjects()) {
+//			OperationResult result = new OperationResult("List Resource Object Shadows");
+//
+//			boolean canDelete = true;
+//			for (ResourceObjectType objectType : item.getObjectTypes()) {
+//				try {
+//					// TODO: model not available not, user managers
+//					ResourceObjectShadowListType list = model.listResourceObjectShadows(item.getOid(),
+//							objectType.getSimpleType(),
+//							new Holder<OperationResultType>(result.createOperationResultType()));
+//					if (list != null && !list.getObject().isEmpty()) {
+//						FacesUtils.addErrorMessage("Can't delete resource '" + item.getName()
+//								+ "', it's referenced by " + list.getObject().size() + " objects of type '"
+//								+ objectType.getSimpleType() + "'.");
+//						canDelete = false;
+//						break;
+//					}
+//				} catch (FaultMessage ex) {
+//					LoggingUtils.logException(TRACE,
+//							"Couldn't list resource objects of type {} for resource {}", ex,
+//							objectType.getSimpleType(), item.getName());
+//					// TODO: error handling
+//					canDelete = false;
+//				}
+//			}
+//
+//			if (canDelete) {
+//				toBeDeleted.add(item);
+//			}
+//		}
+//
+//		return toBeDeleted;
+//	}
 
 	public void deletePerformed() {
 		showPopup = true;
@@ -347,12 +294,12 @@ public class ResourceListController extends SortableListController<ResourceListI
 				continue;
 			}
 			try {
-				// TODO: holder and result
-				model.deleteObject(item.getOid(), new Holder<OperationResultType>());
+				ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+				manager.delete(item.getOid());
+
 				toBeDeleted.add(item);
-			} catch (FaultMessage ex) {
+			} catch (Exception ex) {
 				LoggingUtils.logException(TRACE, "Couldn't delete resource {}", ex, item.getName());
-				// TODO: error handling
 				FacesUtils.addErrorMessage("Couldn't delete resource.", ex);
 			}
 		}
@@ -366,17 +313,10 @@ public class ResourceListController extends SortableListController<ResourceListI
 		Collections.sort(getObjects(), new ResourceItemComparator(getSortColumnName(), isAscending()));
 	}
 
-	private ResourceManager getResourceManager() {
-		ObjectManager<ResourceDto> manager = objectTypeCatalog.getObjectManager(ResourceType.class,
-				ResourceDto.class);
-
-		return (ResourceManager) manager;
-	}
-
 	@Override
 	protected String listObjects() {
 		try {
-			ResourceManager manager = getResourceManager();
+			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
 			Collection<ResourceDto> resources = manager.list();
 
 			List<ResourceListItem> list = getObjects();

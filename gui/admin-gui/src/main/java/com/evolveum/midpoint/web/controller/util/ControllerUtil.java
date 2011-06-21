@@ -24,8 +24,10 @@ import java.util.List;
 
 import javax.faces.event.PhaseId;
 import javax.faces.event.ValueChangeEvent;
+import javax.xml.bind.JAXBElement;
 import javax.xml.ws.Holder;
 
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -34,10 +36,28 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.web.bean.ResourceState;
+import com.evolveum.midpoint.web.bean.ResourceStatus;
 import com.evolveum.midpoint.web.bean.Selectable;
+import com.evolveum.midpoint.web.model.AccountShadowManager;
+import com.evolveum.midpoint.web.model.ObjectManager;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.ResourceManager;
+import com.evolveum.midpoint.web.model.UserManager;
+import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.ResourceDto;
+import com.evolveum.midpoint.web.model.dto.UserDto;
+import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType.ExtraTest;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
@@ -135,5 +155,61 @@ public class ControllerUtil {
 				item.setSelected(selectAll);
 			}
 		}
+	}
+
+	public static UserManager getUserManager(ObjectTypeCatalog catalog) {
+		ObjectManager<UserDto> objectManager = catalog.getObjectManager(UserType.class, UserDto.class);
+		return (UserManager) (objectManager);
+	}
+
+	public static ResourceManager getResourceManager(ObjectTypeCatalog catalog) {
+		ObjectManager<ResourceDto> manager = catalog.getObjectManager(ResourceType.class, ResourceDto.class);
+
+		return (ResourceManager) manager;
+	}
+
+	public static AccountShadowManager getAccountManager(ObjectTypeCatalog catalog) {
+		ObjectManager<AccountShadowDto> manager = catalog.getObjectManager(AccountShadowType.class,
+				AccountShadowDto.class);
+		return (AccountShadowManager) (manager);
+	}
+
+	public static void updateResourceState(ResourceState state, ResourceTestResultType result) {
+		ExtraTest extra = result.getExtraTest();
+		if (extra != null) {
+			state.setExtraName(extra.getName());
+			state.setExtra(getStatusFromResultType(extra.getResult()));
+		}
+		state.setConConnection(getStatusFromResultType(result.getConnectorConnection()));
+		state.setConfValidation(getStatusFromResultType(result.getConfigurationValidation()));
+		state.setConInitialization(getStatusFromResultType(result.getConnectorInitialization()));
+		state.setConSanity(getStatusFromResultType(result.getConnectorSanity()));
+		state.setConSchema(getStatusFromResultType(result.getConnectorSchema()));
+	}
+
+	private static ResourceStatus getStatusFromResultType(TestResultType result) {
+		if (result == null) {
+			return ResourceStatus.NOT_TESTED;
+		}
+
+		ResourceStatus status = result.isSuccess() ? ResourceStatus.SUCCESS : ResourceStatus.ERROR;
+
+		List<JAXBElement<DiagnosticsMessageType>> messages = result.getErrorOrWarning();
+		for (JAXBElement<DiagnosticsMessageType> element : messages) {
+			DiagnosticsMessageType message = element.getValue();
+			StringBuilder builder = new StringBuilder();
+			builder.append(message.getMessage());
+			if (!StringUtils.isEmpty(message.getDetails())) {
+				builder.append("Reason: ");
+				builder.append(message.getDetails());
+			}
+			if (message.getTimestamp() != null) {
+				builder.append("Time: ");
+				builder.append(message.getTimestamp().toGregorianCalendar().getTime());
+			}
+			FacesUtils.addErrorMessage(builder.toString());
+		}
+
+		return status;
 	}
 }

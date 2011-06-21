@@ -22,8 +22,6 @@ package com.evolveum.midpoint.web.controller.resource;
 
 import java.io.Serializable;
 
-import javax.xml.ws.Holder;
-
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -37,10 +35,11 @@ import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.bean.ResourceObjectType;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.config.DebugViewController;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 
 @Controller("resourceDetails")
 @Scope("session")
@@ -52,7 +51,7 @@ public class ResourceDetailsController implements Serializable {
 	private static final long serialVersionUID = 8325385127604325634L;
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceDetailsController.class);
 	@Autowired(required = true)
-	private transient ModelPortType model;
+	private ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
 	private transient DebugViewController debugView;
 	@Autowired(required = true)
@@ -82,7 +81,15 @@ public class ResourceDetailsController implements Serializable {
 			return null;
 		}
 
-		ResourceListController.testConnection(resource, model);
+		try {
+			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+			ResourceTestResultType result = manager.testConnection(resource.getOid());
+			ControllerUtil.updateResourceState(resource.getState(), result);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't test resource {}", ex, resource.getName());
+			FacesUtils.addErrorMessage("Couldn't test resource '" + resource.getName() + "'.", ex);
+		}
+
 		return null;
 	}
 
@@ -112,18 +119,19 @@ public class ResourceDetailsController implements Serializable {
 			return null;
 		}
 		LOGGER.debug("Importing object class {}.", new Object[] { objectClass });
-		
+
 		String nextPage = null;
 		try {
-			OperationResultType result = new OperationResultType();
-			model.launchImportFromResource(getResource().getOid(), objectClass,
-					new Holder<OperationResultType>(result));
+			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+			manager.launchImportFromResource(getResource().getOid(), objectClass);
 
 			importController.setResource(getResource());
 			nextPage = importController.initController();
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't launch import", ex);
-			// TODO: result and error handling
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't launch import for resource {} and object class {}",
+					ex, getResource().getOid(), objectClass);
+			FacesUtils.addErrorMessage("Couldn't launch import for resource '" + getResource().getOid()
+					+ "' and object class '" + objectClass + "'.", ex);
 		}
 
 		if (ResourceImportController.PAGE_NAVIGATION.equals(nextPage)) {

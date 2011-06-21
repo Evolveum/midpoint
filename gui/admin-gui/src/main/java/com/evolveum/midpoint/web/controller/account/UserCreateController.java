@@ -29,13 +29,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.web.model.ObjectManager;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
-import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -54,7 +54,7 @@ public class UserCreateController implements Serializable {
 	private transient ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
 	private transient UserListController userListController;
-	private GuiUserDto user; // TODO: change to better bean
+	private GuiUserDto user;
 
 	public UserCreateController() {
 		reinit();
@@ -65,21 +65,19 @@ public class UserCreateController implements Serializable {
 	}
 
 	public String create() {
-		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
-				UserDto.class);
-		UserManager userManager = (UserManager) (objectManager);
 		String oid = null;
 		try {
+			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 			oid = userManager.add(user);
 		} catch (Exception ex) {
-			// TODO: error handling
+			LoggingUtils.logException(TRACE, "Couldn't create user", ex);
 			FacesUtils.addErrorMessage("Failed to create user:" + ex.getMessage());
-			TRACE.error("Failed to create user {}, exception {}", user, ex);
+
 			return null;
 		}
 		if (oid == null) {
 			FacesUtils.addErrorMessage("Failed to create user");
-			TRACE.error("Failed to create user {}", user);
+			TRACE.debug("Failed to create user {}, oid returned null.", user.getName());
 			return null;
 		}
 
@@ -98,7 +96,8 @@ public class UserCreateController implements Serializable {
 	}
 
 	private void reinit() {
-		user = new GuiUserDto();
+		UserManager manager = ControllerUtil.getUserManager(objectTypeCatalog);
+		user = (GuiUserDto) manager.create();
 		user.setXmlObject(new UserType());
 		user.setVersion("1.0");
 		user.setEnabled(true);

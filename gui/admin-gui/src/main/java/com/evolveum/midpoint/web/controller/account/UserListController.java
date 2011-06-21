@@ -41,7 +41,6 @@ import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.SearchableListController;
-import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.WebModelException;
@@ -53,7 +52,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
@@ -91,20 +89,14 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 		}
 
 		try {
-			ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
-					UserDto.class);
-			UserManager userManager = (UserManager) (objectManager);
+			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
+
 			TRACE.info("userSelectionListener start");
 			user = (GuiUserDto) userManager.get(userOid, new PropertyReferenceListType());
 			TRACE.info("userSelectionListener end");
 
 			// TODO: handle exception
 			userDetailsController.setUser(user);
-			// } catch (WebModelException ex) {
-			// LoggingUtils.logException(TRACE,
-			// "Can't select user, WebModelException error occured", ex);
-			// FacesUtils.addErrorMessage("Can't select user, WebModelException error occured.",
-			// ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(TRACE, "Can't select user, unknown error occured", ex);
 			FacesUtils.addErrorMessage("Can't select user, unknown error occured.", ex);
@@ -117,14 +109,12 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 
 	public void deleteUsers() {
 		showPopup = false;
-		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
-				UserDto.class);
-		UserManager userManager = (UserManager) (objectManager);
 		for (GuiUserDto guiUserDto : getObjects()) {
 			TRACE.info("delete user {} is selected {}", guiUserDto.getFullName(), guiUserDto.isSelected());
 
 			if (guiUserDto.isSelected()) {
 				try {
+					UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 					userManager.delete(guiUserDto.getOid());
 				} catch (Exception ex) {
 					LoggingUtils.logException(TRACE, "Delete user failed", ex);
@@ -148,9 +138,7 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 
 	@Override
 	protected String listObjects() {
-		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
-				UserDto.class);
-		UserManager userManager = (UserManager) (objectManager);
+		UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 
 		OrderDirectionType direction = OrderDirectionType.ASCENDING;
 		if (!isAscending()) {

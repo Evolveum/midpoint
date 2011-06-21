@@ -45,6 +45,7 @@ import org.springframework.stereotype.Controller;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.Utils;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.provisioning.schema.ResourceAttributeDefinition;
 import com.evolveum.midpoint.provisioning.schema.util.SchemaParserException;
 import com.evolveum.midpoint.web.bean.AccountFormBean;
 import com.evolveum.midpoint.web.controller.TemplateController;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.jsf.form.AttributeType;
 import com.evolveum.midpoint.web.jsf.form.FormAttribute;
 import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinition;
@@ -74,7 +76,6 @@ import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -164,28 +165,28 @@ public class UserDetailsController implements Serializable {
 		// if we are going to work with user details, we will get it's fresh
 		// version from model
 		// Requirement: we will need resolved accountRefs to accounts
-		if (null != user) {
-			ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
-					UserDto.class);
-			UserManager userManager = (UserManager) (objectManager);
-//			try {
+		if (user != null) {
+			try {
+				UserManager userManager = getUserManager();
+
 				this.user = (GuiUserDto) userManager.get(user.getOid(), Utils.getResolveResourceList());
 				accountList = createFormBeanList(this.user.getAccount(), false);
 				getAvailableResourceList().clear();
 				availableResourceList = createResourceList(this.user.getAccount());
-//			} catch (WebModelException ex) {
-//				StringBuilder message = new StringBuilder();
-//				message.append("Get user failed. Reason: ");
-//				message.append(ex.getTitle());
-//				message.append(" (");
-//				message.append(ex.getMessage());
-//				message.append(").");
-//				FacesUtils.addErrorMessage(message.toString());
-//			}
+			} catch (Exception ex) {
+				LoggingUtils.logException(TRACE, "Couldn't create account list for user {}", ex,
+						user.getName());
+				FacesUtils.addErrorMessage("Couldn't create account list for user.", ex);
+			}
 		} else {
-			// here we know that setter's parameter user is null
 			this.user = null;
 		}
+	}
+
+	private UserManager getUserManager() {
+		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+				UserDto.class);
+		return (UserManager) (objectManager);
 	}
 
 	public void startEditMode(ActionEvent evt) {
@@ -218,13 +219,8 @@ public class UserDetailsController implements Serializable {
 	 */
 	public void savePerformed(ActionEvent evt) {
 		try {
-			// for add account we have to call method modify for User Object
-			ObjectManager<UserDto> usrManager = objectTypeCatalog.getObjectManager(UserType.class,
-					UserDto.class);
-			UserManager userManager = (UserManager) (usrManager);
-			ObjectManager<AccountShadowDto> accManager = objectTypeCatalog.getObjectManager(
-					AccountShadowType.class, AccountShadowDto.class);
-			AccountShadowManager accountManager = (AccountShadowManager) (accManager);
+			UserManager userManager = getUserManager();
+			AccountShadowManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 
 			// new accounts are processed as modification of user in one
 			// operation
@@ -295,19 +291,6 @@ public class UserDetailsController implements Serializable {
 			FacesUtils.addErrorMessage(loginFailedMessage + " " + ex.toString());
 
 			return;
-		} catch (WebModelException ex) {
-			TRACE.error("Web error {} : {}", ex.getTitle(), ex.getMessage());
-			// TODO: What action should we fire in GUI if error occurs ???
-			StringBuilder message = new StringBuilder();
-			message.append(FacesUtils.translateKey("save.failed"));
-			message.append(" Reason: ");
-			message.append(ex.getTitle());
-			message.append(" (");
-			message.append(ex.getMessage());
-			message.append(").");
-			FacesUtils.addErrorMessage(message.toString());
-
-			return;
 		} catch (Exception ex) {
 			// should not be here, it's only because bad error handling
 			TRACE.error("Unknown error occured during save operation, reason: {}.", ex.getMessage());
@@ -334,9 +317,7 @@ public class UserDetailsController implements Serializable {
 						+ ".", "Failed to update account attributes.", ex);
 			}
 
-			ObjectManager<AccountShadowDto> accManager = objectTypeCatalog.getObjectManager(
-					AccountShadowType.class, AccountShadowDto.class);
-			AccountShadowManager accountManager = (AccountShadowManager) (accManager);
+			AccountShadowManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 			accountManager.submit(account);
 		}
 		TRACE.debug("Finished processing accounts with outbound schema handling");
@@ -433,26 +414,18 @@ public class UserDetailsController implements Serializable {
 	}
 
 	private List<ResourceDto> listResources() {
-		ObjectManager<ResourceDto> manager = objectTypeCatalog.getObjectManager(ResourceType.class,
-				ResourceDto.class);
-		ResourceManager resManager = (ResourceManager) (manager);
+		ResourceManager resManager = ControllerUtil.getResourceManager(objectTypeCatalog);
 
 		List<ResourceDto> resources = new ArrayList<ResourceDto>();
-//		try {
+		try {
 			Collection<ResourceDto> list = resManager.list();
 			if (list != null) {
 				resources.addAll(list);
 			}
-//		} catch (WebModelException ex) {
-//			StringBuilder message = new StringBuilder();
-//			message.append(FacesUtils.translateKey("resource.list.failed"));
-//			message.append(" Reason: ");
-//			message.append(ex.getTitle());
-//			message.append(" (");
-//			message.append(ex.getMessage());
-//			message.append(").");
-//			FacesUtils.addErrorMessage(message.toString());
-//		}
+		} catch (Exception ex) {
+			LoggingUtils.logException(TRACE, "Couldn't list resources", ex);
+			FacesUtils.addErrorMessage("Couldn't list resources.", ex);
+		}
 
 		return resources;
 	}

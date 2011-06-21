@@ -94,7 +94,9 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 		} catch (FaultMessage ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
 
-			result = OperationResult.createOperationResult(holder.value);
+			OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
+					.getOperationResult() == null) ? holder.value : ex.getFaultInfo().getOperationResult();
+			result = OperationResult.createOperationResult(resultType);
 			result.recordFatalError(ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
@@ -143,7 +145,9 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 		} catch (FaultMessage ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list {} objects from model", ex, type.getValue());
 
-			result = OperationResult.createOperationResult(holder.value);
+			OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
+					.getOperationResult() == null) ? holder.value : ex.getFaultInfo().getOperationResult();
+			result = OperationResult.createOperationResult(resultType);
 			result.recordFatalError(ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list {} objects from model", ex, type.getValue());
@@ -172,7 +176,9 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 		} catch (FaultMessage ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete object {} from model", ex, oid);
 
-			result = OperationResult.createOperationResult(holder.value);
+			OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
+					.getOperationResult() == null) ? holder.value : ex.getFaultInfo().getOperationResult();
+			result = OperationResult.createOperationResult(resultType);
 			result.recordFatalError(ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete object {} from model", ex, oid);
@@ -192,7 +198,7 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 		OperationResult result = new OperationResult("Add Object");
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(
 				result.createOperationResultType());
-		
+
 		String oid = null;
 		try {
 			oid = getModel().addObject(object.getXmlObject(), holder);
@@ -201,7 +207,9 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 		} catch (FaultMessage ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object {} from model", ex, object.getName());
 
-			result = OperationResult.createOperationResult(holder.value);
+			OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
+					.getOperationResult() == null) ? holder.value : ex.getFaultInfo().getOperationResult();
+			result = OperationResult.createOperationResult(resultType);
 			result.recordFatalError(ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object {} from model", ex, object.getName());
@@ -211,7 +219,7 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 		}
 
 		printResults(LOGGER, result);
-		
+
 		return oid;
 	}
 
