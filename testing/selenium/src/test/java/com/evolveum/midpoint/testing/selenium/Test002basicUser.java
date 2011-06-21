@@ -47,8 +47,8 @@ public class Test002basicUser {
 	@Before
 	public void start() {
 
-		//WebDriver driver = new FirefoxDriver();
-		WebDriver driver = new ChromeDriver();
+		WebDriver driver = new FirefoxDriver();
+		//WebDriver driver = new ChromeDriver();
 		selenium = new WebDriverBackedSelenium(driver, baseUrl);
 		selenium.setBrowserLogLevel("5");
 
