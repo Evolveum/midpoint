@@ -308,25 +308,21 @@ public class Test002basicUser {
 		selenium.click(findNextLink("topAccount"));
 		selenium.waitForPageToLoad("30000");
 		
-		logger.info("Removing set");
-		for (String l: h.keySet()) {
-			h.remove(l);
-		}
-	
+		assertTrue(selenium.isTextPresent("New User"));
+
+		logger.info("Li: " + Arrays.asList(selenium.getAllLinks()));	
+
 		for (String l : selenium.getAllLinks()) {
+			logger.info("L:" + l);
 			if (!l.contains("Table") || !l.contains("name"))
 				continue;
 			logger.info("Adding:" + selenium.getText(l), l.replace("name", ""));
 			h.put(selenium.getText(l), l.replace("name", ""));
 		}
 		
-		sleep(5);
 		selenium.click(h.get("selena") + "deleteCheckbox");
-		sleep(5);
 		selenium.click("admin-content:deleteUser");
-		sleep(5);
 		waitForText("Confirm delete");
-		sleep(5);
 		selenium.click("admin-content:deleteUserYes");
 		waitForText("List Users");
 	}
