@@ -55,6 +55,16 @@
         <url>https://fisheye.evolveum.com/midpoint/</url>
     </scm>
     <dependencies>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-api</artifactId>
+			<version>1.8-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+            <groupId>com.evolveum.midpoint.provisioning</groupId>
+            <artifactId>provisioning-api</artifactId>
+            <version>1.8-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>

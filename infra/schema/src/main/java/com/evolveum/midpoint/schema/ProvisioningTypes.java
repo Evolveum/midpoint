@@ -43,7 +43,7 @@ public enum ProvisioningTypes {
 	ACCOUNT_SHADOW(AccountShadowType.class, SchemaConstants.I_ACCOUNT_SHADOW_TYPE),
 
 	RESOURCE(ResourceType.class, SchemaConstants.I_RESOURCE_TYPE),
-	
+
 	CONNECTOR(ConnectorType.class, SchemaConstants.I_CONNECTOR_TYPE);
 
 	private Class<? extends ObjectType> clazz;

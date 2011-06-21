@@ -20,11 +20,12 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import java.util.List;
+
 import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableVal
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -213,11 +215,14 @@ public class ModelService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service List Resource Object Shadows");
 		try {
-			ResourceObjectShadowListType list = model.listResourceObjectShadows(resourceOid,
+			List<ResourceObjectShadowType> list = model.listResourceObjectShadows(resourceOid,
 					resourceObjectShadowType, operationResult);
 			handleOperationResult(operationResult, result);
 
-			return list;
+			ResourceObjectShadowListType shadowList = new ResourceObjectShadowListType();
+			shadowList.getObject().addAll(list);
+
+			return shadowList;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjectShadows() failed", ex);
 			throw createSystemFault(ex, operationResult);

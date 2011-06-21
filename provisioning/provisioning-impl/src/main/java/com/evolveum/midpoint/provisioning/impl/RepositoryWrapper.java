@@ -154,13 +154,13 @@ public class RepositoryWrapper implements RepositoryService {
 	}
 
 	@Override
-	public UserType listAccountShadowOwner(String accountOid) throws ObjectNotFoundException {
+	public UserType listAccountShadowOwner(String accountOid, OperationResult parentResult) throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid, Class resourceObjectShadowType)
+	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid, Class resourceObjectShadowType, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
 		return null;

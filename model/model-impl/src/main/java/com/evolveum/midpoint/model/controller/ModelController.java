@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -38,32 +37,30 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.ProvisioningTypes;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
@@ -71,26 +68,28 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author lazyman
  * 
  */
-@Component
-@Scope
+//@Component
+//@Scope
 public class ModelController {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
 	@Autowired(required = true)
-	private transient ProvisioningPortType provisioning;
+	private transient ProvisioningService provisioning;
 	@Autowired(required = true)
-	private transient RepositoryPortType repository;
+	private transient RepositoryService repository;
 
 	public String addObject(ObjectType object, OperationResult result) {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
 
+		OperationResult subResult = new OperationResult("Add Object");
+		result.addSubresult(subResult);
 		String oid = null;
 		if (ProvisioningTypes.isManagedByProvisioning(object)) {
-			oid = addProvisioningObject(object, result);
+			oid = addProvisioningObject(object, subResult);
 		} else {
-			oid = addRepositoryObject(object, result);
+			oid = addRepositoryObject(object, subResult);
 		}
 
 		return oid;
@@ -101,13 +100,15 @@ public class ModelController {
 		Validate.notNull(resolve, "Property reference list must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 
-		// TODO: error handling
+		OperationResult subResult = new OperationResult("Get Object");
+		result.addSubresult(subResult);
 		ObjectType object = null;
 		try {
-			object = getObjectFromRepository(oid, resolve, result, ObjectType.class);
+			object = getObjectFromRepository(oid, resolve, subResult, ObjectType.class);
 			if (ProvisioningTypes.isManagedByProvisioning(object)) {
-				object = getObjectFromProvisioning(oid, resolve, result, ObjectType.class);
+				object = getObjectFromProvisioning(oid, resolve, subResult, ObjectType.class);
 			}
+			subResult.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object", ex);
 			// TODO: error handling ?????
@@ -126,25 +127,26 @@ public class ModelController {
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
 
-		// TODO: error handling
+		OperationResult subResult = new OperationResult("List Objects");
+		result.addSubresult(subResult);
 		ObjectListType list = null;
 		try {
 			if (ProvisioningTypes.isObjectTypeManagedByProvisioning(objectType)) {
-				// TODO: remove Holder add there OperationResult 'result' after
-				// provisioning is updated
-				list = provisioning.listObjects(objectType, paging, new Holder<OperationalResultType>());
+				list = provisioning
+						.listObjects(ObjectTypes.getObjectTypeClass(objectType), paging, subResult);
 			} else {
-				list = repository.listObjects(objectType, paging);
+				list = repository.listObjects(ObjectTypes.getObjectTypeClass(objectType), paging, subResult);
 			}
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list objects from provisioning", ex);
-			// TODO: error handling
-		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list objects from repository", ex);
-			// TODO: error handling
+			subResult.recordSuccess();
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
+			subResult.recordFatalError("Couldn't list objects.", ex);
 		}
 
-		// TODO: list variable must not be null here (check error handling)
+		if (list == null) {
+			list = new ObjectListType();
+			list.setCount(0);
+		}
 
 		return list;
 	}
@@ -155,16 +157,21 @@ public class ModelController {
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
 
-		// TODO: error handling
+		OperationResult subResult = new OperationResult("Search Objects");
+		result.addSubresult(subResult);
 		ObjectListType list = null;
 		try {
-			repository.searchObjects(query, paging);
-		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
+			list = repository.searchObjects(query, paging, subResult);
+			subResult.recordSuccess();
+		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't search objects in repository", ex);
-			// TODO: error handling
+			subResult.recordFatalError("Couldn't search objects in repository.", ex);
 		}
 
-		// TODO: list variable must not be null here (check error handling)
+		if (list == null) {
+			list = new ObjectListType();
+			list.setCount(0);
+		}
 
 		return list;
 	}
@@ -178,7 +185,7 @@ public class ModelController {
 		Validate.notNull(change, "Object modification must not be null.");
 		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
-		
+
 		if (change.getPropertyModification().isEmpty()) {
 			return;
 		}
@@ -192,34 +199,39 @@ public class ModelController {
 		}
 	}
 
-	public void deleteObject(String oid, OperationResult result) {
+	public boolean deleteObject(String oid, OperationResult result) {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
-		ObjectType object = getObjectFromRepository(oid, new PropertyReferenceListType(), result,
-				ObjectType.class);
+		OperationResult subResult = new OperationResult("Delete Object");
+		result.addSubresult(subResult);
+
+		boolean deleted = false;
 		try {
+			ObjectType object = getObjectFromRepository(oid, new PropertyReferenceListType(), subResult,
+					ObjectType.class);
+
 			if (ProvisioningTypes.isManagedByProvisioning(object)) {
-				// TODO: remove Holder add there OperationResult after
-				// provisioning is updated
-				ScriptsType scripts = getScripts(object, result);
-				provisioning.deleteObject(oid, scripts, new Holder<OperationalResultType>());
+				ScriptsType scripts = getScripts(object, subResult);
+				provisioning.deleteObject(oid, scripts, subResult);
 			} else {
 				if (object instanceof UserType) {
-					deleteUserAccounts((UserType) object, result);
+					deleteUserAccounts((UserType) object, subResult);
 				}
 
-				// TODO: error handling and operation result
-				repository.deleteObject(oid);
+				repository.deleteObject(oid, subResult);
 			}
-		} catch (FaultMessage ex) {
-			LoggingUtils
-					.logException(LOGGER, "Couldn't delete object with oid {} from provisioning", ex, oid);
+			deleted = true;
+			subResult.recordSuccess();
+		} catch (ObjectNotFoundException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}", ex, oid);
 			// TODO: error handling
-		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {} from repository", ex, oid);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}", ex, oid);
 			// TODO: error handling
 		}
+
+		return deleted;
 	}
 
 	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
@@ -235,28 +247,42 @@ public class ModelController {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
-		// TODO: add operation result...
+		OperationResult subResult = new OperationResult("List Account Shadow Owner");
+		result.addSubresult(subResult);
 		try {
-			UserContainerType container = repository.listAccountShadowOwner(accountOid);
-			return container.getUser();
-		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
+			UserType user = repository.listAccountShadowOwner(accountOid, subResult);
+			subResult.recordSuccess();
+
+			return user;
+		} catch (ObjectNotFoundException ex) {
+			// TODO: error handling
+		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
 					+ " for account with oid {}", ex, accountOid);
 			// TODO: error handling
 
 			throw new RuntimeException();
 		}
+
+		return null;
 	}
 
-	public ResourceObjectShadowListType listResourceObjectShadows(String resourceOid,
+	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
 			String resourceObjectShadowType, OperationResult result) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
-		// TODO: use operation result
+		OperationResult subResult = new OperationResult("List Resource Object Shadows");
+		result.addSubresult(subResult);
+
+		List<ResourceObjectShadowType> list = null;
 		try {
-			return repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType);
-		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
+			list = repository.listResourceObjectShadows(resourceOid,
+					ObjectTypes.getObjectTypeClass(resourceObjectShadowType), subResult);
+			subResult.recordSuccess();
+		} catch (ObjectNotFoundException ex) {
+			// TODO: error handling
+		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list resource object shadows type "
 					+ "{} from repository for resource with oid {}", ex, resourceObjectShadowType,
 					resourceOid);
@@ -264,6 +290,12 @@ public class ModelController {
 
 			throw new RuntimeException();
 		}
+
+		if (list == null) {
+			list = new ArrayList<ResourceObjectShadowType>();
+		}
+
+		return list;
 	}
 
 	public ObjectListType listResourceObjects(String resourceOid, String objectType, PagingType paging,
@@ -274,34 +306,48 @@ public class ModelController {
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
 
+		OperationResult subResult = new OperationResult("List Resource Objects");
+		result.addSubresult(subResult);
+
+		ObjectListType list = null;
 		try {
-			// TODO: remove Holder add there OperationResult 'result' after
-			// provisioning is updated
-			return provisioning.listResourceObjects(resourceOid, objectType, paging,
-					new Holder<OperationalResultType>());
-		} catch (FaultMessage ex) {
+			list = provisioning.listResourceObjects(resourceOid, objectType, paging, subResult);
+			subResult.recordSuccess();
+		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list resource objects of type {} for resource "
 					+ "with oid {}", ex, objectType, resourceOid);
 			// TODO: error handling
-
-			throw new RuntimeException();
 		}
+
+		if (list == null) {
+			list = new ObjectListType();
+			list.setCount(0);
+		}
+
+		return list;
 	}
 
 	public ResourceTestResultType testResource(String resourceOid, OperationResult result) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
-		try {
-			// TODO: remove Holder add there OperationResult 'result' after
-			// provisioning is updated
-			return provisioning.testResource(resourceOid);
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't test status for resource {}", ex, resourceOid);
-			// TODO: error handling
+		OperationResult subResult = new OperationResult("Test Resource");
+		result.addSubresult(subResult);
 
-			throw new RuntimeException();
-		}
+		// try {
+		// TODO: remove Holder add there OperationResult 'result' after
+		// provisioning is updated
+
+		// TODO: WTF???
+		// return provisioning.testResource(resourceOid);
+		throw new RuntimeException();
+		// } catch (FaultMessage ex) {
+		// LoggingUtils.logException(LOGGER,
+		// "Couldn't test status for resource {}", ex, resourceOid);
+		// // TODO: error handling
+		//
+		// throw new RuntimeException();
+		// }
 	}
 
 	public void launchImportFromResource(String resourceOid, String objectClass, OperationResult result) {
@@ -309,10 +355,16 @@ public class ModelController {
 		Validate.notEmpty(objectClass, "Object class must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
+		OperationResult subResult = new OperationResult("Launch Import From Resource");
+		result.addSubresult(subResult);
+
 		try {
-			// TODO: add there OperationResult after provisioning is updated
-			provisioning.launchImportFromResource(resourceOid, objectClass);
-		} catch (FaultMessage ex) {
+			QName objectClassName = null; // TODO: get object class name
+			provisioning.launchImportFromResource(resourceOid, objectClassName, subResult);
+			subResult.recordSuccess();
+		} catch (ObjectNotFoundException ex) {
+			// TODO: error handling
+		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't launch import for objects of type {} on resource "
 					+ "with oid {}", ex, objectClass, resourceOid);
 			// TODO: error handling
@@ -323,15 +375,23 @@ public class ModelController {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 
+		OperationResult subResult = new OperationResult("Get Import Status");
+		result.addSubresult(subResult);
+
+		TaskStatusType status = null;
 		try {
-			// TODO: add there OperationResult after provisioning is updated
-			return provisioning.getImportStatus(resourceOid);
-		} catch (FaultMessage ex) {
+			status = provisioning.getImportStatus(resourceOid, subResult);
+			subResult.recordSuccess();
+		} catch (ObjectNotFoundException ex) {
+			// TODO: error handling
+		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get import status for resource {}", ex, resourceOid);
 			// TODO: error handling
 
 			throw new RuntimeException();
 		}
+
+		return status;
 	}
 
 	private <T> T getObjectFromRepository(String oid, PropertyReferenceListType resolve,
@@ -349,30 +409,21 @@ public class ModelController {
 			Class<T> clazz, boolean fromProvisioning) {
 		T object = null;
 
-		// TODO: fix error handling and operation result
 		try {
-			ObjectContainerType container = null;
+			ObjectType objectType = null;
 			if (fromProvisioning) {
-				// TODO: remove Holder add there OperationResult 'result' after
-				// provisioning is updated
-				container = provisioning.getObject(oid, resolve, new Holder<OperationalResultType>());
+				objectType = provisioning.getObject(oid, resolve, result);
 			} else {
-				// TODO: add OperationResult after repository is updated
-				container = repository.getObject(oid, resolve);
+				objectType = repository.getObject(oid, resolve, result);
 			}
-			if (container == null || !clazz.isInstance(container.getObject())) {
+			if (!clazz.isInstance(objectType)) {
 				// TODO: throw better exception...
 				throw new RuntimeException("Bad object type returned for referenced oid.");
 			} else {
-				object = (T) container.getObject();
+				object = (T) objectType;
 			}
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from provisioning", ex, oid);
-			// TODO: error handling
-
-			throw new RuntimeException();
-		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from repository", ex, oid);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "...", ex, oid);
 			// TODO: error handling
 
 			throw new RuntimeException();
@@ -387,15 +438,10 @@ public class ModelController {
 			preprocessAccount(account, result);
 		}
 
-		ObjectContainerType container = new ObjectContainerType();
-		container.setObject(object);
-
 		try {
-			// TODO: remove Holder add there OperationResult 'result' after
-			// provisioning is updated
 			ScriptsType scripts = getScripts(object, result);
-			return provisioning.addObject(container, scripts, new Holder<OperationalResultType>());
-		} catch (FaultMessage ex) {
+			return provisioning.addObject(object, scripts, result);
+		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object {} to provisioning", ex, object.getName());
 			// TODO: error handling
 
@@ -413,9 +459,8 @@ public class ModelController {
 		container.setObject(object);
 
 		try {
-			// TODO: add there OperationResult after repository is updated
-			return repository.addObject(container);
-		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
+			return repository.addObject(object, result);
+		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object {} to repository", ex, object.getName());
 			// TODO: error handling
 
@@ -511,7 +556,7 @@ public class ModelController {
 	private void deleteUserAccounts(UserType user, OperationResult result) {
 		List<AccountShadowType> accountsToBeDeleted = new ArrayList<AccountShadowType>();
 		for (AccountShadowType account : user.getAccount()) {
-			if (deleteAccount(account, result)) {
+			if (deleteObject(account.getOid(), result)) {
 				accountsToBeDeleted.add(account);
 			}
 		}
@@ -519,16 +564,8 @@ public class ModelController {
 
 		List<ObjectReferenceType> refsToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
-			try {
-				AccountShadowType account = getObjectFromProvisioning(accountRef.getOid(),
-						new PropertyReferenceListType(), result, AccountShadowType.class);
-				if (deleteAccount(account, result)) {
-					refsToBeDeleted.add(accountRef);
-				}
-			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't delete account with oid {}", ex,
-						accountRef.getOid());
-				// TODO: error handling
+			if (deleteObject(accountRef.getOid(), result)) {
+				refsToBeDeleted.add(accountRef);
 			}
 		}
 		user.getAccountRef().removeAll(refsToBeDeleted);
@@ -537,8 +574,8 @@ public class ModelController {
 		ObjectModificationType change = createUserModification(accountsToBeDeleted, refsToBeDeleted);
 		change.setOid(user.getOid());
 		try {
-			repository.modifyObject(change);
-		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
+			repository.modifyObject(change, result);
+		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update user {} after accounts was deleted", ex,
 					user.getName());
 			// TODO: error handling
@@ -565,23 +602,6 @@ public class ModelController {
 		}
 
 		return change;
-	}
-
-	private boolean deleteAccount(AccountShadowType account, OperationResult result) {
-		boolean deleted = false;
-		try {
-			ScriptsType scripts = getScripts(account, result);
-			provisioning.deleteObject(account.getOid(), scripts, new Holder<OperationalResultType>());
-			deleted = true;
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't delete account with oid {}", ex, account.getOid());
-			// TODO: error handling
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't delete account with oid {}", ex, account.getOid());
-			// TODO: error handling
-		}
-
-		return deleted;
 	}
 
 	private void preprocessAccount(AccountShadowType account, OperationResult result) {
@@ -627,7 +647,7 @@ public class ModelController {
 			ObjectReferenceType ref = account.getResourceRef();
 			if (account.getName() == null && account.getOid() == null && ref != null
 					&& SchemaConstants.I_RESOURCE_TYPE.equals(ref.getType())) {
-				
+
 			}
 		}
 

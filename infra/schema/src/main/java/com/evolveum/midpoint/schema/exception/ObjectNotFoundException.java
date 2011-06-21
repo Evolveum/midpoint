@@ -21,13 +21,13 @@
 package com.evolveum.midpoint.schema.exception;
 
 /**
- * Object with specified criteria (OID) has not been found in the
- * repository.
+ * Object with specified criteria (OID) has not been found in the repository.
  * 
  * @author Radovan Semancik
- *
+ * 
  */
 public class ObjectNotFoundException extends CommonException {
+
 	private static final long serialVersionUID = -9003686713018111855L;
 
 	public ObjectNotFoundException() {
@@ -45,7 +45,7 @@ public class ObjectNotFoundException extends CommonException {
 	public ObjectNotFoundException(Throwable cause) {
 		super(cause);
 	}
-	
+
 	@Override
 	public String getOperationResultMessage() {
 		return "Object not found";

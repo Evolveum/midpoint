@@ -209,15 +209,22 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public void launchImportFromResource(String resourceOid, QName objectClass) throws ObjectNotFoundException {
+	public void launchImportFromResource(String resourceOid, QName objectClass, OperationResult parentResult) throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();
 	}
 
 	@Override
-	public TaskStatusType getImportStatus(String resourceOid) throws ObjectNotFoundException {
+	public TaskStatusType getImportStatus(String resourceOid, OperationResult parentResult) throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();
+	}
+
+	@Override
+	public ObjectListType listResourceObjects(String resourceOid, String objectType, PagingType paging,
+			OperationResult parentResult) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 	
 }
