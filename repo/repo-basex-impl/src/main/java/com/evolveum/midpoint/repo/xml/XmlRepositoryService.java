@@ -57,6 +57,7 @@ import org.xmldb.api.modules.XPathQueryService;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
@@ -140,6 +141,21 @@ public class XmlRepositoryService implements RepositoryPortType {
 		try {
 			ObjectType payload = (ObjectType) objectContainer.getObject();
 
+			if (StringUtils.isNotEmpty(payload.getOid())) {
+				try {
+					ObjectContainerType retrievedObject = getObject(payload.getOid(), null);
+					if (null != retrievedObject) {
+						throw new FaultMessage("Object with oid " + payload.getOid() + " already exists", new ObjectAlreadyExistsFaultType());
+					}
+				} catch (FaultMessage e) {
+					if (e.getFaultInfo() instanceof ObjectNotFoundFaultType) {
+						//ignore;
+					} else {
+						throw e;
+					}
+				}
+			}
+			
 			// generate new oid, if necessary
 			oid = (null != payload.getOid() ? payload.getOid() : UUID.randomUUID().toString());
 			payload.setOid(oid);
