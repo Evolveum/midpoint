@@ -28,11 +28,10 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -68,8 +67,8 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author lazyman
  * 
  */
-//@Component
-//@Scope
+// @Component
+// @Scope
 public class ModelController {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
@@ -82,16 +81,25 @@ public class ModelController {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
+		LOGGER.debug("Adding object {} with oid {} and name {}.", new Object[] {
+				object.getClass().getSimpleName(), object.getOid(), object.getName() });
 
 		OperationResult subResult = new OperationResult("Add Object");
 		result.addSubresult(subResult);
 		String oid = null;
-		if (ProvisioningTypes.isManagedByProvisioning(object)) {
-			oid = addProvisioningObject(object, subResult);
-		} else {
-			oid = addRepositoryObject(object, subResult);
+		try {
+			if (ProvisioningTypes.isManagedByProvisioning(object)) {
+				oid = addProvisioningObject(object, subResult);
+			} else {
+				oid = addRepositoryObject(object, subResult);
+			}
+			subResult.recordSuccess();
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't add object", ex, object.getName());
+			subResult.recordFatalError("Couldn't add object '" + object.getName() + "'.", ex);
 		}
 
+		LOGGER.debug(subResult.debugDump());
 		return oid;
 	}
 
@@ -99,6 +107,7 @@ public class ModelController {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(resolve, "Property reference list must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
+		LOGGER.debug("Getting object with oid {}.", new Object[] { oid });
 
 		OperationResult subResult = new OperationResult("Get Object");
 		result.addSubresult(subResult);
@@ -110,14 +119,13 @@ public class ModelController {
 			}
 			subResult.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object", ex);
-			// TODO: error handling ?????
-
-			throw new RuntimeException();
+			LoggingUtils.logException(LOGGER, "Couldn't get object {}", ex, oid);
+			subResult.recordFatalError("Couldn't get object with oid '" + oid + "'.", ex);
 		}
 
-		resolveObjectAttributes(object, resolve, result);
+		resolveObjectAttributes(object, resolve, subResult);
 
+		LOGGER.debug(subResult.debugDump());
 		return object;
 	}
 
@@ -126,6 +134,8 @@ public class ModelController {
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
+		LOGGER.debug("Listing objects of type {} from {} to {} ordered {} by {}.", new Object[] { objectType,
+				paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(), paging.getOrderBy() });
 
 		OperationResult subResult = new OperationResult("List Objects");
 		result.addSubresult(subResult);
@@ -148,6 +158,7 @@ public class ModelController {
 			list.setCount(0);
 		}
 
+		LOGGER.debug(subResult.debugDump());
 		return list;
 	}
 
@@ -156,6 +167,11 @@ public class ModelController {
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
+		LOGGER.debug("Searching objects from {} to {} ordered {} by {} (query in TRACE).", new Object[] {
+				paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(), paging.getOrderBy() });
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(DebugUtil.prettyPrint(query));
+		}
 
 		OperationResult subResult = new OperationResult("Search Objects");
 		result.addSubresult(subResult);
@@ -173,6 +189,7 @@ public class ModelController {
 			list.setCount(0);
 		}
 
+		LOGGER.debug(subResult.debugDump());
 		return list;
 	}
 
@@ -185,23 +202,40 @@ public class ModelController {
 		Validate.notNull(change, "Object modification must not be null.");
 		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		LOGGER.debug("Modifying object with oid {} with exclusion account oid {} (change in TRACE).",
+				new Object[] { change.getOid(), accountOid });
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(DebugUtil.prettyPrint(change));
+		}
 
 		if (change.getPropertyModification().isEmpty()) {
 			return;
 		}
 
-		ObjectType object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(), result,
-				ObjectType.class);
-		if (ProvisioningTypes.isManagedByProvisioning(object)) {
-			modifyProvisioningObjectWithExclusion(change, accountOid, result, object);
-		} else {
-			modifyRepositoryObjectWithExclusion(change, accountOid, result, object);
+		OperationResult subResult = new OperationResult("Modify Object With Exclusion");
+		result.addSubresult(subResult);
+
+		try {
+			ObjectType object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(),
+					subResult, ObjectType.class);
+			if (ProvisioningTypes.isManagedByProvisioning(object)) {
+				modifyProvisioningObjectWithExclusion(change, accountOid, subResult, object);
+			} else {
+				modifyRepositoryObjectWithExclusion(change, accountOid, subResult, object);
+			}
+			subResult.recordSuccess();
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't update object with oid {}", ex, change.getOid());
+			subResult.recordFatalError("Couldn't update object with oid '" + change.getOid() + "'.", ex);
 		}
+
+		LOGGER.debug(subResult.debugDump());
 	}
 
 	public boolean deleteObject(String oid, OperationResult result) {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		LOGGER.debug("Deleting object with oid {}.", new Object[] { oid });
 
 		OperationResult subResult = new OperationResult("Delete Object");
 		result.addSubresult(subResult);
@@ -231,6 +265,7 @@ public class ModelController {
 			// TODO: error handling
 		}
 
+		LOGGER.debug(subResult.debugDump());
 		return deleted;
 	}
 
@@ -239,6 +274,11 @@ public class ModelController {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(properties, "Property reference list must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
+		LOGGER.debug("Getting property available values for object with oid {} (properties in TRACE).",
+				new Object[] { oid });
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(DebugUtil.prettyPrint(properties));
+		}
 
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
@@ -246,31 +286,34 @@ public class ModelController {
 	public UserType listAccountShadowOwner(String accountOid, OperationResult result) {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		LOGGER.debug("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
 
 		OperationResult subResult = new OperationResult("List Account Shadow Owner");
 		result.addSubresult(subResult);
-		try {
-			UserType user = repository.listAccountShadowOwner(accountOid, subResult);
-			subResult.recordSuccess();
 
-			return user;
+		UserType user = null;
+		try {
+			user = repository.listAccountShadowOwner(accountOid, subResult);
+			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			// TODO: error handling
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
 					+ " for account with oid {}", ex, accountOid);
 			// TODO: error handling
-
-			throw new RuntimeException();
+			subResult.recordFatalError("", ex);
 		}
 
-		return null;
+		LOGGER.debug(subResult.debugDump());
+		return user;
 	}
 
 	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
 			String resourceObjectShadowType, OperationResult result) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		LOGGER.debug("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
+				resourceObjectShadowType, resourceOid });
 
 		OperationResult subResult = new OperationResult("List Resource Object Shadows");
 		result.addSubresult(subResult);
@@ -287,14 +330,13 @@ public class ModelController {
 					+ "{} from repository for resource with oid {}", ex, resourceObjectShadowType,
 					resourceOid);
 			// TODO: error handling
-
-			throw new RuntimeException();
 		}
 
 		if (list == null) {
 			list = new ArrayList<ResourceObjectShadowType>();
 		}
 
+		LOGGER.debug(subResult.debugDump());
 		return list;
 	}
 
@@ -305,6 +347,10 @@ public class ModelController {
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
+		LOGGER.debug(
+				"Listing resource objects {} from resource with oid {} from {} to {} ordered {} by {}.",
+				new Object[] { objectType, resourceOid, paging.getOffset(), paging.getMaxSize(),
+						paging.getOrderDirection(), paging.getOrderDirection() });
 
 		OperationResult subResult = new OperationResult("List Resource Objects");
 		result.addSubresult(subResult);
@@ -324,12 +370,14 @@ public class ModelController {
 			list.setCount(0);
 		}
 
+		LOGGER.debug(subResult.debugDump());
 		return list;
 	}
 
 	public ResourceTestResultType testResource(String resourceOid, OperationResult result) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		LOGGER.debug("Testing resource with oid {}.", new Object[] { resourceOid });
 
 		OperationResult subResult = new OperationResult("Test Resource");
 		result.addSubresult(subResult);
@@ -340,7 +388,6 @@ public class ModelController {
 
 		// TODO: WTF???
 		// return provisioning.testResource(resourceOid);
-		throw new RuntimeException();
 		// } catch (FaultMessage ex) {
 		// LoggingUtils.logException(LOGGER,
 		// "Couldn't test status for resource {}", ex, resourceOid);
@@ -348,12 +395,17 @@ public class ModelController {
 		//
 		// throw new RuntimeException();
 		// }
+
+		LOGGER.debug(subResult.debugDump());
+		throw new RuntimeException();
 	}
 
 	public void launchImportFromResource(String resourceOid, String objectClass, OperationResult result) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notEmpty(objectClass, "Object class must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		LOGGER.debug("Launching import from resource with oid {} for object class {}.", new Object[] {
+				resourceOid, objectClass });
 
 		OperationResult subResult = new OperationResult("Launch Import From Resource");
 		result.addSubresult(subResult);
@@ -369,11 +421,14 @@ public class ModelController {
 					+ "with oid {}", ex, objectClass, resourceOid);
 			// TODO: error handling
 		}
+
+		LOGGER.debug(subResult.debugDump());
 	}
 
 	public TaskStatusType getImportStatus(String resourceOid, OperationResult result) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
+		LOGGER.debug("Getting import status for resource with oid {}.", new Object[] { resourceOid });
 
 		OperationResult subResult = new OperationResult("Get Import Status");
 		result.addSubresult(subResult);
@@ -391,6 +446,7 @@ public class ModelController {
 			throw new RuntimeException();
 		}
 
+		LOGGER.debug(subResult.debugDump());
 		return status;
 	}
 
