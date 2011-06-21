@@ -97,6 +97,7 @@ public class ControllerUtil {
 		return null;
 	}
 
+	//TODO: query looking only in user type???? wtf?
 	public static Element createQuery(String username) {
 		Document document = DOMUtil.getDocument();
 		Element and = document.createElementNS(SchemaConstants.NS_C, "c:and");

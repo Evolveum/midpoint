@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.bean.ResourceObjectBean;
 import com.evolveum.midpoint.web.bean.ResourceObjectType;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.ListController;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -74,6 +75,8 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 	public static final String PAGE_NAVIGATION = "/resource/listObjects?faces-redirect=true";
 	private static final long serialVersionUID = -3538520581983462635L;
 	private static final Trace LOGGER = TraceManager.getTrace(ListObjectsController.class);
+	@Autowired(required = true)
+	private ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
 	private transient ModelPortType model;
 	private ResourceListItem resource;

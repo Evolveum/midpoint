@@ -22,8 +22,6 @@ package com.evolveum.midpoint.web.controller.resource;
 
 import java.io.Serializable;
 
-import javax.xml.ws.Holder;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -34,11 +32,12 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.bean.TaskStatus;
 import com.evolveum.midpoint.web.controller.TemplateController;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * 
@@ -54,9 +53,9 @@ public class ResourceImportController implements Serializable {
 	private static final long serialVersionUID = 7495585784483264092L;
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceImportController.class);
 	@Autowired(required = true)
-	private transient TemplateController template;
+	private ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
-	private transient ModelPortType model;
+	private transient TemplateController template;
 	private ResourceListItem resource;
 	private TaskStatus status;
 
@@ -78,18 +77,20 @@ public class ResourceImportController implements Serializable {
 	public String initController() {
 		String nextPage = null;
 		try {
+			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
 			OperationResultType resultType = new OperationResultType();
-			TaskStatusType statusType = model.getImportStatus(getResource().getOid(),
-					new Holder<OperationResultType>(resultType));
+			TaskStatusType statusType = manager.getImportStatus(getResource().getOid());
 			if (statusType != null) {
 				this.status = new TaskStatus(statusType);
 				nextPage = PAGE_NAVIGATION;
 			} else {
 				FacesUtils.addErrorMessage("Couldn't get import status. TODO: resultType handling.");
 			}
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get import status", ex);
-			// TODO: handle operation result
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get import status for resource {}", ex, getResource()
+					.getName());
+			FacesUtils.addErrorMessage("Couldn't get import status for resource '" + getResource().getName()
+					+ "'.", ex);
 		}
 
 		if (PAGE_NAVIGATION.equals(nextPage)) {

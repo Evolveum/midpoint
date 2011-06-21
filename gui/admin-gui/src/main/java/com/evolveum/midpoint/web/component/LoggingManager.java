@@ -38,6 +38,7 @@ import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
@@ -60,6 +61,8 @@ public class LoggingManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingManager.class);
 	public static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000002";
+	@Autowired(required = true)
+	private ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
 	private ModelPortType model;
 	private LoggingConfigurationType logging;
