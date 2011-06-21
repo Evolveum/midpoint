@@ -55,6 +55,7 @@
         <url>https://fisheye.evolveum.com/midpoint/</url>
     </scm>
     <modules>
+	<module>repo-api</module>
         <module>repo-db-impl</module>
         <module>repo-basex-impl</module>		
     </modules>

@@ -18,7 +18,7 @@
  * "Portions Copyrighted 2011 [name of copyright owner]"
  * 
  */
-package com.evolveum.midpoint.provisioning.impl;
+package com.evolveum.midpoint.repo.api;
 
 import java.util.List;
 

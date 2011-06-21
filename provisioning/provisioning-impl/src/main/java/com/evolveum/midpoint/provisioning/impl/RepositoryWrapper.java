@@ -27,6 +27,7 @@ import javax.jws.WebParam;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
