@@ -22,6 +22,8 @@
 
 package com.evolveum.midpoint.repo.test;
 
+import static org.junit.Assert.*;
+
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
@@ -38,10 +40,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -105,6 +110,22 @@ public class RepositoryTest {
 
 	}
 
+	@Test
+	@ExpectedException(value=FaultMessage.class)
+	public void getObjectThatDoNotExists() throws Exception {
+		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
+		//try to get not existing object, exception is expected
+		repositoryService.getObject(oid, null);
+	}
+	
+	@Test
+	public void listObjectsNoObjectsOfThatTypeReturnsEmptyList() throws Exception {
+		ObjectListType retrievedList = repositoryService.listObjects(QNameUtil.qNameToUri(SchemaConstants.I_RESOURCE_TYPE), null);
+		assertNotNull(retrievedList);
+		assertEquals(0, retrievedList.getObject().size());
+		assertEquals(0, retrievedList.getCount().intValue());
+	}	
+	
 	
 	
 }
