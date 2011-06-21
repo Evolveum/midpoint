@@ -12,7 +12,7 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<ice:form>
+		<ice:form id="debugViewForm">
 			<ice:selectBooleanCheckbox value="#{debugView.editOther}" immediate="true" partialSubmit="true"
 				style="margin-bottom: 7px;">#{msg['page.config.debugView.editOther']}
 			</ice:selectBooleanCheckbox>
@@ -21,7 +21,7 @@
 				<ice:inputText id="editOtherName" value="#{debugView.editOtherName}" required="true" />
 				<idm:button action="#{debugView.editOtherObject}"
 					value="#{msg['page.config.debugView.button.edit']}" img="/resources/images/page_white_code.png"
-					id="backButton" />
+					id="editButton" />
 				<ice:message for="editOtherName" errorClass="error" />
 			</ice:panelGrid>
 		</ice:form>
@@ -37,12 +37,12 @@
 		</ice:panelGrid>
 
 		<ice:form rendered="#{debugView.viewEditable}">
-			<ice:selectBooleanCheckbox value="#{debugView.editable}" immediate="true" partialSubmit="true"
+			<ice:selectBooleanCheckbox id="editable" value="#{debugView.editable}" immediate="true" partialSubmit="true"
 				style="margin-bottom: 7px;">
 					#{msg['page.config.debugView.edit']}
 					</ice:selectBooleanCheckbox>
 			<ui:remove>
-				<ice:inputTextarea style="width: 967px; height: 350px;" value="#{debugView.xml}"
+				<ice:inputTextarea id="textAreaDebugView" style="width: 967px; height: 350px;" value="#{debugView.xml}"
 					readonly="#{not debugView.editable}" />
 			</ui:remove>
 

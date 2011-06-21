@@ -15,19 +15,19 @@
 		<h3>Maintenance mode</h3>
 		<ice:panelGrid columns="2" cellpadding="5" cellspacing="5">
 			<ice:outputLabel value="Enable maintenance" />
-			<ice:selectBooleanCheckbox></ice:selectBooleanCheckbox>
+			<ice:selectBooleanCheckbox id="enableMaintenance"></ice:selectBooleanCheckbox>
 
 			<ice:outputLabel value="Allow access from localhost" />
-			<ice:selectBooleanCheckbox />
+			<ice:selectBooleanCheckbox id="allowAccessFromLocalhost"/>
 
 			<ice:outputLabel value="Allowed IP addresses" />
-			<ice:inputTextarea cols="20" rows="3" value="" />
+			<ice:inputTextarea id="textareaIpAddresses" cols="20" rows="3" value="" />
 		</ice:panelGrid>
 		<h3>Some other settings</h3>
 		Other configuration stuff :))
 		<ui:remove>
 			<hr />
-			<ice:form>
+			<ice:form id="configForm">
 				<ice:selectBooleanCheckbox value="#{basic.editable}" immediate="true" partialSubmit="true">Editable</ice:selectBooleanCheckbox>
 				<idm:xmlInput id="editor" height="350" readonly="#{not basic.editable}" value="#{basic.content}" />
 				<ice:commandButton value="Run" action="#{basic.action}" />

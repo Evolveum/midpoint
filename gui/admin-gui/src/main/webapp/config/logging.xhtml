@@ -12,7 +12,7 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<ice:form>
+		<ice:form id="loggingForm">
 			<h3>#{msg['page.config.logging.loggers']}</h3>
 			<ice:dataTable rows="20" value="#{logging.loggers}" var="item"
 				columnWidths="auto, 70px, 160px, 200px, 280px, 150px" resizable="false">

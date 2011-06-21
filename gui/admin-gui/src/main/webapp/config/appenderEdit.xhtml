@@ -12,7 +12,7 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<ice:form>
+		<ice:form id="appenderEditForm">
 			<h:panelGrid columns="3" cellspacing="7px">
 				<ice:outputLabel value="#{msg['page.config.appenderEdit.name']}" />
 				<ice:inputText id="name" value="#{appenderEdit.item.name}" required="true" />
@@ -38,10 +38,10 @@
 			</h:panelGrid>
 
 			<div class="button-bar">
-				<idm:button value="#{msg['page.config.appenderEdit.button.back']}"
+				<idm:button id="backButton" value="#{msg['page.config.appenderEdit.button.back']}"
 					img="/resources/images/door_in.png" action="#{appenderEdit.backPerformed}" />
 
-				<idm:button value="#{msg['page.config.appenderEdit.button.save']}" buttonType="positive"
+				<idm:button id="saveButton" value="#{msg['page.config.appenderEdit.button.save']}" buttonType="positive"
 					img="/resources/images/disk.png" action="#{appenderEdit.savePerformed}" />
 			</div>
 		</ice:form>

@@ -13,10 +13,10 @@
 
 	<ui:define name="content">
 		<comp:browser okAction="#{debugXPath.okAction}" cancelAction="#{debugXPath.cancelAction}" bean="#{debugXPath.browser}" />
-		<ice:form>
+		<ice:form id="debugXpathForm">
 			<ice:outputText value="#{msg['page.config.debugXPath.expression']}" />
 
-			<ice:inputTextarea style="width: 965px;" rows="5" value="#{debugXPath.expression}" />
+			<ice:inputTextarea id="textArea" style="width: 965px;" rows="5" value="#{debugXPath.expression}" />
 
 			<ice:panelGroup>
 				<ice:outputText value="#{msg['page.config.debugXPath.returnType']}" />
@@ -37,12 +37,12 @@
 				<c:forEach items="#{debugXPath.variables}" var="item">
 					<ice:selectBooleanCheckbox value="#{item.selected}" partialSubmit="true" immediate="true"
 						valueChangeListener="#{debugXPath.selectPerformed}" />
-					<ice:inputText value="#{item.variableName}" size="25" />
+					<ice:inputText id="variableName" value="#{item.variableName}" size="25" />
 					<ice:selectOneMenu style="width: auto;" partialSubmit="true" immediate="true" value="#{item.type}">
-						<f:selectItems value="#{debugXPath.types}" />
+						<f:selectItems id="types" value="#{debugXPath.types}" />
 					</ice:selectOneMenu>
-					<ice:inputText value="#{item.value}" size="35" />
-					<idm:button value="#{msg['page.config.debugXPath.button.browse']}"
+					<ice:inputText id="value" value="#{item.value}" size="35" />
+					<idm:button id="buttonBrowse" value="#{msg['page.config.debugXPath.button.browse']}"
 						img="/resources/images/folder_explore.png" rendered="#{item.browsable}" action="#{debugXPath.browse}">
 						<f:param name="variableName" value="#{item.variableName}" />
 					</idm:button>
