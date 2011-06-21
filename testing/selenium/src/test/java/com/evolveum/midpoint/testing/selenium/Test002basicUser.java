@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverBackedSelenium;
 
@@ -46,7 +47,8 @@ public class Test002basicUser {
 	@Before
 	public void start() {
 
-		WebDriver driver = new FirefoxDriver();
+		//WebDriver driver = new FirefoxDriver();
+		WebDriver driver = new ChromeDriver();
 		selenium = new WebDriverBackedSelenium(driver, baseUrl);
 		selenium.setBrowserLogLevel("5");
 
@@ -300,6 +302,12 @@ public class Test002basicUser {
 		waitForText("List Users");
 		assertFalse(selenium.isTextPresent("Leila Walker"));
 
+		selenium.click(findNextLink("topHome"));
+		selenium.waitForPageToLoad("30000");
+		
+		selenium.click(findNextLink("topAccount"));
+		selenium.waitForPageToLoad("30000");
+		
 		logger.info("Removing set");
 		for (String l: h.keySet()) {
 			h.remove(l);
