@@ -12,26 +12,154 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<h3>Maintenance mode</h3>
+		<h3>Some settings</h3>
+		<hr />
+		<ul id="messages">
+			<script type="text/javascript">
+				function display(id) {
+					var buttonElement = document.getElementById("image" + id);
+					var element = document.getElementById(id);
+					var value = element.style.display;
+					if (value == 'none') {
+						element.style.display = 'inline';
+						buttonElement.src = "/admin-gui/resources/images/delete.png";
+					} else {
+						element.style.display = 'none';
+						buttonElement.src = "/admin-gui/resources/images/add.png";
+					}
+				}
+			</script>
+			<li><span class="messages-error">
+					<span style="display: inline-block;">Error happened.</span> <span style="float: right;"> <img
+						src="/admin-gui/resources/images/delete.png" alt="" /> </span> </span></li>
+			<li><span class="messages-error">
+					<span style="display: inline-block;">Error happened 2.</span> <span style="float: right;"> <img
+						src="/admin-gui/resources/images/add.png" id="image123" onclick="display('123');" /> </span>
+					<div style="margin-top: 3px; display: none;" id="123">
+						<ul style="list-style: none; margin-left: 0px;">
+							<li style="height: 20px;">
+								<ul style="list-style: none; margin-left: 0px;">
+									<li style="float: left; margin: 0 10px 0 0;">3049029309</li>
+									<li style="float: left; margin: 0 10px 0 0;">REPO-1</li>
+								</ul></li>
+						</ul>
+						<ul style="list-style: none; margin-left: 15px; padding: 2px;">
+							<li style="height: 20px; color: #D8000C;">
+								<ul style="list-style: none; margin-left: 0px;">
+									<li style="float: left; margin: 0 10px 0 0;"><ice:graphicImage
+											value="/resources/images/exclamation.png" />
+									</li>
+									<li style="float: left; margin: 0 10px 0 0;">102938912839123</li>
+									<li style="float: left; margin: 0 10px 0 0;">MOD-1</li>
+									<li style="float: left; margin: 0 10px 0 0;">Message sub error happened lorem ipsum</li>
+								</ul></li>
+							<li style="min-height: 20px; height: auto; color: #4F8A10;">
+								<ul style="list-style: none; margin-left: 0px;">
+									<li style="float: left; margin: 0 10px 0 0;"><ice:graphicImage
+											value="/resources/images/accept.png" />
+									</li>
+									<li style="float: left; margin: 0 10px 0 0;">102938912839123</li>
+									<li style="float: left; margin: 0 10px 0 0; color: #4F8A10;">MOD-1</li>
+									<li style="float: left; margin: 0 10px 0 0; color: #4F8A10;">Message ok lorem ipsum</li>
+									<li style="clear: both;">
+
+
+
+
+										<ul style="list-style: none; margin-left: 15px; padding: 2px;">
+											<li style="height: 20px; color: #D8000C;">
+												<ul style="list-style: none; margin-left: 0px;">
+													<li style="float: left; margin: 0 10px 0 0;"><ice:graphicImage
+															value="/resources/images/exclamation.png" />
+													</li>
+													<li style="float: left; margin: 0 10px 0 0;">102938912839123</li>
+													<li style="float: left; margin: 0 10px 0 0;">MOD-1</li>
+													<li style="float: left; margin: 0 10px 0 0;">Message sub error happened lorem ipsum</li>
+												</ul></li>
+											<li style="height: 20px; color: #4F8A10;">
+												<ul style="list-style: none; margin-left: 0px;">
+													<li style="float: left; margin: 0 10px 0 0;"><ice:graphicImage
+															value="/resources/images/accept.png" />
+													</li>
+													<li style="float: left; margin: 0 10px 0 0;">102938912839123</li>
+													<li style="float: left; margin: 0 10px 0 0; color: #4F8A10;">MOD-1</li>
+													<li style="float: left; margin: 0 10px 4px 0; color: #4F8A10;">Lorem Ipsum is simply dummy
+														text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard
+														dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it
+														to make a type specimen book. It has survived not only five centuries, but also the leap into
+														electronic typesetting</li>
+												</ul></li>
+											<li style="min-height: 20px; height: auto; color: #9F6000;">
+												<ul style="list-style: none; margin-left: 0px;">
+													<li style="float: left; margin: 0 10px 0 0;"><ice:graphicImage
+															value="/resources/images/error.png" />
+													</li>
+													<li style="float: left; margin: 0 10px 0 0;">102938912839123</li>
+													<li style="float: left; margin: 0 10px 0 0;">MOD-1</li>
+													<li style="float: left; margin: 0 10px 0 0;">Message warning happened lorem ipsum</li>
+													<li style="clear: both;">
+
+
+
+
+														<ul style="list-style: none; margin-left: 15px; padding: 2px;">
+															<li style="height: 20px; color: #D8000C;">
+																<ul style="list-style: none; margin-left: 0px;">
+																	<li style="float: left; margin: 0 10px 0 0;"><ice:graphicImage
+																			value="/resources/images/exclamation.png" />
+																	</li>
+																	<li style="float: left; margin: 0 10px 0 0;">102938912839123</li>
+																	<li style="float: left; margin: 0 10px 0 0;">MOD-1</li>
+																	<li style="float: left; margin: 0 10px 0 0;">Message sub error happened lorem ipsum</li>
+																</ul></li>
+															<li style="height: 20px; color: #4F8A10;">
+																<ul style="list-style: none; margin-left: 0px;">
+																	<li style="float: left; margin: 0 10px 0 0;"><ice:graphicImage
+																			value="/resources/images/accept.png" />
+																	</li>
+																	<li style="float: left; margin: 0 10px 0 0;">102938912839123</li>
+																	<li style="float: left; margin: 0 10px 0 0; color: #4F8A10;">MOD-1</li>
+																	<li style="float: left; margin: 0 10px 0 0; color: #4F8A10;">Message ok lorem ipsum</li>
+																</ul></li>
+															<li style="height: 20px; color: #9F6000;">
+																<ul style="list-style: none; margin-left: 0px;">
+																	<li style="float: left; margin: 0 10px 0 0;"><ice:graphicImage
+																			value="/resources/images/error.png" />
+																	</li>
+																	<li style="float: left; margin: 0 10px 0 0;">102938912839123</li>
+																	<li style="float: left; margin: 0 10px 0 0;">MOD-1</li>
+																	<li style="float: left; margin: 0 10px 0 0;">Message warning happened lorem ipsum</li>
+																</ul></li>
+														</ul></li>
+												</ul></li>
+										</ul></li>
+								</ul></li>
+							<li style="height: 20px; color: #9F6000;">
+								<ul style="list-style: none; margin-left: 0px;">
+									<li style="float: left; margin: 0 10px 0 0;"><ice:graphicImage
+											value="/resources/images/error.png" />
+									</li>
+									<li style="float: left; margin: 0 10px 0 0;">102938912839123</li>
+									<li style="float: left; margin: 0 10px 0 0;">MOD-1</li>
+									<li style="float: left; margin: 0 10px 0 0;">Message warning happened lorem ipsum</li>
+								</ul></li>
+						</ul>
+					</div> </span></li>
+		</ul>
+		<hr />
+		<ice:form>
+			<idm:button action="#{basicConfiguration.action}" value="Show messages" />
+		</ice:form>
+		<h3>Some other settings</h3>
 		<ice:panelGrid columns="2" cellpadding="5" cellspacing="5">
 			<ice:outputLabel value="Enable maintenance" />
 			<ice:selectBooleanCheckbox id="enableMaintenance"></ice:selectBooleanCheckbox>
 
 			<ice:outputLabel value="Allow access from localhost" />
-			<ice:selectBooleanCheckbox id="allowAccessFromLocalhost"/>
+			<ice:selectBooleanCheckbox id="allowAccessFromLocalhost" />
 
 			<ice:outputLabel value="Allowed IP addresses" />
 			<ice:inputTextarea id="textareaIpAddresses" cols="20" rows="3" value="" />
 		</ice:panelGrid>
-		<h3>Some other settings</h3>
-		Other configuration stuff :))
-		<ui:remove>
-			<hr />
-			<ice:form id="configForm">
-				<ice:selectBooleanCheckbox value="#{basic.editable}" immediate="true" partialSubmit="true">Editable</ice:selectBooleanCheckbox>
-				<idm:xmlInput id="editor" height="350" readonly="#{not basic.editable}" value="#{basic.content}" />
-				<ice:commandButton value="Run" action="#{basic.action}" />
-			</ice:form>			
-		</ui:remove>
 	</ui:define>
 </ui:composition>

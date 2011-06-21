@@ -25,12 +25,15 @@ import java.io.Serializable;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.web.util.FacesUtils;
+
 /**
  * 
  * @author lazyman
  * 
  */
-@Controller("basic")
+@Controller("basicConfiguration")
 @Scope("session")
 public class BasicConfigurationController implements Serializable {
 
@@ -38,13 +41,13 @@ public class BasicConfigurationController implements Serializable {
 	private String content = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
 			+ "<ui:composition template=\"/resources/templates/template.xhtml\" "
 			+ "xmlns=\"http://www.w3.org/1999/xhtml\">\n</ui:composition>";
-	
+
 	private boolean editable = true;
-	
+
 	public boolean isEditable() {
 		return editable;
 	}
-	
+
 	public void setEditable(boolean editable) {
 		this.editable = editable;
 	}
@@ -58,7 +61,18 @@ public class BasicConfigurationController implements Serializable {
 	}
 
 	public String action() {
-		System.out.println(content);
+		OperationResult result = new OperationResult("Top operation");
+		result.recordSuccess();
+		FacesUtils.addMessage(result);
+
+		result = new OperationResult("Top operation");
+		result.recordWarning("Some warning happened.");
+		FacesUtils.addMessage(result);
+
+		result = new OperationResult("Top operation");
+		result.recordFatalError("Error happened.");
+		FacesUtils.addMessage(result);
+
 		return null;
 	}
 }

@@ -22,7 +22,7 @@ package com.evolveum.midpoint.web.jsf.messages;
 
 import javax.faces.application.FacesMessage;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.common.result.OperationResult;
 
 /**
  * 
@@ -32,14 +32,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 public class MidPointMessage extends FacesMessage {
 
 	private static final long serialVersionUID = 8320638234262514369L;
-	private OperationResultType result;
+	private OperationResult result;
 
-	public MidPointMessage(Severity severity, String summary, String detail, OperationResultType result) {
-		super(severity, summary, detail);
+	public MidPointMessage(Severity severity, String summary, OperationResult result) {
+		super(severity, summary, null);
 		this.result = result;
 	}
 
-	public OperationResultType getResult() {
+	public OperationResult getResult() {
 		return result;
 	}
 }

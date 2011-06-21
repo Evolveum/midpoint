@@ -28,6 +28,9 @@ import javax.faces.component.FacesComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.context.ResponseWriter;
 
+import org.apache.commons.lang.StringUtils;
+
+import com.evolveum.midpoint.web.util.FacesUtils;
 import com.icesoft.faces.component.ext.HtmlMessages;
 
 /**
@@ -41,15 +44,39 @@ public class MidPointFacesMessages extends HtmlMessages {
 	@Override
 	public void encodeBegin(FacesContext context) throws IOException {
 		ResponseWriter writer = context.getResponseWriter();
+		writer.startElement("ul", null);
 
 		Iterator<FacesMessage> iterator = context.getMessages();
 		while (iterator.hasNext()) {
 			FacesMessage message = iterator.next();
-			writer.startElement("p", null);
-			writer.writeText(message.getSummary(), null);
-			writer.endElement("p");
+			writer.startElement("li", null);
+			writer.startElement("span", null);
+			
+			
+			if (StringUtils.isNotEmpty(message.getSummary())) {
+				writer.writeText(message.getSummary(), null);
+			} else {
+				writer.writeText(FacesUtils.translateKey("Success"), null);
+			}
+			
+			writer.endElement("span");
+			writer.endElement("li");
 		}
+		writer.endElement("ul");
+
 		super.encodeBegin(context);
 		System.out.println("encodeBegin");
+	}
+
+	@Override
+	public void encodeChildren(FacesContext context) throws IOException {
+		// // TODO Auto-generated method stub
+		// super.encodeChildren(context);
+	}
+
+	@Override
+	public void encodeEnd(FacesContext context) throws IOException {
+		// // TODO Auto-generated method stub
+		// super.encodeEnd(context);
 	}
 }
