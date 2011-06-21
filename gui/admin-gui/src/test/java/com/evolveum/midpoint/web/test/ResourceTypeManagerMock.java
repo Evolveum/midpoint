@@ -37,6 +37,9 @@ import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 
 /**
  * 
@@ -52,11 +55,6 @@ public class ResourceTypeManagerMock extends ResourceManager {
 
 	public ResourceTypeManagerMock(Class constructResourceType) {
 		this.constructResourceType = constructResourceType;
-	}
-
-	@Override
-	public List<ResourceObjectShadowDto> listObjectShadows(String oid, Class resourceObjectShadowType) {
-		return new ArrayList<ResourceObjectShadowDto>();
 	}
 
 	@Override
@@ -109,4 +107,30 @@ public class ResourceTypeManagerMock extends ResourceManager {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
+	@Override
+	public <T extends ResourceObjectShadowType> List<ResourceObjectShadowDto<T>> listObjectShadows(
+			String oid, Class<T> resourceObjectShadowType) {
+		return new ArrayList<ResourceObjectShadowDto<T>>();
+	}
+
+	@Override
+	public ResourceTestResultType testConnection(String resourceOid) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void launchImportFromResource(String resourceOid, String objectClass) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public TaskStatusType getImportStatus(String resourceOid) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> listResourceObjects(
+			String resourceOid, String objectClass, PagingType paging) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }

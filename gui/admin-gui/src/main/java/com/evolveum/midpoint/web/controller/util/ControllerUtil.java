@@ -43,9 +43,11 @@ import com.evolveum.midpoint.web.model.AccountShadowManager;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
+import com.evolveum.midpoint.web.model.SystemConfigurationManager;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
+import com.evolveum.midpoint.web.model.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -56,6 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType.ExtraTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
@@ -97,7 +100,7 @@ public class ControllerUtil {
 		return null;
 	}
 
-	//TODO: query looking only in user type???? wtf?
+	// TODO: query looking only in user type???? wtf?
 	public static Element createQuery(String username) {
 		Document document = DOMUtil.getDocument();
 		Element and = document.createElementNS(SchemaConstants.NS_C, "c:and");
@@ -173,6 +176,12 @@ public class ControllerUtil {
 		ObjectManager<AccountShadowDto> manager = catalog.getObjectManager(AccountShadowType.class,
 				AccountShadowDto.class);
 		return (AccountShadowManager) (manager);
+	}
+
+	public static SystemConfigurationManager getSystemManager(ObjectTypeCatalog catalog) {
+		ObjectManager<SystemConfigurationDto> manager = catalog.getObjectManager(
+				SystemConfigurationType.class, SystemConfigurationDto.class);
+		return (SystemConfigurationManager) (manager);
 	}
 
 	public static void updateResourceState(ResourceState state, ResourceTestResultType result) {

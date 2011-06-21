@@ -22,6 +22,7 @@ package com.evolveum.midpoint.web.controller.resource;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +30,6 @@ import java.util.Map;
 import javax.faces.model.ArrayDataModel;
 import javax.faces.model.DataModel;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
@@ -53,15 +52,15 @@ import com.evolveum.midpoint.web.bean.ResourceObjectType;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.ListController;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.ResourceManager;
+import com.evolveum.midpoint.web.model.dto.ResourceDto;
+import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * 
@@ -77,8 +76,6 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 	private static final Trace LOGGER = TraceManager.getTrace(ListObjectsController.class);
 	@Autowired(required = true)
 	private ObjectTypeCatalog objectTypeCatalog;
-	@Autowired(required = true)
-	private transient ModelPortType model;
 	private ResourceListItem resource;
 	private String objectClass;
 	private DataModel<String> columnModel;
@@ -127,7 +124,6 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 
 		List<ObjectType> objects = getResourceObjects();
 		if (objects == null || objects.isEmpty()) {
-			// TODO: show & log error
 			FacesUtils.addWarnMessage("No object found for objet class '" + objectClass + "'.");
 			return null;
 		}
@@ -155,29 +151,38 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 	}
 
 	private List<ObjectType> getResourceObjects() {
-		ObjectListType list = null;
+		List<ObjectType> objects = new ArrayList<ObjectType>();
 		try {
-			OperationResultType resultType = new OperationResultType();
-			list = model.listResourceObjects(resource.getOid(), objectClass,
-					PagingTypeFactory.createPaging(0, 30, OrderDirectionType.ASCENDING, "name"),
-					new Holder<OperationResultType>(resultType));
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
-			// TODO: show & log error
+			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+			Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> collection = manager
+					.listResourceObjects(resource.getOid(), objectClass,
+							PagingTypeFactory.createPaging(0, 30, OrderDirectionType.ASCENDING, "name"));
+			for (ResourceObjectShadowDto<ResourceObjectShadowType> shadow : collection) {
+				objects.add(shadow.getXmlObject());
+			}
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list resource objects", ex);
 		}
 
-		if (list == null) {
-			return null;
-		}
-
-		return list.getObject();
+		return objects;
 	}
 
 	private List<QName> prepareHeader(String resourceOid) {
 		List<QName> qnames = new ArrayList<QName>();
-		OperationResult result = new OperationResult("Prepare Header");
-		ResourceType resource = ControllerUtil.getObjectFromModel(resourceOid, model, result,
-				ResourceType.class);
+
+		ResourceType resource = null;
+		try {
+			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+			ResourceDto resourceDto = manager.get(resourceOid, new PropertyReferenceListType());
+			if (resourceDto != null) {
+				resource = resourceDto.getXmlObject();
+			}
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get resource with oid {}", ex, resourceOid);
+			FacesUtils.addErrorMessage("Couldn't get resource with oid '" + resourceOid + "'.", ex);
+			return qnames;
+		}
+
 		if (resource == null || resource.getSchema() == null || resource.getSchema().getAny().isEmpty()) {
 			return qnames;
 		}
@@ -187,8 +192,9 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 			schema = Schema.parse(resource.getSchema().getAny().get(0));
 		} catch (SchemaProcessorException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't parse resource schema", ex);
-			// TODO: error handling
+			FacesUtils.addErrorMessage("Couldn't parse resource schema.", ex);
 		}
+
 		if (schema == null) {
 			return qnames;
 		}

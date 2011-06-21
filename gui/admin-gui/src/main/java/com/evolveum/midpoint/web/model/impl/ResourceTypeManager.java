@@ -31,17 +31,24 @@ import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
 /**
  * 
@@ -101,5 +108,148 @@ public class ResourceTypeManager extends ResourceManager {
 	@Override
 	public Collection<ResourceDto> list(PagingType paging) {
 		return list(paging, ObjectTypes.RESOURCE);
+	}
+
+	@Override
+	public ResourceTestResultType testConnection(String resourceOid) {
+		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+		LOGGER.debug("Testing resource with oid {}.", new Object[] { resourceOid });
+
+		OperationResult result = new OperationResult("Test Resource");
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(
+				result.createOperationResultType());
+
+		ResourceTestResultType testResult = null;
+		try {
+			testResult = getModel().testResource(resourceOid, holder);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordSuccess();
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't test resource {}", ex, resourceOid);
+
+			OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
+					.getOperationResult() == null) ? holder.value : ex.getFaultInfo().getOperationResult();
+			result = OperationResult.createOperationResult(resultType);
+			result.recordFatalError(ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't test resource {}", ex, resourceOid);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		}
+
+		printResults(LOGGER, result);
+
+		return testResult;
+	}
+
+	@Override
+	public void launchImportFromResource(String resourceOid, String objectClass) {
+		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+		Validate.notEmpty(objectClass, "Object class must not be null or empty.");
+		LOGGER.debug("Launching import from resource with oid {} and object class {}.", new Object[] {
+				resourceOid, objectClass });
+
+		OperationResult result = new OperationResult("Launch Import On Resource");
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(
+				result.createOperationResultType());
+
+		try {
+			getModel().launchImportFromResource(resourceOid, objectClass, holder);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordSuccess();
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't launch import on resource {} and object class {}",
+					ex, resourceOid, objectClass);
+
+			OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
+					.getOperationResult() == null) ? holder.value : ex.getFaultInfo().getOperationResult();
+			result = OperationResult.createOperationResult(resultType);
+			result.recordFatalError(ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't launch import on resource {} and object class {}",
+					ex, resourceOid, objectClass);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		}
+
+		printResults(LOGGER, result);
+	}
+
+	@Override
+	public TaskStatusType getImportStatus(String resourceOid) {
+		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+		LOGGER.debug("Getting import status for resource with oid {}", new Object[] { resourceOid });
+
+		OperationResult result = new OperationResult("Get Import Status");
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(
+				result.createOperationResultType());
+
+		TaskStatusType task = null;
+		try {
+			getModel().getImportStatus(resourceOid, holder);
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordSuccess();
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get import status from resource {}", ex, resourceOid);
+
+			OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
+					.getOperationResult() == null) ? holder.value : ex.getFaultInfo().getOperationResult();
+			result = OperationResult.createOperationResult(resultType);
+			result.recordFatalError(ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get import status from resource {}", ex, resourceOid);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		}
+
+		printResults(LOGGER, result);
+
+		return task;
+	}
+
+	@Override
+	public Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> listResourceObjects(
+			String resourceOid, String objectClass, PagingType paging) {
+		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+		Validate.notEmpty(objectClass, "Object class must not be null or empty.");
+		Validate.notNull(paging, "Paging must not be null.");
+		LOGGER.debug("Listing resource objects from resource with oid {} and object class {}.", new Object[] {
+				resourceOid, objectClass });
+
+		OperationResult result = new OperationResult("Launch Import On Resource");
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(
+				result.createOperationResultType());
+
+		Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> collection = new ArrayList<ResourceObjectShadowDto<ResourceObjectShadowType>>();
+		try {
+			ObjectListType list = getModel().listResourceObjects(resourceOid, objectClass, paging, holder);
+			if (list != null) {
+				for (ObjectType objectType : list.getObject()) {
+					collection.add(new ResourceObjectShadowDto<ResourceObjectShadowType>(
+							(ResourceObjectShadowType) objectType));
+				}
+			}
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordSuccess();
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get import status from resource {}", ex, resourceOid);
+
+			OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
+					.getOperationResult() == null) ? holder.value : ex.getFaultInfo().getOperationResult();
+			result = OperationResult.createOperationResult(resultType);
+			result.recordFatalError(ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get import status from resource {}", ex, resourceOid);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		}
+
+		return collection;
 	}
 }

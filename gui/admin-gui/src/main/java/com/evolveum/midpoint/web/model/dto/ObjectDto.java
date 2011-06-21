@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
  * 
  * @author semancik
  */
-public abstract class ObjectDto<T extends ObjectType> implements Serializable {
+public class ObjectDto<T extends ObjectType> implements Serializable {
 
 	private static final long serialVersionUID = 5319506185994423879L;
 	private T xmlObject;

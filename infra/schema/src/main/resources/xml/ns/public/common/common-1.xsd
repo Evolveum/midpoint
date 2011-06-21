@@ -1248,7 +1248,13 @@
 		<xsd:sequence>
 			<xsd:element name="object" type="tns:ObjectType" minOccurs="0" maxOccurs="unbounded" />			
 		</xsd:sequence>
-		<xsd:attribute name="count" type="xsd:int" />
+		<xsd:attribute name="count" type="xsd:int">
+			<xsd:annotation>
+				<xsd:documentation>
+					Number of objects of selected type.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 	</xsd:complexType>
 
 	<xsd:complexType name="CycleListType">
