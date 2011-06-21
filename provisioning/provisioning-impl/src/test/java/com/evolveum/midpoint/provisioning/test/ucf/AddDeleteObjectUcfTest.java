@@ -56,6 +56,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.provisioning.ucf.api.Token;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerIcfImpl;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
@@ -280,6 +281,16 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		
 	}
 	
+	@Test
+	public void testFetchChanges() throws Exception{
+		OperationResult result = new OperationResult(this.getClass().getName()
+				+ ".testFetchChanges");
+		QName objectClass = new QName(resource.getNamespace(), "AccountObjectClass"); 
+		Token lastToken = cc.fetchCurrentToken(objectClass, result);
+		System.out.println("token "+ lastToken.toString());
+		cc.fetchChanges(objectClass, lastToken, result);
+	}
+	
 	private Property createProperty(String propertyName, String propertyValue){
 		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema
 		.findContainerDefinitionByType(new QName(resource
@@ -300,6 +311,9 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		System.out.println("property name: " +property.getName().getLocalPart());
 		System.out.println("property namespace: "+property.getName().getNamespaceURI());
 		System.out.println("property value: "+property.getValue(String.class));
+		for (Object obj : property.getValues()){
+			System.out.println("asdasdasd: "+ obj.toString());
+		}
 		System.out.println("-------replace attribute modification end-------");
 		return attributeModification;
 	}

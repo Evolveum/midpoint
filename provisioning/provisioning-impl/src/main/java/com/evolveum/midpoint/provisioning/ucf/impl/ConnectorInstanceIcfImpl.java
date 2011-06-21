@@ -40,6 +40,12 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
@@ -52,13 +58,19 @@ import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClassUtil;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
+import org.identityconnectors.framework.common.objects.SyncDelta;
+import org.identityconnectors.framework.common.objects.SyncDeltaType;
+import org.identityconnectors.framework.common.objects.SyncResultsHandler;
 import org.identityconnectors.framework.common.objects.SyncToken;
 import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.common.security.GuardedString;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -478,19 +490,52 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public Token deserializeToken(String serializedToken) {
-		throw new UnsupportedOperationException("Not supported yet.");
+		Token token = new TokenImpl(serializedToken);
+		return token;
+//		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public Token fetchCurrentToken(QName objectClass, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
+		
+		ObjectClass objClass = objectClassToIcf(objectClass);
+		
+		SyncToken syncToken = connector.getLatestSyncToken(objClass);
+		Object object = syncToken.getValue();
+		Token token = new TokenImpl(object.toString());
+		
+		return token;
+//		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
 	public List<Change> fetchChanges(QName objectClass, Token lastToken, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException {
-		throw new UnsupportedOperationException("Not supported yet.");
+//		throw new UnsupportedOperationException("Not supported yet.");
+		
+		OperationResult subresult = parentResult.createSubresult(ConnectorInstance.class.getName() + ".fetchChanges");
+		subresult.addContext("objectClass", objectClass);
+		
+		final Set<SyncDelta> result = new HashSet<SyncDelta>();
+		
+		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
+		SyncToken syncToken = new SyncToken(Integer.valueOf(lastToken.serialize())) ;
+		
+		connector.sync(icfObjectClass, syncToken, new SyncResultsHandler() {
+			
+			@Override
+			public boolean handle(SyncDelta delta) {
+				result.add(delta);
+				return true;
+			}
+		}, new OperationOptionsBuilder().build());
+		
+		List<Change> changeList = getChangesFromSyncDelta(result);
+		
+		
+	
+		return changeList;
 	}
 
 	@Override
@@ -742,4 +787,46 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return attributes;
 	}
 
+	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result){
+		List<Change> changeList = new ArrayList<Change>();
+		for (SyncDelta delta : result){
+			if (SyncDeltaType.DELETE.equals(delta.getDeltaType())){
+				ResourceObject resourceObject = convertToResourceObject(delta.getObject(), null);
+				ObjectChangeDeletionType deletionType = new ObjectChangeDeletionType();
+				deletionType.setOid(delta.getUid().getUidValue());
+				Change change = new Change(resourceObject.getIdentifiers(), deletionType, new TokenImpl(delta.getToken().getValue().toString()));
+				changeList.add(change);
+			} else{
+				
+				ResourceObject resourceObject = convertToResourceObject(delta.getObject(), null);
+				ObjectChangeModificationType modificationChangeType = createModificationChange(delta, resourceObject);
+				
+				Change change = new Change(resourceObject.getIdentifiers(), modificationChangeType, new TokenImpl((String) delta.getToken().getValue()));
+				changeList.add(change);
+			}
+			
+		}
+		return changeList;
+	}
+	
+	private ObjectChangeModificationType createModificationChange(SyncDelta delta, ResourceObject resourceObject){
+		ObjectChangeModificationType modificationChangeType = new ObjectChangeModificationType();
+		ObjectModificationType modificationType = new ObjectModificationType();
+		modificationType.setOid(delta.getUid().getUidValue());
+		for (ResourceObjectAttribute attr : resourceObject.getAttributes()){
+			PropertyModificationType propertyModification = new PropertyModificationType();
+			propertyModification.setModificationType(PropertyModificationTypeType.add);
+			for (String attrValue : attr.getValues(String.class)){
+				Document doc = DOMUtil.getDocument();
+				Element element = doc.createElementNS(attr.getName().getNamespaceURI(), attr.getName().getLocalPart());
+				element.setTextContent(attrValue);
+				PropertyModificationType.Value value = new PropertyModificationType.Value();
+				value.getAny().add(element);
+				propertyModification.setValue(value);
+				modificationType.getPropertyModification().add(propertyModification);
+			}		
+		}			
+		modificationChangeType.setObjectModification(modificationType);
+		return modificationChangeType;
+	}
 }
