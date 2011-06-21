@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.testing.selenium;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -275,6 +276,18 @@ public class Test002basicUser {
 		assertTrue(selenium.isTextPresent("Selena Wilson"));
 
 	}
+
+	@Test
+	public void test03importUser() {
+		selenium.click(findNextLink("topConfiguration"));
+		selenium.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/config/import.iface", selenium.getLocation());
+		assertTrue(selenium.isTextPresent("Import And Export"));
+		
+	//	File f;
+		
+		
+	}
 	
 	@Test
 	public void test99deleteUser() {
@@ -309,11 +322,8 @@ public class Test002basicUser {
 		selenium.waitForPageToLoad("30000");
 		
 		assertTrue(selenium.isTextPresent("New User"));
-
-		logger.info("Li: " + Arrays.asList(selenium.getAllLinks()));	
-
+		
 		for (String l : selenium.getAllLinks()) {
-			logger.info("L:" + l);
 			if (!l.contains("Table") || !l.contains("name"))
 				continue;
 			logger.info("Adding:" + selenium.getText(l), l.replace("name", ""));
