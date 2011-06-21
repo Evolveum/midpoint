@@ -43,6 +43,8 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
@@ -112,7 +114,7 @@ public class RepositoryTest {
 
 	@Test
 	@ExpectedException(value=FaultMessage.class)
-	public void getObjectThatDoNotExists() throws Exception {
+	public void getNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		//try to get not existing object, exception is expected
 		repositoryService.getObject(oid, null);
@@ -125,7 +127,25 @@ public class RepositoryTest {
 		assertEquals(0, retrievedList.getObject().size());
 		assertEquals(0, retrievedList.getCount().intValue());
 	}	
+
+	@Test
+	@ExpectedException(value=FaultMessage.class)
+	public void modifyNotExistingObject() throws Exception {
+		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
+		ObjectModificationType objModifications = new ObjectModificationType();
+		objModifications.setOid(oid);
+		PropertyModificationType modification = new PropertyModificationType();
+		objModifications.getPropertyModification().add(modification );
+		//try to modify not existing object, exception is expected
+		repositoryService.modifyObject(objModifications);
+	}
 	
-	
+	@Test
+	@ExpectedException(value=FaultMessage.class)
+	public void deleteNotExistingObject() throws Exception {
+		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
+		//try to delete not existing object, exception is expected
+		repositoryService.deleteObject(oid);	
+	}
 	
 }

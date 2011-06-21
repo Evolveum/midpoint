@@ -109,30 +109,8 @@ public class XmlRepositoryService implements RepositoryPortType {
 		} catch (JAXBException e) {
 			TRACE.error("Problem initializing XML Repository Service", e);
 			throw new RuntimeException("Problem initializing XML Repository Service", e);
-		} 	
-
-	}
-
-	private final <T> String marshalWrap(T jaxbObject, QName elementQName) throws JAXBException {
-		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
-				jaxbObject);
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		XMLStreamWriter xmlStreamWriter;
-		try {
-			xmlStreamWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(out);
-			this.marshaller.marshal(jaxbElement, xmlStreamWriter);
-			xmlStreamWriter.flush();
-			return new String(out.toByteArray(), "UTF-8");
-		} catch (XMLStreamException e) {
-			TRACE.error("JAXB object marshal to Xml stream failed", e);
-			throw new JAXBException("JAXB object marshal to Xml stream failed", e);
-		} catch (FactoryConfigurationError e) {
-			TRACE.error("JAXB object marshal to Xml stream failed", e);
-			throw new JAXBException("JAXB object marshal to Xml stream failed", e);
-		} catch (UnsupportedEncodingException e) {
-			TRACE.error("UTF-8 is unsupported encoding", e);
-			throw new JAXBException("UTF-8 is unsupported encoding", e);
 		}
+
 	}
 
 	@Override
@@ -141,27 +119,15 @@ public class XmlRepositoryService implements RepositoryPortType {
 		try {
 			ObjectType payload = (ObjectType) objectContainer.getObject();
 
-			if (StringUtils.isNotEmpty(payload.getOid())) {
-				try {
-					ObjectContainerType retrievedObject = getObject(payload.getOid(), null);
-					if (null != retrievedObject) {
-						throw new FaultMessage("Object with oid " + payload.getOid() + " already exists", new ObjectAlreadyExistsFaultType());
-					}
-				} catch (FaultMessage e) {
-					if (e.getFaultInfo() instanceof ObjectNotFoundFaultType) {
-						//ignore;
-					} else {
-						throw e;
-					}
-				}
-			}
-			
+			checkAndFailIfObjectAlreadyExists(payload.getOid());
+
 			// generate new oid, if necessary
 			oid = (null != payload.getOid() ? payload.getOid() : UUID.randomUUID().toString());
 			payload.setOid(oid);
 
 			String serializedObject = marshalWrap(payload, SchemaConstants.C_OBJECT);
-			// FIXME: try to find another solution how to escape XQuery special characters in XMLs 
+			// FIXME: try to find another solution how to escape XQuery special
+			// characters in XMLs
 			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
 			serializedObject = StringUtils.replace(serializedObject, "}", "}}");
 
@@ -247,6 +213,228 @@ public class XmlRepositoryService implements RepositoryPortType {
 		return objectContainer;
 	}
 
+	@Override
+	public ObjectListType listObjects(String objectType, PagingType paging) throws FaultMessage {
+		return searchObjects(objectType, paging, null);
+	}
+
+	@Override
+	public ObjectListType searchObjects(QueryType query, PagingType paging) throws FaultMessage {
+		validateQuery(query);
+
+		NodeList children = query.getFilter().getChildNodes();
+		String objectType = null;
+		Map<String, String> filters = new HashMap<String, String>();
+
+		for (int index = 0; index < children.getLength(); index++) {
+			Node child = children.item(index);
+			if (child.getNodeType() != Node.ELEMENT_NODE) {
+				// Skipping all non-element nodes
+				continue;
+			}
+
+			if (!StringUtils.equals(SchemaConstants.NS_C, child.getNamespaceURI())) {
+				TRACE.warn("Found query's filter element from unsupported namespace. Ignoring filter {}",
+						child);
+				continue;
+			}
+
+			if (validateFilterElement(SchemaConstants.NS_C, "type", child)) {
+				objectType = child.getAttributes().getNamedItem("uri").getTextContent();
+			} else if (validateFilterElement(SchemaConstants.NS_C, "equal", child)) {
+				Node criteria = DOMUtil.getFirstChildElement(child);
+
+				if (validateFilterElement(SchemaConstants.NS_C, "path", criteria)) {
+					XPathType xpathType = new XPathType((Element) criteria);
+					String parentPath = xpathType.getXPath();
+
+					Node criteriaValueNode = DOMUtil.getNextSiblingElement(criteria);
+					processValueNode(criteriaValueNode, filters, parentPath);
+				}
+
+				if (validateFilterElement(SchemaConstants.NS_C, "value", criteria)) {
+					processValueNode(criteria, filters, null);
+				}
+			}
+		}
+
+		return searchObjects(objectType, paging, filters);
+	}
+
+	@Override
+	public void modifyObject(ObjectModificationType objectChange) throws FaultMessage {
+		validateObjectChange(objectChange);
+
+		try {
+			// get object from repo
+			// FIXME: possible problems with resolving property reference before
+			// xml patching
+			ObjectContainerType retrievedObjectContainer = this.getObject(objectChange.getOid(),
+					new PropertyReferenceListType());
+			ObjectType objectType = retrievedObjectContainer.getObject();
+
+			// modify the object
+			PatchXml xmlPatchTool = new PatchXml();
+			String serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
+
+			// HACK:
+			serializedObject = serializedObject.substring(38);
+
+			// store modified object in repo
+			// Receive the XPath query service.
+			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
+
+			StringBuilder query = new StringBuilder(
+					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n")
+					.append("replace node //c:object[@oid=\"").append(objectChange.getOid())
+					.append("\"] with ").append(serializedObject);
+
+			TRACE.trace("generated query: " + query);
+
+			service.query(query.toString());
+
+		} catch (PatchException ex) {
+			TRACE.error("Failed to modify object", ex);
+			throw new FaultMessage("Failed to modify object", new IllegalArgumentFaultType(), ex);
+		} catch (XMLDBException ex) {
+			TRACE.error("Reported error by XML Database", ex);
+			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
+		}
+	}
+
+	@Override
+	public void deleteObject(String oid) throws FaultMessage {
+		validateOid(oid);
+
+		checkAndFailIfObjectDoesNotExist(oid);
+		
+		ByteArrayInputStream in = null;
+		ObjectContainerType out = null;
+		try {
+
+			// Receive the XPath query service.
+			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
+
+			StringBuilder QUERY = new StringBuilder(
+					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
+			QUERY.append("delete nodes //c:object[@oid=\"").append(oid).append("\"]");
+
+			service.query(QUERY.toString());
+
+		} catch (XMLDBException ex) {
+			TRACE.error("Reported error by XML Database", ex);
+			throw new FaultMessage("Reported error by XML Database", new SystemFaultType());
+		} finally {
+			try {
+				if (null != in) {
+					in.close();
+				}
+			} catch (IOException ex) {
+			}
+		}
+	}
+
+	@Override
+	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
+			PropertyReferenceListType properties) throws FaultMessage {
+		throw new UnsupportedOperationException("Not implemented yet.");
+	}
+
+	@Override
+	public UserContainerType listAccountShadowOwner(String accountOid) throws FaultMessage {
+		Map<String, String> filters = new HashMap<String, String>();
+		// FIXME: hardcoded prefix c:
+		filters.put("c:accountRef", accountOid);
+		ObjectListType retrievedObjects = searchObjects(QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE),
+				null, filters);
+		List<ObjectType> objects = retrievedObjects.getObject();
+
+		if (null == retrievedObjects || objects == null || objects.size() == 0) {
+			return null;
+		}
+		if (objects.size() > 1) {
+			throw new FaultMessage("Found incorrect number of objects " + objects.size(),
+					new SystemFaultType());
+		}
+
+		UserContainerType userContainer = new UserContainerType();
+		userContainer.setUser((UserType) objects.get(0));
+
+		return userContainer;
+	}
+
+	@Override
+	public ResourceObjectShadowListType listResourceObjectShadows(String resourceOid,
+			String resourceObjectShadowType) throws FaultMessage {
+		Map<String, String> filters = new HashMap<String, String>();
+		// FIXME: hardcoded prefix c:
+		filters.put("c:resourceRef", resourceOid);
+		ObjectListType retrievedObjects = searchObjects(
+				QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE), null, filters);
+
+		@SuppressWarnings("unchecked")
+		List<ResourceObjectShadowType> objects = (List<ResourceObjectShadowType>) CollectionUtils.collect(
+				retrievedObjects.getObject(), new Transformer() {
+					@Override
+					public Object transform(final Object input) {
+						return (ResourceObjectShadowType) input;
+					}
+				});
+
+		ResourceObjectShadowListType ros = new ResourceObjectShadowListType();
+		ros.getObject().addAll(objects);
+		return ros;
+	}
+
+	private void checkAndFailIfObjectAlreadyExists(String oid) throws FaultMessage {
+		// check if object with the same oid already exists, if yes, then fail
+		if (StringUtils.isNotEmpty(oid)) {
+			try {
+				ObjectContainerType retrievedObject = getObject(oid, null);
+				if (null != retrievedObject) {
+					throw new FaultMessage("Object with oid " + oid + " already exists",
+							new ObjectAlreadyExistsFaultType());
+				}
+			} catch (FaultMessage e) {
+				if (e.getFaultInfo() instanceof ObjectNotFoundFaultType) {
+					// ignore;
+				} else {
+					throw e;
+				}
+			}
+		}
+	}
+
+	private void checkAndFailIfObjectDoesNotExist(String oid) throws FaultMessage {
+		ObjectContainerType retrievedObject = getObject(oid, null);
+		if (null == retrievedObject) {
+			throw new FaultMessage("Object with oid " + oid + " does not exist",
+					new ObjectNotFoundFaultType());
+		}
+	}
+
+	private final <T> String marshalWrap(T jaxbObject, QName elementQName) throws JAXBException {
+		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
+				jaxbObject);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		XMLStreamWriter xmlStreamWriter;
+		try {
+			xmlStreamWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(out);
+			this.marshaller.marshal(jaxbElement, xmlStreamWriter);
+			xmlStreamWriter.flush();
+			return new String(out.toByteArray(), "UTF-8");
+		} catch (XMLStreamException e) {
+			TRACE.error("JAXB object marshal to Xml stream failed", e);
+			throw new JAXBException("JAXB object marshal to Xml stream failed", e);
+		} catch (FactoryConfigurationError e) {
+			TRACE.error("JAXB object marshal to Xml stream failed", e);
+			throw new JAXBException("JAXB object marshal to Xml stream failed", e);
+		} catch (UnsupportedEncodingException e) {
+			TRACE.error("UTF-8 is unsupported encoding", e);
+			throw new JAXBException("UTF-8 is unsupported encoding", e);
+		}
+	}
+
 	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters)
 			throws FaultMessage {
 		if (StringUtils.isEmpty(objectType)) {
@@ -256,7 +444,9 @@ public class XmlRepositoryService implements RepositoryPortType {
 
 		ByteArrayInputStream in = null;
 		ObjectListType objectList = new ObjectListType();
-		;
+		// FIXME: objectList.count has to contain all elements that match search
+		// criteria, but not only from paging interval
+		objectList.setCount(0);
 		try {
 
 			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
@@ -274,10 +464,9 @@ public class XmlRepositoryService implements RepositoryPortType {
 			query.append("for $x in //c:object where $x/@xsi:type=\"")
 					.append(objectType.substring(objectType.lastIndexOf("#") + 1)).append("\"");
 			if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
-				query.append("[fn:position() = ( ")
-						.append(paging.getOffset() * paging.getMaxSize())
-						.append(" to ")
-						.append(((paging.getOffset() +1) * paging.getMaxSize()) - 1).append(") ] ");
+				query.append("[fn:position() = ( ").append(paging.getOffset() * paging.getMaxSize())
+						.append(" to ").append(((paging.getOffset() + 1) * paging.getMaxSize()) - 1)
+						.append(") ] ");
 			}
 			if (filters != null) {
 				for (Map.Entry<String, String> filterEntry : filters.entrySet()) {
@@ -341,54 +530,6 @@ public class XmlRepositoryService implements RepositoryPortType {
 		return objectList;
 	}
 
-	@Override
-	public ObjectListType listObjects(String objectType, PagingType paging) throws FaultMessage {
-		return searchObjects(objectType, paging, null);
-	}
-
-	@Override
-	public ObjectListType searchObjects(QueryType query, PagingType paging) throws FaultMessage {
-		validateQuery(query);
-
-		NodeList children = query.getFilter().getChildNodes();
-		String objectType = null;
-		Map<String, String> filters = new HashMap<String, String>();
-
-		for (int index = 0; index < children.getLength(); index++) {
-			Node child = children.item(index);
-			if (child.getNodeType() != Node.ELEMENT_NODE) {
-				// Skipping all non-element nodes
-				continue;
-			}
-
-			if (!StringUtils.equals(SchemaConstants.NS_C, child.getNamespaceURI())) {
-				TRACE.warn("Found query's filter element from unsupported namespace. Ignoring filter {}",
-						child);
-				continue;
-			}
-
-			if (validateFilterElement(SchemaConstants.NS_C, "type", child)) {
-				objectType = child.getAttributes().getNamedItem("uri").getTextContent();
-			} else if (validateFilterElement(SchemaConstants.NS_C, "equal", child)) {
-				Node criteria = DOMUtil.getFirstChildElement(child);
-
-				if (validateFilterElement(SchemaConstants.NS_C, "path", criteria)) {
-					XPathType xpathType = new XPathType((Element) criteria);
-					String parentPath = xpathType.getXPath();
-
-					Node criteriaValueNode = DOMUtil.getNextSiblingElement(criteria);
-					processValueNode(criteriaValueNode, filters, parentPath);
-				}
-
-				if (validateFilterElement(SchemaConstants.NS_C, "value", criteria)) {
-					processValueNode(criteria, filters, null);
-				}
-			}
-		}
-
-		return searchObjects(objectType, paging, filters);
-	}
-
 	private void processValueNode(Node criteriaValueNode, Map<String, String> filters, String parentPath) {
 		// TODO: Translate IllegalArgumentException to Fault types
 		if (null == criteriaValueNode) {
@@ -444,77 +585,6 @@ public class XmlRepositoryService implements RepositoryPortType {
 		return false;
 	}
 
-	@Override
-	public void modifyObject(ObjectModificationType objectChange) throws FaultMessage {
-		validateObjectChange(objectChange);
-
-		try {
-			// get object from repo
-			// FIXME: possible problems with resolving property reference before
-			// xml patching
-			ObjectContainerType retrievedObjectContainer = this.getObject(objectChange.getOid(),
-					new PropertyReferenceListType());
-			ObjectType objectType = retrievedObjectContainer.getObject();
-
-			// modify the object
-			PatchXml xmlPatchTool = new PatchXml();
-			String serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
-
-			// HACK:
-			serializedObject = serializedObject.substring(38);
-
-			// store modified object in repo
-			// Receive the XPath query service.
-			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
-
-			StringBuilder query = new StringBuilder(
-					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n")
-					.append("replace node //c:object[@oid=\"").append(objectChange.getOid())
-					.append("\"] with ").append(serializedObject);
-
-			TRACE.trace("generated query: " + query);
-
-			service.query(query.toString());
-
-		} catch (PatchException ex) {
-			TRACE.error("Failed to modify object", ex);
-			throw new FaultMessage("Failed to modify object", new IllegalArgumentFaultType(), ex);
-		} catch (XMLDBException ex) {
-			TRACE.error("Reported error by XML Database", ex);
-			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
-		}
-	}
-
-	@Override
-	public void deleteObject(String oid) throws FaultMessage {
-		validateOid(oid);
-
-		ByteArrayInputStream in = null;
-		ObjectContainerType out = null;
-		try {
-
-			// Receive the XPath query service.
-			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
-
-			StringBuilder QUERY = new StringBuilder(
-					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
-			QUERY.append("delete nodes //c:object[@oid=\"").append(oid).append("\"]");
-
-			service.query(QUERY.toString());
-
-		} catch (XMLDBException ex) {
-			TRACE.error("Reported error by XML Database", ex);
-			throw new FaultMessage("Reported error by XML Database", new SystemFaultType());
-		} finally {
-			try {
-				if (null != in) {
-					in.close();
-				}
-			} catch (IOException ex) {
-			}
-		}
-	}
-
 	private void validateOid(String oid) throws FaultMessage {
 		if (StringUtils.isEmpty(oid)) {
 			throw new FaultMessage("Invalid OID", new IllegalArgumentFaultType());
@@ -548,57 +618,4 @@ public class XmlRepositoryService implements RepositoryPortType {
 			throw new FaultMessage("No filter in query", new IllegalArgumentFaultType());
 		}
 	}
-
-	@Override
-	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
-			PropertyReferenceListType properties) throws FaultMessage {
-		throw new UnsupportedOperationException("Not implemented yet.");
-	}
-
-	@Override
-	public UserContainerType listAccountShadowOwner(String accountOid) throws FaultMessage {
-		Map<String, String> filters = new HashMap<String, String>();
-		// FIXME: hardcoded prefix c:
-		filters.put("c:accountRef", accountOid);
-		ObjectListType retrievedObjects = searchObjects(QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE),
-				null, filters);
-		List<ObjectType> objects = retrievedObjects.getObject();
-
-		if (null == retrievedObjects || objects == null || objects.size() == 0) {
-			return null;
-		}
-		if (objects.size() > 1) {
-			throw new FaultMessage("Found incorrect number of objects " + objects.size(),
-					new SystemFaultType());
-		}
-
-		UserContainerType userContainer = new UserContainerType();
-		userContainer.setUser((UserType) objects.get(0));
-
-		return userContainer;
-	}
-
-	@Override
-	public ResourceObjectShadowListType listResourceObjectShadows(String resourceOid,
-			String resourceObjectShadowType) throws FaultMessage {
-		Map<String, String> filters = new HashMap<String, String>();
-		// FIXME: hardcoded prefix c:
-		filters.put("c:resourceRef", resourceOid);
-		ObjectListType retrievedObjects = searchObjects(
-				QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE), null, filters);
-		
-		@SuppressWarnings("unchecked")
-		List<ResourceObjectShadowType> objects = (List<ResourceObjectShadowType>) CollectionUtils.collect(retrievedObjects.getObject(),
-				new Transformer() {
-					@Override
-					public Object transform(final Object input) {
-						return (ResourceObjectShadowType) input;
-					}
-				});
-
-		ResourceObjectShadowListType ros = new ResourceObjectShadowListType();
-		ros.getObject().addAll(objects);
-		return ros;
-	}
-
 }
