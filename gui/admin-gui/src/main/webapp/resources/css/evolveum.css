@@ -239,6 +239,52 @@ a {
 	margin-left: 30px;
 }
 
+#messages li span span.messages-display-details {
+	float: right;
+}
+
+#messages li span span.messages-details {
+	margin-top: 3px;
+	display: none;
+}
+
+li.message-detail {
+	float: left;
+	margin: 0 10px 0 0;
+}
+
+li.message-detail-clear {
+	clear: both;
+}
+
+#messages li span span.messages-details ul.messages-details-basic {
+	list-style: none;
+	margin-left: 0px;
+}
+
+#messages li span span.messages-details ul.messages-details-advanced {
+	list-style: none;
+	margin-left: 15px;
+	padding: 2px;
+}
+
+li.messages-line-info,li.messages-line-warn,li.messages-line-error {
+	min-height: 20px;
+	height: auto;
+}
+
+li.messages-line-info {
+	color: #4F8A10;
+}
+
+li.messages-line-warn {
+	color: #9F6000;
+}
+
+li.messages-line-error {
+	color: #D8000C;
+}
+
 #messages li span.messages-info {
 	color: #4F8A10;
 	background-color: #DFF2BF;

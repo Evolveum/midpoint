@@ -12,6 +12,7 @@
 		<ice:outputStyle href="/xmlhttp/css/xp/xp.css"/>
 		<ice:outputStyle href="/resources/css/default.css" />
 		<ice:outputStyle href="/resources/css/evolveum.css" />
+		<h:outputScript name="evolveum.js" library="js"/>
 	</h:head>
 	<h:body>
 		<div id="header">
@@ -114,7 +115,7 @@
 					<h2>
 						<ui:insert name="title">Welcome</ui:insert>
 					</h2>
-					<ice:messages id="messages" errorClass="messages-error" infoClass="messages-info"
+					<idm:messages id="messages" errorClass="messages-error" infoClass="messages-info"
 						fatalClass="message-fatal" warnClass="messages-warn" />
 					<ui:insert name="content">
 					sample content
