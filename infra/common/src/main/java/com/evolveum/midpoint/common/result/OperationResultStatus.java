@@ -78,7 +78,7 @@ public enum OperationResultStatus {
 
 	public static OperationResultStatusType createStatusType(OperationResultStatus status) {
 		if (status == null) {
-			return OperationResultStatusType.WARNING;
+			return OperationResultStatusType.UNKNOWN;
 		}
 
 		switch (status) {
@@ -91,7 +91,7 @@ public enum OperationResultStatus {
 			case PARTIAL_ERROR:
 				return OperationResultStatusType.PARTIAL_ERROR;
 			default:
-				return OperationResultStatusType.WARNING;
+				return OperationResultStatusType.UNKNOWN;
 		}
 	}
 

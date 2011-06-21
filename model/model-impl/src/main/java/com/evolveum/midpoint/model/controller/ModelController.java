@@ -283,7 +283,7 @@ public class ModelController {
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 
-	public UserType listAccountShadowOwner(String accountOid, OperationResult result) {
+	public UserType listAccountShadowOwner(String accountOid, OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
@@ -296,7 +296,9 @@ public class ModelController {
 			user = repository.listAccountShadowOwner(accountOid, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
-			// TODO: error handling
+			LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
+			subResult.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
+			throw new ObjectNotFoundException();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
 					+ " for account with oid {}", ex, accountOid);
