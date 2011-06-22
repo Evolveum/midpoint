@@ -19,22 +19,33 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.NotImplementedException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.object.ResourceObjectShadowUtil;
-import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.ucf.api.UcfException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
@@ -43,7 +54,7 @@ import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -51,23 +62,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
-import com.sun.org.apache.xerces.internal.impl.xs.SchemaGrammar.Schema4Annotations;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.NotImplementedException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 /**
  * This class manages the "cache" of ResourceObjectShadows in the repository.
@@ -75,56 +72,58 @@ import org.w3c.dom.Node;
  * In short, this class takes care of aligning the shadow objects in repository
  * with the real state of the resource.
  * 
- * The repository content is considered a "cache" when it comes to Shadow objects. 
- * That's why they are called "shadow" objects after all. When a new state (values)
- * of the resource object is detected, the shadow in the repository should be updated.
- * No matter if that was detected by synchronization, reconciliation or an
- * ordinary get from resource. This class is supposed to do that.
- *
+ * The repository content is considered a "cache" when it comes to Shadow
+ * objects. That's why they are called "shadow" objects after all. When a new
+ * state (values) of the resource object is detected, the shadow in the
+ * repository should be updated. No matter if that was detected by
+ * synchronization, reconciliation or an ordinary get from resource. This class
+ * is supposed to do that.
+ * 
  * Therefore all operations that deal with "shadows" should pass through this
  * class. It forms yet another layer of the provisioning subsystem.
- *
- * Current implementation assumes we are only storing primary identifier in the repository.
- * That should be made configurable later. It also only support Account objects
- * now.
+ * 
+ * Current implementation assumes we are only storing primary identifier in the
+ * repository. That should be made configurable later. It also only support
+ * Account objects now.
  * 
  * This is WORK IN PROGRESS ...
- *
+ * 
  * @author Radovan Semancik
  */
 public class ShadowCache {
-	
+
 	private RepositoryService repositoryService;
 	private ConnectorManager connectorManager;
 
-    public ShadowCache() {
-        repositoryService = null;
-    }
+	public ShadowCache() {
+		repositoryService = null;
+	}
 
-    /**
-     * Get the value of repositoryService.
-     *
-     * @return the value of repositoryService
-     */
-    public RepositoryService getRepositoryService() {
-        return repositoryService;
-    }
+	/**
+	 * Get the value of repositoryService.
+	 * 
+	 * @return the value of repositoryService
+	 */
+	public RepositoryService getRepositoryService() {
+		return repositoryService;
+	}
 
-    /**
-     * Set the value of repositoryService
-     *
-     * Expected to be injected.
-     * 
-     * @param repositoryService new value of repositoryService
-     */
-    public void setRepositoryService(RepositoryService repositoryService) {
-        this.repositoryService = repositoryService;
-    }
-	
+	/**
+	 * Set the value of repositoryService
+	 * 
+	 * Expected to be injected.
+	 * 
+	 * @param repositoryService
+	 *            new value of repositoryService
+	 */
+	public void setRepositoryService(RepositoryService repositoryService) {
+		this.repositoryService = repositoryService;
+	}
+
 	public ConnectorManager getConnectorManager() {
 		return connectorManager;
 	}
-	
+
 	/**
 	 * Set the value of connector manager.
 	 * 
@@ -139,8 +138,8 @@ public class ShadowCache {
 	/**
 	 * Gets the shadow with specified OID
 	 * 
-	 * The shadow will be read from the repository and missing information
-	 * will be fetched from the resource.
+	 * The shadow will be read from the repository and missing information will
+	 * be fetched from the resource.
 	 * 
 	 * If no repositoryShadow is specified, the shadow will be retrieved from
 	 * the repository. This is just an optimization if the object was already
@@ -149,74 +148,94 @@ public class ShadowCache {
 	 * This method is using identification by OID. This is intended for normal
 	 * usage. Method that uses native identification will be provided later.
 	 * 
-	 * @param oid OID of shadow to get.
-	 * @param repositoryShadow shadow that was read from the repository
+	 * @param oid
+	 *            OID of shadow to get.
+	 * @param repositoryShadow
+	 *            shadow that was read from the repository
 	 * @return retrieved shadow (merged attributes from repository and resource)
-	 * @throws ObjectNotFoundException shadow was not found or object was not found
-	 * 				on the resource
-	 * @throws CommunicationException problem communicating with the resource 
-	 * @throws SchemaException problem processing schema or schema violation
+	 * @throws ObjectNotFoundException
+	 *             shadow was not found or object was not found on the resource
+	 * @throws CommunicationException
+	 *             problem communicating with the resource
+	 * @throws SchemaException
+	 *             problem processing schema or schema violation
 	 */
-	public ResourceObjectShadowType getShadow(String oid, ResourceObjectShadowType repositoryShadow, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException {
+	public ResourceObjectShadowType getShadow(String oid, ResourceObjectShadowType repositoryShadow,
+			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
+			SchemaException {
 
 		// We are using parent result directly, not creating subresult.
 		// We want to hide the existence of shadow cache from the user.
-				
+
 		// Get the shadow from repository. There are identifiers that we need
 		// for accessing the object by UCF.
 		// Later, the repository object may have a fully cached object from.
-		if (repositoryShadow==null) {
-			repositoryShadow = (ResourceObjectShadowType) getRepositoryService().getObject(oid, null, parentResult);
+		if (repositoryShadow == null) {
+			repositoryShadow = (ResourceObjectShadowType) getRepositoryService().getObject(oid, null,
+					parentResult);
 		}
-		
+
 		// Sanity check
 		if (!oid.equals(repositoryShadow.getOid())) {
 			throw new IllegalArgumentException("Provided OID is not equal to OID of repository shadow");
 		}
-		
-		ResourceType resource = getResource(ResourceObjectShadowUtil.getResourceOid(repositoryShadow), parentResult);
-		
+
+		ResourceType resource = getResource(ResourceObjectShadowUtil.getResourceOid(repositoryShadow),
+				parentResult);
+
 		// Get the fresh object from UCF
 		ConnectorInstance connector = getConnectorInstance(resource);
 		Schema schema = null;
-		schema = getResourceSchema(resource,connector,parentResult);
-		
+		schema = getResourceSchema(resource, connector, parentResult);
+
 		QName objectClass = repositoryShadow.getObjectClass();
-		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
-		
-		if (rod==null) {
+		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+				.findContainerDefinitionByType(objectClass);
+
+		if (rod == null) {
 			// Unknown objectclass
-			SchemaException ex = new SchemaException("Object class "+objectClass+" defined in the repository shadow is not known in schema of resource "+ObjectTypeUtil.toShortString(resource));
-			parentResult.recordFatalError("Object class "+objectClass+" defined in the repository shadow is not known in resource schema", ex);
+			SchemaException ex = new SchemaException("Object class " + objectClass
+					+ " defined in the repository shadow is not known in schema of resource "
+					+ ObjectTypeUtil.toShortString(resource));
+			parentResult.recordFatalError("Object class " + objectClass
+					+ " defined in the repository shadow is not known in resource schema", ex);
 			throw ex;
 		}
-		
+
 		// Let's get all the identifiers from the Shadow <attributes> part
-		Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(repositoryShadow.getAttributes().getAny());
-		
-		if (identifiers==null || identifiers.isEmpty()) {
+		Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(repositoryShadow.getAttributes()
+				.getAny());
+
+		if (identifiers == null || identifiers.isEmpty()) {
 			// No identifiers found
-			SchemaException ex = new SchemaException("No identifiers found in the respository shadow "+ObjectTypeUtil.toShortString(repositoryShadow)+" with respect to resource "+ObjectTypeUtil.toShortString(resource));
-			parentResult.recordFatalError("No identifiers found in the respository shadow "+ObjectTypeUtil.toShortString(repositoryShadow), ex);
-			throw ex;			
+			SchemaException ex = new SchemaException("No identifiers found in the respository shadow "
+					+ ObjectTypeUtil.toShortString(repositoryShadow) + " with respect to resource "
+					+ ObjectTypeUtil.toShortString(resource));
+			parentResult.recordFatalError(
+					"No identifiers found in the respository shadow "
+							+ ObjectTypeUtil.toShortString(repositoryShadow), ex);
+			throw ex;
 		}
-		
+
 		ResourceObject ro = null;
 
 		try {
-			// Passing ResourceObjectDefinition instead object class. The returned
+			// Passing ResourceObjectDefinition instead object class. The
+			// returned
 			// ResourceObject will have a proper links to the schema.
 			ro = connector.fetchObject(rod, identifiers, parentResult);
 
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
 			// TODO: Discovery
-			throw new ObjectNotFoundException("Object "+identifiers+" not found on the Resource "+ObjectTypeUtil.toShortString(resource),ex);
+			throw new ObjectNotFoundException("Object " + identifiers + " not found on the Resource "
+					+ ObjectTypeUtil.toShortString(resource), ex);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
-			throw new CommunicationException("Error communicating with the connector",ex);
+			throw new CommunicationException("Error communicating with the connector", ex);
 		} catch (GenericFrameworkException ex) {
-			throw new GenericConnectorException("Generic error in connector "+connector+": "+ex.getMessage(),ex);
+			throw new GenericConnectorException("Generic error in connector " + connector + ": "
+					+ ex.getMessage(), ex);
 		}
-		
+
 		// Let's replace the attribute values fetched from repository with the
 		// ResourceObject content fetched from resource. The resource is more
 		// fresh and the attributes more complete.
@@ -228,19 +247,19 @@ public class ShadowCache {
 		try {
 			xmlAttributes = ro.serializePropertiesToDom(doc);
 		} catch (SchemaProcessorException ex) {
-			throw new SchemaException("Schema error: "+ex.getMessage(),ex);
+			throw new SchemaException("Schema error: " + ex.getMessage(), ex);
 		}
 		repositoryShadow.getAttributes().getAny().clear();
 		repositoryShadow.getAttributes().getAny().addAll(xmlAttributes);
-		
-        return repositoryShadow;
+
+		return repositoryShadow;
 	}
-	
+
 	/**
 	 * List all shadow objects of specified objectClass.
 	 * 
-	 * Not used now. Will be used in import.
-	 * Only provided for demonstration how to map ResourceObject to shadow.
+	 * Not used now. Will be used in import. Only provided for demonstration how
+	 * to map ResourceObject to shadow.
 	 * 
 	 * !!! NOT TESTED !!!
 	 * 
@@ -250,18 +269,19 @@ public class ShadowCache {
 	 * @param parentResult
 	 * @throws CommunicationException
 	 */
-	public void listShadows(ResourceType resource, QName objectClass, final ShadowHandler handler, final OperationResult parentResult) throws CommunicationException {
-		
+	public void listShadows(ResourceType resource, QName objectClass, final ShadowHandler handler,
+			final OperationResult parentResult) throws CommunicationException {
+
 		ConnectorInstance connector = getConnectorInstance(resource);
-		
+
 		ResultHandler resultHandler = new ResultHandler() {
-			
+
 			@Override
 			public boolean handle(ResourceObject object) {
-				
+
 				ResourceObjectShadowType shadow;
 				try {
-					shadow = lookupShadow(object,parentResult);
+					shadow = lookupShadow(object, parentResult);
 				} catch (SchemaProcessorException e) {
 					// TODO: better error handling
 					// TODO log it?
@@ -271,146 +291,216 @@ public class ShadowCache {
 					// TODO log it?
 					return false;
 				}
-				
+
 				// TODO: if shadow does not exists, create it now
-				
+
 				return handler.handle(shadow);
 			}
 		};
-		
+
 		try {
 			connector.search(objectClass, resultHandler, parentResult);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
-			throw new CommunicationException(e.getMessage(),e);
+			throw new CommunicationException(e.getMessage(), e);
 		} catch (GenericFrameworkException e) {
-			throw new GenericConnectorException(e.getMessage(),e);
+			throw new GenericConnectorException(e.getMessage(), e);
 		}
 	}
 
-	
-	public String addShadow(ObjectType object, ScriptsType scripts, ResourceType resource, OperationResult parentResult) {
+	public String addShadow(ObjectType object, ScriptsType scripts, ResourceType resource,
+			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
+			ObjectAlreadyExistsException, SchemaException {
 		// Add exceptions to "throws" as needed
-		
+
 		// TODO: store shadow to the repository (identifiers only)
 		// TODO: convert from XML to ResourceObject an call the connector
 		// ... or maybe the other way around ... Katka will find out :-)
-		
-		throw new NotImplementedException();
+
+		if (object instanceof AccountShadowType) {
+			AccountShadowType resourceObjectShadow = (AccountShadowType) object;
+
+			if (resource == null) {
+				try {
+					resource = getResource(ResourceObjectShadowUtil.getResourceOid(resourceObjectShadow),
+							parentResult);
+				} catch (ObjectNotFoundException e) {
+					throw new CommunicationException("Error while getting resource. Resource with oid "
+							+ ResourceObjectShadowUtil.getResourceOid(resourceObjectShadow) + " not found.");
+				}
+			}
+
+			ConnectorInstance connector = getConnectorInstance(resource);
+			Schema schema = getResourceSchema(resource, connector, parentResult);
+			ResourceObject resourceObject = convertFromXml(resourceObjectShadow, schema);
+			String result = null;
+			Set<ResourceObjectAttribute> resourceAttributes = null;
+			try {
+				resourceAttributes = connector.addObject(resourceObject, null, parentResult);
+				resourceObject.getProperties().addAll(resourceAttributes);
+			} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+				throw new CommunicationException("Error communitacing with the connector " + connector + ": "
+						+ ex.getMessage(), ex);
+			} catch (GenericFrameworkException ex) {
+				throw new GenericConnectorException(ex.getMessage(), ex);
+			}
+
+			resourceObjectShadow = (AccountShadowType) createResourceShadow(resourceObject.getIdentifiers(),
+					resourceObjectShadow);
+			result = getRepositoryService().addObject(resourceObjectShadow, parentResult);
+			return result;
+		}
+		return null;
+
 	}
-	
-	
-	
-	// TODO: methods with native identification (Set<Attribute> identifier) instead of OID.
-	
+
+	// TODO: methods with native identification (Set<Attribute> identifier)
+	// instead of OID.
+
 	// OLD METHODS
 	// TODO: refactor to current needs
-	
 
-    /**
-     * Locates the appropriate Shadow in repository that corresponds to the
-     * provided resource object.
-     * @param parentResult 
-     * 
-     * @return current unchanged shadow object that corresponds to provided
-     *         resource object or null if the object does not exist
-     * @throws SchemaProcessorException 
-     * @throws SchemaException 
-     */
-    private ResourceObjectShadowType lookupShadow(ResourceObject resourceObject, OperationResult parentResult) throws SchemaProcessorException, SchemaException {
+	/**
+	 * Locates the appropriate Shadow in repository that corresponds to the
+	 * provided resource object.
+	 * 
+	 * @param parentResult
+	 * 
+	 * @return current unchanged shadow object that corresponds to provided
+	 *         resource object or null if the object does not exist
+	 * @throws SchemaProcessorException
+	 * @throws SchemaException
+	 */
+	private ResourceObjectShadowType lookupShadow(ResourceObject resourceObject, OperationResult parentResult)
+			throws SchemaProcessorException, SchemaException {
 
-        QueryType query = createSearchShadowQuery(resourceObject);
-        PagingType paging = new PagingType();
-        
-        // TODO: check for errors
-        ObjectListType results;
+		QueryType query = createSearchShadowQuery(resourceObject);
+		PagingType paging = new PagingType();
 
-        results = getRepositoryService().searchObjects(query, paging, parentResult);
+		// TODO: check for errors
+		ObjectListType results;
 
-        if (results.getObject().size()==0) {
-            return null;
-        }
-        if (results.getObject().size()>1) {
-            // TODO: Better error handling later
-            throw new IllegalStateException("More than one shadows found for "+resourceObject);
-        }
+		results = getRepositoryService().searchObjects(query, paging, parentResult);
 
-        return (ResourceObjectShadowType) results.getObject().get(0);
-   }
+		if (results.getObject().size() == 0) {
+			return null;
+		}
+		if (results.getObject().size() > 1) {
+			// TODO: Better error handling later
+			throw new IllegalStateException("More than one shadows found for " + resourceObject);
+		}
 
+		return (ResourceObjectShadowType) results.getObject().get(0);
+	}
 
-    private QueryType createSearchShadowQuery(ResourceObject resourceObject) throws SchemaProcessorException {
+	private QueryType createSearchShadowQuery(ResourceObject resourceObject) throws SchemaProcessorException {
 
-        // We are going to query for attributes, so setup appropriate
-        // XPath for the filter
-        XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
-        List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
-        xpathSegments.add(xpathSegment);
-        XPathType xpath = new XPathType(xpathSegments);
+		// We are going to query for attributes, so setup appropriate
+		// XPath for the filter
+		XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
+		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
+		xpathSegments.add(xpathSegment);
+		XPathType xpath = new XPathType(xpathSegments);
 
-        // Now we need to determine what is the identifer and set corrent
-        // value for it in the filter
-        Property identifier = resourceObject.getIdentifier();
+		// Now we need to determine what is the identifer and set corrent
+		// value for it in the filter
+		Property identifier = resourceObject.getIdentifier();
 
-        Set<Object> idValues = identifier.getValues();
-        // Only one value is supported for an identifier
-        if (idValues.size()>1) {
-            // TODO: This should probably be switched to checked exception later
-            throw new IllegalArgumentException("More than one identifier value is not supported");
-        }
-        if (idValues.size()<1) {
-            // TODO: This should probably be switched to checked exception later
-            throw new IllegalArgumentException("The identifier has no value");
-        }
+		Set<Object> idValues = identifier.getValues();
+		// Only one value is supported for an identifier
+		if (idValues.size() > 1) {
+			// TODO: This should probably be switched to checked exception later
+			throw new IllegalArgumentException("More than one identifier value is not supported");
+		}
+		if (idValues.size() < 1) {
+			// TODO: This should probably be switched to checked exception later
+			throw new IllegalArgumentException("The identifier has no value");
+		}
 
-        // We have all the data, we can construct the filter now
-        Document doc = DOMUtil.getDocument();
-        Element filter =
-                QueryUtil.createAndFilter(doc,
-                // TODO: The account type is hardcoded now, it should determined
-                // from the shcema later, or maybe we can make it entirelly
-                // generic (use ResourceObjectShadowType instead).
-                QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
-                QueryUtil.createEqualFilter(doc, xpath, identifier.serializeToDom(doc)));
+		// We have all the data, we can construct the filter now
+		Document doc = DOMUtil.getDocument();
+		Element filter = QueryUtil.createAndFilter(
+				doc,
+				// TODO: The account type is hardcoded now, it should determined
+				// from the shcema later, or maybe we can make it entirelly
+				// generic (use ResourceObjectShadowType instead).
+				QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
+				QueryUtil.createEqualFilter(doc, xpath, identifier.serializeToDom(doc)));
 
-        QueryType query = new QueryType();
-        query.setFilter(filter);
+		QueryType query = new QueryType();
+		query.setFilter(filter);
 
-        return query;
-    }
-	
-	
+		return query;
+	}
+
 	// UTILITY METHODS
-	
+
 	private ConnectorInstance getConnectorInstance(ResourceType resource) {
 		// TODO: Add caching later
 		return getConnectorManager().createConnectorInstance(resource);
 	}
-	
-	private Schema getResourceSchema(ResourceType resource, ConnectorInstance connector, OperationResult parentResult) throws CommunicationException {
+
+	private Schema getResourceSchema(ResourceType resource, ConnectorInstance connector,
+			OperationResult parentResult) throws CommunicationException {
 
 		// TEMPORARY HACK: Fetch schema from connector
-		
+
 		try {
 			return connector.fetchResourceSchema(parentResult);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
-			throw new CommunicationException("Error communicating with the connector "+connector,ex);
+			throw new CommunicationException("Error communicating with the connector " + connector, ex);
 		} catch (GenericFrameworkException ex) {
-			throw new GenericConnectorException("Generic error in connector "+connector+": "+ex.getMessage(),ex);
+			throw new GenericConnectorException("Generic error in connector " + connector + ": "
+					+ ex.getMessage(), ex);
 		}
-		
+
 		// Need to add some form of caching here.
 		// For now just parse it from the resource definition.
-		
-//		Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(resource);
-//		if (schemaElement==null) {
-//			throw new SchemaException("No schema found in definition of resource "+ObjectTypeUtil.toShortString(resource));
-//		}
-//		return Schema.parse(schemaElement);
+
+		// Element schemaElement =
+		// ResourceTypeUtil.getResourceXsdSchema(resource);
+		// if (schemaElement==null) {
+		// throw new
+		// SchemaException("No schema found in definition of resource "+ObjectTypeUtil.toShortString(resource));
+		// }
+		// return Schema.parse(schemaElement);
 	}
-	
-	private ResourceType getResource(String oid ,OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+
+	private ResourceType getResource(String oid, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
 		// TODO: add some caching
-		return (ResourceType) getRepositoryService().getObject(oid,null,parentResult);
+		return (ResourceType) getRepositoryService().getObject(oid, null, parentResult);
 	}
+
+	private ResourceObject convertFromXml(ResourceObjectShadowType resourceObjectShadow, Schema schema) {
+		QName objectClass = resourceObjectShadow.getObjectClass();
+
+		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+				.findContainerDefinitionByType(objectClass);
+		ResourceObject resourceObject = rod.instantiate();
+
+		Set<ResourceObjectAttribute> resAttr= rod.parseAttributes(resourceObjectShadow.getAttributes().getAny());
+		resourceObject.getAttributes().addAll(resAttr);
 		
+		return resourceObject;
+	}
+
+	private ResourceObjectShadowType createResourceShadow(Set<Property> identifiers,
+			ResourceObjectShadowType resourceObjectShadow) throws SchemaException {
+
+		List<Element> identifierElements = new ArrayList<Element>();
+		Document doc = DOMUtil.getDocument();
+		for (Property p : identifiers) {
+			try {
+				List<Element> eList = p.serializeToDom(doc);
+				identifierElements.addAll(eList);
+			} catch (SchemaProcessorException e) {
+				throw new SchemaException("An error occured while serializing property " + p + " to DOM");
+			}
+		}
+		resourceObjectShadow.getAttributes().getAny().clear();
+		resourceObjectShadow.getAttributes().getAny().addAll(identifierElements);
+
+		return resourceObjectShadow;
+	}
+
 }

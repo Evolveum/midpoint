@@ -116,8 +116,7 @@ public class RepositoryWrapper implements RepositoryService {
 	@Override
 	public String addObject(ObjectType object, OperationResult parentResult) throws ObjectAlreadyExistsException,
 			SchemaException {
-		// TODO Auto-generated method stub
-		return null;
+		return addObject(object);
 	}
 
 	@Override

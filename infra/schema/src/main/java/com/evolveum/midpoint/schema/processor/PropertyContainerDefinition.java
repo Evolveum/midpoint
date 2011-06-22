@@ -229,7 +229,7 @@ public class PropertyContainerDefinition extends Definition {
 	 * @return serialized properties
 	 * @throws SchemaProcessorException in case property definition is not found or is inconsistent
 	 */
-	List<Element> serializePropertiesToDom(Set<Property> properties, Document doc) throws SchemaProcessorException {
+	public List<Element> serializePropertiesToDom(Set<Property> properties, Document doc) throws SchemaProcessorException {
 		List<Element> elements = new ArrayList<Element>();
 		// This is not really correct. We should follow the ordering of elements
 		// in the schema so we produce valid XML

@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -49,61 +50,60 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
  * 
  * It is just a "dispatcher" that routes interface calls to appropriate places.
  * E.g. the operations regarding resource definitions are routed directly to the
- * repository, operations of shadow objects are routed to the shadow cache and so on.
+ * repository, operations of shadow objects are routed to the shadow cache and
+ * so on.
  * 
  * WORK IN PROGRESS
  * 
- * There be dragons.
- * Beware the dog.
- * Do not trespass.
+ * There be dragons. Beware the dog. Do not trespass.
  * 
  * @author Radovan Semancik
  */
 public class ProvisioningServiceImpl implements ProvisioningService {
-	
+
 	private ShadowCache shadowCache;
 	private RepositoryService repositoryService;
 
 	public ShadowCache getShadowCache() {
 		return shadowCache;
 	}
-	
+
 	public void setShadowCache(ShadowCache shadowCache) {
 		this.shadowCache = shadowCache;
 	}
-	
-	/**
-     * Get the value of repositoryService.
-     *
-     * @return the value of repositoryService
-     */
-    public RepositoryService getRepositoryService() {
-        return repositoryService;
-    }
 
-    /**
-     * Set the value of repositoryService
-     *
-     * Expected to be injected.
-     * 
-     * @param repositoryService new value of repositoryService
-     */
-    public void setRepositoryService(RepositoryService repositoryService) {
-        this.repositoryService = repositoryService;
-    }
-	
-	
+	/**
+	 * Get the value of repositoryService.
+	 * 
+	 * @return the value of repositoryService
+	 */
+	public RepositoryService getRepositoryService() {
+		return repositoryService;
+	}
+
+	/**
+	 * Set the value of repositoryService
+	 * 
+	 * Expected to be injected.
+	 * 
+	 * @param repositoryService
+	 *            new value of repositoryService
+	 */
+	public void setRepositoryService(RepositoryService repositoryService) {
+		this.repositoryService = repositoryService;
+	}
+
 	@Override
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException {
-		
+	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+			throws ObjectNotFoundException, CommunicationException, SchemaException {
+
 		// Result type for this operation
-		OperationResult result = parentResult
-				.createSubresult(ProvisioningService.class.getName()
-						+ ".getObject");
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".getObject");
 		result.addParam("oid", oid);
 		result.addParam("resolve", resolve);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-		
+
 		ObjectType repositoryObject = null;
 
 		try {
@@ -112,14 +112,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.record(e);
 			throw e;
 		}
-		
+
 		if (repositoryObject instanceof ResourceObjectShadowType) {
-			//ResourceObjectShadowType shadow = (ResourceObjectShadowType)object;
-			// TODO: optimization needed: avoid multiple "gets" of the same object
-			
-			ResourceObjectShadowType shadow = null;			
+			// ResourceObjectShadowType shadow =
+			// (ResourceObjectShadowType)object;
+			// TODO: optimization needed: avoid multiple "gets" of the same
+			// object
+
+			ResourceObjectShadowType shadow = null;
 			try {
-				shadow = getShadowCache().getShadow(oid, (ResourceObjectShadowType)repositoryObject, result);
+				shadow = getShadowCache().getShadow(oid, (ResourceObjectShadowType) repositoryObject, result);
 			} catch (ObjectNotFoundException e) {
 				result.record(e);
 				throw e;
@@ -130,7 +132,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				result.record(e);
 				throw e;
 			}
-				
+
 			// TODO: object resolving
 			return shadow;
 		} else {
@@ -143,7 +145,22 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public String addObject(ObjectType object, ScriptsType scripts, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException, CommunicationException {
 		// TODO
-		throw new NotImplementedException();
+		
+
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".addObject");
+		result.addParam("object", object);
+		result.addParam("scripts", scripts);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		String addedShadow = null;
+		
+		try {
+			addedShadow = getShadowCache().addShadow(object, scripts, null, parentResult);
+		} catch (GenericFrameworkException ex) {
+			result.recordFatalError("Failed to add shadow object: "+ ex.getMessage(), ex);
+			throw new CommunicationException(ex.getMessage(), ex);
+		}
+		return addedShadow; 
 	}
 
 	@Override
@@ -154,25 +171,25 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult) {
-		
+
 		// Result type for this operation
-		OperationResult result = parentResult
-				.createSubresult(ProvisioningService.class.getName()
-						+ ".listObjects");
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".listObjects");
 		result.addParam("objectType", objectType);
 		result.addParam("paging", paging);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-		
+
 		if (ResourceObjectShadowType.class.isAssignableFrom(objectType)) {
-			// Listing of shadows is not supported because this operation does not specify resource
+			// Listing of shadows is not supported because this operation does
+			// not specify resource
 			// to search. Maybe we need another operation for this.
 			throw new NotImplementedException("Listing of shadows is not supported");
-			
+
 		} else {
 			// TODO: delegate to repository
 			throw new NotImplementedException();
 		}
-		
+
 	}
 
 	@Override
@@ -183,21 +200,23 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
+	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();
 	}
 
 	@Override
-	public void deleteObject(String oid, ScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException {
+	public void deleteObject(String oid, ScriptsType scripts, OperationResult parentResult)
+			throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();
 	}
 
 	@Override
-	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid, PropertyReferenceListType properties,
-			OperationResult parentResult) throws ObjectNotFoundException {
+	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
+			PropertyReferenceListType properties, OperationResult parentResult)
+			throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();
 	}

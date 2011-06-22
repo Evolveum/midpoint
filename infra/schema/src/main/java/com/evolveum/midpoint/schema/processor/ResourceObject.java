@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -41,7 +42,7 @@ public final class ResourceObject extends PropertyContainer {
 
 	public ResourceObject() {
 	}
-	
+
 	public ResourceObject(QName name) {
 		super(name);
 	}
@@ -110,7 +111,19 @@ public final class ResourceObject extends PropertyContainer {
 	 * @return set of identifier properties
 	 */
 	public Set<Property> getIdentifiers() {
-		throw new IllegalStateException("not implemented yet.");
+		Set<Property> identifiers = new HashSet<Property>();
+		Set<ResourceObjectAttributeDefinition> attrDefs = getDefinition().getIdentifiers();
+		for (ResourceObjectAttributeDefinition attrDef : attrDefs) {		
+			for (Property property : getProperties()){
+				if (attrDef.getName().equals(property.getName())){
+					property.setDefinition(attrDef);
+					identifiers.add(property);
+				}
+			}
+		}
+		
+		
+		return identifiers;
 	}
 
 	/**
@@ -216,8 +229,7 @@ public final class ResourceObject extends PropertyContainer {
 	 *             if there is more than one description attribute.
 	 */
 	public String getNativeObjectClass() {
-		return getDefinition() == null ? null : getDefinition()
-				.getNativeObjectClass();
+		return getDefinition() == null ? null : getDefinition().getNativeObjectClass();
 	}
 
 	/**
@@ -261,10 +273,8 @@ public final class ResourceObject extends PropertyContainer {
 	 */
 	public boolean isDefaultAccountType() {
 		ResourceObjectDefinition definition = getDefinition();
-		return (definition != null ?  definition
-				.isDefaultAccountType() : null);
+		return (definition != null ? definition.isDefaultAccountType() : null);
 	}
-
 
 	/**
 	 * Finds a specific attribute in the resource object by name.
@@ -288,10 +298,8 @@ public final class ResourceObject extends PropertyContainer {
 	 *            attribute definition to find.
 	 * @return found attribute or null
 	 */
-	private ResourceObjectAttribute findAttribute(
-			ResourceObjectAttributeDefinition attributeDefinition) {
-		return (ResourceObjectAttribute) super
-				.findProperty(attributeDefinition);
+	private ResourceObjectAttribute findAttribute(ResourceObjectAttributeDefinition attributeDefinition) {
+		return (ResourceObjectAttribute) super.findProperty(attributeDefinition);
 	}
 
 }

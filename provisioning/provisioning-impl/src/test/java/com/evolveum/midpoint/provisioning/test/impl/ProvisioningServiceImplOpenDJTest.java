@@ -32,6 +32,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
 import com.evolveum.midpoint.provisioning.impl.RepositoryWrapper;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.test.repository.BaseXDatabaseFactory;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 import javax.xml.bind.JAXBContext;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
@@ -81,6 +83,8 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee";
 	private static final String FILENAME_ACCOUNT1 = "src/test/resources/impl/account1.xml";
 	private static final String ACCOUNT1_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1cccc";
+	private static final String FILENAME_ACCOUNT_NEW = "src/test/resources/impl/account-new.xml";
+	private static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
 	private static final String FILENAME_ACCOUNT_BAD = "src/test/resources/impl/account-bad.xml";
 	private static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
 	private static final String NON_EXISTENT_OID ="aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
@@ -140,16 +144,27 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		
 		assertNotNull(provisioningService);
     }
-
-	private ObjectType addObjectFromFile(String filePath) throws FileNotFoundException, JAXBException, com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
-		File file = new File(filePath);
+    
+    private ObjectContainerType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException{
+    	File file = new File(filePath);
         FileInputStream fis = new FileInputStream(file);
 		Object object = unmarshaller.unmarshal(fis);		
 		ObjectType objectType = (ObjectType) ((JAXBElement) object).getValue();
 		ObjectContainerType container = new ObjectContainerType();
 		container.setObject(objectType);
+		return container;
+    }
+
+	private ObjectType addObjectFromFile(String filePath) throws FileNotFoundException, JAXBException, com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+//		File file = new File(filePath);
+//        FileInputStream fis = new FileInputStream(file);
+//		Object object = unmarshaller.unmarshal(fis);		
+//		ObjectType objectType = (ObjectType) ((JAXBElement) object).getValue();
+//		ObjectContainerType container = new ObjectContainerType();
+//		container.setObject(objectType);
+		ObjectContainerType container = createObjectFromFile(filePath);
 		repositoryPort.addObject(container);
-		return objectType;
+		return container.getObject();
 	}
 	
     @After
@@ -231,6 +246,31 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			fail("Expected ObjectNotFoundException, but got"+e);
 		}
 		
+	}
+	
+	@Test
+	public void testAddObject() throws Exception {
+		
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".addObjectTest");
+		
+		ObjectType object = createObjectFromFile(FILENAME_ACCOUNT_NEW).getObject();
+		
+		System.out.println(DebugUtil.prettyPrint(object));
+		System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object, SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+		
+		String addedObjectOid = provisioningService.addObject(object, null, result);
+		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
+		
+		ObjectContainerType container = repositoryPort.getObject(ACCOUNT_NEW_OID, new PropertyReferenceListType());
+		AccountShadowType accountType = (AccountShadowType) container.getObject();
+		assertEquals("will", accountType.getName());
+		
+		
+		ObjectType objType = provisioningService.getObject(ACCOUNT_NEW_OID, new PropertyReferenceListType(), result);
+		assertEquals("will", objType.getName());
+		
+		
+
 	}
 
 }
