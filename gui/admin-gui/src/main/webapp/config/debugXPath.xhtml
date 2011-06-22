@@ -16,7 +16,7 @@
 		<ice:form id="debugXpathForm">
 			<ice:outputText value="#{msg['page.config.debugXPath.expression']}" />
 
-			<ice:inputTextarea id="textArea" style="width: 965px;" rows="5" value="#{debugXPath.expression}" />
+			<ice:inputTextarea id="expression" style="width: 965px;" rows="5" value="#{debugXPath.expression}" />
 
 			<ice:panelGroup>
 				<ice:outputText value="#{msg['page.config.debugXPath.returnType']}" />
@@ -27,7 +27,7 @@
 			</ice:panelGroup>
 
 			<ice:panelGrid columns="5">
-				<ice:selectBooleanCheckbox value="#{debugXPath.selectAll}"
+				<ice:selectBooleanCheckbox id="selectAll" value="#{debugXPath.selectAll}"
 					valueChangeListener="#{debugXPath.selectAllPerformed}" immediate="true" partialSubmit="true" />
 				<ice:outputText value="#{msg['page.config.debugXPath.variableName']}" />
 				<ice:outputText value="#{msg['page.config.debugXPath.type']}" />
@@ -35,13 +35,13 @@
 				<ice:outputLabel />
 
 				<c:forEach items="#{debugXPath.variables}" var="item">
-					<ice:selectBooleanCheckbox value="#{item.selected}" partialSubmit="true" immediate="true"
+					<ice:selectBooleanCheckbox id="selected" value="#{item.selected}" partialSubmit="true" immediate="true"
 						valueChangeListener="#{debugXPath.selectPerformed}" />
 					<ice:inputText id="variableName" value="#{item.variableName}" size="25" />
-					<ice:selectOneMenu style="width: auto;" partialSubmit="true" immediate="true" value="#{item.type}">
-						<f:selectItems id="types" value="#{debugXPath.types}" />
+					<ice:selectOneMenu id="type" style="width: auto;" partialSubmit="true" immediate="true" value="#{item.type}">
+						<f:selectItems  value="#{debugXPath.types}" />
 					</ice:selectOneMenu>
-					<ice:inputText id="value" value="#{item.value}" size="35" />
+					<ice:inputText id="variableValue" value="#{item.value}" size="35" />
 					<idm:button id="buttonBrowse" value="#{msg['page.config.debugXPath.button.browse']}"
 						img="/resources/images/folder_explore.png" rendered="#{item.browsable}" action="#{debugXPath.browse}">
 						<f:param name="variableName" value="#{item.variableName}" />
