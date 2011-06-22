@@ -50,10 +50,10 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 /**
  * TEMPORARY HACK: wrapper to adapt old repository interface to the new one
  * 
- * This is a class that adapts existing (WSDL) repository interface to a new interface.
- * The new interface is not yet applied to repository, but it eventually will be. And
- * we do not want to change the new provisioning code again, so let's create the
- * new code in a way that suits new interface. 
+ * This is a class that adapts existing (WSDL) repository interface to a new
+ * interface. The new interface is not yet applied to repository, but it
+ * eventually will be. And we do not want to change the new provisioning code
+ * again, so let's create the new code in a way that suits new interface.
  * 
  * WORK IN PROGRESS
  * 
@@ -77,7 +77,8 @@ public class RepositoryWrapper implements RepositoryService {
 		this.repository = repository;
 	}
 
-	public ObjectType getObject(String oid,PropertyReferenceListType resolve, OperationResult parentResult) throws ObjectNotFoundException {
+	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+			throws ObjectNotFoundException {
 		// TODO: use result
 		try {
 			ObjectContainerType container = repository.getObject(oid, resolve);
@@ -92,7 +93,7 @@ public class RepositoryWrapper implements RepositoryService {
 			}
 			// Any other type is SysteFault or something unexpected.
 			// Just wrap in RuntimeExcpetion
-			throw new RuntimeException(faultInfo.getClass().getSimpleName()+": "+faultInfo.getMessage());
+			throw new RuntimeException(faultInfo.getClass().getSimpleName() + ": " + faultInfo.getMessage());
 		}
 	}
 
@@ -104,7 +105,7 @@ public class RepositoryWrapper implements RepositoryService {
 		} catch (FaultMessage fault) {
 			FaultType faultInfo = fault.getFaultInfo();
 			// TODO Auto-generated catch block
-			throw new RuntimeException(faultInfo.getClass().getSimpleName()+": "+faultInfo.getMessage());
+			throw new RuntimeException(faultInfo.getClass().getSimpleName() + ": " + faultInfo.getMessage());
 		}
 	}
 
@@ -114,8 +115,8 @@ public class RepositoryWrapper implements RepositoryService {
 	}
 
 	@Override
-	public String addObject(ObjectType object, OperationResult parentResult) throws ObjectAlreadyExistsException,
-			SchemaException {
+	public String addObject(ObjectType object, OperationResult parentResult)
+			throws ObjectAlreadyExistsException, SchemaException {
 		return addObject(object);
 	}
 
@@ -133,38 +134,43 @@ public class RepositoryWrapper implements RepositoryService {
 	}
 
 	@Override
-	public void modifyObject(ObjectModificationType objectChange, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException {
+	public void modifyObject(ObjectModificationType objectChange, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException {
-		// TODO Auto-generated method stub
-		
+		try {
+			repository.deleteObject(oid);
+		} catch (FaultMessage ex) {
+			throw new ObjectNotFoundException("Failed to delete object. Object with OID " + oid
+					+ " does not exist in the DB. " + ex.getMessage(), ex);
+		}
+
 	}
 
 	@Override
-	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid, PropertyReferenceListType properties,
-			OperationResult parentResult) throws ObjectNotFoundException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public UserType listAccountShadowOwner(String accountOid, OperationResult parentResult) throws ObjectNotFoundException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid, Class resourceObjectShadowType, OperationResult parentResult)
+	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
+			PropertyReferenceListType properties, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
-	
+
+	@Override
+	public UserType listAccountShadowOwner(String accountOid, OperationResult parentResult)
+			throws ObjectNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
+			Class resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

@@ -310,11 +310,6 @@ public class ShadowCache {
 	public String addShadow(ObjectType object, ScriptsType scripts, ResourceType resource,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			ObjectAlreadyExistsException, SchemaException {
-		// Add exceptions to "throws" as needed
-
-		// TODO: store shadow to the repository (identifiers only)
-		// TODO: convert from XML to ResourceObject an call the connector
-		// ... or maybe the other way around ... Katka will find out :-)
 
 		if (object instanceof AccountShadowType) {
 			AccountShadowType resourceObjectShadow = (AccountShadowType) object;
@@ -331,9 +326,12 @@ public class ShadowCache {
 
 			ConnectorInstance connector = getConnectorInstance(resource);
 			Schema schema = getResourceSchema(resource, connector, parentResult);
+			
+			//convert xml attributes to ResourceObject
 			ResourceObject resourceObject = convertFromXml(resourceObjectShadow, schema);
 			String result = null;
 			Set<ResourceObjectAttribute> resourceAttributes = null;
+			//add object using connector, setting new properties to the resourceObject
 			try {
 				resourceAttributes = connector.addObject(resourceObject, null, parentResult);
 				resourceObject.getProperties().addAll(resourceAttributes);
@@ -344,6 +342,8 @@ public class ShadowCache {
 				throw new GenericConnectorException(ex.getMessage(), ex);
 			}
 
+			//create account shadow from resource object identifiers. This account shadow consisted 
+			//of the identifiers is added to the repo
 			resourceObjectShadow = (AccountShadowType) createResourceShadow(resourceObject.getIdentifiers(),
 					resourceObjectShadow);
 			result = getRepositoryService().addObject(resourceObjectShadow, parentResult);
@@ -351,6 +351,42 @@ public class ShadowCache {
 		}
 		return null;
 
+	}
+
+	public void deleteShadow(ObjectType objectType, ResourceType resource, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
+			SchemaException {
+
+		if (objectType instanceof AccountShadowType) {
+
+			AccountShadowType accountShadow = (AccountShadowType) objectType;
+
+			if (resource == null) {
+				resource = getResource(ResourceObjectShadowUtil.getResourceOid(accountShadow), parentResult);
+			}
+
+			ConnectorInstance connector = getConnectorInstance(resource);
+
+			Schema schema = getResourceSchema(resource, connector, parentResult);
+
+			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+					.findContainerDefinitionByType(accountShadow.getObjectClass());
+
+			Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(accountShadow.getAttributes()
+					.getAny());
+
+			try {
+				connector.deleteObject(accountShadow.getObjectClass(), identifiers, parentResult);
+			} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
+				throw new ObjectNotFoundException("An error occured while deleting resource object "
+						+ accountShadow + "whith identifiers " + identifiers + ": " + ex.getMessage(), ex);
+			} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+				throw new CommunicationException("Error communitacing with the connector " + connector + ": "
+						+ ex.getMessage(), ex);
+			}
+			
+			getRepositoryService().deleteObject(accountShadow.getOid(), parentResult);
+		}
 	}
 
 	// TODO: methods with native identification (Set<Attribute> identifier)
@@ -471,6 +507,12 @@ public class ShadowCache {
 		return (ResourceType) getRepositoryService().getObject(oid, null, parentResult);
 	}
 
+	/**
+	 * convert resource object shadow to the resource object according to given schema   
+	 * @param resourceObjectShadow object from which attributes are converted
+	 * @param schema
+	 * @return resourceObject
+	 */
 	private ResourceObject convertFromXml(ResourceObjectShadowType resourceObjectShadow, Schema schema) {
 		QName objectClass = resourceObjectShadow.getObjectClass();
 
@@ -478,12 +520,20 @@ public class ShadowCache {
 				.findContainerDefinitionByType(objectClass);
 		ResourceObject resourceObject = rod.instantiate();
 
-		Set<ResourceObjectAttribute> resAttr= rod.parseAttributes(resourceObjectShadow.getAttributes().getAny());
+		Set<ResourceObjectAttribute> resAttr = rod.parseAttributes(resourceObjectShadow.getAttributes()
+				.getAny());
 		resourceObject.getAttributes().addAll(resAttr);
-		
+
 		return resourceObject;
 	}
 
+	/**
+	 * create resource object shadow from identifiers
+	 * @param identifiers properties of the resourceObject. This properties describes created resource object shadow attributes 
+	 * @param resourceObjectShadow
+	 * @return resourceObjectShadow
+	 * @throws SchemaException
+	 */
 	private ResourceObjectShadowType createResourceShadow(Set<Property> identifiers,
 			ResourceObjectShadowType resourceObjectShadow) throws SchemaException {
 
@@ -497,6 +547,7 @@ public class ShadowCache {
 				throw new SchemaException("An error occured while serializing property " + p + " to DOM");
 			}
 		}
+		 
 		resourceObjectShadow.getAttributes().getAny().clear();
 		resourceObjectShadow.getAttributes().getAny().addAll(identifierElements);
 

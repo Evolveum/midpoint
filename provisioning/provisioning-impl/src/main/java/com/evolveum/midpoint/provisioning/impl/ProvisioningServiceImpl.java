@@ -210,7 +210,32 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public void deleteObject(String oid, ScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
-		throw new NotImplementedException();
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".deleteObject");
+		result.addParam("oid", oid);
+		result.addParam("scripts", scripts);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		ObjectType objectType = null;
+		try {
+			objectType = getRepositoryService().getObject(oid, new PropertyReferenceListType(), parentResult);
+		} catch (SchemaException e) {
+			throw new ObjectNotFoundException(e.getMessage());
+		}
+		
+		try {
+			getShadowCache().deleteShadow(objectType, null, parentResult);
+		} catch (CommunicationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (GenericFrameworkException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SchemaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 
 	@Override
