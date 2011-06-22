@@ -29,20 +29,13 @@
 
 	<xsd:annotation>
 		<xsd:documentation>
-			This is a common schema for midPoint project. It
-			contains all the
-			data types that the stock midPoint
-			is using.
+			This is a common schema for midPoint project. It contains all the data types that the stock midPoint is
+			using.
 
-			This file contains more that a common schema in fact. It contains
-			all the objects, even parts of what is known as identity
-			schema and model schema in midPoint. The reason for this is a limitation
-			of current ESB
-			environment
-			that cannot handle separated
-			schema
-			files
-			well.
+			This file contains more that a common schema in fact. It contains all the objects, even parts of what is known as
+			identity schema and model schema in midPoint.
+
+			See https://wiki.evolveum.com/display/midPoint/Data+Model for more details.
 		</xsd:documentation>
 		<xsd:appinfo>
 			<jaxb:globalBindings>
@@ -61,12 +54,21 @@
 	<xsd:element name="name" type="xsd:string">
 		<xsd:annotation>
 			<xsd:documentation>
-				Human-readable name for object, property,
-				attribute or whatever.
+				Human-readable name for object, property, attribute or whatever.
 
-				TODO: Any special reason this is
-				top-level
+				TODO: Any special reason this is top-level
 				element?
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+	<xsd:element name="propertyContainer">
+		<xsd:annotation>
+			<xsd:documentation>
+				This is XSD annotation. It marks XSD type that is a property container.
+
+				Every first-level element in a
+				property container is either a property or another property container.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -77,14 +79,8 @@
 				<jaxb:dom/>
 			</xsd:appinfo>
 			<xsd:documentation>
-				Defines a type for XPath pointer. It points to a
-				specific part of the XML tree. Only a path
-				expressions
-				should be used
-				in this type, as it is used as an l-value, i.e. pointing to a
-				part of
-				XML where an value
-				can be assigned.
+				Defines a type for XPath pointer. It points to a specific part of the XML tree. Only a path expressions
+				should be used in this type, as it is used as an l-value, i.e. pointing to a part of XML where an value can be assigned.
 
 				cf.
 				ExpressionType
@@ -99,89 +95,44 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Common supertype for all identity objects.
-				Defines basic properties
-				that each object must have to live in
-				our system
+
+				Defines basic properties that each object must have to live in our system
 				(identifier, name).
 
-				Objects consists of identifier and name (see definition below) and a
-				set
-				of properties represented
-				as XML
-				elements in the object's body.
-				The
-				attributes are represented as first-level XML elements (tags) of
-				the
-				object
-				XML representation
-				and may be also contained in other tags
-				(e.g. extension, attributes). The QName (namespace and
-				local name) of
-				the
-				element
-				holding the property is considered to be a property name.
+				Objects consists of identifier and name (see definition below) and a set of properties represented as XML
+				elements in the object's body. The properties are represented as first-level XML elements (tags) of
+				the object XML
+				representation and may be also contained in other tags (e.g. extension, attributes) that are marked by a
+				propertyContainer
+				annotation. The QName (namespace and local name) of the element holding the property is considered to be a property name.
 
-				Single-value properties must
-				appear as a none or one instance of the
-				XML
-				element holding the value.
+				Single-value properties must appear as a none or one
+				instance of the XML element holding the value.
 
-				Multi-value properties must appear as
-				none or
-				more instances of the XML
-				element. Multi-valued
-				properties are
-				regarded as unordered sets.
-				Duplicate values are
-				allowed, but
-				duplicates should not be preserved by
-				the
-				implementations. The
-				implementations should reduce duplicate
-				values
-				to a single value if it
-				is possible and efficient.
+				Multi-value properties
+				must appear as none or more instances of the same XML element.
+				Multi-valued properties are regarded as unordered sets.
+				Duplicate values are allowed, but duplicates should not be preserved by the implementations. The
+				implementations should
+				reduce duplicate values to a single value if it is possible and efficient.
 
-				If an
-				element for a specific property does
-				not appear in the
-				object it
-				means that the property value is undefined
-				(property does not
-				exists).
-				This is a different state as compared
-				to
-				passing an empty XML element.
-				Empty XML element means that the
-				property exists,
-				but has an empty
-				(null) value.
-				Implementations must
-				be able to handle undefined
-				(non-existent) properties, but may NOT be
-				able to
-				handle empty
-				(null)
-				values. The use of empty (null) values is
-				DISCOURADGED.
+				If an element for a specific property does not
+				appear in the object it means that the property value is undefined
+				(property does not exists). This is a different state as
+				compared to passing an empty XML element. Empty XML element means that the property exists,
+				but has an empty (null) value.
+				Implementations must be able to handle undefined (non-existent) properties, but
+				may NOT be able to handle empty (null)
+				values. The use of empty (null) values is DISCOURADGED.
 
-				It is not mandated by this specification how to pass
-				ordered lists and
-				multi-value properties with duplicates. However it
-				is recommended to use
-				single value properties
-				with
-				appropriate complex
-				XML data structures to
-				hold such data.
+				It is not mandated by this specification how to pass ordered lists
+				and multi-value properties with duplicates.
+				However it is recommended to use single value properties with appropriate complex
+				XML data structures to hold such data.
 
-				The following XML snippet is an
-				example of the object
-				(omitting
-				namespace definitions, but assuming
-				default namespace to be the
-				target namespace of this schema
-				definition):
+				The following XML snippet is an example of the object (omitting namespace definitions,
+				but
+				assuming default namespace to be the target namespace of this schema definition):
 
 <![CDATA[
         <user oid="d3adm3a4" version="42">
@@ -290,6 +241,9 @@
 				mapping is the reverse process.
 
 			</xsd:documentation>
+			<xsd:appinfo>
+				<tns:propertyContainer/>
+			</xsd:appinfo>
 		</xsd:annotation>
 
 		<xsd:sequence>
@@ -473,6 +427,9 @@
 
 				It must NOT contain standard elements.
 			</xsd:documentation>
+			<xsd:appinfo>
+				<tns:propertyContainer/>
+			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
@@ -719,11 +676,9 @@
 				etc.
 			</xsd:documentation>
 		</xsd:annotation>
-
 		<xsd:sequence>
 			<xsd:element ref="c:path" minOccurs="0"/>
 		</xsd:sequence>
-
 	</xsd:complexType>
 
 	<xsd:element name="path" type="tns:XPathType">
@@ -1569,25 +1524,24 @@
 	</xsd:complexType>
 
 	<!-- ################################## -->
-	<!-- ## Identity Schema Layer ## -->
+	<!-- ##    Identity Schema Layer     ## -->
 	<!-- ################################## -->
 
 	<!-- The following clauses belong to the identity schema layer. This schema 
 		defines the "identity model", the basic objects for midPoint system that 
 		are common for most IDM deployments. It is supposed to be heavily used by 
-		midPoint low-level components and also by business logic. See https://wiki.evolveum.com/display/midPoint/Identity+Schema -->
+		midPoint low-level components and also by business logic. 
+		See https://wiki.evolveum.com/display/midPoint/Identity+Schema -->
 
 	<xsd:complexType name="UserType">
 		<xsd:annotation>
 			<xsd:documentation>
-				User object type. Represents physical user of the
-				system.
+				User object type. Represents physical user of the system.
 
 				TODO: More details
 
-				Inspired by FOAF, but
-				still quite
-				LDAP-ish.
+				Inspired by FOAF, but still
+				quite LDAP-ish.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -1916,6 +1870,9 @@
 				TODO
 				This is not perfect.
 			</xsd:documentation>
+			<xsd:appinfo>
+				<tns:propertyContainer/>
+			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="password" minOccurs="0" maxOccurs="1">
@@ -2064,6 +2021,9 @@
 				the non-active role
 				should not be assigned, etc.
 			</xsd:documentation>
+			<xsd:appinfo>
+				<tns:propertyContainer/>
+			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:element name="enabled" type="xsd:boolean" minOccurs="0">
@@ -2147,6 +2107,8 @@
 	<xsd:complexType name="ResourceAccessConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
+				!!! DEPRECATED !!!
+			
 				ResourceAccessConfiguration represents a
 				provisioning subsystem
 				system which we manage.
@@ -2246,6 +2208,11 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="ResourceAccessConfigurationReferenceType">
+		<xsd:annotation>
+			<xsd:documentation>
+				!!! DEPRECATED !!!
+			</xsd:documentation>
+		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" base="tns:ObjectReferenceType">
 				<xsd:sequence>
@@ -4092,10 +4059,12 @@
 				Description of a generic connector. Connector in midPoint is any method of connection to the resource. The
 				actual implementation, connector framework or protocol does not matter.
 
-				More specific types derived from this type may exists. E.g. a
+				More specific types derived from this type may
+				exists. E.g. a
 				connector framework may create a derived type and return that instead of this type.
 
-				Note: The ConnectorType does not describe
+				Note: The ConnectorType
+				does not describe
 				only Identity Connector Framework (ICF) connectors, it is much more generic.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -4106,7 +4075,8 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Type of the connector, such as "LDAP" or "DB Table". Used only for
-								display purposes and for searching during imports. Therefore it may
+								display purposes and for searching
+								during imports. Therefore it may
 								be any (sensible) string, but it should be reasonably stable to avoid
 								broken imports.
 							</xsd:documentation>
@@ -4116,11 +4086,13 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Version of the connector. Used only for
-								display purposes and for searching during imports. Therefore it may
+								display purposes and for searching during imports. Therefore it
+								may
 								be any (sensible) string, but it should be reasonably stable to avoid
 								broken imports.
-								
-								May be any string (numberic convention is recommended, but not required).
+
+								May be any string (numberic
+								convention is recommended, but not required).
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -4452,6 +4424,9 @@
 										resource
 										objects.
 									</xsd:documentation>
+									<xsd:appinfo>
+										<tns:propertyContainer/>
+									</xsd:appinfo>
 								</xsd:annotation>
 								<xsd:complexType>
 									<xsd:sequence>
@@ -4580,6 +4555,8 @@
 	<xsd:complexType name="ObjectStageType">
 		<xsd:annotation>
 			<xsd:documentation>
+				!!! DEPRECATED !!!
+				
 				TODO
 
 				This should REALY REALY be in the IDM model
@@ -4635,6 +4612,8 @@
 	<xsd:complexType name="ResourceTestResultType">
 		<xsd:annotation>
 			<xsd:documentation>
+				!!! DEPRECATED !!!
+				
 				The result of resource test. It indicates whather
 				the resource
 				configuration is correct, whether
@@ -4739,6 +4718,8 @@
 	<xsd:complexType name="TestResultType">
 		<xsd:annotation>
 			<xsd:documentation>
+				!!! DEPRECATED !!!
+				
 				Result of a internal midPoint test.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -4797,6 +4778,8 @@
 	<xsd:complexType name="DiagnosticsMessageType">
 		<xsd:annotation>
 			<xsd:documentation>
+				!!! DEPRECATED !!!
+				
 				A situation (error or warning) that was detected
 				during a test.
 			</xsd:documentation>
@@ -4908,6 +4891,11 @@
 		to the WSDL once the bug is resolved. -->
 
 	<xsd:complexType name="ResourceObjectType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<tns:propertyContainer/>
+			</xsd:appinfo>
+		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:any namespace="##other" minOccurs="1" maxOccurs="unbounded" processContents="lax">
 				<xsd:annotation>
@@ -4920,6 +4908,11 @@
 	</xsd:complexType>
 
 	<xsd:complexType name="ResourceObjectIdentificationType">
+		<xsd:annotation>
+			<xsd:appinfo>
+				<tns:propertyContainer/>
+			</xsd:appinfo>
+		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:any namespace="##other" minOccurs="1" maxOccurs="unbounded" processContents="lax">
 				<xsd:annotation>
@@ -4941,6 +4934,9 @@
 					Object list, to be used in import files and
 					examples.
 				</xsd:documentation>
+				<xsd:appinfo>
+					<tns:propertyContainer/>
+				</xsd:appinfo>
 			</xsd:annotation>
 			<xsd:sequence>
 				<xsd:element ref="c:object" minOccurs="0" maxOccurs="unbounded"/>
@@ -5826,7 +5822,7 @@
 			<xsd:enumeration value="unknown">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="UNKNOWN" />
+						<jaxb:typesafeEnumMember name="UNKNOWN"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
