@@ -13,79 +13,6 @@
 
 	<ui:define name="content">
 		<h3>Some settings</h3>
-		<hr />
-		<ul id="messages">
-			<li>
-				<span class="messages-error">
-					<span>Error happened 2.</span>
-					
-					<span class="messages-display-details">					
-						<img src="/admin-gui/resources/images/add.png" id="image123" onclick="displayMessageDetails('123');" />
-					</span>
-					
-					<div class="messages-details" id="123">		
-						<span class="message-detail">3049029309</span>
-						<span class="message-detail">REPO-1</span>					
-						<ul class="messages-details-advanced">
-							<li class="messages-line-error">
-								<span class="message-detail">102938912839123</span>
-								<span class="message-detail">MOD-1</span>
-								<span class="message-detail">Message sub error happened lorem ipsum</span>
-							</li>
-							<li class="messages-line-info">
-								<span class="message-detail">102938912839123</span>
-								<span class="message-detail">MOD-1</span>
-								<span class="message-detail">Message ok lorem ipsum</span>
-								<ul class="messages-details-advanced">
-									<li class="messages-line-error">
-										<span class="message-detail">102938912839123</span>
-										<span class="message-detail">MOD-1</span>
-										<span class="message-detail">Message sub error happened lorem ipsum</span>
-									</li>
-									<li class="messages-line-info">											
-										<span class="message-detail">102938912839123</span>
-										<span class="message-detail">MOD-1</span>
-										<span class="message-detail">Lorem Ipsum is simply dummy
-											text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard
-											dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it
-											to make a type specimen book. It has survived not only five centuries, but also the leap into
-											electronic typesetting</span>
-									</li>
-									<li class="messages-line-warn">											
-										<span class="message-detail">102938912839123</span>
-										<span class="message-detail">MOD-14</span>
-										<span class="message-detail">Message warning happened lorem ipsum</span>										
-										<ul class="messages-details-advanced">
-											<li class="messages-line-error">														
-												<span class="message-detail">102938912839123</span>
-												<span class="message-detail">MOD-1</span>
-												<span class="message-detail">Message sub error happened lorem ipsum</span>
-											</li>
-											<li class="messages-line-info">														
-												<span class="message-detail">102938912839123</span>
-												<span class="message-detail">MOD-1</span>
-												<span class="message-detail">Message ok lorem ipsum</span>
-											</li>
-											<li class="messages-line-warn">														
-												<span class="message-detail">102938912839123</span>
-												<span class="message-detail">MOD-12</span>
-												<span class="message-detail">Message warning happened lorem ipsum</span>
-											</li>
-										</ul>
-									</li>
-								</ul>
-							</li>
-							<li class="messages-line-warn">								
-								<span class="message-detail">102938912839123</span>
-								<span class="message-detail">MOD-1</span>
-								<span class="message-detail">Message warning happened lorem ipsum</span>
-							</li>
-						</ul>					
-					</div>
-				</span>
-			</li>
-		</ul>
-		<hr />
 		<ice:form>
 			<idm:button action="#{basicConfiguration.action}" value="Show messages" />
 		</ice:form>
@@ -99,12 +26,6 @@
 
 			<ice:outputLabel value="Allowed IP addresses" />
 			<ice:inputTextarea id="textareaIpAddresses" cols="20" rows="3" value="" />
-		</ice:panelGrid>
-		
-		
-		
-		
-			
-		
+		</ice:panelGrid>		
 	</ui:define>
 </ui:composition>

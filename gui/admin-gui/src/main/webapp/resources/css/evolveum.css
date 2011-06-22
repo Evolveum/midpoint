@@ -259,12 +259,12 @@ a {
 
 #messages li span span.messages-display-details {
 	float: right;
+	cursor: pointer;
 }
 
-#messages li span span.messages-details {
+#messages li span div.messages-details {
 	margin-top: 3px;
-	display: block;
-	cursor: pointer;
+	display: none;	
 }
 
 span.message-detail {

@@ -34,6 +34,7 @@ import javax.faces.application.ProjectStage;
 import javax.faces.context.FacesContext;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -133,6 +134,7 @@ public abstract class FacesUtils {
 	}
 
 	public static void addMessage(OperationResult result) {
+		Validate.notNull(result, "Operation result must not be null.");
 		FacesMessage.Severity severity = FacesMessage.SEVERITY_WARN;
 		switch (result.getStatus()) {
 			case FATAL_ERROR:
