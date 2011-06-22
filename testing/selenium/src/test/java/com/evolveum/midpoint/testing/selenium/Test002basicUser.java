@@ -253,10 +253,11 @@ public class Test002basicUser {
 	public void test03importUser() {
 		se.click(se.findLink("topConfiguration"));
 		se.waitForPageToLoad("30000");
-		assertEquals(baseUrl + "/config/import.iface", se.getLocation());
+		assertEquals(baseUrl + "/config/index.iface", se.getLocation());
 		assertTrue(se.isTextPresent("Import And Export"));
+		se.click(se.findLink("leftImport"));
 		
-	//	File f;
+
 		
 		
 	}
