@@ -49,17 +49,17 @@ public class Test002basicUser {
 	public void start() {
 
 		WebDriver driver = new FirefoxDriver();
-		//WebDriver driver = new ChromeDriver();
+		// WebDriver driver = new ChromeDriver();
 		se = new Selenium(driver, baseUrl);
 		se.setBrowserLogLevel("5");
 
 		se.open("/");
-		se.waitForText("Login",10);
+		se.waitForText("Login", 10);
 
 		se.type("loginForm:userName", "administrator");
 		se.type("loginForm:password", "secret");
 		se.click("loginForm:loginButton");
-		se.waitForText("Administrator",10);
+		se.waitForText("Administrator", 10);
 
 		assertEquals(baseUrl + "/index.iface", se.getLocation());
 
@@ -71,8 +71,6 @@ public class Test002basicUser {
 
 	}
 
-	
-	
 	// Based on MID-2 jira scenarios
 	@Test
 	public void test01addUser() {
@@ -246,7 +244,6 @@ public class Test002basicUser {
 		se.waitForText("List Users");
 		assertTrue(se.isTextPresent("Leila Walker"));
 		assertTrue(se.isTextPresent("Selena Wilson"));
-
 	}
 
 	@Test
@@ -256,14 +253,99 @@ public class Test002basicUser {
 		assertEquals(baseUrl + "/config/index.iface", se.getLocation());
 		assertTrue(se.isTextPresent("Import And Export"));
 		se.click(se.findLink("leftImport"));
-		
 
+		String xmlUser = " <?xml version= '1.0' encoding='UTF-8'?>"
+				+ "<i:user oid='c0c010c0-d34d-b33f-f00d-111111111111' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'\n"
+				+ "xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'\n"
+				+ "xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'\n"
+				+ "xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>\n"
+				+ "<c:name>jack</c:name>\n" + "<c:extension>\n" + "<piracy:ship>Black Pearl</piracy:ship>\n"
+				+ "</c:extension>\n" + "<i:fullName>Cpt. Jack Sparrow</i:fullName>\n"
+				+ "<i:givenName>Jack</i:givenName>\n" + "<i:familyName>Sparrow</i:familyName>\n"
+				+ "<i:additionalNames>yet another name</i:additionalNames>\n"
+				+ "<i:honorificPrefix>Cpt.</i:honorificPrefix>\n"
+				+ "    <i:honorificSuffix>PhD.</i:honorificSuffix>\n"
+				+ "<i:eMailAddress>jack.sparrow@evolveum.com</i:eMailAddress>\n"
+				+ "<i:telephoneNumber>555-1234</i:telephoneNumber>\n"
+				+ "<i:employeeNumber>emp1234</i:employeeNumber>\n"
+				+ "<i:employeeType>CAPTAIN</i:employeeType>\n"
+				+ "<i:organizationalUnit>Leaders</i:organizationalUnit>\n"
+				+ "<i:locality>Black Pearl</i:locality>\n" + "<i:credentials>\n" + "<i:password>\n"
+				+ "            <i:cleartextPassword>deadmentellnotales</i:cleartextPassword>\n"
+				+ "</i:password>\n" + "</i:credentials>\n" + "</i:user>";
+
+		se.type("importForm:editor", xmlUser);
+		se.click("importForm:uploadButton");
+		assertTrue(se.waitForText("Added object: jack"));
 		
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
+		assertTrue(se.isTextPresent("Cpt. Jack Sparrow")); 
+	}
+
+	
+	@Test
+	public void test04importModifyUser() {
+		
+		// failing import allready exists
+		se.click(se.findLink("topConfiguration"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/config/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("Import And Export"));
+		se.click(se.findLink("leftImport"));
+
+		String xmlUser = " <?xml version= '1.0' encoding='UTF-8'?>"
+				+ "<i:user oid='c0c010c0-d34d-b33f-f00d-111111111111' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'\n"
+				+ "xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'\n"
+				+ "xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'\n"
+				+ "xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>\n"
+				+ "<c:name>jack</c:name>\n" + "<c:extension>\n" + "<piracy:ship>Black Pearl</piracy:ship>\n"
+				+ "</c:extension>\n" + "<i:fullName>Com. Jack Sparrow</i:fullName>\n"
+				+ "<i:givenName>Jack</i:givenName>\n" + "<i:familyName>Sparrow</i:familyName>\n"
+				+ "<i:additionalNames>yet another name</i:additionalNames>\n"
+				+ "<i:honorificPrefix>Cpt.</i:honorificPrefix>\n"
+				+ "    <i:honorificSuffix>PhD.</i:honorificSuffix>\n"
+				+ "<i:eMailAddress>jack.sparrow@evolveum.com</i:eMailAddress>\n"
+				+ "<i:telephoneNumber>555-1234</i:telephoneNumber>\n"
+				+ "<i:employeeNumber>emp1234</i:employeeNumber>\n"
+				+ "<i:employeeType>CAPTAIN</i:employeeType>\n"
+				+ "<i:organizationalUnit>Leaders</i:organizationalUnit>\n"
+				+ "<i:locality>Black Pearl</i:locality>\n" + "<i:credentials>\n" + "<i:password>\n"
+				+ "            <i:cleartextPassword>deadmentellnotales</i:cleartextPassword>\n"
+				+ "</i:password>\n" + "</i:credentials>\n" + "</i:user>";
+
+		se.type("importForm:editor", xmlUser);
+		se.click("importForm:uploadButton");
+		assertTrue(se.waitForText("Failed to add object jack"));
+		assertTrue(se.isTextPresent("already exists in store"));
+		
+		//overwrite enabled
+		se.click(se.findLink("topConfiguration"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/config/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("Import And Export"));
+		se.click(se.findLink("leftImport"));
+
+		se.type("importForm:editor", xmlUser);
+		se.click("importForm:enableOverwrite");
+		se.click("importForm:uploadButton");
+		assertTrue(se.waitForText("Added object: jack"));
+		
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
+		assertTrue(se.isTextPresent("Com. Jack Sparrow")); 
 		
 	}
 	
+	
 	@Test
 	public void test99deleteUser() {
+		
+		//delete leila
 		se.click(se.findLink("topAccount"));
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
@@ -288,25 +370,51 @@ public class Test002basicUser {
 		se.waitForText("List Users");
 		assertFalse(se.isTextPresent("Leila Walker"));
 
+		//delete selena
 		se.click(se.findLink("topHome"));
 		se.waitForPageToLoad("30000");
-		
+
 		se.click(se.findLink("topAccount"));
 		se.waitForPageToLoad("30000");
-		
+
 		assertTrue(se.isTextPresent("New User"));
-		
+
 		for (String l : se.getAllLinks()) {
 			if (!l.contains("Table") || !l.contains("name"))
 				continue;
 			logger.info("Adding:" + se.getText(l), l.replace("name", ""));
 			h.put(se.getText(l), l.replace("name", ""));
 		}
-		
+
 		se.click(h.get("selena") + "deleteCheckbox");
 		se.click("admin-content:deleteUser");
 		se.waitForText("Confirm delete");
 		se.click("admin-content:deleteUserYes");
 		se.waitForText("List Users");
+		assertFalse(se.isTextPresent("Selena")); 
+		
+		//delete jack
+		se.click(se.findLink("topHome"));
+		se.waitForPageToLoad("30000");
+
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad("30000");
+
+		assertTrue(se.isTextPresent("New User"));
+
+		for (String l : se.getAllLinks()) {
+			if (!l.contains("Table") || !l.contains("name"))
+				continue;
+			logger.info("Adding:" + se.getText(l), l.replace("name", ""));
+			h.put(se.getText(l), l.replace("name", ""));
+		}
+
+		se.click(h.get("Jack") + "deleteCheckbox");
+		se.click("admin-content:deleteUser");
+		se.waitForText("Confirm delete");
+		se.click("admin-content:deleteUserYes");
+		se.waitForText("List Users");
+		assertFalse(se.isTextPresent("Jack"));
+		
 	}
 }

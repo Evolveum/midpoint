@@ -55,9 +55,10 @@ public class Selenium extends WebDriverBackedSelenium {
 	 * Wait for text until timeout reached
 	 * @param text - text to wait
 	 * @param timeout - timeout in sec
+	 * @return true/false if text is after timeout there
 	 */
 
-	public void waitForText(String text, int timeout) {
+	public boolean waitForText(String text, int timeout) {
 		
 		for (int i = 0; i < timeout*3; i++) {
 			try {
@@ -65,9 +66,10 @@ public class Selenium extends WebDriverBackedSelenium {
 			} catch (InterruptedException e) {
 			}
 			if (this.isTextPresent(text)) {
-				return;
+				return true;
 			}
 		}
+		return this.isTextPresent(text);
 	}
 	
 	/***
