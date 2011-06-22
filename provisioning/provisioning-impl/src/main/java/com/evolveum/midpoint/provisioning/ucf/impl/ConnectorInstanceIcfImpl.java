@@ -32,6 +32,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.Token;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
@@ -531,7 +533,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}, new OperationOptionsBuilder().build());
 		
-		List<Change> changeList = getChangesFromSyncDelta(result);
+		
+		List<Change> changeList = null;
+		try {
+			changeList = getChangesFromSyncDelta(result);
+		} catch (SchemaException e) {
+			// TODO handle exception
+			e.printStackTrace();
+		}
 		
 		
 	
@@ -640,7 +649,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		// Other namespace are special cases
-
+		
 		if (SchemaConstants.ICFS_NAME.equals(attrQName)) {
 			return Name.NAME;
 		}
@@ -787,7 +796,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return attributes;
 	}
 
-	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result){
+	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result) throws SchemaException {
 		List<Change> changeList = new ArrayList<Change>();
 		for (SyncDelta delta : result){
 			if (SyncDeltaType.DELETE.equals(delta.getDeltaType())){
@@ -809,22 +818,25 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return changeList;
 	}
 	
-	private ObjectChangeModificationType createModificationChange(SyncDelta delta, ResourceObject resourceObject){
+	private ObjectChangeModificationType createModificationChange(SyncDelta delta, ResourceObject resourceObject) throws SchemaException{
 		ObjectChangeModificationType modificationChangeType = new ObjectChangeModificationType();
 		ObjectModificationType modificationType = new ObjectModificationType();
 		modificationType.setOid(delta.getUid().getUidValue());
 		for (ResourceObjectAttribute attr : resourceObject.getAttributes()){
 			PropertyModificationType propertyModification = new PropertyModificationType();
 			propertyModification.setModificationType(PropertyModificationTypeType.add);
-			for (String attrValue : attr.getValues(String.class)){
-				Document doc = DOMUtil.getDocument();
-				Element element = doc.createElementNS(attr.getName().getNamespaceURI(), attr.getName().getLocalPart());
-				element.setTextContent(attrValue);
+			Document doc = DOMUtil.getDocument();
+			List<Element> elements;
+			try {
+				elements = attr.serializeToDom(doc);
 				PropertyModificationType.Value value = new PropertyModificationType.Value();
-				value.getAny().add(element);
+				value.getAny().addAll(elements);
 				propertyModification.setValue(value);
 				modificationType.getPropertyModification().add(propertyModification);
-			}		
+			} catch (SchemaProcessorException ex) {
+				throw new SchemaException("An error occured while serializing resource object properties to DOM. "+ ex.getMessage(), ex);
+			}
+	
 		}			
 		modificationChangeType.setObjectModification(modificationType);
 		return modificationChangeType;

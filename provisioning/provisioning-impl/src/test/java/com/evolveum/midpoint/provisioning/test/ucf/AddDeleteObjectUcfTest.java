@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.core.Response.Status.Family;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
 import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
+import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
@@ -182,6 +184,8 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		property = propertyDefinition.instantiate();
 		property.setValue(givenName);
 		resourceObject.getProperties().add(property);
+		
+		
 
 		Set<Operation> operation = new HashSet<Operation>();
 		Set<ResourceObjectAttribute> resourceAttributes = cc.addObject(
@@ -288,8 +292,11 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		QName objectClass = new QName(resource.getNamespace(), "AccountObjectClass"); 
 		Token lastToken = cc.fetchCurrentToken(objectClass, result);
 		System.out.println("token "+ lastToken.toString());
-		cc.fetchChanges(objectClass, lastToken, result);
+		List<Change> changes = cc.fetchChanges(objectClass, lastToken, result);
+		assertEquals(0, changes.size());
 	}
+	
+	
 	
 	private Property createProperty(String propertyName, String propertyValue){
 		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema
