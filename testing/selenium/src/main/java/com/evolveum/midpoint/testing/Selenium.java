@@ -47,8 +47,8 @@ public class Selenium extends WebDriverBackedSelenium {
 	 * Wait for text for 10 seconds
 	 * @param text - text to wait
 	 */
-	public void waitForText(String text) {
-		this.waitForText(text, 10);
+	public boolean  waitForText(String text) {
+		return this.waitForText(text, 10);
 	}
 	
 	/***
