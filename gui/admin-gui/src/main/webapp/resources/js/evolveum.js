@@ -4,15 +4,15 @@
  * @author lazyman
  * 
  */
-function displayMessageDetails(id) {
-	var buttonElement = document.getElementById("image" + id);
-	var element = document.getElementById(id);
-	var value = element.style.display;
+function displayMessageDetails(id, showImage, hideImage) {
+	var buttonElement = document.getElementById(id + "ImageButton");
+	var messageElement = document.getElementById(id);
+	var value = messageElement.style.display;
 	if (value == 'none') {
-		element.style.display = 'block';
-		buttonElement.src = "/admin-gui/resources/images/delete.png";
+		messageElement.style.display = 'block';
+		buttonElement.src = hideImage;
 	} else {
-		element.style.display = 'none';
-		buttonElement.src = "/admin-gui/resources/images/add.png";
+		messageElement.style.display = 'none';
+		buttonElement.src = showImage;
 	}
 }

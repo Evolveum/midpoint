@@ -263,49 +263,37 @@ a {
 
 #messages li span span.messages-details {
 	margin-top: 3px;
-	display: none;
+	display: block;
+	cursor: pointer;
 }
 
-li.message-detail {
-	float: left;
-	margin: 0 10px 0 0;
+span.message-detail {
+	margin: 0 10px 0 0;	
 }
 
-li.message-detail-clear {
-	clear: both;
-}
-
-#messages li span span.messages-details ul.messages-details-basic {
-	list-style: none;
-	margin-left: 0px;
-}
-
-#messages li span span.messages-details ul.messages-details-advanced {
-	list-style: none;
-	margin-left: 15px;
-	padding: 2px;
+#messages li span div.messages-details ul.messages-details-advanced {
+	margin-top: 4px;	
 }
 
 li.messages-line-info,li.messages-line-warn,li.messages-line-error {
-	min-height: 20px;
 	height: auto;
+	padding-left: 20px;
+	min-height: 20px;
 }
 
 li.messages-line-info {
+	background: url('../images/accept.png') no-repeat 0px 0px;
 	color: #4F8A10;
 }
 
 li.messages-line-warn {
+	background: url('../images/error.png') no-repeat 0px 0px;
 	color: #9F6000;
 }
 
 li.messages-line-error {
+	background: url('../images/exclamation.png') no-repeat 0px 0px;	
 	color: #D8000C;
-}
-
-ul.messages-details-advanced li ul.ul-list {
-	list-style: none;
-	margin-left: 0px;
 }
 
 .error {

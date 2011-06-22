@@ -24,12 +24,15 @@ import java.io.IOException;
 import java.util.Iterator;
 
 import javax.faces.application.FacesMessage;
+import javax.faces.application.Resource;
 import javax.faces.component.FacesComponent;
 import javax.faces.context.FacesContext;
 import javax.faces.context.ResponseWriter;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.icesoft.faces.component.ext.HtmlMessages;
 
@@ -41,42 +44,175 @@ import com.icesoft.faces.component.ext.HtmlMessages;
 @FacesComponent("MidPointFacesMessages")
 public class MidPointFacesMessages extends HtmlMessages {
 
+	public static final String IMAGE_BUTTON = "ImageButton";
+
 	@Override
 	public void encodeBegin(FacesContext context) throws IOException {
 		ResponseWriter writer = context.getResponseWriter();
 		writer.startElement("ul", null);
+		writer.writeAttribute("id", getId(), null);
 
+		int index = 0;
 		Iterator<FacesMessage> iterator = context.getMessages();
 		while (iterator.hasNext()) {
 			FacesMessage message = iterator.next();
-			writer.startElement("li", null);
-			writer.startElement("span", null);
-			
-			
-			if (StringUtils.isNotEmpty(message.getSummary())) {
-				writer.writeText(message.getSummary(), null);
-			} else {
-				writer.writeText(FacesUtils.translateKey("Success"), null);
+			if (message.isRendered() && !isRedisplay()) {
+				continue;
 			}
-			
-			writer.endElement("span");
-			writer.endElement("li");
+			message.rendered();
+
+			if (message instanceof MidPointMessage) {
+				writeMidPointMessage((MidPointMessage) message, context, index);
+				index++;
+			} else {
+				writer.startElement("li", null);
+				writer.startElement("span", null);
+				writer.writeAttribute("class", getMessageSeverityClass(message), null);
+				writer.writeText(getSummary(message), null);
+				writer.endElement("span");
+				writer.endElement("li");
+			}
 		}
 		writer.endElement("ul");
+	}
 
-		super.encodeBegin(context);
-		System.out.println("encodeBegin");
+	private String getSummary(OperationResult result) {
+		return getSummaryMessage(result.getMessage());
+	}
+
+	private String getSummary(FacesMessage message) {
+		return getSummaryMessage(message.getSummary());
+	}
+
+	private String getSummaryMessage(String message) {
+		if (StringUtils.isEmpty(message)) {
+			return FacesUtils.translateKey("No message.");
+		}
+
+		return message;
 	}
 
 	@Override
 	public void encodeChildren(FacesContext context) throws IOException {
-		// // TODO Auto-generated method stub
-		// super.encodeChildren(context);
 	}
 
 	@Override
 	public void encodeEnd(FacesContext context) throws IOException {
-		// // TODO Auto-generated method stub
-		// super.encodeEnd(context);
+	}
+
+	private String getMessageSeverityClass(FacesMessage message) {
+		String severityStyleClass = "";
+		if (message.getSeverity() == FacesMessage.SEVERITY_INFO) {
+			severityStyleClass = (String) getAttributes().get("infoClass");
+		} else if (message.getSeverity() == FacesMessage.SEVERITY_WARN) {
+			severityStyleClass = (String) getAttributes().get("warnClass");
+		} else if (message.getSeverity() == FacesMessage.SEVERITY_ERROR) {
+			severityStyleClass = (String) getAttributes().get("errorClass");
+		} else if (message.getSeverity() == FacesMessage.SEVERITY_FATAL) {
+			severityStyleClass = (String) getAttributes().get("fatalClass");
+		}
+
+		return severityStyleClass;
+	}
+
+	private void writeMidPointMessage(MidPointMessage message, FacesContext context, int index)
+			throws IOException {
+		OperationResult result = message.getResult();
+		ResponseWriter writer = context.getResponseWriter();
+		writer.startElement("li", null);
+		writer.startElement("span", null);
+		writer.writeAttribute("class", getMessageSeverityClass(message), null);
+
+		// main message
+		writer.startElement("span", null);
+		writer.writeText(getSummary(message), null);
+		writer.endElement("span");
+
+		String divId = getClientId() + index;
+
+		// button
+		writer.startElement("span", null);
+		writer.writeAttribute("class", "messages-display-details", null);
+		writer.startElement("img", null);
+		writer.writeAttribute("id", divId + IMAGE_BUTTON, null);
+		Resource show = context.getApplication().getResourceHandler().createResource("add.png", "images");
+		Resource hide = context.getApplication().getResourceHandler().createResource("delete.png", "images");
+		if (show != null && hide != null) {
+			writer.writeAttribute("src", show.getRequestPath(), null);
+			StringBuilder script = new StringBuilder();
+			script.append("displayMessageDetails('");
+			script.append(divId);
+			script.append("', '");
+			script.append(show.getRequestPath());
+			script.append("', '");
+			script.append(hide.getRequestPath());
+			script.append("');");
+			writer.writeAttribute("onclick", script.toString(), null);
+		}
+		writer.endElement("img");
+		writer.endElement("span");
+
+		// message details
+		writer.startElement("div", null);
+		writer.writeAttribute("class", "messages-details", null);
+		writer.writeAttribute("id", divId, null);
+		writeMessageDetail(result.getToken(), writer);
+		writeMessageDetail(result.getMessageCode(), writer);
+		writeOperationResult(result, context);
+		writer.endElement("div");
+
+		writer.endElement("span");
+		writer.endElement("li");
+	}
+
+	private String getOperationResultStatusClass(OperationResultStatus status) {
+		String styleClass = "";
+		switch (status) {
+			case FATAL_ERROR:
+			case PARTIAL_ERROR:
+				styleClass = "messages-line-error";
+				break;
+			case SUCCESS:
+				styleClass = "messages-line-info";
+				break;
+			case UNKNOWN:
+			case WARNING:
+				styleClass = "messages-line-warn";
+		}
+
+		return styleClass;
+	}
+
+	private void writeOperationResult(OperationResult result, FacesContext context) throws IOException {
+		ResponseWriter writer = context.getResponseWriter();
+
+		writer.startElement("ul", null);
+		writer.writeAttribute("class", "messages-details-advanced", null);
+
+		writer.startElement("li", null);
+		writer.writeAttribute("class", getOperationResultStatusClass(result.getStatus()), null);
+		writeMessageDetail(result.getToken(), writer);
+		writeMessageDetail(result.getMessageCode(), writer);
+		writeMessageDetail(getSummary(result), writer);
+
+		if (!result.getSubresults().isEmpty()) {
+			for (OperationResult subResult : result.getSubresults()) {
+				writeOperationResult(subResult, context);
+			}
+		}
+
+		writer.endElement("li");
+		writer.endElement("ul");
+	}
+
+	private void writeMessageDetail(Object detail, ResponseWriter writer) throws IOException {
+		if (detail == null) {
+			return;
+		}
+
+		writer.startElement("span", null);
+		writer.writeAttribute("class", "message-detail", null);
+		writer.writeText(detail, null);
+		writer.endElement("span");
 	}
 }

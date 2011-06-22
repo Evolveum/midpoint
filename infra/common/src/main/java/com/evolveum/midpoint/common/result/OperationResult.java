@@ -63,6 +63,7 @@ public class OperationResult implements Serializable {
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String INDENT_STRING = "    ";
 	public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
+	private static long TOKEN_COUNT = 1000000000000000000L;
 	private String operation;
 	private OperationResultStatus status;
 	private Map<String, Object> params;
@@ -306,6 +307,9 @@ public class OperationResult implements Serializable {
 	 * @return Contains random long number, for better searching in logs.
 	 */
 	public long getToken() {
+		if (token == 0) {
+			token = TOKEN_COUNT++;
+		}
 		return token;
 	}
 
