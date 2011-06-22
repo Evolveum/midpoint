@@ -56,11 +56,10 @@ public class UserCreateController implements Serializable {
 	private transient UserListController userListController;
 	private GuiUserDto user;
 
-	public UserCreateController() {
-		reinit();
-	}
-
 	public GuiUserDto getUser() {
+		if (user == null) {
+			reinit();
+		}
 		return user;
 	}
 

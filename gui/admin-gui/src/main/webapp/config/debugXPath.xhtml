@@ -34,19 +34,19 @@
 				<ice:outputText value="#{msg['page.config.debugXPath.value']}" />
 				<ice:outputLabel />
 
-				<c:forEach items="#{debugXPath.variables}" var="item">
-					<ice:selectBooleanCheckbox id="selected" value="#{item.selected}" partialSubmit="true" immediate="true"
+				<c:forEach items="#{debugXPath.variables}" var="item" varStatus="status">
+					<ice:selectBooleanCheckbox id="selected#{status.index}" value="#{item.selected}" partialSubmit="true" immediate="true"
 						valueChangeListener="#{debugXPath.selectPerformed}" />
-					<ice:inputText id="variableName" value="#{item.variableName}" size="25" />
-					<ice:selectOneMenu id="type" style="width: auto;" partialSubmit="true" immediate="true" value="#{item.type}">
+					<ice:inputText id="variableName#{status.index}" value="#{item.variableName}" size="25" />
+					<ice:selectOneMenu id="type#{status.index}" style="width: auto;" partialSubmit="true" immediate="true" value="#{item.type}">
 						<f:selectItems  value="#{debugXPath.types}" />
 					</ice:selectOneMenu>
-					<ice:inputText id="variableValue" value="#{item.value}" size="35" />
-					<idm:button id="buttonBrowse" value="#{msg['page.config.debugXPath.button.browse']}"
+					<ice:inputText id="value#{status.index}" value="#{item.value}" size="35" />
+					<idm:button id="button#{status.index}" value="#{msg['page.config.debugXPath.button.browse']}"
 						img="/resources/images/folder_explore.png" rendered="#{item.browsable}" action="#{debugXPath.browse}">
 						<f:param name="variableName" value="#{item.variableName}" />
 					</idm:button>
-					<ice:outputLabel rendered="#{not item.browsable}" />
+					<ice:outputLabel id="label#{status.index}" rendered="#{not item.browsable}" />
 				</c:forEach>
 			</ice:panelGrid>
 

@@ -28,6 +28,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -162,23 +163,27 @@ public class ControllerUtil {
 	}
 
 	public static UserManager getUserManager(ObjectTypeCatalog catalog) {
+		Validate.notNull(catalog, "Object type catalog must not be null.");
 		ObjectManager<UserDto> objectManager = catalog.getObjectManager(UserType.class, UserDto.class);
 		return (UserManager) (objectManager);
 	}
 
 	public static ResourceManager getResourceManager(ObjectTypeCatalog catalog) {
+		Validate.notNull(catalog, "Object type catalog must not be null.");
 		ObjectManager<ResourceDto> manager = catalog.getObjectManager(ResourceType.class, ResourceDto.class);
 
 		return (ResourceManager) manager;
 	}
 
 	public static AccountShadowManager getAccountManager(ObjectTypeCatalog catalog) {
+		Validate.notNull(catalog, "Object type catalog must not be null.");
 		ObjectManager<AccountShadowDto> manager = catalog.getObjectManager(AccountShadowType.class,
 				AccountShadowDto.class);
 		return (AccountShadowManager) (manager);
 	}
 
 	public static SystemConfigurationManager getSystemManager(ObjectTypeCatalog catalog) {
+		Validate.notNull(catalog, "Object type catalog must not be null.");
 		ObjectManager<SystemConfigurationDto> manager = catalog.getObjectManager(
 				SystemConfigurationType.class, SystemConfigurationDto.class);
 		return (SystemConfigurationManager) (manager);
