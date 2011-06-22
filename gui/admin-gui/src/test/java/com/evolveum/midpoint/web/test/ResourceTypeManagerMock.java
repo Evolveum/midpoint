@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -114,7 +115,7 @@ public class ResourceTypeManagerMock extends ResourceManager {
 	}
 
 	@Override
-	public ResourceTestResultType testConnection(String resourceOid) {
+	public OperationResult testConnection(String resourceOid) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
