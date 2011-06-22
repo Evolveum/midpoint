@@ -77,7 +77,7 @@ public class Test001loginPage {
 		selenium.type("loginForm:userName", "");
 		selenium.type("loginForm:password", "");
 		selenium.click("loginForm:loginButton");
-		//selenium.click("css=span.regular");
+		//se.click("css=span.regular");
 		selenium.waitForPageToLoad("30000");
 		assertNotSame(baseUrl+"idm/index.iface", selenium.getLocation());
 		assertTrue(selenium.isTextPresent("Value is required."));

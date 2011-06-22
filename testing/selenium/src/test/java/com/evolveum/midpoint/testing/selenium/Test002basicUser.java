@@ -29,10 +29,10 @@ import java.util.HashMap;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriverBackedSelenium;
 
 import org.junit.*;
 
+import com.evolveum.midpoint.testing.Selenium;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 
@@ -40,7 +40,7 @@ import static org.junit.Assert.*;
 
 public class Test002basicUser {
 
-	WebDriverBackedSelenium selenium;
+	Selenium se;
 	static String baseUrl = "http://localhost:8080/idm";
 
 	private static final transient Trace logger = TraceManager.getTrace(Test002basicUser.class);
@@ -50,239 +50,211 @@ public class Test002basicUser {
 
 		WebDriver driver = new FirefoxDriver();
 		//WebDriver driver = new ChromeDriver();
-		selenium = new WebDriverBackedSelenium(driver, baseUrl);
-		selenium.setBrowserLogLevel("5");
+		se = new Selenium(driver, baseUrl);
+		se.setBrowserLogLevel("5");
 
-		selenium.open("/");
-		waitForText("Login");
+		se.open("/");
+		se.waitForText("Login",10);
 
-		selenium.type("loginForm:userName", "administrator");
-		selenium.type("loginForm:password", "secret");
-		selenium.click("loginForm:loginButton");
-		waitForText("Administrator");
+		se.type("loginForm:userName", "administrator");
+		se.type("loginForm:password", "secret");
+		se.click("loginForm:loginButton");
+		se.waitForText("Administrator",10);
 
-		assertEquals(baseUrl + "/index.iface", selenium.getLocation());
+		assertEquals(baseUrl + "/index.iface", se.getLocation());
 
 	}
 
 	@After
 	public void stop() {
-		selenium.stop();
+		se.stop();
 
-	}
-
-	private String findNextLink(String part) {
-		for (String s : Arrays.asList(selenium.getAllLinks())) {
-			if (s.contains(part)) {
-				return s;
-			}
-		}
-		return "";
-	}
-
-	private void waitForText(String text) {
-		for (int i = 0; i < 300; i++) {
-			try {
-				Thread.sleep(300);
-			} catch (InterruptedException e) {
-			}
-			if (selenium.isTextPresent(text)) {
-				return;
-			}
-		}
-		assertTrue(selenium.isTextPresent(text));
 	}
 
 	
-	private void sleep(long time) {
-		try  { 
-			Thread.sleep(time*1000);
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-	}
+	
 	// Based on MID-2 jira scenarios
 	@Test
 	public void test01addUser() {
 
-		selenium.click(findNextLink("topAccount"));
-		selenium.waitForPageToLoad("30000");
-		assertEquals(baseUrl + "/account/index.iface", selenium.getLocation());
-		assertTrue(selenium.isTextPresent("New User"));
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
 
-		selenium.click(findNextLink("leftCreate"));
-		waitForText("Web access enabled");
-		assertEquals(baseUrl + "/account/userCreate.iface", selenium.getLocation());
+		se.click(se.findLink("leftCreate"));
+		se.waitForText("Web access enabled");
+		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
 
 		logger.info("Minimal requirements");
-		selenium.type("createUserForm:name", "selena");
-		selenium.type("createUserForm:givenName", "selena");
-		selenium.type("createUserForm:familyName", "wilson");
-		selenium.type("createUserForm:fullName", "Selena Wilson");
-		selenium.type("createUserForm:email", "");
-		selenium.type("createUserForm:locality", "");
-		selenium.type("createUserForm:password1", "qwe123.Q");
-		selenium.type("createUserForm:password2", "qwe123.Q");
-		selenium.click("createUserForm:enabled");
-		selenium.click("createUserForm:webAccessEnabled"); // disable
-		selenium.click("createUserForm:createUser"); // enable
-		waitForText("User created successfully");
-		assertTrue(selenium.isTextPresent("Selena Wilson"));
+		se.type("createUserForm:name", "selena");
+		se.type("createUserForm:givenName", "selena");
+		se.type("createUserForm:familyName", "wilson");
+		se.type("createUserForm:fullName", "Selena Wilson");
+		se.type("createUserForm:email", "");
+		se.type("createUserForm:locality", "");
+		se.type("createUserForm:password1", "qwe123.Q");
+		se.type("createUserForm:password2", "qwe123.Q");
+		se.click("createUserForm:enabled");
+		se.click("createUserForm:webAccessEnabled"); // disable
+		se.click("createUserForm:createUser"); // enable
+		se.waitForText("User created successfully");
+		assertTrue(se.isTextPresent("Selena Wilson"));
 
-		selenium.click(findNextLink("leftCreate"));
-		waitForText("Web access enabled");
-		assertEquals(baseUrl + "/account/userCreate.iface", selenium.getLocation());
+		se.click(se.findLink("leftCreate"));
+		se.waitForText("Web access enabled");
+		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
 
 		logger.info("All fields filled");
-		selenium.type("createUserForm:name", "leila");
-		selenium.type("createUserForm:givenName", "Leila");
-		selenium.type("createUserForm:familyName", "Walker");
-		selenium.type("createUserForm:fullName", "Leila Walker");
-		selenium.type("createUserForm:email", "leila@walker.com");
-		selenium.type("createUserForm:locality", "nowhere");
-		selenium.type("createUserForm:password1", "qwe123.Q");
-		selenium.type("createUserForm:password2", "qwe123.Q");
-		selenium.click("createUserForm:webAccessEnabled");
-		selenium.click("createUserForm:createUser");
-		waitForText("User created successfully");
-		assertTrue(selenium.isTextPresent("Leila Walker"));
+		se.type("createUserForm:name", "leila");
+		se.type("createUserForm:givenName", "Leila");
+		se.type("createUserForm:familyName", "Walker");
+		se.type("createUserForm:fullName", "Leila Walker");
+		se.type("createUserForm:email", "leila@walker.com");
+		se.type("createUserForm:locality", "nowhere");
+		se.type("createUserForm:password1", "qwe123.Q");
+		se.type("createUserForm:password2", "qwe123.Q");
+		se.click("createUserForm:webAccessEnabled");
+		se.click("createUserForm:createUser");
+		se.waitForText("User created successfully");
+		assertTrue(se.isTextPresent("Leila Walker"));
 
-		selenium.click(findNextLink("leftCreate"));
-		waitForText("Web access enabled");
-		assertEquals(baseUrl + "/account/userCreate.iface", selenium.getLocation());
+		se.click(se.findLink("leftCreate"));
+		se.waitForText("Web access enabled");
+		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
 
 		logger.info("try to insert twice");
-		selenium.type("createUserForm:name", "leila");
-		selenium.type("createUserForm:givenName", "Leila");
-		selenium.type("createUserForm:familyName", "Walker");
-		selenium.type("createUserForm:fullName", "Leila Walker");
-		selenium.type("createUserForm:email", "leila@walker.com");
-		selenium.type("createUserForm:locality", "nowhere");
-		selenium.type("createUserForm:password1", "qwe123.Q");
-		selenium.type("createUserForm:password2", "qwe123.Q");
-		selenium.click("createUserForm:webAccessEnabled");
-		selenium.click("createUserForm:createUser");
-		waitForText("Failed to create user");
-		assertTrue(selenium.isTextPresent("could not insert"));
-		assertTrue(selenium.isTextPresent("ConstraintViolationException"));
+		se.type("createUserForm:name", "leila");
+		se.type("createUserForm:givenName", "Leila");
+		se.type("createUserForm:familyName", "Walker");
+		se.type("createUserForm:fullName", "Leila Walker");
+		se.type("createUserForm:email", "leila@walker.com");
+		se.type("createUserForm:locality", "nowhere");
+		se.type("createUserForm:password1", "qwe123.Q");
+		se.type("createUserForm:password2", "qwe123.Q");
+		se.click("createUserForm:webAccessEnabled");
+		se.click("createUserForm:createUser");
+		se.waitForText("Failed to create user");
+		assertTrue(se.isTextPresent("could not insert"));
+		assertTrue(se.isTextPresent("ConstraintViolationException"));
 
 		// test missing name and password not match
 		logger.info("missing: name");
-		selenium.type("createUserForm:name", "");
-		selenium.type("createUserForm:givenName", "Joe");
-		selenium.type("createUserForm:familyName", "Dead");
-		selenium.type("createUserForm:fullName", "Joe Dead");
-		selenium.type("createUserForm:email", "leila@walker.com");
-		selenium.type("createUserForm:locality", "nowhere");
-		selenium.type("createUserForm:password1", "qwe123.Q");
-		selenium.type("createUserForm:password2", "qwe213.Q");
-		selenium.click("createUserForm:webAccessEnabled");
-		selenium.click("createUserForm:createUser");
-		waitForText("Value is required");
-		assertTrue(selenium.isTextPresent("Please check password fields."));
-		assertTrue(selenium.isTextPresent("Passwords doesn't match"));
+		se.type("createUserForm:name", "");
+		se.type("createUserForm:givenName", "Joe");
+		se.type("createUserForm:familyName", "Dead");
+		se.type("createUserForm:fullName", "Joe Dead");
+		se.type("createUserForm:email", "leila@walker.com");
+		se.type("createUserForm:locality", "nowhere");
+		se.type("createUserForm:password1", "qwe123.Q");
+		se.type("createUserForm:password2", "qwe213.Q");
+		se.click("createUserForm:webAccessEnabled");
+		se.click("createUserForm:createUser");
+		se.waitForText("Value is required");
+		assertTrue(se.isTextPresent("Please check password fields."));
+		assertTrue(se.isTextPresent("Passwords doesn't match"));
 
 		logger.info("missing: password");
-		selenium.type("createUserForm:name", "joe");
-		selenium.type("createUserForm:givenName", "Joe");
-		selenium.type("createUserForm:familyName", "Dead");
-		selenium.type("createUserForm:fullName", "Joe Dead");
-		selenium.type("createUserForm:email", "leila@walker.com");
-		selenium.type("createUserForm:locality", "nowhere");
-		selenium.type("createUserForm:password1", "");
-		selenium.type("createUserForm:password2", "");
-		selenium.click("createUserForm:webAccessEnabled");
-		selenium.click("createUserForm:createUser");
-		waitForText("Value is required");
+		se.type("createUserForm:name", "joe");
+		se.type("createUserForm:givenName", "Joe");
+		se.type("createUserForm:familyName", "Dead");
+		se.type("createUserForm:fullName", "Joe Dead");
+		se.type("createUserForm:email", "leila@walker.com");
+		se.type("createUserForm:locality", "nowhere");
+		se.type("createUserForm:password1", "");
+		se.type("createUserForm:password2", "");
+		se.click("createUserForm:webAccessEnabled");
+		se.click("createUserForm:createUser");
+		se.waitForText("Value is required");
 
 		logger.info("missing: givenname");
-		selenium.type("createUserForm:name", "joe");
-		selenium.type("createUserForm:givenName", "");
-		selenium.type("createUserForm:familyName", "Dead");
-		selenium.type("createUserForm:fullName", "Joe Dead");
-		selenium.type("createUserForm:email", "leila@walker.com");
-		selenium.type("createUserForm:locality", "nowhere");
-		selenium.type("createUserForm:password1", "qwe123.Q");
-		selenium.type("createUserForm:password2", "qwe213.Q");
-		selenium.click("createUserForm:webAccessEnabled");
-		selenium.click("createUserForm:createUser");
-		waitForText("Value is required");
+		se.type("createUserForm:name", "joe");
+		se.type("createUserForm:givenName", "");
+		se.type("createUserForm:familyName", "Dead");
+		se.type("createUserForm:fullName", "Joe Dead");
+		se.type("createUserForm:email", "leila@walker.com");
+		se.type("createUserForm:locality", "nowhere");
+		se.type("createUserForm:password1", "qwe123.Q");
+		se.type("createUserForm:password2", "qwe213.Q");
+		se.click("createUserForm:webAccessEnabled");
+		se.click("createUserForm:createUser");
+		se.waitForText("Value is required");
 
 		logger.info("missing: familyname");
-		selenium.type("createUserForm:name", "joe");
-		selenium.type("createUserForm:givenName", "Joe");
-		selenium.type("createUserForm:familyName", "");
-		selenium.type("createUserForm:fullName", "Joe Dead");
-		selenium.type("createUserForm:email", "leila@walker.com");
-		selenium.type("createUserForm:locality", "nowhere");
-		selenium.type("createUserForm:password1", "qwe123.Q");
-		selenium.type("createUserForm:password2", "qwe213.Q");
-		selenium.click("createUserForm:webAccessEnabled");
-		selenium.click("createUserForm:createUser");
-		waitForText("Value is required");
+		se.type("createUserForm:name", "joe");
+		se.type("createUserForm:givenName", "Joe");
+		se.type("createUserForm:familyName", "");
+		se.type("createUserForm:fullName", "Joe Dead");
+		se.type("createUserForm:email", "leila@walker.com");
+		se.type("createUserForm:locality", "nowhere");
+		se.type("createUserForm:password1", "qwe123.Q");
+		se.type("createUserForm:password2", "qwe213.Q");
+		se.click("createUserForm:webAccessEnabled");
+		se.click("createUserForm:createUser");
+		se.waitForText("Value is required");
 
 		logger.info("missing: fullname");
-		selenium.type("createUserForm:name", "joe");
-		selenium.type("createUserForm:givenName", "Joe");
-		selenium.type("createUserForm:familyName", "Dead");
-		selenium.type("createUserForm:fullName", "");
-		selenium.type("createUserForm:email", "leila@walker.com");
-		selenium.type("createUserForm:locality", "nowhere");
-		selenium.type("createUserForm:password1", "qwe123.Q");
-		selenium.type("createUserForm:password2", "qwe213.Q");
-		selenium.click("createUserForm:webAccessEnabled");
-		selenium.click("createUserForm:createUser");
-		waitForText("Value is required");
+		se.type("createUserForm:name", "joe");
+		se.type("createUserForm:givenName", "Joe");
+		se.type("createUserForm:familyName", "Dead");
+		se.type("createUserForm:fullName", "");
+		se.type("createUserForm:email", "leila@walker.com");
+		se.type("createUserForm:locality", "nowhere");
+		se.type("createUserForm:password1", "qwe123.Q");
+		se.type("createUserForm:password2", "qwe213.Q");
+		se.click("createUserForm:webAccessEnabled");
+		se.click("createUserForm:createUser");
+		se.waitForText("Value is required");
 	}
 
 	@Test
 	public void test02searchUser() throws InterruptedException {
 		logger.info("searchTest()");
 
-		selenium.click(findNextLink("topAccount"));
-		selenium.waitForPageToLoad("30000");
-		assertEquals(baseUrl + "/account/index.iface", selenium.getLocation());
-		assertTrue(selenium.isTextPresent("New User"));
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
 
 		// get hashmap and login
 		HashMap<String, String> h = new HashMap<String, String>();
-		for (String l : selenium.getAllLinks()) {
+		for (String l : se.getAllLinks()) {
 			if (!l.contains("Table") || !l.contains("name"))
 				continue;
-			h.put(selenium.getText(l), l.replace(":name", ""));
+			h.put(se.getText(l), l.replace(":name", ""));
 		}
 
 		for (String k : h.keySet()) {
 			logger.info(k + " -> " + h.get(k));
 		}
 
-		assertTrue(selenium.isTextPresent("Leila Walker"));
-		assertTrue(selenium.isTextPresent("Selena Wilson"));
+		assertTrue(se.isTextPresent("Leila Walker"));
+		assertTrue(se.isTextPresent("Selena Wilson"));
 
-		selenium.type("admin-content:searchName", "leila");
-		selenium.click("admin-content:searchButton");
-		waitForText("List Users");
-		assertTrue(selenium.isTextPresent("Leila Walker"));
-		assertFalse(selenium.isTextPresent("Selena Wilson"));
+		se.type("admin-content:searchName", "leila");
+		se.click("admin-content:searchButton");
+		se.waitForText("List Users");
+		assertTrue(se.isTextPresent("Leila Walker"));
+		assertFalse(se.isTextPresent("Selena Wilson"));
 
-		selenium.type("admin-content:searchName", "selena");
-		selenium.click("admin-content:searchButton");
-		waitForText("List Users");
+		se.type("admin-content:searchName", "selena");
+		se.click("admin-content:searchButton");
+		se.waitForText("List Users");
 
-		selenium.type("admin-content:searchName", "");
-		selenium.click("admin-content:searchButton");
-		waitForText("List Users");
-		assertTrue(selenium.isTextPresent("Leila Walker"));
-		assertTrue(selenium.isTextPresent("Selena Wilson"));
+		se.type("admin-content:searchName", "");
+		se.click("admin-content:searchButton");
+		se.waitForText("List Users");
+		assertTrue(se.isTextPresent("Leila Walker"));
+		assertTrue(se.isTextPresent("Selena Wilson"));
 
 	}
 
 	@Test
 	public void test03importUser() {
-		selenium.click(findNextLink("topConfiguration"));
-		selenium.waitForPageToLoad("30000");
-		assertEquals(baseUrl + "/config/import.iface", selenium.getLocation());
-		assertTrue(selenium.isTextPresent("Import And Export"));
+		se.click(se.findLink("topConfiguration"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/config/import.iface", se.getLocation());
+		assertTrue(se.isTextPresent("Import And Export"));
 		
 	//	File f;
 		
@@ -291,49 +263,49 @@ public class Test002basicUser {
 	
 	@Test
 	public void test99deleteUser() {
-		selenium.click(findNextLink("topAccount"));
-		selenium.waitForPageToLoad("30000");
-		assertEquals(baseUrl + "/account/index.iface", selenium.getLocation());
-		assertTrue(selenium.isTextPresent("New User"));
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
 
 		// get hashmap and login
 		HashMap<String, String> h = new HashMap<String, String>();
-		for (String l : selenium.getAllLinks()) {
+		for (String l : se.getAllLinks()) {
 			if (!l.contains("Table") || !l.contains("name"))
 				continue;
-			h.put(selenium.getText(l), l.replace("name", ""));
+			h.put(se.getText(l), l.replace("name", ""));
 		}
 
-		selenium.click(h.get("leila") + "deleteCheckbox");
-		selenium.click("admin-content:deleteUser");
-		waitForText("Confirm delete");
-		selenium.click("admin-content:deleteUserNo");
-		waitForText("List Users");
-		selenium.click("admin-content:deleteUser");
-		waitForText("Confirm delete");
-		selenium.click("admin-content:deleteUserYes");
-		waitForText("List Users");
-		assertFalse(selenium.isTextPresent("Leila Walker"));
+		se.click(h.get("leila") + "deleteCheckbox");
+		se.click("admin-content:deleteUser");
+		se.waitForText("Confirm delete");
+		se.click("admin-content:deleteUserNo");
+		se.waitForText("List Users");
+		se.click("admin-content:deleteUser");
+		se.waitForText("Confirm delete");
+		se.click("admin-content:deleteUserYes");
+		se.waitForText("List Users");
+		assertFalse(se.isTextPresent("Leila Walker"));
 
-		selenium.click(findNextLink("topHome"));
-		selenium.waitForPageToLoad("30000");
+		se.click(se.findLink("topHome"));
+		se.waitForPageToLoad("30000");
 		
-		selenium.click(findNextLink("topAccount"));
-		selenium.waitForPageToLoad("30000");
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad("30000");
 		
-		assertTrue(selenium.isTextPresent("New User"));
+		assertTrue(se.isTextPresent("New User"));
 		
-		for (String l : selenium.getAllLinks()) {
+		for (String l : se.getAllLinks()) {
 			if (!l.contains("Table") || !l.contains("name"))
 				continue;
-			logger.info("Adding:" + selenium.getText(l), l.replace("name", ""));
-			h.put(selenium.getText(l), l.replace("name", ""));
+			logger.info("Adding:" + se.getText(l), l.replace("name", ""));
+			h.put(se.getText(l), l.replace("name", ""));
 		}
 		
-		selenium.click(h.get("selena") + "deleteCheckbox");
-		selenium.click("admin-content:deleteUser");
-		waitForText("Confirm delete");
-		selenium.click("admin-content:deleteUserYes");
-		waitForText("List Users");
+		se.click(h.get("selena") + "deleteCheckbox");
+		se.click("admin-content:deleteUser");
+		se.waitForText("Confirm delete");
+		se.click("admin-content:deleteUserYes");
+		se.waitForText("List Users");
 	}
 }
