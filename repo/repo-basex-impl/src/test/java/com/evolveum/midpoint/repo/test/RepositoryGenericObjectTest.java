@@ -44,17 +44,15 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.test.XmlAsserts;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -66,13 +64,13 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 public class RepositoryGenericObjectTest {
 
 	@Autowired(required = true)
-	private RepositoryPortType repositoryService;
+	private RepositoryService repositoryService;
 
-	public RepositoryPortType getRepositoryService() {
+	public RepositoryService getRepositoryService() {
 		return repositoryService;
 	}
 
-	public void setRepositoryService(RepositoryPortType repositoryService) {
+	public void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
 	}
 
@@ -123,39 +121,35 @@ public class RepositoryGenericObjectTest {
 		try {
 
 			// create object
-			ObjectContainerType objectContainer = new ObjectContainerType();
 			GenericObjectType genericObject = ((JAXBElement<GenericObjectType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/generic-object.xml"))).getValue();
-			objectContainer.setObject(genericObject);
-			repositoryService.addObject(objectContainer);
+			repositoryService.addObject(genericObject, null);
 
 			// get object
-			ObjectContainerType retrievedObjectContainer = repositoryService.getObject(genericObjectOid,
-					new PropertyReferenceListType());
-			compareObjects(genericObject, (GenericObjectType) retrievedObjectContainer.getObject());
+			ObjectType retrievedObject = repositoryService.getObject(genericObjectOid,
+					new PropertyReferenceListType(), null);
+			compareObjects(genericObject, (GenericObjectType) retrievedObject);
 
 			// list objects of type
 			ObjectListType objects = repositoryService.listObjects(
-					QNameUtil.qNameToUri(SchemaConstants.I_GENERIC_OBJECT_TYPE), new PagingType());
+					ObjectTypes.GENERIC_OBJECT.getClassDefinition(), new PagingType(), null);
 			assertNotNull(objects);
 			assertNotNull(objects.getObject());
 			assertEquals(1, objects.getObject().size());
 			compareObjects(genericObject, (GenericObjectType) objects.getObject().get(0));
 
 			// delete object
-			repositoryService.deleteObject(genericObjectOid);
+			repositoryService.deleteObject(genericObjectOid, null);
 			try {
-				repositoryService.getObject(genericObjectOid, new PropertyReferenceListType());
+				repositoryService.getObject(genericObjectOid, new PropertyReferenceListType(), null);
 				fail("Object with oid " + genericObjectOid + " was not deleted");
-			} catch (FaultMessage ex) {
-				if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
-					throw ex;
-				}
+			} catch (ObjectNotFoundException ex) {
+				//ignore
 			}
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(genericObjectOid);
+				repositoryService.deleteObject(genericObjectOid, null);
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
