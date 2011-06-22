@@ -232,7 +232,7 @@ public class ModelController {
 		LOGGER.debug(subResult.debugDump());
 	}
 
-	public boolean deleteObject(String oid, OperationResult result) {
+	public boolean deleteObject(String oid, OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Deleting object with oid {}.", new Object[] { oid });
@@ -259,10 +259,11 @@ public class ModelController {
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}", ex, oid);
-			// TODO: error handling
+			subResult.recordFatalError("Couldn't find object with oid '" + oid + "'.", ex);
+			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}", ex, oid);
-			// TODO: error handling
+			subResult.recordFatalError("Couldn't delete object with oid '" + oid + "'.", ex);
 		}
 
 		LOGGER.debug(subResult.debugDump());
@@ -283,7 +284,8 @@ public class ModelController {
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 
-	public UserType listAccountShadowOwner(String accountOid, OperationResult result) throws ObjectNotFoundException {
+	public UserType listAccountShadowOwner(String accountOid, OperationResult result)
+			throws ObjectNotFoundException {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
@@ -298,12 +300,12 @@ public class ModelController {
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
 			subResult.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
-			throw new ObjectNotFoundException();
+			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
 					+ " for account with oid {}", ex, accountOid);
-			// TODO: error handling
-			subResult.recordFatalError("", ex);
+			subResult.recordFatalError("Couldn't list account shadow owner for account with oid '"
+					+ accountOid + "'.", ex);
 		}
 
 		LOGGER.debug(subResult.debugDump());
@@ -311,7 +313,7 @@ public class ModelController {
 	}
 
 	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
-			String resourceObjectShadowType, OperationResult result) {
+			String resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
@@ -327,6 +329,7 @@ public class ModelController {
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			// TODO: error handling
+			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list resource object shadows type "
 					+ "{} from repository for resource with oid {}", ex, resourceObjectShadowType,
@@ -376,30 +379,29 @@ public class ModelController {
 		return list;
 	}
 
-	public ResourceTestResultType testResource(String resourceOid, OperationResult result) {
+	public void testResource(String resourceOid, OperationResult result) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Testing resource with oid {}.", new Object[] { resourceOid });
 
-		OperationResult subResult = new OperationResult("Test Resource");
-		result.addSubresult(subResult);
+		OperationResult subResult = null;
+		try {
+			subResult = provisioning.testResource(resourceOid);
+			result.addSubresult(subResult);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't test status for resource {}", ex, resourceOid);
 
-		// try {
-		// TODO: remove Holder add there OperationResult 'result' after
-		// provisioning is updated
+			subResult = new OperationResult("Test Resource");
+			subResult.recordFatalError("Couldn't test status for resource with oid '" + resourceOid + "'.",
+					ex);
+			result.addSubresult(subResult);
+		}
 
-		// TODO: WTF???
-		// return provisioning.testResource(resourceOid);
-		// } catch (FaultMessage ex) {
-		// LoggingUtils.logException(LOGGER,
-		// "Couldn't test status for resource {}", ex, resourceOid);
-		// // TODO: error handling
-		//
-		// throw new RuntimeException();
-		// }
-
-		LOGGER.debug(subResult.debugDump());
-		throw new RuntimeException();
+		if (subResult != null) {
+			LOGGER.debug(subResult.debugDump());
+		} else {
+			LOGGER.debug("Operation sub result was null (Error occured).");
+		}
 	}
 
 	public void launchImportFromResource(String resourceOid, String objectClass, OperationResult result) {
@@ -611,7 +613,7 @@ public class ModelController {
 		return scripts;
 	}
 
-	private void deleteUserAccounts(UserType user, OperationResult result) {
+	private void deleteUserAccounts(UserType user, OperationResult result) throws ObjectNotFoundException {
 		List<AccountShadowType> accountsToBeDeleted = new ArrayList<AccountShadowType>();
 		for (AccountShadowType account : user.getAccount()) {
 			if (deleteObject(account.getOid(), result)) {

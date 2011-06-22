@@ -1312,7 +1312,7 @@ public class ModelService implements ModelPortType {
 	 * disappear eventually.
 	 */
 	@Override
-	public ResourceTestResultType testResource(String resourceOid, Holder<OperationResultType> resultType)
+	public void testResource(String resourceOid, Holder<OperationResultType> resultType)
 			throws FaultMessage {
 		notNullArgument(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter testResource({})", resourceOid);
@@ -1337,7 +1337,6 @@ public class ModelService implements ModelPortType {
 		}
 
 		logger.info("### MODEL # Exit testResource({}): {}", resourceOid, result);
-		return result;
 	}
 
 	@Override

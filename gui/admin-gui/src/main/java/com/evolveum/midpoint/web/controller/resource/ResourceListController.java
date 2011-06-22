@@ -39,6 +39,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -55,7 +56,6 @@ import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.ResourceItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
@@ -174,8 +174,9 @@ public class ResourceListController extends SortableListController<ResourceListI
 
 		try {
 			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
-			ResourceTestResultType result = manager.testConnection(resource.getOid());
-			ControllerUtil.updateResourceState(resource.getState(), result);
+			// TODO: rework test connection
+			OperationResult result = manager.testConnection(resource.getOid());
+			// ControllerUtil.updateResourceState(resource.getState(), result);
 		} catch (Exception ex) {
 			LoggingUtils.logException(TRACE, "Couldn't test resource {}", ex, resource.getName());
 			FacesUtils.addErrorMessage("Couldn't test resource '" + resource.getName() + "'.", ex);
@@ -240,41 +241,44 @@ public class ResourceListController extends SortableListController<ResourceListI
 	}
 
 	// TODO: MOVE TO MODEL !!!!!!!!!!!!!!!!!!!!!!! test before delete resource
-//	private List<ResourceListItem> testResourcesBeforeDelete() {
-//		List<ResourceListItem> toBeDeleted = new ArrayList<ResourceListItem>();
-//		for (ResourceListItem item : getObjects()) {
-//			OperationResult result = new OperationResult("List Resource Object Shadows");
-//
-//			boolean canDelete = true;
-//			for (ResourceObjectType objectType : item.getObjectTypes()) {
-//				try {
-//					// TODO: model not available not, user managers
-//					ResourceObjectShadowListType list = model.listResourceObjectShadows(item.getOid(),
-//							objectType.getSimpleType(),
-//							new Holder<OperationResultType>(result.createOperationResultType()));
-//					if (list != null && !list.getObject().isEmpty()) {
-//						FacesUtils.addErrorMessage("Can't delete resource '" + item.getName()
-//								+ "', it's referenced by " + list.getObject().size() + " objects of type '"
-//								+ objectType.getSimpleType() + "'.");
-//						canDelete = false;
-//						break;
-//					}
-//				} catch (FaultMessage ex) {
-//					LoggingUtils.logException(TRACE,
-//							"Couldn't list resource objects of type {} for resource {}", ex,
-//							objectType.getSimpleType(), item.getName());
-//					// TODO: error handling
-//					canDelete = false;
-//				}
-//			}
-//
-//			if (canDelete) {
-//				toBeDeleted.add(item);
-//			}
-//		}
-//
-//		return toBeDeleted;
-//	}
+	// private List<ResourceListItem> testResourcesBeforeDelete() {
+	// List<ResourceListItem> toBeDeleted = new ArrayList<ResourceListItem>();
+	// for (ResourceListItem item : getObjects()) {
+	// OperationResult result = new
+	// OperationResult("List Resource Object Shadows");
+	//
+	// boolean canDelete = true;
+	// for (ResourceObjectType objectType : item.getObjectTypes()) {
+	// try {
+	// // TODO: model not available not, user managers
+	// ResourceObjectShadowListType list =
+	// model.listResourceObjectShadows(item.getOid(),
+	// objectType.getSimpleType(),
+	// new Holder<OperationResultType>(result.createOperationResultType()));
+	// if (list != null && !list.getObject().isEmpty()) {
+	// FacesUtils.addErrorMessage("Can't delete resource '" + item.getName()
+	// + "', it's referenced by " + list.getObject().size() +
+	// " objects of type '"
+	// + objectType.getSimpleType() + "'.");
+	// canDelete = false;
+	// break;
+	// }
+	// } catch (FaultMessage ex) {
+	// LoggingUtils.logException(TRACE,
+	// "Couldn't list resource objects of type {} for resource {}", ex,
+	// objectType.getSimpleType(), item.getName());
+	// // TODO: error handling
+	// canDelete = false;
+	// }
+	// }
+	//
+	// if (canDelete) {
+	// toBeDeleted.add(item);
+	// }
+	// }
+	//
+	// return toBeDeleted;
+	// }
 
 	public void deletePerformed() {
 		showPopup = true;

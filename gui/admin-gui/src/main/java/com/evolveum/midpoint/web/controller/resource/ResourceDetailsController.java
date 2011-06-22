@@ -29,6 +29,7 @@ import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ObjectBean;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
@@ -39,7 +40,6 @@ import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 
 @Controller("resourceDetails")
 @Scope("session")
@@ -83,8 +83,9 @@ public class ResourceDetailsController implements Serializable {
 
 		try {
 			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
-			ResourceTestResultType result = manager.testConnection(resource.getOid());
-			ControllerUtil.updateResourceState(resource.getState(), result);
+			// TODO: rework test connection
+			OperationResult result = manager.testConnection(resource.getOid());
+			// ControllerUtil.updateResourceState(resource.getState(), result);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't test resource {}", ex, resource.getName());
 			FacesUtils.addErrorMessage("Couldn't test resource '" + resource.getName() + "'.", ex);

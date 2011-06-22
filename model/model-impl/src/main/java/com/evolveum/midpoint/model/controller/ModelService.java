@@ -250,17 +250,15 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public ResourceTestResultType testResource(String resourceOid, Holder<OperationResultType> result)
+	public void testResource(String resourceOid, Holder<OperationResultType> result)
 			throws FaultMessage {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult("Model Service Test Resource");
 		try {
-			ResourceTestResultType test = model.testResource(resourceOid, operationResult);
+			model.testResource(resourceOid, operationResult);
 			handleOperationResult(operationResult, result);
-
-			return test;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed", ex);
 			throw createSystemFault(ex, operationResult);

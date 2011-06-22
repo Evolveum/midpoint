@@ -46,7 +46,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
@@ -111,7 +110,7 @@ public class ResourceTypeManager extends ResourceManager {
 	}
 
 	@Override
-	public ResourceTestResultType testConnection(String resourceOid) {
+	public OperationResult testConnection(String resourceOid) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		LOGGER.debug("Testing resource with oid {}.", new Object[] { resourceOid });
 
@@ -119,9 +118,8 @@ public class ResourceTypeManager extends ResourceManager {
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(
 				result.createOperationResultType());
 
-		ResourceTestResultType testResult = null;
 		try {
-			testResult = getModel().testResource(resourceOid, holder);
+			getModel().testResource(resourceOid, holder);
 
 			result = OperationResult.createOperationResult(holder.value);
 			result.recordSuccess();
@@ -140,8 +138,9 @@ public class ResourceTypeManager extends ResourceManager {
 		}
 
 		printResults(LOGGER, result);
-
-		return testResult;
+		LOGGER.error("***RESOURCE TEST CONNECTION IS BROKEN, WE'RE NOT USING RESOUCE "
+				+ "TEST TYPE BUT OPERATION RESULT AS RETURN VALUE.***");
+		return result;
 	}
 
 	@Override

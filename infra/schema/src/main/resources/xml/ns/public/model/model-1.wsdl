@@ -202,7 +202,6 @@
         <part name="result" type="c:OperationResultType" />
     </message>
     <message name="testResourceResponse">
-        <part name="testResult" type="c:ResourceTestResultType"/>
         <part name="result" type="c:OperationResultType" />
     </message>
 

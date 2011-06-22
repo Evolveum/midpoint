@@ -25,6 +25,7 @@ package com.evolveum.midpoint.web.model;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.web.model.impl.ObjectManagerImpl;
@@ -45,7 +46,7 @@ public abstract class ResourceManager extends ObjectManagerImpl<ResourceDto> {
 	public abstract <T extends ResourceObjectShadowType> List<ResourceObjectShadowDto<T>> listObjectShadows(
 			String oid, Class<T> resourceObjectShadowType);
 
-	public abstract ResourceTestResultType testConnection(String resourceOid);
+	public abstract OperationResult testConnection(String resourceOid);
 
 	public abstract void launchImportFromResource(String resourceOid, String objectClass);
 

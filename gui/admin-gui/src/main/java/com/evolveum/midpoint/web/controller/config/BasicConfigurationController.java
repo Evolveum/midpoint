@@ -64,16 +64,22 @@ public class BasicConfigurationController implements Serializable {
 		OperationResult result1 = new OperationResult("Top operation");
 		result1.recordSuccess();
 		FacesUtils.addMessage(result1);
+		
+		FacesUtils.addSuccessMessage("Standard success message.");
 
 		OperationResult result2 = new OperationResult("Top operation");
 		result2.recordWarning("Some warning happened.");
 		result2.getSubresults().add(result1);
 		FacesUtils.addMessage(result2);
+		
+		FacesUtils.addWarnMessage("Standard warning message.");
 
 		OperationResult result3 = new OperationResult("Top operation");
 		result3.recordFatalError("Error happened.");
 		result3.getSubresults().add(result2);
 		FacesUtils.addMessage(result3);
+		
+		FacesUtils.addErrorMessage("Standard error message.");
 
 		return null;
 	}
