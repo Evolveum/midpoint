@@ -20,11 +20,11 @@
 			</ui:remove>			
 			<idm:xmlInput id="editor" height="600" readonly="false" value="#{import.editor}" />
 			<ul style="margin-top: 10px;">
-				<li><ice:selectBooleanCheckbox value="#{import.overwrite}">
+				<li><ice:selectBooleanCheckbox id="enableOverwrite" value="#{import.overwrite}">
 					#{msg['page.config.import.overwrite']}
 					</ice:selectBooleanCheckbox>
 				</li>
-				<li><ice:selectBooleanCheckbox value="#{import.showFileUpload}" immediate="true" partialSubmit="true">
+				<li><ice:selectBooleanCheckbox id="uploadFileCheckBox" value="#{import.showFileUpload}" immediate="true" partialSubmit="true">
 					#{msg['page.config.import.uploadFile']}</ice:selectBooleanCheckbox>
 				</li>
 			</ul>
@@ -34,7 +34,7 @@
 			<div class="button-bar">
 				<ice:panelGroup rendered="#{import.showFileUpload}">
 					<div class="buttons">
-						<h:commandButton value="#{msg['page.config.import.button.uploadObject']}"
+						<h:commandButton id="uploadObjectButton" value="#{msg['page.config.import.button.uploadObject']}"
 							styleClass="button positive fileUpload" />
 					</div>
 				</ice:panelGroup>
@@ -42,7 +42,7 @@
 				<ui:remove>
 					<!-- this button can't be used because ace:fileEntry needs standard full submit, not ajax submit -->
 				</ui:remove>
-				<idm:button value="#{msg['page.config.import.button.uploadObject']}" buttonType="positive"
+				<idm:button id="uploadButton" value="#{msg['page.config.import.button.uploadObject']}" buttonType="positive"
 					action="#{import.upload}" img="/resources/images/add.png" partialSubmit="false" immediate="false"
 					rendered="#{not import.showFileUpload}" />
 			</div>
