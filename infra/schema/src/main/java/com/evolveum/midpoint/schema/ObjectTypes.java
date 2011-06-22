@@ -115,4 +115,14 @@ public enum ObjectTypes {
 
 		throw new IllegalArgumentException("Unsupported object type" + objectType);
 	}
+	
+	public static ObjectTypes getObjectType(Class objectType) {
+		for (ObjectTypes type : values()) {
+			if (type.getClass().equals(objectType)) {
+				return type;
+			}
+		}
+
+		throw new IllegalArgumentException("Unsupported object type" + objectType);
+	}
 }

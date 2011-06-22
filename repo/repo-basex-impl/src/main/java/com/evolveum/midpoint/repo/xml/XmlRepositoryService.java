@@ -25,6 +25,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,10 +57,15 @@ import org.xmldb.api.modules.XPathQueryService;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.patch.PatchXml;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -70,20 +76,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectAlreadyExistsFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathType;
 
-public class XmlRepositoryService implements RepositoryPortType {
+public class XmlRepositoryService implements RepositoryService {
 
 	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryService.class);
 	private Collection collection;
@@ -114,18 +112,18 @@ public class XmlRepositoryService implements RepositoryPortType {
 	}
 
 	@Override
-	public String addObject(ObjectContainerType objectContainer) throws FaultMessage {
+	public String addObject(ObjectType object, OperationResult parentResult)
+			throws ObjectAlreadyExistsException, SchemaException {
 		String oid = null;
 		try {
-			ObjectType payload = (ObjectType) objectContainer.getObject();
 
-			checkAndFailIfObjectAlreadyExists(payload.getOid());
+			checkAndFailIfObjectAlreadyExists(object.getOid());
 
 			// generate new oid, if necessary
-			oid = (null != payload.getOid() ? payload.getOid() : UUID.randomUUID().toString());
-			payload.setOid(oid);
+			oid = (null != object.getOid() ? object.getOid() : UUID.randomUUID().toString());
+			object.setOid(oid);
 
-			String serializedObject = marshalWrap(payload, SchemaConstants.C_OBJECT);
+			String serializedObject = marshalWrap(object, SchemaConstants.C_OBJECT);
 			// FIXME: try to find another solution how to escape XQuery special
 			// characters in XMLs
 			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
@@ -146,19 +144,21 @@ public class XmlRepositoryService implements RepositoryPortType {
 			return oid;
 		} catch (JAXBException ex) {
 			TRACE.error("Failed to (un)marshal object", ex);
-			throw new FaultMessage("Failed to (un)marshal object", new IllegalArgumentFaultType(), ex);
+			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (XMLDBException ex) {
 			TRACE.error("Reported error by XML Database", ex);
-			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
+			throw new SystemException("Reported error by XML Database", ex);
 		}
 	}
 
 	@Override
-	public ObjectContainerType getObject(String oid, PropertyReferenceListType resolve) throws FaultMessage {
+	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+
 		validateOid(oid);
 
 		ByteArrayInputStream in = null;
-		ObjectContainerType objectContainer = null;
+		ObjectType object = null;
 		try {
 
 			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
@@ -175,30 +175,28 @@ public class XmlRepositoryService implements RepositoryPortType {
 			while (iter.hasMoreResources()) {
 				Resource res = iter.nextResource();
 
-				if (null != objectContainer) {
+				if (null != object) {
 					TRACE.error("More than one object with oid {} found", oid);
-					throw new FaultMessage("More than one object with oid " + oid + " found",
-							new ObjectAlreadyExistsFaultType());
+					throw new SystemException("More than one object with oid " + oid + " found");
 				}
 				Object c = res.getContent();
 				if (c instanceof String) {
 					in = new ByteArrayInputStream(((String) c).getBytes("UTF-8"));
 					JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) unmarshaller.unmarshal(in);
 					if (o != null) {
-						objectContainer = new ObjectContainerType();
-						objectContainer.setObject(o.getValue());
+						object = o.getValue();
 					}
 				}
 			}
 		} catch (UnsupportedEncodingException ex) {
 			TRACE.error("UTF-8 is unsupported encoding", ex);
-			throw new FaultMessage("UTF-8 is unsupported encoding", new SystemFaultType(), ex);
+			throw new SystemException("UTF-8 is unsupported encoding", ex);
 		} catch (JAXBException ex) {
 			TRACE.error("Failed to (un)marshal object", ex);
-			throw new FaultMessage("Failed to (un)marshal object", new IllegalArgumentFaultType(), ex);
+			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (XMLDBException ex) {
 			TRACE.error("Reported error by XML Database", ex);
-			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
+			throw new SystemException("Reported error by XML Database", ex);
 		} finally {
 			try {
 				if (null != in) {
@@ -207,19 +205,29 @@ public class XmlRepositoryService implements RepositoryPortType {
 			} catch (IOException ex) {
 			}
 		}
-		if (objectContainer == null) {
-			throw new FaultMessage("Object not found. OID: " + oid, new ObjectNotFoundFaultType());
+		if (object == null) {
+			throw new ObjectNotFoundException("Object not found. OID: " + oid);
 		}
-		return objectContainer;
+		return object;
 	}
 
 	@Override
-	public ObjectListType listObjects(String objectType, PagingType paging) throws FaultMessage {
-		return searchObjects(objectType, paging, null);
+	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult) {
+		if (null == objectType) {
+			TRACE.error("objectType is null");
+			throw new IllegalArgumentException("objectType is null");
+		}
+		
+		//validation if object type is supported
+		ObjectTypes objType = ObjectTypes.getObjectType(objectType);
+		String oType = objType.getValue();
+		
+		return searchObjects(oType, paging, null);
 	}
 
 	@Override
-	public ObjectListType searchObjects(QueryType query, PagingType paging) throws FaultMessage {
+	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
+			throws SchemaException {
 		validateQuery(query);
 
 		NodeList children = query.getFilter().getChildNodes();
@@ -262,16 +270,16 @@ public class XmlRepositoryService implements RepositoryPortType {
 	}
 
 	@Override
-	public void modifyObject(ObjectModificationType objectChange) throws FaultMessage {
+	public void modifyObject(ObjectModificationType objectChange, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
 		validateObjectChange(objectChange);
 
 		try {
 			// get object from repo
 			// FIXME: possible problems with resolving property reference before
 			// xml patching
-			ObjectContainerType retrievedObjectContainer = this.getObject(objectChange.getOid(),
-					new PropertyReferenceListType());
-			ObjectType objectType = retrievedObjectContainer.getObject();
+			ObjectType objectType = this.getObject(objectChange.getOid(),
+					new PropertyReferenceListType(), null);
 
 			// modify the object
 			PatchXml xmlPatchTool = new PatchXml();
@@ -295,19 +303,24 @@ public class XmlRepositoryService implements RepositoryPortType {
 
 		} catch (PatchException ex) {
 			TRACE.error("Failed to modify object", ex);
-			throw new FaultMessage("Failed to modify object", new IllegalArgumentFaultType(), ex);
+			throw new SystemException("Failed to modify object", ex);
 		} catch (XMLDBException ex) {
 			TRACE.error("Reported error by XML Database", ex);
-			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
+			throw new SystemException("Reported error by XML Database", ex);
 		}
 	}
 
 	@Override
-	public void deleteObject(String oid) throws FaultMessage {
+	public void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException {
 		validateOid(oid);
 
-		checkAndFailIfObjectDoesNotExist(oid);
-		
+		try {
+			ObjectType retrievedObject = getObject(oid, null, null);
+		} catch (SchemaException ex) {
+			TRACE.error("Schema validation problem occured while checking existence of the object before its deletion", ex);
+			throw new SystemException("Schema validation problem occured while checking existence of the object before its deletion", ex);
+		}
+
 		ByteArrayInputStream in = null;
 		ObjectContainerType out = null;
 		try {
@@ -323,7 +336,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 
 		} catch (XMLDBException ex) {
 			TRACE.error("Reported error by XML Database", ex);
-			throw new FaultMessage("Reported error by XML Database", new SystemFaultType());
+			throw new SystemException("Reported error by XML Database");
 		} finally {
 			try {
 				if (null != in) {
@@ -336,41 +349,39 @@ public class XmlRepositoryService implements RepositoryPortType {
 
 	@Override
 	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
-			PropertyReferenceListType properties) throws FaultMessage {
+			PropertyReferenceListType properties, OperationResult parentResult)
+			throws ObjectNotFoundException {
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 
 	@Override
-	public UserContainerType listAccountShadowOwner(String accountOid) throws FaultMessage {
+	public UserType listAccountShadowOwner(String accountOid, OperationResult parentResult)
+			throws ObjectNotFoundException {
 		Map<String, String> filters = new HashMap<String, String>();
 		// FIXME: hardcoded prefix c:
 		filters.put("c:accountRef", accountOid);
-		ObjectListType retrievedObjects = searchObjects(QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE),
-				null, filters);
+		ObjectListType retrievedObjects = searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, filters);
 		List<ObjectType> objects = retrievedObjects.getObject();
 
 		if (null == retrievedObjects || objects == null || objects.size() == 0) {
 			return null;
 		}
 		if (objects.size() > 1) {
-			throw new FaultMessage("Found incorrect number of objects " + objects.size(),
-					new SystemFaultType());
+			throw new SystemException("Found incorrect number of objects " + objects.size());
 		}
 
-		UserContainerType userContainer = new UserContainerType();
-		userContainer.setUser((UserType) objects.get(0));
+		UserType userType = (UserType) objects.get(0);
 
-		return userContainer;
+		return userType;
 	}
 
 	@Override
-	public ResourceObjectShadowListType listResourceObjectShadows(String resourceOid,
-			String resourceObjectShadowType) throws FaultMessage {
+	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
+			Class resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
 		Map<String, String> filters = new HashMap<String, String>();
 		// FIXME: hardcoded prefix c:
 		filters.put("c:resourceRef", resourceOid);
-		ObjectListType retrievedObjects = searchObjects(
-				QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE), null, filters);
+		ObjectListType retrievedObjects = searchObjects(ObjectTypes.ACCOUNT.getObjectTypeUri(), null, filters);
 
 		@SuppressWarnings("unchecked")
 		List<ResourceObjectShadowType> objects = (List<ResourceObjectShadowType>) CollectionUtils.collect(
@@ -381,35 +392,22 @@ public class XmlRepositoryService implements RepositoryPortType {
 					}
 				});
 
-		ResourceObjectShadowListType ros = new ResourceObjectShadowListType();
-		ros.getObject().addAll(objects);
+		List<ResourceObjectShadowType> ros = new ArrayList<ResourceObjectShadowType>();
+		ros.addAll(objects);
 		return ros;
 	}
 
-	private void checkAndFailIfObjectAlreadyExists(String oid) throws FaultMessage {
+	private void checkAndFailIfObjectAlreadyExists(String oid) throws ObjectAlreadyExistsException, SchemaException {
 		// check if object with the same oid already exists, if yes, then fail
 		if (StringUtils.isNotEmpty(oid)) {
 			try {
-				ObjectContainerType retrievedObject = getObject(oid, null);
+				ObjectType retrievedObject = getObject(oid, null, null);
 				if (null != retrievedObject) {
-					throw new FaultMessage("Object with oid " + oid + " already exists",
-							new ObjectAlreadyExistsFaultType());
+					throw new ObjectAlreadyExistsException("Object with oid " + oid + " already exists");
 				}
-			} catch (FaultMessage e) {
-				if (e.getFaultInfo() instanceof ObjectNotFoundFaultType) {
-					// ignore;
-				} else {
-					throw e;
-				}
+			} catch (ObjectNotFoundException e) {
+				//ignore
 			}
-		}
-	}
-
-	private void checkAndFailIfObjectDoesNotExist(String oid) throws FaultMessage {
-		ObjectContainerType retrievedObject = getObject(oid, null);
-		if (null == retrievedObject) {
-			throw new FaultMessage("Object with oid " + oid + " does not exist",
-					new ObjectNotFoundFaultType());
 		}
 	}
 
@@ -435,12 +433,7 @@ public class XmlRepositoryService implements RepositoryPortType {
 		}
 	}
 
-	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters)
-			throws FaultMessage {
-		if (StringUtils.isEmpty(objectType)) {
-			TRACE.error("objectType is empty");
-			throw new FaultMessage("objectType is empty", new IllegalArgumentFaultType());
-		}
+	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters) {
 
 		ByteArrayInputStream in = null;
 		ObjectListType objectList = new ObjectListType();
@@ -511,13 +504,13 @@ public class XmlRepositoryService implements RepositoryPortType {
 			}
 		} catch (UnsupportedEncodingException ex) {
 			TRACE.error("UTF-8 is unsupported encoding", ex);
-			throw new FaultMessage("UTF-8 is unsupported encoding", new SystemFaultType(), ex);
+			throw new SystemException("UTF-8 is unsupported encoding", ex);
 		} catch (JAXBException ex) {
 			TRACE.error("Failed to (un)marshal object", ex);
-			throw new FaultMessage("Failed to (un)marshal object", new IllegalArgumentFaultType(), ex);
+			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (XMLDBException ex) {
 			TRACE.error("Reported error by XML Database", ex);
-			throw new FaultMessage("Reported error by XML Database", new SystemFaultType(), ex);
+			throw new SystemException("Reported error by XML Database", ex);
 		} finally {
 			try {
 				if (null != in) {
@@ -585,37 +578,37 @@ public class XmlRepositoryService implements RepositoryPortType {
 		return false;
 	}
 
-	private void validateOid(String oid) throws FaultMessage {
+	private void validateOid(String oid) {
 		if (StringUtils.isEmpty(oid)) {
-			throw new FaultMessage("Invalid OID", new IllegalArgumentFaultType());
+			throw new IllegalArgumentException("Invalid OID");
 		}
 
 		try {
-			UUID id = UUID.fromString(oid);
+			UUID.fromString(oid);
 		} catch (IllegalArgumentException e) {
-			throw new FaultMessage("Invalid OID format", new IllegalArgumentFaultType(), e);
+			throw new IllegalArgumentException("Invalid OID format " + oid);
 		}
 	}
 
-	private void validateObjectChange(ObjectModificationType objectChange) throws FaultMessage {
+	private void validateObjectChange(ObjectModificationType objectChange) {
 		if (null == objectChange) {
-			throw new FaultMessage("Provided null object modifications", new IllegalArgumentFaultType());
+			throw new IllegalArgumentException("Provided null object modifications");
 		}
 		validateOid(objectChange.getOid());
 
 		if (null == objectChange.getPropertyModification()
 				|| objectChange.getPropertyModification().size() == 0) {
-			throw new FaultMessage("No property modifications provided", new IllegalArgumentFaultType());
+			throw new IllegalArgumentException("No property modifications provided");
 		}
 	}
 
-	private void validateQuery(QueryType query) throws FaultMessage {
+	private void validateQuery(QueryType query) {
 		if (null == query) {
-			throw new FaultMessage("Provided null query", new IllegalArgumentFaultType());
+			throw new IllegalArgumentException("Provided null query");
 		}
 
 		if (null == query.getFilter()) {
-			throw new FaultMessage("No filter in query", new IllegalArgumentFaultType());
+			throw new IllegalArgumentException("No filter in query");
 		}
 	}
 }

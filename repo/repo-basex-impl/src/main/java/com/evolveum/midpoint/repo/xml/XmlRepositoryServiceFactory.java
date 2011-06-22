@@ -28,14 +28,14 @@ import org.xmldb.api.base.Database;
 import org.xmldb.api.base.XMLDBException;
 import org.xmldb.api.modules.XMLResource;
 
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 
 public class XmlRepositoryServiceFactory {
 
 	/** Database driver. */
 	public static final String DRIVER = "org.basex.api.xmldb.BXDatabase";
 
-	private RepositoryPortType repositoryService;
+	private RepositoryService repositoryService;
 	private static final String url = "xmldb:basex://localhost:1984/midPoint";
 
 	public void init() throws RepositoryServiceFactoryException {
@@ -62,7 +62,7 @@ public class XmlRepositoryServiceFactory {
 
 	}
 
-	public RepositoryPortType getRepositoryService() throws RepositoryServiceFactoryException {
+	public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
 		if (null == repositoryService) {
 			try {
 				Collection collection = DatabaseManager.getCollection(url);
