@@ -13,7 +13,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.hibernate.ObjectDeletedException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

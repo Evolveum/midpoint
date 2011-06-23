@@ -59,7 +59,7 @@
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
 			<version>1.8-SNAPSHOT</version>
-		</dependency>
+		</dependency>		
 		<dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <artifactId>provisioning-api</artifactId>
@@ -75,12 +75,13 @@
             <artifactId>common</artifactId>
             <version>1.8-SNAPSHOT</version>
         </dependency>
-        <dependency>
+        
+        <!-- <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
-            <!-- TODO need to switch to api -->
+            TODO need to switch to api
             <artifactId>repo-basex-impl</artifactId>
             <version>1.8-SNAPSHOT</version>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <!-- TODO need to switch to api -->
@@ -117,13 +118,6 @@
             <artifactId>mysql-connector-java</artifactId>
             <version>${mysql.connector.version}</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-db-impl</artifactId>
-            <version>1.8-SNAPSHOT</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
+        </dependency>       
     </dependencies>
 </project>

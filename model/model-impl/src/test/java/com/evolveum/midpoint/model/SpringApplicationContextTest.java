@@ -23,7 +23,6 @@
 package com.evolveum.midpoint.model;
 
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import javax.persistence.EntityManagerFactory;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -46,8 +45,6 @@ import static org.junit.Assert.*;
 		"classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml" })
 public class SpringApplicationContextTest {
 
-	@Autowired(required = true)
-	EntityManagerFactory entityManagerFactory;
 	@Autowired(required = true)
 	RepositoryPortType repositoryService;
 
@@ -72,7 +69,6 @@ public class SpringApplicationContextTest {
 
 	@Test
 	public void initApplicationContext() {
-		assertNotNull(entityManagerFactory);
 		assertNotNull(repositoryService);
 	}
 

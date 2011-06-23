@@ -28,6 +28,8 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
@@ -36,6 +38,7 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -66,8 +69,8 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author lazyman
  * 
  */
-// @Component
-// @Scope
+ @Component
+ @Scope
 public class ModelController {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);
@@ -454,18 +457,18 @@ public class ModelController {
 	}
 
 	private <T> T getObjectFromRepository(String oid, PropertyReferenceListType resolve,
-			OperationResult result, Class<T> clazz) {
+			OperationResult result, Class<T> clazz) throws ObjectNotFoundException {
 		return getObject(oid, resolve, result, clazz, false);
 	}
 
 	private <T> T getObjectFromProvisioning(String oid, PropertyReferenceListType resolve,
-			OperationResult result, Class<T> clazz) {
+			OperationResult result, Class<T> clazz) throws ObjectNotFoundException {
 		return getObject(oid, resolve, result, clazz, true);
 	}
 
 	@SuppressWarnings("unchecked")
 	private <T> T getObject(String oid, PropertyReferenceListType resolve, OperationResult result,
-			Class<T> clazz, boolean fromProvisioning) {
+			Class<T> clazz, boolean fromProvisioning) throws ObjectNotFoundException {
 		T object = null;
 
 		try {
@@ -481,6 +484,9 @@ public class ModelController {
 			} else {
 				object = (T) objectType;
 			}
+		} catch (ObjectNotFoundException ex) {
+			// TODO: logging
+			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "...", ex, oid);
 			// TODO: error handling
@@ -491,7 +497,8 @@ public class ModelController {
 		return object;
 	}
 
-	private String addProvisioningObject(ObjectType object, OperationResult result) {
+	private String addProvisioningObject(ObjectType object, OperationResult result)
+			throws ObjectNotFoundException {
 		if (object instanceof AccountShadowType) {
 			AccountShadowType account = (AccountShadowType) object;
 			preprocessAccount(account, result);
@@ -513,9 +520,6 @@ public class ModelController {
 			UserType user = (UserType) object;
 			preprocessUser(user, result);
 		}
-
-		ObjectContainerType container = new ObjectContainerType();
-		container.setObject(object);
 
 		try {
 			return repository.addObject(object, result);
@@ -588,7 +592,7 @@ public class ModelController {
 		}
 	}
 
-	private ScriptsType getScripts(ObjectType object, OperationResult result) {
+	private ScriptsType getScripts(ObjectType object, OperationResult result) throws ObjectNotFoundException {
 		ScriptsType scripts = null;
 		if (object instanceof ResourceType) {
 			ResourceType resource = (ResourceType) object;
@@ -663,7 +667,8 @@ public class ModelController {
 		return change;
 	}
 
-	private void preprocessAccount(AccountShadowType account, OperationResult result) {
+	private void preprocessAccount(AccountShadowType account, OperationResult result)
+			throws ObjectNotFoundException {
 		// TODO insert credentials to account if needed
 		ResourceType resource = account.getResource();
 		if (resource == null) {
@@ -701,14 +706,57 @@ public class ModelController {
 		// TODO Auto-generated method stub
 	}
 
+	// TODO: REFACTOR !!!!!
+	/**
+	 * User preprocessing is used during synchronization, when we're adding user
+	 * and we want to create default accounts for him, or something like that.
+	 * Nobody knows :)
+	 */
 	private void preprocessUser(UserType user, OperationResult result) {
-		for (AccountShadowType account : user.getAccount()) {
-			ObjectReferenceType ref = account.getResourceRef();
-			if (account.getName() == null && account.getOid() == null && ref != null
-					&& SchemaConstants.I_RESOURCE_TYPE.equals(ref.getType())) {
+		LOGGER.debug("Preprocessing user {}.", new Object[] { user.getName() });
 
+		List<AccountShadowType> accountsToDelete = new ArrayList<AccountShadowType>();
+		for (AccountShadowType emptyAccount : user.getAccount()) {
+			ObjectReferenceType resourceRef = emptyAccount.getResourceRef();
+			// we're looking for accounts (now only resource references) which
+			// have to be created after user is saved
+			if (!(emptyAccount.getName() == null && emptyAccount.getOid() == null && resourceRef != null && ObjectTypes.RESOURCE
+					.getQName().equals(resourceRef.getType()))) {
+				continue;
+			}
+			accountsToDelete.add(emptyAccount);
+
+			OperationResult subResult = new OperationResult("Create Account");
+			result.addSubresult(subResult);
+
+			AccountShadowType account = new AccountShadowType();
+			account.setName(resourceRef.getOid() + "-" + user.getName());
+			account.setResourceRef(resourceRef);
+			try {
+				ResourceType resource = getObjectFromProvisioning(resourceRef.getOid(),
+						new PropertyReferenceListType(), result, ResourceType.class);
+				if (resource == null) {
+					subResult.recordFatalError("Couln't get resource with oid '" + resourceRef.getOid()
+							+ "'.");
+					continue;
+				}
+				// TODO: account object class from where?
+				account.setObjectClass(new QName(resource.getNamespace(), "Account"));
+
+				// TODO: schema handling outbound - desing schemahandling first
+				// account = (AccountShadowType)
+				// schemaHandling.applyOutboundSchemaHandlingOnAccount(user,
+				// account, resource);
+
+				String oid = addObject(account, subResult);
+				ObjectReferenceType accountRef = new ObjectReferenceType();
+				accountRef.setOid(oid);
+				accountRef.setType(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
+				user.getAccountRef().add(accountRef);
+			} catch (Exception ex) {
+				subResult.recordFatalError("aaaaaaaaaaaaaaaaaaaa", ex);
 			}
 		}
-
+		user.getAccount().removeAll(accountsToDelete);
 	}
 }

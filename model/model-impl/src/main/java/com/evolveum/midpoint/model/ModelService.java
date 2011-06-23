@@ -103,7 +103,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  * @author Igor Farinic
  * 
  */
-@Service
+//@Service
 public class ModelService implements ModelPortType {
 
 	@Autowired(required = true)

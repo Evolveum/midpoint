@@ -101,21 +101,34 @@
     	<!-- <spring.security.version>3.1.0.RC2</spring.security.version> -->
     </properties>
     <dependencies>
+    	<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-api</artifactId>
+			<version>1.8-SNAPSHOT</version>
+		</dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>model-api</artifactId>
+            <version>1.8-SNAPSHOT</version>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-basex-impl</artifactId>
             <version>1.8-SNAPSHOT</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
             <version>1.8-SNAPSHOT</version>
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
-            <!-- TODO need to switch to api -->
             <artifactId>provisioning-impl</artifactId>
             <version>1.8-SNAPSHOT</version>
+            <!-- TODO change scope after moving schema processing api to provisioning api -->
+            <!-- <scope>runtime</scope> -->
         </dependency>
         <dependency>
             <groupId>javax.el</groupId>
