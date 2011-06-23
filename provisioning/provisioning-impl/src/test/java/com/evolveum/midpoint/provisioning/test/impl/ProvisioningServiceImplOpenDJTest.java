@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.provisioning.test.impl;
 
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -45,10 +46,15 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import javax.xml.bind.JAXBContext;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
@@ -87,10 +93,13 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
 	private static final String FILENAME_ACCOUNT_BAD = "src/test/resources/impl/account-bad.xml";
 	private static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
+	private static final String FILENAME_ACCOUNT_MODIFY = "src/test/resources/impl/account-modify.xml";
+	private static final String ACCOUNT_MODIFY_OID = "c0c010c0-d34d-b44f-f11d-333222444555";
 	private static final String FILENAME_ACCOUNT_DELETE = "src/test/resources/impl/account-delete.xml";
 	private static final String ACCOUNT_DELETE_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
 	private static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
-
+	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee";
+	
 	protected static OpenDJUtil djUtil = new OpenDJUtil();
 	private JAXBContext jaxbctx;
 	private ResourceType resource;
@@ -324,4 +333,40 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 	}
 
+	@Test
+	public void testModifyObject() throws Exception{
+		
+		
+		
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".addObjectTest");
+
+		ObjectType object = createObjectFromFile(FILENAME_ACCOUNT_MODIFY).getObject();
+
+		System.out.println(DebugUtil.prettyPrint(object));
+		System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object, SchemaConstants.I_ACCOUNT,
+				DOMUtil.getDocument())));
+
+		String addedObjectOid = provisioningService.addObject(object, null, result);
+		assertEquals(ACCOUNT_MODIFY_OID, addedObjectOid);
+		
+		ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil.unmarshal(new File("src/test/resources/impl/account-change-description.xml"))).getValue();
+		
+		System.out.println("oid changed obj: "+objectChange.getObjectModification().getOid());
+		
+		provisioningService.modifyObject(objectChange.getObjectModification(), null, result);
+		
+		
+		AccountShadowType accountType = (AccountShadowType) provisioningService.getObject(ACCOUNT_MODIFY_OID, new PropertyReferenceListType(), result);
+		String changedSn = null; 
+		for (Element e : accountType.getAttributes().getAny()){
+			if (QNameUtil.compareQName(new QName(RESOURCE_NS, "sn"), e)){
+				changedSn = e.getTextContent();
+			}			
+		}
+		
+		assertEquals("First", changedSn);
+		
+	}
+	
 }

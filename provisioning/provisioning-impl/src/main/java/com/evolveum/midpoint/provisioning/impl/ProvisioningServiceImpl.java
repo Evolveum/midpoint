@@ -201,8 +201,23 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		if (objectChange == null || objectChange.getOid() == null){
+			throw new IllegalArgumentException("Object change or object change oid cannot be null");
+		}
+		
+		ObjectType objectType = getRepositoryService().getObject(objectChange.getOid(), new PropertyReferenceListType(), parentResult);
+		
+		try {
+			getShadowCache().modifyShadow(objectType, null, objectChange, scripts, parentResult);
+		} catch (CommunicationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (GenericFrameworkException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		// TODO Auto-generated method stub
-		throw new NotImplementedException();
 	}
 
 	@Override

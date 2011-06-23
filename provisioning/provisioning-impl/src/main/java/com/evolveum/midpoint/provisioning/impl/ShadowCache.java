@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -30,13 +31,16 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.object.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
@@ -55,9 +59,14 @@ import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -311,6 +320,10 @@ public class ShadowCache {
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			ObjectAlreadyExistsException, SchemaException {
 
+		if (object == null) {
+			throw new IllegalArgumentException("Object to add must not be null.");
+		}
+
 		if (object instanceof AccountShadowType) {
 			AccountShadowType resourceObjectShadow = (AccountShadowType) object;
 
@@ -326,12 +339,13 @@ public class ShadowCache {
 
 			ConnectorInstance connector = getConnectorInstance(resource);
 			Schema schema = getResourceSchema(resource, connector, parentResult);
-			
-			//convert xml attributes to ResourceObject
+
+			// convert xml attributes to ResourceObject
 			ResourceObject resourceObject = convertFromXml(resourceObjectShadow, schema);
 			String result = null;
 			Set<ResourceObjectAttribute> resourceAttributes = null;
-			//add object using connector, setting new properties to the resourceObject
+			// add object using connector, setting new properties to the
+			// resourceObject
 			try {
 				resourceAttributes = connector.addObject(resourceObject, null, parentResult);
 				resourceObject.getProperties().addAll(resourceAttributes);
@@ -342,8 +356,9 @@ public class ShadowCache {
 				throw new GenericConnectorException(ex.getMessage(), ex);
 			}
 
-			//create account shadow from resource object identifiers. This account shadow consisted 
-			//of the identifiers is added to the repo
+			// create account shadow from resource object identifiers. This
+			// account shadow consisted
+			// of the identifiers added to the repo
 			resourceObjectShadow = (AccountShadowType) createResourceShadow(resourceObject.getIdentifiers(),
 					resourceObjectShadow);
 			result = getRepositoryService().addObject(resourceObjectShadow, parentResult);
@@ -384,10 +399,48 @@ public class ShadowCache {
 				throw new CommunicationException("Error communitacing with the connector " + connector + ": "
 						+ ex.getMessage(), ex);
 			}
-			
+
 			getRepositoryService().deleteObject(accountShadow.getOid(), parentResult);
 		}
 	}
+
+	public void modifyShadow(ObjectType objectType, ResourceType resource,
+			ObjectModificationType objectChange, ScriptsType scripts, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException {
+
+		if (objectType instanceof AccountShadowType) {
+			AccountShadowType accountType = (AccountShadowType) objectType;
+			if (resource == null) {
+			
+					resource = getResource(ResourceObjectShadowUtil.getResourceOid(accountType), parentResult);
+				
+			}
+
+			ConnectorInstance connector = getConnectorInstance(resource);
+			
+			Schema schema = getResourceSchema(resource, connector, parentResult);
+
+			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+					.findContainerDefinitionByType(accountType.getObjectClass());
+			Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(accountType.getAttributes()
+					.getAny());
+			
+			Set<Operation> changes = getAttributeChanges(objectChange, rod);//new HashSet<Operation>();
+
+			
+
+			try {
+				connector.modifyObject(accountType.getObjectClass(), identifiers, changes, parentResult);
+			} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
+				throw new ObjectNotFoundException("Object to modify not found. " + ex.getMessage(), ex);
+			} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+				throw new CommunicationException("Error comminicationg with connector " + connector + ": "
+						+ ex.getMessage(), ex);
+			}
+		}
+	}
+
+	
 
 	// TODO: methods with native identification (Set<Attribute> identifier)
 	// instead of OID.
@@ -508,8 +561,11 @@ public class ShadowCache {
 	}
 
 	/**
-	 * convert resource object shadow to the resource object according to given schema   
-	 * @param resourceObjectShadow object from which attributes are converted
+	 * convert resource object shadow to the resource object according to given
+	 * schema
+	 * 
+	 * @param resourceObjectShadow
+	 *            object from which attributes are converted
 	 * @param schema
 	 * @return resourceObject
 	 */
@@ -529,7 +585,10 @@ public class ShadowCache {
 
 	/**
 	 * create resource object shadow from identifiers
-	 * @param identifiers properties of the resourceObject. This properties describes created resource object shadow attributes 
+	 * 
+	 * @param identifiers
+	 *            properties of the resourceObject. This properties describes
+	 *            created resource object shadow attributes
 	 * @param resourceObjectShadow
 	 * @return resourceObjectShadow
 	 * @throws SchemaException
@@ -547,11 +606,35 @@ public class ShadowCache {
 				throw new SchemaException("An error occured while serializing property " + p + " to DOM");
 			}
 		}
-		 
+
 		resourceObjectShadow.getAttributes().getAny().clear();
 		resourceObjectShadow.getAttributes().getAny().addAll(identifierElements);
 
 		return resourceObjectShadow;
 	}
 
+	private Set<Operation> getAttributeChanges(ObjectModificationType objectChange, ResourceObjectDefinition rod) {
+		Set<Operation> changes = new HashSet<Operation>();
+		for (PropertyModificationType modification : objectChange.getPropertyModification()) {
+			
+			if (modification.getPath() == null){
+				throw new IllegalArgumentException("Path to modificated attributes is null.");
+			}
+			
+			if (modification.getPath().getTextContent().contains(SchemaConstants.I_ATTRIBUTES.getLocalPart())) {
+				
+				Set<Property> changedProperties = rod.parseProperties(modification.getValue().getAny());
+				for (Property p : changedProperties) {
+
+					AttributeModificationOperation attributeModification = new AttributeModificationOperation();
+					attributeModification.setChangeType(modification.getModificationType());
+					attributeModification.setNewAttribute(p);
+					changes.add(attributeModification);
+				}
+			} else {
+				throw new IllegalArgumentException("Wrong path value: "+ modification.getPath().getTextContent());
+			}
+		}
+		return changes;
+	}
 }
