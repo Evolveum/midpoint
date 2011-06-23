@@ -17,9 +17,7 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.model.action;
 
 import static org.junit.Assert.assertEquals;
@@ -34,10 +32,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,24 +39,23 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.model.test.util.RepositoryUtils;
 import com.evolveum.midpoint.provisioning.objects.ResourceObject;
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
 import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
 import com.evolveum.midpoint.provisioning.service.BaseResourceIntegration;
 import com.evolveum.midpoint.provisioning.service.ResourceAccessInterface;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -70,54 +63,15 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
-		"classpath:application-context-model-test.xml" })
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml" })
 public class LinkAccountActionTest {
 
 	@Autowired(required = true)
 	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
 	@Autowired(required = true)
-	private RepositoryPortType repositoryService;
+	private RepositoryService repositoryService;
 	@Autowired(required = true)
 	private ResourceAccessInterface rai;
-
-	// @Autowired(required = true)
-	// private ProvisioningPortType provisioningService;
-
-	public LinkAccountActionTest() {
-	}
-
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() {
-	}
-
-	@After
-	public void tearDown() {
-	}
-
-	private ObjectType addObjectToRepo(ObjectType object) throws Exception {
-		ObjectContainerType objectContainer = new ObjectContainerType();
-		objectContainer.setObject(object);
-		repositoryService.addObject(objectContainer);
-		return object;
-	}
-
-	@SuppressWarnings("unchecked")
-	private ObjectType addObjectToRepo(String fileString) throws Exception {
-		ObjectContainerType objectContainer = new ObjectContainerType();
-		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
-		objectContainer.setObject(object);
-		repositoryService.addObject(objectContainer);
-		return object;
-	}
 
 	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
@@ -144,9 +98,11 @@ public class LinkAccountActionTest {
 			// create additional change
 			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-link.xml");
 			// adding objects to repo
-			addObjectToRepo("src/test/resources/user.xml");
-			ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());
-			AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change.getShadow());
+			RepositoryUtils.addObjectToRepo(repositoryService, "src/test/resources/user.xml");
+			ResourceType resourceType = (ResourceType) RepositoryUtils.addObjectToRepo(repositoryService,
+					change.getResource());
+			AccountShadowType accountType = (AccountShadowType) RepositoryUtils.addObjectToRepo(
+					repositoryService, change.getShadow());
 
 			assertNotNull(resourceType);
 			// setup provisioning mock
@@ -157,35 +113,23 @@ public class LinkAccountActionTest {
 
 			resourceObjectChangeService.notifyChange(change);
 
-			ObjectContainerType container = repositoryService.getObject(userOid,
-					new PropertyReferenceListType());
-			UserType changedUser = (UserType) container.getObject();
+			UserType changedUser = (UserType) repositoryService.getObject(userOid,
+					new PropertyReferenceListType(), new OperationResult("Get Object"));
 			List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
 
 			assertNotNull(changedUser);
 			assertEquals(accountOid, accountRefs.get(0).getOid());
 
-			container = repositoryService.getObject(accountOid, new PropertyReferenceListType());
-			AccountShadowType linkedAccount = (AccountShadowType) container.getObject();
+			AccountShadowType linkedAccount = (AccountShadowType) repositoryService.getObject(accountOid,
+					new PropertyReferenceListType(), new OperationResult("Get Object"));
 
 			assertNotNull(linkedAccount);
 			assertEquals(changedUser.getName(), linkedAccount.getName());
-
 		} finally {
 			// cleanup repo
-			try {
-				repositoryService.deleteObject(accountOid);
-			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
-			}
-			try {
-				repositoryService.deleteObject(resourceOid);
-			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
-			}
-			try {
-				repositoryService.deleteObject(userOid);
-			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
-			}
+			RepositoryUtils.deleteObject(repositoryService, accountOid);
+			RepositoryUtils.deleteObject(repositoryService, resourceOid);
+			RepositoryUtils.deleteObject(repositoryService, userOid);
 		}
-
 	}
 }

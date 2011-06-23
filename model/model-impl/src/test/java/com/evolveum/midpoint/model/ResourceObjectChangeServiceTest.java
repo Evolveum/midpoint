@@ -77,8 +77,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
-		"classpath:application-context-model-test.xml" })
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml" })
 public class ResourceObjectChangeServiceTest {
 
 	@Autowired(required = true)
