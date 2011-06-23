@@ -254,7 +254,7 @@ public class Test002basicUser {
 		assertTrue(se.isTextPresent("Import And Export"));
 		se.click(se.findLink("leftImport"));
 
-		String xmlUser = " <?xml version= '1.0' encoding='UTF-8'?>"
+		String xmlUser = "<?xml version= '1.0' encoding='UTF-8'?>\n"
 				+ "<i:user oid='c0c010c0-d34d-b33f-f00d-111111111111' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'\n"
 				+ "xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'\n"
 				+ "xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'\n"
@@ -296,8 +296,8 @@ public class Test002basicUser {
 		assertTrue(se.isTextPresent("Import And Export"));
 		se.click(se.findLink("leftImport"));
 
-		String xmlUser = " <?xml version= '1.0' encoding='UTF-8'?>"
-				+ "<i:user oid='c0c010c0-d34d-b33f-f00d-111111111111' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'\n"
+		String xmlUser = "<?xml version= '1.0' encoding='UTF-8'?>\n"
+				+ "<i:user oid=\"c0c010c0-d34d-b33f-f00d-111111111111\" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'\n"
 				+ "xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'\n"
 				+ "xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'\n"
 				+ "xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>\n"
