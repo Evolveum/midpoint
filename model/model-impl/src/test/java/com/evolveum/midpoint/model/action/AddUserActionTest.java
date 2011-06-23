@@ -63,9 +63,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml",
-		"classpath:application-context-repository-test.xml",
-		"classpath:application-context-provisioning.xml",
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
 		"classpath:application-context-model-test.xml" })
 public class AddUserActionTest {
 
@@ -108,23 +106,21 @@ public class AddUserActionTest {
 	@SuppressWarnings("unchecked")
 	private ObjectType addObjectToRepo(String fileString) throws Exception {
 		ObjectContainerType objectContainer = new ObjectContainerType();
-		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil
-				.unmarshal(new File(fileString))).getValue();
+		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
 		objectContainer.setObject(object);
 		repositoryService.addObject(objectContainer);
 		return object;
 	}
 
 	@SuppressWarnings("unchecked")
-	private ResourceObjectShadowChangeDescriptionType createChangeDescription(
-			String file) throws JAXBException {
+	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
+			throws JAXBException {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(file))).getValue();
 		return change;
 	}
 
-	private ResourceObject createSampleResourceObject(ResourceSchema schema,
-			ResourceObjectShadowType shadow)
+	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
 			throws ParserConfigurationException {
 		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
 		return valueWriter.buildResourceObject(shadow, schema);
@@ -147,24 +143,22 @@ public class AddUserActionTest {
 			ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());
 			AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change.getShadow());
 
-			//setting resource for ResourceObjectShadowType
-			((ResourceObjectShadowType) ((ObjectChangeAdditionType) change.getObjectChange()).getObject()).setResource(resourceType);
-			((ResourceObjectShadowType) ((ObjectChangeAdditionType) change.getObjectChange()).getObject()).setResourceRef(null);
+			// setting resource for ResourceObjectShadowType
+			((ResourceObjectShadowType) ((ObjectChangeAdditionType) change.getObjectChange()).getObject())
+					.setResource(resourceType);
+			((ResourceObjectShadowType) ((ObjectChangeAdditionType) change.getObjectChange()).getObject())
+					.setResourceRef(null);
 
 			assertNotNull(resourceType);
 			// setup provisioning mock
-			BaseResourceIntegration bri = new BaseResourceIntegration(
-					resourceType);
-			ResourceObject ro = createSampleResourceObject(bri.getSchema(),
-					accountType);
-			when(
-					rai.get(any(OperationalResultType.class),
-							any(ResourceObject.class))).thenReturn(ro);
+			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
+			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
+			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
 			when(rai.getConnector()).thenReturn(bri);
 
 			resourceObjectChangeService.notifyChange(change);
 
-			//creating filter to search user according to the user name
+			// creating filter to search user according to the user name
 			XPathSegment xpathSegment = new XPathSegment(SchemaConstants.C_NAME);
 			Document doc = DOMUtil.getDocument();
 			List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
@@ -177,16 +171,14 @@ public class AddUserActionTest {
 			element.setTextContent("will");
 			values.add(element);
 
-			Element filter = QueryUtil.createAndFilter(
-					doc,
+			Element filter = QueryUtil.createAndFilter(doc,
 					QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE)),
 					QueryUtil.createEqualFilter(doc, xpath, values));
 
 			QueryType query = new QueryType();
 			query.setFilter(filter);
 
-			ObjectListType list = repositoryService.searchObjects(query,
-					new PagingType());
+			ObjectListType list = repositoryService.searchObjects(query, new PagingType());
 
 			for (ObjectType objectType : list.getObject()) {
 				addedUser = (UserType) objectType;
@@ -196,10 +188,9 @@ public class AddUserActionTest {
 			assertNotNull(addedUser);
 			assertEquals(accountOid, accountRefs.get(0).getOid());
 
-			ObjectContainerType container = repositoryService.getObject(
-					accountOid, new PropertyReferenceListType());
-			AccountShadowType addedAccount = (AccountShadowType) container
-					.getObject();
+			ObjectContainerType container = repositoryService.getObject(accountOid,
+					new PropertyReferenceListType());
+			AccountShadowType addedAccount = (AccountShadowType) container.getObject();
 
 			assertNotNull(addedAccount);
 			assertEquals(addedUser.getName(), addedAccount.getName());

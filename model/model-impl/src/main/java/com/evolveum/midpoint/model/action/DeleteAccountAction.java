@@ -23,17 +23,15 @@
 package com.evolveum.midpoint.model.action;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage;
-import javax.xml.ws.Holder;
 
 /**
  * 
@@ -50,15 +48,14 @@ public class DeleteAccountAction extends BaseAction {
 		try {
 			ScriptsType scripts = getScripts(change.getResource());
 			getProvisioning().deleteObject(change.getShadow().getOid(), scripts,
-					new Holder<OperationalResultType>());
-		} catch (FaultMessage ex) {
+					new OperationResult("Delete Object"));
+		} catch (Exception ex) {
 			ResourceType resource = change.getResource();
 			String resourceName = resource == null ? "Undefined" : resource.getName();
 			trace.error("Couldn't delete resource object with oid '{}' on resource '{}'.", new Object[] {
 					change.getShadow().getOid(), resourceName });
 			throw new SynchronizationException("Couldn't delete resource object with oid '"
-					+ change.getShadow().getOid() + "' on resource '" + resourceName + "'.", ex,
-					ex.getFaultInfo());
+					+ change.getShadow().getOid() + "' on resource '" + resourceName + "'.", ex, null);
 		}
 
 		return userOid;

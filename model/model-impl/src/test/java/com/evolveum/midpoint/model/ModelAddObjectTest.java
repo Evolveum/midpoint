@@ -52,7 +52,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.model.test.util.mock.ContainerObjectNameMatcher;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.model.test.util.mock.ObjectTypeNameMatcher;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -63,8 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -79,12 +84,9 @@ public class ModelAddObjectTest {
 	@Autowired(required = true)
 	ModelPortType modelService;
 	@Autowired(required = true)
-	ProvisioningPortType provisioningService;
+	ProvisioningService provisioningService;
 	@Autowired(required = true)
-	RepositoryPortType repositoryService;
-
-	// @Autowired(required = true)
-	// SchemaHandling schemaHandling;
+	RepositoryService repositoryService;
 
 	@Before
 	public void before() {
@@ -105,35 +107,36 @@ public class ModelAddObjectTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void addUserCorrect() throws JAXBException, FaultMessage,
-			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+	public void addUserCorrect() throws JAXBException, ObjectAlreadyExistsException, SchemaException,
+			FaultMessage {
 		ObjectContainerType container = new ObjectContainerType();
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"add-user-correct.xml"))).getValue();
 		container.setObject(expectedUser);
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
-		when(repositoryService.addObject(argThat(new ContainerObjectNameMatcher(expectedUser.getName()))))
-				.thenAnswer(new Answer<String>() {
+		when(
+				repositoryService.addObject(argThat(new ObjectTypeNameMatcher(expectedUser.getName())),
+						any(OperationResult.class))).thenAnswer(new Answer<String>() {
 
-					@Override
-					public String answer(InvocationOnMock invocation) throws Throwable {
-						ObjectContainerType container = (ObjectContainerType) invocation.getArguments()[0];
-						UserType user = (UserType) container.getObject();
+			@Override
+			public String answer(InvocationOnMock invocation) throws Throwable {
+				ObjectContainerType container = (ObjectContainerType) invocation.getArguments()[0];
+				UserType user = (UserType) container.getObject();
 
-						assertEquals(expectedUser.getName(), user.getName());
-						assertEquals(expectedUser.getFullName(), user.getFullName());
-						assertEquals(expectedUser.getGivenName(), user.getGivenName());
-						assertEquals(expectedUser.getHonorificSuffix(), user.getHonorificSuffix());
-						assertEquals(expectedUser.getLocality(), user.getLocality());
+				assertEquals(expectedUser.getName(), user.getName());
+				assertEquals(expectedUser.getFullName(), user.getFullName());
+				assertEquals(expectedUser.getGivenName(), user.getGivenName());
+				assertEquals(expectedUser.getHonorificSuffix(), user.getHonorificSuffix());
+				assertEquals(expectedUser.getLocality(), user.getLocality());
 
-						return oid;
-					}
-				});
+				return oid;
+			}
+		});
 		String result = modelService.addObject(expectedUser, new Holder<OperationResultType>(
 				new OperationResultType()));
 		verify(repositoryService, times(1)).addObject(
-				argThat(new ContainerObjectNameMatcher(expectedUser.getName())));
+				argThat(new ObjectTypeNameMatcher(expectedUser.getName())), any(OperationResult.class));
 		assertEquals(oid, result);
 	}
 
@@ -149,29 +152,31 @@ public class ModelAddObjectTest {
 
 	// I can't figure out how to mock repository in this case
 	@Ignore
-	@Test(expected = FaultMessage.class)
+	@Test(expected = ObjectNotFoundException.class)
 	@SuppressWarnings("unchecked")
-	public void addUserWithExistingOid() throws JAXBException, FaultMessage,
-			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+	public void addUserWithExistingOid() throws JAXBException, ObjectNotFoundException, SchemaException,
+			FaultMessage, ObjectAlreadyExistsException {
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		ObjectContainerType container = new ObjectContainerType();
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"add-user-with-oid.xml"))).getValue();
 		container.setObject(expectedUser);
-		when(repositoryService.getObject(matches(oid), any(PropertyReferenceListType.class))).thenReturn(
-				container);
+		when(
+				repositoryService.getObject(matches(oid), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(expectedUser);
 
 		modelService.addObject(expectedUser, new Holder<OperationResultType>(new OperationResultType()));
 
-		verify(repositoryService, atLeast(1)).getObject(matches(oid), any(PropertyReferenceListType.class));
+		verify(repositoryService, atLeast(1)).getObject(matches(oid), any(PropertyReferenceListType.class),
+				any(OperationResult.class));
 		verify(repositoryService, times(1)).addObject(
-				argThat(new ContainerObjectNameMatcher(expectedUser.getName())));
+				argThat(new ObjectTypeNameMatcher(expectedUser.getName())), any(OperationResult.class));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void addResourceCorrect() throws JAXBException, FaultMessage,
-			com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage {
+	public void addResourceCorrect() throws JAXBException, FaultMessage, ObjectAlreadyExistsException,
+			SchemaException, CommunicationException {
 		ObjectContainerType container = new ObjectContainerType();
 		final ResourceType expectedResource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "add-resource-correct.xml"))).getValue();
@@ -179,9 +184,8 @@ public class ModelAddObjectTest {
 
 		final String oid = "abababab-abab-abab-abab-000000000002";
 		when(
-				provisioningService.addObject(
-						argThat(new ContainerObjectNameMatcher(expectedResource.getName())),
-						any(ScriptsType.class), any(Holder.class))).thenAnswer(new Answer<String>() {
+				provisioningService.addObject(argThat(new ObjectTypeNameMatcher(expectedResource.getName())),
+						any(ScriptsType.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
 
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
@@ -200,16 +204,15 @@ public class ModelAddObjectTest {
 		String result = modelService.addObject(expectedResource, new Holder<OperationResultType>(
 				new OperationResultType()));
 		verify(provisioningService, times(1)).addObject(
-				argThat(new ContainerObjectNameMatcher(expectedResource.getName())), any(ScriptsType.class),
-				any(Holder.class));
+				argThat(new ObjectTypeNameMatcher(expectedResource.getName())), any(ScriptsType.class),
+				any(OperationResult.class));
 		assertEquals(oid, result);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addUserAndCreateDefaultAccount() throws FaultMessage, JAXBException,
-			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage,
-			com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage {
+			ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, CommunicationException {
 
 		ObjectContainerType container = new ObjectContainerType();
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
@@ -221,41 +224,40 @@ public class ModelAddObjectTest {
 		final String accountName = "abababab-abab-abab-abab-000000000003-chivas";
 		final String resourceOid = "abababab-abab-abab-abab-000000000003";
 
-		when(repositoryService.addObject(argThat(new ContainerObjectNameMatcher(expectedUser.getName()))))
-				.thenAnswer(new Answer<String>() {
+		when(
+				repositoryService.addObject(argThat(new ObjectTypeNameMatcher(expectedUser.getName())),
+						any(OperationResult.class))).thenAnswer(new Answer<String>() {
 
-					@Override
-					public String answer(InvocationOnMock invocation) throws Throwable {
-						ObjectContainerType container = (ObjectContainerType) invocation.getArguments()[0];
-						UserType user = (UserType) container.getObject();
+			@Override
+			public String answer(InvocationOnMock invocation) throws Throwable {
+				ObjectContainerType container = (ObjectContainerType) invocation.getArguments()[0];
+				UserType user = (UserType) container.getObject();
 
-						assertEquals(expectedUser.getName(), user.getName());
-						assertEquals(expectedUser.getFullName(), user.getFullName());
-						assertEquals(expectedUser.getGivenName(), user.getGivenName());
-						assertEquals(expectedUser.getHonorificSuffix(), user.getHonorificSuffix());
-						assertEquals(expectedUser.getLocality(), user.getLocality());
+				assertEquals(expectedUser.getName(), user.getName());
+				assertEquals(expectedUser.getFullName(), user.getFullName());
+				assertEquals(expectedUser.getGivenName(), user.getGivenName());
+				assertEquals(expectedUser.getHonorificSuffix(), user.getHonorificSuffix());
+				assertEquals(expectedUser.getLocality(), user.getLocality());
 
-						assertNotNull(user.getAccountRef());
-						assertEquals(1, user.getAccountRef().size());
-						ObjectReferenceType accountRef = user.getAccountRef().get(0);
-						assertNotNull(accountRef);
-						assertEquals(accountOid, accountRef.getOid());
+				assertNotNull(user.getAccountRef());
+				assertEquals(1, user.getAccountRef().size());
+				ObjectReferenceType accountRef = user.getAccountRef().get(0);
+				assertNotNull(accountRef);
+				assertEquals(accountOid, accountRef.getOid());
 
-						return userOid;
-					}
-				});
+				return userOid;
+			}
+		});
 
-		container = new ObjectContainerType();
 		final ResourceType resourceType = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "add-user-default-accounts-resource-simple.xml"))).getValue();
-		container.setObject(resourceType);
 		when(
 				provisioningService.getObject(eq(resourceOid), any(PropertyReferenceListType.class),
-						any(Holder.class))).thenReturn(container);
+						any(OperationResult.class))).thenReturn(resourceType);
 
 		when(
-				provisioningService.addObject(argThat(new ContainerObjectNameMatcher(accountName)),
-						any(ScriptsType.class), any(Holder.class))).thenAnswer(new Answer<String>() {
+				provisioningService.addObject(argThat(new ObjectTypeNameMatcher(accountName)),
+						any(ScriptsType.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
 
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
@@ -275,7 +277,7 @@ public class ModelAddObjectTest {
 		String result = modelService.addObject(expectedUser, new Holder<OperationResultType>(
 				new OperationResultType()));
 		verify(repositoryService, times(1)).addObject(
-				argThat(new ContainerObjectNameMatcher(expectedUser.getName())));
+				argThat(new ObjectTypeNameMatcher(expectedUser.getName())), any(OperationResult.class));
 		assertEquals(userOid, result);
 	}
 }

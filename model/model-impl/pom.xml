@@ -76,12 +76,7 @@
             <version>1.8-SNAPSHOT</version>
         </dependency>
         
-        <!-- <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            TODO need to switch to api
-            <artifactId>repo-basex-impl</artifactId>
-            <version>1.8-SNAPSHOT</version>
-        </dependency> -->
+        
         <dependency>
             <groupId>com.evolveum.midpoint.provisioning</groupId>
             <!-- TODO need to switch to api -->
@@ -89,6 +84,12 @@
             <version>1.8-SNAPSHOT</version>
         </dependency>
         <!-- Test -->
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-basex-impl</artifactId>
+            <version>1.8-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>test-util</artifactId>

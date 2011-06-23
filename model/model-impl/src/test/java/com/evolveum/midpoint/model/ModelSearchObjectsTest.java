@@ -35,13 +35,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -55,12 +55,9 @@ public class ModelSearchObjectsTest {
 	@Autowired(required = true)
 	ModelPortType modelService;
 	@Autowired(required = true)
-	ProvisioningPortType provisioningService;
+	ProvisioningService provisioningService;
 	@Autowired(required = true)
-	RepositoryPortType repositoryService;
-
-	// @Autowired(required = true)
-	// SchemaHandling schemaHandling;
+	RepositoryService repositoryService;
 
 	@Before
 	public void before() {

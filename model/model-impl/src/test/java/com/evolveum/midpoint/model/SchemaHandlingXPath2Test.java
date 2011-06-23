@@ -28,10 +28,6 @@ import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,31 +48,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml",
-		"classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml" })
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
+		"classpath:application-context-model-test.xml" })
 public class SchemaHandlingXPath2Test {
 
 	@Autowired
 	SchemaHandling schemaHandling;
-
-	public SchemaHandlingXPath2Test() {
-	}
-
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() {
-	}
-
-	@After
-	public void tearDown() {
-	}
 
 	@Test
 	public void testIfThenElseSupportInOutboundSection() throws Exception {

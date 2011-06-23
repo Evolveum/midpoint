@@ -32,8 +32,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -54,21 +52,11 @@ public class PasswordServiceTest {
 	public PasswordServiceTest() throws JAXBException {
 		ctx = JAXBContext.newInstance(ObjectFactory.class);
 		unmarshaller = ctx.createUnmarshaller();
-
-	}
-
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownClass() throws Exception {
 	}
 
 	@Test
 	@Ignore
 	public void testSelfChangePassword() {
-		System.out.println("selfChangePassword");
 		SelfPasswordChangeRequestType spcrt = null;
 		PasswordService instance = new PasswordService();
 		PasswordChangeResponseType expResult = null;
@@ -80,7 +68,6 @@ public class PasswordServiceTest {
 	@Test
 	@Ignore
 	public void testChangePassword() {
-		System.out.println("changePassword");
 		// PasswordChangeRequestType pcrt = null;
 		// PasswordService instance = new PasswordService();
 		// PasswordChangeResponseType expResult = null;
@@ -89,6 +76,7 @@ public class PasswordServiceTest {
 		fail("The test case is a prototype.");
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	@Ignore
 	public void testSynchronizePassword() throws JAXBException {

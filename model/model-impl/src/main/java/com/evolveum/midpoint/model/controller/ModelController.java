@@ -38,14 +38,12 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.ProvisioningTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -69,8 +67,8 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author lazyman
  * 
  */
- @Component
- @Scope
+@Component
+@Scope
 public class ModelController {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelController.class);

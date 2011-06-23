@@ -22,16 +22,16 @@ package com.evolveum.midpoint.provisioning.impl;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -39,11 +39,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 /**
  * Implementation of provisioning service.
@@ -59,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
  * 
  * @author Radovan Semancik
  */
+@Service(value = "provisioningService")
 public class ProvisioningServiceImpl implements ProvisioningService {
 
 	private ShadowCache shadowCache;
@@ -145,22 +144,22 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public String addObject(ObjectType object, ScriptsType scripts, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException, CommunicationException {
 		// TODO
-		
 
-		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".addObject");
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".addObject");
 		result.addParam("object", object);
 		result.addParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-		
+
 		String addedShadow = null;
-		
+
 		try {
 			addedShadow = getShadowCache().addShadow(object, scripts, null, parentResult);
 		} catch (GenericFrameworkException ex) {
-			result.recordFatalError("Failed to add shadow object: "+ ex.getMessage(), ex);
+			result.recordFatalError("Failed to add shadow object: " + ex.getMessage(), ex);
 			throw new CommunicationException(ex.getMessage(), ex);
 		}
-		return addedShadow; 
+		return addedShadow;
 	}
 
 	@Override
@@ -215,14 +214,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("oid", oid);
 		result.addParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-		
+
 		ObjectType objectType = null;
 		try {
 			objectType = getRepositoryService().getObject(oid, new PropertyReferenceListType(), parentResult);
 		} catch (SchemaException e) {
 			throw new ObjectNotFoundException(e.getMessage());
 		}
-		
+
 		try {
 			getShadowCache().deleteShadow(objectType, null, parentResult);
 		} catch (CommunicationException e) {
@@ -235,7 +234,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 	}
 
 	@Override
@@ -253,13 +252,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public void launchImportFromResource(String resourceOid, QName objectClass, OperationResult parentResult) throws ObjectNotFoundException {
+	public void launchImportFromResource(String resourceOid, QName objectClass, OperationResult parentResult)
+			throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();
 	}
 
 	@Override
-	public TaskStatusType getImportStatus(String resourceOid, OperationResult parentResult) throws ObjectNotFoundException {
+	public TaskStatusType getImportStatus(String resourceOid, OperationResult parentResult)
+			throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();
 	}
@@ -270,5 +271,5 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		// TODO Auto-generated method stub
 		return null;
 	}
-	
+
 }

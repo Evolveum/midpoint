@@ -22,6 +22,12 @@
 
 package com.evolveum.midpoint.model.action;
 
+import java.util.List;
+
+import javax.xml.namespace.QName;
+
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.SynchronizationException;
@@ -36,11 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
-import java.util.List;
-import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
-
-import org.w3c.dom.Element;
 
 /**
  * 
@@ -73,10 +74,12 @@ public class ModifyPasswordAction extends BaseAction {
 
 		try {
 			ObjectModificationType changes = createPasswordModification(userType, pwd);
-			getModel().modifyObjectWithExclusion(changes, change.getShadow().getOid(),
-					new Holder<OperationResultType>(resultType));
-		} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
-			throw new SynchronizationException("Can't save user", ex, ex.getFaultInfo());
+
+			// getModel().modifyObjectWithExclusion(changes,
+			// change.getShadow().getOid(),
+			// new Holder<OperationResultType>(resultType));
+		} catch (Exception ex) {
+			throw new SynchronizationException("Can't save user", ex, null);
 		}
 
 		return userOid;

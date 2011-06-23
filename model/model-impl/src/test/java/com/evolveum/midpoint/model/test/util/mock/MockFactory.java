@@ -24,25 +24,25 @@ package com.evolveum.midpoint.model.test.util.mock;
 
 import org.mockito.Mockito;
 
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.synchronization.SynchronizationProcessManager;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 
 /**
- *
+ * 
  * @author lazyman
  */
 public class MockFactory {
 
-    public static ProvisioningPortType createProvisioningPortType() {
-        return Mockito.mock(ProvisioningPortType.class);
-    }
+	public static ProvisioningService createProvisioningPortType() {
+		return Mockito.mock(ProvisioningService.class);
+	}
 
-    public static RepositoryPortType createRepositoryPortType() {
-        return Mockito.mock(RepositoryPortType.class);
-    }
-    
-    public static SynchronizationProcessManager createSyncProcesManager() {
-    	return Mockito.mock(SynchronizationProcessManager.class);
-    }
+	public static RepositoryService createRepositoryPortType() {
+		return Mockito.mock(RepositoryService.class);
+	}
+
+	public static SynchronizationProcessManager createSyncProcesManager() {
+		return Mockito.mock(SynchronizationProcessManager.class);
+	}
 }

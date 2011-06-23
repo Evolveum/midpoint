@@ -43,12 +43,12 @@
      default-autowire="byName"
      >
 
-    <bean name="rai" class="org.mockito.Mockito" factory-method="mock">
+    <!-- <bean name="rai" class="org.mockito.Mockito" factory-method="mock">
         <constructor-arg index="0" value="com.evolveum.midpoint.provisioning.service.ResourceAccessInterface"/>
     </bean>
 
     <bean name="provisioningService" class="com.evolveum.midpoint.model.test.util.mock.ProvisioningServiceMock">
         <property name="rai" ref="rai"/>
-    </bean>
+    </bean> -->
 
 </beans>

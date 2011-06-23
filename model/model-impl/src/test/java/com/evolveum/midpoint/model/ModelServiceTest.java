@@ -46,13 +46,14 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.objects.ResourceAttribute;
 import com.evolveum.midpoint.provisioning.objects.ResourceObject;
 import com.evolveum.midpoint.provisioning.service.ResourceAccessInterface;
 import com.evolveum.midpoint.provisioning.service.ResourceConnector;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
@@ -61,7 +62,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -69,18 +69,20 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml",
-		"classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml" })
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
+		"classpath:application-context-model-test.xml" })
 public class ModelServiceTest {
 
 	private static final Trace trace = TraceManager.getTrace(ModelServiceTest.class);
 	@Autowired(required = true)
 	ModelPortType modelService;
 	@Autowired(required = true)
-	RepositoryPortType repositoryService;
+	RepositoryService repositoryService;
+	@SuppressWarnings("rawtypes")
 	@Autowired(required = true)
 	private ResourceAccessInterface rai;
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void createDefaultUserAccounts() throws Exception {
 		String resourceOid = null;
@@ -93,15 +95,12 @@ public class ModelServiceTest {
 					"src/test/resources/user-default-accounts.xml"))).getValue();
 
 			resourceOid = resource.getOid();
-			ObjectContainerType container = new ObjectContainerType();
-			container.setObject(resource);
-
 			// test objects
 			skipTestsIfExists(resource.getOid());
 			skipTestsIfExists(user.getOid());
 
 			// mocking repository
-			repositoryService.addObject(container);
+			repositoryService.addObject(resource, new OperationResult("Add Object"));
 			// mock provisioning
 			ResourceConnector c = new ResourceConnector(resource) {
 
@@ -113,7 +112,7 @@ public class ModelServiceTest {
 			};
 			when(rai.getConnector()).thenReturn(c);
 
-			Answer answer = new Answer<Object>() {
+			Answer<Object> answer = new Answer<Object>() {
 
 				ResourceObject object;
 
@@ -142,13 +141,11 @@ public class ModelServiceTest {
 			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenAnswer(answer);
 
 			// test begins
-			container = new ObjectContainerType();
-			container.setObject(user);
 			userOid = modelService
 					.addObject(user, new Holder<OperationResultType>(new OperationResultType()));
 
-			container = repositoryService.getObject(userOid, new PropertyReferenceListType());
-			user = (UserType) container.getObject();
+			user = (UserType) repositoryService.getObject(userOid, new PropertyReferenceListType(),
+					new OperationResult("Get Object"));
 
 			// test user
 			assertNotNull(user);
@@ -215,7 +212,7 @@ public class ModelServiceTest {
 		}
 		trace.info("Test cleanup: Removing object '{}'", oid);
 		try {
-			repositoryService.deleteObject(oid);
+			repositoryService.deleteObject(oid, new OperationResult("Delete Object"));
 		} catch (Exception ex) {
 			trace.error("Couldn't delete '{}', reason: {}", new Object[] { oid, ex.getMessage() });
 		}
@@ -223,10 +220,11 @@ public class ModelServiceTest {
 
 	private void skipTestsIfExists(String oid) {
 		try {
-			repositoryService.getObject(oid, new PropertyReferenceListType());
+			repositoryService.getObject(oid, new PropertyReferenceListType(), new OperationResult(
+					"Get Object"));
 
 			// delete
-			repositoryService.deleteObject(oid);
+			repositoryService.deleteObject(oid, new OperationResult("Delete Object"));
 			// skip
 			// fail("Object with oid '" + oid + "'");
 		} catch (Exception ex) {

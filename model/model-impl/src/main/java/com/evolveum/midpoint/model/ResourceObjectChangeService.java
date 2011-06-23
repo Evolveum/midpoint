@@ -27,7 +27,6 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,14 +37,17 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.action.Action;
 import com.evolveum.midpoint.model.action.ActionManager;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
@@ -57,7 +59,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
@@ -66,15 +67,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType.Reaction;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.ExpressionHolder;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
@@ -87,11 +85,11 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
 
 	private static transient Trace trace = TraceManager.getTrace(ResourceObjectChangeService.class);
 	@Autowired(required = true)
-	private ProvisioningPortType provisioning;
+	private ProvisioningService provisioning;
 	@Autowired(required = true)
-	private RepositoryPortType repository;
+	private RepositoryService repository;
 	@Autowired(required = true)
-	private ActionManager actionManager;
+	private ActionManager<Action> actionManager;
 	@Autowired(required = true)
 	private SchemaHandling schemaHandling;
 	private PatchXml patchXml = new PatchXml();
@@ -392,14 +390,14 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
 		}
 		Element filter = updateFilterWithAccountValues(resourceShadow, element);
 		try {
-			Holder<OperationalResultType> holder = new Holder<OperationalResultType>();
 			ObjectFactory of = new ObjectFactory();
 			query = of.createQueryType();
 			query.setFilter(filter);
 			trace.debug("CORRELATION: expression for OID {} results in filter {}", resourceShadow.getOid(),
 					DebugUtil.prettyPrint(query));
 			PagingType paging = new PagingType();
-			ObjectListType container = provisioning.searchObjects(query, paging, holder);
+			ObjectListType container = provisioning.searchObjects(query, paging, new OperationResult(
+					"Search Objects"));
 			if (container == null) {
 				return users;
 			}
@@ -410,7 +408,7 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
 					users.add((UserType) object);
 				}
 			}
-		} catch (com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage ex) {
+		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 
@@ -457,15 +455,12 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
 		UserType userType = null;
 		try {
 
-			UserContainerType userContainer = null;
 			if (resourceShadow != null && resourceShadow.getOid() != null
 					&& !resourceShadow.getOid().isEmpty()) {
 				// XXX: HACK! we should be calling method listAccountShadowOwner
 				// on provisioning service, OPENIDM-284
-				userContainer = repository.listAccountShadowOwner(resourceShadow.getOid());
-			}
-			if (userContainer != null) {
-				userType = userContainer.getUser();
+				userType = repository.listAccountShadowOwner(resourceShadow.getOid(), new OperationResult(
+						"List Account Shadow Owner"));
 			}
 
 			if (userType != null) {
@@ -535,10 +530,9 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
 				}
 
 			}
-		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
+		} catch (Exception ex) {
 			trace.error("Error occured during resource object shadow owner lookup.");
-			throw createFaultMessage("Error occured during resource object shadow owner lookup.",
-					ex.getFaultInfo(), ex);
+			throw createFaultMessage("Error occured during resource object shadow owner lookup.", null, ex);
 		}
 
 		trace.trace("checkSituation::end - '{}', '{}'", (userType == null ? "null" : userType.getOid()),

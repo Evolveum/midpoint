@@ -46,15 +46,17 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -69,12 +71,9 @@ public class ModelGetObjectTest {
 	@Autowired(required = true)
 	ModelPortType modelService;
 	@Autowired(required = true)
-	ProvisioningPortType provisioningService;
+	ProvisioningService provisioningService;
 	@Autowired(required = true)
-	RepositoryPortType repositoryService;
-
-	// @Autowired(required = true)
-	// SchemaHandling schemaHandling;
+	RepositoryService repositoryService;
 
 	@Before
 	public void before() {
@@ -108,13 +107,12 @@ public class ModelGetObjectTest {
 	}
 
 	@Test(expected = FaultMessage.class)
-	public void getNonexistingObject() throws FaultMessage,
-			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
-
+	public void getNonexistingObject() throws FaultMessage, ObjectNotFoundException, SchemaException {
 		final String oid = "abababab-abab-abab-abab-000000000001";
-		when(repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class))).thenThrow(
-				new com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage(
-						"Object with oid '' not found.", new ObjectNotFoundFaultType()));
+		when(
+				repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenThrow(
+				new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
 		modelService.getObject(oid, new PropertyReferenceListType(), new Holder<OperationResultType>(
 				new OperationResultType()));
@@ -123,24 +121,22 @@ public class ModelGetObjectTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void getUserCorrect() throws JAXBException, FaultMessage,
-			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
-
-		ObjectContainerType container = new ObjectContainerType();
+	public void getUserCorrect() throws JAXBException, FaultMessage, ObjectNotFoundException, SchemaException {
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"get-user-correct.xml"))).getValue();
-		container.setObject(expectedUser);
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
-		when(repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class)))
-				.thenReturn(container);
+		when(
+				repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(expectedUser);
 		final UserType user = (UserType) modelService.getObject(oid, new PropertyReferenceListType(),
 				new Holder<OperationResultType>(new OperationResultType()));
 
 		assertNotNull(user);
 		assertEquals(expectedUser.getName(), user.getName());
 
-		verify(repositoryService, atLeastOnce()).getObject(eq(oid), any(PropertyReferenceListType.class));
+		verify(repositoryService, atLeastOnce()).getObject(eq(oid), any(PropertyReferenceListType.class),
+				any(OperationResult.class));
 
 	}
 }

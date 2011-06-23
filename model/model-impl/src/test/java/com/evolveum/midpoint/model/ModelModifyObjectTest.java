@@ -41,16 +41,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -65,12 +67,9 @@ public class ModelModifyObjectTest {
 	@Autowired(required = true)
 	ModelPortType modelService;
 	@Autowired(required = true)
-	ProvisioningPortType provisioningService;
+	ProvisioningService provisioningService;
 	@Autowired(required = true)
-	RepositoryPortType repositoryService;
-
-	// @Autowired(required = true)
-	// SchemaHandling schemaHandling;
+	RepositoryService repositoryService;
 
 	@Before
 	public void before() {
@@ -84,9 +83,7 @@ public class ModelModifyObjectTest {
 	}
 
 	@Test(expected = FaultMessage.class)
-	public void nonExistingUid() throws FaultMessage,
-			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
-
+	public void nonExistingUid() throws FaultMessage, ObjectNotFoundException, SchemaException {
 		final String oid = "1";
 		ObjectModificationType modification = new ObjectModificationType();
 		PropertyModificationType mod1 = new PropertyModificationType();
@@ -96,24 +93,16 @@ public class ModelModifyObjectTest {
 		modification.getPropertyModification().add(mod1);
 		modification.setOid(oid);
 
-		when(repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class))).thenThrow(
-				new com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage("Oid '" + oid
-						+ "' not found.", new ObjectNotFoundFaultType()));
-		try {
-			modelService.modifyObject(modification,
-					new Holder<OperationResultType>(new OperationResultType()));
-		} catch (FaultMessage ex) {
-			if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
-				fail("Bad exceptiong fault info was thrown.");
-			}
+		when(
+				repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenThrow(
+				new ObjectNotFoundException("Oid '" + oid + "' not found."));
 
-			throw ex;
-		}
+		modelService.modifyObject(modification, new Holder<OperationResultType>(new OperationResultType()));
 	}
 
 	@Ignore
 	@Test
-	@SuppressWarnings("unchecked")
 	public void correctModifyUser() throws JAXBException {
 		// final String oid = "1";
 		// ObjectModificationType modification =

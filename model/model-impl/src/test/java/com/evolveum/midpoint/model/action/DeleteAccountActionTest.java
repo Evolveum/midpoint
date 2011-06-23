@@ -49,9 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml",
-		"classpath:application-context-repository-test.xml",
-		"classpath:application-context-provisioning.xml",
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
 		"classpath:application-context-model-test.xml" })
 public class DeleteAccountActionTest {
 
@@ -94,23 +92,21 @@ public class DeleteAccountActionTest {
 	@SuppressWarnings("unchecked")
 	private ObjectType addObjectToRepo(String fileString) throws Exception {
 		ObjectContainerType objectContainer = new ObjectContainerType();
-		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil
-				.unmarshal(new File(fileString))).getValue();
+		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
 		objectContainer.setObject(object);
 		repositoryService.addObject(objectContainer);
 		return object;
 	}
 
 	@SuppressWarnings("unchecked")
-	private ResourceObjectShadowChangeDescriptionType createChangeDescription(
-			String file) throws JAXBException {
+	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
+			throws JAXBException {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(file))).getValue();
 		return change;
 	}
 
-	private ResourceObject createSampleResourceObject(ResourceSchema schema,
-			ResourceObjectShadowType shadow)
+	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
 			throws ParserConfigurationException {
 		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
 		return valueWriter.buildResourceObject(shadow, schema);
@@ -128,34 +124,28 @@ public class DeleteAccountActionTest {
 			// create additional change
 			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-delete-account.xml");
 			// adding objects to repo
-			final ResourceType resourceType = (ResourceType) addObjectToRepo(change
-					.getResource());
-			final AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change
-					.getShadow());
+			final ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());
+			final AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change.getShadow());
 
 			assertNotNull(resourceType);
 			// setup provisioning mock
-			BaseResourceIntegration bri = new BaseResourceIntegration(
-					resourceType);
-			ResourceObject ro = createSampleResourceObject(bri.getSchema(),
-					accountType);
+			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
+			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
 
-			when(
-					rai.get(any(OperationalResultType.class),
-							any(ResourceObject.class))).thenReturn(ro);
+			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
 
 			when(rai.getConnector()).thenReturn(bri);
 
 			resourceObjectChangeService.notifyChange(change);
 
 			try {
-				ObjectContainerType container = repositoryService.getObject(
-						accountOid, new PropertyReferenceListType());
-				AccountShadowType accountShadow = (AccountShadowType) container
-						.getObject();
+				ObjectContainerType container = repositoryService.getObject(accountOid,
+						new PropertyReferenceListType());
+				AccountShadowType accountShadow = (AccountShadowType) container.getObject();
 				fail();
 			} catch (FaultMessage ex) {
-				assertEquals("Object with oid = 55555555-d34d-b44f-f11d-333222111111 not found", ex.getMessage());
+				assertEquals("Object with oid = 55555555-d34d-b44f-f11d-333222111111 not found",
+						ex.getMessage());
 			}
 
 		} finally {

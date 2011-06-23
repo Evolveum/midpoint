@@ -1,6 +1,5 @@
 package com.evolveum.midpoint.model.action;
 
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
@@ -62,20 +61,20 @@ import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:application-context-model.xml", "classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml", "classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml"})
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
+		"classpath:application-context-model-test.xml" })
 public class ModifyUserActionTest {
-	
+
 	@Autowired(required = true)
 	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
 	@Autowired(required = true)
 	private RepositoryPortType repositoryService;
 	@Autowired(required = true)
 	private ResourceAccessInterface rai;
-	
-	
 
 	public ModifyUserActionTest() {
-		
+
 	}
 
 	@BeforeClass
@@ -93,9 +92,7 @@ public class ModifyUserActionTest {
 	@After
 	public void tearDown() throws Exception {
 	}
-	
-	
-	
+
 	private ObjectType addObjectToRepo(ObjectType object) throws Exception {
 		ObjectContainerType objectContainer = new ObjectContainerType();
 		objectContainer.setObject(object);
@@ -106,31 +103,26 @@ public class ModifyUserActionTest {
 	@SuppressWarnings("unchecked")
 	private ObjectType addObjectToRepo(String fileString) throws Exception {
 		ObjectContainerType objectContainer = new ObjectContainerType();
-		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil
-				.unmarshal(new File(fileString))).getValue();
+		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
 		objectContainer.setObject(object);
 		repositoryService.addObject(objectContainer);
 		return object;
 	}
 
 	@SuppressWarnings("unchecked")
-	private ResourceObjectShadowChangeDescriptionType createChangeDescription(
-			String file) throws JAXBException {
+	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
+			throws JAXBException {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(file))).getValue();
 		return change;
 	}
 
-	private ResourceObject createSampleResourceObject(ResourceSchema schema,
-			ResourceObjectShadowType shadow)
+	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
 			throws ParserConfigurationException {
 		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
 		return valueWriter.buildResourceObject(shadow, schema);
 	}
 
-	
-
-	
 	@Test
 	public void testModifyUserAction() throws Exception {
 
@@ -138,46 +130,39 @@ public class ModifyUserActionTest {
 		final String userOid = "87654321-d34d-b33f-f00d-987987987987";
 		final String accountOid = "87654321-d34d-b44f-f11d-333222111111";
 
-//		UserType addedUser = null;
+		// UserType addedUser = null;
 
 		try {
 			// create additional change
 			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-modify-user.xml");
-			// adding objects to repo	
+			// adding objects to repo
 			final ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());
 			final AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change.getShadow());
 			UserType userType = (UserType) addObjectToRepo("src/test/resources/user-modify-action.xml");
 
-			//setting resource for ResourceObjectShadowType
-			ObjectModificationType objChange = ((ObjectChangeModificationType) change.getObjectChange()).getObjectModification();
-						
+			// setting resource for ResourceObjectShadowType
+			ObjectModificationType objChange = ((ObjectChangeModificationType) change.getObjectChange())
+					.getObjectModification();
+
 			assertNotNull(resourceType);
 			// setup provisioning mock
-			BaseResourceIntegration bri = new BaseResourceIntegration(
-					resourceType);
-			ResourceObject ro = createSampleResourceObject(bri.getSchema(),
-					accountType);
-			
-			
-			
-			when(rai.get(any(OperationalResultType.class),
-							any(ResourceObject.class))).thenReturn(ro);
-		
+			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
+			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
+
+			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
+
 			when(rai.getConnector()).thenReturn(bri);
-			
+
 			resourceObjectChangeService.notifyChange(change);
 
-		
-			ObjectContainerType container = repositoryService.getObject(userOid, new PropertyReferenceListType());
+			ObjectContainerType container = repositoryService.getObject(userOid,
+					new PropertyReferenceListType());
 			UserType changedUser = (UserType) container.getObject();
 			List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
 			assertNotNull(changedUser);
 			assertEquals(accountOid, accountRefs.get(0).getOid());
-			
-			
-			assertEquals("First", changedUser.getFamilyName());
-			
 
+			assertEquals("First", changedUser.getFamilyName());
 
 		} finally {
 			// cleanup repo
@@ -193,11 +178,9 @@ public class ModifyUserActionTest {
 				repositoryService.deleteObject(userOid);
 			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
 			}
-			
+
 		}
 
 	}
-
-
 
 }

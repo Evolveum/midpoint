@@ -22,33 +22,31 @@
 
 package com.evolveum.midpoint.model.test.util.mock;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+
 /**
- *
+ * 
  * @author lazyman
  */
-public class ContainerObjectNameMatcher extends BaseMatcher<ObjectContainerType> {
+public class ObjectTypeNameMatcher extends BaseMatcher<ObjectType> {
 
-    private String name;
+	private String name;
 
-    public ContainerObjectNameMatcher(String name) {
-        this.name = name;
-    }
+	public ObjectTypeNameMatcher(String name) {
+		this.name = name;
+	}
 
-    @Override
-    public boolean matches(Object item) {
-        ObjectContainerType cont = (ObjectContainerType) item;
-        ObjectType object = cont.getObject();
-        System.out.println(object.getName());
+	@Override
+	public boolean matches(Object item) {
+		ObjectType object = (ObjectType) item;
 
-        return object.getName().equals(name);
-    }
+		return object.getName().equals(name);
+	}
 
-    @Override
-    public void describeTo(Description description) {
-    }
+	@Override
+	public void describeTo(Description description) {
+	}
 }

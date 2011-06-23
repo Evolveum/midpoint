@@ -26,6 +26,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -44,20 +46,21 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.test.util.ResourceObjectShadowTypeComparator;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -73,9 +76,9 @@ public class ModelListResourceObjectShadowsTest {
 	@Autowired(required = true)
 	ModelPortType modelService;
 	@Autowired(required = true)
-	ProvisioningPortType provisioningService;
+	ProvisioningService provisioningService;
 	@Autowired(required = true)
-	RepositoryPortType repositoryService;
+	RepositoryService repositoryService;
 	@Autowired(required = true)
 	SchemaHandling schemaHandling;
 
@@ -113,15 +116,14 @@ public class ModelListResourceObjectShadowsTest {
 	}
 
 	@Test(expected = FaultMessage.class)
-	public void nonexistingResourceOid() throws FaultMessage,
-			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+	public void nonexistingResourceOid() throws FaultMessage, ObjectNotFoundException {
 
 		final String resourceOid = "abababab-abab-abab-abab-000000000001";
-		when(repositoryService.listResourceObjectShadows(resourceOid, ObjectTypes.ACCOUNT.getObjectTypeUri()))
-				.thenThrow(
-						new com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage(
-								"Resource with oid '" + resourceOid + "' not found.",
-								new ObjectNotFoundFaultType()));
+		when(
+				repositoryService.listResourceObjectShadows(eq(resourceOid),
+						eq(ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class))).thenThrow(
+				new com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage(
+						"Resource with oid '" + resourceOid + "' not found.", new ObjectNotFoundFaultType()));
 
 		modelService.listResourceObjectShadows(resourceOid, ObjectTypes.ACCOUNT.getObjectTypeUri(),
 				new Holder<OperationResultType>(new OperationResultType()));
@@ -140,16 +142,17 @@ public class ModelListResourceObjectShadowsTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void correctList() throws FaultMessage, JAXBException,
-			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+	public void correctList() throws FaultMessage, JAXBException, ObjectNotFoundException {
 
 		final String resourceOid = "abababab-abab-abab-abab-000000000001";
 		final ResourceObjectShadowListType expected = ((JAXBElement<ResourceObjectShadowListType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "resource-object-shadow-list.xml"))).getValue();
 		trace.warn("TODO: File resource-object-shadow-list.xml doesn't contain proper resource object shadow list.");
 
-		when(repositoryService.listResourceObjectShadows(resourceOid, ObjectTypes.ACCOUNT.getObjectTypeUri()))
-				.thenReturn(expected);
+		when(
+				repositoryService.listResourceObjectShadows(eq(resourceOid),
+						eq(ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class)))
+				.thenReturn(expected.getObject());
 
 		final ResourceObjectShadowListType returned = modelService.listResourceObjectShadows(resourceOid,
 				ObjectTypes.ACCOUNT.getObjectTypeUri(), new Holder<OperationResultType>(

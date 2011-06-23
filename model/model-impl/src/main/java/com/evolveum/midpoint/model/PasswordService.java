@@ -22,64 +22,66 @@
 
 package com.evolveum.midpoint.model;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.provisioning.util.ShadowUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
-import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordChangeRequestType;
-import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordChangeResponseType;
-import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordPortType;
-import com.evolveum.midpoint.xml.ns._public.model.password_1.SelfPasswordChangeRequestType;
-import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordSynchronizeRequestType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.password_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.ws.Holder;
+
 import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.util.ShadowUtil;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.password_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordChangeRequestType;
+import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordChangeResponseType;
+import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordPortType;
+import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordSynchronizeRequestType;
+import com.evolveum.midpoint.xml.ns._public.model.password_1.SelfPasswordChangeRequestType;
+import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.schema.XPathSegment;
+import com.evolveum.midpoint.xml.schema.XPathType;
+
 @Service
 public class PasswordService implements PasswordPortType {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PasswordService.class);
 	@Autowired(required = true)
-	private RepositoryPortType repositoryService;
+	private RepositoryService repositoryService;
 	@Autowired(required = true)
-	private ProvisioningPortType provisioningService;
+	private ProvisioningService provisioningService;
 	@Autowired(required = true)
 	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
 
@@ -99,14 +101,14 @@ public class PasswordService implements PasswordPortType {
 				objectChange.setOid(accountref.getOid());
 				objectChange.getPropertyModification().add(passwordChange);
 				OperationalResultType operationalResult = new OperationalResultType();
-				Holder<OperationalResultType> holder = new Holder<OperationalResultType>(operationalResult);
 
 				// TODO: Handle scripts
 				ScriptsType scripts = new ScriptsType();
 
 				try {
-					provisioningService.modifyObject(objectChange, scripts, holder);
-				} catch (FaultMessage ex) {
+					provisioningService.modifyObject(objectChange, scripts, new OperationResult(
+							"Modify Object"));
+				} catch (Exception ex) {
 					LOGGER.error("Failed change password: " + accountref.getOid(), ex);
 				}
 				result.getOperationalResult().add(operationalResult);
@@ -144,11 +146,11 @@ public class PasswordService implements PasswordPortType {
 			try {
 				ResourceObjectShadowType account = getCurrentShadow(body.getSubject().getOid(), userName);
 				if (null != account) {
-					ObjectContainerType container = repositoryService.getObject(body.getSubject().getOid(),
-							new PropertyReferenceListType());
+					ResourceType resource = (ResourceType) repositoryService.getObject(body.getSubject()
+							.getOid(), new PropertyReferenceListType(), new OperationResult("Get Object"));
 					ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
 
-					change.setResource((ResourceType) container.getObject());
+					change.setResource(resource);
 					change.setShadow(account);
 					change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
 
@@ -162,11 +164,7 @@ public class PasswordService implements PasswordPortType {
 					change.setObjectChange(pwchange);
 					resourceObjectChangeService.notifyChange(change);
 				}
-			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
-				LOGGER.error("Failed to synchronize password", ex);
-			} catch (com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.FaultMessage ex) {
-				LOGGER.error("Failed to synchronize password", ex);
-			} catch (FaultMessage ex) {
+			} catch (Exception ex) {
 				LOGGER.error("Failed to synchronize password", ex);
 			}
 
@@ -240,24 +238,24 @@ public class PasswordService implements PasswordPortType {
 		PagingType paging = new PagingType();
 		ObjectListType results = null;
 		try {
-			results = repositoryService.searchObjects(query, paging);
+			results = repositoryService.searchObjects(query, paging, new OperationResult("Search Objects"));
 			if (results.getObject().size() == 1 && results.getObject().get(0) instanceof UserType) {
 				UserType user = (UserType) results.getObject().get(0);
 				for (ObjectReferenceType ref : user.getAccountRef()) {
-					ObjectContainerType container = repositoryService.getObject(ref.getOid(),
-							new PropertyReferenceListType());
-					ResourceObjectShadowType account = (ResourceObjectShadowType) container.getObject();
+					ResourceObjectShadowType account = (ResourceObjectShadowType) repositoryService
+							.getObject(ref.getOid(), new PropertyReferenceListType(), new OperationResult(
+									"Get Object"));
 					if (account.getResourceRef().getOid().equals(resourceOID)) {
 						return account;
 					}
 				}
-			}			
+			}
 			if (results.getObject().size() > 1) {
 				// TODO: Better error handling later
 				throw new IllegalStateException("More than one user found for " + userName);
 			}
-		} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage ex) {
-			throw new FaultMessage(ex.getMessage(), ex.getFaultInfo(), ex);
+		} catch (Exception ex) {
+			throw new FaultMessage(ex.getMessage(), null, ex);
 		}
 		return null;
 	}

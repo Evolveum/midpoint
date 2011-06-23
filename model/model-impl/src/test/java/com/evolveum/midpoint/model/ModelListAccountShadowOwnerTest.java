@@ -26,6 +26,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
@@ -43,13 +45,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -64,12 +67,9 @@ public class ModelListAccountShadowOwnerTest {
 	@Autowired(required = true)
 	ModelPortType modelService;
 	@Autowired(required = true)
-	ProvisioningPortType provisioningService;
+	ProvisioningService provisioningService;
 	@Autowired(required = true)
-	RepositoryPortType repositoryService;
-
-	// @Autowired(required = true)
-	// SchemaHandling schemaHandling;
+	RepositoryService repositoryService;
 
 	@Before
 	public void before() {
@@ -89,11 +89,10 @@ public class ModelListAccountShadowOwnerTest {
 	}
 
 	@Test
-	public void accountWithoutOwner() throws FaultMessage,
-			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+	public void accountWithoutOwner() throws FaultMessage, ObjectNotFoundException {
 		final String accountOid = "1";
-		final UserContainerType expected = new UserContainerType();
-		when(repositoryService.listAccountShadowOwner(accountOid)).thenReturn(expected);
+		when(repositoryService.listAccountShadowOwner(eq(accountOid), any(OperationResult.class)))
+				.thenReturn(null);
 		final UserType returned = modelService.listAccountShadowOwner("1", new Holder<OperationResultType>(
 				new OperationResultType()));
 		assertNull(returned);
@@ -101,17 +100,16 @@ public class ModelListAccountShadowOwnerTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void correctListAccountShadowOwner() throws FaultMessage, JAXBException,
-			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
+	public void correctListAccountShadowOwner() throws FaultMessage, JAXBException, ObjectNotFoundException {
 		final String accountOid = "acc11111-76e0-48e2-86d6-3d4f02d3e1a2";
-		final UserContainerType expected = new UserContainerType();
-		expected.setUser(((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-				"list-account-shadow-owner.xml"))).getValue());
+		UserType expected = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"list-account-shadow-owner.xml"))).getValue();
 
-		when(repositoryService.listAccountShadowOwner(accountOid)).thenReturn(expected);
+		when(repositoryService.listAccountShadowOwner(eq(accountOid), any(OperationResult.class)))
+				.thenReturn(expected);
 		final UserType returned = (UserType) modelService.listAccountShadowOwner(accountOid,
 				new Holder<OperationResultType>(new OperationResultType()));
 		assertNotNull(returned);
-		assertEquals(expected.getUser(), returned);
+		assertEquals(expected, returned);
 	}
 }

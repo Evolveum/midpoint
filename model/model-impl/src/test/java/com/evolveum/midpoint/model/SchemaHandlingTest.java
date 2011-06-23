@@ -32,10 +32,6 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,9 +40,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
@@ -59,31 +55,12 @@ import com.evolveum.midpoint.xml.schema.ExpressionHolder;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml",
-		"classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml" })
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
+		"classpath:application-context-model-test.xml" })
 public class SchemaHandlingTest {
 
 	@Autowired
 	SchemaHandling schemaHandling;
-
-	public SchemaHandlingTest() {
-	}
-
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() {
-	}
-
-	@After
-	public void tearDown() {
-	}
 
 	@Test
 	@SuppressWarnings("unchecked")

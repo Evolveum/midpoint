@@ -22,17 +22,15 @@
 
 package com.evolveum.midpoint.model;
 
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import static org.junit.Assert.assertNotNull;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import static org.junit.Assert.*;
+
+import com.evolveum.midpoint.repo.api.RepositoryService;
 
 /**
  * 
@@ -41,35 +39,15 @@ import static org.junit.Assert.*;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml",
-		"classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml" })
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
+		"classpath:application-context-model-test.xml" })
 public class SpringApplicationContextTest {
 
 	@Autowired(required = true)
-	RepositoryPortType repositoryService;
-
-	public SpringApplicationContextTest() {
-	}
-
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() {
-	}
-
-	@After
-	public void tearDown() {
-	}
+	RepositoryService repositoryService;
 
 	@Test
 	public void initApplicationContext() {
 		assertNotNull(repositoryService);
 	}
-
 }

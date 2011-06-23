@@ -22,149 +22,158 @@
 
 package com.evolveum.midpoint.provisioning.synchronization;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.provisioning.service.ProvisioningService;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.xml.ws.Holder;
+
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType;
 
 /**
- *
+ * 
  * @author semancik
  */
 public class SynchronizationProcess extends Thread {
 
-    // TODO: This should be configurable.
-    // But we don't have global configuration obejct now.
-    private static final long SLEEP_INTERVAL = 60000;
+	// TODO: This should be configurable.
+	// But we don't have global configuration obejct now.
+	private static final long SLEEP_INTERVAL = 60000;
 
-    ProvisioningPortType provisioning;
-    private boolean enabled = true;
-    private long lastLoopRun = 0;
-    private Map<String, Long> lastResourceRun;
-    private static final transient Trace logger = TraceManager.getTrace(SynchronizationProcess.class);
+	ProvisioningService provisioning;
+	private boolean enabled = true;
+	private long lastLoopRun = 0;
+	private Map<String, Long> lastResourceRun;
+	private static final transient Trace logger = TraceManager.getTrace(SynchronizationProcess.class);
 
-    public SynchronizationProcess(ProvisioningPortType provisioningService) {
-        enabled = true;
-        provisioning = provisioningService;
-        lastResourceRun = new HashMap<String, Long>();
-    }
+	public SynchronizationProcess(ProvisioningService provisioningService) {
+		enabled = true;
+		provisioning = provisioningService;
+		lastResourceRun = new HashMap<String, Long>();
+	}
 
-    @Override
-    public void run() {
-        logger.info("Synchronization thread starting");
-        while (enabled) {
+	@Override
+	public void run() {
+		logger.info("Synchronization thread starting");
+		while (enabled) {
 
-            logger.trace("Synchronization thread loop: start");
+			logger.trace("Synchronization thread loop: start");
 
-            lastLoopRun = System.currentTimeMillis();
+			lastLoopRun = System.currentTimeMillis();
 
-            PagingType paging = new PagingType();
-            Holder<OperationalResultType> resultHolder = new Holder<OperationalResultType>();
-            ObjectListType listObjects = null;
-            try {
-                listObjects = provisioning.listObjects(QNameUtil.qNameToUri(SchemaConstants.I_RESOURCE_TYPE), paging, resultHolder);
-            } catch (FaultMessage ex) {
-                // TODO: Better error reporting
-                logger.error("Synchronizatoin thread got provisioning fault (listObjects):" + ex);
-            }
-            if (listObjects != null) {
-                List<ObjectType> objectList = listObjects.getObject();
-                for (Object o : objectList) {
-                    if (o instanceof ResourceType) {
-                        ResourceType resource = (ResourceType) o;
-                        logger.trace("Synchronization thread: Start processing resource " + resource.getName() + " (OID: " + resource.getOid() + ")");
+			PagingType paging = new PagingType();
+			OperationResult result = new OperationResult("List Objects");
+			ObjectListType listObjects = null;
+			try {
+				listObjects = provisioning.listObjects(ObjectTypes.RESOURCE.getClassDefinition(), paging,
+						result);
+			} catch (Exception ex) {
+				// TODO: Better error reporting
+				logger.error("Synchronizatoin thread got provisioning fault (listObjects):" + ex);
+			}
+			if (listObjects != null) {
+				List<ObjectType> objectList = listObjects.getObject();
+				for (Object o : objectList) {
+					if (o instanceof ResourceType) {
+						ResourceType resource = (ResourceType) o;
+						logger.trace("Synchronization thread: Start processing resource "
+								+ resource.getName() + " (OID: " + resource.getOid() + ")");
 
-                        SynchronizationType synchronization = resource.getSynchronization();
-                        if (synchronization == null) {
-                            logger.trace("Synchronization thread: skipping resource " + resource.getName() + " because it does not have synchronization section");
-                        } else {
-                            if (synchronization.isEnabled() == null || synchronization.isEnabled()) {
+						SynchronizationType synchronization = resource.getSynchronization();
+						if (synchronization == null) {
+							logger.trace("Synchronization thread: skipping resource " + resource.getName()
+									+ " because it does not have synchronization section");
+						} else {
+							if (synchronization.isEnabled() == null || synchronization.isEnabled()) {
 
-                                String oid = resource.getOid();
-                                long pollingInterval = 0;
-                                if (synchronization.getPollingInterval() != null) {
-                                    // The time in XML is in seconds. We need millis here.
-                                    pollingInterval = synchronization.getPollingInterval().longValue() * 1000;
-                                }
+								String oid = resource.getOid();
+								long pollingInterval = 0;
+								if (synchronization.getPollingInterval() != null) {
+									// The time in XML is in seconds. We need
+									// millis here.
+									pollingInterval = synchronization.getPollingInterval().longValue() * 1000;
+								}
 
-                                if (lastResourceRun.get(oid) == null || lastResourceRun.get(oid) + pollingInterval < System.currentTimeMillis()) {
-                                    long startTime = System.currentTimeMillis();
+								if (lastResourceRun.get(oid) == null
+										|| lastResourceRun.get(oid) + pollingInterval < System
+												.currentTimeMillis()) {
+									long startTime = System.currentTimeMillis();
 
-                                    try {
+									try {
 
-                                        logger.debug("Synchronization Thread: calling synchronize() for resource "+resource.getName()+" oid: "+oid);
+										logger.debug("Synchronization Thread: calling synchronize() for resource "
+												+ resource.getName() + " oid: " + oid);
 
-                                        provisioning.synchronize(oid);
+										provisioning.synchronize(oid, new OperationResult("Synchronize"));
 
-                                        // Remember the start time only if the call is successful
-                                        lastResourceRun.put(oid, startTime);
-                                        
-                                    } catch (FaultMessage ex) {
-                                        // TODO: Better error reporting
-                                        logger.error("Synchronizatoin thread got provisioning fault (synchronize): {} : {}",new Object[]{ex.getClass().getSimpleName(),ex.getMessage(),ex});
-                                    } catch (RuntimeException ex) {
-                                        // Runtime exceptions are used from time to time, althought all the
-                                        // exceptions that could be reasonably caught should be transformed to
-                                        // Faults, obvious not all of them are. Do not cause this thread to die
-                                        // because of bug in the synchronize method.
+										// Remember the start time only if the
+										// call is successful
+										lastResourceRun.put(oid, startTime);
+									} catch (RuntimeException ex) {
+										// Runtime exceptions are used from time
+										// to time, althought all the
+										// exceptions that could be reasonably
+										// caught should be transformed to
+										// Faults, obvious not all of them are.
+										// Do not cause this thread to die
+										// because of bug in the synchronize
+										// method.
 
-                                        // TODO: Better error reporting
-                                        logger.error("Synchronizatoin thread got runtime exception (synchronize): {} : {}",new Object[]{ex.getClass().getSimpleName(),ex.getMessage(),ex});
-                                    }
-                                }
-                            } else {
-                                logger.trace("Synchronization thread: skipping resource " + resource.getName() + " because it is not enabled");
-                            }
+										// TODO: Better error reporting
+										logger.error(
+												"Synchronizatoin thread got runtime exception (synchronize): {} : {}",
+												new Object[] { ex.getClass().getSimpleName(),
+														ex.getMessage(), ex });
+									}
+								}
+							} else {
+								logger.trace("Synchronization thread: skipping resource "
+										+ resource.getName() + " because it is not enabled");
+							}
 
-                        }
+						}
 
-                        logger.trace("Synchronization thread: End processing resource " + resource.getName() + " (OID: " + resource.getOid() + ")");
-                    } else {
-                        logger.error("Synchronization thread got unexpected object type in listObjects: " + o.getClass().getName());
-                        // skip it
-                    }
-                }
-            }
+						logger.trace("Synchronization thread: End processing resource " + resource.getName()
+								+ " (OID: " + resource.getOid() + ")");
+					} else {
+						logger.error("Synchronization thread got unexpected object type in listObjects: "
+								+ o.getClass().getName());
+						// skip it
+					}
+				}
+			}
 
-            if (lastLoopRun + SLEEP_INTERVAL > System.currentTimeMillis()) {
+			if (lastLoopRun + SLEEP_INTERVAL > System.currentTimeMillis()) {
 
-                // Let's sleep a while to slow down the synch, to avoid
-                // overloading the system with sync polling
+				// Let's sleep a while to slow down the synch, to avoid
+				// overloading the system with sync polling
 
-                logger.trace("Synchronization thread loop: going to sleep");
+				logger.trace("Synchronization thread loop: going to sleep");
 
-                try {
-                    Thread.sleep(SLEEP_INTERVAL - (System.currentTimeMillis() - lastLoopRun));
-                } catch (InterruptedException ex) {
-                    logger.trace("Synchronization thread got InterruptedException: " + ex);
-                    // Safe to ignore
-                }
-            }
-            logger.trace("Synchronization thread loop: end");
-        }
-        logger.info("Synchronization thread stopping");
-    }
+				try {
+					Thread.sleep(SLEEP_INTERVAL - (System.currentTimeMillis() - lastLoopRun));
+				} catch (InterruptedException ex) {
+					logger.trace("Synchronization thread got InterruptedException: " + ex);
+					// Safe to ignore
+				}
+			}
+			logger.trace("Synchronization thread loop: end");
+		}
+		logger.info("Synchronization thread stopping");
+	}
 
-    public void disable() {
-        enabled = false;
-    }
+	public void disable() {
+		enabled = false;
+	}
 
-    public void enable() {
-        enabled = true;
-    }
+	public void enable() {
+		enabled = true;
+	}
 }

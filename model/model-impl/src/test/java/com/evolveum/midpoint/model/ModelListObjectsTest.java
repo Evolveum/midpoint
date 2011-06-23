@@ -48,9 +48,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.test.util.UserTypeComparator;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -59,8 +61,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -75,12 +75,9 @@ public class ModelListObjectsTest {
 	@Autowired(required = true)
 	ModelPortType modelService;
 	@Autowired(required = true)
-	ProvisioningPortType provisioningService;
+	ProvisioningService provisioningService;
 	@Autowired(required = true)
-	RepositoryPortType repositoryService;
-
-	// @Autowired(required = true)
-	// SchemaHandling schemaHandling;
+	RepositoryService repositoryService;
 
 	@Before
 	public void before() {
@@ -124,13 +121,14 @@ public class ModelListObjectsTest {
 		final ObjectListType expectedUserList = ((JAXBElement<ObjectListType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "user-list.xml"))).getValue();
 
-		when(repositoryService.listObjects(eq(ObjectTypes.USER.getObjectTypeUri()), any(PagingType.class)))
-				.thenReturn(expectedUserList);
+		when(
+				repositoryService.listObjects(eq(ObjectTypes.USER.getClassDefinition()),
+						any(PagingType.class), any(OperationResult.class))).thenReturn(expectedUserList);
 		final ObjectListType returnedUserList = modelService.listObjects(ObjectTypes.USER.getObjectTypeUri(),
 				new PagingType(), new Holder<OperationResultType>(new OperationResultType()));
 
-		verify(repositoryService, times(1)).listObjects(eq(ObjectTypes.USER.getObjectTypeUri()),
-				any(PagingType.class));
+		verify(repositoryService, times(1)).listObjects(eq(ObjectTypes.USER.getClassDefinition()),
+				any(PagingType.class), any(OperationResult.class));
 		testObjectListTypes(expectedUserList, returnedUserList);
 	}
 

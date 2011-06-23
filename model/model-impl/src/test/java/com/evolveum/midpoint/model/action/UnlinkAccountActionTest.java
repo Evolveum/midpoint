@@ -43,9 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml",
-		"classpath:application-context-repository-test.xml",
-		"classpath:application-context-provisioning.xml",
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
 		"classpath:application-context-model-test.xml" })
 public class UnlinkAccountActionTest {
 
@@ -55,11 +53,9 @@ public class UnlinkAccountActionTest {
 	private RepositoryPortType repositoryService;
 	@Autowired(required = true)
 	private ResourceAccessInterface rai;
-	
-	
 
 	public UnlinkAccountActionTest() {
-		
+
 	}
 
 	@BeforeClass
@@ -77,83 +73,85 @@ public class UnlinkAccountActionTest {
 	@After
 	public void tearDown() throws Exception {
 	}
-	
+
 	private ObjectType addObjectToRepo(ObjectType object) throws Exception {
-        ObjectContainerType objectContainer = new ObjectContainerType();
-        objectContainer.setObject(object);
-        repositoryService.addObject(objectContainer);
-        return object;
-    }
+		ObjectContainerType objectContainer = new ObjectContainerType();
+		objectContainer.setObject(object);
+		repositoryService.addObject(objectContainer);
+		return object;
+	}
 
-    @SuppressWarnings("unchecked")
-    private ObjectType addObjectToRepo(String fileString) throws Exception {
-        ObjectContainerType objectContainer = new ObjectContainerType();
-        ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
-        objectContainer.setObject(object);
-        repositoryService.addObject(objectContainer);
-        return object;
-    }
+	@SuppressWarnings("unchecked")
+	private ObjectType addObjectToRepo(String fileString) throws Exception {
+		ObjectContainerType objectContainer = new ObjectContainerType();
+		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
+		objectContainer.setObject(object);
+		repositoryService.addObject(objectContainer);
+		return object;
+	}
 
-    @SuppressWarnings("unchecked")
-    private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file) throws JAXBException {
-        ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil.unmarshal(new File(file))).getValue();
-        return change;
-    }
+	@SuppressWarnings("unchecked")
+	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
+			throws JAXBException {
+		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
+				.unmarshal(new File(file))).getValue();
+		return change;
+	}
 
-    private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow ) throws ParserConfigurationException {
-        ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
-        return valueWriter.buildResourceObject(shadow, schema);
-    }
-    
-    @Test
-    public void testUnlinkAccountAction() throws Exception {
+	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
+			throws ParserConfigurationException {
+		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
+		return valueWriter.buildResourceObject(shadow, schema);
+	}
 
-        final String resourceOid = "45645645-d34d-b33f-f00d-333222111111";
-        final String userOid = "45645645-d34d-b33f-f00d-987987987987";
-        final String accountOid = "45645645-d34d-b44f-f11d-333222111111";
+	@Test
+	public void testUnlinkAccountAction() throws Exception {
 
-        try {
-            //create additional change
-            ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-unlink-account.xml");
-            //adding objects to repo
-            ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());
-            AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change.getShadow());
-            addObjectToRepo("src/test/resources/user-unlink-account-action.xml");
+		final String resourceOid = "45645645-d34d-b33f-f00d-333222111111";
+		final String userOid = "45645645-d34d-b33f-f00d-987987987987";
+		final String accountOid = "45645645-d34d-b44f-f11d-333222111111";
 
-            assertNotNull(resourceType);
-            //setup provisioning mock
-            BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
-            ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
-            when(rai.get(
-                    any(OperationalResultType.class),
-                    any(ResourceObject.class))).thenReturn(ro);
-            when(rai.getConnector()).thenReturn(bri);
-            
-            resourceObjectChangeService.notifyChange(change);
+		try {
+			// create additional change
+			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-unlink-account.xml");
+			// adding objects to repo
+			ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());
+			AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change.getShadow());
+			addObjectToRepo("src/test/resources/user-unlink-account-action.xml");
 
-            ObjectContainerType container = repositoryService.getObject(userOid, new PropertyReferenceListType());
-            UserType changedUser = (UserType) container.getObject();
-            List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
+			assertNotNull(resourceType);
+			// setup provisioning mock
+			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
+			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
+			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
+			when(rai.getConnector()).thenReturn(bri);
 
-            assertNotNull(changedUser);
-            assertEquals(0, accountRefs.size());
+			resourceObjectChangeService.notifyChange(change);
 
-        } finally {
-            //cleanup repo
-            try {
-                repositoryService.deleteObject(accountOid);
-            } catch(com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
-            }
-            try {
-                repositoryService.deleteObject(resourceOid);
-            } catch(com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
-            }
-            try {
-                repositoryService.deleteObject(userOid);
-            } catch(com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
-            }
-        }
+			ObjectContainerType container = repositoryService.getObject(userOid,
+					new PropertyReferenceListType());
+			UserType changedUser = (UserType) container.getObject();
+			List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
 
-    }
+			assertNotNull(changedUser);
+			assertEquals(0, accountRefs.size());
+
+		} finally {
+			// cleanup repo
+			try {
+				repositoryService.deleteObject(accountOid);
+			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
+			}
+			try {
+				repositoryService.deleteObject(resourceOid);
+			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
+			}
+			try {
+				repositoryService.deleteObject(userOid);
+			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
+			}
+		}
+
+	}
 
 }

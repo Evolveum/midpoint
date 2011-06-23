@@ -25,6 +25,8 @@ package com.evolveum.midpoint.model;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,13 +46,14 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.ProvisioningPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -65,12 +68,9 @@ public class ModelGetImportStatusTest {
 	@Autowired(required = true)
 	ModelPortType modelService;
 	@Autowired(required = true)
-	ProvisioningPortType provisioningService;
+	ProvisioningService provisioningService;
 	@Autowired(required = true)
-	RepositoryPortType repositoryService;
-
-	// @Autowired(required = true)
-	// SchemaHandling schemaHandling;
+	RepositoryService repositoryService;
 
 	@Before
 	public void before() {
@@ -90,13 +90,11 @@ public class ModelGetImportStatusTest {
 	}
 
 	@Test(expected = FaultMessage.class)
-	public void nonExistingResourceOid() throws FaultMessage,
-			com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage {
+	public void nonExistingResourceOid() throws FaultMessage, ObjectNotFoundException {
 
 		final String nonExistingUid = "1";
-		when(provisioningService.getImportStatus(nonExistingUid)).thenThrow(
-				new com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage(
-						"Resource with uid '" + nonExistingUid + "' doesn't exist.", new SystemFaultType()));
+		when(provisioningService.getImportStatus(eq(nonExistingUid), any(OperationResult.class))).thenThrow(
+				new ObjectNotFoundException("Resource with uid '" + nonExistingUid + "' doesn't exist."));
 
 		modelService.getImportStatus(nonExistingUid, new Holder<OperationResultType>(
 				new OperationResultType()));
@@ -105,12 +103,12 @@ public class ModelGetImportStatusTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void correctResourceOid() throws FaultMessage, JAXBException,
-			com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage {
+	public void correctResourceOid() throws FaultMessage, JAXBException, ObjectNotFoundException {
 		final String resourceOid = "abababab-abab-abab-abab-000000000001";
 		final TaskStatusType expectedTaskStatus = ((JAXBElement<TaskStatusType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "import-status-correct.xml"))).getValue();
-		when(provisioningService.getImportStatus(resourceOid)).thenReturn(expectedTaskStatus);
+		when(provisioningService.getImportStatus(eq(resourceOid), any(OperationResult.class))).thenReturn(
+				expectedTaskStatus);
 
 		final TaskStatusType taskStatus = modelService.getImportStatus(resourceOid,
 				new Holder<OperationResultType>(new OperationResultType()));
@@ -122,7 +120,7 @@ public class ModelGetImportStatusTest {
 		assertEquals(expectedTaskStatus.getNumberOfErrors(), taskStatus.getNumberOfErrors());
 		assertEquals(expectedTaskStatus.getProgress(), taskStatus.getProgress());
 
-		verify(provisioningService, atLeastOnce()).getImportStatus(resourceOid);
-
+		verify(provisioningService, atLeastOnce()).getImportStatus(eq(resourceOid),
+				any(OperationResult.class));
 	}
 }

@@ -34,10 +34,6 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,19 +43,21 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.objects.ResourceObject;
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
 import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
 import com.evolveum.midpoint.provisioning.service.BaseResourceIntegration;
 import com.evolveum.midpoint.provisioning.service.ResourceAccessInterface;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
@@ -69,7 +67,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
@@ -80,38 +77,17 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml",
-		"classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml" })
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
+		"classpath:application-context-model-test.xml" })
 public class ResourceObjectChangeServiceTest {
 
 	@Autowired(required = true)
 	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
 	@Autowired(required = true)
-	private RepositoryPortType repositoryService;
+	private RepositoryService repositoryService;
+	@SuppressWarnings("rawtypes")
 	@Autowired(required = true)
 	private ResourceAccessInterface rai;
-
-	// @Autowired(required = true)
-	// private ProvisioningPortType provisioningService;
-
-	public ResourceObjectChangeServiceTest() {
-	}
-
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() {
-	}
-
-	@After
-	public void tearDown() {
-	}
 
 	private PropertyModificationType createPasswordModification(String newPassword) {
 		if (null == newPassword) {
@@ -135,12 +111,11 @@ public class ResourceObjectChangeServiceTest {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	private ExtensibleObjectType addObjectToRepo(String fileString) throws Exception {
-		ObjectContainerType objectContainer = new ObjectContainerType();
 		ExtensibleObjectType object = ((JAXBElement<ExtensibleObjectType>) JAXBUtil.unmarshal(new File(
 				fileString))).getValue();
-		objectContainer.setObject(object);
-		repositoryService.addObject(objectContainer);
+		repositoryService.addObject(object, new OperationResult("Add Object"));
 		return object;
 	}
 
@@ -188,10 +163,10 @@ public class ResourceObjectChangeServiceTest {
 			// SynchronizationResult());
 
 			// prepare password change
-			ObjectContainerType container = repositoryService.getObject(resourceOid,
-					new PropertyReferenceListType());
+			ObjectType object = repositoryService.getObject(resourceOid, new PropertyReferenceListType(),
+					any(OperationResult.class));
 			ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
-			change.setResource((ResourceType) container.getObject());
+			change.setResource((ResourceType) object);
 			change.setShadow(accountShadowOrigin);
 			change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
 			ObjectChangeModificationType pwchange = new ObjectChangeModificationType();
@@ -216,8 +191,9 @@ public class ResourceObjectChangeServiceTest {
 			// Element passwordElement = (Element)
 			// originAccountWithChangedPassword.getCredentials().getPassword().getAny();
 			// assertEquals(newPassword, passwordElement.getTextContent());
-			container = repositoryService.getObject(targetChangeAccountOid, new PropertyReferenceListType());
-			AccountShadowType targetAccountWithChangedPassword = (AccountShadowType) container.getObject();
+			object = repositoryService.getObject(targetChangeAccountOid, new PropertyReferenceListType(),
+					new OperationResult("Add Object"));
+			AccountShadowType targetAccountWithChangedPassword = (AccountShadowType) object;
 			assertNotNull(targetAccountWithChangedPassword.getCredentials());
 			Element passwordElement = (Element) targetAccountWithChangedPassword.getCredentials()
 					.getPassword().getAny();
@@ -225,10 +201,10 @@ public class ResourceObjectChangeServiceTest {
 
 		} finally {
 			// cleanup repo
-			repositoryService.deleteObject(originChangeAccountOid);
-			repositoryService.deleteObject(targetChangeAccountOid);
-			repositoryService.deleteObject(resourceOid);
-			repositoryService.deleteObject(userOid);
+			repositoryService.deleteObject(originChangeAccountOid, new OperationResult("Delete Object"));
+			repositoryService.deleteObject(targetChangeAccountOid, new OperationResult("Delete Object"));
+			repositoryService.deleteObject(resourceOid, new OperationResult("Delete Object"));
+			repositoryService.deleteObject(userOid, new OperationResult("Delete Object"));
 		}
 	}
 }

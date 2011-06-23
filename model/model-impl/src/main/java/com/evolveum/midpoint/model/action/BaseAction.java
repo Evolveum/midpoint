@@ -27,10 +27,9 @@ import java.util.List;
 
 import javax.xml.ws.Holder;
 
-import com.evolveum.midpoint.model.ModelService;
 import com.evolveum.midpoint.model.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
-import com.evolveum.midpoint.provisioning.service.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -39,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
  */
 public abstract class BaseAction implements Action {
 
-	private ModelService model;
+	private ModelPortType model;
 	private ProvisioningService provisioning;
 	private RepositoryPortType repository;
 	private SchemaHandling schemaHandling;
@@ -93,11 +93,11 @@ public abstract class BaseAction implements Action {
 		return null;
 	}
 
-	public void setModel(ModelService model) {
+	public void setModel(ModelPortType model) {
 		this.model = model;
 	}
 
-	protected ModelService getModel() {
+	protected ModelPortType getModel() {
 		return model;
 	}
 

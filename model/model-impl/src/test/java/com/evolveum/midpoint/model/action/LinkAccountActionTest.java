@@ -65,122 +65,127 @@ import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
- *
+ * 
  * @author Katuska
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"classpath:application-context-model.xml", "classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml", "classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml"})
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
+		"classpath:application-context-model-test.xml" })
 public class LinkAccountActionTest {
 
-    @Autowired(required = true)
-    private ResourceObjectChangeListenerPortType resourceObjectChangeService;
-    @Autowired(required = true)
-    private RepositoryPortType repositoryService;
-    @Autowired(required = true)
-    private ResourceAccessInterface rai;
-//    @Autowired(required = true)
-//    private ProvisioningPortType provisioningService;
+	@Autowired(required = true)
+	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
+	@Autowired(required = true)
+	private RepositoryPortType repositoryService;
+	@Autowired(required = true)
+	private ResourceAccessInterface rai;
 
-    public LinkAccountActionTest() {
-    }
+	// @Autowired(required = true)
+	// private ProvisioningPortType provisioningService;
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
+	public LinkAccountActionTest() {
+	}
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+	}
 
-    @Before
-    public void setUp() {
-    }
+	@AfterClass
+	public static void tearDownClass() throws Exception {
+	}
 
-    @After
-    public void tearDown() {
-    }
+	@Before
+	public void setUp() {
+	}
 
-    private ObjectType addObjectToRepo(ObjectType object) throws Exception {
-        ObjectContainerType objectContainer = new ObjectContainerType();
-        objectContainer.setObject(object);
-        repositoryService.addObject(objectContainer);
-        return object;
-    }
+	@After
+	public void tearDown() {
+	}
 
-    @SuppressWarnings("unchecked")
-    private ObjectType addObjectToRepo(String fileString) throws Exception {
-        ObjectContainerType objectContainer = new ObjectContainerType();
-        ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
-        objectContainer.setObject(object);
-        repositoryService.addObject(objectContainer);
-        return object;
-    }
+	private ObjectType addObjectToRepo(ObjectType object) throws Exception {
+		ObjectContainerType objectContainer = new ObjectContainerType();
+		objectContainer.setObject(object);
+		repositoryService.addObject(objectContainer);
+		return object;
+	}
 
-    @SuppressWarnings("unchecked")
-    private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file) throws JAXBException {
-        ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil.unmarshal(new File(file))).getValue();
-        return change;
-    }
+	@SuppressWarnings("unchecked")
+	private ObjectType addObjectToRepo(String fileString) throws Exception {
+		ObjectContainerType objectContainer = new ObjectContainerType();
+		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
+		objectContainer.setObject(object);
+		repositoryService.addObject(objectContainer);
+		return object;
+	}
 
-    private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow ) throws ParserConfigurationException {
-        ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
-        return valueWriter.buildResourceObject(shadow, schema);
-    }
-    
-    @Test
-    public void testLinkAccountAction() throws Exception {
+	@SuppressWarnings("unchecked")
+	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
+			throws JAXBException {
+		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
+				.unmarshal(new File(file))).getValue();
+		return change;
+	}
 
-        final String resourceOid = "ef2bc95b-76e0-48e2-97e7-3d4f02d3e1a2";
-        final String userOid = "12345678-d34d-b33f-f00d-987987987987";
-        final String accountOid = "c0c010c0-d34d-b33f-f00d-222333444555";
+	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
+			throws ParserConfigurationException {
+		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
+		return valueWriter.buildResourceObject(shadow, schema);
+	}
 
-        try {
-            //create additional change
-            ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-link.xml");
-            //adding objects to repo
-            addObjectToRepo("src/test/resources/user.xml");
-            ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());
-            AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change.getShadow());
+	@Test
+	public void testLinkAccountAction() throws Exception {
 
-            assertNotNull(resourceType);
-            //setup provisioning mock
-            BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
-            ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
-            when(rai.get(
-                    any(OperationalResultType.class),
-                    any(ResourceObject.class))).thenReturn(ro);
-            when(rai.getConnector()).thenReturn(bri);
-            
-            resourceObjectChangeService.notifyChange(change);
+		final String resourceOid = "ef2bc95b-76e0-48e2-97e7-3d4f02d3e1a2";
+		final String userOid = "12345678-d34d-b33f-f00d-987987987987";
+		final String accountOid = "c0c010c0-d34d-b33f-f00d-222333444555";
 
-            ObjectContainerType container = repositoryService.getObject(userOid, new PropertyReferenceListType());
-            UserType changedUser = (UserType) container.getObject();
-            List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
+		try {
+			// create additional change
+			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-link.xml");
+			// adding objects to repo
+			addObjectToRepo("src/test/resources/user.xml");
+			ResourceType resourceType = (ResourceType) addObjectToRepo(change.getResource());
+			AccountShadowType accountType = (AccountShadowType) addObjectToRepo(change.getShadow());
 
-            assertNotNull(changedUser);
-            assertEquals(accountOid, accountRefs.get(0).getOid());
+			assertNotNull(resourceType);
+			// setup provisioning mock
+			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
+			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
+			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
+			when(rai.getConnector()).thenReturn(bri);
 
-            container = repositoryService.getObject(accountOid, new PropertyReferenceListType());
-            AccountShadowType linkedAccount = (AccountShadowType) container.getObject();
+			resourceObjectChangeService.notifyChange(change);
 
-            assertNotNull(linkedAccount);
-            assertEquals(changedUser.getName(), linkedAccount.getName());
+			ObjectContainerType container = repositoryService.getObject(userOid,
+					new PropertyReferenceListType());
+			UserType changedUser = (UserType) container.getObject();
+			List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
 
-        } finally {
-            //cleanup repo
-            try {
-                repositoryService.deleteObject(accountOid);
-            } catch(com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
-            }
-            try {
-                repositoryService.deleteObject(resourceOid);
-            } catch(com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
-            }
-            try {
-                repositoryService.deleteObject(userOid);
-            } catch(com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
-            }
-        }
+			assertNotNull(changedUser);
+			assertEquals(accountOid, accountRefs.get(0).getOid());
 
-    }
+			container = repositoryService.getObject(accountOid, new PropertyReferenceListType());
+			AccountShadowType linkedAccount = (AccountShadowType) container.getObject();
+
+			assertNotNull(linkedAccount);
+			assertEquals(changedUser.getName(), linkedAccount.getName());
+
+		} finally {
+			// cleanup repo
+			try {
+				repositoryService.deleteObject(accountOid);
+			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
+			}
+			try {
+				repositoryService.deleteObject(resourceOid);
+			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
+			}
+			try {
+				repositoryService.deleteObject(userOid);
+			} catch (com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage e) {
+			}
+		}
+
+	}
 }

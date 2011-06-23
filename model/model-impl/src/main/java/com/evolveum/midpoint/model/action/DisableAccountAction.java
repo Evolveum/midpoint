@@ -25,22 +25,19 @@ package com.evolveum.midpoint.model.action;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage;
-import javax.xml.ws.Holder;
 
 /**
  * 
@@ -70,36 +67,24 @@ public class DisableAccountAction extends BaseAction {
 		activation.setEnabled(false);
 
 		try {
-			ObjectContainerType container = getProvisioning().getObject(account.getOid(),
-					new PropertyReferenceListType(), new Holder<OperationalResultType>());
-			AccountShadowType oldAccount = (AccountShadowType) container.getObject();
+			AccountShadowType oldAccount = (AccountShadowType) getProvisioning().getObject(account.getOid(),
+					new PropertyReferenceListType(), new OperationResult("Get Object"));
 
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldAccount, account);
 			ScriptsType scripts = getScripts(change.getResource());
-			getProvisioning().modifyObject(changes, scripts, new Holder<OperationalResultType>());
+			getProvisioning().modifyObject(changes, scripts, new OperationResult("Modify Object"));
 		} catch (DiffException ex) {
 			trace.error("Couldn't disable account {}, error while creating diff: {}.",
 					new Object[] { account.getOid(), ex.getMessage() });
 			throw new SynchronizationException("Couldn't disable account " + account.getOid()
 					+ ", error while creating diff: " + ex.getMessage() + ".", ex);
-		} catch (FaultMessage ex) {
+		} catch (Exception ex) {
 			trace.error("Couldn't update (disable) account '{}' in provisioning, reason: {}.", new Object[] {
-					account.getOid(), getMessage(ex) });
+					account.getOid(), ex.getMessage() });
 			throw new SynchronizationException("Couldn't update (disable) account '" + account.getOid()
-					+ "' in provisioning, reason: " + getMessage(ex) + ".", ex, ex.getFaultInfo());
+					+ "' in provisioning, reason: " + ex.getMessage() + ".", ex, null);
 		}
 
 		return userOid;
-	}
-
-	private String getMessage(FaultMessage ex) {
-		String message = null;
-		if (ex.getFaultInfo() != null) {
-			message = ex.getFaultInfo().getMessage();
-		} else {
-			message = ex.getMessage();
-		}
-
-		return message;
 	}
 }

@@ -23,15 +23,12 @@
 package com.evolveum.midpoint.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.any;
 
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,14 +36,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -54,42 +50,23 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-repository-test.xml",
-		"classpath:application-context-provisioning.xml", "classpath:application-context-model-test.xml" })
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
+		"classpath:application-context-model-test.xml" })
 public class SchemaHandlingUserDefinedVariablesTest {
 
 	@Autowired
 	private SchemaHandling schemaHandling;
 	@Autowired
-	private RepositoryPortType repositoryService;
+	private RepositoryService repositoryService;
 
-	public SchemaHandlingUserDefinedVariablesTest() {
-	}
-
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() {
-	}
-
-	@After
-	public void tearDown() {
-	}
-
+	@SuppressWarnings("unchecked")
 	private ObjectType addObjectToRepo(String fileString) throws Exception {
-		ObjectContainerType objectContainer = new ObjectContainerType();
 		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
-		objectContainer.setObject(object);
-		repositoryService.addObject(objectContainer);
+		repositoryService.addObject(object, new OperationResult("Add Object"));
 		return object;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test
 	public void testApplyOutboundSchemaHandlingWithUserDefinedVariablesOnAccount() throws Exception {
 		final String myConfigOid = "c0c010c0-d34d-b33f-f00d-999111111111";
@@ -108,7 +85,7 @@ public class SchemaHandlingUserDefinedVariablesTest {
 			assertEquals("l", appliedAccountShadow.getAttributes().getAny().get(1).getLocalName());
 			assertEquals("Here", appliedAccountShadow.getAttributes().getAny().get(1).getTextContent());
 		} finally {
-			repositoryService.deleteObject(myConfigOid);
+			repositoryService.deleteObject(myConfigOid, any(OperationResult.class));
 		}
 	}
 }
