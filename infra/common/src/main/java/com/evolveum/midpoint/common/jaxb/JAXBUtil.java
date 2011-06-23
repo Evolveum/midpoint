@@ -25,8 +25,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -40,8 +43,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
@@ -69,15 +72,22 @@ public class JAXBUtil {
 		context = ctx;
 	}
 
-	private static final Marshaller createMarshaller() throws JAXBException {
+	private static final Marshaller createMarshaller(Map<String, Object> jaxbProperties) throws JAXBException {
 		Marshaller marshaller = context.createMarshaller();
+		//set default properties
 		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new PrefixMapper());
+		//set custom properties
+		if (jaxbProperties != null) {
+			for (Entry<String, Object> property : jaxbProperties.entrySet()) {
+				marshaller.setProperty(property.getKey(), property.getValue());
+			}
+		}
 
 		return marshaller;
 	}
-
+	
 	private static final Unmarshaller createUnmarshaller() throws JAXBException {
 		return context.createUnmarshaller();
 	}
@@ -95,16 +105,21 @@ public class JAXBUtil {
 	}
 
 	public static final String marshal(Object object) throws JAXBException {
+		return marshal(null, object);
+	}
+
+	public static final String marshal(Map<String, Object> jaxbProperties, Object object) throws JAXBException {
 		if (object == null) {
 			return "";
 		}
 
 		StringWriter writer = new StringWriter();
-		createMarshaller().marshal(object, writer);
+		Marshaller marshaller = createMarshaller(jaxbProperties);
+		marshaller.marshal(object, writer);
 
-		return writer.getBuffer().toString();
+		return writer.getBuffer().toString();		
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	public static final <T> String marshalWrap(T jaxbObject, QName elementQName) throws JAXBException {
 		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
@@ -112,6 +127,13 @@ public class JAXBUtil {
 		return marshal(jaxbElement);
 	}
 
+	@SuppressWarnings("unchecked")
+	public static final <T> String marshalWrap(Map<String, Object> jaxbProperties, T jaxbObject, QName elementQName) throws JAXBException {
+		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
+				jaxbObject);
+		return marshal(jaxbProperties, jaxbElement);
+	}
+	
 	public static final String silentMarshal(Object xmlObject) {
 		try {
 			return marshal(xmlObject);
@@ -134,9 +156,13 @@ public class JAXBUtil {
 	}
 
 	public static final void marshal(Object xmlObject, Element element) throws JAXBException {
-		createMarshaller().marshal(xmlObject, element);
+		createMarshaller(null).marshal(xmlObject, element);
 	}
 
+	public static final void marshal(Map<String, Object> properties, Object xmlObject, OutputStream stream) throws JAXBException {
+		createMarshaller(properties).marshal(xmlObject, stream);
+	}
+	
 	public static final void silentMarshal(Object xmlObject, Element element) {
 		try {
 			marshal(xmlObject, element);
