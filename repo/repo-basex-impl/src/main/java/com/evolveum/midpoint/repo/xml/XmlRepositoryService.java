@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.repo.xml;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -31,16 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.namespace.QName;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
@@ -56,6 +48,7 @@ import org.xmldb.api.base.XMLDBException;
 import org.xmldb.api.modules.XPathQueryService;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
@@ -68,7 +61,6 @@ import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -86,28 +78,9 @@ public class XmlRepositoryService implements RepositoryService {
 	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryService.class);
 	private Collection collection;
 
-	// FIXME: switch to new version JAXB utils and remove local
-	// marshaller/unmarshaller
-	private final Marshaller marshaller;
-	private final Unmarshaller unmarshaller;
-
 	XmlRepositoryService(Collection collection) {
 		super();
 		this.collection = collection;
-
-		JAXBContext ctx;
-		try {
-			ctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-			this.unmarshaller = ctx.createUnmarshaller();
-			this.marshaller = ctx.createMarshaller();
-			this.marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
-			// jaxb_fragment has to be set to true and we have to marshal object
-			// into stream to avoid generation of xml declaration
-			this.marshaller.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
-		} catch (JAXBException e) {
-			TRACE.error("Problem initializing XML Repository Service", e);
-			throw new RuntimeException("Problem initializing XML Repository Service", e);
-		}
 
 	}
 
@@ -123,7 +96,9 @@ public class XmlRepositoryService implements RepositoryService {
 			oid = (null != object.getOid() ? object.getOid() : UUID.randomUUID().toString());
 			object.setOid(oid);
 
-			String serializedObject = marshalWrap(object, SchemaConstants.C_OBJECT);
+			Map<String, Object> properties = new HashMap<String, Object>();
+			properties.put(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
+			String serializedObject = JAXBUtil.marshalWrap(properties, object, SchemaConstants.C_OBJECT);
 			// FIXME: try to find another solution how to escape XQuery special
 			// characters in XMLs
 			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
@@ -182,7 +157,7 @@ public class XmlRepositoryService implements RepositoryService {
 				Object c = res.getContent();
 				if (c instanceof String) {
 					in = new ByteArrayInputStream(((String) c).getBytes("UTF-8"));
-					JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) unmarshaller.unmarshal(in);
+					JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) JAXBUtil.unmarshal(in);
 					if (o != null) {
 						object = o.getValue();
 					}
@@ -411,28 +386,6 @@ public class XmlRepositoryService implements RepositoryService {
 		}
 	}
 
-	private final <T> String marshalWrap(T jaxbObject, QName elementQName) throws JAXBException {
-		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
-				jaxbObject);
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		XMLStreamWriter xmlStreamWriter;
-		try {
-			xmlStreamWriter = XMLOutputFactory.newInstance().createXMLStreamWriter(out);
-			this.marshaller.marshal(jaxbElement, xmlStreamWriter);
-			xmlStreamWriter.flush();
-			return new String(out.toByteArray(), "UTF-8");
-		} catch (XMLStreamException e) {
-			TRACE.error("JAXB object marshal to Xml stream failed", e);
-			throw new JAXBException("JAXB object marshal to Xml stream failed", e);
-		} catch (FactoryConfigurationError e) {
-			TRACE.error("JAXB object marshal to Xml stream failed", e);
-			throw new JAXBException("JAXB object marshal to Xml stream failed", e);
-		} catch (UnsupportedEncodingException e) {
-			TRACE.error("UTF-8 is unsupported encoding", e);
-			throw new JAXBException("UTF-8 is unsupported encoding", e);
-		}
-	}
-
 	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters) {
 
 		ByteArrayInputStream in = null;
@@ -496,7 +449,7 @@ public class XmlRepositoryService implements RepositoryService {
 				Object c = res.getContent();
 				if (c instanceof String) {
 					in = new ByteArrayInputStream(((String) c).getBytes("UTF-8"));
-					JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) unmarshaller.unmarshal(in);
+					JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) JAXBUtil.unmarshal(in);
 					if (o != null) {
 						objectList.getObject().add(o.getValue());
 					}
