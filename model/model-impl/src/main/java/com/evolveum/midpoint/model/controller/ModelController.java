@@ -103,7 +103,8 @@ public class ModelController {
 		return oid;
 	}
 
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult result) {
+	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult result)
+			throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(resolve, "Property reference list must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -118,6 +119,9 @@ public class ModelController {
 				object = getObjectFromProvisioning(oid, resolve, subResult, ObjectType.class);
 			}
 			subResult.recordSuccess();
+		} catch (ObjectNotFoundException ex) {
+			// TODO: logging
+			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object {}", ex, oid);
 			subResult.recordFatalError("Couldn't get object with oid '" + oid + "'.", ex);
@@ -324,8 +328,10 @@ public class ModelController {
 
 		List<ResourceObjectShadowType> list = null;
 		try {
-			list = repository.listResourceObjectShadows(resourceOid,
-					ObjectTypes.getObjectTypeClass(resourceObjectShadowType), subResult);
+			list = repository
+					.listResourceObjectShadows(resourceOid,
+							ObjectTypes.getObjectTypeFromUri(resourceObjectShadowType).getDeclaringClass(),
+							subResult);
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			// TODO: error handling

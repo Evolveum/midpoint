@@ -99,11 +99,21 @@ public enum ObjectTypes {
 			}
 		}
 
-		throw new IllegalArgumentException("Unsupported object type" + objectType);
+		throw new IllegalArgumentException("Unsupported object type " + objectType);
+	}
+	
+	public static ObjectTypes getObjectTypeFromUri(String objectTypeUri) {
+		for (ObjectTypes type : values()) {
+			if (type.getObjectTypeUri().equals(objectTypeUri)) {
+				return type;
+			}
+		}
+
+		throw new IllegalArgumentException("Unsupported object type " + objectTypeUri);
 	}
 
-	public static String getObjectTypeUri(String objectName) {
-		return getObjectType(objectName).getObjectTypeUri();
+	public static String getObjectTypeUri(String objectType) {
+		return getObjectType(objectType).getObjectTypeUri();
 	}
 
 	public static Class<? extends ObjectType> getObjectTypeClass(String objectType) {
@@ -113,16 +123,16 @@ public enum ObjectTypes {
 			}
 		}
 
-		throw new IllegalArgumentException("Unsupported object type" + objectType);
+		throw new IllegalArgumentException("Unsupported object type " + objectType);
 	}
 	
-	public static ObjectTypes getObjectType(Class objectType) {
+	public static ObjectTypes getObjectType(Class<? extends ObjectType> objectType) {
 		for (ObjectTypes type : values()) {
 			if (type.getClassDefinition().equals(objectType)) {
 				return type;
 			}
 		}
 
-		throw new IllegalArgumentException("Unsupported object type" + objectType);
+		throw new IllegalArgumentException("Unsupported object type " + objectType);
 	}
 }

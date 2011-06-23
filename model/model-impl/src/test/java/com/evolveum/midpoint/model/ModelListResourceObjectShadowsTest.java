@@ -58,7 +58,6 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
@@ -117,13 +116,11 @@ public class ModelListResourceObjectShadowsTest {
 
 	@Test(expected = FaultMessage.class)
 	public void nonexistingResourceOid() throws FaultMessage, ObjectNotFoundException {
-
 		final String resourceOid = "abababab-abab-abab-abab-000000000001";
 		when(
 				repositoryService.listResourceObjectShadows(eq(resourceOid),
 						eq(ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class))).thenThrow(
-				new com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage(
-						"Resource with oid '" + resourceOid + "' not found.", new ObjectNotFoundFaultType()));
+				new ObjectNotFoundException("Resource with oid '" + resourceOid + "' not found."));
 
 		modelService.listResourceObjectShadows(resourceOid, ObjectTypes.ACCOUNT.getObjectTypeUri(),
 				new Holder<OperationResultType>(new OperationResultType()));
@@ -131,13 +128,14 @@ public class ModelListResourceObjectShadowsTest {
 		fail("Fault must be thrown");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test
 	public void badResourceShadowType() throws FaultMessage {
-		modelService.listResourceObjectShadows("abababab-abab-abab-abab-000000000001",
-				ObjectTypes.GENERIC_OBJECT.getObjectTypeUri(), new Holder<OperationResultType>(
-						new OperationResultType()));
+		ResourceObjectShadowListType list = modelService.listResourceObjectShadows(
+				"abababab-abab-abab-abab-000000000001", ObjectTypes.GENERIC_OBJECT.getObjectTypeUri(),
+				new Holder<OperationResultType>(new OperationResultType()));
 
-		fail("Fault must be thrown");
+		assertNotNull(list);
+		assertEquals(0, list.getObject().size());
 	}
 
 	@Test
