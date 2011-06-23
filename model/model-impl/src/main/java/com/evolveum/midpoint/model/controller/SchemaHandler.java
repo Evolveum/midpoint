@@ -17,31 +17,28 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
-package com.evolveum.midpoint.model.action;
+package com.evolveum.midpoint.model.controller;
 
 import java.util.List;
 
-import com.evolveum.midpoint.model.SynchronizationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
+ * 
+ * @author lazyman
  *
- * @author Vilo Repan
  */
-public interface Action {
+public interface SchemaHandler {
 
-    String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
-			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-			OperationResultType resultType) throws SynchronizationException;
+	public ObjectModificationType processInboundHandling(UserType user,
+			ResourceObjectShadowType resourceObjectShadow, OperationResult result);
 
-    void setParameters(List<Object> parameters);
+	public List<ObjectModificationType> processOutboundHandling(UserType user,
+			List<ResourceObjectShadowType> resourceObjectShadows, OperationResult result);
 
-    List<Object> getParameters();
-
+	public void processUserTemplate(UserType user, String userTemplateOid, OperationResult result);
 }

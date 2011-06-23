@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.model.action;
+package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.model.*;
 import com.evolveum.midpoint.api.logging.Trace;

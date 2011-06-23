@@ -20,6 +20,9 @@
  */
 package com.evolveum.midpoint.model.sync;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.FaultMessage;
@@ -33,10 +36,12 @@ import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_
 //@Service
 public class SynchronizationService implements ResourceObjectChangeListenerPortType {
 
+	@Autowired(required=true)
+	private ModelController model;
+	
 	@Override
 	public EmptyType notifyChange(ResourceObjectShadowChangeDescriptionType change) throws FaultMessage {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
 }
