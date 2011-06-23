@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model;
 
 import java.util.List;
 
+import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.StringUtils;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -57,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
  * @author lazyman
  * 
  */
- @Service
+@Service
 public class ModelService implements ModelPortType {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelService.class);
@@ -109,7 +111,8 @@ public class ModelService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service List Objects");
 		try {
-			ObjectListType list = model.listObjects(objectType, paging, operationResult);
+			ObjectListType list = model.listObjects(ObjectTypes.getObjectTypeClass(objectType), paging,
+					operationResult);
 			handleOperationResult(operationResult, result);
 
 			return list;
@@ -216,8 +219,8 @@ public class ModelService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service List Resource Object Shadows");
 		try {
-			List<ResourceObjectShadowType> list = model.listResourceObjectShadows(resourceOid,
-					resourceObjectShadowType, operationResult);
+			List<ResourceObjectShadowType> list = model.listResourceObjectShadows(resourceOid, ObjectTypes
+					.getObjectTypeFromUri(resourceObjectShadowType).getClassDefinition(), operationResult);
 			handleOperationResult(operationResult, result);
 
 			ResourceObjectShadowListType shadowList = new ResourceObjectShadowListType();
@@ -231,10 +234,10 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public ObjectListType listResourceObjects(String resourceOid, String objectType, PagingType paging,
+	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
 			Holder<OperationResultType> result) throws FaultMessage {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
-		notEmptyArgument(objectType, "Object type must not be null or empty.");
+		notNullArgument(objectType, "Object type must not be null.");
 		notNullArgument(paging, "Paging  must not be null.");
 		notNullResultHolder(result);
 
@@ -251,8 +254,7 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public void testResource(String resourceOid, Holder<OperationResultType> result)
-			throws FaultMessage {
+	public void testResource(String resourceOid, Holder<OperationResultType> result) throws FaultMessage {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notNullResultHolder(result);
 
@@ -267,10 +269,10 @@ public class ModelService implements ModelPortType {
 	}
 
 	@Override
-	public EmptyType launchImportFromResource(String resourceOid, String objectClass,
+	public EmptyType launchImportFromResource(String resourceOid, QName objectClass,
 			Holder<OperationResultType> result) throws FaultMessage {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
-		notEmptyArgument(objectClass, "Object class must not be null or empty.");
+		notNullArgument(objectClass, "Object class must not be null.");
 		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult("Model Service Launch Import From Resource");

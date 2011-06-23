@@ -48,7 +48,6 @@ import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.bean.ResourceObjectBean;
-import com.evolveum.midpoint.web.bean.ResourceObjectType;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.ListController;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
@@ -77,15 +76,15 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 	@Autowired(required = true)
 	private ObjectTypeCatalog objectTypeCatalog;
 	private ResourceListItem resource;
-	private String objectClass;
+	private QName objectClass;
 	private DataModel<String> columnModel;
 	private DataModel<ResourceObjectBean> rowModel;
 
-	public void setObjectClass(String objectClass) {
+	public void setObjectClass(QName objectClass) {
 		this.objectClass = objectClass;
 	}
 
-	public String getObjectClass() {
+	public QName getObjectClass() {
 		return objectClass;
 	}
 
@@ -199,11 +198,10 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 			return qnames;
 		}
 
-		QName objectType = findObjectType(this.objectClass);
-		if (objectType == null) {
+		if (this.objectClass == null) {
 			return qnames;
 		}
-		PropertyContainerDefinition container = schema.findContainerDefinitionByType(objectType);
+		PropertyContainerDefinition container = schema.findContainerDefinitionByType(objectClass);
 		if (container instanceof ResourceObjectDefinition) {
 			ResourceObjectDefinition definition = (ResourceObjectDefinition) container;
 			for (ResourceObjectAttributeDefinition attribute : definition.getIdentifiers()) {
@@ -219,16 +217,6 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 		}
 
 		return qnames;
-	}
-
-	private QName findObjectType(String objectClass) {
-		for (ResourceObjectType type : this.resource.getObjectTypes()) {
-			if (type.getSimpleType().equals(objectClass)) {
-				return type.getType();
-			}
-		}
-
-		return null;
 	}
 
 	private String getElementValue(List<Element> elements, QName qname) {

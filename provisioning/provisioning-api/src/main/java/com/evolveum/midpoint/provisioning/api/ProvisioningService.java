@@ -164,7 +164,8 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult);
+	public ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
+			OperationResult parentResult);
 
 	/**
 	 * Search for objects. Searches through all object types. Returns a list of
@@ -354,6 +355,6 @@ public interface ProvisioningService {
 	public TaskStatusType getImportStatus(String resourceOid, OperationResult parentResult)
 			throws ObjectNotFoundException;
 
-	public ObjectListType listResourceObjects(String resourceOid, String objectType, PagingType paging,
+	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
 			OperationResult parentResult);
 }

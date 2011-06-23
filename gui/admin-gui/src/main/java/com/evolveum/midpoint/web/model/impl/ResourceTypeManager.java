@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
@@ -144,9 +145,9 @@ public class ResourceTypeManager extends ResourceManager {
 	}
 
 	@Override
-	public void launchImportFromResource(String resourceOid, String objectClass) {
+	public void launchImportFromResource(String resourceOid, QName objectClass) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-		Validate.notEmpty(objectClass, "Object class must not be null or empty.");
+		Validate.notNull(objectClass, "Object class must not be null.");
 		LOGGER.debug("Launching import from resource with oid {} and object class {}.", new Object[] {
 				resourceOid, objectClass });
 
@@ -213,9 +214,9 @@ public class ResourceTypeManager extends ResourceManager {
 
 	@Override
 	public Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> listResourceObjects(
-			String resourceOid, String objectClass, PagingType paging) {
+			String resourceOid, QName objectClass, PagingType paging) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-		Validate.notEmpty(objectClass, "Object class must not be null or empty.");
+		Validate.notNull(objectClass, "Object class must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
 		LOGGER.debug("Listing resource objects from resource with oid {} and object class {}.", new Object[] {
 				resourceOid, objectClass });

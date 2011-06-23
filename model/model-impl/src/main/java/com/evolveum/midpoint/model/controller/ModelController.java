@@ -44,6 +44,7 @@ import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.ProvisioningTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -134,8 +135,9 @@ public class ModelController {
 		return object;
 	}
 
-	public ObjectListType listObjects(String objectType, PagingType paging, OperationResult result) {
-		Validate.notEmpty(objectType, "Object type must not be null or empty.");
+	public ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
+			OperationResult result) {
+		Validate.notNull(objectType, "Object type must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
@@ -147,10 +149,9 @@ public class ModelController {
 		ObjectListType list = null;
 		try {
 			if (ProvisioningTypes.isObjectTypeManagedByProvisioning(objectType)) {
-				list = provisioning
-						.listObjects(ObjectTypes.getObjectTypeClass(objectType), paging, subResult);
+				list = provisioning.listObjects(objectType, paging, subResult);
 			} else {
-				list = repository.listObjects(ObjectTypes.getObjectTypeClass(objectType), paging, subResult);
+				list = repository.listObjects(objectType, paging, subResult);
 			}
 			subResult.recordSuccess();
 		} catch (Exception ex) {
@@ -322,7 +323,8 @@ public class ModelController {
 	}
 
 	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
-			String resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
+			Class<? extends ObjectType> resourceObjectShadowType, OperationResult result)
+			throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
@@ -333,10 +335,7 @@ public class ModelController {
 
 		List<ResourceObjectShadowType> list = null;
 		try {
-			list = repository
-					.listResourceObjectShadows(resourceOid,
-							ObjectTypes.getObjectTypeFromUri(resourceObjectShadowType).getDeclaringClass(),
-							subResult);
+			list = repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			// TODO: error handling
@@ -356,10 +355,10 @@ public class ModelController {
 		return list;
 	}
 
-	public ObjectListType listResourceObjects(String resourceOid, String objectType, PagingType paging,
+	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
 			OperationResult result) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-		Validate.notEmpty(objectType, "Object type must not be null or empty.");
+		Validate.notNull(objectType, "Object type must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
@@ -415,9 +414,9 @@ public class ModelController {
 		}
 	}
 
-	public void launchImportFromResource(String resourceOid, String objectClass, OperationResult result) {
+	public void launchImportFromResource(String resourceOid, QName objectClass, OperationResult result) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-		Validate.notEmpty(objectClass, "Object class must not be null or empty.");
+		Validate.notNull(objectClass, "Object class must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Launching import from resource with oid {} for object class {}.", new Object[] {
 				resourceOid, objectClass });
@@ -426,8 +425,7 @@ public class ModelController {
 		result.addSubresult(subResult);
 
 		try {
-			QName objectClassName = null; // TODO: get object class name
-			provisioning.launchImportFromResource(resourceOid, objectClassName, subResult);
+			provisioning.launchImportFromResource(resourceOid, objectClass, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			// TODO: error handling
@@ -710,7 +708,7 @@ public class ModelController {
 	private void modifyProvisioningObjectWithExclusion(ObjectModificationType change, String accountOid,
 			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException {
 		if (object instanceof ResourceObjectShadowType) {
-			//TODO: outbound schema handling for this object
+			// TODO: outbound schema handling for this object
 		}
 		// TODO Auto-generated method stub
 		ScriptsType scripts = getScripts(object, result);

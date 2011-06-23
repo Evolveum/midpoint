@@ -22,7 +22,7 @@ package com.evolveum.midpoint.schema;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -55,9 +55,7 @@ public enum ProvisioningTypes {
 	}
 
 	public static boolean isManagedByProvisioning(ObjectType object) {
-		if (object == null) {
-			return false;
-		}
+		Validate.notNull(object, "Object must not be null.");
 
 		for (ProvisioningTypes type : ProvisioningTypes.values()) {
 			if (type.clazz.isInstance(object)) {
@@ -68,10 +66,20 @@ public enum ProvisioningTypes {
 		return false;
 	}
 
-	public static boolean isObjectTypeManagedByProvisioning(String objectType) {
-		if (StringUtils.isEmpty(objectType)) {
-			return false;
+	public static boolean isObjectTypeManagedByProvisioning(Class<? extends ObjectType> objectType) {
+		Validate.notNull(objectType, "Object type must not be null.");
+
+		for (ProvisioningTypes type : ProvisioningTypes.values()) {
+			if (type.getDeclaringClass().equals(objectType)) {
+				return true;
+			}
 		}
+
+		return false;
+	}
+
+	public static boolean isObjectTypeManagedByProvisioning(String objectType) {
+		Validate.notEmpty(objectType, "Object type must not be null.");
 
 		for (ProvisioningTypes type : ProvisioningTypes.values()) {
 			if (type.name.getLocalPart().equals(objectType)) {

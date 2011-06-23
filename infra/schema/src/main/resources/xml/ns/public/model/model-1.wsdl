@@ -179,7 +179,7 @@
 
     <message name="listResourceObjectsRequest">
         <part name="resourceOid" type="xsd:string"/>
-        <part name="objectType" type="xsd:anyURI">
+        <part name="objectType" type="xsd:QName">
             <documentation>
                 Object type to list. Should be valid object class from the
                 resource schema encoded in the URL form.
@@ -207,7 +207,7 @@
 
     <message name="launchImportFromResourceRequest">
         <part name="resourceOid" type="xsd:string"/>
-        <part name="objectClass" type="xsd:string">
+        <part name="objectClass" type="xsd:QName">
             <documentation>
                 Object class to import.
                 Local name, assumed to be in the resource namespace.

@@ -30,6 +30,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
@@ -39,7 +41,6 @@ import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 
 /**
@@ -120,7 +121,7 @@ public class ResourceTypeManagerMock extends ResourceManager {
 	}
 
 	@Override
-	public void launchImportFromResource(String resourceOid, String objectClass) {
+	public void launchImportFromResource(String resourceOid, QName objectClass) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -131,7 +132,7 @@ public class ResourceTypeManagerMock extends ResourceManager {
 
 	@Override
 	public Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> listResourceObjects(
-			String resourceOid, String objectClass, PagingType paging) {
+			String resourceOid, QName objectClass, PagingType paging) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }

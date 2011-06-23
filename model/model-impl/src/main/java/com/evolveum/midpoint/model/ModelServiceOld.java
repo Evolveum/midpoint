@@ -53,6 +53,7 @@ import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.ProvisioningTypes;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -1338,7 +1339,7 @@ public class ModelServiceOld implements ModelPortType {
 	}
 
 	@Override
-	public ObjectListType listResourceObjects(String resourceOid, String objectType, PagingType paging,
+	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
 			Holder<OperationResultType> resultType) throws FaultMessage {
 		notNullArgument(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter listResourceObjects({},{},...)", resourceOid, objectType);
@@ -1347,7 +1348,7 @@ public class ModelServiceOld implements ModelPortType {
 
 		try { // Call Web Service Operation
 
-			result = provisioningService.listResourceObjects(resourceOid, objectType, paging,
+			result = provisioningService.listResourceObjects(resourceOid, QNameUtil.qNameToUri(objectType), paging,
 					new Holder<OperationalResultType>());
 
 		} catch (com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage ex) {
@@ -1371,7 +1372,7 @@ public class ModelServiceOld implements ModelPortType {
 	}
 
 	@Override
-	public EmptyType launchImportFromResource(String resourceOid, String objectClass,
+	public EmptyType launchImportFromResource(String resourceOid, QName objectClass,
 			Holder<OperationResultType> resultType) throws FaultMessage {
 		notNullArgument(resultType, "Result type must not be null.");
 		logger.info("### MODEL # Enter launchImportFromResource({},{})", resourceOid, objectClass);
@@ -1380,7 +1381,7 @@ public class ModelServiceOld implements ModelPortType {
 
 		try { // Call Web Service Operation
 
-			result = provisioningService.launchImportFromResource(resourceOid, objectClass);
+			result = provisioningService.launchImportFromResource(resourceOid, objectClass.getLocalPart());
 
 		} catch (com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage ex) {
 			logger.error(

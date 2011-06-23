@@ -22,6 +22,8 @@ package com.evolveum.midpoint.web.controller.resource;
 
 import java.io.Serializable;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -113,8 +115,8 @@ public class ResourceDetailsController implements Serializable {
 			return null;
 		}
 
-		String objectClass = getObjectClass(objectType);
-		if (StringUtils.isEmpty(objectClass)) {
+		QName objectClass = getObjectClass(objectType);
+		if (objectClass == null) {
 			FacesUtils.addErrorMessage("Can't import objects. Object class for object type '" + objectType
 					+ "' not found.");
 			return null;
@@ -169,8 +171,8 @@ public class ResourceDetailsController implements Serializable {
 			return null;
 		}
 
-		String objectClass = getObjectClass(objectType);
-		if (StringUtils.isEmpty(objectClass)) {
+		QName objectClass = getObjectClass(objectType);
+		if (objectClass == null) {
 			FacesUtils.addErrorMessage("Can't import objects. Object class for object type '" + objectType
 					+ "' not found.");
 			return null;
@@ -181,12 +183,12 @@ public class ResourceDetailsController implements Serializable {
 		return listObjects.listFirst();
 	}
 
-	private String getObjectClass(String objectType) {
+	private QName getObjectClass(String objectType) {
 		for (ResourceObjectType resObjectType : getResource().getObjectTypes()) {
 			if (objectType.equals(resObjectType.getQualifiedType())) {
 				// TODO: use native object class
 				// objectClass = resObjectType.getNativeObjectClass();
-				return resObjectType.getSimpleType();
+				return resObjectType.getType();
 			}
 		}
 

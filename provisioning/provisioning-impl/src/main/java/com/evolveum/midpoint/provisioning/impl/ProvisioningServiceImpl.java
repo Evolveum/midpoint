@@ -169,7 +169,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult) {
+	public ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
+			OperationResult parentResult) {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
@@ -201,12 +202,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		if (objectChange == null || objectChange.getOid() == null){
+		if (objectChange == null || objectChange.getOid() == null) {
 			throw new IllegalArgumentException("Object change or object change oid cannot be null");
 		}
-		
-		ObjectType objectType = getRepositoryService().getObject(objectChange.getOid(), new PropertyReferenceListType(), parentResult);
-		
+
+		ObjectType objectType = getRepositoryService().getObject(objectChange.getOid(),
+				new PropertyReferenceListType(), parentResult);
+
 		try {
 			getShadowCache().modifyShadow(objectType, null, objectChange, scripts, parentResult);
 		} catch (CommunicationException e) {
@@ -216,7 +218,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		// TODO Auto-generated method stub
 	}
 
@@ -281,7 +283,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public ObjectListType listResourceObjects(String resourceOid, String objectType, PagingType paging,
+	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
 			OperationResult parentResult) {
 		// TODO Auto-generated method stub
 		return null;

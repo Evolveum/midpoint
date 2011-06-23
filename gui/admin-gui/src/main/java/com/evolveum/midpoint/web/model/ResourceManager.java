@@ -25,18 +25,20 @@ package com.evolveum.midpoint.web.model;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.web.model.impl.ObjectManagerImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 
 /**
  * 
  * @author semancik
+ * @author lazyman
  * 
  */
 public abstract class ResourceManager extends ObjectManagerImpl<ResourceDto> {
@@ -48,10 +50,10 @@ public abstract class ResourceManager extends ObjectManagerImpl<ResourceDto> {
 
 	public abstract OperationResult testConnection(String resourceOid);
 
-	public abstract void launchImportFromResource(String resourceOid, String objectClass);
+	public abstract void launchImportFromResource(String resourceOid, QName objectClass);
 
 	public abstract TaskStatusType getImportStatus(String resourceOid);
 
 	public abstract Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> listResourceObjects(
-			String resourceOid, String objectClass, PagingType paging);
+			String resourceOid, QName objectClass, PagingType paging);
 }
