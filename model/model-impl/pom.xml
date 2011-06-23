@@ -78,7 +78,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <!-- TODO need to switch to api -->
-            <artifactId>repo-db-impl</artifactId>
+            <artifactId>repo-basex-impl</artifactId>
             <version>1.8-SNAPSHOT</version>
         </dependency>
         <dependency>

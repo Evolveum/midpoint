@@ -118,7 +118,7 @@ public enum ObjectTypes {
 	
 	public static ObjectTypes getObjectType(Class objectType) {
 		for (ObjectTypes type : values()) {
-			if (type.getClass().equals(objectType)) {
+			if (type.getClassDefinition().equals(objectType)) {
 				return type;
 			}
 		}

@@ -44,7 +44,8 @@
             classpath:application-context-provisioning.xml,
             classpath:application-context-model.xml,
             /WEB-INF/application-context-webapp.xml,
-            /WEB-INF/application-context-security.xml
+            /WEB-INF/application-context-security.xml,
+            /WEB-INF/application-context-init.xml            
         </param-value>
 	</context-param>
 

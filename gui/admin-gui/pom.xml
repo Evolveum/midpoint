@@ -103,7 +103,7 @@
     <dependencies>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-db-impl</artifactId>
+            <artifactId>repo-basex-impl</artifactId>
             <version>1.8-SNAPSHOT</version>
         </dependency>
         <dependency>
