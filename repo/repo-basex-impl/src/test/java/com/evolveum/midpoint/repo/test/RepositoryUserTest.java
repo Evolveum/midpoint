@@ -198,9 +198,9 @@ public class RepositoryUserTest {
 			//check the extension in the object
 			retrievedObject = repositoryService.getObject(oid, new PropertyReferenceListType(), null);
 			assertEquals(user.getOid(), retrievedObject.getOid());
-			assertNotNull(user.getExtension().getAny());
-			assertEquals("ship", user.getExtension().getAny().get(0).getLocalName());
-			assertEquals("Black Pearl", user.getExtension().getAny().get(0).getTextContent());
+			assertNotNull(((UserType)retrievedObject).getExtension().getAny());
+			assertEquals("ship", ((UserType)retrievedObject).getExtension().getAny().get(0).getLocalName());
+			assertEquals("Black Pearl", ((UserType)retrievedObject).getExtension().getAny().get(0).getTextContent());
 
 		} finally {
 			// to be sure try to delete the object as part of cleanup

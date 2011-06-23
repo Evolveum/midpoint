@@ -49,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
 
 /**
  * 
@@ -120,7 +119,7 @@ public class RepositoryTest {
 	
 	@Test
 	public void listObjectsNoObjectsOfThatTypeReturnsEmptyList() throws Exception {
-		ObjectListType retrievedList = repositoryService.listObjects(ObjectTypes.RESOURCE.getDeclaringClass(), null, null);
+		ObjectListType retrievedList = repositoryService.listObjects(ObjectTypes.RESOURCE.getClassDefinition(), null, null);
 		assertNotNull(retrievedList);
 		assertEquals(0, retrievedList.getObject().size());
 		assertEquals(0, retrievedList.getCount().intValue());
