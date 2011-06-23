@@ -22,7 +22,7 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <name>midPoint User Interface - Admin web gui</name>
+    <name>midPoint User Interface - admin web gui</name>
     <groupId>com.evolveum.midpoint.gui</groupId>
     <artifactId>admin-gui</artifactId>
     <packaging>war</packaging>
@@ -91,15 +91,7 @@
             <name>repo</name>
             <url>http://repo.evolveum.com/repo</url>
         </repository>
-        <!-- <repository>
-            <id>org.springframework.maven.milestone</id>
-            <name>Spring Maven Milestone Repository</name>
-            <url>http://maven.springframework.org/milestone</url>
-        </repository> -->
     </repositories>
-    <properties>
-    	<!-- <spring.security.version>3.1.0.RC2</spring.security.version> -->
-    </properties>
     <dependencies>
     	<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
@@ -128,7 +120,7 @@
             <artifactId>provisioning-impl</artifactId>
             <version>1.8-SNAPSHOT</version>
             <!-- TODO change scope after moving schema processing api to provisioning api -->
-            <!-- <scope>runtime</scope> -->
+            <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>javax.el</groupId>

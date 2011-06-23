@@ -306,6 +306,7 @@ public class ModelService implements ModelPortType {
 	}
 
 	private void handleOperationResult(OperationResult result, Holder<OperationResultType> holder) {
+		result.recordSuccess();
 		OperationResultType res = result.createOperationResultType();
 		holder.value.getPartialResults().add(res);
 	}
@@ -333,8 +334,10 @@ public class ModelService implements ModelPortType {
 	}
 
 	private FaultMessage createSystemFault(Exception ex, OperationResult result) {
+		result.recordFatalError(ex.getMessage(), ex);
+		
 		FaultType faultType = new SystemFaultType();
-		faultType.setMessage(ex.getMessage());
+		faultType.setMessage(ex.getMessage());		
 		faultType.setOperationResult(result.createOperationResultType());
 
 		return new FaultMessage(ex.getMessage(), faultType, ex);

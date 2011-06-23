@@ -58,9 +58,37 @@ public class PropertyDefinition extends Definition {
 	private QName valueType;
 	private int minOccurs = 1;
 	private int maxOccurs = 1;
+	private Object[] allowedValues;
+	private boolean readable;
+	private boolean updateable;
 
 	PropertyDefinition(QName name, QName defaultName, QName typeName) {
 		super(name, defaultName, typeName);
+	}
+
+	/**
+	 * Returns allowed values for this property.
+	 * 
+	 * @return Object array. May be null.
+	 */
+	public Object[] getAllowedValues() {
+		return allowedValues;
+	}
+	
+	/**
+	 * TODO:
+	 * @return
+	 */
+	public boolean isReadable() {
+		return readable;
+	}
+	
+	/**
+	 * TODO:
+	 * @return
+	 */
+	public boolean isUpdateable() {
+		return updateable;
 	}
 
 	/**

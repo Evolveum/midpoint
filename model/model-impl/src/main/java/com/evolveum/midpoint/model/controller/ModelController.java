@@ -44,7 +44,7 @@ import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.ProvisioningTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -310,12 +310,14 @@ public class ModelController {
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
 			subResult.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
+
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
 					+ " for account with oid {}", ex, accountOid);
 			subResult.recordFatalError("Couldn't list account shadow owner for account with oid '"
 					+ accountOid + "'.", ex);
+
 		}
 
 		LOGGER.debug(subResult.debugDump());
@@ -488,19 +490,17 @@ public class ModelController {
 				objectType = repository.getObject(oid, resolve, result);
 			}
 			if (!clazz.isInstance(objectType)) {
-				// TODO: throw better exception...
-				throw new RuntimeException("Bad object type returned for referenced oid.");
+				throw new ObjectNotFoundException("Bad object type returned for referenced oid '" + oid
+						+ "'. Expected '" + clazz + "', but was '" + objectType.getClass() + "'.");
 			} else {
 				object = (T) objectType;
 			}
 		} catch (ObjectNotFoundException ex) {
-			// TODO: logging
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "...", ex, oid);
-			// TODO: error handling
-
-			throw new RuntimeException();
+			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {}, expected type was {}.", ex,
+					oid, clazz);
+			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
 		}
 
 		return object;

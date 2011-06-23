@@ -34,15 +34,14 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.provisioning.schema.AccountObjectClassDefinition;
-import com.evolveum.midpoint.provisioning.schema.ResourceAttributeDefinition;
-import com.evolveum.midpoint.provisioning.schema.ResourceObjectDefinition;
-import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
-import com.evolveum.midpoint.provisioning.schema.util.DOMToSchemaParser;
-import com.evolveum.midpoint.provisioning.schema.util.SchemaParserException;
+import com.evolveum.midpoint.schema.processor.Definition;
+import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**
  * 
@@ -55,8 +54,8 @@ public class SchemaFormParser {
 	private Map<QName, List<Object>> valueMap = new HashMap<QName, List<Object>>();
 	private String displayName;
 
-	public List<ResourceAttributeDefinition> parseSchemaForAccount(AccountShadowDto account)
-			throws SchemaParserException {
+	public List<ResourceObjectAttributeDefinition> parseSchemaForAccount(AccountShadowDto account)
+			throws SchemaProcessorException {
 		if (account == null) {
 			throw new IllegalArgumentException("Account shadow can't be null.");
 		}
@@ -65,8 +64,8 @@ public class SchemaFormParser {
 		return parseSchemaForAccount(account, account.getObjectClass());
 	}
 
-	public List<ResourceAttributeDefinition> parseSchemaForAccount(AccountShadowDto account, QName accountType)
-			throws SchemaParserException {
+	public List<ResourceObjectAttributeDefinition> parseSchemaForAccount(AccountShadowDto account,
+			QName accountType) throws SchemaProcessorException {
 		if (account == null) {
 			throw new IllegalArgumentException("Account shadow can't be null.");
 		}
@@ -96,44 +95,45 @@ public class SchemaFormParser {
 			}
 		}
 
-		DOMToSchemaParser parser = new DOMToSchemaParser();
-		ResourceSchema schema = parser.getSchema(resource.getSchema(),
-				((ResourceType) resource.getXmlObject()).getSchemaHandling());
-
+		// TODO: parse schema handling
+		Schema schema = Schema.parse(resource.getXmlObject().getSchema().getAny().get(0));
 		if (accountType == null) {
-			List<ResourceObjectDefinition> list = schema.getObjectClassesCopy();
-			for (ResourceObjectDefinition object : list) {
-				if (!(object instanceof AccountObjectClassDefinition)) {
+			for (Definition definition : schema.getDefinitions()) {
+				if (!(definition instanceof ResourceObjectDefinition)) {
 					continue;
 				}
 
-				AccountObjectClassDefinition def = (AccountObjectClassDefinition) object;
-				if (def.isDefault()) {
-					accountType = def.getQName();
+				ResourceObjectDefinition def = (ResourceObjectDefinition) definition;
+				if (def.isDefaultAccountType()) {
+					accountType = def.getName();
 					break;
 				}
 			}
 		}
 
 		if (accountType == null) {
-			throw new com.evolveum.midpoint.provisioning.schema.util.SchemaParserException(
-					"Account type was not defined.");
+			throw new SchemaProcessorException("Account type was not defined.");
 		}
 
 		defaultAccountType = accountType;
 
-		ResourceObjectDefinition definition = schema.getObjectDefinition(accountType);
+		ResourceObjectDefinition definition = (ResourceObjectDefinition) schema
+				.findContainerDefinitionByType(accountType);
 		if (definition == null) {
-			throw new com.evolveum.midpoint.provisioning.schema.util.SchemaParserException(
-					"Account definition for type '" + accountType + "' was not found.");
+			throw new SchemaProcessorException("Account definition for type '" + accountType
+					+ "' was not found.");
 		}
 		displayName = resource.getName() + ": " + definition.getName();
 
-		List<ResourceAttributeDefinition> attributes = new ArrayList<ResourceAttributeDefinition>(
-				definition.getAttributesCopy());
-		for (ResourceAttributeDefinition def : attributes) {
-			TRACE.trace("Attr. definition: " + def.getQName());
+		List<ResourceObjectAttributeDefinition> attributes = new ArrayList<ResourceObjectAttributeDefinition>();
+		for (PropertyDefinition def : definition.getDefinitions()) {
+			if (!(def instanceof ResourceObjectAttributeDefinition)) {
+				continue;
+			}
+			TRACE.trace("Attr. definition: " + def.getName());
+			attributes.add((ResourceObjectAttributeDefinition) def);
 		}
+
 		return attributes;
 	}
 
