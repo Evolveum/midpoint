@@ -142,7 +142,9 @@ public class DOMUtil {
 			Transformer trans = transfac.newTransformer();
 			trans.setOutputProperty(OutputKeys.INDENT, "yes");
 			trans.setParameter(OutputKeys.ENCODING, "utf-8");
-
+			//Note: serialized XML does not contain xml declaration
+			trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			
 			DOMSource source = new DOMSource(node);
 			trans.transform(source, new StreamResult(writer));
 		} catch (Exception ex) {

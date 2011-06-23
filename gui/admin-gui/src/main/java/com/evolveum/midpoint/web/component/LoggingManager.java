@@ -28,6 +28,7 @@ import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -57,6 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
  */
 @Component
 @Scope
+@DependsOn(value="initialSetup")
 public class LoggingManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingManager.class);

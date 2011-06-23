@@ -260,9 +260,6 @@ public class XmlRepositoryService implements RepositoryService {
 			PatchXml xmlPatchTool = new PatchXml();
 			String serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
 
-			// HACK:
-			serializedObject = serializedObject.substring(38);
-
 			// store modified object in repo
 			// Receive the XPath query service.
 			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
@@ -406,7 +403,7 @@ public class XmlRepositoryService implements RepositoryService {
 			query.append("declare namespace xsi='http://www.w3.org/2001/XMLSchema-instance';\n");
 			query.append("declare namespace s='http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd';\n");
 			// FIXME: possible problems with object type checking. Now it is
-			// simple string checking, because import schema is not supported
+			// simple string checking, because import schema is not supported by basex database
 			query.append("for $x in //c:object where $x/@xsi:type=\"")
 					.append(objectType.substring(objectType.lastIndexOf("#") + 1)).append("\"");
 			if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
@@ -477,7 +474,6 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	private void processValueNode(Node criteriaValueNode, Map<String, String> filters, String parentPath) {
-		// TODO: Translate IllegalArgumentException to Fault types
 		if (null == criteriaValueNode) {
 			throw new IllegalArgumentException("Query filter does not contain any values to search by");
 		}

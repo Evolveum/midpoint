@@ -22,30 +22,33 @@
 
 package com.evolveum.midpoint.common.patch;
 
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.common.XPathUtil;
-import com.evolveum.midpoint.common.XmlUtil;
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.util.patch.PatchException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import com.evolveum.midpoint.xml.schema.XPathType;
 import java.io.File;
 import java.util.List;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
+
 import org.slf4j.Logger;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import com.evolveum.midpoint.common.XPathUtil;
+import com.evolveum.midpoint.common.XmlUtil;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.patch.PatchException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * Main class for XML patching
@@ -179,7 +182,7 @@ public class PatchXml extends XPathUtil {
             throw new PatchException("Failed to marshall object", ex);
         }
     }
-
+    
     public String applyDifferences(ObjectModificationType changes, ObjectType objectType) throws PatchException {
         //marshall JAXB Object
         String xmlObject = marshallJaxbObject(objectType);
