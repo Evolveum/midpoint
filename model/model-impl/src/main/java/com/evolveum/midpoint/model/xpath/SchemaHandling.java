@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -58,10 +57,11 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.filter.Filter;
 import com.evolveum.midpoint.model.filter.FilterManager;
-import com.evolveum.midpoint.provisioning.schema.ResourceAttributeDefinition;
-import com.evolveum.midpoint.provisioning.schema.ResourceObjectDefinition;
-import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
-import com.evolveum.midpoint.provisioning.schema.util.DOMToSchemaParser;
+import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.util.patch.PatchException;
@@ -115,23 +115,13 @@ public class SchemaHandling extends XPathUtil {
 	@Autowired
 	private FilterManager filterManager;
 
-	// TODO: ineffective, we should cache result of resource schema parsing
-	private ResourceSchema createResourceSchema(ResourceType resourceType) throws SchemaHandlingException {
-		// TODO: DOMToSchemaParser and related classes - are util classes,
-		// should be moved out of provisioning
-		DOMToSchemaParser parser = new DOMToSchemaParser();
-		Element elementResourceSchema = null;
+	private Schema createResourceSchema(ResourceType resourceType) throws SchemaProcessorException {
 		if (null != resourceType.getSchema() && !resourceType.getSchema().getAny().isEmpty()) {
-			for (Element e : resourceType.getSchema().getAny()) {
-				if (XMLConstants.W3C_XML_SCHEMA_NS_URI.equals(e.getNamespaceURI())
-						&& "schema".equals(e.getLocalName())) {
-					elementResourceSchema = e;
-					break;
-				}
-			}
+			return Schema.parse(resourceType.getSchema().getAny().get(0));
 		}
-		ResourceSchema resourceSchema = parser.getSchema(elementResourceSchema);
-		return resourceSchema;
+
+		throw new SchemaProcessorException("Couldn't find schema for resource '" + resourceType.getName()
+				+ "'.");
 	}
 
 	private void evaluateAndApplyOutboundExpressionValues(UserType user, AccountShadowType accountShadow,
@@ -153,8 +143,8 @@ public class SchemaHandling extends XPathUtil {
 		ResourceObjectDefinition objectDefinition = getResourceObjectDefinition(resource);
 
 		for (AttributeDescriptionType attributeHandling : attributesHandling) {
-			ResourceAttributeDefinition attributeDefinition = objectDefinition
-					.getAttributeDefinition(attributeHandling.getRef());
+			ResourceObjectAttributeDefinition attributeDefinition = objectDefinition
+					.findAttributeDefinition(attributeHandling.getRef());
 			if (null != attributeDefinition) {
 				insertUserDefinedVariables(attributeHandling, variables);
 				processOutboundSection(attributeHandling, variables, accountShadow);
@@ -201,8 +191,8 @@ public class SchemaHandling extends XPathUtil {
 		ResourceObjectDefinition objectDefinition = getResourceObjectDefinition(resource);
 
 		for (AttributeDescriptionType attributeHandling : attributesHandling) {
-			ResourceAttributeDefinition attributeDefinition = objectDefinition
-					.getAttributeDefinition(attributeHandling.getRef());
+			ResourceObjectAttributeDefinition attributeDefinition = objectDefinition
+					.findAttributeDefinition(attributeHandling.getRef());
 			if (null != attributeDefinition) {
 				domUser = (Element) processInboundSection(attributeHandling, variables, accountShadow,
 						domUser, user);
@@ -371,16 +361,22 @@ public class SchemaHandling extends XPathUtil {
 
 	private ResourceObjectDefinition getResourceObjectDefinition(ResourceType resource)
 			throws SchemaHandlingException {
-		ResourceSchema resourceSchema = createResourceSchema(resource);
-		QName objectDefinitionQName = new QName(resourceSchema.getResourceNamespace(), "Account");
-		ResourceObjectDefinition objectDefinition = resourceSchema.getObjectDefinition(objectDefinitionQName);
+		PropertyContainerDefinition objectDefinition = null;
+		QName objectDefinitionQName = null;
+		try {
+			Schema schema = createResourceSchema(resource);
+			objectDefinitionQName = new QName(schema.getNamespace(), "Account");
+			objectDefinition = schema.findContainerDefinitionByType(objectDefinitionQName);
+		} catch (Exception ex) {
+			throw new SchemaHandlingException(ex);
+		}
 		if (null == objectDefinition) {
-			TRACE.error("Object definition with QName {} not found in the resource schema (oid={})",
-					objectDefinitionQName, resource.getOid());
+			TRACE.error("Object definition with QName {} not found in the resource {} schema",
+					objectDefinitionQName, resource.getName());
 			throw new SchemaHandlingException("Object definition with QName " + objectDefinitionQName
 					+ " not found in the resource schema (oid=" + resource.getOid() + ")");
 		}
-		return objectDefinition;
+		return (ResourceObjectDefinition) objectDefinition;
 	}
 
 	private XPathType getXPathForAccountsAttribute(QName accountAttributeName) {

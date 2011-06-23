@@ -25,7 +25,7 @@ package com.evolveum.midpoint.model;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.provisioning.synchronization.SynchronizationProcessManager;
+import com.evolveum.midpoint.provisioning.api.SynchronizationProcessManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CycleListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CycleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;

@@ -22,8 +22,6 @@ package com.evolveum.midpoint.model.action;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.List;
@@ -41,15 +39,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.test.util.RepositoryUtils;
-import com.evolveum.midpoint.provisioning.objects.ResourceObject;
-import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
-import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
-import com.evolveum.midpoint.provisioning.service.BaseResourceIntegration;
-import com.evolveum.midpoint.provisioning.service.ResourceAccessInterface;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.processor.ResourceObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -66,8 +62,8 @@ public class UnlinkAccountActionTest {
 	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
-	@Autowired(required = true)
-	private ResourceAccessInterface rai;
+//	@Autowired(required = true)
+//	private ResourceAccessInterface rai;
 
 	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
@@ -77,10 +73,16 @@ public class UnlinkAccountActionTest {
 		return change;
 	}
 
-	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
-			throws ParserConfigurationException {
-		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
-		return valueWriter.buildResourceObject(shadow, schema);
+	private ResourceObject createSampleResourceObject(ResourceType resourceType,
+			ResourceObjectShadowType shadow) throws ParserConfigurationException, SchemaProcessorException {
+		Schema schema = Schema.parse(resourceType.getSchema().getAny().get(0));
+		ResourceObjectDefinition definition = (ResourceObjectDefinition) schema
+				.findContainerDefinitionByType(shadow.getObjectClass());
+		ResourceObject object = definition.instantiate();
+
+		// TODO: set properties
+
+		return object;
 	}
 
 	@Test
@@ -103,10 +105,9 @@ public class UnlinkAccountActionTest {
 
 			assertNotNull(resourceType);
 			// setup provisioning mock
-			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
-			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
-			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
-			when(rai.getConnector()).thenReturn(bri);
+			ResourceObject ro = createSampleResourceObject(resourceType, accountType);
+//			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
+//			when(rai.getConnector()).thenReturn(bri);
 
 			resourceObjectChangeService.notifyChange(change);
 

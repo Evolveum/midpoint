@@ -197,12 +197,13 @@ public class ModelController {
 		return list;
 	}
 
-	public void modifyObject(ObjectModificationType change, OperationResult result) {
+	public void modifyObject(ObjectModificationType change, OperationResult result)
+			throws ObjectNotFoundException {
 		modifyObjectWithExclusion(change, null, result);
 	}
 
 	public void modifyObjectWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result) {
+			OperationResult result) throws ObjectNotFoundException {
 		Validate.notNull(change, "Object modification must not be null.");
 		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -228,6 +229,9 @@ public class ModelController {
 				modifyRepositoryObjectWithExclusion(change, accountOid, subResult, object);
 			}
 			subResult.recordSuccess();
+		} catch (ObjectNotFoundException ex) {
+			// TODO: error handling
+			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update object with oid {}", ex, change.getOid());
 			subResult.recordFatalError("Couldn't update object with oid '" + change.getOid() + "'.", ex);
@@ -341,6 +345,7 @@ public class ModelController {
 					+ "{} from repository for resource with oid {}", ex, resourceObjectShadowType,
 					resourceOid);
 			// TODO: error handling
+			throw new RuntimeException(ex);
 		}
 
 		if (list == null) {
@@ -435,7 +440,8 @@ public class ModelController {
 		LOGGER.debug(subResult.debugDump());
 	}
 
-	public TaskStatusType getImportStatus(String resourceOid, OperationResult result) {
+	public TaskStatusType getImportStatus(String resourceOid, OperationResult result)
+			throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Getting import status for resource with oid {}.", new Object[] { resourceOid });
@@ -449,6 +455,7 @@ public class ModelController {
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			// TODO: error handling
+			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get import status for resource {}", ex, resourceOid);
 			// TODO: error handling

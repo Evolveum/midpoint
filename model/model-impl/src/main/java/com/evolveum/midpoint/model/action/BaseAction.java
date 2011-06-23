@@ -30,6 +30,7 @@ import javax.xml.ws.Holder;
 import com.evolveum.midpoint.model.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -39,7 +40,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -49,7 +49,7 @@ public abstract class BaseAction implements Action {
 
 	private ModelPortType model;
 	private ProvisioningService provisioning;
-	private RepositoryPortType repository;
+	private RepositoryService repository;
 	private SchemaHandling schemaHandling;
 	private List<Object> parameters;
 
@@ -109,11 +109,11 @@ public abstract class BaseAction implements Action {
 		this.provisioning = provisioning;
 	}
 
-	public RepositoryPortType getRepository() {
+	public RepositoryService getRepository() {
 		return repository;
 	}
 
-	public void setRepository(RepositoryPortType repository) {
+	public void setRepository(RepositoryService repository) {
 		this.repository = repository;
 	}
 

@@ -62,7 +62,7 @@
         <constructor-arg type="java.lang.String" value="com.evolveum.midpoint.provisioning" />
     </bean>
  -->
-    <bean id="synchronizationProcessManager" class="com.evolveum.midpoint.provisioning.synchronization.SynchronizationProcessManager" init-method="init" destroy-method="shutdown">
+    <bean id="synchronizationProcessManager" class="com.evolveum.midpoint.provisioning.synchronization.SynchronizationProcessManagerImpl" init-method="init" destroy-method="shutdown">
         <property name="provisioningService" ref="provisioningService"/>
     </bean>
 

@@ -61,10 +61,10 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 		Action action = null;
 		try {
 			action = clazz.newInstance();
-			((BaseAction) action).setModel((ModelService) model);
+			((BaseAction) action).setModel(model);
 			((BaseAction) action).setProvisioning((ProvisioningService) provisioning);
 			((BaseAction) action).setSchemaHandling(schemaHandling);
-			((BaseAction) action).setRepository((RepositoryPortType) repository);
+			((BaseAction) action).setRepository(repository);
 		} catch (InstantiationException ex) {
 			trace.error("Couln't create action instance, reason: {}.", ex.getMessage());
 			trace.debug("Couln't create action instance.", ex);

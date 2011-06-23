@@ -78,8 +78,7 @@ public class ModelModifyObjectTest {
 
 	@Test(expected = FaultMessage.class)
 	public void nullChange() throws FaultMessage {
-		modelService.modifyObject(null, new Holder<OperationResultType>(new OperationResultType()));
-		fail("Illegal argument excetion must be thrown");
+		modelService.modifyObject(null, new Holder<OperationResultType>(new OperationResultType()));		
 	}
 
 	@Test(expected = FaultMessage.class)

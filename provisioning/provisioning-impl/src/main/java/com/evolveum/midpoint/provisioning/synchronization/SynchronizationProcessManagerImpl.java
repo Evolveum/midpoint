@@ -25,12 +25,13 @@ package com.evolveum.midpoint.provisioning.synchronization;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.SynchronizationProcessManager;
 
 /**
  * 
  * @author semancik
  */
-public class SynchronizationProcessManager {
+public class SynchronizationProcessManagerImpl implements SynchronizationProcessManager {
 
 	private static final String THREAD_NAME = "midpoint-synchronization";
 
@@ -41,18 +42,21 @@ public class SynchronizationProcessManager {
 		this.provisioningService = provisioningService;
 	}
 
-	private static final transient Trace logger = TraceManager.getTrace(SynchronizationProcessManager.class);
+	private static final transient Trace logger = TraceManager
+			.getTrace(SynchronizationProcessManagerImpl.class);
 	private long JOIN_TIMEOUT = 5000;
 
-	public SynchronizationProcessManager() {
+	public SynchronizationProcessManagerImpl() {
 		thread = null;
 	}
 
+	@Override
 	public void init() {
 		logger.info("Synchronization Manager initialization");
 		startThread();
 	}
 
+	@Override
 	public void shutdown() {
 		logger.info("Synchronization Manager shutdown");
 		stopThread();

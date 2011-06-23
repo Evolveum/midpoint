@@ -43,8 +43,8 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.util.ShadowUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -270,7 +270,7 @@ public class PasswordService implements PasswordPortType {
 		XPathType xpath = new XPathType(xpathSegments);
 
 		// We have all the data, we can construct the filter now
-		Document doc = ShadowUtil.getXmlDocument();
+		Document doc = DOMUtil.getDocument();
 		Element idElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
 				SchemaConstants.C_NAME.getLocalPart());
 		idElement.setTextContent(userName);

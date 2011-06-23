@@ -17,32 +17,17 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
-package com.evolveum.midpoint.model.test.util.mock;
-
-import org.mockito.Mockito;
-
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.SynchronizationProcessManager;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+package com.evolveum.midpoint.provisioning.api;
 
 /**
  * 
  * @author lazyman
+ * 
  */
-public class MockFactory {
+public interface SynchronizationProcessManager {
 
-	public static ProvisioningService createProvisioningPortType() {
-		return Mockito.mock(ProvisioningService.class);
-	}
+	public void init();
 
-	public static RepositoryService createRepositoryPortType() {
-		return Mockito.mock(RepositoryService.class);
-	}
-
-	public static SynchronizationProcessManager createSyncProcesManager() {
-		return Mockito.mock(SynchronizationProcessManager.class);
-	}
+	public void shutdown();
 }
