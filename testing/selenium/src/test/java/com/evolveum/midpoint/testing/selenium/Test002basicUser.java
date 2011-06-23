@@ -246,6 +246,18 @@ public class Test002basicUser {
 		assertTrue(se.isTextPresent("Selena Wilson"));
 	}
 
+	/***
+	 * Modify user via debug pages
+	 * 
+	 * Actions:
+	 * 		1. login as admin
+	 * 		2. click to Configuration
+	 * 		3. click to Import objects
+	 * 		4. fill editor with proper XML (new user jack)
+	 * 		5. click Accounts
+	 * 		6. check if user is there
+	 */
+	
 	@Test
 	public void test03importUser() {
 		se.click(se.findLink("topConfiguration"));
@@ -285,7 +297,20 @@ public class Test002basicUser {
 		assertTrue(se.isTextPresent("Cpt. Jack Sparrow")); 
 	}
 
-	
+	/***
+	 * Modify user via debug pages
+	 * 
+	 * Actions:
+	 * 		1. login as admin
+	 * 		2. click to Configuration
+	 * 		3. click to Import objects
+	 * 		4. fill editor with proper modified XML (user jack)
+	 * 		5. click to Upload object
+	 * 			a) overwrite is not selected -> FAIL
+	 * 			b) overwrite is selected -> PASS
+	 * 		6. click Accounts
+	 * 		7. check if user full name is changed
+	 */
 	@Test
 	public void test04importModifyUser() {
 		
@@ -341,7 +366,40 @@ public class Test002basicUser {
 		
 	}
 	
+	@Test
+	public void test05modifyUser() {
+		
+	}
 	
+	
+	@Test
+	public void test05modifyUserViaDebug() {
+		
+	}
+	
+	@Test
+	public void test05deleteUserViaDebug() {
+		
+	}
+	/***
+	 * Search user and delete it form  midPoint
+	 * 
+	 * Actions:
+	 * 		1. login as admin
+	 * 		2. click to accounts
+	 * 		3. find user
+	 * 		4. mark user to delete
+	 * 		5. click Delete button
+	 * 			a) click NO			-> FAIL
+	 * 			b) click YES 		-> PASS
+	 * 		
+	 * 	Do for user:
+	 * 		* Leila
+	 * 		* Selena
+	 * 
+	 * Validation:
+	 * 	* user not exists after remove
+	 */
 	@Test
 	public void test99deleteUser() {
 		
@@ -409,7 +467,7 @@ public class Test002basicUser {
 			h.put(se.getText(l), l.replace("name", ""));
 		}
 
-		se.click(h.get("Jack") + "deleteCheckbox");
+		se.click(h.get("jack") + "deleteCheckbox");
 		se.click("admin-content:deleteUser");
 		se.waitForText("Confirm delete");
 		se.click("admin-content:deleteUserYes");
