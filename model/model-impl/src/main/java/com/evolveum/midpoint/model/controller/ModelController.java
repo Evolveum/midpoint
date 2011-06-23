@@ -43,6 +43,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.ProvisioningTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -345,7 +346,6 @@ public class ModelController {
 					+ "{} from repository for resource with oid {}", ex, resourceObjectShadowType,
 					resourceOid);
 			// TODO: error handling
-			throw new RuntimeException(ex);
 		}
 
 		if (list == null) {
@@ -512,7 +512,7 @@ public class ModelController {
 			throws ObjectNotFoundException {
 		if (object instanceof AccountShadowType) {
 			AccountShadowType account = (AccountShadowType) object;
-			preprocessAccount(account, result);
+			preprocessAddAccount(account, result);
 		}
 
 		try {
@@ -529,7 +529,7 @@ public class ModelController {
 	private String addRepositoryObject(ObjectType object, OperationResult result) {
 		if (object instanceof UserType) {
 			UserType user = (UserType) object;
-			preprocessUser(user, result);
+			preprocessAddUser(user, result);
 		}
 
 		try {
@@ -678,7 +678,7 @@ public class ModelController {
 		return change;
 	}
 
-	private void preprocessAccount(AccountShadowType account, OperationResult result)
+	private void preprocessAddAccount(AccountShadowType account, OperationResult result)
 			throws ObjectNotFoundException {
 		// TODO insert credentials to account if needed
 		ResourceType resource = account.getResource();
@@ -708,22 +708,31 @@ public class ModelController {
 	}
 
 	private void modifyProvisioningObjectWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result, ObjectType object) {
+			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException {
+		if (object instanceof ResourceObjectShadowType) {
+			//TODO: outbound schema handling for this object
+		}
 		// TODO Auto-generated method stub
+		ScriptsType scripts = getScripts(object, result);
+		if (StringUtils.isNotEmpty(change.getOid())) {
+			provisioning.modifyObject(change, scripts, result);
+		}
 	}
 
 	private void modifyRepositoryObjectWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result, ObjectType object) {
+			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException {
 		// TODO Auto-generated method stub
+
+		repository.modifyObject(change, result);
 	}
 
 	// TODO: REFACTOR !!!!!
 	/**
 	 * User preprocessing is used during synchronization, when we're adding user
 	 * and we want to create default accounts for him, or something like that.
-	 * Nobody knows :)
+	 * Nobody knows, it needs to be reviewed :)
 	 */
-	private void preprocessUser(UserType user, OperationResult result) {
+	private void preprocessAddUser(UserType user, OperationResult result) {
 		LOGGER.debug("Preprocessing user {}.", new Object[] { user.getName() });
 
 		List<AccountShadowType> accountsToDelete = new ArrayList<AccountShadowType>();

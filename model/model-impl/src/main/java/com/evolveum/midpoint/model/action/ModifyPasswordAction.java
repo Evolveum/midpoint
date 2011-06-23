@@ -74,7 +74,7 @@ public class ModifyPasswordAction extends BaseAction {
 
 		try {
 			ObjectModificationType changes = createPasswordModification(userType, pwd);
-
+			
 			// getModel().modifyObjectWithExclusion(changes,
 			// change.getShadow().getOid(),
 			// new Holder<OperationResultType>(resultType));

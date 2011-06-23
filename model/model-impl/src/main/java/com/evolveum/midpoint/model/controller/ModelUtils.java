@@ -27,7 +27,7 @@ import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.model.ModelService;
+import com.evolveum.midpoint.model.ModelServiceOld;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -87,7 +87,7 @@ public class ModelUtils {
 			pwd = new RandomString(length).nextString();
 		}
 
-		CredentialsType.Password password = ModelService.getPassword(account);
+		CredentialsType.Password password = ModelServiceOld.getPassword(account);
 		if (password.getAny() != null) {
 			return;
 		}

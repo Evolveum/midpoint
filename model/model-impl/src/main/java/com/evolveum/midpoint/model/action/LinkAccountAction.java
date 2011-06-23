@@ -25,15 +25,13 @@ package com.evolveum.midpoint.model.action;
 import javax.xml.bind.JAXBException;
 import javax.xml.ws.Holder;
 
-import com.evolveum.midpoint.model.*;
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.SynchronizationException;
 import com.evolveum.midpoint.schema.ObjectTypes;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;

@@ -22,12 +22,16 @@
 
 package com.evolveum.midpoint.model.action;
 
+import javax.xml.bind.JAXBException;
+import javax.xml.ws.Holder;
+
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.*;
+import com.evolveum.midpoint.model.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
@@ -38,12 +42,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.ws.Holder;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
@@ -115,12 +115,13 @@ public class ModifyUserAction extends BaseAction {
 	private ResourceObjectShadowType resolveResource(ResourceObjectShadowType shadowAfterChange)
 			throws SynchronizationException {
 		try {
-			ObjectContainerType container = getRepository().getObject(
-					shadowAfterChange.getResourceRef().getOid(), new PropertyReferenceListType());
-			ResourceType resourceType = (ResourceType) container.getObject();
+			ResourceType resourceType = (ResourceType) getRepository().getObject(
+					shadowAfterChange.getResourceRef().getOid(), new PropertyReferenceListType(),
+					new OperationResult("Get Object"));
+
 			shadowAfterChange.setResource(resourceType);
 			shadowAfterChange.setResourceRef(null);
-		} catch (FaultMessage ex) {
+		} catch (Exception ex) {
 			logger.error("Failed to resolve resource with oid {}", shadowAfterChange.getResourceRef()
 					.getOid(), ex);
 			throw new SynchronizationException("Resource can't be resolved.", ex);
