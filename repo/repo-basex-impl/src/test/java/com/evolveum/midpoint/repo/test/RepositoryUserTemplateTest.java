@@ -22,19 +22,14 @@
 
 package com.evolveum.midpoint.repo.test;
 
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.io.File;
+
 import javax.xml.bind.JAXBElement;
+
+import org.eclipse.core.internal.dtree.ObjectNotFoundException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -45,7 +40,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.Assert.*;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 
 /**
  *
@@ -56,13 +58,13 @@ import static org.junit.Assert.*;
 public class RepositoryUserTemplateTest {
 
     @Autowired(required = true)
-    private RepositoryPortType repositoryService;
+    private RepositoryService repositoryService;
 
-    public RepositoryPortType getRepositoryService() {
+    public RepositoryService getRepositoryService() {
         return repositoryService;
     }
 
-    public void setRepositoryService(RepositoryPortType repositoryService) {
+    public void setRepositoryService(RepositoryService repositoryService) {
         this.repositoryService = repositoryService;
     }
 
@@ -90,35 +92,31 @@ public class RepositoryUserTemplateTest {
     	String userTemplateOid = "c0c010c0-d34d-b33f-f00d-777111111111";
         try {
         	//add object
-            ObjectContainerType objectContainer = new ObjectContainerType();
             UserTemplateType userTemplate = ((JAXBElement<UserTemplateType>) JAXBUtil.unmarshal(new File("src/test/resources/user-template.xml"))).getValue();
-            objectContainer.setObject(userTemplate);
-            repositoryService.addObject(objectContainer);
+            repositoryService.addObject(userTemplate, null);
             
             //get object
-            ObjectContainerType retrievedObjectContainer = repositoryService.getObject(userTemplateOid, new PropertyReferenceListType());
-            assertEquals(userTemplate.getPropertyConstruction().get(0).getProperty().getTextContent(), ((UserTemplateType) (retrievedObjectContainer.getObject())).getPropertyConstruction().get(0).getProperty().getTextContent());
-            assertEquals(userTemplate.getAccountConstruction().get(0).getResourceRef().getOid(), ((UserTemplateType) (retrievedObjectContainer.getObject())).getAccountConstruction().get(0).getResourceRef().getOid());
+            ObjectType retrievedObject = repositoryService.getObject(userTemplateOid, new PropertyReferenceListType(), null);
+            assertEquals(userTemplate.getPropertyConstruction().get(0).getProperty().getTextContent(), ((UserTemplateType) retrievedObject).getPropertyConstruction().get(0).getProperty().getTextContent());
+            assertEquals(userTemplate.getAccountConstruction().get(0).getResourceRef().getOid(), ((UserTemplateType) retrievedObject).getAccountConstruction().get(0).getResourceRef().getOid());
             
             //list object
-            ObjectListType objects = repositoryService.listObjects(QNameUtil.qNameToUri(SchemaConstants.I_USER_TEMPLATE_TYPE), new PagingType());
+            ObjectListType objects = repositoryService.listObjects(ObjectTypes.USER_TEMPLATE.getClassDefinition(), new PagingType(), null);
             assertEquals(1, objects.getObject().size());
             assertEquals(userTemplateOid, objects.getObject().get(0).getOid());
             
 			// delete object
-			repositoryService.deleteObject(userTemplateOid);
+			repositoryService.deleteObject(userTemplateOid, null);
 			try {
-				repositoryService.getObject(userTemplateOid, new PropertyReferenceListType());
+				repositoryService.getObject(userTemplateOid, new PropertyReferenceListType(), null);
 				fail("Object with oid " + userTemplateOid + " was not deleted");
-			} catch (FaultMessage ex) {
-				if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
-					throw ex;
-				}
+			} catch (ObjectNotFoundException ex) {
+				//ignore
 			}
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(userTemplateOid);
+				repositoryService.deleteObject(userTemplateOid, null);
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}

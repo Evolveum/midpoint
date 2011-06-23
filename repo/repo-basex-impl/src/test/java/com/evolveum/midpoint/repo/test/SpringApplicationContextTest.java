@@ -34,7 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 
 /**
  * Test of spring application context initialization
@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPo
 public class SpringApplicationContextTest {
 
     @Autowired(required=true)
-    private RepositoryPortType repositoryService;
+    private RepositoryService repositoryService;
 
     public SpringApplicationContextTest() {
     }

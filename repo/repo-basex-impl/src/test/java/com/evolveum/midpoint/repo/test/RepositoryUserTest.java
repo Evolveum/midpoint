@@ -44,9 +44,11 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -59,10 +61,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -74,13 +72,13 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 public class RepositoryUserTest {
 
 	@Autowired(required = true)
-	private RepositoryPortType repositoryService;
+	private RepositoryService repositoryService;
 
-	public RepositoryPortType getRepositoryService() {
+	public RepositoryService getRepositoryService() {
 		return repositoryService;
 	}
 
-	public void setRepositoryService(RepositoryPortType repositoryService) {
+	public void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
 	}
 
@@ -112,45 +110,43 @@ public class RepositoryUserTest {
 			
 			PagingType pagingType = PagingTypeFactory.createPaging(0, 5, OrderDirectionType.ASCENDING, "name");
 			ObjectListType objects = repositoryService.listObjects(
-					QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE), pagingType);
+					ObjectTypes.USER.getClassDefinition(), pagingType, null);
 			int actualSize = objects.getObject().size();
 
 			//add new user object
-			ObjectContainerType objectContainer = new ObjectContainerType();
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user.xml"))).getValue();
-			objectContainer.setObject(user);
-			repositoryService.addObject(objectContainer);
+			repositoryService.addObject(user, null);
 
 			//get the object
-			ObjectContainerType retrievedObjectContainer = repositoryService.getObject(oid,
-					new PropertyReferenceListType());
-			assertEquals(user.getOid(), ((UserType) (retrievedObjectContainer.getObject())).getOid());
-			assertEquals(1, ((UserType) (retrievedObjectContainer.getObject())).getAdditionalNames().size());
+			ObjectType retrievedObject = repositoryService.getObject(oid,
+					new PropertyReferenceListType(), null);
+			assertEquals(user.getOid(), retrievedObject.getOid());
+			assertEquals(1, ((UserType) retrievedObject).getAdditionalNames().size());
 			assertEquals(user.getAdditionalNames(),
-					((UserType) (retrievedObjectContainer.getObject())).getAdditionalNames());
+					((UserType) retrievedObject).getAdditionalNames());
 			assertEquals(user.getEMailAddress(),
-					((UserType) (retrievedObjectContainer.getObject())).getEMailAddress());
-			assertEquals(1, ((UserType) (retrievedObjectContainer.getObject())).getEMailAddress().size());
+					((UserType) retrievedObject).getEMailAddress());
+			assertEquals(1, ((UserType) retrievedObject).getEMailAddress().size());
 			assertEquals(user.getEmployeeNumber(),
-					((UserType) (retrievedObjectContainer.getObject())).getEmployeeNumber());
+					((UserType) retrievedObject).getEmployeeNumber());
 			assertEquals(user.getEmployeeType(),
-					((UserType) (retrievedObjectContainer.getObject())).getEmployeeType());
-			assertEquals(1, ((UserType) (retrievedObjectContainer.getObject())).getEmployeeType().size());
+					((UserType) retrievedObject).getEmployeeType());
+			assertEquals(1, ((UserType) retrievedObject).getEmployeeType().size());
 			assertEquals(user.getFamilyName(),
-					((UserType) (retrievedObjectContainer.getObject())).getFamilyName());
+					((UserType) retrievedObject).getFamilyName());
 			assertEquals(user.getFullName(),
-					((UserType) (retrievedObjectContainer.getObject())).getFullName());
+					((UserType) retrievedObject).getFullName());
 			assertEquals(user.getGivenName(),
-					((UserType) (retrievedObjectContainer.getObject())).getGivenName());
+					((UserType) retrievedObject).getGivenName());
 			assertEquals(user.getHonorificPrefix(),
-					((UserType) (retrievedObjectContainer.getObject())).getHonorificPrefix());
+					((UserType) retrievedObject).getHonorificPrefix());
 			assertEquals(user.getHonorificSuffix(),
-					((UserType) (retrievedObjectContainer.getObject())).getHonorificSuffix());
+					((UserType) retrievedObject).getHonorificSuffix());
 
 			//list the objects
-			objects = repositoryService.listObjects(QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE),
-					pagingType);
+			objects = repositoryService.listObjects(ObjectTypes.USER.getClassDefinition(),
+					pagingType, null);
 			boolean oidTest = false;
 
 			//check if user under test is retrieved from the repo
@@ -163,19 +159,17 @@ public class RepositoryUserTest {
 			assertEquals(actualSize + 1, objects.getObject().size());
 
 			// delete object
-			repositoryService.deleteObject(oid);
+			repositoryService.deleteObject(oid, null);
 			try {
-				repositoryService.getObject(oid, new PropertyReferenceListType());
+				repositoryService.getObject(oid, new PropertyReferenceListType(), null);
 				fail("Object with oid " + oid + " was not deleted");
-			} catch (FaultMessage ex) {
-				if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
-					throw ex;
-				}
+			} catch (ObjectNotFoundException ex) {
+				//ignore
 			}		
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid);
+				repositoryService.deleteObject(oid, null);
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -188,25 +182,22 @@ public class RepositoryUserTest {
 		String oid = "c0c010c0-d34d-b33f-f00d-222222222222";
 		try {
 			//store user without extension
-			ObjectContainerType objectContainer = new ObjectContainerType();
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user-without-extension.xml"))).getValue();
-			objectContainer.setObject(user);
-			repositoryService.addObject(objectContainer);
-			ObjectContainerType retrievedObjectContainer = repositoryService.getObject(oid,
-					new PropertyReferenceListType());
-			assertEquals(user.getOid(), ((UserType) (retrievedObjectContainer.getObject())).getOid());
+			repositoryService.addObject(user, null);
+			ObjectType retrievedObject = repositoryService.getObject(oid,
+					new PropertyReferenceListType(), null);
+			assertEquals(user.getOid(), ((UserType) (retrievedObject)).getOid());
 
 			//modify user add extension
 			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
 					"src/test/resources/user-without-extension.xml"), new File(
 					"src/test/resources/user-added-extension.xml"));
-			repositoryService.modifyObject(objectModificationType);
+			repositoryService.modifyObject(objectModificationType, null);
 
 			//check the extension in the object
-			retrievedObjectContainer = repositoryService.getObject(oid, new PropertyReferenceListType());
-			user = (UserType) retrievedObjectContainer.getObject();
-			assertEquals(user.getOid(), ((UserType) (retrievedObjectContainer.getObject())).getOid());
+			retrievedObject = repositoryService.getObject(oid, new PropertyReferenceListType(), null);
+			assertEquals(user.getOid(), retrievedObject.getOid());
 			assertNotNull(user.getExtension().getAny());
 			assertEquals("ship", user.getExtension().getAny().get(0).getLocalName());
 			assertEquals("Black Pearl", user.getExtension().getAny().get(0).getTextContent());
@@ -214,7 +205,7 @@ public class RepositoryUserTest {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid);
+				repositoryService.deleteObject(oid, null);
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -229,13 +220,12 @@ public class RepositoryUserTest {
 			//store new user object without oid
 			ObjectContainerType objectContainer = new ObjectContainerType();
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/user-without-oid.xml"))).getValue();
-			objectContainer.setObject(user);
-			oid = repositoryService.addObject(objectContainer);
-			ObjectContainerType retrievedObjectContainer = repositoryService.getObject(oid,
-					new PropertyReferenceListType());
+					"src/test/resources/user-without-oid.xml"))).getValue();	
+			oid = repositoryService.addObject(user, null);
+			ObjectType retrievedObject = repositoryService.getObject(oid,
+					new PropertyReferenceListType(), null);
 			//check if oid was generated for the object
-			final UserType retrievedUser = (UserType) (retrievedObjectContainer.getObject());
+			final UserType retrievedUser = (UserType) retrievedObject;
 			assertEquals(oid, retrievedUser.getOid());
 			assertEquals(user.getAdditionalNames(), retrievedUser.getAdditionalNames());
 			assertEquals(user.getEMailAddress(), retrievedUser.getEMailAddress());
@@ -250,7 +240,7 @@ public class RepositoryUserTest {
 			if (oid != null) {
 				// to be sure try to delete the object as part of cleanup
 				try {
-					repositoryService.deleteObject(oid);
+					repositoryService.deleteObject(oid, null);
 				} catch (Exception ex) {
 					// ignore exceptions during cleanup
 				}
@@ -265,24 +255,18 @@ public class RepositoryUserTest {
 		String accountRefToDeleteOid = "8254880d-6584-425a-af2e-58f8ca394bbb";
 		String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
-			ObjectContainerType objectContainer = new ObjectContainerType();
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/resource-modified-removed-tags.xml"))).getValue();
-			objectContainer.setObject(resource);
-			repositoryService.addObject(objectContainer);
+			repositoryService.addObject(resource, null);
 
-			objectContainer = new ObjectContainerType();
 			AccountShadowType accountToDelete = ((JAXBElement<AccountShadowType>) JAXBUtil
 					.unmarshal(new File("src/test/resources/account-delete-account-ref.xml"))).getValue();
-			objectContainer.setObject(accountToDelete);
-			repositoryService.addObject(objectContainer);
+			repositoryService.addObject(accountToDelete, null);
 
-			objectContainer = new ObjectContainerType();
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user-account-ref.xml"))).getValue();
 			assertEquals(1, user.getAccountRef().size());
-			objectContainer.setObject(user);
-			repositoryService.addObject(objectContainer);
+			repositoryService.addObject(user, null);
 
 			// modify user - delete it's accountRef
 			ObjectModificationType modifications = new ObjectModificationType();
@@ -298,30 +282,30 @@ public class RepositoryUserTest {
 							.getFirstChild());
 			modification.setValue(value);
 			modifications.getPropertyModification().add(modification);
-			repositoryService.modifyObject(modifications);
+			repositoryService.modifyObject(modifications, null);
 
 			//check if account ref was removed from the object
-			ObjectContainerType retrievedObjectContainer = repositoryService.getObject(oid,
-					new PropertyReferenceListType());
-			UserType retrievedUser = (UserType) retrievedObjectContainer.getObject();
+			ObjectType retrievedObject = repositoryService.getObject(oid,
+					new PropertyReferenceListType(), null);
+			UserType retrievedUser = (UserType) retrievedObject;
 			assertEquals(oid, retrievedUser.getOid());
 			assertEquals(0, retrievedUser.getAccountRef().size());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(resourceOid);
+				repositoryService.deleteObject(resourceOid, null);
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(accountRefToDeleteOid);
+				repositoryService.deleteObject(accountRefToDeleteOid, null);
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid);
+				repositoryService.deleteObject(oid, null);
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}

@@ -30,6 +30,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
+import org.eclipse.core.internal.dtree.ObjectNotFoundException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -44,19 +45,19 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.test.XmlAsserts;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -68,13 +69,13 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 public class RepositoryResourceStateTest {
 
 	@Autowired(required = true)
-	private RepositoryPortType repositoryService;
+	private RepositoryService repositoryService;
 
-	public RepositoryPortType getRepositoryService() {
+	public RepositoryService getRepositoryService() {
 		return repositoryService;
 	}
 
-	public void setRepositoryService(RepositoryPortType repositoryService) {
+	public void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
 	}
 
@@ -125,51 +126,45 @@ public class RepositoryResourceStateTest {
 		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
 			// add resource referenced by resourcestate
-			ObjectContainerType objectContainer = new ObjectContainerType();
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
-			objectContainer.setObject(resource);
-			repositoryService.addObject(objectContainer);
-			ObjectContainerType retrievedObjectContainer = repositoryService.getObject(resourceOid,
-					new PropertyReferenceListType());
-			assertEquals(resource.getOid(), ((ResourceType) (retrievedObjectContainer.getObject())).getOid());
+			repositoryService.addObject(resource, null);
+			ObjectType retrievedObject = repositoryService.getObject(resourceOid,
+					new PropertyReferenceListType(), null);
+			assertEquals(resource.getOid(), retrievedObject.getOid());
 
 			// add resource state object
-			objectContainer = new ObjectContainerType();
 			ResourceStateType resourceState = ((JAXBElement<ResourceStateType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/resource-state.xml"))).getValue();
-			objectContainer.setObject(resourceState);
-			repositoryService.addObject(objectContainer);
+			repositoryService.addObject(resourceState, null);
 
 			// get object
-			retrievedObjectContainer = repositoryService.getObject(resourceStateOid,
-					new PropertyReferenceListType());
-			compareObjects(resourceState, ((ResourceStateType) (retrievedObjectContainer.getObject())));
+			retrievedObject = repositoryService.getObject(resourceStateOid,
+					new PropertyReferenceListType(), null);
+			compareObjects(resourceState, (ResourceStateType) retrievedObject);
 
 			// list objects
 			ObjectListType objects = repositoryService.listObjects(
-					QNameUtil.qNameToUri(SchemaConstants.I_RESOURCE_STATE_TYPE), new PagingType());
+					ObjectTypes.RESOURCE_STATE.getClassDefinition(), new PagingType(), null);
 			assertEquals(1, objects.getObject().size());
 			compareObjects(resourceState, (ResourceStateType) objects.getObject().get(0));
 
 			// delete object
-			repositoryService.deleteObject(resourceStateOid);
+			repositoryService.deleteObject(resourceStateOid, null);
 			try {
-				repositoryService.getObject(resourceStateOid, new PropertyReferenceListType());
+				repositoryService.getObject(resourceStateOid, new PropertyReferenceListType(), null);
 				fail("Object with oid " + resourceStateOid + " was not deleted");
-			} catch (FaultMessage ex) {
-				if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
-					throw ex;
-				}
+			} catch (ObjectNotFoundException ex) {
+				//ignore
 			}
 		} finally {
 			try {
-				repositoryService.deleteObject(resourceOid);
+				repositoryService.deleteObject(resourceOid, null);
 			} catch (Exception e) {
 				// ignore errors during cleanup
 			}
 			try {
-				repositoryService.deleteObject(resourceStateOid);
+				repositoryService.deleteObject(resourceStateOid, null);
 			} catch (Exception e) {
 				// ignore errors during cleanup
 			}
@@ -183,26 +178,22 @@ public class RepositoryResourceStateTest {
 		final String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
 		try {
 			// add resource referenced by resourcestate
-			ObjectContainerType objectContainer = new ObjectContainerType();
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
-			objectContainer.setObject(resource);
-			repositoryService.addObject(objectContainer);
-			ObjectContainerType retrievedObjectContainer = repositoryService.getObject(resourceOid,
-					new PropertyReferenceListType());
-			assertEquals(resource.getOid(), ((ResourceType) (retrievedObjectContainer.getObject())).getOid());
+			repositoryService.addObject(resource, null);
+			ObjectType retrievedObject = repositoryService.getObject(resourceOid,
+					new PropertyReferenceListType(), null);
+			assertEquals(resource.getOid(), retrievedObject.getOid());
 
 			// add resource state object
-			objectContainer = new ObjectContainerType();
 			ResourceStateType resourceState = ((JAXBElement<ResourceStateType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/resource-state.xml"))).getValue();
-			objectContainer.setObject(resourceState);
-			repositoryService.addObject(objectContainer);
+			repositoryService.addObject(resourceState, null);
 
 			// get object
-			retrievedObjectContainer = repositoryService.getObject(resourceStateOid,
-					new PropertyReferenceListType());
-			compareObjects(resourceState, ((ResourceStateType) (retrievedObjectContainer.getObject())));
+			retrievedObject = repositoryService.getObject(resourceStateOid,
+					new PropertyReferenceListType(), null);
+			compareObjects(resourceState, (ResourceStateType) retrievedObject);
 
 			// modify object
 			ResourceStateType resourceStateAfterSync = ((JAXBElement<ResourceStateType>) JAXBUtil
@@ -210,30 +201,28 @@ public class RepositoryResourceStateTest {
 			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
 					"src/test/resources/resource-state.xml"), new File(
 					"src/test/resources/resource-state-after-sync.xml"));
-			repositoryService.modifyObject(objectModificationType);
-			retrievedObjectContainer = repositoryService.getObject(resourceStateOid,
-					new PropertyReferenceListType());
+			repositoryService.modifyObject(objectModificationType, null);
+			retrievedObject = repositoryService.getObject(resourceStateOid,
+					new PropertyReferenceListType(), null);
 			compareObjects(resourceStateAfterSync,
-					((ResourceStateType) (retrievedObjectContainer.getObject())));
+					(ResourceStateType) retrievedObject);
 
 			// delete object
-			repositoryService.deleteObject(resourceStateOid);
+			repositoryService.deleteObject(resourceStateOid, null);
 			try {
-				repositoryService.getObject(resourceStateOid, new PropertyReferenceListType());
+				repositoryService.getObject(resourceStateOid, new PropertyReferenceListType(), null);
 				fail("Object with oid " + resourceStateOid + " was not deleted");
-			} catch (FaultMessage ex) {
-				if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
-					throw ex;
-				}
+			} catch (ObjectNotFoundException ex) {
+				//ignore
 			}
 		} finally {
 			try {
-				repositoryService.deleteObject(resourceOid);
+				repositoryService.deleteObject(resourceOid, null);
 			} catch (Exception e) {
 				// ignore errors during cleanup
 			}
 			try {
-				repositoryService.deleteObject(resourceStateOid);
+				repositoryService.deleteObject(resourceStateOid, null);
 			} catch (Exception e) {
 				// ignore errors during cleanup
 			}

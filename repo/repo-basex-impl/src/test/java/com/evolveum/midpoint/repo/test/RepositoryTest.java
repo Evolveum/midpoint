@@ -22,7 +22,8 @@
 
 package com.evolveum.midpoint.repo.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 
@@ -40,15 +41,15 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -60,13 +61,13 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 public class RepositoryTest {
 
 	@Autowired(required = true)
-	private RepositoryPortType repositoryService;
+	private RepositoryService repositoryService;
 
-	public RepositoryPortType getRepositoryService() {
+	public RepositoryService getRepositoryService() {
 		return repositoryService;
 	}
 
-	public void setRepositoryService(RepositoryPortType repositoryService) {
+	public void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
 	}
 
@@ -86,25 +87,22 @@ public class RepositoryTest {
 	public void tearDown() {
 	}
 
-	//FIXME: change expected exception to ObjectAlreadyExistsException when repo is switched to new interface
 	@Test
-	@ExpectedException(value=FaultMessage.class)
+	@ExpectedException(value=ObjectAlreadyExistsException.class)
 	public void addObjectThatAlreadyExists() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111111";
 		try {
 			// store user
-			ObjectContainerType objectContainer = new ObjectContainerType();
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user.xml"))).getValue();
-			objectContainer.setObject(user);
-			repositoryService.addObject(objectContainer);
+			repositoryService.addObject(user, null);
 			
 			//try to store the same object again, exception is expected
-			repositoryService.addObject(objectContainer);
+			repositoryService.addObject(user, null);
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid);
+				repositoryService.deleteObject(oid, null);
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -113,39 +111,39 @@ public class RepositoryTest {
 	}
 
 	@Test
-	@ExpectedException(value=FaultMessage.class)
+	@ExpectedException(value=ObjectNotFoundException.class)
 	public void getNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		//try to get not existing object, exception is expected
-		repositoryService.getObject(oid, null);
+		repositoryService.getObject(oid, null, null);
 	}
 	
 	@Test
 	public void listObjectsNoObjectsOfThatTypeReturnsEmptyList() throws Exception {
-		ObjectListType retrievedList = repositoryService.listObjects(QNameUtil.qNameToUri(SchemaConstants.I_RESOURCE_TYPE), null);
+		ObjectListType retrievedList = repositoryService.listObjects(ObjectTypes.RESOURCE.getDeclaringClass(), null, null);
 		assertNotNull(retrievedList);
 		assertEquals(0, retrievedList.getObject().size());
 		assertEquals(0, retrievedList.getCount().intValue());
 	}	
 
 	@Test
-	@ExpectedException(value=FaultMessage.class)
+	@ExpectedException(value=ObjectNotFoundException.class)
 	public void modifyNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		ObjectModificationType objModifications = new ObjectModificationType();
 		objModifications.setOid(oid);
 		PropertyModificationType modification = new PropertyModificationType();
-		objModifications.getPropertyModification().add(modification );
+		objModifications.getPropertyModification().add(modification);
 		//try to modify not existing object, exception is expected
-		repositoryService.modifyObject(objModifications);
+		repositoryService.modifyObject(objModifications, null);
 	}
 	
 	@Test
-	@ExpectedException(value=FaultMessage.class)
+	@ExpectedException(value=ObjectNotFoundException.class)
 	public void deleteNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		//try to delete not existing object, exception is expected
-		repositoryService.deleteObject(oid);	
+		repositoryService.deleteObject(oid, null);	
 	}
 	
 }
