@@ -53,14 +53,14 @@
 				<ice:outputText value="#{msg['page.config.debugList.objectName']}" />
 				<ice:outputText />
 
-				<c:forEach items="#{debugList.objects}" var="item">
-					<ice:commandLink value="#{item.name}"
+				<c:forEach items="#{debugList.objects}" var="item" varStatus="status">
+					<ice:commandLink value="#{item.name}" id="link#{status.index}"
 						action="#{debugList.viewOrEdit}"
 						style="text-decoration: underline;">
 						<f:param name="viewObjectOid" value="#{item.oid}" />
 					</ice:commandLink>
 
-					<idm:button id="deleteButton"
+					<idm:button id="deleteButton#{status.index}"
 						value="#{msg['page.config.debugList.button.delete']}"
 						action="#{debugList.showConfirmDelete}"
 						img="/resources/images/delete.png" buttonType="negative">
