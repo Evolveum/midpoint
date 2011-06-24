@@ -396,7 +396,15 @@ public class Test002basicUser {
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
 		assertTrue(se.isTextPresent("New User"));
-		se.click(se.findLink("jack"));
+		// get hashmap and login
+		HashMap<String, String> h = new HashMap<String, String>();
+		for (String l : se.getAllLinks()) {
+			if (!l.contains("Table") || !l.contains("name"))
+				continue;
+			h.put(se.getText(l), l.replace("name", ""));
+		}
+		
+		se.click(h.get("jack"));
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
 		assertTrue(se.isTextPresent("Black Pearl"));
@@ -417,7 +425,13 @@ public class Test002basicUser {
 		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
 		assertTrue(se.isTextPresent("New User"));
 		assertTrue(se.isTextPresent("SR. Jack Sparrow"));
-		se.click(se.findLink("Jack"));
+		
+		for (String l : se.getAllLinks()) {
+			if (!l.contains("Table") || !l.contains("name"))
+				continue;
+			h.put(se.getText(l), l.replace("name", ""));
+		}
+		se.click(h.get("jack"));
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
 		assertTrue(se.isTextPresent("Queen Anne"));
