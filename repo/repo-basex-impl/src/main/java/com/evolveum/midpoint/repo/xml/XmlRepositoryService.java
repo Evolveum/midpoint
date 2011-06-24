@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBElement;
@@ -75,6 +76,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
 
 public class XmlRepositoryService implements RepositoryService {
 
+	private static final String DECLARE_NAMESPACE_C = "declare namespace c='"+SchemaConstants.NS_C+"';\n";
 	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryService.class);
 	private Collection collection;
 
@@ -104,11 +106,10 @@ public class XmlRepositoryService implements RepositoryService {
 			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
 			serializedObject = StringUtils.replace(serializedObject, "}", "}}");
 
-			// Receive the XPath query service.
 			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
 
 			StringBuilder query = new StringBuilder(
-					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n")
+					DECLARE_NAMESPACE_C)
 					.append("let $x := ").append(serializedObject).append("\n")
 					.append("return insert node $x into //c:objects");
 
@@ -139,7 +140,7 @@ public class XmlRepositoryService implements RepositoryService {
 			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
 
 			StringBuilder query = new StringBuilder(
-					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
+					DECLARE_NAMESPACE_C);
 			query.append("for $x in //c:object where $x/@oid=\"").append(oid).append("\" return $x");
 
 			TRACE.trace("generated query: " + query);
@@ -196,8 +197,12 @@ public class XmlRepositoryService implements RepositoryService {
 		//validation if object type is supported
 		ObjectTypes objType = ObjectTypes.getObjectType(objectType);
 		String oType = objType.getValue();
+
+		Map<String, String> namespaces = new HashMap<String, String>();
+		namespaces.put("c", SchemaConstants.NS_C);
+		namespaces.put("idmdn", SchemaConstants.NS_C);
 		
-		return searchObjects(oType, paging, null);
+		return searchObjects(oType, paging, null, namespaces);
 	}
 
 	@Override
@@ -208,7 +213,10 @@ public class XmlRepositoryService implements RepositoryService {
 		NodeList children = query.getFilter().getChildNodes();
 		String objectType = null;
 		Map<String, String> filters = new HashMap<String, String>();
-
+		Map<String, String> namespaces = new HashMap<String, String>();
+		namespaces.put("c", SchemaConstants.NS_C);
+		namespaces.put("idmdn", SchemaConstants.NS_C);
+		
 		for (int index = 0; index < children.getLength(); index++) {
 			Node child = children.item(index);
 			if (child.getNodeType() != Node.ELEMENT_NODE) {
@@ -232,16 +240,16 @@ public class XmlRepositoryService implements RepositoryService {
 					String parentPath = xpathType.getXPath();
 
 					Node criteriaValueNode = DOMUtil.getNextSiblingElement(criteria);
-					processValueNode(criteriaValueNode, filters, parentPath);
+					processValueNode(criteriaValueNode, filters, namespaces, parentPath);
 				}
 
 				if (validateFilterElement(SchemaConstants.NS_C, "value", criteria)) {
-					processValueNode(criteria, filters, null);
+					processValueNode(criteria, filters, namespaces, null);
 				}
 			}
 		}
 
-		return searchObjects(objectType, paging, filters);
+		return searchObjects(objectType, paging, filters, namespaces);
 	}
 
 	@Override
@@ -265,7 +273,7 @@ public class XmlRepositoryService implements RepositoryService {
 			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
 
 			StringBuilder query = new StringBuilder(
-					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n")
+					DECLARE_NAMESPACE_C)
 					.append("replace node //c:object[@oid=\"").append(objectChange.getOid())
 					.append("\"] with ").append(serializedObject);
 
@@ -301,7 +309,7 @@ public class XmlRepositoryService implements RepositoryService {
 			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
 
 			StringBuilder QUERY = new StringBuilder(
-					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
+					DECLARE_NAMESPACE_C);
 			QUERY.append("delete nodes //c:object[@oid=\"").append(oid).append("\"]");
 
 			service.query(QUERY.toString());
@@ -330,9 +338,10 @@ public class XmlRepositoryService implements RepositoryService {
 	public UserType listAccountShadowOwner(String accountOid, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		Map<String, String> filters = new HashMap<String, String>();
-		// FIXME: hardcoded prefix c:
+		Map<String, String> namespaces = new HashMap<String, String>();
+		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:accountRef", accountOid);
-		ObjectListType retrievedObjects = searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, filters);
+		ObjectListType retrievedObjects = searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, filters, namespaces);
 		List<ObjectType> objects = retrievedObjects.getObject();
 
 		if (null == retrievedObjects || objects == null || objects.size() == 0) {
@@ -351,9 +360,10 @@ public class XmlRepositoryService implements RepositoryService {
 	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
 			Class resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
 		Map<String, String> filters = new HashMap<String, String>();
-		// FIXME: hardcoded prefix c:
+		Map<String, String> namespaces = new HashMap<String, String>();
+		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:resourceRef", resourceOid);
-		ObjectListType retrievedObjects = searchObjects(ObjectTypes.ACCOUNT.getObjectTypeUri(), null, filters);
+		ObjectListType retrievedObjects = searchObjects(ObjectTypes.ACCOUNT.getObjectTypeUri(), null, filters, namespaces);
 
 		@SuppressWarnings("unchecked")
 		List<ResourceObjectShadowType> objects = (List<ResourceObjectShadowType>) CollectionUtils.collect(
@@ -383,7 +393,7 @@ public class XmlRepositoryService implements RepositoryService {
 		}
 	}
 
-	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters) {
+	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters, Map<String, String> namespaces) {
 
 		ByteArrayInputStream in = null;
 		ObjectListType objectList = new ObjectListType();
@@ -394,14 +404,12 @@ public class XmlRepositoryService implements RepositoryService {
 
 			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
 
-			StringBuilder query = new StringBuilder(
-					"declare namespace c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
-			// TODO: namespace declaration has to be generated dynamically
-			query.append("declare namespace idmdn='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
-			query.append("declare namespace i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd';\n");
-			query.append("declare namespace dj='http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ';\n");
-			query.append("declare namespace xsi='http://www.w3.org/2001/XMLSchema-instance';\n");
-			query.append("declare namespace s='http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd';\n");
+			StringBuilder query = new StringBuilder();
+			if (namespaces != null) {
+				for (Entry<String, String> namespaceEntry: namespaces.entrySet()) {
+					query.append("declare namespace ").append(namespaceEntry.getKey()).append("='").append(namespaceEntry.getValue()).append("';\n");
+				}
+			}
 			// FIXME: possible problems with object type checking. Now it is
 			// simple string checking, because import schema is not supported by basex database
 			query.append("for $x in //c:object where $x/@xsi:type=\"")
@@ -473,7 +481,7 @@ public class XmlRepositoryService implements RepositoryService {
 		return objectList;
 	}
 
-	private void processValueNode(Node criteriaValueNode, Map<String, String> filters, String parentPath) {
+	private void processValueNode(Node criteriaValueNode, Map<String, String> filters, Map<String, String> namespaces, String parentPath) {
 		if (null == criteriaValueNode) {
 			throw new IllegalArgumentException("Query filter does not contain any values to search by");
 		}
@@ -484,9 +492,15 @@ public class XmlRepositoryService implements RepositoryService {
 			}
 			// FIXME: possible problem with prefixes
 			String lastPathSegment;
+			String prefix;
+			String namespace;
 			if (!StringUtils.isEmpty(firstChild.getPrefix())) {
-				lastPathSegment = firstChild.getPrefix() + ":" + firstChild.getLocalName();
+				prefix = firstChild.getPrefix();
+				namespace = firstChild.getNamespaceURI();
+				lastPathSegment = prefix + ":" + firstChild.getLocalName();
 			} else {
+				prefix = "c:";
+				namespace = SchemaConstants.NS_C;
 				lastPathSegment = "c:" + firstChild.getLocalName();
 			}
 			// some search filters does not contain element's text value, for
@@ -512,6 +526,7 @@ public class XmlRepositoryService implements RepositoryService {
 			} else {
 				filters.put(lastPathSegment, criteriaValue);
 			}
+			namespaces.put(prefix, namespace);
 
 		} else {
 			throw new IllegalArgumentException("Found unexpected element in query filter "
