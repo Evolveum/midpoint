@@ -35,6 +35,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
@@ -336,7 +338,12 @@ public class ModelService implements ModelPortType {
 	private FaultMessage createSystemFault(Exception ex, OperationResult result) {
 		result.recordFatalError(ex.getMessage(), ex);
 
-		FaultType faultType = new SystemFaultType();
+		FaultType faultType;
+		if (ex instanceof ObjectNotFoundException) {
+			faultType = new ObjectNotFoundFaultType();
+		} else {
+			faultType = new SystemFaultType();
+		}
 		faultType.setMessage(ex.getMessage());
 		faultType.setOperationResult(result.createOperationResultType());
 

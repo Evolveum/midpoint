@@ -3,7 +3,6 @@ package com.evolveum.midpoint.init;
 import java.io.InputStream;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.ws.Holder;
 
 import org.apache.commons.io.IOUtils;
@@ -13,15 +12,18 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 public class InitialSetup {
 
 	private static final Trace TRACE = TraceManager.getTrace(InitialSetup.class);
+
+	private final String[] FILES_FOR_IMPORT = new String[] { "admin.xml", "systemConfiguration.xml" };
 
 	private ModelPortType modelService;
 
@@ -34,41 +36,61 @@ public class InitialSetup {
 	public void init() {
 		TRACE.info("Starting initial object import.");
 
-		OperationResultType resultType = new OperationResultType();
-		resultType.setOperation("Initial Import");
+		OperationResult mainResult = new OperationResult("Initial Import");
+		for (String file : FILES_FOR_IMPORT) {
+			OperationResult result = new OperationResult("Import Object");
 
-		InputStream stream = null;
-		try {
-			stream = getResource("admin.xml");
-			JAXBElement<UserType> adminUser = (JAXBElement<UserType>) JAXBUtil.unmarshal(stream);
-			modelService.addObject(adminUser.getValue(), new Holder<OperationResultType>(resultType));
-		} catch (JAXBException e) {
-			TRACE.error("Failed to process initial configuration for user administrator", e);
-		} catch (FaultMessage e) {
-			TRACE.error("Failed to import initial configuration for user administrator", e);
-		} catch (RuntimeException e) {
-			TRACE.error("Unexpected exception while processing initial configuration", e);
-		} finally {
-			if (stream != null) {
-				IOUtils.closeQuietly(stream);
+			InputStream stream = null;
+			try {
+				stream = getResource(file);
+				JAXBElement<ObjectType> element = (JAXBElement<ObjectType>) JAXBUtil.unmarshal(stream);
+				ObjectType object = element.getValue();
+				Holder<OperationResultType> holder = new Holder<OperationResultType>(
+						result.createOperationResultType());
+
+				boolean importObject = true;
+				try {
+					modelService.getObject(object.getOid(), new PropertyReferenceListType(), holder);
+					importObject = false;
+					result = OperationResult.createOperationResult(holder.value);
+					result.recordSuccess();
+				} catch (FaultMessage ex) {
+					if (ex.getFaultInfo() instanceof ObjectNotFoundFaultType) {
+						importObject = true;
+					} else {
+						LoggingUtils.logException(TRACE, "Couldn't get object with oid {} from model", ex,
+								object.getOid());
+
+						OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
+								.getOperationResult() == null) ? holder.value : ex.getFaultInfo()
+								.getOperationResult();
+						result = OperationResult.createOperationResult(resultType);
+						result.recordWarning("Couldn't get object with oid '" + object.getOid()
+								+ "' from model", ex);
+					}
+				}
+
+				if (!importObject) {
+					continue;
+				}
+
+				holder = new Holder<OperationResultType>(result.createOperationResultType());
+				modelService.addObject(object, holder);
+				result = OperationResult.createOperationResult(holder.value);
+				result.recordSuccess();
+			} catch (Exception ex) {
+				LoggingUtils.logException(TRACE, "Couldn't import file {}", ex, file);
+				result.recordFatalError("Couldn't import file '" + file + "'", ex);
+			} finally {
+				if (stream != null) {
+					IOUtils.closeQuietly(stream);
+				}
+				mainResult.addSubresult(result);
 			}
 		}
+		mainResult.recordSuccess();
 
-		try {
-			stream = getResource("systemConfiguration.xml");
-			JAXBElement<SystemConfigurationType> config = (JAXBElement<SystemConfigurationType>) JAXBUtil
-					.unmarshal(stream);
-			modelService.addObject(config.getValue(), new Holder<OperationResultType>(resultType));
-		} catch (Exception ex) {
-			LoggingUtils.logException(TRACE, "Couldn't import system configuration.", ex);
-		} finally {
-			if (stream != null) {
-				IOUtils.closeQuietly(stream);
-			}
-		}
-
-		OperationResult result = OperationResult.createOperationResult(resultType);
-		TRACE.info("Import status:\n" + result.debugDump());
+		TRACE.info("Import status:\n" + mainResult.debugDump());
 		TRACE.info("Initial object import finished.");
 	}
 
