@@ -42,6 +42,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.ProvisioningTypes;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
@@ -706,7 +707,7 @@ public class ModelController {
 	}
 
 	private void modifyProvisioningObjectWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException {
+			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException, CommunicationException {
 		if (object instanceof ResourceObjectShadowType) {
 			// TODO: outbound schema handling for this object
 		}

@@ -229,7 +229,7 @@ public interface ProvisioningService {
 	 *             unknown connector framework error
 	 */
 	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException;
 
 	/**
 	 * Deleted object with provided OID. Must fail if object with specified OID
@@ -250,7 +250,7 @@ public interface ProvisioningService {
 	 *             unknown connector framework error
 	 */
 	public void deleteObject(String oid, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectNotFoundException;
+			throws ObjectNotFoundException, CommunicationException, SchemaException;
 
 	/**
 	 * Returns list of available values for specified properties.

@@ -201,7 +201,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException {
 		if (objectChange == null || objectChange.getOid() == null) {
 			throw new IllegalArgumentException("Object change or object change oid cannot be null");
 		}
@@ -224,7 +224,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public void deleteObject(String oid, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectNotFoundException {
+			throws ObjectNotFoundException, CommunicationException, SchemaException {
 		// TODO Auto-generated method stub
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".deleteObject");
