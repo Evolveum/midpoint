@@ -77,8 +77,7 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 	private ObjectTypeCatalog objectTypeCatalog;
 	private ResourceListItem resource;
 	private QName objectClass;
-	private DataModel<String> columnModel;
-	private DataModel<ResourceObjectBean> rowModel;
+	private List<String> columns;
 
 	public void setObjectClass(QName objectClass) {
 		this.objectClass = objectClass;
@@ -93,11 +92,16 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 	}
 
 	public DataModel<ResourceObjectBean> getRowModel() {
-		return rowModel;
+		return new ArrayDataModel<ResourceObjectBean>(getObjects().toArray(
+				new ResourceObjectBean[getObjects().size()]));
 	}
 
 	public DataModel<String> getColumnModel() {
-		return columnModel;
+		if (columns == null) {
+			columns = new ArrayList<String>();
+		}
+
+		return new ArrayDataModel<String>(columns.toArray(new String[columns.size()]));
 	}
 
 	@Override
@@ -115,11 +119,10 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 		getObjects().clear();
 
 		List<QName> columnHeaders = prepareHeader(resource.getOid());
-		List<String> header = new ArrayList<String>();
+		columns = new ArrayList<String>();
 		for (QName qname : columnHeaders) {
-			header.add(qname.getLocalPart());
+			columns.add(qname.getLocalPart());
 		}
-		columnModel = new ArrayDataModel<String>(header.toArray(new String[header.size()]));
 
 		List<ObjectType> objects = getResourceObjects();
 		if (objects == null || objects.isEmpty()) {
@@ -142,9 +145,6 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 
 			getObjects().add(new ResourceObjectBean(oid, objectType.getName(), attributes));
 		}
-
-		rowModel = new ArrayDataModel<ResourceObjectBean>(getObjects().toArray(
-				new ResourceObjectBean[getObjects().size()]));
 
 		return PAGE_NAVIGATION;
 	}
