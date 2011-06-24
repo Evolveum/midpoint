@@ -28,6 +28,7 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -55,7 +56,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 	private transient RepositoryService repositoryService;
 
 	@Override
-	public ObjectListType list(Class<? extends ObjectType> objectType, int offset, int count) {
+	public ObjectListType listObjects(Class<? extends ObjectType> objectType, int offset, int count) {
 		Validate.notNull(objectType, "Object type must not be null.");
 		LOGGER.debug("Listing objects of type {} paged from {}, count {}.", new Object[] { objectType,
 				offset, count });
@@ -82,7 +83,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 	}
 
 	@Override
-	public ObjectListType search(String name) {
+	public ObjectListType searchObjects(String name) {
 		Validate.notEmpty(name, "Name must not be null.");
 		LOGGER.debug("Searching objects with name {}.", new Object[] { name });
 
@@ -108,7 +109,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 	}
 
 	@Override
-	public ObjectType get(String oid) {
+	public ObjectType getObject(String oid) {
 		Validate.notEmpty(oid, "Oid must not be null.");
 		LOGGER.debug("Getting object with oid {}.", new Object[] { oid });
 
@@ -128,9 +129,12 @@ public class RepositoryManagerImpl implements RepositoryManager {
 	}
 
 	@Override
-	public boolean save(ObjectType object) {
+	public boolean saveObject(ObjectType object) {
 		Validate.notNull(object, "Object must not be null.");
-		LOGGER.debug("Saving object {}.", new Object[] { object.getName() });
+		LOGGER.debug("Saving object {} (object xml in traces).", new Object[] { object.getName() });
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(JAXBUtil.silentMarshal(object));
+		}
 
 		OperationResult result = new OperationResult("Save Object");
 		boolean saved = false;
@@ -152,11 +156,13 @@ public class RepositoryManagerImpl implements RepositoryManager {
 			result.recordFatalError("Couldn't update object '" + object.getName() + "'.", ex);
 		}
 
+		printResults(LOGGER, result);
+
 		return saved;
 	}
 
 	@Override
-	public boolean delete(String oid) {
+	public boolean deleteObject(String oid) {
 		Validate.notEmpty(oid, "Oid must not be null.");
 		LOGGER.debug("Deleting object with oid {}.", new Object[] { oid });
 
@@ -171,7 +177,32 @@ public class RepositoryManagerImpl implements RepositoryManager {
 			result.recordFatalError("Delete object with oid '" + oid + "' failed.", ex);
 		}
 
+		printResults(LOGGER, result);
+
 		return deleted;
+	}
+
+	@Override
+	public String addObject(ObjectType object) {
+		Validate.notNull(object, "Object must not be null.");
+		LOGGER.debug("Adding object {} (object xml in traces).", new Object[] { object.getName() });
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(JAXBUtil.silentMarshal(object));
+		}
+
+		OperationResult result = new OperationResult("Add Object");
+		String oid = null;
+		try {
+			oid = repositoryService.addObject(object, result);
+			result.recordSuccess();
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Add object {} failed", ex, object.getName());
+			result.recordFatalError("Add object '" + object.getName() + "' failed.", ex);
+		}
+
+		printResults(LOGGER, result);
+
+		return oid;
 	}
 
 	private void printResults(Trace logger, OperationResult result) {

@@ -30,13 +30,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
  */
 public interface RepositoryManager {
 
-	ObjectListType list(Class<? extends ObjectType> objectType, int offset, int count);
+	ObjectListType listObjects(Class<? extends ObjectType> objectType, int offset, int count);
 
-	ObjectListType search(String name);
+	ObjectListType searchObjects(String name);
 
-	ObjectType get(String oid);
+	ObjectType getObject(String oid);
 
-	boolean save(ObjectType object);
+	boolean saveObject(ObjectType object);
 
-	boolean delete(String oid);
+	boolean deleteObject(String oid);
+
+	String addObject(ObjectType object);
 }

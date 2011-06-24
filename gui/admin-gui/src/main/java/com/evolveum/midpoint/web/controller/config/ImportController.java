@@ -40,16 +40,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.validator.ObjectHandler;
 import com.evolveum.midpoint.validator.ValidationMessage;
 import com.evolveum.midpoint.validator.Validator;
+import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -62,7 +61,7 @@ public class ImportController implements Serializable {
 	private static final long serialVersionUID = -4206532259499809326L;
 	private static final Trace TRACE = TraceManager.getTrace(ImportController.class);
 	@Autowired(required = true)
-	private transient RepositoryPortType repositoryService;
+	private transient RepositoryManager repositoryManager;
 	private String editor;
 	private boolean showFileUpload = false;
 	private boolean overwrite = false;
@@ -115,7 +114,7 @@ public class ImportController implements Serializable {
 				IOUtils.closeQuietly(stream);
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -143,7 +142,7 @@ public class ImportController implements Serializable {
 					IOUtils.closeQuietly(stream);
 				}
 			}
-		}		
+		}
 	}
 
 	private void clearController() {
@@ -158,35 +157,18 @@ public class ImportController implements Serializable {
 		}
 
 		for (ObjectType object : objects) {
-			ObjectContainerType objectContainer = new ObjectContainerType();
-			objectContainer.setObject(object);
 			try {
-				if (overwrite) {
-					try {
-						repositoryService.deleteObject(object.getOid());
-					} catch (FaultMessage ex) {
-						StringBuilder message = new StringBuilder();
-						message.append("Warning: Couldn't delete object '");
-						message.append(object.getName());
-						message.append("' with oid '");
-						message.append(object.getOid());
-						message.append("', reason: ");
-						message.append(ex.getMessage());
-						message.append(". It will be only added, not replaced.");
-						FacesUtils.addWarnMessage(message.toString());
-					}
+				if (overwrite && !repositoryManager.deleteObject(object.getOid())) {
+					FacesUtils.addWarnMessage("Couldn't delete object with oid '" + object.getOid() + "'.");
 				}
-				repositoryService.addObject(objectContainer);
-				FacesUtils.addSuccessMessage("Added object: " + object.getName());
+
+				repositoryManager.addObject(object);
 			} catch (Exception ex) {
-				String failureMessage = FacesUtils.translateKey("import.jaxb.failed");
-				FacesUtils.addErrorMessage(failureMessage + ":" + ex.getMessage());
-				FacesUtils.addErrorMessage("Failed to add object " + object.getName());
-				TRACE.error("Add object failed");
-				TRACE.error("Exception was: {}", ex, ex);				
+				LoggingUtils.logException(TRACE, "Couldn't import object {}", ex, object.getName());
+				FacesUtils.addErrorMessage("Couldn't import object '" + object.getName() + "'", ex);
 			}
 		}
-		
+
 		return true;
 	}
 
@@ -220,6 +202,6 @@ public class ImportController implements Serializable {
 			return false;
 		}
 
-		return addObjectsToRepository(objects);		
+		return addObjectsToRepository(objects);
 	}
 }

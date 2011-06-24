@@ -124,7 +124,7 @@ public class DebugListController extends ListController<ObjectBean> {
 
 		ObjectListType list = null;
 		try {
-			list = repositoryManager.list(ObjectTypes.getObjectTypeClass(objectType), getOffset(),
+			list = repositoryManager.listObjects(ObjectTypes.getObjectTypeClass(objectType), getOffset(),
 					getRowsCount());
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Unknown error occured while listing objects of type {}", ex,
@@ -147,7 +147,7 @@ public class DebugListController extends ListController<ObjectBean> {
 			return;
 		}
 
-		if (!repositoryManager.delete(oidToDelete)) {
+		if (!repositoryManager.deleteObject(oidToDelete)) {
 			FacesUtils.addErrorMessage("Delete object failed.");
 		}
 

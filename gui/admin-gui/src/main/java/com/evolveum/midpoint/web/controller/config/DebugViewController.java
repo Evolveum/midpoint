@@ -144,7 +144,7 @@ public class DebugViewController implements Serializable {
 		}
 
 		try {
-			ObjectListType list = repositoryManager.search(editOtherName);
+			ObjectListType list = repositoryManager.searchObjects(editOtherName);
 
 			List<ObjectType> objects = list.getObject();
 			if (objects.isEmpty()) {
@@ -177,7 +177,7 @@ public class DebugViewController implements Serializable {
 		}
 
 		try {
-			ObjectType objectType = repositoryManager.get(object.getOid());
+			ObjectType objectType = repositoryManager.getObject(object.getOid());
 			if (objectType == null) {
 				return DebugListController.PAGE_NAVIGATION;
 			}
@@ -210,7 +210,7 @@ public class DebugViewController implements Serializable {
 			return null;
 		}
 
-		if (!repositoryManager.save(newObject)) {
+		if (!repositoryManager.saveObject(newObject)) {
 			FacesUtils.addErrorMessage("Couln't update object '" + newObject.getName() + "'.");
 		}
 
