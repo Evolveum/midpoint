@@ -31,21 +31,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
-import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.bean.ObjectBean;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ListController;
+import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -61,7 +58,7 @@ public class DebugListController extends ListController<ObjectBean> {
 	public static final String PARAM_DELETE_OBJECT_OID = "deleteObjectOid";
 	public static final String PARAM_VIEW_OBJECT_OID = "viewObjectOid";
 	private static final long serialVersionUID = -6260309359121248205L;
-	private static final Trace TRACE = TraceManager.getTrace(DebugListController.class);
+	private static final Trace LOGGER = TraceManager.getTrace(DebugListController.class);
 	private static final List<SelectItem> objectTypes = new ArrayList<SelectItem>();
 	static {
 		for (ObjectTypes type : ObjectTypes.values()) {
@@ -72,7 +69,7 @@ public class DebugListController extends ListController<ObjectBean> {
 		Collections.sort(objectTypes, new SelectItemComparator());
 	}
 	@Autowired(required = true)
-	private transient RepositoryPortType repositoryService;
+	private transient RepositoryManager repositoryManager;
 	@Autowired(required = true)
 	private transient TemplateController template;
 	@Autowired(required = true)
@@ -124,31 +121,19 @@ public class DebugListController extends ListController<ObjectBean> {
 			FacesUtils.addErrorMessage("Object type not defined.");
 			return null;
 		}
-		TRACE.info("listObjects start for object type {}", objectType);
 
-		String xsdName = ObjectTypes.getObjectTypeUri(objectType);
-		ObjectListType result = null;
+		ObjectListType list = null;
 		try {
-			PagingType paging = PagingTypeFactory.createPaging(getOffset(), getRowsCount(),
-					OrderDirectionType.ASCENDING, "name");
-			result = repositoryService.listObjects(xsdName, paging);
-		} catch (FaultMessage ex) {
-			String message = (ex.getFaultInfo().getMessage() != null ? ex.getFaultInfo().getMessage() : ex
-					.getMessage());
-			FacesUtils.addErrorMessage("List object failed with exception " + message);
+			list = repositoryManager.list(ObjectTypes.getObjectTypeClass(objectType), getOffset(),
+					getRowsCount());
 		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Unknown error occured while listing objects of type {}", ex,
+					objectType);
 			FacesUtils.addErrorMessage("List object failed with exception " + ex.getMessage());
-			TRACE.info("List object failed");
-			TRACE.error("Exception was {} ", ex);
-		}
-
-		if (result == null) {
-			FacesUtils.addWarnMessage("No objects found for type '" + objectType + "'.");
-			return null;
 		}
 
 		getObjects().clear();
-		for (ObjectType object : result.getObject()) {
+		for (ObjectType object : list.getObject()) {
 			getObjects().add(new ObjectBean(object.getOid(), object.getName()));
 		}
 
@@ -162,19 +147,11 @@ public class DebugListController extends ListController<ObjectBean> {
 			return;
 		}
 
-		try {
-			repositoryService.deleteObject(oidToDelete);
-		} catch (FaultMessage ex) {
-			String message = (ex.getFaultInfo().getMessage() != null ? ex.getFaultInfo().getMessage() : ex
-					.getMessage());
-			FacesUtils.addErrorMessage("Delete object failed with exception " + message);
-		} catch (Exception ex) {
-			FacesUtils.addErrorMessage("Delete object failed with exception " + ex.getMessage());
-			TRACE.info("Delete object failed");
-			TRACE.error("Exception was {} ", ex);
+		if (!repositoryManager.delete(oidToDelete)) {
+			FacesUtils.addErrorMessage("Delete object failed.");
 		}
-		oidToDelete = null;
 
+		oidToDelete = null;
 		list();
 	}
 

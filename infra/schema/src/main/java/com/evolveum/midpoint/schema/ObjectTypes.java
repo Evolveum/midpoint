@@ -109,7 +109,7 @@ public enum ObjectTypes {
 			}
 		}
 
-		throw new IllegalArgumentException("Unsupported object type " + objectTypeUri);
+		throw new IllegalArgumentException("Unsupported object type uri " + objectTypeUri);
 	}
 
 	public static String getObjectTypeUri(String objectType) {

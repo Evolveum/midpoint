@@ -111,8 +111,8 @@ public class ModelService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service List Objects");
 		try {
-			ObjectListType list = model.listObjects(ObjectTypes.getObjectTypeClass(objectType), paging,
-					operationResult);
+			ObjectListType list = model.listObjects(ObjectTypes.getObjectTypeFromUri(objectType)
+					.getClassDefinition(), paging, operationResult);
 			handleOperationResult(operationResult, result);
 
 			return list;
@@ -335,9 +335,9 @@ public class ModelService implements ModelPortType {
 
 	private FaultMessage createSystemFault(Exception ex, OperationResult result) {
 		result.recordFatalError(ex.getMessage(), ex);
-		
+
 		FaultType faultType = new SystemFaultType();
-		faultType.setMessage(ex.getMessage());		
+		faultType.setMessage(ex.getMessage());
 		faultType.setOperationResult(result.createOperationResultType());
 
 		return new FaultMessage(ex.getMessage(), faultType, ex);

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.bean.ResourceState;
 import com.evolveum.midpoint.web.bean.ResourceStatus;
@@ -102,24 +103,29 @@ public class ControllerUtil {
 	}
 
 	// TODO: query looking only in user type???? wtf?
-	public static Element createQuery(String username) {
+	public static Element createQuery(String username, ObjectTypes objectType) {
 		Document document = DOMUtil.getDocument();
-		Element and = document.createElementNS(SchemaConstants.NS_C, "c:and");
-		document.appendChild(and);
-
-		Element type = document.createElementNS(SchemaConstants.NS_C, "c:type");
-		type.setAttribute("uri", "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType");
-		and.appendChild(type);
-
 		Element equal = document.createElementNS(SchemaConstants.NS_C, "c:equal");
-		and.appendChild(equal);
 		Element value = document.createElementNS(SchemaConstants.NS_C, "c:value");
 		equal.appendChild(value);
 		Element name = document.createElementNS(SchemaConstants.NS_C, "c:name");
 		name.setTextContent(username);
 		value.appendChild(name);
 
-		return and;
+		Element root = equal;
+		if (objectType != null) {
+			Element and = document.createElementNS(SchemaConstants.NS_C, "c:and");
+			document.appendChild(and);
+
+			Element type = document.createElementNS(SchemaConstants.NS_C, "c:type");
+			type.setAttribute("uri", objectType.getObjectTypeUri());
+			and.appendChild(type);
+
+			and.appendChild(equal);
+			root = and;
+		}
+
+		return root;
 	}
 
 	private static boolean isEventAvailable(ValueChangeEvent evt) {

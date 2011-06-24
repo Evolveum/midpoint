@@ -131,7 +131,7 @@ public class BrowserBean extends ListController<BrowserItem> {
 
 	private String listByName() {
 		QueryType query = new QueryType();
-		query.setFilter(ControllerUtil.createQuery(name));
+		query.setFilter(ControllerUtil.createQuery(name, null));
 		ObjectListType list = null;
 		try {
 			list = model.searchObjects(query, new PagingType(), new Holder<OperationResultType>(

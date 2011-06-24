@@ -33,9 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.validator.ObjectHandler;
@@ -43,18 +42,11 @@ import com.evolveum.midpoint.validator.ValidationMessage;
 import com.evolveum.midpoint.validator.Validator;
 import com.evolveum.midpoint.web.bean.ObjectBean;
 import com.evolveum.midpoint.web.controller.TemplateController;
-import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
 
 /**
  * 
@@ -70,9 +62,9 @@ public class DebugViewController implements Serializable {
 	private static final long serialVersionUID = -6260309359121248206L;
 	private static final Trace TRACE = TraceManager.getTrace(DebugViewController.class);
 	@Autowired(required = true)
-	private transient TemplateController template;
+	private transient RepositoryManager repositoryManager;
 	@Autowired(required = true)
-	private transient RepositoryPortType repositoryService;
+	private transient TemplateController template;
 	private boolean editOther = false;
 	private String editOtherName;
 	private ObjectBean object;
@@ -151,10 +143,9 @@ public class DebugViewController implements Serializable {
 			return null;
 		}
 
-		QueryType query = new QueryType();
-		query.setFilter(ControllerUtil.createQuery(editOtherName));
 		try {
-			ObjectListType list = repositoryService.searchObjects(query, new PagingType());
+			ObjectListType list = repositoryManager.search(editOtherName);
+
 			List<ObjectType> objects = list.getObject();
 			if (objects.isEmpty()) {
 				FacesUtils.addErrorMessage("Couldn't find object that matches name '" + editOtherName + "'.");
@@ -168,13 +159,11 @@ public class DebugViewController implements Serializable {
 			ObjectType objectType = objects.get(0);
 			object = new ObjectBean(objectType.getOid(), objectType.getName());
 			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
-		} catch (FaultMessage ex) {
-			FacesUtils.addErrorMessage("Couldn't search for object '" + object.getName() + "'.", ex);
-			TRACE.debug("Couldn't search for object '" + object.getName() + "'.", ex);
-			return DebugListController.PAGE_NAVIGATION;
-		} catch (JAXBException ex) {
+		} catch (Exception ex) {
+			LoggingUtils.logException(TRACE, "Unknown error occured while searching objects by name {}", ex,
+					editOtherName);
 			FacesUtils.addErrorMessage("Unknown error occured.", ex);
-			TRACE.debug("Unknown error occured.", ex);
+
 			return DebugListController.PAGE_NAVIGATION;
 		}
 
@@ -188,25 +177,22 @@ public class DebugViewController implements Serializable {
 		}
 
 		try {
-			ObjectContainerType container = repositoryService.getObject(object.getOid(),
-					new PropertyReferenceListType());
-			ObjectType objectType = container.getObject();
-			object = new ObjectBean(objectType.getOid(), objectType.getName());
+			ObjectType objectType = repositoryManager.get(object.getOid());
+			if (objectType == null) {
+				return DebugListController.PAGE_NAVIGATION;
+			}
 
+			object = new ObjectBean(objectType.getOid(), objectType.getName());
 			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
-		} catch (FaultMessage ex) {
-			FacesUtils.addErrorMessage(
-					"Couldn't get object '" + object.getName() + "' with oid '" + object.getOid() + "'.", ex);
-			TRACE.debug("Couldn't get object '" + object.getName() + "' with oid '" + object.getOid() + "'.",
-					ex);
-			return DebugListController.PAGE_NAVIGATION;
 		} catch (JAXBException ex) {
+			LoggingUtils.logException(TRACE, "Couldn't show object {} in editor", ex, object.getName());
 			FacesUtils.addErrorMessage("Couldn't show object '" + object.getName() + "' in editor.", ex);
-			TRACE.debug("Couldn't show object '" + object.getName() + "' in editor.", ex);
+
 			return DebugListController.PAGE_NAVIGATION;
 		} catch (Exception ex) {
+			LoggingUtils.logException(TRACE, "Unknown error occured.", ex);
 			FacesUtils.addErrorMessage("Unknown error occured.", ex);
-			TRACE.debug("Unknown error occured.", ex);
+
 			return DebugListController.PAGE_NAVIGATION;
 		}
 
@@ -224,27 +210,8 @@ public class DebugViewController implements Serializable {
 			return null;
 		}
 
-		try {
-			ObjectContainerType container = repositoryService.getObject(object.getOid(),
-					new PropertyReferenceListType());
-			ObjectType oldObject = container.getObject();
-			if (oldObject == null) {
-				FacesUtils.addErrorMessage("Object " + object.getName() + "' doesn't exist.");
-				return DebugListController.PAGE_NAVIGATION;
-			}
-
-			ObjectModificationType objectChange = CalculateXmlDiff.calculateChanges(oldObject, newObject);
-			repositoryService.modifyObject(objectChange);
-		} catch (FaultMessage ex) {
-			FacesUtils.addErrorMessage("Couln't update object '" + object.getName() + "'.", ex);
-			// TODO: logging
-
-			return null;
-		} catch (DiffException ex) {
-			FacesUtils.addErrorMessage("Couln't create diff for object '" + object.getName() + "'.", ex);
-			// TODO: logging
-
-			return null;
+		if (!repositoryManager.save(newObject)) {
+			FacesUtils.addErrorMessage("Couln't update object '" + newObject.getName() + "'.");
 		}
 
 		template.setSelectedLeftId("leftList");

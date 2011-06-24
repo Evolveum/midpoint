@@ -37,6 +37,7 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
@@ -178,7 +179,7 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 
 	private QueryType createQuery(String name) {
 		QueryType query = new QueryType();
-		query.setFilter(ControllerUtil.createQuery(name));
+		query.setFilter(ControllerUtil.createQuery(name, ObjectTypes.USER));
 
 		return query;
 	}
