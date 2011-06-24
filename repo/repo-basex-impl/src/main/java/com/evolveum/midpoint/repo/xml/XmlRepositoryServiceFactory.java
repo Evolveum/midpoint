@@ -44,11 +44,25 @@ public class XmlRepositoryServiceFactory {
 			c = Class.forName(DRIVER);
 			Database db = (Database) c.newInstance();
 			DatabaseManager.registerDatabase(db);
-			BXCollection collection = new BXCollection("midPoint", false);
-
-			XMLResource res = (XMLResource) collection.createResource("objects", XMLResource.RESOURCE_TYPE);
-			res.setContent("<c:objects xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"/>");
-			collection.storeResource(res);
+			// TODO: fix db initialization
+			boolean newDb = false;
+			try {
+				new BXCollection("midPoint", true);
+			} catch (XMLDBException ex) {
+				if ("Database 'midPoint' was not found.".equals(ex.getMessage())) {
+					// db does not exists yet, we will initialize it
+					newDb = true;
+				} else {
+					throw ex;
+				}
+			}
+			if (newDb) {
+				BXCollection collection = new BXCollection("midPoint", false);
+				XMLResource res = (XMLResource) collection.createResource("objects",
+						XMLResource.RESOURCE_TYPE);
+				res.setContent("<c:objects xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"/>");
+				collection.storeResource(res);
+			}
 		} catch (ClassNotFoundException e) {
 			throw new RepositoryServiceFactoryException("Class " + DRIVER
 					+ " for XML DB driver was not found", e);
