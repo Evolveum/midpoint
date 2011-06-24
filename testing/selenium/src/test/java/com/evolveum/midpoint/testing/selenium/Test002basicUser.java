@@ -404,7 +404,7 @@ public class Test002basicUser {
 			h.put(se.getText(l), l.replace("name", ""));
 		}
 		
-		se.click(h.get("jack"));
+		se.click(h.get("jack"+"name"));
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
 		assertTrue(se.isTextPresent("Black Pearl"));
@@ -431,7 +431,7 @@ public class Test002basicUser {
 				continue;
 			h.put(se.getText(l), l.replace("name", ""));
 		}
-		se.click(h.get("jack"));
+		se.click(h.get("jack")+"name");
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
 		assertTrue(se.isTextPresent("Queen Anne"));
