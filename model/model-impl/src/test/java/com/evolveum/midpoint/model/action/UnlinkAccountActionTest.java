@@ -73,17 +73,17 @@ public class UnlinkAccountActionTest {
 		return change;
 	}
 
-	private ResourceObject createSampleResourceObject(ResourceType resourceType,
-			ResourceObjectShadowType shadow) throws ParserConfigurationException, SchemaProcessorException {
-		Schema schema = Schema.parse(resourceType.getSchema().getAny().get(0));
-		ResourceObjectDefinition definition = (ResourceObjectDefinition) schema
-				.findContainerDefinitionByType(shadow.getObjectClass());
-		ResourceObject object = definition.instantiate();
-
-		// TODO: set properties
-
-		return object;
-	}
+//	private ResourceObject createSampleResourceObject(ResourceType resourceType,
+//			ResourceObjectShadowType shadow) throws ParserConfigurationException, SchemaProcessorException {
+//		Schema schema = Schema.parse(resourceType.getSchema().getAny().get(0));
+//		ResourceObjectDefinition definition = (ResourceObjectDefinition) schema
+//				.findContainerDefinitionByType(shadow.getObjectClass());
+//		ResourceObject object = definition.instantiate();
+//
+//		// TODO: set properties
+//
+//		return object;
+//	}
 
 	@Test
 	public void testUnlinkAccountAction() throws Exception {
@@ -105,7 +105,7 @@ public class UnlinkAccountActionTest {
 
 			assertNotNull(resourceType);
 			// setup provisioning mock
-			ResourceObject ro = createSampleResourceObject(resourceType, accountType);
+//			ResourceObject ro = createSampleResourceObject(resourceType, accountType);
 //			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
 //			when(rai.getConnector()).thenReturn(bri);
 

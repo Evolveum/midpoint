@@ -70,9 +70,9 @@ public class LinkAccountActionTest {
 	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
-	@Autowired(required = true)
-	private ResourceAccessInterface rai;
-
+//	@Autowired(required = true)
+//	private ResourceAccessInterface rai;
+//
 	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
 			throws JAXBException {
@@ -81,11 +81,11 @@ public class LinkAccountActionTest {
 		return change;
 	}
 
-	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
-			throws ParserConfigurationException {
-		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
-		return valueWriter.buildResourceObject(shadow, schema);
-	}
+//	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
+//			throws ParserConfigurationException {
+//		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
+//		return valueWriter.buildResourceObject(shadow, schema);
+//	}
 
 	@Test
 	public void testLinkAccountAction() throws Exception {
@@ -106,10 +106,10 @@ public class LinkAccountActionTest {
 
 			assertNotNull(resourceType);
 			// setup provisioning mock
-			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
-			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
-			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
-			when(rai.getConnector()).thenReturn(bri);
+//			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
+//			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
+//			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
+//			when(rai.getConnector()).thenReturn(bri);
 
 			resourceObjectChangeService.notifyChange(change);
 

@@ -125,153 +125,160 @@
 
              This should be generated from the resource by the connector, but
              this is not in midPoint yet. Therefore it needs to be provided manually for now. -->
-        <c:schema>
-            <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-97e7-3d4f02d3e1a2"
-                        elementFormDefault="qualified"
-                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-                        xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-                        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-97e7-3d4f02d3e1a2"
-                        xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+       		<c:schema>
+			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+				targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-97e7-3d4f02d3e1a2"
+				elementFormDefault="qualified"
+				xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+				xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-97e7-3d4f02d3e1a2"
+				xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
+				xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd">
+				<xsd:import
+					namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" />
+				<xsd:import
+					namespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-97e7-3d4f02d3e1a2" />
+				<xsd:import
+					namespace="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" />
+				<xsd:import
+					namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" />
 
-                <!-- Definition of Account object class -->
-                <xsd:complexType name="Account">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <r:identifier ref="ids:__UID__"/>
-                            <r:secondaryIdentifier ref="ids:__NAME__"/>
-                            <r:displayName ref="ri:uid"/>
-                            <r:descriptionAttribute ref="ri:description"/>
-                            <r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
-                            <r:accountType default="true"/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                    <xsd:complexContent>
-                        <xsd:extension base="r:ResourceObjectClass">
-                            <xsd:sequence>
-                                <xsd:element ref="ids:__NAME__">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <r:nativeAttributeName>__NAME__</r:nativeAttributeName>
-                                            <r:attributeDisplayName>DN</r:attributeDisplayName>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:element>
-                                <xsd:element minOccurs="0" name="description" type="xsd:string">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <r:help>DESCRIPTION_NAME_HELP_KEY</r:help>
-                                            <r:nativeAttributeName>description</r:nativeAttributeName>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:element>
-                                <xsd:element ref="ids:__PASSWORD__" minOccurs="0">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <r:attributeFlag>PASSWORD</r:attributeFlag>
-                                            <r:classifiedAttribute>
-                                                <r:encryption>HASH</r:encryption>
-                                                <r:classificationLevel>password</r:classificationLevel>
-                                            </r:classifiedAttribute>
-                                            <r:nativeAttributeName>__PASSWORD__</r:nativeAttributeName>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:element>
-                                <xsd:element name="sn" type="xsd:string">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <r:nativeAttributeName>sn</r:nativeAttributeName>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:element>
-                                <xsd:element name="cn" type="xsd:string">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <r:nativeAttributeName>cn</r:nativeAttributeName>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:element>
-                                <xsd:element ref="ids:__UID__" minOccurs="0">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
-                                            <r:nativeAttributeName>__UID__</r:nativeAttributeName>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:element>
-                                <xsd:element minOccurs="0" name="givenName" type="xsd:string">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <r:nativeAttributeName>givenName</r:nativeAttributeName>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:element>
-                                <xsd:element minOccurs="0" name="uid" type="xsd:string">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <r:nativeAttributeName>uid</r:nativeAttributeName>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:element>
-                                <xsd:element minOccurs="0" name="l" type="xsd:string">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <r:nativeAttributeName>l</r:nativeAttributeName>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:element>
-                            </xsd:sequence>
-                        </xsd:extension>
-                    </xsd:complexContent>
-                </xsd:complexType>
+				<!-- Definition of Account object class -->
+				<xsd:complexType name="Account">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<r:identifier ref="vr0:__UID__" />
+							<r:secondaryIdentifier ref="vr0:__NAME__" />
+							<r:displayName ref="ri:uid" />
+							<r:descriptionAttribute ref="ri:description" />
+							<r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
+							<r:accountType default="true" />
+						</xsd:appinfo>
+					</xsd:annotation>
+					<xsd:complexContent>
+						<xsd:extension base="r:ResourceObjectClass">
+							<xsd:sequence>
+								<xsd:element ref="vr0:name">
+									<xsd:annotation>
+										<xsd:appinfo>
+											<r:nativeAttributeName>__NAME__</r:nativeAttributeName>
+											<r:attributeDisplayName>DN</r:attributeDisplayName>
+										</xsd:appinfo>
+									</xsd:annotation>
+								</xsd:element>
+								<xsd:element minOccurs="0" name="description" type="xsd:string">
+									<xsd:annotation>
+										<xsd:appinfo>
+											<r:help>DESCRIPTION_NAME_HELP_KEY</r:help>
+											<r:nativeAttributeName>description</r:nativeAttributeName>
+										</xsd:appinfo>
+									</xsd:annotation>
+								</xsd:element>
+								<xsd:element ref="vr0:password" minOccurs="0">
+									<xsd:annotation>
+										<xsd:appinfo>
+											<r:attributeFlag>PASSWORD</r:attributeFlag>
+											<r:classifiedAttribute>
+												<r:encryption>HASH</r:encryption>
+												<r:classificationLevel>password</r:classificationLevel>
+											</r:classifiedAttribute>
+											<r:nativeAttributeName>__PASSWORD__</r:nativeAttributeName>
+										</xsd:appinfo>
+									</xsd:annotation>
+								</xsd:element>
+								<xsd:element name="sn" type="xsd:string">
+									<xsd:annotation>
+										<xsd:appinfo>
+											<r:nativeAttributeName>sn</r:nativeAttributeName>
+										</xsd:appinfo>
+									</xsd:annotation>
+								</xsd:element>
+								<xsd:element name="cn" type="xsd:string">
+									<xsd:annotation>
+										<xsd:appinfo>
+											<r:nativeAttributeName>cn</r:nativeAttributeName>
+										</xsd:appinfo>
+									</xsd:annotation>
+								</xsd:element>
+								<xsd:element ref="vr0:uid" minOccurs="0">
+									<xsd:annotation>
+										<xsd:appinfo>
+											<r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
+											<r:nativeAttributeName>__UID__</r:nativeAttributeName>
+										</xsd:appinfo>
+									</xsd:annotation>
+								</xsd:element>
+								<xsd:element minOccurs="0" name="givenName" type="xsd:string">
+									<xsd:annotation>
+										<xsd:appinfo>
+											<r:nativeAttributeName>givenName</r:nativeAttributeName>
+										</xsd:appinfo>
+									</xsd:annotation>
+								</xsd:element>
+								<xsd:element minOccurs="0" name="uid" type="xsd:string">
+									<xsd:annotation>
+										<xsd:appinfo>
+											<r:nativeAttributeName>uid</r:nativeAttributeName>
+										</xsd:appinfo>
+									</xsd:annotation>
+								</xsd:element>
+								<xsd:element minOccurs="0" name="l" type="xsd:string">
+									<xsd:annotation>
+										<xsd:appinfo>
+											<r:nativeAttributeName>l</r:nativeAttributeName>
+										</xsd:appinfo>
+									</xsd:annotation>
+								</xsd:element>
+							</xsd:sequence>
+						</xsd:extension>
+					</xsd:complexContent>
+				</xsd:complexType>
 
-                <!-- Definition of Gropup object class. It is not used directly now. -->
-                <xsd:complexType name="Group">
-                    <xsd:annotation>
-                        <xsd:appinfo>
-                            <r:identifier ref="ids:__UID__"/>
-                            <r:secondaryIdentifier ref="ids:__NAME__"/>
-                            <r:displayName ref="ri:description"/>
-                            <r:descriptionAttribute ref="ri:description"/>
-                            <r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
-                            <r:container/>
-                        </xsd:appinfo>
-                    </xsd:annotation>
-                    <xsd:complexContent>
-                        <xsd:extension base="r:ResourceObjectClass">
-                            <xsd:sequence>
-                                <xsd:element ref="ids:__NAME__">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <r:nativeAttributeName>__NAME__</r:nativeAttributeName>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:element>
-                                <xsd:element minOccurs="0" name="description" type="xsd:string">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <r:help>DESCRIPTION_NAME_HELP_KEY</r:help>
-                                            <r:nativeAttributeName>description</r:nativeAttributeName>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:element>
-                                <xsd:element ref="ids:__UID__">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
-                                            <r:nativeAttributeName>__UID__</r:nativeAttributeName>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:element>
-                            </xsd:sequence>
-                        </xsd:extension>
-                    </xsd:complexContent>
-                </xsd:complexType>
-            </xsd:schema>
-        </c:schema>
+				<!-- Definition of Gropup object class. It is not used directly now. -->
+				<xsd:complexType name="Group">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<r:identifier ref="vr0:__UID__" />
+							<r:secondaryIdentifier ref="vr0:name" />
+							<r:displayName ref="ri:description" />
+							<r:descriptionAttribute ref="ri:description" />
+							<r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
+							<r:container />
+						</xsd:appinfo>
+					</xsd:annotation>
+					<xsd:complexContent>
+						<xsd:extension base="r:ResourceObjectClass">
+							<xsd:sequence>
+								<xsd:element ref="vr0:name">
+									<xsd:annotation>
+										<xsd:appinfo>
+											<r:nativeAttributeName>__NAME__</r:nativeAttributeName>
+										</xsd:appinfo>
+									</xsd:annotation>
+								</xsd:element>
+								<xsd:element minOccurs="0" name="description" type="xsd:string">
+									<xsd:annotation>
+										<xsd:appinfo>
+											<r:help>DESCRIPTION_NAME_HELP_KEY</r:help>
+											<r:nativeAttributeName>description</r:nativeAttributeName>
+										</xsd:appinfo>
+									</xsd:annotation>
+								</xsd:element>
+								<xsd:element ref="vr0:uid">
+									<xsd:annotation>
+										<xsd:appinfo>
+											<r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
+											<r:nativeAttributeName>__UID__</r:nativeAttributeName>
+										</xsd:appinfo>
+									</xsd:annotation>
+								</xsd:element>
+							</xsd:sequence>
+						</xsd:extension>
+					</xsd:complexContent>
+				</xsd:complexType>
+			</xsd:schema>
+		</c:schema>
+
 
         <!-- Resource Schema Handling definition.
              This part defines how the schema defined above will be used by

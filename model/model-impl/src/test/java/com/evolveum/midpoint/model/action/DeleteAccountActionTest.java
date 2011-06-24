@@ -27,6 +27,7 @@ import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
+import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -41,12 +42,19 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.test.util.RepositoryUtils;
-import com.evolveum.midpoint.provisioning.objects.ResourceObject;
+
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
 import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
 import com.evolveum.midpoint.provisioning.service.BaseResourceIntegration;
 import com.evolveum.midpoint.provisioning.service.ResourceAccessInterface;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.processor.ResourceObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -64,8 +72,9 @@ public class DeleteAccountActionTest {
 	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
-	@Autowired(required = true)
-	private ResourceAccessInterface rai;
+
+	// @Autowired(required = true)
+	// private ResourceAccessInterface rai;
 
 	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
@@ -75,10 +84,17 @@ public class DeleteAccountActionTest {
 		return change;
 	}
 
-	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
-			throws ParserConfigurationException {
-		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
-		return valueWriter.buildResourceObject(shadow, schema);
+	private ResourceObject createSampleResourceObject(ResourceType resourceType, AccountShadowType accountType)
+			throws SchemaProcessorException {
+		Schema schema = Schema.parse(resourceType.getSchema().getAny().get(0));
+		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+				.findContainerDefinitionByType(accountType.getObjectClass());
+		ResourceObject resourceObject = rod.instantiate();
+
+		Set<ResourceObjectAttribute> properties = rod.parseAttributes(accountType.getAttributes().getAny());
+
+		resourceObject.getProperties().addAll(properties);
+		return resourceObject;
 	}
 
 	@Test
@@ -100,12 +116,14 @@ public class DeleteAccountActionTest {
 
 			assertNotNull(resourceType);
 			// setup provisioning mock
-			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
-			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
+//			ConnectorInstance connector = new ConnectorInstanceIcfImpl();
+//			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
+//			ResourceObject ro = createSampleResourceObject(resourceType, accountType);
 
-			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
-
-			when(rai.getConnector()).thenReturn(bri);
+			// when(rai.get(any(OperationalResultType.class),
+			// any(ResourceObject.class))).thenReturn(ro);
+			//
+			// when(rai.getConnector()).thenReturn(bri);
 
 			resourceObjectChangeService.notifyChange(change);
 

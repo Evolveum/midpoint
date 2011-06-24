@@ -95,12 +95,12 @@ public class DisableAccountActionTest {
 
 			assertNotNull(resourceType);
 			// setup provisioning mock
-			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
-			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
-
-			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
-
-			when(rai.getConnector()).thenReturn(bri);
+//			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
+//			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
+//
+//			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
+//
+//			when(rai.getConnector()).thenReturn(bri);
 
 			resourceObjectChangeService.notifyChange(change);
 

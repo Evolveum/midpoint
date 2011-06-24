@@ -71,9 +71,10 @@ public class UnlinkAccountAction extends BaseAction {
 		}
 
 		List<ObjectReferenceType> references = userType.getAccountRef();
+		
 		ObjectReferenceType accountRef = null;
 		for (ObjectReferenceType reference : references) {
-			if (!SchemaConstants.I_ACCOUNT_REF.equals(reference.getType())) {
+			if (!SchemaConstants.I_ACCOUNT_SHADOW_TYPE.equals(reference.getType())) {			
 				continue;
 			}
 

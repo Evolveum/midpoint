@@ -137,28 +137,30 @@
 			(also see below). This should be generated from the resource by the connector, 
 			but this is not in midPoint yet. Therefore it needs to be provided manually 
 			for now. -->
-		<c:schema>
+			<c:schema>
 			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 				targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/87654321-d34d-b33f-f00d-333222111111"
 				elementFormDefault="qualified"
 				xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 				xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/87654321-d34d-b33f-f00d-333222111111"
-
-				xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
-				<xsd:import
-					namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" />
+				xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
+				xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd">
 				<xsd:import
 					namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" />
 				<xsd:import
-					namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" />
+					namespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/87654321-d34d-b33f-f00d-333222111111" />
+				<xsd:import
+					namespace="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" />
+				<xsd:import
+					namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" />
 
 				<!-- Definition of Account object class -->
 				<xsd:complexType name="Account">
 					<xsd:annotation>
 						<xsd:appinfo>
-							<r:identifier ref="ids:__UID__" />
-							<r:secondaryIdentifier ref="ids:__NAME__" />
+							<r:identifier ref="vr0:__UID__" />
+							<r:secondaryIdentifier ref="vr0:__NAME__" />
 							<r:displayName ref="ri:uid" />
 							<r:descriptionAttribute ref="ri:description" />
 							<r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
@@ -168,7 +170,7 @@
 					<xsd:complexContent>
 						<xsd:extension base="r:ResourceObjectClass">
 							<xsd:sequence>
-								<xsd:element ref="ids:__NAME__">
+								<xsd:element ref="vr0:name">
 									<xsd:annotation>
 										<xsd:appinfo>
 											<r:nativeAttributeName>__NAME__</r:nativeAttributeName>
@@ -184,7 +186,7 @@
 										</xsd:appinfo>
 									</xsd:annotation>
 								</xsd:element>
-								<xsd:element ref="ids:__PASSWORD__" minOccurs="0">
+								<xsd:element ref="vr0:password" minOccurs="0">
 									<xsd:annotation>
 										<xsd:appinfo>
 											<r:attributeFlag>PASSWORD</r:attributeFlag>
@@ -210,7 +212,7 @@
 										</xsd:appinfo>
 									</xsd:annotation>
 								</xsd:element>
-								<xsd:element ref="ids:__UID__" minOccurs="0">
+								<xsd:element ref="vr0:uid" minOccurs="0">
 									<xsd:annotation>
 										<xsd:appinfo>
 											<r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
@@ -248,8 +250,8 @@
 				<xsd:complexType name="Group">
 					<xsd:annotation>
 						<xsd:appinfo>
-							<r:identifier ref="ids:__UID__" />
-							<r:secondaryIdentifier ref="ids:__NAME__" />
+							<r:identifier ref="vr0:__UID__" />
+							<r:secondaryIdentifier ref="vr0:name" />
 							<r:displayName ref="ri:description" />
 							<r:descriptionAttribute ref="ri:description" />
 							<r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
@@ -259,7 +261,7 @@
 					<xsd:complexContent>
 						<xsd:extension base="r:ResourceObjectClass">
 							<xsd:sequence>
-								<xsd:element ref="ids:__NAME__">
+								<xsd:element ref="vr0:name">
 									<xsd:annotation>
 										<xsd:appinfo>
 											<r:nativeAttributeName>__NAME__</r:nativeAttributeName>
@@ -274,7 +276,7 @@
 										</xsd:appinfo>
 									</xsd:annotation>
 								</xsd:element>
-								<xsd:element ref="ids:__UID__">
+								<xsd:element ref="vr0:uid">
 									<xsd:annotation>
 										<xsd:appinfo>
 											<r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
@@ -288,6 +290,7 @@
 				</xsd:complexType>
 			</xsd:schema>
 		</c:schema>
+
 
 		<!-- Resource Schema Handling definition. This part defines how the schema 
 			defined above will be used by midPoint. It defines expressions and limitations 
