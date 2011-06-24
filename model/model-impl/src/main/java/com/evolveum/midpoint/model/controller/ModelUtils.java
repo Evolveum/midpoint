@@ -27,11 +27,11 @@ import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.model.ModelServiceOld;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -59,7 +59,7 @@ public class ModelUtils {
 			ResourceObjectShadowType accountShadow, ResourceType resource) {
 		Validate.notNull(accountShadow);
 		Validate.notNull(resource);
-		
+
 		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
 		QName accountObjectClass = accountShadow.getObjectClass();
 
@@ -87,7 +87,7 @@ public class ModelUtils {
 			pwd = new RandomString(length).nextString();
 		}
 
-		CredentialsType.Password password = ModelServiceOld.getPassword(account);
+		CredentialsType.Password password = getPassword(account);
 		if (password.getAny() != null) {
 			return;
 		}
@@ -96,5 +96,21 @@ public class ModelUtils {
 		Element hash = document.createElementNS(SchemaConstants.NS_C, "c:base64");
 		hash.setTextContent(Base64.encodeBase64String(pwd.getBytes()));
 		password.setAny(hash);
+	}
+
+	public static CredentialsType.Password getPassword(AccountShadowType account) {
+		CredentialsType credentials = account.getCredentials();
+		ObjectFactory of = new ObjectFactory();
+		if (credentials == null) {
+			credentials = of.createCredentialsType();
+			account.setCredentials(credentials);
+		}
+		CredentialsType.Password password = credentials.getPassword();
+		if (password == null) {
+			password = of.createCredentialsTypePassword();
+			credentials.setPassword(password);
+		}
+
+		return password;
 	}
 }

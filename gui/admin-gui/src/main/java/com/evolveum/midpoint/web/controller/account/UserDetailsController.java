@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.faces.application.FacesMessage;
-import javax.faces.context.FacesContext;
 import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
 import javax.xml.namespace.QName;
@@ -488,12 +486,10 @@ public class UserDetailsController implements Serializable {
 						list.add(generateForm(account, account.getObjectClass(), maxId++, createNew));
 					}
 				} catch (SchemaProcessorException ex) {
-					TRACE.error("Can't parse schema for account '{}': {}", new Object[] { account.getName(),
-							ex.getMessage(), ex });
-					FacesContext context = FacesContext.getCurrentInstance();
-					context.addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR,
-							"Can't parse schema for account '" + account.getName() + "'.",
-							"Can't parse schema for account '" + account.getName() + "': " + ex.getMessage()));
+					LoggingUtils.logException(TRACE, "Can't parse schema for account {}", ex,
+							new Object[] { account.getName() });
+					FacesUtils.addErrorMessage("Can't parse schema for account '" + account.getName() + "'.",
+							ex);
 				}
 			}
 		}
@@ -529,7 +525,7 @@ public class UserDetailsController implements Serializable {
 		} catch (SchemaProcessorException ex) {
 			throw ex;
 		} catch (Exception ex) {
-			throw new SchemaProcessorException("Unknown error: " + ex.getMessage(), ex);
+			throw new SchemaProcessorException("Unknown error, reason: " + ex.getMessage(), ex);
 		}
 
 		return new AccountFormBean(index, account, defaultAccountType, object, createNew);

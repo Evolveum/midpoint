@@ -60,7 +60,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -269,7 +268,7 @@ public class ModelServiceOld implements ModelPortType {
 			pwd = new RandomString(length).nextString();
 		}
 
-		CredentialsType.Password password = ModelServiceOld.getPassword(account);
+		CredentialsType.Password password = ModelUtils.getPassword(account);
 		if (password.getAny() != null) {
 			return;
 		}
@@ -1032,22 +1031,6 @@ public class ModelServiceOld implements ModelPortType {
 		}
 
 		return update;
-	}
-
-	public static CredentialsType.Password getPassword(AccountShadowType account) {
-		CredentialsType credentials = account.getCredentials();
-		ObjectFactory of = new ObjectFactory();
-		if (credentials == null) {
-			credentials = of.createCredentialsType();
-			account.setCredentials(credentials);
-		}
-		CredentialsType.Password password = credentials.getPassword();
-		if (password == null) {
-			password = of.createCredentialsTypePassword();
-			credentials.setPassword(password);
-		}
-
-		return password;
 	}
 
 	private PropertyModificationType getPasswordFromModification(ObjectModificationType objectChange) {

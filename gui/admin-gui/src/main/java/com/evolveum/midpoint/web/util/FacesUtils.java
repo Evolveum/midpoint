@@ -117,20 +117,18 @@ public abstract class FacesUtils {
 	}
 
 	private static void addMessage(FacesMessage.Severity severity, String msg, Exception ex) {
-		FacesMessage message = null;
-		if (ex == null) {
-			message = new FacesMessage(severity, msg, null);
-			FacesContext ctx = FacesContext.getCurrentInstance();
-			if (null != ctx) {
-				ctx.addMessage(null, message);
-			}
-
-			return;
+		StringBuilder message = new StringBuilder();
+		message.append(msg);
+		if (ex != null) {
+			message.append("\nException occured: ");
+			message.append(ex.getMessage());
 		}
 
-		OperationResult result = new OperationResult("Unknown");
-		result.recordFatalError(ex.getMessage(), ex);
-		addMessage(result);
+		FacesMessage facesMessage = new FacesMessage(severity, message.toString(), null);
+		FacesContext context = FacesContext.getCurrentInstance();
+		if (context != null) {
+			context.addMessage(null, facesMessage);
+		}
 	}
 
 	public static void addMessage(OperationResult result) {
