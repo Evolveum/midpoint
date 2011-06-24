@@ -46,6 +46,9 @@ public class Test002basicUser {
 	private static final transient Trace logger = TraceManager.getTrace(Test002basicUser.class);
 
 	@Before
+	/***
+	 * Do login as Admin for each test
+	 */
 	public void start() {
 
 		WebDriver driver = new FirefoxDriver();
@@ -65,6 +68,9 @@ public class Test002basicUser {
 
 	}
 
+	/*
+	 * close browser
+	 */
 	@After
 	public void stop() {
 		se.stop();
@@ -72,6 +78,8 @@ public class Test002basicUser {
 	}
 
 	// Based on MID-2 jira scenarios
+	
+	// TODO description
 	@Test
 	public void test01addUser() {
 
@@ -205,6 +213,7 @@ public class Test002basicUser {
 		se.waitForText("Value is required");
 	}
 
+	//TODO description
 	@Test
 	public void test02searchUser() throws InterruptedException {
 		logger.info("searchTest()");
@@ -365,6 +374,20 @@ public class Test002basicUser {
 		assertTrue(se.isTextPresent("Com. Jack Sparrow")); 
 		
 	}
+	/***
+	 * modify user via GUI
+	 * 
+	 * 	1.	login as admin
+	 * 	2.	click to Accounts
+	 * 	3. 	select and click user jack
+	 * 	4.	click to edit button
+	 * 	5.	change full name
+	 * 	6.	change locality
+	 * 	7.	click to save changes
+	 * 	8. 	check if user fullname is changed
+	 * 	9.	click to user
+	 * 	10.	check if locality is changed
+	 */
 	
 	@Test
 	public void test05modifyUser() {
@@ -388,20 +411,29 @@ public class Test002basicUser {
 				se.type(s, "Queen Anne's Revenge");
 			}
 		}
+		
 		se.click("admin-content:saveButton");
+		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
 		assertTrue(se.isTextPresent("New User"));
 		assertTrue(se.isTextPresent("SR. Jack Sparrow"));
-	}
-	
-	
-	@Test
-	public void test05modifyUserViaDebug() {
+		se.click(se.findLink("Jack"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
+		assertTrue(se.isTextPresent("Queen Anne"));
 		
 	}
 	
+	//TODO
+	
 	@Test
-	public void test05deleteUserViaDebug() {
+	public void test06modifyUserViaDebug() {
+		
+	}
+	
+	//TODO
+	@Test
+	public void test07deleteUserViaDebug() {
 		
 	}
 	/***
