@@ -85,10 +85,10 @@ public class Test002basicUser {
 		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
 
 		logger.info("Minimal requirements");
-		se.type("createUserForm:name", "selena");
-		se.type("createUserForm:givenName", "selena");
-		se.type("createUserForm:familyName", "wilson");
-		se.type("createUserForm:fullName", "Selena Wilson");
+		se.type("createUserForm:name", "barbossa");
+		se.type("createUserForm:givenName", "Hector");
+		se.type("createUserForm:familyName", "Barbossa");
+		se.type("createUserForm:fullName", "Hector Barbossa");
 		se.type("createUserForm:email", "");
 		se.type("createUserForm:locality", "");
 		se.type("createUserForm:password1", "qwe123.Q");
@@ -97,37 +97,37 @@ public class Test002basicUser {
 		se.click("createUserForm:webAccessEnabled"); // disable
 		se.click("createUserForm:createUser"); // enable
 		se.waitForText("User created successfully");
-		assertTrue(se.isTextPresent("Selena Wilson"));
+		assertTrue(se.isTextPresent("Hector Barbossa"));
 
 		se.click(se.findLink("leftCreate"));
 		se.waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
 
 		logger.info("All fields filled");
-		se.type("createUserForm:name", "leila");
-		se.type("createUserForm:givenName", "Leila");
-		se.type("createUserForm:familyName", "Walker");
-		se.type("createUserForm:fullName", "Leila Walker");
-		se.type("createUserForm:email", "leila@walker.com");
-		se.type("createUserForm:locality", "nowhere");
+		se.type("createUserForm:name", "elizabeth");
+		se.type("createUserForm:givenName", "Elizabeth");
+		se.type("createUserForm:familyName", "Swann");
+		se.type("createUserForm:fullName", "Elizabeth Swann");
+		se.type("createUserForm:email", "elizabeth@blackpearl.pir");
+		se.type("createUserForm:locality", "Empress");
 		se.type("createUserForm:password1", "qwe123.Q");
 		se.type("createUserForm:password2", "qwe123.Q");
 		se.click("createUserForm:webAccessEnabled");
 		se.click("createUserForm:createUser");
 		se.waitForText("User created successfully");
-		assertTrue(se.isTextPresent("Leila Walker"));
+		assertTrue(se.isTextPresent("Elizabeth Swann"));
 
 		se.click(se.findLink("leftCreate"));
 		se.waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
 
 		logger.info("try to insert twice");
-		se.type("createUserForm:name", "leila");
-		se.type("createUserForm:givenName", "Leila");
-		se.type("createUserForm:familyName", "Walker");
-		se.type("createUserForm:fullName", "Leila Walker");
-		se.type("createUserForm:email", "leila@walker.com");
-		se.type("createUserForm:locality", "nowhere");
+		se.type("createUserForm:name", "elizabeth");
+		se.type("createUserForm:givenName", "Elizabeth");
+		se.type("createUserForm:familyName", "Swann");
+		se.type("createUserForm:fullName", "Elizabeth Swann Turner");
+		se.type("createUserForm:email", "elizabeth@empress.pir");
+		se.type("createUserForm:locality", "Empress");
 		se.type("createUserForm:password1", "qwe123.Q");
 		se.type("createUserForm:password2", "qwe123.Q");
 		se.click("createUserForm:webAccessEnabled");
@@ -139,10 +139,10 @@ public class Test002basicUser {
 		// test missing name and password not match
 		logger.info("missing: name");
 		se.type("createUserForm:name", "");
-		se.type("createUserForm:givenName", "Joe");
-		se.type("createUserForm:familyName", "Dead");
-		se.type("createUserForm:fullName", "Joe Dead");
-		se.type("createUserForm:email", "leila@walker.com");
+		se.type("createUserForm:givenName", "Joshamee");
+		se.type("createUserForm:familyName", "Gibbs");
+		se.type("createUserForm:fullName", "Joshamee Gibbs");
+		se.type("createUserForm:email", "elizabeth@Swann.com");
 		se.type("createUserForm:locality", "nowhere");
 		se.type("createUserForm:password1", "qwe123.Q");
 		se.type("createUserForm:password2", "qwe213.Q");
@@ -153,11 +153,11 @@ public class Test002basicUser {
 		assertTrue(se.isTextPresent("Passwords doesn't match"));
 
 		logger.info("missing: password");
-		se.type("createUserForm:name", "joe");
-		se.type("createUserForm:givenName", "Joe");
-		se.type("createUserForm:familyName", "Dead");
-		se.type("createUserForm:fullName", "Joe Dead");
-		se.type("createUserForm:email", "leila@walker.com");
+		se.type("createUserForm:name", "Joshamee");
+		se.type("createUserForm:givenName", "Joshamee");
+		se.type("createUserForm:familyName", "Gibbs");
+		se.type("createUserForm:fullName", "Joshamee Gibbs");
+		se.type("createUserForm:email", "elizabeth@Swann.com");
 		se.type("createUserForm:locality", "nowhere");
 		se.type("createUserForm:password1", "");
 		se.type("createUserForm:password2", "");
@@ -166,11 +166,11 @@ public class Test002basicUser {
 		se.waitForText("Value is required");
 
 		logger.info("missing: givenname");
-		se.type("createUserForm:name", "joe");
+		se.type("createUserForm:name", "Joshamee");
 		se.type("createUserForm:givenName", "");
-		se.type("createUserForm:familyName", "Dead");
-		se.type("createUserForm:fullName", "Joe Dead");
-		se.type("createUserForm:email", "leila@walker.com");
+		se.type("createUserForm:familyName", "Gibbs");
+		se.type("createUserForm:fullName", "Joshamee Gibbs");
+		se.type("createUserForm:email", "elizabeth@Swann.com");
 		se.type("createUserForm:locality", "nowhere");
 		se.type("createUserForm:password1", "qwe123.Q");
 		se.type("createUserForm:password2", "qwe213.Q");
@@ -179,11 +179,11 @@ public class Test002basicUser {
 		se.waitForText("Value is required");
 
 		logger.info("missing: familyname");
-		se.type("createUserForm:name", "joe");
-		se.type("createUserForm:givenName", "Joe");
+		se.type("createUserForm:name", "Joshamee");
+		se.type("createUserForm:givenName", "Joshamee");
 		se.type("createUserForm:familyName", "");
-		se.type("createUserForm:fullName", "Joe Dead");
-		se.type("createUserForm:email", "leila@walker.com");
+		se.type("createUserForm:fullName", "Joshamee Gibbs");
+		se.type("createUserForm:email", "elizabeth@Swann.com");
 		se.type("createUserForm:locality", "nowhere");
 		se.type("createUserForm:password1", "qwe123.Q");
 		se.type("createUserForm:password2", "qwe213.Q");
@@ -192,11 +192,11 @@ public class Test002basicUser {
 		se.waitForText("Value is required");
 
 		logger.info("missing: fullname");
-		se.type("createUserForm:name", "joe");
-		se.type("createUserForm:givenName", "Joe");
-		se.type("createUserForm:familyName", "Dead");
+		se.type("createUserForm:name", "Joshamee");
+		se.type("createUserForm:givenName", "Joshamee");
+		se.type("createUserForm:familyName", "Gibbs");
 		se.type("createUserForm:fullName", "");
-		se.type("createUserForm:email", "leila@walker.com");
+		se.type("createUserForm:email", "elizabeth@Swann.com");
 		se.type("createUserForm:locality", "nowhere");
 		se.type("createUserForm:password1", "qwe123.Q");
 		se.type("createUserForm:password2", "qwe213.Q");
@@ -226,24 +226,24 @@ public class Test002basicUser {
 			logger.info(k + " -> " + h.get(k));
 		}
 
-		assertTrue(se.isTextPresent("Leila Walker"));
-		assertTrue(se.isTextPresent("Selena Wilson"));
+		assertTrue(se.isTextPresent("Elizabeth Swann"));
+		assertTrue(se.isTextPresent("Hector Barbossa"));
 
-		se.type("admin-content:searchName", "leila");
+		se.type("admin-content:searchName", "elizabeth");
 		se.click("admin-content:searchButton");
 		se.waitForText("List Users");
-		assertTrue(se.isTextPresent("Leila Walker"));
-		assertFalse(se.isTextPresent("Selena Wilson"));
+		assertTrue(se.isTextPresent("Elizabeth Swann"));
+		assertFalse(se.isTextPresent("Hector Barbossa"));
 
-		se.type("admin-content:searchName", "selena");
+		se.type("admin-content:searchName", "barbossa");
 		se.click("admin-content:searchButton");
 		se.waitForText("List Users");
 
 		se.type("admin-content:searchName", "");
 		se.click("admin-content:searchButton");
 		se.waitForText("List Users");
-		assertTrue(se.isTextPresent("Leila Walker"));
-		assertTrue(se.isTextPresent("Selena Wilson"));
+		assertTrue(se.isTextPresent("Elizabeth Swann"));
+		assertTrue(se.isTextPresent("Hector Barbossa"));
 	}
 
 	/***
@@ -283,7 +283,7 @@ public class Test002basicUser {
 				+ "<i:employeeType>CAPTAIN</i:employeeType>\n"
 				+ "<i:organizationalUnit>Leaders</i:organizationalUnit>\n"
 				+ "<i:locality>Black Pearl</i:locality>\n" + "<i:credentials>\n" + "<i:password>\n"
-				+ "            <i:cleartextPassword>deadmentellnotales</i:cleartextPassword>\n"
+				+ "            <i:cleartextPassword>Gibbsmentellnotales</i:cleartextPassword>\n"
 				+ "</i:password>\n" + "</i:credentials>\n" + "</i:user>";
 
 		se.type("importForm:editor", xmlUser);
@@ -368,7 +368,30 @@ public class Test002basicUser {
 	
 	@Test
 	public void test05modifyUser() {
+		//modify jack (demote)
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
+		se.click(se.findLink("Jack"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
+		assertTrue(se.isTextPresent("Black Pearl"));
+		se.click("admin-content:editButton");
+		se.waitForText("Save changes",30);
 		
+		for (String s: se.getAllFields() ) {
+			if (s.contains("fullNameText")) {
+				se.type(s, "SR. Jack Sparrow");
+			}
+			if (s.contains("localityText")) {
+				se.type(s, "Queen Anne's Revenge");
+			}
+		}
+		se.click("admin-content:saveButton");
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
+		assertTrue(se.isTextPresent("SR. Jack Sparrow"));
 	}
 	
 	
@@ -394,8 +417,8 @@ public class Test002basicUser {
 	 * 			b) click YES 		-> PASS
 	 * 		
 	 * 	Do for user:
-	 * 		* Leila
-	 * 		* Selena
+	 * 		* Elizabeth
+	 * 		* barbossa
 	 * 
 	 * Validation:
 	 * 	* user not exists after remove
@@ -403,7 +426,7 @@ public class Test002basicUser {
 	@Test
 	public void test99deleteUser() {
 		
-		//delete leila
+		//delete elizabeth
 		se.click(se.findLink("topAccount"));
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
@@ -417,7 +440,7 @@ public class Test002basicUser {
 			h.put(se.getText(l), l.replace("name", ""));
 		}
 
-		se.click(h.get("leila") + "deleteCheckbox");
+		se.click(h.get("elizabeth") + "deleteCheckbox");
 		se.click("admin-content:deleteUser");
 		se.waitForText("Confirm delete");
 		se.click("admin-content:deleteUserNo");
@@ -426,9 +449,9 @@ public class Test002basicUser {
 		se.waitForText("Confirm delete");
 		se.click("admin-content:deleteUserYes");
 		se.waitForText("List Users");
-		assertFalse(se.isTextPresent("Leila Walker"));
+		assertFalse(se.isTextPresent("Elizabeth Swann"));
 
-		//delete selena
+		//delete barbossa
 		se.click(se.findLink("topHome"));
 		se.waitForPageToLoad("30000");
 
@@ -444,12 +467,12 @@ public class Test002basicUser {
 			h.put(se.getText(l), l.replace("name", ""));
 		}
 
-		se.click(h.get("selena") + "deleteCheckbox");
+		se.click(h.get("barbossa") + "deleteCheckbox");
 		se.click("admin-content:deleteUser");
 		se.waitForText("Confirm delete");
 		se.click("admin-content:deleteUserYes");
 		se.waitForText("List Users");
-		assertFalse(se.isTextPresent("Selena")); 
+		assertFalse(se.isTextPresent("barbossa")); 
 		
 		//delete jack
 		se.click(se.findLink("topHome"));
