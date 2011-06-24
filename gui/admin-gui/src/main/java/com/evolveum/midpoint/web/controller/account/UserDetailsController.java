@@ -539,7 +539,12 @@ public class UserDetailsController implements Serializable {
 			builder.setAvailableValues(availableValues);
 		}
 		builder.setDescription(def.getHelp());
-		builder.setDisplayName(def.getDisplayName());
+
+		if (StringUtils.isEmpty(def.getDisplayName())) {
+			builder.setDisplayName(def.getName().getLocalPart());
+		} else {
+			builder.setDisplayName(def.getDisplayName());
+		}
 		builder.setElementName(def.getName());
 		if (!def.isReadable() || !def.isUpdateable()) {
 			if (def.isReadable()) {

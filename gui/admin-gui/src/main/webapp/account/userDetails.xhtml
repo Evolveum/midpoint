@@ -108,9 +108,7 @@
 							columnClasses="userDetailsResourceTableRow1, userDetailsResourceTableRow2">
 							<ice:panelCollapsible expanded="#{item.expanded}">
 								<f:facet name="header">
-									<ice:panelGroup>
-										<ice:outputText value="#{item.name}" />
-									</ice:panelGroup>
+									<ice:outputText value="#{item.name}" />
 								</f:facet>
 
 								<idm:autoForm bean="#{userDetails.formObjects}" index="#{status.index}"

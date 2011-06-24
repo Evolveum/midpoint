@@ -123,7 +123,7 @@ public class SchemaFormParser {
 			throw new SchemaProcessorException("Account definition for type '" + accountType
 					+ "' was not found.");
 		}
-		displayName = resource.getName() + ": " + definition.getName();
+		displayName = resource.getName() + ": " + definition.getName().getLocalPart();
 
 		List<ResourceObjectAttributeDefinition> attributes = new ArrayList<ResourceObjectAttributeDefinition>();
 		for (PropertyDefinition def : definition.getDefinitions()) {

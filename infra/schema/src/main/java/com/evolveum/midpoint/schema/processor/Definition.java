@@ -23,6 +23,8 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
+
 /**
  * Abstract definition in the schema.
  * 
@@ -149,7 +151,7 @@ public abstract class Definition {
 		return displayName;
 	}
 	
-	void setDisplayName(String displayName) {
+	void setDisplayName(String displayName) {		
 		this.displayName = displayName;
 	}
 

@@ -29,7 +29,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 /**
- *
+ * 
  * @author lazyman
  */
 public class FormAttributeDefinitionBuilder implements Serializable {
@@ -37,57 +37,59 @@ public class FormAttributeDefinitionBuilder implements Serializable {
 	private static final long serialVersionUID = 5747586570802365914L;
 	private FormAttributeDefinition definition = new FormAttributeDefinition();
 
-    public void setAvailableValues(List<Object> availableValues) {
-        definition.setAvailableValues(availableValues);
-    }
+	public void setAvailableValues(List<Object> availableValues) {
+		definition.setAvailableValues(availableValues);
+	}
 
-    public void setDescription(String description) {
-        definition.setDescription(description);
-    }
+	public void setDescription(String description) {
+		definition.setDescription(description);
+	}
 
-    public void setDisplayName(String displayName) {
-        definition.setDisplayName(displayName);
-    }
+	public void setDisplayName(String displayName) {
+		definition.setDisplayName(displayName);
+	}
 
-    public void setElementName(QName elementName) {
-        definition.setElementName(elementName);
-    }
+	public void setElementName(QName elementName) {
+		definition.setElementName(elementName);
+	}
 
-    public void setFlags(List<Flag> flags) {
-        definition.setFlags(flags);
-    }
+	public void setFlags(List<Flag> flags) {
+		definition.setFlags(flags);
+	}
 
-    public void setMaxOccurs(int maxOccurs) {
-        definition.setMaxOccurs(maxOccurs);
-    }
+	public void setMaxOccurs(int maxOccurs) {
+		definition.setMaxOccurs(maxOccurs);
+	}
 
-    public void setMinOccurs(int minOccurs) {
-        definition.setMinOccurs(minOccurs);
-    }
+	public void setMinOccurs(int minOccurs) {
+		definition.setMinOccurs(minOccurs);
+	}
 
-    public void setType(AttributeType type) {
-        definition.setType(type);
-    }
-    
-    public void addFlag(Flag flag) {
-    	definition.getFlags().add(flag);
-    }
-    
-    public void setFilledWithExpression(boolean filledWithExpression) {
-    	definition.setFilledWithExpression(filledWithExpression);
-    }
+	public void setType(AttributeType type) {
+		definition.setType(type);
+	}
 
-    public FormAttributeDefinition build() {
-        if (definition.getType() == null) {
-            throw new IllegalStateException("Type not defined.");
-        }
-        if (definition.getElementName() == null) {
-            throw new IllegalStateException("Element name not defined.");
-        }
-        if (definition.getDisplayName() == null) {
-            throw new IllegalArgumentException("Display name not defined.");
-        }
+	public void addFlag(Flag flag) {
+		definition.getFlags().add(flag);
+	}
 
-        return definition;
-    }
+	public void setFilledWithExpression(boolean filledWithExpression) {
+		definition.setFilledWithExpression(filledWithExpression);
+	}
+
+	public FormAttributeDefinition build() {
+		if (definition.getElementName() == null) {
+			throw new IllegalStateException("Element name not defined.");
+		}
+		if (definition.getType() == null) {
+			throw new IllegalStateException("Type not defined for element '" + definition.getElementName()
+					+ "'.");
+		}
+		if (definition.getDisplayName() == null) {
+			throw new IllegalArgumentException("Display name not defined for element '"
+					+ definition.getElementName() + "'.");
+		}
+
+		return definition;
+	}
 }
