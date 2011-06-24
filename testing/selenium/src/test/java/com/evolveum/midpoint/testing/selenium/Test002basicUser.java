@@ -396,7 +396,7 @@ public class Test002basicUser {
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
 		assertTrue(se.isTextPresent("New User"));
-		se.click(se.findLink("Jack"));
+		se.click(se.findLink("jack"));
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
 		assertTrue(se.isTextPresent("Black Pearl"));
