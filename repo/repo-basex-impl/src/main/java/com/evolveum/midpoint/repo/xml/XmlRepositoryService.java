@@ -490,7 +490,6 @@ public class XmlRepositoryService implements RepositoryService {
 			if (null == firstChild) {
 				throw new IllegalArgumentException("Query filter contains empty list of values to search by");
 			}
-			// FIXME: possible problem with prefixes
 			String lastPathSegment;
 			String prefix;
 			String namespace;
