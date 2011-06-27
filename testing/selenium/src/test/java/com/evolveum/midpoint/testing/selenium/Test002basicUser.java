@@ -403,8 +403,8 @@ public class Test002basicUser {
 				continue;
 			h.put(se.getText(l), l.replace("name", ""));
 		}
-		
-		se.click(h.get("jack"+"name"));
+	
+		se.click(h.get("jack")+"name");
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
 		assertTrue(se.isTextPresent("Black Pearl"));
@@ -422,8 +422,8 @@ public class Test002basicUser {
 		
 		se.click("admin-content:saveButton");
 		se.waitForPageToLoad("30000");
-		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
-		assertTrue(se.isTextPresent("New User"));
+		se.waitForText("Save changes successfully"); 
+		assertTrue(se.isTextPresent("Save changes successfully"));
 		assertTrue(se.isTextPresent("SR. Jack Sparrow"));
 		
 		for (String l : se.getAllLinks()) {
