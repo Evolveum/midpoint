@@ -58,7 +58,7 @@ public enum ObjectTypes {
 	USER_TEMPLATE("schema.objectTypes.userTemplate", SchemaConstants.I_USER_TEMPLATE_TYPE,
 			UserTemplateType.class),
 	
-	SYSTEM_CONFIGURATION("schema.objectTypes.systemConfiguration", SchemaConstants.I_SYSTEM_CONFIGURATION, SystemConfigurationType.class);
+	SYSTEM_CONFIGURATION("schema.objectTypes.systemConfiguration", SchemaConstants.I_SYSTEM_CONFIGURATION_TYPE, SystemConfigurationType.class);
 
 	private String localizationKey;
 	private QName value;
