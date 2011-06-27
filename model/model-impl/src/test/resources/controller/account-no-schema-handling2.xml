@@ -44,18 +44,8 @@
 						</xsd:extension>
 					</xsd:complexContent>
 				</xsd:complexType>
-			</xsd:schema>
+			</xsd:schema>			
 		</schema>
-		<c:schemaHandling>
-			<c:accountType default="true">
-				<c:name>Default Account</c:name>
-				<c:objectClass>mi6:Mi6PersonObjectClass</c:objectClass>
-				<c:credentials>
-					<c:outboundPassword>true</c:outboundPassword>
-					<c:randomPasswordLength>4</c:randomPasswordLength>
-				</c:credentials>
-			</c:accountType>
-		</c:schemaHandling>
 	</resource>
 	<objectClass>mi6:Mi6PersonObjectClass</objectClass>
 	<attributes>

@@ -26,6 +26,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
@@ -154,14 +155,23 @@ public class ModelUtilsTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	@SuppressWarnings("unchecked")
 	public void getAccountTypeDefinitionFromSchemaHandlingNonExisting() throws Exception {
+		getAccountTypeDefinitionFromSchemaHandlingNonExisting("account-no-schema-handling.xml");
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void getAccountTypeDefinitionFromSchemaHandlingNonExisting2() throws Exception {
+		getAccountTypeDefinitionFromSchemaHandlingNonExisting("account-no-schema-handling2.xml");
+	}
+
+	@SuppressWarnings("unchecked")
+	private void getAccountTypeDefinitionFromSchemaHandlingNonExisting(String fileName) throws JAXBException {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "account-no-schema-handling.xml"))).getValue();
+				TEST_FOLDER, fileName))).getValue();
 
 		ModelUtils.getAccountTypeDefinitionFromSchemaHandling(account, account.getResource());
 	}
-	
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void getAccountTypeDefinitionFromSchemaHandlingExisting() throws Exception {
