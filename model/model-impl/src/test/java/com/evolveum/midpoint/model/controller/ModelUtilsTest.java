@@ -27,7 +27,9 @@ import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
+import org.apache.commons.codec.binary.Base64;
 import org.junit.Test;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -100,8 +102,8 @@ public class ModelUtilsTest {
 		ModelUtils.getPassword(null);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
+	@SuppressWarnings("unchecked")
 	public void getPasswordExistingAccount() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "account-with-pwd.xml"))).getValue();
@@ -109,12 +111,54 @@ public class ModelUtilsTest {
 		assertNotNull(password);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Test
+	@SuppressWarnings("unchecked")
 	public void getPasswordNonExistingAccount() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "account-without-pwd.xml"))).getValue();
 		CredentialsType.Password password = ModelUtils.getPassword(account);
 		assertNotNull(password);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void generatePasswordNullAccount() {
+		ModelUtils.generatePassword(null, 5);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void generatePasswordBadLength() throws Exception {
+		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER, "account-with-pwd.xml"))).getValue();
+		int length = 5;
+		ModelUtils.generatePassword(account, length);
+
+		CredentialsType.Password password = ModelUtils.getPassword(account);
+		assertNotNull(password);
+		assertNotNull(password.getAny());
+		assertEquals(true, password.getAny() instanceof Element);
+
+		Element element = (Element) password.getAny();
+		assertNotNull(element.getTextContent());
+		assertEquals(length, new String(Base64.decodeBase64(element.getTextContent())).length());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void getAccountTypeDefinitionFromSchemaHandlingNullAccount() {
+		ModelUtils.getAccountTypeDefinitionFromSchemaHandling(null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void getAccountTypeDefinitionFromSchemaHandlingNullResource() {
+		ModelUtils.getAccountTypeDefinitionFromSchemaHandling(new AccountShadowType(), null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	@SuppressWarnings("unchecked")
+	public void getAccountTypeDefinitionFromSchemaHandlingExisting() throws Exception {
+		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER, "account-no-schema-handling.xml"))).getValue();
+
+		ModelUtils.getAccountTypeDefinitionFromSchemaHandling(account, account.getResource());
 	}
 }

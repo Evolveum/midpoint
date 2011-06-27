@@ -76,6 +76,10 @@ public class ModelUtils {
 		Validate.notNull(resource, "Resource must not be null.");
 
 		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
+		if (schemaHandling == null) {
+			throw new IllegalArgumentException(
+					"Provided resource definition doesn't contain schema handling.");
+		}
 		QName accountObjectClass = accountShadow.getObjectClass();
 
 		for (AccountType accountType : schemaHandling.getAccountType()) {
@@ -97,15 +101,15 @@ public class ModelUtils {
 	}
 
 	public static void generatePassword(AccountShadowType account, int length) {
+		Validate.notNull(account, "Account shadow must not be null.");
+		Validate.isTrue(length > 0, "Password length must be more than zero.");
+
 		String pwd = "";
 		if (length > 0) {
 			pwd = new RandomString(length).nextString();
 		}
 
 		CredentialsType.Password password = getPassword(account);
-		if (password.getAny() != null) {
-			return;
-		}
 
 		Document document = DOMUtil.getDocument();
 		Element hash = document.createElementNS(SchemaConstants.NS_C, "c:base64");
@@ -115,7 +119,7 @@ public class ModelUtils {
 
 	public static CredentialsType.Password getPassword(AccountShadowType account) {
 		Validate.notNull(account, "Account shadow must not be null.");
-		
+
 		CredentialsType credentials = account.getCredentials();
 		ObjectFactory of = new ObjectFactory();
 		if (credentials == null) {

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <c:object oid="007" xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
 	xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"

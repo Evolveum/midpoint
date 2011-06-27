@@ -754,7 +754,7 @@ public class ModelController {
 			randomPasswordLength = credentials.getRandomPasswordLength().intValue();
 		}
 
-		if (randomPasswordLength != -1) {
+		if (randomPasswordLength != -1 && ModelUtils.getPassword(account).getAny() == null) {
 			ModelUtils.generatePassword(account, randomPasswordLength);
 		}
 	}
