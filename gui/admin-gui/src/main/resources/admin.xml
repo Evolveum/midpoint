@@ -18,7 +18,7 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
-<c:user oid="00000000-0000-0000-0000-000000000001" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<c:user oid="00000000-0000-0000-0000-000000000002" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
     <c:name>administrator</c:name>
     <c:fullName>midPoint Administrator</c:fullName>

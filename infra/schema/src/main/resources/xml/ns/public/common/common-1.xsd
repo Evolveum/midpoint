@@ -6167,6 +6167,32 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
+	<xsd:simpleType name="SystemObjectsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				OID constants for system objects
+			</xsd:documentation>
+			<xsd:appinfo>
+				<jaxb:typesafeEnumClass/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="00000000-0000-0000-0000-000000000001">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="SYSTEM_CONFIGURATION"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="00000000-0000-0000-0000-000000000002">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="USER_ADMINISTRATOR"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
 </xsd:schema>
 
 

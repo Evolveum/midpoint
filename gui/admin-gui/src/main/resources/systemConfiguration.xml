@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<systemConfiguration oid="00000000-0000-0000-0000-000000000002" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
     <name>SystemConfiguration</name>
     <logging>
         <logger>

@@ -48,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
@@ -58,11 +59,10 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
  */
 @Component
 @Scope
-@DependsOn(value="initialSetup")
+@DependsOn(value = "initialSetup")
 public class LoggingManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingManager.class);
-	public static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000002";
 	@Autowired(required = true)
 	private ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
@@ -122,7 +122,7 @@ public class LoggingManager {
 			newSystem.setLogging(logging);
 
 			ObjectModificationType change = CalculateXmlDiff.calculateChanges(oldSystem, newSystem);
-			change.setOid(SYSTEM_CONFIGURATION_OID);
+			change.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
 			model.modifyObject(change, new Holder<OperationResultType>(resultTypeHolder));
 			saveConfigResult.recordSuccess();
 
@@ -157,8 +157,8 @@ public class LoggingManager {
 
 		SystemConfigurationType config = null;
 		try {
-			ObjectType object = model.getObject(SYSTEM_CONFIGURATION_OID, new PropertyReferenceListType(),
-					new Holder<OperationResultType>(resultTypeHolder));
+			ObjectType object = model.getObject(SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+					new PropertyReferenceListType(), new Holder<OperationResultType>(resultTypeHolder));
 			config = (SystemConfigurationType) object;
 
 			getSystemConfigResult.recordSuccess();
