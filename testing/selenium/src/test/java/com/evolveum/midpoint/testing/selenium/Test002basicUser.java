@@ -442,13 +442,49 @@ public class Test002basicUser {
 	
 	@Test
 	public void test06modifyUserViaDebug() {
+		// failing import allready exists
+		se.click(se.findLink("topConfiguration"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/config/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("Debugging"));
+		se.click(se.findLink("leftViewEdit"));
+		assertTrue(se.waitForText("View/Edit Object"));
 		
 	}
 	
-	//TODO
+	/***
+	 * Search user and delete it form  midPoint
+	 * 
+	 * Actions:
+	 * 		1. login as admin
+	 * 		2. click to configuration
+	 * 		3. click to List Objects
+	 * 		4. select from list User
+	 *		5. click list button
+	*/
 	@Test
 	public void test07deleteUserViaDebug() {
+		// failing import allready exists
+		se.click(se.findLink("topConfiguration"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/config/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("Debugging"));
+		se.click(se.findLink("leftList"));
+		assertTrue(se.waitForText("List Objects"));
+		se.select("debugListForm:selectOneMenuList", "label=User");
+		se.click("debugListForm:listObjectsButton");
 		
+		// get hashmap and login
+		HashMap<String, String> h = new HashMap<String, String>();
+		for (String l : se.getAllLinks()) {
+			if (!l.contains("debugListForm:link"))
+				continue;
+			h.put(se.getText(l), l.replace("debugListForm:link", ""));
+		}
+		
+		for(String k: h.keySet()) {
+			logger.info( k + " -> " + h.get(k));
+		}
 	}
 	/***
 	 * Search user and delete it form  midPoint
