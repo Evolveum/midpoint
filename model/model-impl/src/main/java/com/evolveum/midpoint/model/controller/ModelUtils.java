@@ -47,16 +47,21 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * 
  */
 public class ModelUtils {
-	
+
 	public static ObjectReferenceType createReference(String oid, ObjectTypes type) {
+		Validate.notEmpty(oid, "Oid must not be null or empty.");
+		Validate.notNull(type, "Object type must not be null.");
+
 		ObjectReferenceType accountRef = new ObjectReferenceType();
-		accountRef.setType(ObjectTypes.ACCOUNT.getQName());
+		accountRef.setType(type.getQName());
 		accountRef.setOid(oid);
-		
+
 		return accountRef;
 	}
 
 	public static void validatePaging(PagingType paging) {
+		Validate.notNull(paging, "Paging must not be null.");
+
 		if (paging.getMaxSize() != null && paging.getMaxSize().longValue() < 0) {
 			throw new IllegalArgumentException("Paging max size must be more than 0.");
 		}
@@ -67,8 +72,8 @@ public class ModelUtils {
 
 	public static AccountType getAccountTypeDefinitionFromSchemaHandling(
 			ResourceObjectShadowType accountShadow, ResourceType resource) {
-		Validate.notNull(accountShadow);
-		Validate.notNull(resource);
+		Validate.notNull(accountShadow, "Resource object shadow must not be null.");
+		Validate.notNull(resource, "Resource must not be null.");
 
 		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
 		QName accountObjectClass = accountShadow.getObjectClass();
@@ -109,6 +114,8 @@ public class ModelUtils {
 	}
 
 	public static CredentialsType.Password getPassword(AccountShadowType account) {
+		Validate.notNull(account, "Account shadow must not be null.");
+		
 		CredentialsType credentials = account.getCredentials();
 		ObjectFactory of = new ObjectFactory();
 		if (credentials == null) {

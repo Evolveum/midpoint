@@ -52,7 +52,7 @@ public abstract class PagingTypeFactory {
 		PropertyReferenceType propertyReferenceType = fillPropertyReference(orderBy);
 		paging.setOrderBy(propertyReferenceType);
 		paging.setOffset(offset);
-		paging.setMaxSize(Integer.MAX_VALUE);
+		paging.setMaxSize(maxSize);
 		paging.setOrderDirection(order);
 
 		return paging;
