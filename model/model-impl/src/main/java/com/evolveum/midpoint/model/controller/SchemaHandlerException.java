@@ -20,23 +20,12 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-
 /**
  * 
  * @author lazyman
- * 
+ *
  */
-public interface SchemaHandler {
+public class SchemaHandlerException extends Exception {
 
-	public ObjectModificationType processInboundHandling(UserType user,
-			ResourceObjectShadowType resourceObjectShadow, OperationResult result)
-			throws SchemaHandlerException;
-
-	public ObjectModificationType processOutboundHandling(UserType user,
-			ResourceObjectShadowType resourceObjectShadow, OperationResult result)
-			throws SchemaHandlerException;
+	private static final long serialVersionUID = -2063273534278562012L;
 }

@@ -131,6 +131,8 @@ public class ModelController {
 			processUserTemplateForUser(user, userTemplate, subResult);
 			oid = repository.addObject(user, subResult);
 			subResult.recordSuccess();
+		} catch (ObjectAlreadyExistsException ex) {
+			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add user {}, oid {} using template {}, oid {}", ex,
 					user.getName(), user.getOid(), userTemplate.getName(), userTemplate.getOid());
@@ -142,42 +144,6 @@ public class ModelController {
 		LOGGER.debug(subResult.debugDump());
 
 		return oid;
-	}
-
-	private void processUserTemplateForUser(UserType user, UserTemplateType userTemplate,
-			OperationResult result) {
-		if (userTemplate == null) {
-			return;
-		}
-
-		SchemaHandler schemaHandler = new SchemaHandlerImpl();
-		List<AccountConstructionType> accountConstructions = userTemplate.getAccountConstruction();
-		for (AccountConstructionType construction : accountConstructions) {
-			OperationResult addObject = new OperationResult("Link Object To User");
-			try {
-				ObjectReferenceType resourceRef = construction.getResourceRef();
-				ResourceType resource = getObject(resourceRef.getOid(), new PropertyReferenceListType(),
-						result, ResourceType.class, true);
-
-				AccountShadowType account = new AccountShadowType();
-				account.setObjectClass(new QName(resource.getNamespace(), "Account"));
-				account.setName(resource.getName() + "-" + user.getName());
-				account.setResourceRef(resourceRef);
-
-				ObjectModificationType changes = schemaHandler.processOutboundHandling(user, account, result);
-
-				PatchXml patchXml = new PatchXml();
-				patchXml.applyDifferences(changes, account);
-
-				String accountOid = addObject(account, result);
-				user.getAccountRef().add(ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT));
-				// XXX: groups, roles later
-				addObject.recordSuccess();
-			} catch (Exception ex) {
-				// TODO: logging
-				addObject.recordFatalError("Something went terribly wrong.", ex);
-			}
-		}
 	}
 
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult result)
@@ -197,7 +163,6 @@ public class ModelController {
 			}
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
-			// TODO: logging
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object {}", ex, oid);
@@ -307,7 +272,6 @@ public class ModelController {
 			}
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
-			// TODO: error handling
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update object with oid {}", ex, change.getOid());
@@ -415,13 +379,13 @@ public class ModelController {
 			list = repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
-			// TODO: error handling
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list resource object shadows type "
-					+ "{} from repository for resource with oid {}", ex, resourceObjectShadowType,
-					resourceOid);
-			// TODO: error handling
+					+ "{} from repository for resource, oid {}", ex, resourceObjectShadowType, resourceOid);
+			subResult.recordFatalError(
+					"Couldn't list resource object shadows type '" + resourceObjectShadowType
+							+ "' from repository for resource, oid '" + resourceOid + "'.", ex);
 		}
 
 		if (list == null) {
@@ -440,7 +404,7 @@ public class ModelController {
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
 		LOGGER.debug(
-				"Listing resource objects {} from resource with oid {} from {} to {} ordered {} by {}.",
+				"Listing resource objects {} from resource, oid {}, from {} to {} ordered {} by {}.",
 				new Object[] { objectType, resourceOid, paging.getOffset(), paging.getMaxSize(),
 						paging.getOrderDirection(), paging.getOrderDirection() });
 
@@ -454,7 +418,8 @@ public class ModelController {
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list resource objects of type {} for resource "
 					+ "with oid {}", ex, objectType, resourceOid);
-			// TODO: error handling
+			subResult.recordFatalError("Couldn't list resource objects of type '" + objectType
+					+ "' for resource, oid '" + resourceOid + "'.", ex);
 		}
 
 		if (list == null) {
@@ -491,7 +456,8 @@ public class ModelController {
 		}
 	}
 
-	public void launchImportFromResource(String resourceOid, QName objectClass, OperationResult result) {
+	public void launchImportFromResource(String resourceOid, QName objectClass, OperationResult result)
+			throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object class must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -505,11 +471,12 @@ public class ModelController {
 			provisioning.launchImportFromResource(resourceOid, objectClass, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
-			// TODO: error handling
+			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't launch import for objects of type {} on resource "
-					+ "with oid {}", ex, objectClass, resourceOid);
-			// TODO: error handling
+			LoggingUtils.logException(LOGGER, "Couldn't launch import for objects of type {} on resource, "
+					+ "oid {}", ex, objectClass, resourceOid);
+			subResult.recordFatalError("Couldn't launch import for objects of type '" + objectClass
+					+ "' on resource, oid '" + resourceOid + "'.", ex);
 		}
 
 		LOGGER.debug(subResult.debugDump());
@@ -585,7 +552,7 @@ public class ModelController {
 			throws ObjectNotFoundException, ObjectAlreadyExistsException {
 		if (object instanceof AccountShadowType) {
 			AccountShadowType account = (AccountShadowType) object;
-			preprocessAddAccount(account, result);
+			processAccountCredentials(account, result);
 		}
 
 		try {
@@ -763,7 +730,7 @@ public class ModelController {
 		return change;
 	}
 
-	private void preprocessAddAccount(AccountShadowType account, OperationResult result)
+	private void processAccountCredentials(AccountShadowType account, OperationResult result)
 			throws ObjectNotFoundException {
 		// TODO insert credentials to account if needed
 		ResourceType resource = account.getResource();
@@ -810,5 +777,41 @@ public class ModelController {
 		// TODO Auto-generated method stub
 
 		repository.modifyObject(change, result);
+	}
+
+	private void processUserTemplateForUser(UserType user, UserTemplateType userTemplate,
+			OperationResult result) {
+		if (userTemplate == null) {
+			return;
+		}
+
+		SchemaHandler schemaHandler = new SchemaHandlerImpl();
+		List<AccountConstructionType> accountConstructions = userTemplate.getAccountConstruction();
+		for (AccountConstructionType construction : accountConstructions) {
+			OperationResult addObject = new OperationResult("Link Object To User");
+			try {
+				ObjectReferenceType resourceRef = construction.getResourceRef();
+				ResourceType resource = getObject(resourceRef.getOid(), new PropertyReferenceListType(),
+						result, ResourceType.class, true);
+
+				AccountShadowType account = new AccountShadowType();
+				account.setObjectClass(new QName(resource.getNamespace(), "Account"));
+				account.setName(resource.getName() + "-" + user.getName());
+				account.setResourceRef(resourceRef);
+
+				ObjectModificationType changes = schemaHandler.processOutboundHandling(user, account, result);
+
+				PatchXml patchXml = new PatchXml();
+				patchXml.applyDifferences(changes, account);
+
+				String accountOid = addObject(account, result);
+				user.getAccountRef().add(ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT));
+				// XXX: groups, roles later
+				addObject.recordSuccess();
+			} catch (Exception ex) {
+				// TODO: logging
+				addObject.recordFatalError("Something went terribly wrong.", ex);
+			}
+		}
 	}
 }
