@@ -117,6 +117,7 @@ public abstract class SchemaConstants {
 	public static final QName X_DOCUMENTATION = new QName(W3C_XML_SCHEMA_NS_URI, "documentation");
 	public static final QName I_DIAGNOSTICS_MESSAGE_ERROR = new QName(NS_C, "error");
 	public static final QName I_DIAGNOSTICS_MESSAGE_WARNING = new QName(NS_C, "error");
+	public static final QName I_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
 
 	public static final QName R_PROTECTED_STRING_TYPE = new QName(NS_RESOURCE, "ProtectedStringType");
 	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
@@ -145,7 +146,7 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_CHANNEL, "discovery");
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_CHANNEL, "import");
 
-	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";	
+	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";
 
 	static {
 

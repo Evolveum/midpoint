@@ -136,6 +136,10 @@ public class DebugListController extends ListController<ObjectBean> {
 		for (ObjectType object : list.getObject()) {
 			getObjects().add(new ObjectBean(object.getOid(), object.getName()));
 		}
+		
+		if (getObjects().isEmpty()) {
+			FacesUtils.addWarnMessage("Couldn't find any object.");
+		}
 
 		return null;
 	}

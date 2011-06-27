@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
@@ -55,7 +56,9 @@ public enum ObjectTypes {
 	USER("schema.objectTypes.user", SchemaConstants.I_USER_TYPE, UserType.class),
 
 	USER_TEMPLATE("schema.objectTypes.userTemplate", SchemaConstants.I_USER_TEMPLATE_TYPE,
-			UserTemplateType.class);
+			UserTemplateType.class),
+	
+	SYSTEM_CONFIGURATION("schema.objectTypes.systemConfiguration", SchemaConstants.I_SYSTEM_CONFIGURATION, SystemConfigurationType.class);
 
 	private String localizationKey;
 	private QName value;
