@@ -155,9 +155,18 @@ public class ModelUtilsTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	@SuppressWarnings("unchecked")
-	public void getAccountTypeDefinitionFromSchemaHandlingExisting() throws Exception {
+	public void getAccountTypeDefinitionFromSchemaHandlingNonExisting() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "account-no-schema-handling.xml"))).getValue();
+
+		ModelUtils.getAccountTypeDefinitionFromSchemaHandling(account, account.getResource());
+	}
+	
+	@Test
+	@SuppressWarnings("unchecked")
+	public void getAccountTypeDefinitionFromSchemaHandlingExisting() throws Exception {
+		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER, "account-schema-handling.xml"))).getValue();
 
 		ModelUtils.getAccountTypeDefinitionFromSchemaHandling(account, account.getResource());
 	}

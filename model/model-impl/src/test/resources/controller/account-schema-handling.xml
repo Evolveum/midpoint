@@ -44,9 +44,22 @@
 						</xsd:extension>
 					</xsd:complexContent>
 				</xsd:complexType>
-			</xsd:schema>			
+			</xsd:schema>
 		</schema>
 		<c:schemaHandling>
+			<c:accountType default="true">
+
+				<!-- Readable name for the account type -->
+				<c:name>Default Account</c:name>
+
+				<!-- Reference to the Resoure Schema (see above) specifying object class for this account type -->
+				<c:objectClass>rc:Account</c:objectClass>
+
+				<c:credentials>
+					<c:outboundPassword>true</c:outboundPassword>
+					<c:randomPasswordLength>4</c:randomPasswordLength>
+				</c:credentials>
+			</c:accountType>
 		</c:schemaHandling>
 	</resource>
 	<objectClass>mi6:Mi6PersonObjectClass</objectClass>
