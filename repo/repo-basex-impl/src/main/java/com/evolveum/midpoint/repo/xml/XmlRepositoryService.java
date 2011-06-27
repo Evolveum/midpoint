@@ -194,7 +194,7 @@ public class XmlRepositoryService implements RepositoryService {
 			throw new IllegalArgumentException("objectType is null");
 		}
 		
-		//validation if object type is supported
+		//validate, if object type is supported
 		ObjectTypes objType = ObjectTypes.getObjectType(objectType);
 		String oType = objType.getValue();
 
@@ -410,27 +410,40 @@ public class XmlRepositoryService implements RepositoryService {
 					query.append("declare namespace ").append(namespaceEntry.getKey()).append("='").append(namespaceEntry.getValue()).append("';\n");
 				}
 			}
-			// FIXME: possible problems with object type checking. Now it is
-			// simple string checking, because import schema is not supported by basex database
-			query.append("for $x in //c:object where $x/@xsi:type=\"")
+
+			query.append("for $x in //c:object ");
+			if (objectType != null || (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) || filters != null) {
+				query.append("where ");
+			}
+			if (objectType != null) {
+				// FIXME: possible problems with object type checking. Now it is
+				// simple string checking, because import schema is not supported by basex database
+				query.append("$x/@xsi:type=\"")
 					.append(objectType.substring(objectType.lastIndexOf("#") + 1)).append("\"");
+			}
 			if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
 				query.append("[fn:position() = ( ").append(paging.getOffset() * paging.getMaxSize())
 						.append(" to ").append(((paging.getOffset() + 1) * paging.getMaxSize()) - 1)
 						.append(") ] ");
 			}
 			if (filters != null) {
+				int pos = 0;
 				for (Map.Entry<String, String> filterEntry : filters.entrySet()) {
+					if ( (pos > 0) || ( pos == 0 && (objectType != null) ) ) {
+						query.append(" and ");
+					}
 					// FIXME: now only refs are searched by attributes values
 					if (StringUtils.contains(filterEntry.getKey(), "Ref")) {
 						// search based on attribute value
-						query.append(" and $x/").append(filterEntry.getKey()).append("/@oid='")
+						query.append("$x/").append(filterEntry.getKey()).append("/@oid='")
 								.append(filterEntry.getValue()).append("'");
 					} else {
 						// search based on element value
-						query.append(" and $x/").append(filterEntry.getKey()).append("='")
+						query.append("$x/").append(filterEntry.getKey()).append("='")
 								.append(filterEntry.getValue()).append("'");
 					}
+					
+					pos++;
 				}
 			}
 			if (null != paging && null != paging.getOrderBy()) {

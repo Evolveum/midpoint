@@ -102,7 +102,7 @@ public class RepositorySearchTest {
 
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void searchUser() throws Exception {
+	public void searchUserByName() throws Exception {
 		String userOid = "c0c010c0-d34d-b33f-f00d-111111111111";
 		try {
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
@@ -128,6 +128,33 @@ public class RepositorySearchTest {
 		}
 	}
 
+	@Test
+	public void searchByNameAllObjectsTest() throws Exception {
+		String userOid = "c0c010c0-d34d-b33f-f00d-111111111111";
+		try {
+			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/user.xml"))).getValue();
+			repositoryService.addObject(user, null);
+
+			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
+					"src/test/resources/query-all-by-name.xml"))).getValue();
+			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), null);
+			assertNotNull(objectList);
+			assertNotNull(objectList.getObject());
+			assertEquals(1, objectList.getObject().size());
+
+			UserType foundUser = (UserType) objectList.getObject().get(0);
+			assertEquals("Cpt. Jack Sparrow", foundUser.getFullName());
+		} finally {
+			// to be sure try to delete the object as part of cleanup
+			try {
+				repositoryService.deleteObject(userOid, null);
+			} catch (Exception ex) {
+				// ignore exceptions during cleanup
+			}
+		}
+	}
+	
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void searchAccountByAttributes() throws Exception {
@@ -312,4 +339,5 @@ public class RepositorySearchTest {
 		}
 
 	}
+
 }
