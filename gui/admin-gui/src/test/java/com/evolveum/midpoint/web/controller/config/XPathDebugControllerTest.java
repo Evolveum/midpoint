@@ -22,10 +22,6 @@
 
 package com.evolveum.midpoint.web.controller.config;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,31 +36,13 @@ import com.evolveum.midpoint.web.bean.XPathVariableBean;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
+		"file:src/main/webapp/WEB-INF/application-context-init.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
 		"classpath:application-context-test.xml" })
 public class XPathDebugControllerTest {
 
 	@Autowired
-	XPathDebugController xpathController;
-
-	public XPathDebugControllerTest() {
-	}
-
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() {
-	}
-
-	@After
-	public void tearDown() {
-	}
+	private XPathDebugController xpathController;
 
 	private void setAttributes() {
 		xpathController.cleanupController();

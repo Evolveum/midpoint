@@ -16,8 +16,14 @@ import org.springframework.security.core.Authentication;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+/**
+ * 
+ * @author lazyman
+ *
+ */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
+		"file:src/main/webapp/WEB-INF/application-context-init.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
 		"classpath:application-context-test.xml" })
 public class MidPointAuthenticationProviderTest {
@@ -138,12 +144,12 @@ public class MidPointAuthenticationProviderTest {
 			throw ex;
 		}
 	}
-	
+
 	@Test(expected = BadCredentialsException.class)
 	public void negativeMaxLogins() {
 		provider.setLoginTimeout(5);
 		provider.setMaxFailedLogins(-3);
-		
+
 		final String username = "administrator";
 		final PrincipalUser user = new PrincipalUser("1", username, true);
 		Credentials credentials = user.getCredentials();
@@ -162,7 +168,7 @@ public class MidPointAuthenticationProviderTest {
 			throw ex;
 		}
 	}
-	
+
 	@Test(expected = BadCredentialsException.class)
 	public void positiveMaxLogins() {
 		provider.setLoginTimeout(5);

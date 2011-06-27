@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.test;
 
 import org.mockito.Mockito;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
@@ -34,5 +35,9 @@ public class MockFactory {
 
 	public static ModelPortType createModelPortType() {
 		return Mockito.mock(ModelPortType.class);
+	}
+
+	public static RepositoryService createRepositoryService() {
+		return Mockito.mock(RepositoryService.class);
 	}
 }
