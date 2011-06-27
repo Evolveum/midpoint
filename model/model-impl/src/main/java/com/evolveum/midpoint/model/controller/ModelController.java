@@ -36,6 +36,7 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
+import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -43,9 +44,11 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.ProvisioningTypes;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -61,7 +64,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
@@ -80,7 +86,7 @@ public class ModelController {
 	@Autowired(required = true)
 	private transient RepositoryService repository;
 
-	public String addObject(ObjectType object, OperationResult result) {
+	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
@@ -97,6 +103,9 @@ public class ModelController {
 				oid = addRepositoryObject(object, subResult);
 			}
 			subResult.recordSuccess();
+		} catch (ObjectAlreadyExistsException ex) {
+
+			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object", ex, object.getName());
 			subResult.recordFatalError("Couldn't add object '" + object.getName() + "'.", ex);
@@ -104,6 +113,71 @@ public class ModelController {
 
 		LOGGER.debug(subResult.debugDump());
 		return oid;
+	}
+
+	public String addUser(UserType user, UserTemplateType userTemplate, OperationResult result)
+			throws ObjectAlreadyExistsException {
+		Validate.notNull(user, "User must not be null.");
+		Validate.notNull(userTemplate, "User template must not be null.");
+		Validate.notNull(result, "Result type must not be null.");
+		LOGGER.debug("Adding user {}, oid {} using template {}, oid {}.",
+				new Object[] { user.getName(), user.getOid(), userTemplate.getName(), userTemplate.getOid() });
+
+		OperationResult subResult = new OperationResult("Add User With User Template");
+		result.addSubresult(subResult);
+
+		String oid = null;
+		try {
+			processUserTemplateForUser(user, userTemplate, subResult);
+			oid = repository.addObject(user, subResult);
+			subResult.recordSuccess();
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't add user {}, oid {} using template {}, oid {}", ex,
+					user.getName(), user.getOid(), userTemplate.getName(), userTemplate.getOid());
+			subResult.recordFatalError("Couldn't add user " + user.getName() + ", oid '" + user.getOid()
+					+ "' using template " + userTemplate.getName() + ", oid '" + userTemplate.getOid() + "'",
+					ex);
+		}
+
+		LOGGER.debug(subResult.debugDump());
+
+		return oid;
+	}
+
+	private void processUserTemplateForUser(UserType user, UserTemplateType userTemplate,
+			OperationResult result) {
+		if (userTemplate == null) {
+			return;
+		}
+
+		SchemaHandler schemaHandler = new SchemaHandlerImpl();
+		List<AccountConstructionType> accountConstructions = userTemplate.getAccountConstruction();
+		for (AccountConstructionType construction : accountConstructions) {
+			OperationResult addObject = new OperationResult("Link Object To User");
+			try {
+				ObjectReferenceType resourceRef = construction.getResourceRef();
+				ResourceType resource = getObject(resourceRef.getOid(), new PropertyReferenceListType(),
+						result, ResourceType.class, true);
+
+				AccountShadowType account = new AccountShadowType();
+				account.setObjectClass(new QName(resource.getNamespace(), "Account"));
+				account.setName(resource.getName() + "-" + user.getName());
+				account.setResourceRef(resourceRef);
+
+				ObjectModificationType changes = schemaHandler.processOutboundHandling(user, account, result);
+
+				PatchXml patchXml = new PatchXml();
+				patchXml.applyDifferences(changes, account);
+
+				String accountOid = addObject(account, result);
+				user.getAccountRef().add(ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT));
+				// XXX: groups, roles later
+				addObject.recordSuccess();
+			} catch (Exception ex) {
+				// TODO: logging
+				addObject.recordFatalError("Something went terribly wrong.", ex);
+			}
+		}
 	}
 
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult result)
@@ -508,7 +582,7 @@ public class ModelController {
 	}
 
 	private String addProvisioningObject(ObjectType object, OperationResult result)
-			throws ObjectNotFoundException {
+			throws ObjectNotFoundException, ObjectAlreadyExistsException {
 		if (object instanceof AccountShadowType) {
 			AccountShadowType account = (AccountShadowType) object;
 			preprocessAddAccount(account, result);
@@ -517,6 +591,8 @@ public class ModelController {
 		try {
 			ScriptsType scripts = getScripts(object, result);
 			return provisioning.addObject(object, scripts, result);
+		} catch (ObjectAlreadyExistsException ex) {
+			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object {} to provisioning", ex, object.getName());
 			// TODO: error handling
@@ -525,10 +601,20 @@ public class ModelController {
 		}
 	}
 
-	private String addRepositoryObject(ObjectType object, OperationResult result) {
+	private String addRepositoryObject(ObjectType object, OperationResult result)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		if (object instanceof UserType) {
-			UserType user = (UserType) object;
-			preprocessAddUser(user, result);
+			// At first we get default user template from system configuration
+			PropertyReferenceListType expandProperty = new PropertyReferenceListType();
+			expandProperty.getProperty().add(Utils.fillPropertyReference("defaultUserTemplate"));
+
+			SystemConfigurationType systemConfiguration = getObject(
+					SystemObjectsType.SYSTEM_CONFIGURATION.value(), expandProperty, result,
+					SystemConfigurationType.class, false);
+
+			UserTemplateType userTemplate = systemConfiguration.getDefaultUserTemplate();
+
+			processUserTemplateForUser((UserType) object, userTemplate, result);
 		}
 
 		try {
@@ -707,7 +793,8 @@ public class ModelController {
 	}
 
 	private void modifyProvisioningObjectWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException, CommunicationException {
+			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException,
+			CommunicationException {
 		if (object instanceof ResourceObjectShadowType) {
 			// TODO: outbound schema handling for this object
 		}
@@ -723,59 +810,5 @@ public class ModelController {
 		// TODO Auto-generated method stub
 
 		repository.modifyObject(change, result);
-	}
-
-	// TODO: REFACTOR !!!!!
-	/**
-	 * User preprocessing is used during synchronization, when we're adding user
-	 * and we want to create default accounts for him, or something like that.
-	 * Nobody knows, it needs to be reviewed :)
-	 */
-	private void preprocessAddUser(UserType user, OperationResult result) {
-		LOGGER.debug("Preprocessing user {}.", new Object[] { user.getName() });
-
-		List<AccountShadowType> accountsToDelete = new ArrayList<AccountShadowType>();
-		for (AccountShadowType emptyAccount : user.getAccount()) {
-			ObjectReferenceType resourceRef = emptyAccount.getResourceRef();
-			// we're looking for accounts (now only resource references) which
-			// have to be created after user is saved
-			if (!(emptyAccount.getName() == null && emptyAccount.getOid() == null && resourceRef != null && ObjectTypes.RESOURCE
-					.getQName().equals(resourceRef.getType()))) {
-				continue;
-			}
-			accountsToDelete.add(emptyAccount);
-
-			OperationResult subResult = new OperationResult("Create Account");
-			result.addSubresult(subResult);
-
-			AccountShadowType account = new AccountShadowType();
-			account.setName(resourceRef.getOid() + "-" + user.getName());
-			account.setResourceRef(resourceRef);
-			try {
-				ResourceType resource = getObjectFromProvisioning(resourceRef.getOid(),
-						new PropertyReferenceListType(), result, ResourceType.class);
-				if (resource == null) {
-					subResult.recordFatalError("Couln't get resource with oid '" + resourceRef.getOid()
-							+ "'.");
-					continue;
-				}
-				// TODO: account object class from where?
-				account.setObjectClass(new QName(resource.getNamespace(), "Account"));
-
-				// TODO: schema handling outbound - desing schemahandling first
-				// account = (AccountShadowType)
-				// schemaHandling.applyOutboundSchemaHandlingOnAccount(user,
-				// account, resource);
-
-				String oid = addObject(account, subResult);
-				ObjectReferenceType accountRef = new ObjectReferenceType();
-				accountRef.setOid(oid);
-				accountRef.setType(SchemaConstants.I_ACCOUNT_SHADOW_TYPE);
-				user.getAccountRef().add(accountRef);
-			} catch (Exception ex) {
-				subResult.recordFatalError("aaaaaaaaaaaaaaaaaaaa", ex);
-			}
-		}
-		user.getAccount().removeAll(accountsToDelete);
 	}
 }

@@ -20,9 +20,6 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.api.logging.Trace;
@@ -54,28 +51,20 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	}
 
 	@Override
-	public List<ObjectModificationType> processOutboundHandling(UserType user,
-			List<ResourceObjectShadowType> resourceObjectShadows, OperationResult result) {
+	public ObjectModificationType processOutboundHandling(UserType user,
+			ResourceObjectShadowType resourceObjectShadow, OperationResult result) {
 		Validate.notNull(user, "User must not be null.");
-		Validate.notNull(resourceObjectShadows, "Resource object shadow list must not be null.");
+		Validate.notNull(resourceObjectShadow, "Resource object shadow must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
-		String[] shadowNames = new String[resourceObjectShadows.size()];
-		for (int i = 0; i < shadowNames.length; i++) {
-			ResourceObjectShadowType shadow = resourceObjectShadows.get(i);
-			shadowNames[i] = shadow.getName();
-		}
-		LOGGER.debug("Processing outbound handling for user {} with oid {} and resource object shadows {}.",
-				new Object[] { user.getName(), user.getOid(), Arrays.toString(shadowNames) });
+		// String[] shadowNames = new String[resourceObjectShadows.size()];
+		// for (int i = 0; i < shadowNames.length; i++) {
+		// ResourceObjectShadowType shadow = resourceObjectShadows.get(i);
+		// shadowNames[i] = shadow.getName();
+		// }
+		// LOGGER.debug("Processing outbound handling for user {} with oid {} and resource object shadows {}.",
+		// new Object[] { user.getName(), user.getOid(),
+		// Arrays.toString(shadowNames) });
 
 		return null;
-	}
-
-	@Override
-	public void processUserTemplate(UserType user, String userTemplateOid, OperationResult result) {
-		Validate.notNull(user, "User must not be null.");
-		Validate.notEmpty(userTemplateOid, "User template oid must not be null or empty.");
-		Validate.notNull(result, "Operation result must not be null.");
-		LOGGER.debug("P", new Object[] {});
-
 	}
 }

@@ -27,11 +27,13 @@ import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -45,6 +47,14 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * 
  */
 public class ModelUtils {
+	
+	public static ObjectReferenceType createReference(String oid, ObjectTypes type) {
+		ObjectReferenceType accountRef = new ObjectReferenceType();
+		accountRef.setType(ObjectTypes.ACCOUNT.getQName());
+		accountRef.setOid(oid);
+		
+		return accountRef;
+	}
 
 	public static void validatePaging(PagingType paging) {
 		if (paging.getMaxSize() != null && paging.getMaxSize().longValue() < 0) {
