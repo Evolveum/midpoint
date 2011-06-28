@@ -35,6 +35,6 @@
     </i:propertyConstruction>
     <i:accountConstruction>
         <m:resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType"/>
-        <m:type>default</m:type>
+        <m:type>Default Account</m:type>
     </i:accountConstruction>
 </i:userTemplate>

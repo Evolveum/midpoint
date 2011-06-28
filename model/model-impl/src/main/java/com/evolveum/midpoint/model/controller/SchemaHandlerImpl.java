@@ -47,7 +47,10 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		LOGGER.debug("Processing inbound handling for user {} with oid {} and resource object shadow {}.",
 				new Object[] { user.getName(), user.getOid(), resourceObjectShadow.getName() });
 
-		return null;
+		ObjectModificationType changes = new ObjectModificationType();
+		changes.setOid(user.getOid());
+		
+		return changes;
 	}
 
 	@Override
@@ -65,6 +68,9 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		// new Object[] { user.getName(), user.getOid(),
 		// Arrays.toString(shadowNames) });
 
-		return null;
+		ObjectModificationType changes = new ObjectModificationType();
+		changes.setOid(resourceObjectShadow.getOid());
+		
+		return changes;
 	}
 }

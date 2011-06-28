@@ -62,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
@@ -794,8 +795,10 @@ public class ModelController {
 				ResourceType resource = getObject(resourceRef.getOid(), new PropertyReferenceListType(),
 						result, ResourceType.class, true);
 
+				AccountType accountType = getAccountTypeFromHandling(construction.getType(), resource);
+
 				AccountShadowType account = new AccountShadowType();
-				account.setObjectClass(new QName(resource.getNamespace(), "Account"));
+				account.setObjectClass(accountType.getObjectClass());
 				account.setName(resource.getName() + "-" + user.getName());
 				account.setResourceRef(resourceRef);
 
@@ -813,5 +816,32 @@ public class ModelController {
 				addObject.recordFatalError("Something went terribly wrong.", ex);
 			}
 		}
+	}
+
+	public static AccountType getAccountTypeFromHandling(String name, ResourceType resource) {
+		Validate.notNull(resource, "Resource must not be null.");
+
+		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
+		if (schemaHandling == null) {
+			throw new IllegalArgumentException(
+					"Provided resource definition doesn't contain schema handling.");
+		}
+
+		if (StringUtils.isNotEmpty(name)) {
+			for (AccountType accountType : schemaHandling.getAccountType()) {
+				if (name.equals(accountType.getName())) {
+					return accountType;
+				}
+			}
+		}
+
+		// no suitable definition found, then use default account
+		for (AccountType accountType : schemaHandling.getAccountType()) {
+			if (accountType.isDefault()) {
+				return accountType;
+			}
+		}
+
+		throw new IllegalArgumentException("No schema handlig account type for name '" + name + "' found.");
 	}
 }

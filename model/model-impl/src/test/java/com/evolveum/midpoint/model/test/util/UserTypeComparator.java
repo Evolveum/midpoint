@@ -41,7 +41,6 @@ public class UserTypeComparator extends Equals<UserType> {
         }
         trace.warn("Comparator not comparing accounts, accountRefs (not implemented yet).");
         //TODO: compare account, account ref and so on...
-        o1.getAccount();
         o1.getActivation();
         o1.getAssignment();
         o1.getCredentials();
@@ -58,6 +57,7 @@ public class UserTypeComparator extends Equals<UserType> {
                 areListsEqual(o1.getOrganizationalUnit(), o2.getOrganizationalUnit()) &&
                 areListsEqual(o1.getEMailAddress(), o2.getEMailAddress()) &&
                 areListsEqual(o1.getAdditionalNames(), o2.getAdditionalNames()) &&
-                areListsEqual(o1.getAccountRef(), o2.getAccountRef(), new ObjectReferenceTypeComparator());
+                areListsEqual(o1.getAccountRef(), o2.getAccountRef(), new ObjectReferenceTypeComparator()) &&
+                areListsEqual(o1.getAccount(), o2.getAccount(), new AccountShadowTypeComparator());
     }
 }

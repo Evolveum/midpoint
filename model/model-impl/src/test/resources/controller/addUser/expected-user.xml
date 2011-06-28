@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -29,4 +30,5 @@
 	<familyName>Bond</familyName>
 	<honorificSuffix>Jr.</honorificSuffix>
 	<locality>home</locality>
+	<accountRef oid="10000000-0000-0000-0000-000000000004" type="c:AccountShadowType" />
 </c:object>
