@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -195,7 +196,7 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public Token fetchCurrentToken(QName objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public Property fetchCurrentToken(QName objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".
@@ -203,7 +204,7 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public List<Change> fetchChanges(QName objectClass, Token lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public List<Change> fetchChanges(QName objectClass, Property lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	

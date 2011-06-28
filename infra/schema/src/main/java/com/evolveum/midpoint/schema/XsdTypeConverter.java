@@ -49,6 +49,7 @@ public class XsdTypeConverter {
 		xsdToJavaTypeMap = new HashMap();
         addMapping(String.class, SchemaConstants.XSD_STRING);
         addMapping(int.class, SchemaConstants.XSD_INTEGER);
+        addMapping(Integer.class, SchemaConstants.XSD_INTEGER);
         addMapping(boolean.class, SchemaConstants.XSD_BOOLEAN);
 		addMapping(byte[].class, SchemaConstants.XSD_BASE64BINARY);
     }
@@ -103,7 +104,7 @@ public class XsdTypeConverter {
 		Class type = toJavaType(typeName);
 		if (type.equals(String.class)) {
 			element.setTextContent((String)val);
-		} else if (type.equals(int.class)) {
+		} else if (type.equals(int.class) || type.equals(Integer.class)) {
 			element.setTextContent(((Integer)val).toString());
 		} else if (type.equals(byte[].class)) {
 			byte[] binaryData = (byte[]) val;

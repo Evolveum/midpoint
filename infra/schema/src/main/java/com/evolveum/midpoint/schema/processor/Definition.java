@@ -56,6 +56,10 @@ public abstract class Definition {
 	private String help;
 
 	// TODO: annotations
+	
+	Definition(){
+		
+	}
 
 	Definition(QName name, QName defaultName, QName typeName) {
 		if (name == null) {
@@ -69,6 +73,8 @@ public abstract class Definition {
 		this.typeName = typeName;
 	}
 
+	
+	
 	/**
 	 * Returns name of the defined entity.
 	 * 
@@ -87,6 +93,7 @@ public abstract class Definition {
 		return name;
 	}
 
+	
 	/**
 	 * Returns default name for the defined entity.
 	 * 
@@ -120,6 +127,7 @@ public abstract class Definition {
 	public QName getTypeName() {
 		return typeName;
 	}
+	
 
 	/**
 	 * Returns either name (if specified) or default name.

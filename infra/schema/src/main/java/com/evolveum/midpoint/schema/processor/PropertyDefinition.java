@@ -65,6 +65,12 @@ public class PropertyDefinition extends Definition {
 	PropertyDefinition(QName name, QName defaultName, QName typeName) {
 		super(name, defaultName, typeName);
 	}
+	
+
+	public PropertyDefinition(QName name, QName typeName) {
+		super(name, null, typeName);
+	}
+	
 
 	/**
 	 * Returns allowed values for this property.

@@ -46,6 +46,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
@@ -290,7 +291,11 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(this.getClass().getName()
 				+ ".testFetchChanges");
 		QName objectClass = new QName(resource.getNamespace(), "AccountObjectClass"); 
-		Token lastToken = cc.fetchCurrentToken(objectClass, result);
+		Property lastToken = cc.fetchCurrentToken(objectClass, result);
+		
+		System.out.println("Property:");
+		System.out.println(DebugUtil.prettyPrint(lastToken));
+		
 		System.out.println("token "+ lastToken.toString());
 		List<Change> changes = cc.fetchChanges(objectClass, lastToken, result);
 		assertEquals(0, changes.size());
