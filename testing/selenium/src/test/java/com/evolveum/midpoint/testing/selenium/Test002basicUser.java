@@ -79,7 +79,20 @@ public class Test002basicUser {
 
 	// Based on MID-2 jira scenarios
 	
-	// TODO description
+	/***
+	 * Search user via debug pages
+	 * 
+	 * Actions:
+	 * 		1. login as admin
+	 * 		2. click to Accounts
+	 * 		3. click to create new user
+	 * 		4. fill user create form
+	 * 			a) minimal requirements
+	 * 			b) fill all fields
+	 * 			c) fill all except one reqiured field
+	 * 			d) fill passwords fields with two different values
+	 */
+	
 	@Test
 	public void test01addUser() {
 
@@ -145,7 +158,7 @@ public class Test002basicUser {
 		assertTrue(se.isTextPresent("ConstraintViolationException"));
 
 		// test missing name and password not match
-		logger.info("missing: name");
+		logger.info("missing: name and not matching passsword");
 		se.type("createUserForm:name", "");
 		se.type("createUserForm:givenName", "Joshamee");
 		se.type("createUserForm:familyName", "Gibbs");
