@@ -74,11 +74,11 @@ public class JAXBUtil {
 
 	private static final Marshaller createMarshaller(Map<String, Object> jaxbProperties) throws JAXBException {
 		Marshaller marshaller = context.createMarshaller();
-		//set default properties
+		// set default properties
 		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", new PrefixMapper());
-		//set custom properties
+		// set custom properties
 		if (jaxbProperties != null) {
 			for (Entry<String, Object> property : jaxbProperties.entrySet()) {
 				marshaller.setProperty(property.getKey(), property.getValue());
@@ -87,7 +87,7 @@ public class JAXBUtil {
 
 		return marshaller;
 	}
-	
+
 	private static final Unmarshaller createUnmarshaller() throws JAXBException {
 		return context.createUnmarshaller();
 	}
@@ -108,7 +108,8 @@ public class JAXBUtil {
 		return marshal(null, object);
 	}
 
-	public static final String marshal(Map<String, Object> jaxbProperties, Object object) throws JAXBException {
+	public static final String marshal(Map<String, Object> jaxbProperties, Object object)
+			throws JAXBException {
 		if (object == null) {
 			return "";
 		}
@@ -117,9 +118,15 @@ public class JAXBUtil {
 		Marshaller marshaller = createMarshaller(jaxbProperties);
 		marshaller.marshal(object, writer);
 
-		return writer.getBuffer().toString();		
+		return writer.getBuffer().toString();
 	}
-	
+
+	public static final String marshalWrap(Object object) throws JAXBException {
+		JAXBElement<Object> element = new JAXBElement<Object>(new QName(SchemaConstants.NS_C, "object"),
+				Object.class, object);
+		return marshal(element);
+	}
+
 	@SuppressWarnings("unchecked")
 	public static final <T> String marshalWrap(T jaxbObject, QName elementQName) throws JAXBException {
 		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
@@ -128,12 +135,13 @@ public class JAXBUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static final <T> String marshalWrap(Map<String, Object> jaxbProperties, T jaxbObject, QName elementQName) throws JAXBException {
+	public static final <T> String marshalWrap(Map<String, Object> jaxbProperties, T jaxbObject,
+			QName elementQName) throws JAXBException {
 		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
 				jaxbObject);
 		return marshal(jaxbProperties, jaxbElement);
 	}
-	
+
 	public static final String silentMarshal(Object xmlObject) {
 		try {
 			return marshal(xmlObject);
@@ -159,10 +167,11 @@ public class JAXBUtil {
 		createMarshaller(null).marshal(xmlObject, element);
 	}
 
-	public static final void marshal(Map<String, Object> properties, Object xmlObject, OutputStream stream) throws JAXBException {
+	public static final void marshal(Map<String, Object> properties, Object xmlObject, OutputStream stream)
+			throws JAXBException {
 		createMarshaller(properties).marshal(xmlObject, stream);
 	}
-	
+
 	public static final void silentMarshal(Object xmlObject, Element element) {
 		try {
 			marshal(xmlObject, element);

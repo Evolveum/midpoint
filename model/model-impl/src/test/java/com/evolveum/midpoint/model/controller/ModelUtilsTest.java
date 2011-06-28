@@ -27,16 +27,13 @@ import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
 
 import org.apache.commons.codec.binary.Base64;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.test.XmlAsserts;
-import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -45,7 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -187,7 +183,6 @@ public class ModelUtilsTest {
 		ModelUtils.getAccountTypeDefinitionFromSchemaHandling(account, account.getResource());
 	}
 
-	@Ignore
 	@Test
 	public void createPropertyReferenceListType() throws Exception {
 		PropertyReferenceListType list = ModelUtils.createPropertyReferenceListType("", null, "resource",
@@ -195,15 +190,6 @@ public class ModelUtilsTest {
 		assertNotNull(list);
 		assertEquals(2, list.getProperty().size());
 
-		TraceManager.getTrace(ModelUtilsTest.class).info(
-				JAXBUtil.marshalWrap(list, new QName(SchemaConstants.NS_C, "PropertyReferenceListType")));
-
-		// PropertyReferenceListType expectedList =
-		// ((JAXBElement<PropertyReferenceListType>) JAXBUtil
-		// .unmarshal(new File(TEST_FOLDER,
-		// "property-list-type.xml"))).getValue();
-
-		XmlAsserts.assertPatch(new File(TEST_FOLDER, "property-list-type.xml"),
-				JAXBUtil.marshalWrap(list, new QName(SchemaConstants.NS_C, "PropertyReferenceListType")));
+		XmlAsserts.assertPatch(new File(TEST_FOLDER, "property-list-type.xml"), JAXBUtil.marshalWrap(list));
 	}
 }
