@@ -53,6 +53,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.model.test.util.mock.ObjectTypeNameMatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -68,7 +69,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
@@ -109,51 +109,9 @@ public class ModelAddObjectTest {
 		try {
 			modelService.addObject(expectedUser, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			assertIllegalArgumentFault(ex);
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("add must fail.");
-	}
-
-	private void assertIllegalArgumentFault(FaultMessage ex) throws FaultMessage {
-		if (!(ex.getFaultInfo() instanceof IllegalArgumentFaultType)) {
-			fail("not illegal argument fault.");
-		}
-		throw ex;
-	}
-
-	@Ignore
-	// FIXME: fix test
-	@Test
-	@SuppressWarnings("unchecked")
-	public void addUserCorrect() throws JAXBException, ObjectAlreadyExistsException, SchemaException,
-			FaultMessage {
-		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-				"add-user-correct.xml"))).getValue();
-
-		final String oid = "abababab-abab-abab-abab-000000000001";
-		when(
-				repositoryService.addObject(argThat(new ObjectTypeNameMatcher(expectedUser.getName())),
-						any(OperationResult.class))).thenAnswer(new Answer<String>() {
-
-			@Override
-			public String answer(InvocationOnMock invocation) throws Throwable {
-				ObjectContainerType container = (ObjectContainerType) invocation.getArguments()[0];
-				UserType user = (UserType) container.getObject();
-
-				assertEquals(expectedUser.getName(), user.getName());
-				assertEquals(expectedUser.getFullName(), user.getFullName());
-				assertEquals(expectedUser.getGivenName(), user.getGivenName());
-				assertEquals(expectedUser.getHonorificSuffix(), user.getHonorificSuffix());
-				assertEquals(expectedUser.getLocality(), user.getLocality());
-
-				return oid;
-			}
-		});
-		String result = modelService.addObject(expectedUser, new Holder<OperationResultType>(
-				new OperationResultType()));
-		verify(repositoryService, times(1)).addObject(
-				argThat(new ObjectTypeNameMatcher(expectedUser.getName())), any(OperationResult.class));
-		assertEquals(oid, result);
 	}
 
 	// I can't figure out how to mock repository in this case

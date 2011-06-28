@@ -109,7 +109,10 @@ public class ModelController {
 			}
 			subResult.recordSuccess();
 		} catch (ObjectAlreadyExistsException ex) {
-
+			subResult.recordFatalError("Object with name '" + object.getName() + "' already exists.", ex);
+			throw ex;
+		} catch (SystemException ex) {
+			subResult.recordFatalError("Couldn't add object '" + object.getName() + "'.", ex);
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object", ex, object.getName());

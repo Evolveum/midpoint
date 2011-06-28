@@ -21,15 +21,24 @@
 package com.evolveum.midpoint.model.test.util;
 
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
@@ -39,6 +48,18 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
  * 
  */
 public class ModelServiceUtil {
+
+	@SuppressWarnings("unchecked")
+	public static void mockGetSystemConfiguration(RepositoryService repository, File file)
+			throws JAXBException, ObjectNotFoundException, SchemaException {
+		SystemConfigurationType systemConfiguration = ((JAXBElement<SystemConfigurationType>) JAXBUtil
+				.unmarshal(file)).getValue();
+
+		when(
+				repository.getObject(eq(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
+						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+				systemConfiguration);
+	}
 
 	public static void assertIllegalArgumentFault(FaultMessage ex) throws FaultMessage {
 		if (!(ex.getFaultInfo() instanceof IllegalArgumentFaultType)) {
