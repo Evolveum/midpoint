@@ -17,34 +17,26 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 package com.evolveum.midpoint.model.test.util;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 
 /**
  * 
  * @author lazyman
+ * 
  */
-public class ResourceObjectShadowTypeComparator extends Equals<ResourceObjectShadowType> {
+public class CredentialsTypeComparator extends Equals<CredentialsType> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectShadowTypeComparator.class);
-
+	private static final Trace LOGGER = TraceManager.getTrace(CredentialsTypeComparator.class);
+	
 	@Override
-	public boolean areEqual(ResourceObjectShadowType o1, ResourceObjectShadowType o2) {
-		if (!new ExtensibleObjectTypeComparator().areEqual(o1, o2)) {
-			return false;
-		}
-		LOGGER.warn("ResourceObjectShadowTypeComparator is not comparing all class members (not implemented yet).");
-
-		o1.getAny();
-		o1.getAttributes();
-
-		return areQNameEqual(o1.getObjectClass(), o2.getObjectClass())
-				&& new ObjectReferenceTypeComparator().areEqual(o1.getResourceRef(), o2.getResourceRef())
-				&& new ResourceTypeComparator().areEqual(o1.getResource(), o2.getResource());
+	public boolean areEqual(CredentialsType o1, CredentialsType o2) {
+		// TODO: finish this comparator !!!
+		LOGGER.warn("IMPLEMENT CredentialsTypeComparator. It's not comparing now.");
+		return true;
 	}
 }

@@ -17,34 +17,44 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
 package com.evolveum.midpoint.model.test.util;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**
  * 
  * @author lazyman
+ * 
  */
-public class ResourceObjectShadowTypeComparator extends Equals<ResourceObjectShadowType> {
+public class ResourceTypeComparator extends Equals<ResourceType> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectShadowTypeComparator.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceTypeComparator.class);
 
 	@Override
-	public boolean areEqual(ResourceObjectShadowType o1, ResourceObjectShadowType o2) {
+	public boolean areEqual(ResourceType o1, ResourceType o2) {
 		if (!new ExtensibleObjectTypeComparator().areEqual(o1, o2)) {
 			return false;
 		}
+		
+		if (o1 == null && o2 == null) {
+			return true;
+		}
 		LOGGER.warn("ResourceObjectShadowTypeComparator is not comparing all class members (not implemented yet).");
 
-		o1.getAny();
-		o1.getAttributes();
+		// TODO Auto-generated method stub
+		o1.getConfiguration();
+		o1.getConnector();
+		o1.getConnectorRef();
+		o1.getResourceAccessConfigurationRef();
+		o1.getSchema();
+		o1.getSchemaHandling();
+		o1.getScripts();
+		o1.getSynchronization();
 
-		return areQNameEqual(o1.getObjectClass(), o2.getObjectClass())
-				&& new ObjectReferenceTypeComparator().areEqual(o1.getResourceRef(), o2.getResourceRef())
-				&& new ResourceTypeComparator().areEqual(o1.getResource(), o2.getResource());
+		return areStringEqual(o1.getType(), o2.getType())
+				&& areStringEqual(o1.getNamespace(), o2.getNamespace());
 	}
 }

@@ -30,7 +30,6 @@ import java.io.File;
 import javax.xml.bind.JAXBElement;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -43,9 +42,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.test.util.AccountShadowTypeComparator;
-import com.evolveum.midpoint.model.test.util.UserTypeComparator;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -54,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -95,7 +94,6 @@ public class ControllerAddUserTest {
 		controller.addUser(null, null, null);
 	}
 
-	@Ignore
 	@SuppressWarnings("unchecked")
 	@Test
 	public void addUserWithSimpleTemplate() throws Exception {
@@ -122,7 +120,8 @@ public class ControllerAddUserTest {
 				AccountShadowType expectedAccount = ((JAXBElement<AccountShadowType>) JAXBUtil
 						.unmarshal(new File(TEST_FOLDER, "expected-account.xml"))).getValue();
 
-				assertEquals(true, new AccountShadowTypeComparator().areEqual(account, expectedAccount));
+				XmlAsserts.assertPatch(JAXBUtil.marshalWrap(account, SchemaConstants.I_ACCOUNT_SHADOW_TYPE),
+						JAXBUtil.marshalWrap(expectedAccount, SchemaConstants.I_ACCOUNT_SHADOW_TYPE));
 
 				return accountOid;
 			}
@@ -135,7 +134,8 @@ public class ControllerAddUserTest {
 						UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 								TEST_FOLDER, "expected-user.xml"))).getValue();
 
-						assertEquals(true, new UserTypeComparator().areEqual(expectedUser, user));
+						XmlAsserts.assertPatch(JAXBUtil.marshalWrap(user, SchemaConstants.I_USER_TYPE),
+								JAXBUtil.marshalWrap(expectedUser, SchemaConstants.I_USER_TYPE));
 
 						return userOid;
 					}
