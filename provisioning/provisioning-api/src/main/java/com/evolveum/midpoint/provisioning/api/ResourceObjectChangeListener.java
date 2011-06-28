@@ -21,7 +21,7 @@
 package com.evolveum.midpoint.provisioning.api;
 
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectShadowChangeDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 
 /**
  * @author Radovan Semancik

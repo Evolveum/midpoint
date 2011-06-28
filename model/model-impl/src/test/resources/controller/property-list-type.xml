@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -18,16 +18,12 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
-<c:object xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xsi:type="c:UserType"
-	xsi:schemaLocation="http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
-   http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../ns/public/common/common-1.xsd">
-
-	<name>bond</name>
-	<fullName>James Bond</fullName>
-	<givenName>James</givenName>
-	<familyName>Bond</familyName>
-	<honorificSuffix>Jr.</honorificSuffix>
-	<locality>home</locality>
-</c:object>
+<object xsi:type="PropertyReferenceListType" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+	<property>
+		<property xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">idmdn:resource</property>
+	</property>
+	<property>
+		<property xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">idmdn:account</property>
+	</property>
+</object>

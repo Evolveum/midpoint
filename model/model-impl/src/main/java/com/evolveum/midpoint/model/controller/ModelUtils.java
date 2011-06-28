@@ -149,7 +149,7 @@ public class ModelUtils {
 		}
 
 		for (String property : properties) {
-			if (StringUtils.isNotEmpty(property)) {
+			if (StringUtils.isEmpty(property)) {
 				LOGGER.warn("Trying to add empty or null property to PropertyReferenceListType, skipping.");
 				continue;
 			}

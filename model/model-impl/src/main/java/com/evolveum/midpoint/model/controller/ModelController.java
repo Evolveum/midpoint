@@ -472,17 +472,21 @@ public class ModelController {
 		OperationResult subResult = new OperationResult("Launch Import From Resource");
 		result.addSubresult(subResult);
 
-		try {
-			provisioning.launchImportFromResource(resourceOid, objectClass, subResult);
-			subResult.recordSuccess();
-		} catch (ObjectNotFoundException ex) {
-			throw ex;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't launch import for objects of type {} on resource, "
-					+ "oid {}", ex, objectClass, resourceOid);
-			subResult.recordFatalError("Couldn't launch import for objects of type '" + objectClass
-					+ "' on resource, oid '" + resourceOid + "'.", ex);
-		}
+		// TODO: WORK THIS OUT!!!!!!!!!!!!!!!
+		// try {
+		// provisioning.launchImportFromResource(resourceOid, objectClass,
+		// subResult);
+		// subResult.recordSuccess();
+		// } catch (ObjectNotFoundException ex) {
+		// throw ex;
+		// } catch (Exception ex) {
+		// LoggingUtils.logException(LOGGER,
+		// "Couldn't launch import for objects of type {} on resource, "
+		// + "oid {}", ex, objectClass, resourceOid);
+		// subResult.recordFatalError("Couldn't launch import for objects of type '"
+		// + objectClass
+		// + "' on resource, oid '" + resourceOid + "'.", ex);
+		// }
 
 		LOGGER.debug(subResult.debugDump());
 	}
@@ -496,19 +500,22 @@ public class ModelController {
 		OperationResult subResult = new OperationResult("Get Import Status");
 		result.addSubresult(subResult);
 
-		TaskStatusType status = null;
-		try {
-			status = provisioning.getImportStatus(resourceOid, subResult);
-			subResult.recordSuccess();
-		} catch (ObjectNotFoundException ex) {
-			throw ex;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get import status for resource {}", ex, resourceOid);
-			subResult.recordFatalError("Couldn't get import status for resource '" + resourceOid + "'.", ex);
-		}
+		// TODO: WORK THIS OUT!!!!!!!!!!!!!!!
+		// TaskStatusType status = null;
+		// try {
+		// status = provisioning.getImportStatus(resourceOid, subResult);
+		// subResult.recordSuccess();
+		// } catch (ObjectNotFoundException ex) {
+		// throw ex;
+		// } catch (Exception ex) {
+		// LoggingUtils.logException(LOGGER,
+		// "Couldn't get import status for resource {}", ex, resourceOid);
+		// subResult.recordFatalError("Couldn't get import status for resource '"
+		// + resourceOid + "'.", ex);
+		// }
 
 		LOGGER.debug(subResult.debugDump());
-		return status;
+		return null;
 	}
 
 	private <T> T getObjectFromRepository(String oid, PropertyReferenceListType resolve,

@@ -21,27 +21,26 @@
 package com.evolveum.midpoint.model.sync;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.controller.ModelController;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
 
 /**
  * 
  * @author lazyman
- *
+ * 
  */
-//@Service
-public class SynchronizationService implements ResourceObjectChangeListenerPortType {
+@Service
+public class SynchronizationService implements ResourceObjectChangeListener {
 
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private ModelController model;
-	
+
 	@Override
-	public EmptyType notifyChange(ResourceObjectShadowChangeDescriptionType change) throws FaultMessage {
+	public void notifyChange(ResourceObjectShadowChangeDescriptionType change, OperationResult result) {
 		// TODO Auto-generated method stub
-		return null;
 	}
 }
