@@ -29,10 +29,13 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
 
 /**
@@ -65,9 +68,19 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		// TODO: error checking - already running
 		handlers.put(task,handler);
 		
-		provisioning.searchObjectsIterative(createAccountShadowTypeQuery(), null, handler, parentResult);
+		try {
+			provisioning.searchObjectsIterative(createAccountShadowTypeQuery(), null, handler, parentResult);
+		} catch (SchemaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		handlers.remove(task);
+		
+		TaskRunResult runResult = new TaskRunResult();
+		runResult.setProgress(handler.getProgress());
+		// TODO: set status
+		return runResult;
 	}
 	
 	private QueryType createAccountShadowTypeQuery() {

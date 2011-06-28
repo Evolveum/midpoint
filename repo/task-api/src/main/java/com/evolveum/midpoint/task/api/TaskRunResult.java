@@ -31,19 +31,19 @@ package com.evolveum.midpoint.task.api;
  */
 public final class TaskRunResult {
 
-	private int progress;
+	private long progress;
 	private TaskExecutionStatus executionStatus;
 	
 	/**
 	 * @return the progress
 	 */
-	public int getProgress() {
+	public long getProgress() {
 		return progress;
 	}
 	/**
 	 * @param progress the progress to set
 	 */
-	public void setProgress(int progress) {
+	public void setProgress(long progress) {
 		this.progress = progress;
 	}
 	/**
