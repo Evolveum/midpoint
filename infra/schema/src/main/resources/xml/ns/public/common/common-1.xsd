@@ -4506,6 +4506,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:ResourceObjectShadowType">
 				<xsd:sequence>
+					<!--  TODO Account Type -->
 					<xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
 						<xsd:annotation>
 							<xsd:documentation>

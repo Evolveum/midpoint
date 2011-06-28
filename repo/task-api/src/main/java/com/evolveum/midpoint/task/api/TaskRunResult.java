@@ -31,8 +31,12 @@ package com.evolveum.midpoint.task.api;
  */
 public final class TaskRunResult {
 
+	public enum TaskRunResultStatus {
+		FINISHED, IN_PROGRESS
+	}
+	
 	private long progress;
-	private TaskExecutionStatus executionStatus;
+	private TaskRunResultStatus runResultStatus;
 	
 	/**
 	 * @return the progress
@@ -49,14 +53,14 @@ public final class TaskRunResult {
 	/**
 	 * @return the status
 	 */
-	public TaskExecutionStatus getExecutionStatus() {
-		return executionStatus;
+	public TaskRunResultStatus getRunResultStatus() {
+		return runResultStatus;
 	}
 	/**
 	 * @param status the status to set
 	 */
-	public void setExecutionStatus(TaskExecutionStatus status) {
-		this.executionStatus = status;
+	public void setRunResultStatus(TaskRunResultStatus status) {
+		this.runResultStatus = status;
 	}
 	
 }

@@ -26,6 +26,9 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathType;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -46,6 +49,14 @@ public class QueryUtil {
         return type;
     }
 
+    /**
+     * Creates "equal" filter segment for multi-valued properties based on DOM representation.
+     * 
+     * @param doc
+     * @param xpath property container xpath. may be null.
+     * @param values
+     * @return "equal" filter segment (as DOM)
+     */
     public static Element createEqualFilter(Document doc, XPathType xpath, List<Element> values) {
         Validate.notNull(doc);
         Validate.notNull(values);
@@ -64,6 +75,14 @@ public class QueryUtil {
         return equal;
     }
 
+    /**
+     * Creates "equal" filter segment for single-valued properties based on DOM representation.
+     * 
+     * @param doc
+     * @param xpath property container xpath. may be null.
+     * @param value
+     * @return "equal" filter segment (as DOM)
+     */
     public static Element createEqualFilter(Document doc, XPathType xpath, Element value) {
         Validate.notNull(doc);
         Validate.notNull(value);
@@ -71,6 +90,21 @@ public class QueryUtil {
         List<Element> values = new ArrayList<Element>();
         values.add(value);
         return createEqualFilter(doc, xpath, values);
+    }
+    
+    /**
+     * Creates "equal" filter for object reference.
+     * 
+     * @param doc
+     * @param xpath property container xpath. may be null.
+     * @param propertyName name of the reference property (e.g. "resourceRef")
+     * @param oid OID of the referenced object
+     * @return "equal" filter segment (as DOM)
+     */
+    public static Element createEqualRefFilter(Document doc, XPathType xpath, QName propertyName, String oid) {
+    	Element value = doc.createElementNS(propertyName.getNamespaceURI(), propertyName.getLocalPart());
+    	value.setAttributeNS(SchemaConstants.C_OID_ATTRIBUTE.getNamespaceURI(), SchemaConstants.C_OID_ATTRIBUTE.getLocalPart(), oid);
+    	return createEqualFilter(doc,xpath,value);
     }
 
     public static Element createAndFilter(Document doc, Element el1, Element el2) {

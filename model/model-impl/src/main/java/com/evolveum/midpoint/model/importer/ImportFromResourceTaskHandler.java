@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -79,7 +80,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setProgress(handler.getProgress());
-		// TODO: set status
+		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		return runResult;
 	}
 	
