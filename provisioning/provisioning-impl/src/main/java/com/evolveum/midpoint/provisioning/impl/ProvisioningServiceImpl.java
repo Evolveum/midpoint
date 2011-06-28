@@ -41,8 +41,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableVal
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * Implementation of provisioning service.
@@ -180,16 +182,20 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("paging", paging);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
+		ObjectListType objListType = null;
+		
 		if (ResourceObjectShadowType.class.isAssignableFrom(objectType)) {
 			// Listing of shadows is not supported because this operation does
 			// not specify resource
 			// to search. Maybe we need another operation for this.
+			
 			throw new NotImplementedException("Listing of shadows is not supported");
 
 		} else {
 			// TODO: delegate to repository
-			throw new NotImplementedException();
+			objListType = getRepositoryService().listObjects(objectType, paging, parentResult);
 		}
+		return objListType;
 
 	}
 

@@ -281,6 +281,8 @@ public class ShadowCache {
 	public void listShadows(ResourceType resource, QName objectClass, final ShadowHandler handler,
 			final OperationResult parentResult) throws CommunicationException {
 
+		
+		
 		ConnectorInstance connector = getConnectorInstance(resource);
 
 		ResultHandler resultHandler = new ResultHandler() {

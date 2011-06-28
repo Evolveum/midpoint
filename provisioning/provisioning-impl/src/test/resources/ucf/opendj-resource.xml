@@ -23,13 +23,13 @@
 <resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee"
+          oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>Embedded Test OpenDJ</name>
 	<connectorRef oid="icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector"/>
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee</namespace>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
 	<configuration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf/configuration-1.xsd">
 					   
@@ -70,14 +70,14 @@
 	</configuration>
 	<c:schema>
 		<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
             xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
             xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
             elementFormDefault="qualified"
-            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee">
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
-   <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee"/>
+   <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"/>
    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
    <xsd:complexType name="AccountObjectClass">

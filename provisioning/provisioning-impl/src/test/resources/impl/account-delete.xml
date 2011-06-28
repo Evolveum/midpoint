@@ -24,9 +24,9 @@
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee">
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
 	<c:name>sparrow</c:name>
-	<c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee" />
+	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
 	<c:objectClass>ri:AccountObjectClass</c:objectClass>
 	<c:attributes>
 		<icfs:name>uid=sparrow,ou=People,dc=example,dc=com</icfs:name>

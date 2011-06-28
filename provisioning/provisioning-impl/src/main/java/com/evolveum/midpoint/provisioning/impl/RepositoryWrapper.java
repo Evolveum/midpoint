@@ -122,8 +122,14 @@ public class RepositoryWrapper implements RepositoryService {
 
 	@Override
 	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult) {
-		// TODO Auto-generated method stub
-		return null;
+		ObjectListType objListType = null;
+		try {
+			objListType = repository.listObjects(objectType.getSimpleName(), paging);
+		} catch (FaultMessage e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return objListType;
 	}
 
 	@Override
