@@ -41,7 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.model.test.util.RepositoryUtils;
+import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.provisioning.objects.ResourceObject;
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
 import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
@@ -100,11 +100,11 @@ public class ModifyUserActionTest {
 			// create additional change
 			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-modify-user.xml");
 			// adding objects to repo
-			final ResourceType resourceType = (ResourceType) RepositoryUtils.addObjectToRepo(
+			final ResourceType resourceType = (ResourceType) ModelServiceUtil.addObjectToRepo(
 					repositoryService, change.getResource());
-			final AccountShadowType accountType = (AccountShadowType) RepositoryUtils.addObjectToRepo(
+			final AccountShadowType accountType = (AccountShadowType) ModelServiceUtil.addObjectToRepo(
 					repositoryService, change.getShadow());
-			UserType userType = (UserType) RepositoryUtils.addObjectToRepo(repositoryService,
+			UserType userType = (UserType) ModelServiceUtil.addObjectToRepo(repositoryService,
 					"src/test/resources/user-modify-action.xml");
 
 			// setting resource for ResourceObjectShadowType
@@ -132,9 +132,9 @@ public class ModifyUserActionTest {
 
 		} finally {
 			// cleanup repo
-			RepositoryUtils.deleteObject(repositoryService, accountOid);
-			RepositoryUtils.deleteObject(repositoryService, resourceOid);
-			RepositoryUtils.deleteObject(repositoryService, userOid);
+			ModelServiceUtil.deleteObject(repositoryService, accountOid);
+			ModelServiceUtil.deleteObject(repositoryService, resourceOid);
+			ModelServiceUtil.deleteObject(repositoryService, userOid);
 		}
 	}
 }

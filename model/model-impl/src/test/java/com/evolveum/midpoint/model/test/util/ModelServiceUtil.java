@@ -17,7 +17,10 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- */package com.evolveum.midpoint.model.test.util;
+ */
+package com.evolveum.midpoint.model.test.util;
+
+import static org.junit.Assert.fail;
 
 import java.io.File;
 
@@ -27,24 +30,25 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
 /**
  * 
  * @author lazyman
  * 
  */
-public class RepositoryUtils {
+public class ModelServiceUtil {
+
+	public static void assertIllegalArgumentFault(FaultMessage ex) throws FaultMessage {
+		if (!(ex.getFaultInfo() instanceof IllegalArgumentFaultType)) {
+			fail("not illegal argument fault.");
+		}
+		throw ex;
+	}
 
 	public static ObjectType addObjectToRepo(RepositoryService repositoryService, ObjectType object)
 			throws Exception {
-		repositoryService.addObject(object, new OperationResult("Add Object"));
-		return object;
-	}
-
-	@SuppressWarnings("unchecked")
-	public static ObjectType addObjectToRepo(RepositoryService repositoryService, String fileString)
-			throws Exception {
-		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
 		repositoryService.addObject(object, new OperationResult("Add Object"));
 		return object;
 	}
@@ -54,5 +58,13 @@ public class RepositoryUtils {
 			repositoryService.deleteObject(oid, new OperationResult("Delete Object"));
 		} catch (Exception e) {
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static ObjectType addObjectToRepo(RepositoryService repositoryService, String fileString)
+			throws Exception {
+		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
+		repositoryService.addObject(object, new OperationResult("Add Object"));
+		return object;
 	}
 }

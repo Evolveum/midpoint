@@ -39,7 +39,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.model.test.util.RepositoryUtils;
+import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -98,11 +98,11 @@ public class UnlinkAccountActionTest {
 			// create additional change
 			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-unlink-account.xml");
 			// adding objects to repo
-			ResourceType resourceType = (ResourceType) RepositoryUtils.addObjectToRepo(repositoryService,
+			ResourceType resourceType = (ResourceType) ModelServiceUtil.addObjectToRepo(repositoryService,
 					change.getResource());
-			AccountShadowType accountType = (AccountShadowType) RepositoryUtils.addObjectToRepo(
+			AccountShadowType accountType = (AccountShadowType) ModelServiceUtil.addObjectToRepo(
 					repositoryService, change.getShadow());
-			RepositoryUtils.addObjectToRepo(repositoryService,
+			ModelServiceUtil.addObjectToRepo(repositoryService,
 					"src/test/resources/user-unlink-account-action.xml");
 
 			assertNotNull(resourceType);
@@ -122,9 +122,9 @@ public class UnlinkAccountActionTest {
 
 		} finally {
 			// cleanup repo
-			RepositoryUtils.deleteObject(repositoryService, accountOid);
-			RepositoryUtils.deleteObject(repositoryService, resourceOid);
-			RepositoryUtils.deleteObject(repositoryService, userOid);
+			ModelServiceUtil.deleteObject(repositoryService, accountOid);
+			ModelServiceUtil.deleteObject(repositoryService, resourceOid);
+			ModelServiceUtil.deleteObject(repositoryService, userOid);
 		}
 	}
 }

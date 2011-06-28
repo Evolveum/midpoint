@@ -341,6 +341,8 @@ public class ModelService implements ModelPortType {
 		FaultType faultType;
 		if (ex instanceof ObjectNotFoundException) {
 			faultType = new ObjectNotFoundFaultType();
+		} else if (ex instanceof IllegalArgumentException) {
+			faultType = new IllegalArgumentFaultType();
 		} else {
 			faultType = new SystemFaultType();
 		}

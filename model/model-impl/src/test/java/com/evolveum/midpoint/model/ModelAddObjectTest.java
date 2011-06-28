@@ -68,6 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
@@ -81,6 +82,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 public class ModelAddObjectTest {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/service/model/add");
+	private static final File TEST_FOLDER_CONTROLLER = new File("./src/test/resources/controller/addObject");
 	@Autowired(required = true)
 	ModelPortType modelService;
 	@Autowired(required = true)
@@ -94,26 +96,39 @@ public class ModelAddObjectTest {
 	}
 
 	@Test(expected = FaultMessage.class)
-	public void addNullContainer() throws FaultMessage {
+	public void addNullObject() throws FaultMessage {
 		modelService.addObject(null, new Holder<OperationResultType>(new OperationResultType()));
-		fail("add must fail");
+		fail("Add must fail.");
 	}
 
 	@Test(expected = FaultMessage.class)
-	public void addNullObject() throws FaultMessage {
-		modelService.addObject(null, new Holder<OperationResultType>(new OperationResultType()));
-		fail("add must fail");
+	@SuppressWarnings("unchecked")
+	public void addUserWithoutName() throws Exception {
+		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER_CONTROLLER,
+				"add-user-without-name.xml"))).getValue();
+		try {
+			modelService.addObject(expectedUser, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			assertIllegalArgumentFault(ex);
+		}
+		fail("add must fail.");
 	}
 
-	@Ignore //FIXME: fix test
+	private void assertIllegalArgumentFault(FaultMessage ex) throws FaultMessage {
+		if (!(ex.getFaultInfo() instanceof IllegalArgumentFaultType)) {
+			fail("not illegal argument fault.");
+		}
+		throw ex;
+	}
+
+	@Ignore
+	// FIXME: fix test
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addUserCorrect() throws JAXBException, ObjectAlreadyExistsException, SchemaException,
 			FaultMessage {
-		ObjectContainerType container = new ObjectContainerType();
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"add-user-correct.xml"))).getValue();
-		container.setObject(expectedUser);
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(
@@ -141,17 +156,9 @@ public class ModelAddObjectTest {
 		assertEquals(oid, result);
 	}
 
-	@SuppressWarnings("unchecked")
-	public void addUserWithoutName() throws JAXBException, FaultMessage,
-			com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage {
-		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-				"add-user-without-name.xml"))).getValue();
-		modelService.addObject(expectedUser, new Holder<OperationResultType>(new OperationResultType()));
-		fail("add must fail");
-	}
-
 	// I can't figure out how to mock repository in this case
-	@Ignore //FIXME: fix test
+	@Ignore
+	// FIXME: fix test
 	@Test(expected = ObjectNotFoundException.class)
 	@SuppressWarnings("unchecked")
 	public void addUserWithExistingOid() throws JAXBException, ObjectNotFoundException, SchemaException,
@@ -173,7 +180,8 @@ public class ModelAddObjectTest {
 				argThat(new ObjectTypeNameMatcher(expectedUser.getName())), any(OperationResult.class));
 	}
 
-	@Ignore //FIXME: fix test
+	@Ignore
+	// FIXME: fix test
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addResourceCorrect() throws JAXBException, FaultMessage, ObjectAlreadyExistsException,
@@ -210,7 +218,8 @@ public class ModelAddObjectTest {
 		assertEquals(oid, result);
 	}
 
-	@Ignore //FIXME: fix test
+	@Ignore
+	// FIXME: fix test
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addUserAndCreateDefaultAccount() throws FaultMessage, JAXBException,

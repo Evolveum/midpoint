@@ -18,24 +18,20 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.test.util;
+package com.evolveum.midpoint.model.test.util.equal;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 
 /**
  * 
  * @author lazyman
  * 
  */
-public class AccountShadowTypeComparator extends Equals<AccountShadowType> {
+public class ActivationTypeComparator extends Equals<ActivationType> {
 
 	@Override
-	public boolean areEqual(AccountShadowType o1, AccountShadowType o2) {
-		if (!new ResourceObjectShadowTypeComparator().areEqual(o1, o2)) {
-			return false;
-		}
-
-		return areEqual(o1.getActivation(), o2.getActivation(), new ActivationTypeComparator())
-				&& areEqual(o1.getCredentials(), o2.getCredentials(), new CredentialsTypeComparator());
+	public boolean areEqual(ActivationType o1, ActivationType o2) {
+		return areObjectEqual(o1.getValidFrom(), o2.getValidFrom())
+				&& areObjectEqual(o1.getValidTo(), o2.getValidTo());
 	}
 }

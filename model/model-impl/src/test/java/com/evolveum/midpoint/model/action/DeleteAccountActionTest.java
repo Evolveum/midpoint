@@ -42,7 +42,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.model.test.util.RepositoryUtils;
+import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
 import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
@@ -111,9 +111,9 @@ public class DeleteAccountActionTest {
 			// create additional change
 			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-delete-account.xml");
 			// adding objects to repo
-			final ResourceType resourceType = (ResourceType) RepositoryUtils.addObjectToRepo(
+			final ResourceType resourceType = (ResourceType) ModelServiceUtil.addObjectToRepo(
 					repositoryService, change.getResource());
-			final AccountShadowType accountType = (AccountShadowType) RepositoryUtils.addObjectToRepo(
+			final AccountShadowType accountType = (AccountShadowType) ModelServiceUtil.addObjectToRepo(
 					repositoryService, change.getShadow());
 
 			assertNotNull(resourceType);
@@ -140,8 +140,8 @@ public class DeleteAccountActionTest {
 
 		} finally {
 			// cleanup repo
-			RepositoryUtils.deleteObject(repositoryService, accountOid);
-			RepositoryUtils.deleteObject(repositoryService, resourceOid);
+			ModelServiceUtil.deleteObject(repositoryService, accountOid);
+			ModelServiceUtil.deleteObject(repositoryService, resourceOid);
 		}
 	}
 }

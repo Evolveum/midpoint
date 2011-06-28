@@ -41,7 +41,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.model.test.util.RepositoryUtils;
+import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.provisioning.objects.ResourceObject;
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
 import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
@@ -100,10 +100,10 @@ public class LinkAccountActionTest {
 			// create additional change
 			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-link.xml");
 			// adding objects to repo
-			RepositoryUtils.addObjectToRepo(repositoryService, "src/test/resources/user.xml");
-			ResourceType resourceType = (ResourceType) RepositoryUtils.addObjectToRepo(repositoryService,
+			ModelServiceUtil.addObjectToRepo(repositoryService, "src/test/resources/user.xml");
+			ResourceType resourceType = (ResourceType) ModelServiceUtil.addObjectToRepo(repositoryService,
 					change.getResource());
-			AccountShadowType accountType = (AccountShadowType) RepositoryUtils.addObjectToRepo(
+			AccountShadowType accountType = (AccountShadowType) ModelServiceUtil.addObjectToRepo(
 					repositoryService, change.getShadow());
 
 			assertNotNull(resourceType);
@@ -130,9 +130,9 @@ public class LinkAccountActionTest {
 			assertEquals(changedUser.getName(), linkedAccount.getName());
 		} finally {
 			// cleanup repo
-			RepositoryUtils.deleteObject(repositoryService, accountOid);
-			RepositoryUtils.deleteObject(repositoryService, resourceOid);
-			RepositoryUtils.deleteObject(repositoryService, userOid);
+			ModelServiceUtil.deleteObject(repositoryService, accountOid);
+			ModelServiceUtil.deleteObject(repositoryService, resourceOid);
+			ModelServiceUtil.deleteObject(repositoryService, userOid);
 		}
 	}
 }

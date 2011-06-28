@@ -17,26 +17,27 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2010 Forgerock
  */
-package com.evolveum.midpoint.model.test.util;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+package com.evolveum.midpoint.model.test.util.equal;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 
 /**
- * 
+ *
  * @author lazyman
- * 
  */
-public class CredentialsTypeComparator extends Equals<CredentialsType> {
+public class ObjectReferenceTypeComparator extends Equals<ObjectReferenceType> {
 
-	private static final Trace LOGGER = TraceManager.getTrace(CredentialsTypeComparator.class);
-	
-	@Override
-	public boolean areEqual(CredentialsType o1, CredentialsType o2) {
-		// TODO: finish this comparator !!!
-		LOGGER.warn("IMPLEMENT CredentialsTypeComparator. It's not comparing now.");
-		return true;
-	}
+    @Override
+    public boolean areEqual(ObjectReferenceType o1, ObjectReferenceType o2) {
+        if (o1 == o2) {
+            return true;
+        }
+        if (!(o1 == null ? o2 == null : o2 != null)) {
+            return false;
+        }
+        return areStringEqual(o1.getOid(), o2.getOid()) && areQNameEqual(o1.getType(), o2.getType());
+    }
 }
