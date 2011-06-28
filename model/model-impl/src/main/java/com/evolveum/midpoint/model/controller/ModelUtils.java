@@ -23,10 +23,14 @@ package com.evolveum.midpoint.model.controller;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.RandomString;
@@ -35,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
@@ -47,6 +52,8 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * 
  */
 public class ModelUtils {
+
+	private static final Trace LOGGER = TraceManager.getTrace(ModelUtils.class);
 
 	public static ObjectReferenceType createReference(String oid, ObjectTypes type) {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
@@ -133,5 +140,49 @@ public class ModelUtils {
 		}
 
 		return password;
+	}
+
+	public static PropertyReferenceListType createPropertyReferenceListType(String... properties) {
+		PropertyReferenceListType list = new PropertyReferenceListType();
+		if (properties == null) {
+			return list;
+		}
+
+		for (String property : properties) {
+			if (StringUtils.isNotEmpty(property)) {
+				LOGGER.warn("Trying to add empty or null property to PropertyReferenceListType, skipping.");
+				continue;
+			}
+			list.getProperty().add(Utils.fillPropertyReference(property));
+		}
+
+		return list;
+	}
+
+	public static AccountType getAccountTypeFromHandling(String name, ResourceType resource) {
+		Validate.notNull(resource, "Resource must not be null.");
+
+		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
+		if (schemaHandling == null) {
+			throw new IllegalArgumentException(
+					"Provided resource definition doesn't contain schema handling.");
+		}
+
+		if (StringUtils.isNotEmpty(name)) {
+			for (AccountType accountType : schemaHandling.getAccountType()) {
+				if (name.equals(accountType.getName())) {
+					return accountType;
+				}
+			}
+		}
+
+		// no suitable definition found, then use default account
+		for (AccountType accountType : schemaHandling.getAccountType()) {
+			if (accountType.isDefault()) {
+				return accountType;
+			}
+		}
+
+		throw new IllegalArgumentException("No schema handlig account type for name '" + name + "' found.");
 	}
 }
