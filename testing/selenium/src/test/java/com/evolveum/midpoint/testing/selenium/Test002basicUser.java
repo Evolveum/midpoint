@@ -461,6 +461,11 @@ public class Test002basicUser {
 	 * 		3. click to List Objects
 	 * 		4. select from list User
 	 *		5. click list button
+	 *		6. click to delete button near user jack
+	 *		7. do not delete (click NO)
+	 *		8. click to delete button near user barbossa
+	 *		9. delete it (click YES)
+	 *		10. validate if user barbossa is removed
 	*/
 	@Test
 	public void test07deleteUserViaDebug() {
@@ -474,6 +479,10 @@ public class Test002basicUser {
 		se.select("debugListForm:selectOneMenuList", "label=User");
 		se.click("debugListForm:listObjectsButton");
 		
+		//validate if both user are there
+		assertTrue(se.isTextPresent("jack"));
+		assertTrue(se.isTextPresent("barbossa"));
+		
 		// get hashmap and login
 		HashMap<String, String> h = new HashMap<String, String>();
 		for (String l : se.getAllLinks()) {
@@ -481,10 +490,17 @@ public class Test002basicUser {
 				continue;
 			h.put(se.getText(l), l.replace("debugListForm:link", ""));
 		}
+		se.click("debugListForm:deleteButton" + h.get("jack"));
+		assertTrue(se.waitForText("Do you really want to delete this object?", 10));
+		se.click("debugListForm:no");
 		
-		for(String k: h.keySet()) {
-			logger.info( k + " -> " + h.get(k));
-		}
+		se.click("debugListForm:deleteButton" + h.get("barbossa"));
+		assertTrue(se.waitForText("Do you really want to delete this object?", 10));
+		se.click("debugListForm:yes");
+		se.waitForText("List Objects");
+	
+		// validate
+		assertFalse(se.isTextPresent("barbossa"));
 	}
 	/***
 	 * Search user and delete it form  midPoint
@@ -532,7 +548,8 @@ public class Test002basicUser {
 		se.click("admin-content:deleteUserYes");
 		se.waitForText("List Users");
 		assertFalse(se.isTextPresent("Elizabeth Swann"));
-
+		
+/* obsolete moved to delete via debug
 		//delete barbossa
 		se.click(se.findLink("topHome"));
 		se.waitForPageToLoad("30000");
@@ -555,7 +572,7 @@ public class Test002basicUser {
 		se.click("admin-content:deleteUserYes");
 		se.waitForText("List Users");
 		assertFalse(se.isTextPresent("barbossa")); 
-		
+	*/	
 		//delete jack
 		se.click(se.findLink("topHome"));
 		se.waitForPageToLoad("30000");
