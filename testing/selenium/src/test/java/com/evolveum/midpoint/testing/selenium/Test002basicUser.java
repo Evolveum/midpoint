@@ -213,7 +213,22 @@ public class Test002basicUser {
 		se.waitForText("Value is required");
 	}
 
-	//TODO description
+	/***
+	 * Search user via debug pages
+	 * 
+	 * Actions:
+	 * 		1. login as admin
+	 * 		2. click to Accounts
+	 * 		3. fill search name elizabeth
+	 * 		4. click search button
+	 * 		5. check if barbossa is not there
+	 * 		6. check if elizabeth is there
+	 * 		7. fill search name barbossa
+	 * 		8. click search button
+	 * 		9. check if barbossa is there
+	 * 		10. check if elizabeth is not there
+	 *  
+	 */
 	@Test
 	public void test02searchUser() throws InterruptedException {
 		logger.info("searchTest()");
