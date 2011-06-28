@@ -30,6 +30,7 @@ import java.io.File;
 import javax.xml.bind.JAXBElement;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -94,6 +95,7 @@ public class ControllerAddUserTest {
 		controller.addUser(null, null, null);
 	}
 
+	@Ignore
 	@SuppressWarnings("unchecked")
 	@Test
 	public void addUserWithSimpleTemplate() throws Exception {
