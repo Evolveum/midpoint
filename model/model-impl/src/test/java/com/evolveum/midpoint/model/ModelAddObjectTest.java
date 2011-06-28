@@ -23,13 +23,9 @@
 package com.evolveum.midpoint.model;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.matches;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,13 +55,9 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -104,38 +96,14 @@ public class ModelAddObjectTest {
 	@Test(expected = FaultMessage.class)
 	@SuppressWarnings("unchecked")
 	public void addUserWithoutName() throws Exception {
-		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER_CONTROLLER,
-				"add-user-without-name.xml"))).getValue();
+		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER_CONTROLLER, "add-user-without-name.xml"))).getValue();
 		try {
 			modelService.addObject(expectedUser, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			ModelServiceUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("add must fail.");
-	}
-
-	// I can't figure out how to mock repository in this case
-	@Ignore
-	// FIXME: fix test
-	@Test(expected = ObjectNotFoundException.class)
-	@SuppressWarnings("unchecked")
-	public void addUserWithExistingOid() throws JAXBException, ObjectNotFoundException, SchemaException,
-			FaultMessage, ObjectAlreadyExistsException {
-		final String oid = "abababab-abab-abab-abab-000000000001";
-		ObjectContainerType container = new ObjectContainerType();
-		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-				"add-user-with-oid.xml"))).getValue();
-		container.setObject(expectedUser);
-		when(
-				repositoryService.getObject(matches(oid), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(expectedUser);
-
-		modelService.addObject(expectedUser, new Holder<OperationResultType>(new OperationResultType()));
-
-		verify(repositoryService, atLeast(1)).getObject(matches(oid), any(PropertyReferenceListType.class),
-				any(OperationResult.class));
-		verify(repositoryService, times(1)).addObject(
-				argThat(new ObjectTypeNameMatcher(expectedUser.getName())), any(OperationResult.class));
 	}
 
 	@Ignore
@@ -174,79 +142,5 @@ public class ModelAddObjectTest {
 				argThat(new ObjectTypeNameMatcher(expectedResource.getName())), any(ScriptsType.class),
 				any(OperationResult.class));
 		assertEquals(oid, result);
-	}
-
-	@Ignore
-	// FIXME: fix test
-	@Test
-	@SuppressWarnings("unchecked")
-	public void addUserAndCreateDefaultAccount() throws FaultMessage, JAXBException,
-			ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException, CommunicationException {
-
-		ObjectContainerType container = new ObjectContainerType();
-		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-				"add-user-default-accounts.xml"))).getValue();
-		container.setObject(expectedUser);
-
-		final String userOid = "abababab-abab-abab-abab-000000000001";
-		final String accountOid = "abababab-abab-abab-abab-000000000002";
-		final String accountName = "abababab-abab-abab-abab-000000000003-chivas";
-		final String resourceOid = "abababab-abab-abab-abab-000000000003";
-
-		when(
-				repositoryService.addObject(argThat(new ObjectTypeNameMatcher(expectedUser.getName())),
-						any(OperationResult.class))).thenAnswer(new Answer<String>() {
-
-			@Override
-			public String answer(InvocationOnMock invocation) throws Throwable {
-				ObjectContainerType container = (ObjectContainerType) invocation.getArguments()[0];
-				UserType user = (UserType) container.getObject();
-
-				assertEquals(expectedUser.getName(), user.getName());
-				assertEquals(expectedUser.getFullName(), user.getFullName());
-				assertEquals(expectedUser.getGivenName(), user.getGivenName());
-				assertEquals(expectedUser.getHonorificSuffix(), user.getHonorificSuffix());
-				assertEquals(expectedUser.getLocality(), user.getLocality());
-
-				assertNotNull(user.getAccountRef());
-				assertEquals(1, user.getAccountRef().size());
-				ObjectReferenceType accountRef = user.getAccountRef().get(0);
-				assertNotNull(accountRef);
-				assertEquals(accountOid, accountRef.getOid());
-
-				return userOid;
-			}
-		});
-
-		final ResourceType resourceType = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "add-user-default-accounts-resource-simple.xml"))).getValue();
-		when(
-				provisioningService.getObject(eq(resourceOid), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(resourceType);
-
-		when(
-				provisioningService.addObject(argThat(new ObjectTypeNameMatcher(accountName)),
-						any(ScriptsType.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
-
-			@Override
-			public String answer(InvocationOnMock invocation) throws Throwable {
-				ObjectContainerType container = (ObjectContainerType) invocation.getArguments()[0];
-				AccountShadowType account = (AccountShadowType) container.getObject();
-
-				assertNotNull(account.getCredentials());
-				assertNotNull(account.getCredentials().getPassword());
-				assertNotNull(account.getCredentials().getPassword().getAny());
-
-				return accountOid;
-			}
-		});
-
-		container = new ObjectContainerType();
-		container.setObject(expectedUser);
-		String result = modelService.addObject(expectedUser, new Holder<OperationResultType>(
-				new OperationResultType()));
-		verify(repositoryService, times(1)).addObject(
-				argThat(new ObjectTypeNameMatcher(expectedUser.getName())), any(OperationResult.class));
-		assertEquals(userOid, result);
 	}
 }

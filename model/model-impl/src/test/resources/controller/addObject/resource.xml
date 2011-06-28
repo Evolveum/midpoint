@@ -17,24 +17,19 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
-<!--                                                         -->
-
-<c:resource oid="abababab-abab-abab-abab-000000000003" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/abababab-abab-abab-abab-000000000003"
-           xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
-           xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../maven/midPoint-xml/midPoint-schemas/src/test/resources/standard/XMLSchema.xsd
-           http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../maven/midPoint-xml/midPoint-schemas/src/main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd
-           http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../maven/midPoint-xml/midPoint-schemas/src/main/resources/META-INF/wsdl/xml/ns/public/resource/idconnector/resource-schema-1.xsd
-           http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../maven/midPoint-xml/midPoint-schemas/src/main/resources/META-INF/wsdl/xml/ns/public/resource/idconnector/configuration-1.xsd'>
-    <c:name>Localhost OpenDJ simple test</c:name>
+<!-- Portions Copyrighted 2011 lazyman					     -->
+<!--                                                         -->  
+<c:object xsi:type="c:ResourceType" oid="10000000-0000-0000-0000-000000000003" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+       xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/10000000-0000-0000-0000-000000000003"
+       xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
+    <c:name>Localhost OpenDJ</c:name>
     <c:type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</c:type>
-    <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/abababab-abab-abab-abab-000000000003</c:namespace>
+    <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/10000000-0000-0000-0000-000000000003</c:namespace>
     <c:configuration>
         <idc:ConnectorConfiguration xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
-                                        xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">
+                                    xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531">
             <idc:ConnectorRef bundleName="org.identityconnectors.ldap" bundleVersion="1.0.5754openidm" connectorName="org.identityconnectors.ldap.LdapConnector">
             </idc:ConnectorRef>
             <idc:BundleProperties>
@@ -63,16 +58,18 @@
         </idc:ConnectorConfiguration>
     </c:configuration>
     <c:schema>
-        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-                        targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/abababab-abab-abab-abab-000000000003"
-                        elementFormDefault="qualified"
-                        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-                        xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-                        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/abababab-abab-abab-abab-000000000003"
-                        xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
+        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
+                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/10000000-0000-0000-0000-000000000003"
+                    elementFormDefault="qualified"
+                    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+                    xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+                    xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/10000000-0000-0000-0000-000000000003"
+                    xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+
+            <!-- Definition of Account object class -->
             <xsd:complexType name="Account">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -201,10 +198,10 @@
                 <c:access>read</c:access>
                 <i:outbound default="true">
                     <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
-                    </i:valueExpression>
-                </i:outbound>
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
+                        </i:valueExpression>
+                </i:outbound>                    
             </i:attribute>
             <i:attribute ref="ids:__UID__">
                 <c:name>Entry UUID</c:name>
@@ -217,8 +214,8 @@
                 <c:access>update</c:access>
                 <i:outbound>
                     <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:fullName
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        $i:user/i:fullName
                     </i:valueExpression>
                 </i:outbound>
             </i:attribute>
@@ -229,8 +226,8 @@
                 <c:access>update</c:access>
                 <i:outbound>
                     <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:familyName
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        $i:user/i:familyName
                     </i:valueExpression>
                 </i:outbound>
             </i:attribute>
@@ -241,20 +238,16 @@
                 <c:access>update</c:access>
                 <i:outbound>
                     <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:givenName
+                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+                        $i:user/i:givenName
                     </i:valueExpression>
                 </i:outbound>
             </i:attribute>
             <i:attribute ref="ri:description">
                 <i:outbound default="true">
                     <i:value>Created by IDM</i:value>
-                </i:outbound>
+                </i:outbound>                    
             </i:attribute>
-            <i:credentials>
-                <i:outboundPassword>true</i:outboundPassword>
-                <i:randomPasswordLength>4</i:randomPasswordLength>
-            </i:credentials>
         </c:accountType>
     </c:schemaHandling>
-</c:resource>
+</c:object>

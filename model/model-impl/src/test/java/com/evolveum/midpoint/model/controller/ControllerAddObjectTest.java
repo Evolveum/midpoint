@@ -22,18 +22,22 @@ package com.evolveum.midpoint.model.controller;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.argThat;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.atLeast;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.ws.Holder;
 
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,13 +54,11 @@ import com.evolveum.midpoint.model.test.util.mock.ObjectTypeNameMatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -76,6 +78,11 @@ public class ControllerAddObjectTest {
 	private RepositoryService repository;
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
+
+	@Before
+	public void before() {
+		Mockito.reset(provisioning, repository);
+	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullObject() throws Exception {
@@ -132,6 +139,88 @@ public class ControllerAddObjectTest {
 		LOGGER.debug(result.debugDump());
 
 		verify(repository, times(1)).addObject(argThat(new ObjectTypeNameMatcher(expectedUser.getName())),
+				any(OperationResult.class));
+		assertEquals(oid, userOid);
+	}
+
+	/**
+	 * Testing add user with undefined user template. It must fail because user
+	 * already exists (mocked).
+	 */
+	@Test(expected = ObjectAlreadyExistsException.class)
+	@SuppressWarnings("unchecked")
+	public void addUserWithExistingOid() throws Exception {
+		ModelServiceUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER,
+				"system-configuration.xml"));
+
+		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"add-user-with-oid.xml"))).getValue();
+		when(repository.addObject(eq(expectedUser), any(OperationResult.class))).thenThrow(
+				new ObjectAlreadyExistsException());
+
+		OperationResult result = new OperationResult("Test Operation");
+		try {
+			controller.addObject(expectedUser, result);
+		} finally {
+			LOGGER.debug(result.debugDump());
+
+			verify(repository, times(1)).addObject(
+					argThat(new ObjectTypeNameMatcher(expectedUser.getName())), any(OperationResult.class));
+		}
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void addUserAndCreateDefaultAccount() throws Exception {
+		ModelServiceUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER,
+				"system-configuration-with-template.xml"));
+
+		final String resourceOid = "10000000-0000-0000-0000-000000000003";
+		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"resource.xml"))).getValue();
+		when(
+				provisioning.getObject(eq(resourceOid), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(resource);
+
+		final String accountOid = "10000000-0000-0000-0000-000000000004";
+		when(
+				provisioning.addObject(any(AccountShadowType.class), any(ScriptsType.class),
+						any(OperationResult.class))).thenAnswer(new Answer<String>() {
+			@Override
+			public String answer(InvocationOnMock invocation) throws Throwable {
+				AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];
+				LOGGER.info(JAXBUtil.marshalWrap(account));
+				XmlAsserts.assertPatch(new File(TEST_FOLDER, "expected-account.xml"),
+						JAXBUtil.marshalWrap(account));
+
+				return accountOid;
+			}
+		});
+
+		final String oid = "abababab-abab-abab-abab-000000000001";
+		when(repository.addObject(any(UserType.class), any(OperationResult.class))).thenAnswer(
+				new Answer<String>() {
+					@Override
+					public String answer(InvocationOnMock invocation) throws Throwable {
+						UserType user = (UserType) invocation.getArguments()[0];
+						LOGGER.info(JAXBUtil.marshalWrap(user));
+						XmlAsserts.assertPatch(
+								new File(TEST_FOLDER, "expected-add-user-default-accounts.xml"),
+								JAXBUtil.marshalWrap(user));
+
+						return oid;
+					}
+				});
+
+		OperationResult result = new OperationResult("Test Operation");
+		final UserType addedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"add-user-default-accounts.xml"))).getValue();
+		String userOid = controller.addObject(addedUser, result);
+		LOGGER.debug(result.debugDump());
+
+		verify(provisioning, atLeast(1)).getObject(eq(resourceOid), any(PropertyReferenceListType.class),
+				any(OperationResult.class));
+		verify(repository, times(1)).addObject(argThat(new ObjectTypeNameMatcher(addedUser.getName())),
 				any(OperationResult.class));
 		assertEquals(oid, userOid);
 	}
