@@ -89,38 +89,38 @@ public class ModelGetImportStatusTest {
 		fail("Illegal argument exception was not thrown.");
 	}
 
-	@Test(expected = FaultMessage.class)
-	public void nonExistingResourceOid() throws FaultMessage, ObjectNotFoundException {
-
-		final String nonExistingUid = "1";
-		when(provisioningService.getImportStatus(eq(nonExistingUid), any(OperationResult.class))).thenThrow(
-				new ObjectNotFoundException("Resource with uid '" + nonExistingUid + "' doesn't exist."));
-
-		modelService.getImportStatus(nonExistingUid, new Holder<OperationResultType>(
-				new OperationResultType()));
-		fail("Fault exception was not thrown.");
-	}
-
-	@Test
-	@SuppressWarnings("unchecked")
-	public void correctResourceOid() throws FaultMessage, JAXBException, ObjectNotFoundException {
-		final String resourceOid = "abababab-abab-abab-abab-000000000001";
-		final TaskStatusType expectedTaskStatus = ((JAXBElement<TaskStatusType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "import-status-correct.xml"))).getValue();
-		when(provisioningService.getImportStatus(eq(resourceOid), any(OperationResult.class))).thenReturn(
-				expectedTaskStatus);
-
-		final TaskStatusType taskStatus = modelService.getImportStatus(resourceOid,
-				new Holder<OperationResultType>(new OperationResultType()));
-		assertNotNull(taskStatus);
-		assertEquals(expectedTaskStatus.getName(), taskStatus.getName());
-		assertEquals(expectedTaskStatus.getFinishTime(), taskStatus.getFinishTime());
-		assertEquals(expectedTaskStatus.getLastStatus(), taskStatus.getLastStatus());
-		assertEquals(expectedTaskStatus.getLaunchTime(), taskStatus.getLaunchTime());
-		assertEquals(expectedTaskStatus.getNumberOfErrors(), taskStatus.getNumberOfErrors());
-		assertEquals(expectedTaskStatus.getProgress(), taskStatus.getProgress());
-
-		verify(provisioningService, atLeastOnce()).getImportStatus(eq(resourceOid),
-				any(OperationResult.class));
-	}
+//	@Test(expected = FaultMessage.class)
+//	public void nonExistingResourceOid() throws FaultMessage, ObjectNotFoundException {
+//
+//		final String nonExistingUid = "1";
+//		when(provisioningService.getImportStatus(eq(nonExistingUid), any(OperationResult.class))).thenThrow(
+//				new ObjectNotFoundException("Resource with uid '" + nonExistingUid + "' doesn't exist."));
+//
+//		modelService.getImportStatus(nonExistingUid, new Holder<OperationResultType>(
+//				new OperationResultType()));
+//		fail("Fault exception was not thrown.");
+//	}
+//
+//	@Test
+//	@SuppressWarnings("unchecked")
+//	public void correctResourceOid() throws FaultMessage, JAXBException, ObjectNotFoundException {
+//		final String resourceOid = "abababab-abab-abab-abab-000000000001";
+//		final TaskStatusType expectedTaskStatus = ((JAXBElement<TaskStatusType>) JAXBUtil.unmarshal(new File(
+//				TEST_FOLDER, "import-status-correct.xml"))).getValue();
+//		when(provisioningService.getImportStatus(eq(resourceOid), any(OperationResult.class))).thenReturn(
+//				expectedTaskStatus);
+//
+//		final TaskStatusType taskStatus = modelService.getImportStatus(resourceOid,
+//				new Holder<OperationResultType>(new OperationResultType()));
+//		assertNotNull(taskStatus);
+//		assertEquals(expectedTaskStatus.getName(), taskStatus.getName());
+//		assertEquals(expectedTaskStatus.getFinishTime(), taskStatus.getFinishTime());
+//		assertEquals(expectedTaskStatus.getLastStatus(), taskStatus.getLastStatus());
+//		assertEquals(expectedTaskStatus.getLaunchTime(), taskStatus.getLaunchTime());
+//		assertEquals(expectedTaskStatus.getNumberOfErrors(), taskStatus.getNumberOfErrors());
+//		assertEquals(expectedTaskStatus.getProgress(), taskStatus.getProgress());
+//
+//		verify(provisioningService, atLeastOnce()).getImportStatus(eq(resourceOid),
+//				any(OperationResult.class));
+//	}
 }
