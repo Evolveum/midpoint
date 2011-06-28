@@ -23,27 +23,34 @@ package com.evolveum.midpoint.model.importer;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.commons.lang.NotImplementedException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * @author Radovan Semancik
  *
  */
 public class ImportFromResourceTaskHandler implements TaskHandler {
+	
+	// TODO: correct URI
+	public static final String HANDLER_URI = "http://foo.bar/ImportFromResourceTaskHandler";
 
 	private ProvisioningService provisioning;
 	private ResourceObjectChangeListener objectChangeListener;
@@ -54,7 +61,31 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		super();
 		handlers = new HashMap<Task, ImportFromResourceResultHandler>();
 	}
+	
+	/**
+	 * Launch an import. Calling this method will start import in a new
+	 * thread, possibly on a different node.
+	 * 
+	 * @param resource
+	 * @param task
+	 * @param manager
+	 */
+	public void launch(ResourceType resource, Task task, TaskManager manager) {
+		// Set handler URI so we will be called back
+		task.setHanderUri(HANDLER_URI);
+		
+		// Readable task name
+		task.setName("Import from resource "+resource.getName());
+		
+		// Switch task to background. This will start new thread and call
+		// the run(task) method.
+		// Note: the thread may be actually started on a different node
+		manager.switchToBackground(task);
+	}
 
+	/**
+	 * The body of the task. This will start the import "loop".
+	 */
 	@Override
 	public TaskRunResult run(Task task) {
 		
@@ -70,7 +101,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		handlers.put(task,handler);
 		
 		try {
-			provisioning.searchObjectsIterative(createAccountShadowTypeQuery(), null, handler, parentResult);
+			provisioning.searchObjectsIterative(createAccountShadowTypeQuery(resource), null, handler, parentResult);
 		} catch (SchemaException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -84,9 +115,21 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		return runResult;
 	}
 	
-	private QueryType createAccountShadowTypeQuery() {
-		// TODO
-		throw new NotImplementedException();
+	private QueryType createAccountShadowTypeQuery(ResourceType resource) {
+		
+		Document doc = DOMUtil.getDocument();
+        Element filter =
+                QueryUtil.createAndFilter(doc,
+                // TODO: The account type is hardcoded now, it should determined
+                // from the shcema later, or maybe we can make it entirelly
+                // generic (use ResourceObjectShadowType instead).
+                QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
+                QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF,resource.getOid()));
+		
+		QueryType query = new QueryType();
+        query.setFilter(filter);
+
+        return query;
 	}
 	
 	private ImportFromResourceResultHandler getHandler(Task task) {

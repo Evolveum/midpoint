@@ -1,0 +1,145 @@
+/**
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted 2011 [name of copyright owner]"
+ * 
+ */
+package com.evolveum.midpoint.task.impl;
+
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+
+/**
+ * @author Radovan Semancik
+ *
+ */
+public class TaskImpl implements Task {
+	
+	private TaskExecutionStatus executionStatus;
+	private TaskExclusivityStatus exclusivityStatus;
+	private TaskPersistenceStatus persistenceStatus;
+	private String handlerUri;
+	private ObjectType object;
+	private String oid;
+	private String name;
+
+	public TaskImpl() {
+		executionStatus = TaskExecutionStatus.RUNNING;
+		exclusivityStatus = TaskExclusivityStatus.CLAIMED;
+		persistenceStatus = TaskPersistenceStatus.TRANSIENT;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.Task#getExecutionStatus()
+	 */
+	@Override
+	public TaskExecutionStatus getExecutionStatus() {
+		return executionStatus;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.Task#getPersistenceStatus()
+	 */
+	@Override
+	public TaskPersistenceStatus getPersistenceStatus() {
+		return persistenceStatus;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.Task#getExclusivityStatus()
+	 */
+	@Override
+	public TaskExclusivityStatus getExclusivityStatus() {
+		return exclusivityStatus;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.Task#isAsynchronous()
+	 */
+	@Override
+	public boolean isAsynchronous() {
+		// This is very simple now. It may complicate later.
+		return (persistenceStatus==TaskPersistenceStatus.PERSISTENT);
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.Task#getObject()
+	 */
+	@Override
+	public ObjectType getObject() {
+		return object;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.Task#getResult()
+	 */
+	@Override
+	public OperationResult getResult() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getHanderUri() {
+		return handlerUri;
+	}
+
+	@Override
+	public void setHanderUri(String handlerUri) {
+		this.handlerUri = handlerUri;
+	}
+
+	@Override
+	public void setExecutionStatus(TaskExecutionStatus executionStatus) {
+		this.executionStatus = executionStatus;
+	}
+
+	@Override
+	public void setPersistenceStatus(TaskPersistenceStatus persistenceStatus) {
+		this.persistenceStatus = persistenceStatus;
+	}
+
+	@Override
+	public void setExclusivityStatus(TaskExclusivityStatus exclusivityStatus) {
+		this.exclusivityStatus = exclusivityStatus;
+	}
+
+	@Override
+	public String getOid() {
+		return oid;
+	}
+
+	@Override
+	public void setOid(String oid) {
+		this.oid = oid;
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
+	public void setName(String name) {
+		this.name = name;
+	}
+
+}

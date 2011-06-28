@@ -30,14 +30,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 public interface Task {
 	
 	public TaskExecutionStatus getExecutionStatus();
+	public void setExecutionStatus(TaskExecutionStatus executionStatus);
 	
 	public TaskPersistenceStatus getPersistenceStatus();
+	public void setPersistenceStatus(TaskPersistenceStatus persistenceStatus);
 	
 	public TaskExclusivityStatus getExclusivityStatus();
+	public void setExclusivityStatus(TaskExclusivityStatus exclusivityStatus);
+	
+	public String getHanderUri();
+	public void setHanderUri(String handlerUri);
 	
 	public boolean isAsynchronous();
 	
 	// public TaskType getTaskTypeObject();
+	
+	public String getOid();
+	public void setOid(String oid);
 	
 	/**
 	 * Returns object that the task is associated with.
@@ -47,5 +56,8 @@ public interface Task {
 	public ObjectType getObject();
 	
 	public OperationResult getResult();
+	
+	public String getName();
+	public void setName(String name);
 
 }

@@ -56,8 +56,24 @@ public interface TaskManager {
 	
 	public void deteleTask(String taskOid);
 	
+	/**
+	 * Claim task exclusively for this node.
+	 * 
+	 * This method is in the TaskManager instead of Task, so the Task can
+	 * stay free of RepositoryService dependency.
+	 * 
+	 * @param task
+	 */
 	public void claimTask(Task task);
 	
+	/**
+	 * Release a claimed task.
+	 * 
+	 * This method is in the TaskManager instead of Task, so the Task can
+	 * stay free of RepositoryService dependency.
+	 * 
+	 * @param task
+	 */
 	public void releaseTask(Task task);
 	
 	public void switchToBackground(Task task);
