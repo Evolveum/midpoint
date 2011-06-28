@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
@@ -269,24 +270,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public void launchImportFromResource(String resourceOid, QName objectClass, OperationResult parentResult)
-			throws ObjectNotFoundException {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
-	}
-
-	@Override
-	public TaskStatusType getImportStatus(String resourceOid, OperationResult parentResult)
-			throws ObjectNotFoundException {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
-	}
-
-	@Override
 	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
 			OperationResult parentResult) {
 		// TODO Auto-generated method stub
-		return null;
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void searchObjectsIterative(QueryType query, PagingType paging, ResultHandler handler, OperationResult parentResult)
+			throws SchemaException {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException();
 	}
 
 }

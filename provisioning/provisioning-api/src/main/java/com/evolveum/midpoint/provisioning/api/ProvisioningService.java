@@ -195,6 +195,34 @@ public interface ProvisioningService {
 	 */
 	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException;
+	
+	/**
+	 * Search for objects iteratively. Searches through all object types. Calls a
+	 * specified handler for each object found.
+	 * 
+	 * If nothing is found the handler is not called and the operation returns.
+	 * 
+	 * Should fail if object type is wrong. Should fail if unknown property is
+	 * specified in the query.
+	 * 
+	 * @param query
+	 *            search query
+	 * @param paging
+	 *            paging specification to limit operation result (optional)
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * @param handler
+	 *            result handler
+	 * 
+	 * @throws IllegalArgumentException
+	 *             wrong object type
+	 * @throws GenericConnectorException
+	 *             unknown connector framework error
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 */
+	public void searchObjectsIterative(QueryType query, PagingType paging, ResultHandler handler, OperationResult parentResult)
+			throws SchemaException;
 
 	/**
 	 * Modifies object using relative change description. Must fail if user with
@@ -303,57 +331,6 @@ public interface ProvisioningService {
 	 *             unknown connector framework error
 	 */
 	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException;
-
-	/**
-	 * Launch import task that will import all the accounts from the resource.
-	 * 
-	 * WARNING: This operation is not considered public. It is a temporary
-	 * solution until we have full-featured cycle management. It may be removed
-	 * any time without a warning.
-	 * 
-	 * DO NOT USE IT unless you are really sure you know what you are doing.
-	 * 
-	 * @param resourceOid
-	 *            OID of resource to import from
-	 * @param objectClass
-	 *            object class to import
-	 * @param parentResult
-	 *            parentResult parent OperationResult (in/out)
-	 * 
-	 * @throws ObjectNotFoundException
-	 *             specified resource is not found
-	 * @throws IllegalArgumentException
-	 *             wrong OID format
-	 * @throws GenericConnectorException
-	 *             unknown connector framework error
-	 */
-	public void launchImportFromResource(String resourceOid, QName objectClass, OperationResult parentResult)
-			throws ObjectNotFoundException;
-
-	/**
-	 * Get the status report of the running or recently finished import task.
-	 * 
-	 * WARNING: This operation is not considered public. It is a temporary
-	 * solution until we have full-featured cycle management. It may be removed
-	 * any time without a warning.
-	 * 
-	 * DO NOT USE IT unless you are really sure you know what you are doing.
-	 * 
-	 * @param resourceOid
-	 *            OID of resource to query
-	 * @param parentResult
-	 *            parentResult parent OperationResult (in/out)
-	 * @return status of running or last import task
-	 * 
-	 * @throws ObjectNotFoundException
-	 *             specified resource is not found
-	 * @throws IllegalArgumentException
-	 *             wrong OID format
-	 * @throws GenericConnectorException
-	 *             unknown connector framework error
-	 */
-	public TaskStatusType getImportStatus(String resourceOid, OperationResult parentResult)
-			throws ObjectNotFoundException;
 
 	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
 			OperationResult parentResult);

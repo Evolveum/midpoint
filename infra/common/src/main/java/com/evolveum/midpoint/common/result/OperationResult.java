@@ -63,6 +63,7 @@ public class OperationResult implements Serializable {
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String INDENT_STRING = "    ";
 	public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
+	public static final String CONTEXT_PROGRESS = "progress";
 	private static long TOKEN_COUNT = 1000000000000000000L;
 	private String operation;
 	private OperationResultStatus status;

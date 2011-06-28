@@ -126,5 +126,12 @@
             <version>${mysql.connector.version}</version>
             <scope>test</scope>
         </dependency>       
+        <dependency>
+        	<groupId>com.evolveum.midpoint.repo</groupId>
+        	<artifactId>task-api</artifactId>
+        	<version>1.8-SNAPSHOT</version>
+        	<type>jar</type>
+        	<scope>compile</scope>
+        </dependency>
     </dependencies>
 </project>
