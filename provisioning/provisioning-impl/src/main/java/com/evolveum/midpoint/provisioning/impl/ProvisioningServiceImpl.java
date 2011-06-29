@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.stereotype.Service;
 
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -110,6 +111,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		try {
 			repositoryObject = getRepositoryService().getObject(oid, resolve, result);
+			
 		} catch (ObjectNotFoundException e) {
 			result.record(e);
 			throw e;
@@ -124,6 +126,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ResourceObjectShadowType shadow = null;
 			try {
 				shadow = getShadowCache().getShadow(oid, (ResourceObjectShadowType) repositoryObject, result);
+				
 			} catch (ObjectNotFoundException e) {
 				result.record(e);
 				throw e;
@@ -271,8 +274,29 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
+		OperationResult parentResult = new OperationResult(ProvisioningService.class.getName()+".testResource");
+		parentResult.addParam("resourceOid", resourceOid);
+		parentResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		if (resourceOid == null){
+			throw new IllegalArgumentException("Resource OID to test is null.");
+		}
+		
+		OperationResult result = null;
+		
+		try{
+			ObjectType objectType = getRepositoryService().getObject(resourceOid, new PropertyReferenceListType(), parentResult);
+			if (objectType instanceof ResourceType){
+				ResourceType resourceType = (ResourceType) objectType;
+				result = getShadowCache().testConnection(resourceType);
+			} else{
+				throw new IllegalArgumentException("Object with oid is not resource. OID: "+resourceOid);
+			}		
+		} catch (ObjectNotFoundException ex){
+			throw new ObjectNotFoundException("Object with OID "+resourceOid+" not found");
+		} catch (SchemaException ex){
+			throw new IllegalArgumentException(ex.getMessage(), ex);
+		}
+		return result;
 	}
 
 	@Override

@@ -441,6 +441,13 @@ public class ShadowCache {
 			}
 		}
 	}
+	
+	public OperationResult testConnection(ResourceType resourceType){
+		
+		ConnectorInstance connector = getConnectorInstance(resourceType);
+		return connector.test();
+		
+	}
 
 	
 
