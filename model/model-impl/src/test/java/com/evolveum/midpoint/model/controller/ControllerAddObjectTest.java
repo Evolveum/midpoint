@@ -33,6 +33,8 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.ws.Holder;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -53,12 +55,17 @@ import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.model.test.util.mock.ObjectTypeNameMatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
 /**
  * 
@@ -189,7 +196,6 @@ public class ControllerAddObjectTest {
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
 				AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];
-				LOGGER.info(JAXBUtil.marshalWrap(account));
 				XmlAsserts.assertPatch(new File(TEST_FOLDER, "expected-account.xml"),
 						JAXBUtil.marshalWrap(account));
 
@@ -203,7 +209,6 @@ public class ControllerAddObjectTest {
 					@Override
 					public String answer(InvocationOnMock invocation) throws Throwable {
 						UserType user = (UserType) invocation.getArguments()[0];
-						LOGGER.info(JAXBUtil.marshalWrap(user));
 						XmlAsserts.assertPatch(
 								new File(TEST_FOLDER, "expected-add-user-default-accounts.xml"),
 								JAXBUtil.marshalWrap(user));
@@ -223,5 +228,41 @@ public class ControllerAddObjectTest {
 		verify(repository, times(1)).addObject(argThat(new ObjectTypeNameMatcher(addedUser.getName())),
 				any(OperationResult.class));
 		assertEquals(oid, userOid);
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void addResourceCorrect() throws JAXBException, FaultMessage, ObjectAlreadyExistsException,
+			SchemaException, CommunicationException {
+		final ResourceType expectedResource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER, "add-resource-correct.xml"))).getValue();
+
+		final String oid = "abababab-abab-abab-abab-000000000002";
+		when(
+				provisioning.addObject(argThat(new ObjectTypeNameMatcher(expectedResource.getName())),
+						any(ScriptsType.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
+
+			@Override
+			public String answer(InvocationOnMock invocation) throws Throwable {
+				ResourceType resource = (ResourceType) invocation.getArguments()[0];
+
+				XmlAsserts.assertPatch(new File(TEST_FOLDER, "add-resource-correct.xml"),
+						JAXBUtil.marshalWrap(resource));
+
+				return oid;
+			}
+		});
+
+		OperationResult result = new OperationResult("Test Operation");
+		try {
+			String resourceOid = controller.addObject(expectedResource, result);
+			assertEquals(oid, resourceOid);
+		} finally {
+			LOGGER.debug(result.debugDump());
+
+			verify(provisioning, times(1)).addObject(
+					argThat(new ObjectTypeNameMatcher(expectedResource.getName())), any(ScriptsType.class),
+					any(OperationResult.class));
+		}
 	}
 }
