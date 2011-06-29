@@ -18,31 +18,16 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.exception;
+package com.evolveum.midpoint.model.expr;
 
-import com.evolveum.midpoint.common.result.OperationResult;
+import org.springframework.stereotype.Component;
 
 /**
  * 
  * @author lazyman
  * 
  */
-public class ModelException extends Exception {
+@Component
+public class ExpressionHandlerImpl {
 
-	private static final long serialVersionUID = -3919194484725388148L;
-	private OperationResult result;
-
-	public ModelException(String message, OperationResult result) {
-		super(message);
-		this.result = result;
-	}
-
-	public ModelException(String message, Throwable throwable, OperationResult result) {
-		super(message, throwable);
-		this.result = result;
-	}
-
-	public OperationResult getResult() {
-		return result;
-	}
 }
