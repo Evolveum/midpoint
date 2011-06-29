@@ -20,23 +20,32 @@
  */
 package com.evolveum.midpoint.model.sync;
 
+import javax.xml.bind.JAXBElement;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.action.Action;
 import com.evolveum.midpoint.model.sync.action.ActionManager;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.SystemFaultType;
 
 /**
  * 
@@ -64,17 +73,63 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			return;
 		}
 
-		ResourceObjectShadowType resourceObjectShadow = change.getShadow();
-		if (resourceObjectShadow == null && (change.getObjectChange() instanceof ObjectChangeAdditionType)) {
+		ResourceObjectShadowType objectShadow = change.getShadow();
+		if (objectShadow == null && (change.getObjectChange() instanceof ObjectChangeAdditionType)) {
 			// There may not be a previous shadow in addition. But in that case
 			// we have (almost) everything in the ObjectChangeType - almost
 			// everything except OID. But we can live with that.
-			resourceObjectShadow = (ResourceObjectShadowType) ((ObjectChangeAdditionType) change
-					.getObjectChange()).getObject();
+			objectShadow = (ResourceObjectShadowType) ((ObjectChangeAdditionType) change.getObjectChange())
+					.getObject();
 		} else {
 			throw new IllegalArgumentException("Change doesn't contain ResourceObjectShadow.");
 		}
-		
+
+		ResourceObjectShadowType objectShadowAfterChange = getObjectAfterChange(objectShadow,
+				change.getObjectChange());
+		SynchronizationSituation situation = checkSituation(change);
+
+		notifyChange(change, situation, resource, objectShadowAfterChange, parentResult);
+	}
+
+	/**
+	 * Apply the changes to the provided shadow.
+	 * 
+	 * @param objectShadow
+	 *            shadow with some data
+	 * @param change
+	 *            changes to be applied
+	 */
+	@SuppressWarnings("unchecked")
+	private ResourceObjectShadowType getObjectAfterChange(ResourceObjectShadowType objectShadow,
+			ObjectChangeType change) {
+		if (change instanceof ObjectChangeAdditionType) {
+			ObjectChangeAdditionType objectAddition = (ObjectChangeAdditionType) change;
+			ObjectType object = objectAddition.getObject();
+			if (object instanceof ResourceObjectShadowType) {
+				return (ResourceObjectShadowType) object;
+			} else {
+				throw new IllegalArgumentException("The changed object is not a shadow, it is "
+						+ object.getClass().getName());
+			}
+		} else if (change instanceof ObjectChangeModificationType) {
+			try {
+				ObjectChangeModificationType objectModification = (ObjectChangeModificationType) change;
+				ObjectModificationType modification = objectModification.getObjectModification();
+				PatchXml patchXml = new PatchXml();
+
+				String patchedXml = patchXml.applyDifferences(modification, objectShadow);
+				ResourceObjectShadowType changedResourceShadow = ((JAXBElement<ResourceObjectShadowType>) JAXBUtil
+						.unmarshal(patchedXml)).getValue();
+				return changedResourceShadow;
+			} catch (Exception ex) {
+				throw new SystemException(ex.getMessage(), ex);
+			}
+		} else if (change instanceof ObjectChangeDeletionType) {
+			// in case of deletion the object has already all that it can have
+			return objectShadow;
+		} else {
+			throw new IllegalArgumentException("Unknown change type " + change.getClass().getName());
+		}
 	}
 
 	private boolean isSynchronizationEnabled(SynchronizationType synchronization) {
@@ -83,5 +138,15 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 
 		return synchronization.isEnabled();
+	}
+
+	private SynchronizationSituation checkSituation(ResourceObjectShadowChangeDescriptionType change) {
+		return null;
+	}
+
+	private void notifyChange(ResourceObjectShadowChangeDescriptionType change,
+			SynchronizationSituation situation, ResourceType resource,
+			ResourceObjectShadowType objectShadowAfterChange, OperationResult parentResult) {
+
 	}
 }

@@ -23,7 +23,7 @@ public class InitialSetup {
 
 	private static final Trace TRACE = TraceManager.getTrace(InitialSetup.class);
 
-	private final String[] FILES_FOR_IMPORT = new String[] { "admin.xml", "systemConfiguration.xml" };
+	private final String[] FILES_FOR_IMPORT = new String[] { "systemConfiguration.xml", "admin.xml" };
 
 	private ModelPortType modelService;
 

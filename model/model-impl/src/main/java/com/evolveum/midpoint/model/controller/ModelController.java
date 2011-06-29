@@ -585,10 +585,18 @@ public class ModelController {
 			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		if (object instanceof UserType) {
 			// At first we get default user template from system configuration
-			SystemConfigurationType systemConfiguration = getObject(
-					SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-					ModelUtils.createPropertyReferenceListType("defaultUserTemplate"), result,
-					SystemConfigurationType.class, false);
+			OperationResult configResult = new OperationResult("Get System Configuration");
+			result.addSubresult(configResult);
+			SystemConfigurationType systemConfiguration = null;
+			try {
+				systemConfiguration = getObject(SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+						ModelUtils.createPropertyReferenceListType("defaultUserTemplate"), result,
+						SystemConfigurationType.class, false);
+				configResult.recordSuccess();
+			} catch (ObjectNotFoundException ex) {
+				configResult.recordFatalError("Couldn't get system configuration.", ex);
+				throw ex;
+			}
 
 			UserTemplateType userTemplate = systemConfiguration.getDefaultUserTemplate();
 			processUserTemplateForUser((UserType) object, userTemplate, result);
@@ -864,7 +872,7 @@ public class ModelController {
 				try {
 					AccountShadowType account = getObject(accountRef.getOid(),
 							ModelUtils.createPropertyReferenceListType("Resource"), result,
-							AccountShadowType.class, true);					
+							AccountShadowType.class, true);
 					ObjectModificationType accountChange = schemaHandler.processOutboundHandling(user,
 							account, result);
 					modifyObjectWithExclusion(accountChange, accountOid, result);
@@ -903,7 +911,11 @@ public class ModelController {
 	@SuppressWarnings("unchecked")
 	private void processUserTemplateForUser(UserType user, UserTemplateType userTemplate,
 			OperationResult result) {
+		OperationResult subResult = new OperationResult("Process User Template");
+		result.addSubresult(subResult);
+
 		if (userTemplate == null) {
+			subResult.recordWarning("No user template defined, skipping.");
 			return;
 		}
 
@@ -937,7 +949,13 @@ public class ModelController {
 				// TODO: logging
 				ex.printStackTrace();
 				addObject.recordFatalError("Something went terribly wrong.", ex);
+				subResult.recordWarning("Couldn't process account construction '" + construction.getType()
+						+ "'.", ex);
 			}
+		}
+
+		if (subResult.isUnknown()) {
+			subResult.recordSuccess();
 		}
 	}
 }
