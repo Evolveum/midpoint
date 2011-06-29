@@ -46,6 +46,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
@@ -82,8 +83,32 @@ public class ModelDeleteObjectTest {
 	}
 
 	@Test(expected = FaultMessage.class)
-	public void testDeleteNull() throws FaultMessage {
-		modelService.deleteObject(null, new Holder<OperationResultType>(new OperationResultType()));
+	public void testDeleteNullOid() throws FaultMessage {
+		try {
+			modelService.deleteObject(null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("delete must fail");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void testDeleteEmptyOid() throws FaultMessage {
+		try {
+			modelService.deleteObject("", null);
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("delete must fail");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void testDeleteNullResult() throws FaultMessage {
+		try {
+			modelService.deleteObject("1", null);
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
 		fail("delete must fail");
 	}
 

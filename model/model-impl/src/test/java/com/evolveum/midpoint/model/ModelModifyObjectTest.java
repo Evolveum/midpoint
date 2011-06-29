@@ -22,18 +22,15 @@
 
 package com.evolveum.midpoint.model;
 
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.ws.Holder;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -78,7 +75,7 @@ public class ModelModifyObjectTest {
 
 	@Test(expected = FaultMessage.class)
 	public void nullChange() throws FaultMessage {
-		modelService.modifyObject(null, new Holder<OperationResultType>(new OperationResultType()));		
+		modelService.modifyObject(null, new Holder<OperationResultType>(new OperationResultType()));
 	}
 
 	@Test(expected = FaultMessage.class)
@@ -98,15 +95,5 @@ public class ModelModifyObjectTest {
 				new ObjectNotFoundException("Oid '" + oid + "' not found."));
 
 		modelService.modifyObject(modification, new Holder<OperationResultType>(new OperationResultType()));
-	}
-
-	@Ignore
-	@Test
-	public void correctModifyUser() throws JAXBException {
-		// final String oid = "1";
-		// ObjectModificationType modification =
-		// ((JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(
-		// new File(TEST_FOLDER, "modify-user-correct.xml"))).getValue();
-		fail("not implemented yet.");
 	}
 }

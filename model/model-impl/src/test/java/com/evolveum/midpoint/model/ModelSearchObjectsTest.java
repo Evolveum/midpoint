@@ -27,7 +27,6 @@ import static org.junit.Assert.fail;
 import javax.xml.ws.Holder;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -93,11 +92,5 @@ public class ModelSearchObjectsTest {
 		modelService.searchObjects(new QueryType(), paging, new Holder<OperationResultType>(
 				new OperationResultType()));
 		fail("Illegal argument exception was not thrown.");
-	}
-
-	@Ignore
-	@Test
-	public void correctSearch() {
-		fail("not implemented yet.");
 	}
 }

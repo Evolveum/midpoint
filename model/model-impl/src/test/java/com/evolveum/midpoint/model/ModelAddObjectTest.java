@@ -55,7 +55,6 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 		"classpath:application-context-model.xml" })
 public class ModelAddObjectTest {
 
-	private static final File TEST_FOLDER = new File("./src/test/resources/service/model/add");
 	private static final File TEST_FOLDER_CONTROLLER = new File("./src/test/resources/controller/addObject");
 	@Autowired(required = true)
 	ModelPortType modelService;
@@ -71,7 +70,11 @@ public class ModelAddObjectTest {
 
 	@Test(expected = FaultMessage.class)
 	public void addNullObject() throws FaultMessage {
-		modelService.addObject(null, new Holder<OperationResultType>(new OperationResultType()));
+		try {
+			modelService.addObject(null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
 		fail("Add must fail.");
 	}
 
