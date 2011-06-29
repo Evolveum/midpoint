@@ -90,6 +90,8 @@ public class ModelController {
 	private transient ProvisioningService provisioning;
 	@Autowired(required = true)
 	private transient RepositoryService repository;
+	@Autowired(required = true)
+	private transient SchemaHandler schemaHandler;
 
 	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException {
 		Validate.notNull(object, "Object must not be null.");
@@ -862,8 +864,7 @@ public class ModelController {
 				try {
 					AccountShadowType account = getObject(accountRef.getOid(),
 							ModelUtils.createPropertyReferenceListType("Resource"), result,
-							AccountShadowType.class, true);
-					SchemaHandler schemaHandler = new SchemaHandlerImpl();
+							AccountShadowType.class, true);					
 					ObjectModificationType accountChange = schemaHandler.processOutboundHandling(user,
 							account, result);
 					modifyObjectWithExclusion(accountChange, accountOid, result);
@@ -885,7 +886,6 @@ public class ModelController {
 		ObjectModificationType change = null;
 		if (user != null) {
 			try {
-				SchemaHandler schemaHandler = new SchemaHandlerImpl();
 				change = schemaHandler.processOutboundHandling(user, (ResourceObjectShadowType) object,
 						result);
 			} catch (Exception ex) {

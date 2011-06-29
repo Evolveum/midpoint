@@ -21,6 +21,10 @@
 package com.evolveum.midpoint.model.controller;
 
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -30,9 +34,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * @author lazyman
  * 
  */
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-model-unit-test.xml" })
 public class SchemaHandlerImplTest {
 
-	private SchemaHandler handler = new SchemaHandlerImpl();
+	@Autowired(required=true)
+	private transient SchemaHandler handler;
 
 	@Test(expected = IllegalArgumentException.class)
 	public void processInboundHandlingNullUser() throws Exception {
