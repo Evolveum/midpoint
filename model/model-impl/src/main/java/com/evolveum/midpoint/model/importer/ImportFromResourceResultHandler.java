@@ -39,6 +39,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
+ * Iterative search result handler for "import from resource" task.
+ * 
+ * This class is called back from the searchObjectsIterative() operation of
+ * the provisioning service. It does most of the work of the "import" operation
+ * 
+ * It will actually setup the "create" change notification for all objects and invoke
+ * a ResourceObjectChangeListener interface.
+ * 
+ * @see ImportFromResourceTaskHandler
  * 
  * @author Radovan Semancik
  * 
@@ -64,7 +73,9 @@ public class ImportFromResourceResultHandler implements ResultHandler {
 	}
 
 	/*
-	 * (non-Javadoc)
+	 * This methods will be called for each search result. It means it will be called for
+	 * each account on a resource. We will pretend that the account was created and invoke
+	 * notification interface.
 	 * 
 	 * @see
 	 * com.evolveum.midpoint.provisioning.api.ResultHandler#handle(com.evolveum

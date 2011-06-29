@@ -28,6 +28,12 @@ import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
+ * Implementation of a Task.
+ * 
+ * This is very simplistic now. It does not even serialize itself.
+ * 
+ * @see TaskManagerImpl
+ * 
  * @author Radovan Semancik
  *
  */

@@ -21,9 +21,39 @@
 package com.evolveum.midpoint.task.api;
 
 /**
+ * Task execution status.
+ * 
+ * Execution status provides information about the task overall high-level
+ * execution state. It tells whether the task is running/runnable, waits for
+ * something or is done.
+ * 
  * @author Radovan Semancik
- *
+ * 
  */
 public enum TaskExecutionStatus {
-	RUNNING, WAITING, CLOSED
+	/**
+	 * The task is running or is ready to be executed. This state implies that
+	 * the task is being actively executed by IDM nodes, e.g. there is a thread
+	 * on one of the IDM nodes that executes the task or the system needs to
+	 * allocate such thread.
+	 */
+	RUNNING,
+
+	/**
+	 * The IDM system is waiting while the task is being executed on an external
+	 * node (e.g. external workflow engine) or is waiting for some kind of
+	 * external signal (e.g. approval in internal workflow). The task may be
+	 * running on external node or blocked on IDM node. One way or another,
+	 * there is no point in allocating a thread to run this task. Other task
+	 * properties provide more information about the actual "business" state of
+	 * the task.
+	 */
+	WAITING,
+
+	/**
+	 * The task is done. No other changes or progress will happen. The task in
+	 * this state is considered immutable and the only things that can happen to
+	 * it is a delete by a cleanup code.
+	 */
+	CLOSED
 }

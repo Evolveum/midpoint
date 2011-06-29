@@ -21,9 +21,26 @@
 package com.evolveum.midpoint.task.api;
 
 /**
+ * Exclusivity status tells about task "locking" to a particular node.
+ * 
  * @author Radovan Semancik
- *
+ * 
  */
 public enum TaskExclusivityStatus {
-	CLAIMED, RELEASED
+
+	/**
+	 * The tasks is being held by one of the IDM nodes. The node is either
+	 * executing the task or making some kind of "exclusive" operation on the
+	 * task. Only one node may "claim" a task. Claimed tasks has an allocated
+	 * *thread* that is used for task execution.
+	 */
+	CLAIMED,
+
+	/**
+	 * The task is free for all nodes to participate. Any node may try to
+	 * "claim" the task to execute it or make another step in the task
+	 * lifecycle. Released task is not being executed by an IDM node and
+	 * therefore does not have an allocated thread.
+	 */
+	RELEASED
 }

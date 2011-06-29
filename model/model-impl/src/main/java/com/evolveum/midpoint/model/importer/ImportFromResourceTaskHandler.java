@@ -44,6 +44,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
+ * Task handler for "Import from resource" task.
+ * 
+ * The import task will search for all the accounts on a specific resource. It will
+ * pretend that all the accounts were just created and notify other components (mode)
+ * using the ResourceObjectChangeListener interface. This will efficiently result in
+ * importing all the accounts. Depending on the sync policy, appropriate user objects
+ * may be created, accounts may be linked to existing users, etc.
+ * 
+ * The handler will execute the import in background. It is using Task Manager
+ * for that purpose, so the Task Manager instance needs to be injected. Most of the "import"
+ * action is actually done in the callbacks from provisioning searchObjectsIterative() operation.
+ * 
+ * The import task may be executed on a different node (as usual for async tasks).
+ * 
+ * @see TaskHandler
+ * @see ResourceObjectChangeListener
+ * 
  * @author Radovan Semancik
  *
  */
@@ -121,7 +138,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
         Element filter =
                 QueryUtil.createAndFilter(doc,
                 // TODO: The account type is hardcoded now, it should determined
-                // from the shcema later, or maybe we can make it entirelly
+                // from the schema later, or maybe we can make it entirely
                 // generic (use ResourceObjectShadowType instead).
                 QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
                 QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF,resource.getOid()));
@@ -138,6 +155,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 
 	@Override
 	public long heartbeat(Task task) {
+		// Delegate heartbeat to the result handler
 		return getHandler(task).heartbeat();
 	}
 

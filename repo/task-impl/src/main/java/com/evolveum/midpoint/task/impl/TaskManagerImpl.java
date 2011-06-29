@@ -33,6 +33,13 @@ import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 
 /**
+ * Task Manager implementation.
+ * 
+ * VERY SIMPLISTIC. This needs to be updated later.
+ * 
+ * It assumes only a single host. No cluster, in fact not even a repository access.
+ * So the tasks will not survive restarts.
+ * 
  * @author Radovan Semancik
  *
  */
