@@ -30,7 +30,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.SynchronizationException;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
@@ -74,12 +74,12 @@ public class ModifyPasswordAction extends BaseAction {
 
 		try {
 			ObjectModificationType changes = createPasswordModification(userType, pwd);
-			
+
 			// getModel().modifyObjectWithExclusion(changes,
 			// change.getShadow().getOid(),
 			// new Holder<OperationResultType>(resultType));
 		} catch (Exception ex) {
-			throw new SynchronizationException("Can't save user", ex, null);
+			throw new SynchronizationException("Can't save user", ex);
 		}
 
 		return userOid;

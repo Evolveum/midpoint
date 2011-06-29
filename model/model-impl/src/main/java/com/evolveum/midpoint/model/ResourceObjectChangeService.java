@@ -42,6 +42,7 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.sync.action.Action;
 import com.evolveum.midpoint.model.sync.action.ActionManager;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
@@ -205,7 +206,7 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
 			trace.error("### MODEL # Fault notifyChange(..): Synchronization action failed, reason: {}.",
 					ex.getMessage());
 			throw createFaultMessage("Synchronization action failed, reason: " + getMessage(ex),
-					ex.getFaultType(), ex);
+					new SystemFaultType(), ex);
 		} catch (Exception ex) {
 			trace.error(
 					"### MODEL # Fault notifyChange(..): Unexpected error occured, synchronization action failed, reason: {}.",
@@ -215,10 +216,6 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
 	}
 
 	private String getMessage(SynchronizationException ex) {
-		if (ex.getFaultType() != null) {
-			return ex.getFaultType().getMessage();
-		}
-
 		return ex.getMessage();
 	}
 

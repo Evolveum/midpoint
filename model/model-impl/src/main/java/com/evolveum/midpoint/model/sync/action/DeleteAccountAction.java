@@ -25,7 +25,7 @@ package com.evolveum.midpoint.model.sync.action;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.SynchronizationException;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -55,7 +55,7 @@ public class DeleteAccountAction extends BaseAction {
 			trace.error("Couldn't delete resource object with oid '{}' on resource '{}'.", new Object[] {
 					change.getShadow().getOid(), resourceName });
 			throw new SynchronizationException("Couldn't delete resource object with oid '"
-					+ change.getShadow().getOid() + "' on resource '" + resourceName + "'.", ex, null);
+					+ change.getShadow().getOid() + "' on resource '" + resourceName + "'.", ex);
 		}
 
 		return userOid;

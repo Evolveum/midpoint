@@ -31,7 +31,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.SynchronizationException;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -89,13 +89,13 @@ public class AddUserAction extends BaseAction {
 				// save user
 				userOid = getModel().addObject(userType, new Holder<OperationResultType>(resultType));
 			} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
-				throw new SynchronizationException("Can't save user", ex, ex.getFaultInfo());
+				throw new SynchronizationException("Can't save user", ex);
 			} catch (SchemaHandlingException ex) {
 				throw new SynchronizationException("Couldn't apply user template '" + userTemplate.getOid()
-						+ "' on user '" + userOid + "'.", ex, ex.getFaultType());
+						+ "' on user '" + userOid + "'.", ex);
 			} catch (PatchException ex) {
 				throw new SynchronizationException("Couldn't apply user template '" + userTemplate.getOid()
-						+ "' on user '" + userOid + "'.", ex, null);
+						+ "' on user '" + userOid + "'.", ex);
 			}
 		} else {
 			trace.debug("User already exists ({}), skipping create.", userType.getOid());
@@ -138,7 +138,7 @@ public class AddUserAction extends BaseAction {
 					new PropertyReferenceListType(), new Holder<OperationResultType>(resultType));
 		} catch (FaultMessage ex) {
 			throw new SynchronizationException("Couldn't get user template with oid '" + userTemplateOid
-					+ "'.", ex, ex.getFaultInfo());
+					+ "'.", ex);
 		}
 
 		return userTemplate;

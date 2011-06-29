@@ -27,7 +27,7 @@ import javax.xml.ws.Holder;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.SynchronizationException;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
@@ -92,7 +92,7 @@ public class AddAccountAction extends BaseAction {
 			// ex.getFaultType());
 		} catch (FaultMessage ex) {
 			trace.error("Couldn't add account to provisioning, reason: " + getMessage(ex));
-			throw new SynchronizationException("Can't add account to provisioning.", ex, ex.getFaultInfo());
+			throw new SynchronizationException("Can't add account to provisioning.", ex);
 		}
 
 		return userOid;

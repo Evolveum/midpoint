@@ -27,7 +27,7 @@ import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.SynchronizationException;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -82,7 +82,7 @@ public class DisableAccountAction extends BaseAction {
 			trace.error("Couldn't update (disable) account '{}' in provisioning, reason: {}.", new Object[] {
 					account.getOid(), ex.getMessage() });
 			throw new SynchronizationException("Couldn't update (disable) account '" + account.getOid()
-					+ "' in provisioning, reason: " + ex.getMessage() + ".", ex, null);
+					+ "' in provisioning, reason: " + ex.getMessage() + ".", ex);
 		}
 
 		return userOid;

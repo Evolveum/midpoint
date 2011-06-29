@@ -22,12 +22,17 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import com.evolveum.midpoint.model.*;
+import java.util.List;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.ws.Holder;
+
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
@@ -36,10 +41,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import java.util.List;
-
-import javax.xml.bind.JAXBException;
-import javax.xml.ws.Holder;
 
 /**
  * 
@@ -71,10 +72,10 @@ public class UnlinkAccountAction extends BaseAction {
 		}
 
 		List<ObjectReferenceType> references = userType.getAccountRef();
-		
+
 		ObjectReferenceType accountRef = null;
 		for (ObjectReferenceType reference : references) {
-			if (!SchemaConstants.I_ACCOUNT_SHADOW_TYPE.equals(reference.getType())) {			
+			if (!SchemaConstants.I_ACCOUNT_SHADOW_TYPE.equals(reference.getType())) {
 				continue;
 			}
 
@@ -92,8 +93,7 @@ public class UnlinkAccountAction extends BaseAction {
 				ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUserType, userType);
 				getModel().modifyObject(changes, new Holder<OperationResultType>(resultType));
 			} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
-				throw new SynchronizationException("Can't unlink account. Can't save user", ex,
-						ex.getFaultInfo());
+				throw new SynchronizationException("Can't unlink account. Can't save user", ex);
 			} catch (DiffException ex) {
 				trace.error("Couldn't create user diff for '{}', reason: {}.", userOid, ex.getMessage());
 				throw new SynchronizationException("Couldn't create user diff for '" + userOid + "'.", ex);

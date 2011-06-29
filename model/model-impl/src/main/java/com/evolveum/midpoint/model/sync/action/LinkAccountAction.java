@@ -30,7 +30,7 @@ import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.SynchronizationException;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -80,8 +80,7 @@ public class LinkAccountAction extends BaseAction {
 				getModel().modifyObject(changes, new Holder<OperationResultType>(resultType));
 			} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
 				trace.error("Error while saving user {} (modifyObject on model).", new Object[] { userOid });
-				throw new SynchronizationException("Can't link account. Can't save user", ex,
-						ex.getFaultInfo());
+				throw new SynchronizationException("Can't link account. Can't save user", ex);
 			} catch (DiffException ex) {
 				trace.error("Couldn't create user diff for '{}', reason: {}.",
 						new Object[] { userOid, ex.getMessage() });

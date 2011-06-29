@@ -41,9 +41,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml" })
-public class ControllerSearchObjectsTest {
+public class ControllerSearchObjectsInProvisioningTest {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ControllerSearchObjectsTest.class);
+	private static final Trace LOGGER = TraceManager
+			.getTrace(ControllerSearchObjectsInProvisioningTest.class);
 	@Autowired(required = true)
 	private ModelController controller;
 	@Autowired(required = true)
@@ -53,16 +54,17 @@ public class ControllerSearchObjectsTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullQuery() {
-		controller.searchObjects(null, null, null);
+		controller.searchObjectsInProvisioning(null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullPaging() {
-		controller.searchObjects(new QueryType(), null, null);
+		controller.searchObjectsInProvisioning(new QueryType(), null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullResult() {
-		controller.searchObjects(new QueryType(), PagingTypeFactory.createListAllPaging(), null);
+		controller
+				.searchObjectsInProvisioning(new QueryType(), PagingTypeFactory.createListAllPaging(), null);
 	}
 }

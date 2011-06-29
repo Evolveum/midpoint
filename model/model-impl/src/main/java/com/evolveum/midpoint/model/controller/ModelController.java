@@ -218,7 +218,8 @@ public class ModelController {
 		return list;
 	}
 
-	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult result) {
+	private ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult result,
+			boolean searchInProvisioning) {
 		Validate.notNull(query, "Query must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -233,7 +234,11 @@ public class ModelController {
 		result.addSubresult(subResult);
 		ObjectListType list = null;
 		try {
-			list = repository.searchObjects(query, paging, subResult);
+			if (searchInProvisioning) {
+				list = provisioning.searchObjects(query, paging, subResult);
+			} else {
+				list = repository.searchObjects(query, paging, subResult);
+			}
 			subResult.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't search objects in repository", ex);
@@ -247,6 +252,15 @@ public class ModelController {
 
 		LOGGER.debug(subResult.debugDump());
 		return list;
+	}
+
+	public ObjectListType searchObjectsInProvisioning(QueryType query, PagingType paging,
+			OperationResult result) {
+		return searchObjects(query, paging, result, true);
+	}
+
+	public ObjectListType searchObjectsInRepository(QueryType query, PagingType paging, OperationResult result) {
+		return searchObjects(query, paging, result, false);
 	}
 
 	public void modifyObject(ObjectModificationType change, OperationResult result)
@@ -943,11 +957,10 @@ public class ModelController {
 
 				String accountOid = addObject(account, result);
 				user.getAccountRef().add(ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT));
-				// XXX: groups, roles later
 				addObject.recordSuccess();
 			} catch (Exception ex) {
-				// TODO: logging
-				ex.printStackTrace();
+				LoggingUtils.logException(LOGGER, "Couldn't process account construction {} for user {}", ex,
+						construction.getType(), user.getName());
 				addObject.recordFatalError("Something went terribly wrong.", ex);
 				subResult.recordWarning("Couldn't process account construction '" + construction.getType()
 						+ "'.", ex);

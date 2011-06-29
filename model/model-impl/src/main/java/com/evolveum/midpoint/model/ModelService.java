@@ -133,7 +133,7 @@ public class ModelService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service Search Objects");
 		try {
-			ObjectListType list = model.searchObjects(query, paging, operationResult);
+			ObjectListType list = model.searchObjectsInRepository(query, paging, operationResult);
 			handleOperationResult(operationResult, result);
 
 			return list;

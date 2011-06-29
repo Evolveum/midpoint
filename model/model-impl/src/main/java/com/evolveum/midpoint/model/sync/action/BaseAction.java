@@ -27,7 +27,7 @@ import java.util.List;
 
 import javax.xml.ws.Holder;
 
-import com.evolveum.midpoint.model.SynchronizationException;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -85,8 +85,7 @@ public abstract class BaseAction implements Action {
 		} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
 			FaultType info = ex.getFaultInfo();
 			if (info == null || !(info instanceof ObjectNotFoundFaultType)) {
-				throw new SynchronizationException("Can't get user. Unknown error occured.", ex,
-						ex.getFaultInfo());
+				throw new SynchronizationException("Can't get user. Unknown error occured.", ex);
 			}
 		}
 

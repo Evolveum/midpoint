@@ -26,7 +26,7 @@ import javax.xml.ws.Holder;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.SynchronizationException;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -54,8 +54,7 @@ public class DeleteUserAction extends BaseAction {
 		} catch (FaultMessage ex) {
 			String message = ex.getFaultInfo() == null ? ex.getMessage() : ex.getFaultInfo().getMessage();
 			trace.error("Couldn't delete user {}, reason: {}", userOid, message);
-			throw new SynchronizationException("Couldn't delete user '" + userOid + "'.", ex,
-					ex.getFaultInfo());
+			throw new SynchronizationException("Couldn't delete user '" + userOid + "'.", ex);
 		}
 
 		return null;

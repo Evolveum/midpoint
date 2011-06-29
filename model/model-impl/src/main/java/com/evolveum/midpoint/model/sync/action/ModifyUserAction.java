@@ -31,7 +31,7 @@ import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.SynchronizationException;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
@@ -100,10 +100,10 @@ public class ModifyUserAction extends BaseAction {
 		} catch (SchemaHandlingException ex) {
 			throw new SynchronizationException("Can't handle inbound section in schema handling", ex);
 		} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
-			throw new SynchronizationException("Can't save user", ex, ex.getFaultInfo());
+			throw new SynchronizationException("Can't save user", ex);
 		} catch (DiffException ex) {
 			throw new SynchronizationException("Can't save user. Unexpected error: "
-					+ "Couldn't create create diff.", ex, null);
+					+ "Couldn't create create diff.", ex);
 		} catch (JAXBException ex) {
 			throw new SynchronizationException("Couldn't clone user object '" + userOid + "', reason: "
 					+ ex.getMessage(), ex);

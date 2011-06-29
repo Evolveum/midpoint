@@ -20,37 +20,22 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.model;
+package com.evolveum.midpoint.model.sync;
 
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 
 /**
  * 
- * @author Vilo Repan
+ * @author lazyman
  */
 public class SynchronizationException extends Exception {
 
 	private static final long serialVersionUID = 3225341712506234556L;
-	private FaultType faultType;
 
 	public SynchronizationException(String message) {
 		super(message);
 	}
 
-	public SynchronizationException(String message, FaultType faultType) {
-		this(message, null, faultType);
-	}
-
 	public SynchronizationException(String message, Throwable throwable) {
-		this(message, throwable, null);
-	}
-
-	public SynchronizationException(String message, Throwable throwable, FaultType faultType) {
 		super(message, throwable);
-		this.faultType = faultType;
-	}
-
-	public FaultType getFaultType() {
-		return faultType;
 	}
 }
