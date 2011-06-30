@@ -24,6 +24,7 @@ package com.evolveum.midpoint.model.sync.action;
 
 import java.util.Map;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
@@ -63,12 +64,8 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 			((BaseAction) action).setProvisioning((ProvisioningService) provisioning);
 			((BaseAction) action).setSchemaHandling(schemaHandling);
 			((BaseAction) action).setRepository(repository);
-		} catch (InstantiationException ex) {
-			trace.error("Couln't create action instance, reason: {}.", ex.getMessage());
-			trace.debug("Couln't create action instance.", ex);
-		} catch (IllegalAccessException ex) {
-			trace.error("Couln't create action instance, reason: {}.", ex.getMessage());
-			trace.debug("Couln't create action instance.", ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(trace, "Couln't create action instance", ex);
 		}
 
 		return action;

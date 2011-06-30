@@ -17,7 +17,8 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- */package com.evolveum.midpoint.model.action;
+ */
+package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.controller.ModelController;

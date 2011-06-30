@@ -571,6 +571,7 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
 
 	}
 
+	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowType unmarshalChangedObject(String patchedObject) throws PatchException {
 		Validate.notNull(patchedObject);
 		ResourceObjectShadowType changedResourceShadow = null;
