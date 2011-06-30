@@ -19,53 +19,26 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
-import com.evolveum.midpoint.common.DebugUtil;
-import com.evolveum.midpoint.common.XPathUtil;
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import java.io.FileNotFoundException;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
-import java.io.FileInputStream;
-import java.io.File;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
-import com.evolveum.midpoint.provisioning.impl.RepositoryWrapper;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.exception.CommunicationException;
-import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.test.repository.BaseXDatabaseFactory;
-import com.evolveum.midpoint.provisioning.impl.ShadowCache;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerIcfImpl;
-import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
-import javax.xml.bind.JAXBException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.repository.repository_1.RepositoryPortType;
-import javax.xml.bind.JAXBContext;
-import javax.xml.namespace.QName;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
 
-import com.evolveum.midpoint.test.ldap.OpenDJUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +46,29 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Element;
 
-import static org.junit.Assert.*;
+import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.impl.ShadowCache;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
+import com.evolveum.midpoint.test.ldap.OpenDJUtil;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * Test for provisioning service implementation.
@@ -113,8 +108,10 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	protected static OpenDJUtil djUtil = new OpenDJUtil();
 	private JAXBContext jaxbctx;
 	private ResourceType resource;
+	@Autowired
 	private ConnectorManager manager;
 	private ShadowCache shadowCache;
+	@Autowired
 	private ProvisioningService provisioningService;
 	private Unmarshaller unmarshaller;
 
@@ -148,9 +145,6 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	@Before
 	public void initProvisioning() throws Exception {
 
-		ConnectorManagerIcfImpl managerImpl = new ConnectorManagerIcfImpl();
-		managerImpl.initialize();
-		manager = managerImpl;
 		assertNotNull(manager);
 
 		// The default repository content is using old format of resource
@@ -162,16 +156,6 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			addObjectFromFile(FILENAME_ACCOUNT1);
 			addObjectFromFile(FILENAME_ACCOUNT_BAD);
 
-		shadowCache = new ShadowCache();
-		shadowCache.setConnectorManager(manager);
-
-		shadowCache.setRepositoryService(repositoryService);
-
-		ProvisioningServiceImpl provisioningServiceImpl = new ProvisioningServiceImpl();
-		provisioningServiceImpl.setShadowCache(shadowCache);
-		provisioningServiceImpl.setRepositoryService(repositoryService);
-		provisioningService = provisioningServiceImpl;
-
 		assertNotNull(provisioningService);
 	}
 
@@ -180,7 +164,6 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		FileInputStream fis = new FileInputStream(file);
 		Object object = unmarshaller.unmarshal(fis);
 		ObjectType objectType = ((JAXBElement<ObjectType>) object).getValue();
-	
 		return objectType;
 	}
 
@@ -190,12 +173,11 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".addObjectFromFile");
 		repositoryService.addObject(object, result);
-		return object;// container.getObject();
+		return object;
 	}
 
 	@After
 	public void shutdownUcf() throws Exception {
-		
 		try {
 			repositoryService.deleteObject(ACCOUNT1_OID, null);
 		} catch (Exception e) {}

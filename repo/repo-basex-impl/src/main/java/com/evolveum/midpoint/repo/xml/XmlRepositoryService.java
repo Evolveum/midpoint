@@ -38,6 +38,9 @@ import javax.xml.bind.Marshaller;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang.StringUtils;
+import org.basex.core.BaseXException;
+import org.basex.server.ClientQuery;
+import org.basex.server.ClientSession;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -76,14 +79,27 @@ import com.evolveum.midpoint.xml.schema.XPathType;
 
 public class XmlRepositoryService implements RepositoryService {
 
-	private static final String DECLARE_NAMESPACE_C = "declare namespace c='"+SchemaConstants.NS_C+"';\n";
+	private static final String C_PREFIX = "c";
+
+	private static final String COMMAND_PREFIX = "";
+
+	private static final String DECLARE_NAMESPACE_C = "declare namespace c='" + SchemaConstants.NS_C + "';\n";
 	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryService.class);
-	private Collection collection;
+	private ClientSession session;
 
-	XmlRepositoryService(Collection collection) {
+	XmlRepositoryService(ClientSession session) {
 		super();
-		this.collection = collection;
+		this.session = session;
 
+	}
+
+	public void close() {
+		try {
+			session.close();
+		} catch (IOException ex) {
+			TRACE.error("Reported IO while closing session to XML Database", ex);
+			throw new SystemException("Reported IO while closing session to XML Database", ex);
+		}
 	}
 
 	@Override
@@ -91,7 +107,7 @@ public class XmlRepositoryService implements RepositoryService {
 			throws ObjectAlreadyExistsException, SchemaException {
 		String oid = null;
 		try {
-
+			// FIXME: check and add have to be done in one transaction!
 			checkAndFailIfObjectAlreadyExists(object.getOid());
 
 			// generate new oid, if necessary
@@ -106,22 +122,20 @@ public class XmlRepositoryService implements RepositoryService {
 			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
 			serializedObject = StringUtils.replace(serializedObject, "}", "}}");
 
-			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
-
-			StringBuilder query = new StringBuilder(
-					DECLARE_NAMESPACE_C)
+			StringBuilder query = new StringBuilder(COMMAND_PREFIX).append(DECLARE_NAMESPACE_C)
 					.append("let $x := ").append(serializedObject).append("\n")
 					.append("return insert node $x into //c:objects");
 
 			TRACE.trace("generated query: " + query);
 
-			service.query(query.toString());
+			ClientQuery cq = session.query(query.toString());
+			cq.execute();
 
 			return oid;
 		} catch (JAXBException ex) {
 			TRACE.error("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
-		} catch (XMLDBException ex) {
+		} catch (BaseXException ex) {
 			TRACE.error("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
 		}
@@ -133,52 +147,47 @@ public class XmlRepositoryService implements RepositoryService {
 
 		validateOid(oid);
 
-		ByteArrayInputStream in = null;
 		ObjectType object = null;
+		ClientQuery cq = null;
 		try {
 
-			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
-
-			StringBuilder query = new StringBuilder(
-					DECLARE_NAMESPACE_C);
+			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
+			query.append(DECLARE_NAMESPACE_C);
 			query.append("for $x in //c:object where $x/@oid=\"").append(oid).append("\" return $x");
 
 			TRACE.trace("generated query: " + query);
 
-			ResourceSet set = service.query(query.toString());
-			ResourceIterator iter = set.getIterator();
-			// Loop through all result items.
-			while (iter.hasMoreResources()) {
-				Resource res = iter.nextResource();
+			cq = session.query(query.toString());
 
-				if (null != object) {
-					TRACE.error("More than one object with oid {} found", oid);
-					throw new SystemException("More than one object with oid " + oid + " found");
-				}
-				Object c = res.getContent();
-				if (c instanceof String) {
-					in = new ByteArrayInputStream(((String) c).getBytes("UTF-8"));
-					JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) JAXBUtil.unmarshal(in);
+			if (cq.init() != null) {
+				while (cq.more()) {
+					String c = cq.next();
+
+					if (null != object) {
+						TRACE.error("More than one object with oid {} found", oid);
+						throw new SystemException("More than one object with oid " + oid + " found");
+					}
+
+					JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) JAXBUtil.unmarshal(c);
 					if (o != null) {
 						object = o.getValue();
 					}
 				}
 			}
-		} catch (UnsupportedEncodingException ex) {
-			TRACE.error("UTF-8 is unsupported encoding", ex);
-			throw new SystemException("UTF-8 is unsupported encoding", ex);
 		} catch (JAXBException ex) {
 			TRACE.error("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
-		} catch (XMLDBException ex) {
+		} catch (BaseXException ex) {
 			TRACE.error("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
 		} finally {
-			try {
-				if (null != in) {
-					in.close();
+			if (null != cq) {
+				try {
+					cq.close();
+				} catch (BaseXException ex) {
+					TRACE.error("Reported error by XML Database", ex);
+					throw new SystemException("Reported error by XML Database", ex);
 				}
-			} catch (IOException ex) {
 			}
 		}
 		if (object == null) {
@@ -193,15 +202,15 @@ public class XmlRepositoryService implements RepositoryService {
 			TRACE.error("objectType is null");
 			throw new IllegalArgumentException("objectType is null");
 		}
-		
-		//validate, if object type is supported
+
+		// validate, if object type is supported
 		ObjectTypes objType = ObjectTypes.getObjectType(objectType);
 		String oType = objType.getValue();
 
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		namespaces.put("idmdn", SchemaConstants.NS_C);
-		
+
 		return searchObjects(oType, paging, null, namespaces);
 	}
 
@@ -216,7 +225,7 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		namespaces.put("idmdn", SchemaConstants.NS_C);
-		
+
 		for (int index = 0; index < children.getLength(); index++) {
 			Node child = children.item(index);
 			if (child.getNodeType() != Node.ELEMENT_NODE) {
@@ -261,30 +270,27 @@ public class XmlRepositoryService implements RepositoryService {
 			// get object from repo
 			// FIXME: possible problems with resolving property reference before
 			// xml patching
-			ObjectType objectType = this.getObject(objectChange.getOid(),
-					new PropertyReferenceListType(), null);
+			ObjectType objectType = this.getObject(objectChange.getOid(), new PropertyReferenceListType(),
+					null);
 
 			// modify the object
 			PatchXml xmlPatchTool = new PatchXml();
 			String serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
 
 			// store modified object in repo
-			// Receive the XPath query service.
-			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
-
-			StringBuilder query = new StringBuilder(
-					DECLARE_NAMESPACE_C)
-					.append("replace node //c:object[@oid=\"").append(objectChange.getOid())
-					.append("\"] with ").append(serializedObject);
+			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
+			query.append(DECLARE_NAMESPACE_C).append("replace node //c:object[@oid=\"")
+					.append(objectChange.getOid()).append("\"] with ").append(serializedObject);
 
 			TRACE.trace("generated query: " + query);
 
-			service.query(query.toString());
+			ClientQuery cq = session.query(query.toString());
+			cq.execute();
 
 		} catch (PatchException ex) {
 			TRACE.error("Failed to modify object", ex);
 			throw new SystemException("Failed to modify object", ex);
-		} catch (XMLDBException ex) {
+		} catch (BaseXException ex) {
 			TRACE.error("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
 		}
@@ -297,33 +303,25 @@ public class XmlRepositoryService implements RepositoryService {
 		try {
 			ObjectType retrievedObject = getObject(oid, null, null);
 		} catch (SchemaException ex) {
-			TRACE.error("Schema validation problem occured while checking existence of the object before its deletion", ex);
-			throw new SystemException("Schema validation problem occured while checking existence of the object before its deletion", ex);
+			TRACE.error(
+					"Schema validation problem occured while checking existence of the object before its deletion",
+					ex);
+			throw new SystemException(
+					"Schema validation problem occured while checking existence of the object before its deletion",
+					ex);
 		}
 
-		ByteArrayInputStream in = null;
-		ObjectContainerType out = null;
 		try {
+			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
+			query.append(DECLARE_NAMESPACE_C);
+			query.append("delete nodes //c:object[@oid=\"").append(oid).append("\"]");
 
-			// Receive the XPath query service.
-			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
+			ClientQuery cq = session.query(query.toString());
+			cq.execute();
 
-			StringBuilder QUERY = new StringBuilder(
-					DECLARE_NAMESPACE_C);
-			QUERY.append("delete nodes //c:object[@oid=\"").append(oid).append("\"]");
-
-			service.query(QUERY.toString());
-
-		} catch (XMLDBException ex) {
+		} catch (BaseXException ex) {
 			TRACE.error("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database");
-		} finally {
-			try {
-				if (null != in) {
-					in.close();
-				}
-			} catch (IOException ex) {
-			}
 		}
 	}
 
@@ -341,7 +339,8 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:accountRef", accountOid);
-		ObjectListType retrievedObjects = searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, filters, namespaces);
+		ObjectListType retrievedObjects = searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, filters,
+				namespaces);
 		List<ObjectType> objects = retrievedObjects.getObject();
 
 		if (null == retrievedObjects || objects == null || objects.size() == 0) {
@@ -363,7 +362,8 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:resourceRef", resourceOid);
-		ObjectListType retrievedObjects = searchObjects(ObjectTypes.ACCOUNT.getObjectTypeUri(), null, filters, namespaces);
+		ObjectListType retrievedObjects = searchObjects(ObjectTypes.ACCOUNT.getObjectTypeUri(), null,
+				filters, namespaces);
 
 		@SuppressWarnings("unchecked")
 		List<ResourceObjectShadowType> objects = (List<ResourceObjectShadowType>) CollectionUtils.collect(
@@ -379,7 +379,8 @@ public class XmlRepositoryService implements RepositoryService {
 		return ros;
 	}
 
-	private void checkAndFailIfObjectAlreadyExists(String oid) throws ObjectAlreadyExistsException, SchemaException {
+	private void checkAndFailIfObjectAlreadyExists(String oid) throws ObjectAlreadyExistsException,
+			SchemaException {
 		// check if object with the same oid already exists, if yes, then fail
 		if (StringUtils.isNotEmpty(oid)) {
 			try {
@@ -388,38 +389,42 @@ public class XmlRepositoryService implements RepositoryService {
 					throw new ObjectAlreadyExistsException("Object with oid " + oid + " already exists");
 				}
 			} catch (ObjectNotFoundException e) {
-				//ignore
+				// ignore
 			}
 		}
 	}
 
-	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters, Map<String, String> namespaces) {
+	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters,
+			Map<String, String> namespaces) {
 
-		ByteArrayInputStream in = null;
 		ObjectListType objectList = new ObjectListType();
 		// FIXME: objectList.count has to contain all elements that match search
 		// criteria, but not only from paging interval
 		objectList.setCount(0);
+		ClientQuery cq = null;
 		try {
 
-			XPathQueryService service = (XPathQueryService) collection.getService("XPathQueryService", "1.0");
+			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
 
-			StringBuilder query = new StringBuilder();
 			if (namespaces != null) {
-				for (Entry<String, String> namespaceEntry: namespaces.entrySet()) {
-					query.append("declare namespace ").append(namespaceEntry.getKey()).append("='").append(namespaceEntry.getValue()).append("';\n");
+				for (Entry<String, String> namespaceEntry : namespaces.entrySet()) {
+					query.append("declare namespace ").append(namespaceEntry.getKey()).append("='")
+							.append(namespaceEntry.getValue()).append("';\n");
 				}
 			}
 
 			query.append("for $x in //c:object ");
-			if (objectType != null || (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) || filters != null) {
+			if (objectType != null
+					|| (null != paging && null != paging.getOffset() && null != paging.getMaxSize())
+					|| filters != null) {
 				query.append("where ");
 			}
 			if (objectType != null) {
 				// FIXME: possible problems with object type checking. Now it is
-				// simple string checking, because import schema is not supported by basex database
-				query.append("$x/@xsi:type=\"")
-					.append(objectType.substring(objectType.lastIndexOf("#") + 1)).append("\"");
+				// simple string checking, because import schema is not
+				// supported by basex database
+				query.append("$x/@xsi:type=\"").append(objectType.substring(objectType.lastIndexOf("#") + 1))
+						.append("\"");
 			}
 			if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
 				query.append("[fn:position() = ( ").append(paging.getOffset() * paging.getMaxSize())
@@ -429,7 +434,7 @@ public class XmlRepositoryService implements RepositoryService {
 			if (filters != null) {
 				int pos = 0;
 				for (Map.Entry<String, String> filterEntry : filters.entrySet()) {
-					if ( (pos > 0) || ( pos == 0 && (objectType != null) ) ) {
+					if ((pos > 0) || (pos == 0 && (objectType != null))) {
 						query.append(" and ");
 					}
 					// FIXME: now only refs are searched by attributes values
@@ -442,7 +447,7 @@ public class XmlRepositoryService implements RepositoryService {
 						query.append("$x/").append(filterEntry.getKey()).append("='")
 								.append(filterEntry.getValue()).append("'");
 					}
-					
+
 					pos++;
 				}
 			}
@@ -459,42 +464,39 @@ public class XmlRepositoryService implements RepositoryService {
 
 			TRACE.trace("generated query: " + query);
 
-			ResourceSet set = service.query(query.toString());
-			ResourceIterator iter = set.getIterator();
-			while (iter.hasMoreResources()) {
-				Resource res = iter.nextResource();
+			cq = session.query(query.toString());
+			if (null != cq.init()) {
+				while (cq.more()) {
+					String c = cq.next();
 
-				Object c = res.getContent();
-				if (c instanceof String) {
-					in = new ByteArrayInputStream(((String) c).getBytes("UTF-8"));
-					JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) JAXBUtil.unmarshal(in);
+					JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) JAXBUtil.unmarshal(c);
 					if (o != null) {
 						objectList.getObject().add(o.getValue());
 					}
 				}
 			}
-		} catch (UnsupportedEncodingException ex) {
-			TRACE.error("UTF-8 is unsupported encoding", ex);
-			throw new SystemException("UTF-8 is unsupported encoding", ex);
 		} catch (JAXBException ex) {
 			TRACE.error("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
-		} catch (XMLDBException ex) {
+		} catch (BaseXException ex) {
 			TRACE.error("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
 		} finally {
-			try {
-				if (null != in) {
-					in.close();
+			if (null != cq) {
+				try {
+					cq.close();
+				} catch (BaseXException ex) {
+					TRACE.error("Reported error by XML Database", ex);
+					throw new SystemException("Reported error by XML Database", ex);
 				}
-			} catch (IOException ex) {
 			}
 		}
 
 		return objectList;
 	}
 
-	private void processValueNode(Node criteriaValueNode, Map<String, String> filters, Map<String, String> namespaces, String parentPath) {
+	private void processValueNode(Node criteriaValueNode, Map<String, String> filters,
+			Map<String, String> namespaces, String parentPath) {
 		if (null == criteriaValueNode) {
 			throw new IllegalArgumentException("Query filter does not contain any values to search by");
 		}
@@ -511,9 +513,9 @@ public class XmlRepositoryService implements RepositoryService {
 				namespace = firstChild.getNamespaceURI();
 				lastPathSegment = prefix + ":" + firstChild.getLocalName();
 			} else {
-				prefix = "c:";
+				prefix = C_PREFIX;
 				namespace = SchemaConstants.NS_C;
-				lastPathSegment = "c:" + firstChild.getLocalName();
+				lastPathSegment = C_PREFIX + ":" + firstChild.getLocalName();
 			}
 			// some search filters does not contain element's text value, for
 			// these filters the value is stored in attribute

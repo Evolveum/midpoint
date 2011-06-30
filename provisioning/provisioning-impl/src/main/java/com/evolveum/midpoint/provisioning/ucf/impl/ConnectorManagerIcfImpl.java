@@ -19,27 +19,6 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.schema.XsdTypeConverter;
-import com.evolveum.midpoint.common.object.ObjectResolver;
-import com.evolveum.midpoint.common.object.ResourceTypeUtil;
-import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
-import com.evolveum.midpoint.util.ClasspathUrlFinder;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import org.identityconnectors.framework.api.ConnectorInfoManager;
-import org.identityconnectors.framework.api.ConnectorInfoManagerFactory;
-import org.identityconnectors.framework.api.ConnectorInfo;
-import org.identityconnectors.framework.api.ConnectorKey;
-import org.identityconnectors.framework.api.APIConfiguration;
-import org.identityconnectors.framework.api.ConfigurationProperties;
-import org.identityconnectors.framework.api.ConfigurationProperty;
-import org.identityconnectors.framework.api.ConnectorFacade;
-import org.identityconnectors.framework.api.ConnectorFacadeFactory;
-import org.identityconnectors.common.security.GuardedString;
 import java.io.File;
 import java.io.FileFilter;
 import java.lang.reflect.Array;
@@ -52,9 +31,35 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.PostConstruct;
+
+import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.api.APIConfiguration;
+import org.identityconnectors.framework.api.ConfigurationProperties;
+import org.identityconnectors.framework.api.ConfigurationProperty;
+import org.identityconnectors.framework.api.ConnectorFacade;
+import org.identityconnectors.framework.api.ConnectorFacadeFactory;
+import org.identityconnectors.framework.api.ConnectorInfo;
+import org.identityconnectors.framework.api.ConnectorInfoManager;
+import org.identityconnectors.framework.api.ConnectorInfoManagerFactory;
+import org.identityconnectors.framework.api.ConnectorKey;
+import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.object.ObjectResolver;
+import com.evolveum.midpoint.common.object.ResourceTypeUtil;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.util.ClasspathUrlFinder;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**
  * Currently the only implementation of the UCF Connector Manager API interface.
@@ -65,6 +70,7 @@ import org.w3c.dom.NodeList;
  * 
  * @author Radovan Semancik
  */
+@Component
 public class ConnectorManagerIcfImpl implements ConnectorManager {
 
 	// This ususally refers to WEB-INF/lib/icf-connectors
@@ -84,6 +90,7 @@ public class ConnectorManagerIcfImpl implements ConnectorManager {
 	 * Initialize the ICF implementation. Look for all connector bundles,
 	 * get basic information about them and keep that in memory.
 	 */
+	@PostConstruct
 	public void initialize() {
 		Set<URL> bundleURLs = listBundleJars();
 

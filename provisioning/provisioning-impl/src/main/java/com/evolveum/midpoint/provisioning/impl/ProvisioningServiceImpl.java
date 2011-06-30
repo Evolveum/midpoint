@@ -22,6 +22,7 @@ package com.evolveum.midpoint.provisioning.impl;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.DebugUtil;
@@ -44,8 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * Implementation of provisioning service.
@@ -64,7 +63,9 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 @Service(value = "provisioningService")
 public class ProvisioningServiceImpl implements ProvisioningService {
 
+	@Autowired
 	private ShadowCache shadowCache;
+	@Autowired
 	private RepositoryService repositoryService;
 
 	public ShadowCache getShadowCache() {

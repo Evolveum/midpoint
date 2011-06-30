@@ -21,77 +21,85 @@
  */
 package com.evolveum.midpoint.repo.xml;
 
-import org.basex.api.xmldb.BXCollection;
-import org.xmldb.api.DatabaseManager;
-import org.xmldb.api.base.Collection;
-import org.xmldb.api.base.Database;
-import org.xmldb.api.base.XMLDBException;
-import org.xmldb.api.modules.XMLResource;
+import java.io.IOException;
+
+import org.basex.BaseXServer;
+import org.basex.core.BaseXException;
+import org.basex.server.ClientQuery;
+import org.basex.server.ClientSession;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 public class XmlRepositoryServiceFactory {
 
 	/** Database driver. */
 	public static final String DRIVER = "org.basex.api.xmldb.BXDatabase";
 
-	private RepositoryService repositoryService;
 	private static final String url = "xmldb:basex://localhost:1984/midPoint";
 
+	BaseXServer server;
+
 	public void init() throws RepositoryServiceFactoryException {
-		Class<?> c;
+
+		// set debug mode for BaseX server
+		String args = "-d";
+		// start BaseX server
+		server = new BaseXServer(args);
+		
+		boolean newDb = false;
+
 		try {
-			c = Class.forName(DRIVER);
-			Database db = (Database) c.newInstance();
-			DatabaseManager.registerDatabase(db);
-			// TODO: fix db initialization
-			boolean newDb = false;
+			ClientSession session = new ClientSession("localhost", 1984, "admin", "admin");
 			try {
-				new BXCollection("midPoint", true);
-			} catch (XMLDBException ex) {
+			session.execute("OPEN midPoint");
+			} catch (BaseXException ex) {
 				if ("Database 'midPoint' was not found.".equals(ex.getMessage())) {
-					// db does not exists yet, we will initialize it
 					newDb = true;
-				} else {
-					throw ex;
 				}
 			}
 			if (newDb) {
-				BXCollection collection = new BXCollection("midPoint", false);
-				XMLResource res = (XMLResource) collection.createResource("objects",
-						XMLResource.RESOURCE_TYPE);
-				res.setContent("<c:objects xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"/>");
-				collection.storeResource(res);
+				//create and initialize midPoint DB
+				// FIXME: remove hardcoded values
+				session.execute("CREATE DB midPoint");
+				String serializedObject = "<c:objects xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"/>";
+				StringBuilder query = new StringBuilder()
+						.append("declare namespace c='" + SchemaConstants.NS_C + "';\n")
+						.append("let $x := ").append(serializedObject).append("\n")
+						.append("return insert node $x into doc(\"midPoint\")");
+
+				ClientQuery cq;
+
+				cq = session.query(query.toString());
+				cq.execute();
 			}
-		} catch (ClassNotFoundException e) {
-			throw new RepositoryServiceFactoryException("Class " + DRIVER
-					+ " for XML DB driver was not found", e);
-		} catch (InstantiationException e) {
-			throw new RepositoryServiceFactoryException("Failed to create instance for class " + DRIVER, e);
-		} catch (IllegalAccessException e) {
-			throw new RepositoryServiceFactoryException("Failed to create instance for class " + DRIVER, e);
-		} catch (XMLDBException e) {
-			throw new RepositoryServiceFactoryException("Xml db exception during client initialization", e);
+		} catch (BaseXException e) {
+			throw new RepositoryServiceFactoryException("XML DB Exception during DB initialization", e);
+		} catch (IOException e) {
+			throw new RepositoryServiceFactoryException("XML DB IO Exception during DB initialization", e);
 		}
 
 	}
 
-	public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
-		if (null == repositoryService) {
-			try {
-				Collection collection = DatabaseManager.getCollection(url);
-				if (null == collection) {
-					throw new RepositoryServiceFactoryException(
-							"Error retrieving midPoint collection from xml database");
-				}
-				repositoryService = new XmlRepositoryService(collection);
-			} catch (XMLDBException e) {
-				throw new RepositoryServiceFactoryException("Xml db exception during client initialization",
-						e);
-			}
+	public void destroy() {
+		if (null != server) {
+			server.stop();
 		}
+	}
 
-		return repositoryService;
+	public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
+		try {
+
+			// TODO: remove hardcoded values
+			ClientSession session = new ClientSession("localhost", 1984, "admin", "admin");
+			session.execute("OPEN midPoint");
+			RepositoryService repositoryService = new XmlRepositoryService(session);
+			return repositoryService;
+		} catch (IOException e) {
+			throw new RepositoryServiceFactoryException("XML DB IO Exception during client initialization", e);
+		} catch (BaseXException e) {
+			throw new RepositoryServiceFactoryException("XML DB Exception during client initialization", e);
+		}
 	}
 
 }
