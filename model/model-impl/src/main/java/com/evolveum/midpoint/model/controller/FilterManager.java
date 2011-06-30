@@ -20,21 +20,20 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.model.filter;
+package com.evolveum.midpoint.model.controller;
 
 import java.util.List;
-import org.w3c.dom.Node;
+import java.util.Map;
 
 /**
- *
+ * 
  * @author Igor Farinic
  */
-public interface Filter {
+public interface FilterManager<T extends Filter> {
 
-    void setParameters(List<Object> parameters);
+	void setFilterMapping(Map<String, Class<T>> filterMap);
 
-    List<Object> getParameters();
+	Filter getFilterInstance(String uri);
 
-    public Node apply(Node node);
-
+	Filter getFilterInstance(String uri, List<Object> parameters);
 }

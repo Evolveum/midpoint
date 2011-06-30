@@ -19,21 +19,23 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  * Portions Copyrighted 2010 Forgerock
  */
+package com.evolveum.midpoint.model.controller;
 
-package com.evolveum.midpoint.model.filter;
-
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
 import java.util.List;
 import java.util.Map;
+
+import com.evolveum.midpoint.api.logging.LoggingUtils;
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.logging.TraceManager;
 
 /**
  * 
  * @author Igor Farinic
+ * 
  */
 public class FilterManagerImpl<T extends Filter> implements FilterManager<T> {
 
-	private static final Trace TRACE = TraceManager.getTrace(FilterManagerImpl.class);
+	private static final Trace LOGGER = TraceManager.getTrace(FilterManagerImpl.class);
 	private Map<String, Class<T>> filterMap;
 
 	@Override
@@ -57,12 +59,8 @@ public class FilterManagerImpl<T extends Filter> implements FilterManager<T> {
 		try {
 			filter = clazz.newInstance();
 			filter.setParameters(parameters);
-		} catch (InstantiationException ex) {
-			TRACE.error("Couln't create filter instance, reason: {}.", ex.getMessage());
-			TRACE.debug("Couln't create filter instance.", ex);
-		} catch (IllegalAccessException ex) {
-			TRACE.error("Couln't create filter instance, reason: {}.", ex.getMessage());
-			TRACE.debug("Couln't create filter instance.", ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couln't create filter instance", ex);
 		}
 
 		return filter;

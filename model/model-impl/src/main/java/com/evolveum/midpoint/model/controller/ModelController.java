@@ -241,8 +241,14 @@ public class ModelController {
 			}
 			subResult.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't search objects in repository", ex);
-			subResult.recordFatalError("Couldn't search objects in repository.", ex);
+			String message;
+			if (!searchInProvisioning) {
+				message = "Couldn't search objects in repository";
+			} else {
+				message = "Couldn't search objects in provisioning";
+			}
+			LoggingUtils.logException(LOGGER, message, ex);
+			subResult.recordFatalError(message, ex);
 		}
 
 		if (list == null) {

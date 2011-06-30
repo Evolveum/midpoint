@@ -17,24 +17,41 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.model.filter;
 
-import java.util.List;
-import java.util.Map;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
+
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 /**
- *
- * @author Igor Farinic
+ * 
+ * @author lazyman
+ * 
  */
-public interface FilterManager<T extends Filter> {
+public class DiacriticsFilter extends AbstractFilter {
 
-    void setFilterMapping(Map<String, Class<T>> filterMap);
+	@Override
+	public Node apply(Node node) {
+		String value = getValue(node);
+		if (StringUtils.isEmpty(value)) {
+			return node;
+		}
 
-    Filter getFilterInstance(String uri);
+		String newValue = Normalizer.normalize(value, Form.NFD).replaceAll(
+				"\\p{InCombiningDiacriticalMarks}+", "");
 
-    Filter getFilterInstance(String uri, List<Object> parameters);
+		Node newNode = node.cloneNode(false);
+		if (node.getNodeType() == Node.TEXT_NODE) {
+			newNode.setTextContent(newValue);
+		} else {
+			// Element Node
+			((Element) newNode).setTextContent(newValue);
+		}
 
+		return newNode;
+	}
 }

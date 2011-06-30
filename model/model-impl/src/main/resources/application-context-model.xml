@@ -112,7 +112,7 @@
         </property>
     </bean>
 
-    <bean id="filterManager" class="com.evolveum.midpoint.model.filter.FilterManagerImpl">
+    <bean id="filterManager" class="com.evolveum.midpoint.model.controller.FilterManagerImpl">
         <property name="filterMapping">
             <map>
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#emptyFilter">

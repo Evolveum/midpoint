@@ -25,25 +25,48 @@ package com.evolveum.midpoint.model.filter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.Text;
+
+import com.evolveum.midpoint.model.controller.Filter;
+
 /**
- *
+ * 
  * @author Igor Farinic
+ * 
  */
 public abstract class AbstractFilter implements Filter {
 
-    private List<Object> parameters;
+	private List<Object> parameters;
 
-    @Override
-    public List<Object> getParameters() {
-        if (parameters == null) {
-            parameters = new ArrayList<Object>();
-        }
-        return parameters;
-    }
+	@Override
+	public List<Object> getParameters() {
+		if (parameters == null) {
+			parameters = new ArrayList<Object>();
+		}
+		return parameters;
+	}
 
-    @Override
-    public void setParameters(List<Object> parameters) {
-        this.parameters = parameters;
-    }
+	@Override
+	public void setParameters(List<Object> parameters) {
+		this.parameters = parameters;
+	}
 
+	protected String getValue(Node node) {
+		String value = null;
+		if (node.getNodeType() == Node.TEXT_NODE) {
+			value = ((Text) node).getData();
+		} else if (node.getNodeType() == Node.ELEMENT_NODE) {
+			// Little bit simplistic
+			// TODO: look inside the node
+			value = ((Element) node).getTextContent();
+		} else {
+			throw new IllegalArgumentException(
+					"PatternFilter can only work with text or element nodes, got node type "
+							+ node.getNodeType() + " (" + node + ")");
+		}
+
+		return value;
+	}
 }

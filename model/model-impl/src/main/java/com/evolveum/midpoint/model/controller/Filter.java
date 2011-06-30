@@ -19,30 +19,22 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  * Portions Copyrighted 2010 Forgerock
  */
+package com.evolveum.midpoint.model.controller;
 
-package com.evolveum.midpoint.model.filter;
+import java.util.List;
 
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.DebugUtil;
-import com.evolveum.midpoint.logging.TraceManager;
-
 /**
- * Empty filter. It does not tranformate the value at all. It only logs it. Can
- * be used in tests and for diagnostics.
  * 
  * @author Igor Farinic
- * @author Radovan Semancik
  * 
  */
-public class EmptyFilter extends AbstractFilter {
+public interface Filter {
 
-	private static final Trace LOGGER = TraceManager.getTrace(EmptyFilter.class);
+	void setParameters(List<Object> parameters);
 
-	@Override
-	public Node apply(Node node) {
-		LOGGER.debug("EmptyFilter see {}", DebugUtil.prettyPrint(node));
-		return node;
-	}
+	List<Object> getParameters();
+
+	Node apply(Node node);
 }

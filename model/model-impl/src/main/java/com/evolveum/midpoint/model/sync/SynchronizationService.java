@@ -102,7 +102,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				// everything except OID. But we can live with that.
 				objectShadow = (ResourceObjectShadowType) ((ObjectChangeAdditionType) change
 						.getObjectChange()).getObject();
-			} else {
+			}
+			if (objectShadow == null) {
 				throw new IllegalArgumentException("Change doesn't contain ResourceObjectShadow.");
 			}
 
@@ -375,7 +376,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			LOGGER.debug("CORRELATION: expression for OID {} results in filter {}", resourceShadow.getOid(),
 					DebugUtil.prettyPrint(query));
 			PagingType paging = new PagingType();
-			ObjectListType container = controller.searchObjectsInProvisioning(query, paging,
+			ObjectListType container = controller.searchObjectsInRepository(query, paging,
 					new OperationResult("Search Objects"));
 			if (container == null) {
 				return users;
@@ -501,6 +502,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		// new ExpressionHolder(
 		// expression));
 		// TODO: implement
-		return "";
+		return "will";
 	}
 }

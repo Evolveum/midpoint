@@ -22,8 +22,6 @@ package com.evolveum.midpoint.model.action;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,9 +30,7 @@ import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.parsers.ParserConfigurationException;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,20 +39,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
-
-import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
-import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
-import com.evolveum.midpoint.provisioning.service.BaseResourceIntegration;
-import com.evolveum.midpoint.provisioning.service.ResourceAccessInterface;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -68,8 +58,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
@@ -79,7 +67,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -87,13 +74,12 @@ import com.evolveum.midpoint.xml.schema.XPathType;
 		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml" })
 public class AddUserActionTest {
 
+	private static final Trace LOGGER = TraceManager.getTrace(AddUserActionTest.class);
 	@Autowired(required = true)
-	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
+//	private ResourceObjectChangeListener resourceObjectChangeService;
+	 private ResourceObjectChangeListenerPortType resourceObjectChangeService;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
-
-	// @Autowired(required = true)
-	// private ResourceAccessInterface rai;
 
 	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
@@ -116,7 +102,7 @@ public class AddUserActionTest {
 		return resourceObject;
 	}
 
-	@Ignore //FIXME: fix test
+	// @Ignore //FIXME: fix test
 	@Test
 	public void testAddUserAction() throws Exception {
 
@@ -144,9 +130,10 @@ public class AddUserActionTest {
 					.setResourceRef(null);
 
 			assertNotNull(resourceType);
-			
-			resourceObjectChangeService.notifyChange(change);
-
+			OperationResult result = new OperationResult("Test Operation");
+			 resourceObjectChangeService.notifyChange(change);
+//			resourceObjectChangeService.notifyChange(change, result);
+			LOGGER.info(result.debugDump());
 			// creating filter to search user according to the user name
 			Document doc = DOMUtil.getDocument();
 
@@ -166,20 +153,23 @@ public class AddUserActionTest {
 
 			ObjectListType list = repositoryService.searchObjects(query, new PagingType(),
 					new OperationResult("Search Objects"));
-
-			for (ObjectType objectType : list.getObject()) {
-				addedUser = (UserType) objectType;
-			}
-			List<ObjectReferenceType> accountRefs = addedUser.getAccountRef();
-
+			assertNotNull(list);
+			assertEquals(1, list.getObject().size());
+			
+			addedUser = (UserType) list.getObject().get(0);
 			assertNotNull(addedUser);
+			
+			List<ObjectReferenceType> accountRefs = addedUser.getAccountRef();			
 			assertEquals(accountOid, accountRefs.get(0).getOid());
 
 			AccountShadowType addedAccount = (AccountShadowType) repositoryService.getObject(accountOid,
-					new PropertyReferenceListType(), new OperationResult("Get Object"));
+					new PropertyReferenceListType(), result);
 
 			assertNotNull(addedAccount);
 			assertEquals(addedUser.getName(), addedAccount.getName());
+		} catch (Exception ex) {
+			LOGGER.info("a", ex);
+			throw ex;
 		} finally {
 			// cleanup repo
 			ModelServiceUtil.deleteObject(repositoryService, accountOid);

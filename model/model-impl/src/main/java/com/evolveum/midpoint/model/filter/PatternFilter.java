@@ -22,18 +22,21 @@
 
 package com.evolveum.midpoint.model.filter;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.xml.namespace.QName;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * Pattern-based filter. Can replace portions of imput matched by
@@ -50,7 +53,7 @@ public class PatternFilter extends AbstractFilter {
     private static final QName ELEMENT_PATTERN = new QName(SchemaConstants.NS_FILTER,"pattern");
     private static final QName ELEMENT_REPLACEMENT = new QName(SchemaConstants.NS_FILTER,"replacement");
 
-    private static transient Trace logger = TraceManager.getTrace(PatternFilter.class);
+	private static final Trace LOGGER = TraceManager.getTrace(PatternFilter.class);
     private List<Replace> replaces;
 
     @Override
@@ -118,7 +121,7 @@ public class PatternFilter extends AbstractFilter {
                     replaces.add(new Replace(pattern, replacement));
 
                 } else {
-                    logger.debug("Ignoring unknown parameter {} in PatternFilter",e.getLocalName());
+                    LOGGER.debug("Ignoring unknown parameter {} in PatternFilter",e.getLocalName());
                 }
             }
         }
