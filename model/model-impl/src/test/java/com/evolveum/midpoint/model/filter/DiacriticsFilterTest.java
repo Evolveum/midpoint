@@ -25,6 +25,9 @@ import org.junit.Test;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.model.controller.Filter;
+import com.evolveum.midpoint.util.DOMUtil;
+
+import static org.junit.Assert.*;
 
 /**
  * 
@@ -33,6 +36,8 @@ import com.evolveum.midpoint.model.controller.Filter;
  */
 public class DiacriticsFilterTest {
 
+	private static final String input = "čišćeľščťžýáíéäöåøřĺąćęłńóśźżrůāēīūŗļķņģšžčāäǟḑēīļņōȯȱõȭŗšțūžÇĞIİÖŞÜáàâéèêíìîóòôúùûáâãçéêíóôõú";
+	private static final String expected = "ciscelsctzyaieaoaørlacełnoszzruaeiurlkngszcaaadeilnooooorstuzCGIIOSUaaaeeeiiiooouuuaaaceeiooou";
 	private Filter filter;
 
 	@Before
@@ -40,26 +45,41 @@ public class DiacriticsFilterTest {
 		filter = new DiacriticsFilter();
 	}
 
-	@Test
+	@Test(expected = IllegalArgumentException.class)
 	public void testNullNode() {
-
+		filter.apply(null);
 	}
 
 	@Test
 	public void testNullValue() {
-
+		Node testNode = DOMUtil.getDocument().createElement("testTag");
+		testNode.setTextContent(null);
+		Node node = filter.apply(testNode);
+		assertEquals(node, testNode);
 	}
 
 	@Test
 	public void testEmptyValue() {
-
+		Node testNode = DOMUtil.getDocument().createElement("testTag");
+		testNode.setTextContent("");
+		Node node = filter.apply(testNode);
+		assertEquals(node, testNode);
 	}
 
 	@Test
-	public void testValue() {
-		final String input = "čišćeľščťžýáíéäöåøřĺąćęłńóśźżrůāēīūŗļķņģšžčāäǟḑēīļņōȯȱõȭŗšțūžÇĞIİÖŞÜáàâéèêíìîóòôúùûáâãçéêíóôõú";
-		final String expected = "ciscelsctzyaieaoaørlacełnoszzruaeiurlkngszcaaadeilnooooorstuzCGIIOSUaaaeeeiiiooouuuaaaceeiooou";
-		
-//		Node node = filter.apply(testNode);
+	public void testValueInElement() {
+		Node testNode = DOMUtil.getDocument().createElement("tag");
+		testNode.setTextContent(input);
+		Node node = filter.apply(testNode);
+
+		assertEquals(expected, node.getTextContent());
+	}
+
+	@Test
+	public void testValueInTextnode() {
+		Node testNode = DOMUtil.getDocument().createTextNode(input);
+		Node node = filter.apply(testNode);
+
+		assertEquals(expected, node.getNodeValue());
 	}
 }

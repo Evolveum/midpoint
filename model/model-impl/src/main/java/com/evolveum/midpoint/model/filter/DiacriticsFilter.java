@@ -24,6 +24,7 @@ import java.text.Normalizer;
 import java.text.Normalizer.Form;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -36,6 +37,7 @@ public class DiacriticsFilter extends AbstractFilter {
 
 	@Override
 	public Node apply(Node node) {
+		Validate.notNull(node, "Node must not be null.");
 		String value = getValue(node);
 		if (StringUtils.isEmpty(value)) {
 			return node;

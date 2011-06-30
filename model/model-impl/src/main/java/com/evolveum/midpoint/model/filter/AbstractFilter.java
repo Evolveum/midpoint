@@ -60,7 +60,7 @@ public abstract class AbstractFilter implements Filter {
 		} else if (node.getNodeType() == Node.ELEMENT_NODE) {
 			// Little bit simplistic
 			// TODO: look inside the node
-			value = ((Element) node).getTextContent();
+			value = node.getTextContent();
 		} else {
 			throw new IllegalArgumentException(
 					"PatternFilter can only work with text or element nodes, got node type "

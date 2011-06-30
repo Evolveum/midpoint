@@ -502,6 +502,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		// new ExpressionHolder(
 		// expression));
 		// TODO: implement
+		LOGGER.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
 		return "will";
 	}
 }
