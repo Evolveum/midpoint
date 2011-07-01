@@ -128,10 +128,15 @@ public class ModelController {
 	public String addUser(UserType user, UserTemplateType userTemplate, OperationResult result)
 			throws ObjectAlreadyExistsException {
 		Validate.notNull(user, "User must not be null.");
-		Validate.notNull(userTemplate, "User template must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
-		LOGGER.debug("Adding user {}, oid {} using template {}, oid {}.",
-				new Object[] { user.getName(), user.getOid(), userTemplate.getName(), userTemplate.getOid() });
+		
+		if (userTemplate == null) {
+			//TODO: get user template from system configuration
+		}
+		
+//		Validate.notNull(userTemplate, "User template must not be null.");		
+//		LOGGER.debug("Adding user {}, oid {} using template {}, oid {}.",
+//				new Object[] { user.getName(), user.getOid(), userTemplate.getName(), userTemplate.getOid() });
 
 		OperationResult subResult = new OperationResult("Add User With User Template");
 		result.addSubresult(subResult);

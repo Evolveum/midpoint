@@ -24,16 +24,15 @@ package com.evolveum.midpoint.model.sync.action;
 
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
-import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
@@ -49,7 +48,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  */
 public class AddUserAction extends BaseAction {
 
-	private static Trace trace = TraceManager.getTrace(AddUserAction.class);
+	private static Trace LOGGER = TraceManager.getTrace(AddUserAction.class);
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
@@ -60,51 +59,80 @@ public class AddUserAction extends BaseAction {
 		Validate.notNull(shadowAfterChange, "Resource object shadow after change must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
-		UserType userType = getUser(userOid, result);
+		OperationResult subResult = new OperationResult("Add User Action");
+		result.addSubresult(subResult);
 
-		ObjectFactory of = new ObjectFactory();
-		if (userType == null) {
-			// user was not found, so create user
-			userType = of.createUserType();
-			UserTemplateType userTemplate = getUserTemplate(result);
+		try {
+			UserType user = getUser(userOid, subResult);
+			if (user == null) {
+				user = new ObjectFactory().createUserType();
 
-			try {
-
-				if (trace.isDebugEnabled()) {
-					trace.debug("Action:addUser: Resource Object Shadow before action: {}",
-							DebugUtil.toReadableString(shadowAfterChange));
-				}
-				userType = getSchemaHandling().applyInboundSchemaHandlingOnUser(userType, shadowAfterChange);
-
-				if (trace.isDebugEnabled()) {
-					trace.debug("Action:addUser: User after processing of inbound expressions: {}",
-							DebugUtil.toReadableString(userType));
+				UserTemplateType userTemplate = null;
+				String userTemplateOid = getUserTemplateOid();
+				if (StringUtils.isNotEmpty(userTemplateOid)) {
+					userTemplate = getModel().getObject(userTemplateOid, new PropertyReferenceListType(),
+							subResult, UserTemplateType.class);
 				}
 
-				// apply user template
-				userType = getSchemaHandling().applyUserTemplate(userType, userTemplate);
-
-				if (trace.isDebugEnabled()) {
-					trace.debug("Action:addUser: User after processing of user template: {}",
-							DebugUtil.toReadableString(userType));
-				}
-
-				// save user
-				userOid = getModel().addObject(userType, result);
-			} catch (SchemaHandlingException ex) {
-				throw new SynchronizationException("Couldn't apply user template '" + userTemplate.getOid()
-						+ "' on user '" + userOid + "'.", ex);
-			} catch (PatchException ex) {
-				throw new SynchronizationException("Couldn't apply user template '" + userTemplate.getOid()
-						+ "' on user '" + userOid + "'.", ex);
-			} catch (Exception ex) {
-				throw new SynchronizationException("Can't save user", ex);
+				userOid = getModel().addUser(user, userTemplate, subResult);
+			} else {
+				LOGGER.debug("User with oid {} already exists, skipping create.",
+						new Object[] { user.getOid() });
 			}
-		} else {
-			trace.debug("User already exists ({}), skipping create.", userType.getOid());
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't perform Add User Action", ex);
+			throw new SynchronizationException(ex.getMessage(), ex);
 		}
 
 		return userOid;
+
+		// ObjectFactory of = new ObjectFactory();
+		// if (user == null) {
+		// // user was not found, so create user
+		// user = of.createUserType();
+		// UserTemplateType userTemplate = getUserTemplate(result);
+		//
+		// try {
+		//
+		// if (LOGGER.isDebugEnabled()) {
+		// LOGGER.debug("Action:addUser: Resource Object Shadow before action: {}",
+		// DebugUtil.toReadableString(shadowAfterChange));
+		// }
+		// user = getSchemaHandling().applyInboundSchemaHandlingOnUser(user,
+		// shadowAfterChange);
+		//
+		// if (LOGGER.isDebugEnabled()) {
+		// LOGGER.debug("Action:addUser: User after processing of inbound expressions: {}",
+		// DebugUtil.toReadableString(user));
+		// }
+		//
+		// // apply user template
+		// user = getSchemaHandling().applyUserTemplate(user, userTemplate);
+		//
+		// if (LOGGER.isDebugEnabled()) {
+		// LOGGER.debug("Action:addUser: User after processing of user template: {}",
+		// DebugUtil.toReadableString(user));
+		// }
+		//
+		// // save user
+		// userOid = getModel().addObject(user, result);
+		// } catch (SchemaHandlingException ex) {
+		// throw new SynchronizationException("Couldn't apply user template '" +
+		// userTemplate.getOid()
+		// + "' on user '" + userOid + "'.", ex);
+		// } catch (PatchException ex) {
+		// throw new SynchronizationException("Couldn't apply user template '" +
+		// userTemplate.getOid()
+		// + "' on user '" + userOid + "'.", ex);
+		// } catch (Exception ex) {
+		// throw new SynchronizationException("Can't save user", ex);
+		// }
+		// } else {
+		// LOGGER.debug("User already exists ({}), skipping create.",
+		// user.getOid());
+		// }
+		//
+		// return userOid;
 	}
 
 	private String getUserTemplateOid() {
@@ -127,23 +155,5 @@ public class AddUserAction extends BaseAction {
 		}
 
 		return null;
-	}
-
-	private UserTemplateType getUserTemplate(OperationResult result) throws SynchronizationException {
-		String userTemplateOid = getUserTemplateOid();
-		if (userTemplateOid == null) {
-			throw new SynchronizationException("User Template Oid not defined in parameters for this action.");
-		}
-
-		UserTemplateType userTemplate = null;
-		try {
-			userTemplate = getModel().getObject(userTemplateOid,
-					new PropertyReferenceListType(), result, UserTemplateType.class);
-		} catch (Exception ex) {
-			throw new SynchronizationException("Couldn't get user template with oid '" + userTemplateOid
-					+ "'.", ex);
-		}
-
-		return userTemplate;
 	}
 }

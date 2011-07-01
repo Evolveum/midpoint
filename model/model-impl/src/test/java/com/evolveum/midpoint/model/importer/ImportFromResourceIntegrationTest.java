@@ -29,10 +29,10 @@ import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
-		"classpath:application-context-provisioning-test.xml",
-		"classpath:application-context-model.xml"})
+//@RunWith(SpringJUnit4ClassRunner.class)
+//@ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
+//		"classpath:application-context-provisioning-test.xml",
+//		"classpath:application-context-model.xml"})
 public class ImportFromResourceIntegrationTest extends OpenDJUnitTestAdapter {
 	
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/importer/opendj-resource.xml";
@@ -48,23 +48,23 @@ public class ImportFromResourceIntegrationTest extends OpenDJUnitTestAdapter {
 	private ModelService model;
 	
 	public ImportFromResourceIntegrationTest() throws JAXBException {
-		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-		unmarshaller = jaxbctx.createUnmarshaller();
+//		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
+//		unmarshaller = jaxbctx.createUnmarshaller();
 	}
 	
 	@BeforeClass
     public static void startLdap() throws Exception{
-        startACleanDJ();
+//        startACleanDJ();
     }
     
     @AfterClass
     public static void stopLdap() throws Exception{
-        stopDJ();
+//        stopDJ();
     }
 	
 	@Before
 	public void setUp() throws Exception {
-		addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
+//		addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
 	}
 
 	@After

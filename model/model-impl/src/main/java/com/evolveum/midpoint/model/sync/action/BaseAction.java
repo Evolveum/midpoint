@@ -25,6 +25,8 @@ package com.evolveum.midpoint.model.sync.action;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.Action;
@@ -64,7 +66,7 @@ public abstract class BaseAction implements Action {
 	}
 
 	protected UserType getUser(String oid, OperationResult result) throws SynchronizationException {
-		if (oid == null) {
+		if (StringUtils.isEmpty(oid)) {
 			return null;
 		}
 
@@ -73,7 +75,8 @@ public abstract class BaseAction implements Action {
 		} catch (ObjectNotFoundException ex) {
 			// user was not found, we return null
 		} catch (Exception ex) {
-			throw new SynchronizationException("Can't get user. Unknown error occured.", ex);
+			throw new SynchronizationException("Can't get user with oid '" + oid
+					+ "'. Unknown error occured.", ex);
 		}
 
 		return null;

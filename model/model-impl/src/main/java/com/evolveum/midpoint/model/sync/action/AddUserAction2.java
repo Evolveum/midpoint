@@ -22,14 +22,12 @@ package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.controller.ModelController;
-import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
- * 
+ * s
  * @author lazyman
  * 
  */
@@ -43,6 +41,6 @@ public class AddUserAction2 {
 
 		UserTemplateType userTemplate = model.getObject("USER_TEMPLATE_OID", new PropertyReferenceListType(),
 				subResult, UserTemplateType.class);
-		String userOid = model.addUser(user, userTemplate, subResult);
+		model.addUser(user, userTemplate, subResult);
 	}
 }
