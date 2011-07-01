@@ -21,14 +21,13 @@
  */
 package com.evolveum.midpoint.repo.xml;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.UUID;
 
 import javax.xml.bind.JAXBElement;
@@ -44,12 +43,6 @@ import org.basex.server.ClientSession;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xmldb.api.base.Collection;
-import org.xmldb.api.base.Resource;
-import org.xmldb.api.base.ResourceIterator;
-import org.xmldb.api.base.ResourceSet;
-import org.xmldb.api.base.XMLDBException;
-import org.xmldb.api.modules.XPathQueryService;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
@@ -64,7 +57,6 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -513,9 +505,19 @@ public class XmlRepositoryService implements RepositoryService {
 				namespace = firstChild.getNamespaceURI();
 				lastPathSegment = prefix + ":" + firstChild.getLocalName();
 			} else {
-				prefix = C_PREFIX;
-				namespace = SchemaConstants.NS_C;
-				lastPathSegment = C_PREFIX + ":" + firstChild.getLocalName();
+				//if element has no prefix, then check if it has defined/overriden default namespace
+				String defaultNamespace = firstChild.lookupNamespaceURI(null);
+				if (StringUtils.isNotEmpty(defaultNamespace)) {
+					//FIXME: possible problem with many generated prefixes
+					prefix = new Integer((new Random()).nextInt(10000)).toString();
+					namespace = defaultNamespace;
+					lastPathSegment = prefix + ":" + firstChild.getLocalName();					
+				} else {
+					//default action: no prefix, no default namespace
+					prefix = C_PREFIX;
+					namespace = SchemaConstants.NS_C;
+					lastPathSegment = prefix + ":" + firstChild.getLocalName();
+				}
 			}
 			// some search filters does not contain element's text value, for
 			// these filters the value is stored in attribute
