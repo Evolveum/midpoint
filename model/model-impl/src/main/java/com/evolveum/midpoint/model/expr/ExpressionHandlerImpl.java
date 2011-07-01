@@ -28,6 +28,10 @@ import org.springframework.stereotype.Component;
  * 
  */
 @Component
-public class ExpressionHandlerImpl {
+public class ExpressionHandlerImpl implements ExpressionHandler {
 
+	// public void evaluateExpression(List<Expression> expressions) throws
+	// ExpressionException {
+	//
+	// }
 }
