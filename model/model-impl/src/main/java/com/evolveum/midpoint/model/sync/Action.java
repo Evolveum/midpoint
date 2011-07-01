@@ -24,7 +24,7 @@ package com.evolveum.midpoint.model.sync;
 
 import java.util.List;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
@@ -37,7 +37,7 @@ public interface Action {
 
 	String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-			OperationResultType resultType) throws SynchronizationException;
+			OperationResult result) throws SynchronizationException;
 
 	void setParameters(List<Object> parameters);
 

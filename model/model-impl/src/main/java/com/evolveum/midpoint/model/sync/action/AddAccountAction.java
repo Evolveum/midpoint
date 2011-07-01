@@ -22,18 +22,16 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import javax.xml.ws.Holder;
-
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
 /**
  * 
@@ -46,7 +44,7 @@ public class AddAccountAction extends BaseAction {
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-			OperationResultType resultType) throws SynchronizationException {
+			OperationResult result) throws SynchronizationException {
 		if (!(change.getShadow() instanceof AccountShadowType)) {
 			throw new SynchronizationException("Resource object is not account (class '"
 					+ AccountShadowType.class + "'), but it's '" + change.getShadow().getClass() + "'.");
@@ -76,7 +74,7 @@ public class AddAccountAction extends BaseAction {
 			// account.getOid());
 			// provisioning.addObject(container, scripts, new
 			// Holder<OperationalResultType>());
-			getModel().addObject(account, new Holder<OperationResultType>(resultType));
+			getModel().addObject(account, result);
 			// } catch (SchemaHandlingException ex) {
 			// trace.error("Couldn't add account to provisioning: Couldn't apply resource outbound schema handling "
 			// +
@@ -90,22 +88,11 @@ public class AddAccountAction extends BaseAction {
 			// change.getResource().getOid() + "') on account '" +
 			// account.getOid() + "', reason: " + ex.getMessage() + ".",
 			// ex.getFaultType());
-		} catch (FaultMessage ex) {
-			trace.error("Couldn't add account to provisioning, reason: " + getMessage(ex));
+		} catch (Exception ex) {
+			LoggingUtils.logException(trace, "Couldn't add account to provisioning", ex);
 			throw new SynchronizationException("Can't add account to provisioning.", ex);
 		}
 
 		return userOid;
-	}
-
-	private String getMessage(FaultMessage ex) {
-		String message = null;
-		if (ex.getFaultInfo() != null) {
-			message = ex.getFaultInfo().getMessage();
-		} else {
-			message = ex.getMessage();
-		}
-
-		return message;
 	}
 }

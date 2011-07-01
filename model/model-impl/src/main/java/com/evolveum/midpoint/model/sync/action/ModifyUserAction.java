@@ -23,7 +23,6 @@
 package com.evolveum.midpoint.model.sync.action;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.ws.Holder;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
@@ -37,7 +36,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletion
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -59,8 +57,8 @@ public class ModifyUserAction extends BaseAction {
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-			OperationResultType resultType) throws SynchronizationException {
-		UserType userType = getUser(userOid, resultType);
+			OperationResult result) throws SynchronizationException {
+		UserType userType = getUser(userOid, result);
 		if (userType == null) {
 			throw new SynchronizationException("Can't find user with oid '" + userOid + "'.");
 		}
@@ -92,21 +90,21 @@ public class ModifyUserAction extends BaseAction {
 
 			ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
 			if (modification != null && modification.getOid() != null) {
-				getModel().modifyObject(modification, new Holder<OperationResultType>(resultType));
+				getModel().modifyObject(modification, result);
 			} else {
 				logger.warn("Diff returned null for changes of user {}, caused by shadow {}",
 						userType.getOid(), shadowAfterChange.getOid());
 			}
 		} catch (SchemaHandlingException ex) {
 			throw new SynchronizationException("Can't handle inbound section in schema handling", ex);
-		} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
-			throw new SynchronizationException("Can't save user", ex);
 		} catch (DiffException ex) {
 			throw new SynchronizationException("Can't save user. Unexpected error: "
 					+ "Couldn't create create diff.", ex);
 		} catch (JAXBException ex) {
 			throw new SynchronizationException("Couldn't clone user object '" + userOid + "', reason: "
 					+ ex.getMessage(), ex);
+		} catch (Exception ex) {
+			throw new SynchronizationException("Can't save user", ex);
 		}
 
 		return userOid;

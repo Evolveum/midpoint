@@ -22,16 +22,14 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import javax.xml.ws.Holder;
-
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
 /**
  * 
@@ -39,21 +37,20 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
  */
 public class DeleteUserAction extends BaseAction {
 
-	private static Trace trace = TraceManager.getTrace(DeleteUserAction.class);
+	private static Trace LOGGER = TraceManager.getTrace(DeleteUserAction.class);
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-			OperationResultType resultType) throws SynchronizationException {
+			OperationResult result) throws SynchronizationException {
 		if (userOid == null) {
 			throw new SynchronizationException("Can't delete user, because user oid is null.");
 		}
 
 		try {
-			getModel().deleteObject(userOid, new Holder<OperationResultType>(resultType));
-		} catch (FaultMessage ex) {
-			String message = ex.getFaultInfo() == null ? ex.getMessage() : ex.getFaultInfo().getMessage();
-			trace.error("Couldn't delete user {}, reason: {}", userOid, message);
+			getModel().deleteObject(userOid, result);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't delete user {}", ex, userOid);
 			throw new SynchronizationException("Couldn't delete user '" + userOid + "'.", ex);
 		}
 

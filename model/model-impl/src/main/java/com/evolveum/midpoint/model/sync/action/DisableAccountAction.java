@@ -32,7 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -50,7 +49,7 @@ public class DisableAccountAction extends BaseAction {
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-			OperationResultType resultType) throws SynchronizationException {
+			OperationResult result) throws SynchronizationException {
 		if (!(change.getShadow() instanceof AccountShadowType)) {
 			throw new SynchronizationException("Resource object is not account (class '"
 					+ AccountShadowType.class + "'), but it's '" + change.getShadow().getClass() + "'.");

@@ -24,14 +24,16 @@ package com.evolveum.midpoint.model.sync;
 
 import java.util.Map;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * 
@@ -41,18 +43,20 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 
 	private static transient Trace trace = TraceManager.getTrace(ActionManagerImpl.class);
 	private Map<String, Class<T>> actionMap;
-	private ModelPortType model;
+	private ModelController model;
 	private ProvisioningService provisioning;
 	private RepositoryService repository;
 	private SchemaHandling schemaHandling;
 
 	@Override
 	public void setActionMapping(Map<String, Class<T>> actionMap) {
+		Validate.notNull(actionMap, "Action mapping must not be null.");
 		this.actionMap = actionMap;
 	}
 
 	@Override
 	public Action getActionInstance(String uri) {
+		Validate.notEmpty(uri, "Action uri must not be null or empty.");
 		Class<T> clazz = actionMap.get(uri);
 		if (clazz == null) {
 			return null;
@@ -72,7 +76,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 		return action;
 	}
 
-	public void setModel(ModelPortType model) {
+	public void setModel(ModelController model) {
 		this.model = model;
 	}
 

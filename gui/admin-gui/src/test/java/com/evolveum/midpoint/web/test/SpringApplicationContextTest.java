@@ -24,10 +24,6 @@ package com.evolveum.midpoint.web.test;
 
 import static org.junit.Assert.assertNotNull;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,14 +41,15 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 /**
  * Test of spring application context initialization
  * 
- * @author $author$
- * @version $Revision$ $Date$
- * @since 1.0.0
+ * @author Igor Farinic
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
-		"file:src/main/webapp/WEB-INF/application-context-init.xml", "classpath:application-context-test.xml" })
+		"file:src/main/webapp/WEB-INF/application-context-init.xml",
+		"classpath:application-context-test.xml", "classpath:application-context-repository.xml",
+		"classpath:application-context-provisioning.xml" })
 public class SpringApplicationContextTest {
 
 	@Autowired(required = true)
@@ -61,25 +58,6 @@ public class SpringApplicationContextTest {
 	private ModelPortType modelService;
 	@Autowired(required = true)
 	private InitialSetup initialSetup;
-
-	public SpringApplicationContextTest() {
-	}
-
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-	}
-
-	@AfterClass
-	public static void tearDownClass() throws Exception {
-	}
-
-	@Before
-	public void setUp() {
-	}
-
-	@After
-	public void tearDown() {
-	}
 
 	@Test
 	public void initApplicationContext() {

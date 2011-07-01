@@ -59,7 +59,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
@@ -199,7 +198,7 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
 
 				// TODO: fix operation result type
 				userOid = action.executeChanges(userOid, change, state.situation, shadowAfterChange,
-						new OperationResultType());
+						new OperationResult("Resource Object Change Service"));
 			}
 			trace.trace("Updating user finished.");
 		} catch (SynchronizationException ex) {

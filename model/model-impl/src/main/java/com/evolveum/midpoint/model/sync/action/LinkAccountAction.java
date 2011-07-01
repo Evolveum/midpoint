@@ -23,19 +23,18 @@
 package com.evolveum.midpoint.model.sync.action;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.ws.Holder;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
@@ -52,8 +51,8 @@ public class LinkAccountAction extends BaseAction {
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-			OperationResultType resultType) throws SynchronizationException {
-		UserType userType = getUser(userOid, resultType);
+			OperationResult result) throws SynchronizationException {
+		UserType userType = getUser(userOid, result);
 		UserType oldUserType = null;
 		try {
 			oldUserType = (UserType) JAXBUtil.clone(userType);
@@ -77,15 +76,15 @@ public class LinkAccountAction extends BaseAction {
 
 			try {
 				ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUserType, userType);
-				getModel().modifyObject(changes, new Holder<OperationResultType>(resultType));
-			} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
-				trace.error("Error while saving user {} (modifyObject on model).", new Object[] { userOid });
-				throw new SynchronizationException("Can't link account. Can't save user", ex);
+				getModel().modifyObject(changes, result);
 			} catch (DiffException ex) {
 				trace.error("Couldn't create user diff for '{}', reason: {}.",
 						new Object[] { userOid, ex.getMessage() });
 				throw new SynchronizationException("Couldn't create user diff for '" + userOid
 						+ "', reason: " + ex.getMessage(), ex);
+			} catch (Exception ex) {
+				trace.error("Error while saving user {} (modifyObject on model).", new Object[] { userOid });
+				throw new SynchronizationException("Can't link account. Can't save user", ex);
 			}
 		} else {
 			throw new SynchronizationException("User with oid '" + userOid

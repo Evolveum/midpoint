@@ -99,7 +99,7 @@
             </map>
         </property>
         <property name="model" >
-            <ref bean="modelService"/>
+            <ref bean="modelController"/>
         </property>
         <property name="provisioning" >
             <ref bean="provisioningService"/>

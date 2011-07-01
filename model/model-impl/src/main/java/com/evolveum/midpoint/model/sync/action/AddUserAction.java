@@ -24,25 +24,22 @@ package com.evolveum.midpoint.model.sync.action;
 
 import java.util.List;
 
-import javax.xml.ws.Holder;
-
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
@@ -56,14 +53,14 @@ public class AddUserAction extends BaseAction {
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-			OperationResultType resultType) throws SynchronizationException {
-		UserType userType = getUser(userOid, resultType);
+			OperationResult result) throws SynchronizationException {
+		UserType userType = getUser(userOid, result);
 
 		ObjectFactory of = new ObjectFactory();
 		if (userType == null) {
 			// user was not found, so create user
 			userType = of.createUserType();
-			UserTemplateType userTemplate = getUserTemplate(resultType);
+			UserTemplateType userTemplate = getUserTemplate(result);
 
 			try {
 
@@ -87,15 +84,15 @@ public class AddUserAction extends BaseAction {
 				}
 
 				// save user
-				userOid = getModel().addObject(userType, new Holder<OperationResultType>(resultType));
-			} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
-				throw new SynchronizationException("Can't save user", ex);
+				userOid = getModel().addObject(userType, result);
 			} catch (SchemaHandlingException ex) {
 				throw new SynchronizationException("Couldn't apply user template '" + userTemplate.getOid()
 						+ "' on user '" + userOid + "'.", ex);
 			} catch (PatchException ex) {
 				throw new SynchronizationException("Couldn't apply user template '" + userTemplate.getOid()
 						+ "' on user '" + userOid + "'.", ex);
+			} catch (Exception ex) {
+				throw new SynchronizationException("Can't save user", ex);
 			}
 		} else {
 			trace.debug("User already exists ({}), skipping create.", userType.getOid());
@@ -126,7 +123,7 @@ public class AddUserAction extends BaseAction {
 		return null;
 	}
 
-	private UserTemplateType getUserTemplate(OperationResultType resultType) throws SynchronizationException {
+	private UserTemplateType getUserTemplate(OperationResult result) throws SynchronizationException {
 		String userTemplateOid = getUserTemplateOid();
 		if (userTemplateOid == null) {
 			throw new SynchronizationException("User Template Oid not defined in parameters for this action.");
@@ -135,8 +132,8 @@ public class AddUserAction extends BaseAction {
 		UserTemplateType userTemplate = null;
 		try {
 			userTemplate = (UserTemplateType) getModel().getObject(userTemplateOid,
-					new PropertyReferenceListType(), new Holder<OperationResultType>(resultType));
-		} catch (FaultMessage ex) {
+					new PropertyReferenceListType(), result);
+		} catch (Exception ex) {
 			throw new SynchronizationException("Couldn't get user template with oid '" + userTemplateOid
 					+ "'.", ex);
 		}

@@ -25,17 +25,17 @@ package com.evolveum.midpoint.model.sync.action;
 import java.util.List;
 
 import javax.xml.bind.JAXBException;
-import javax.xml.ws.Holder;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
@@ -48,15 +48,15 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  */
 public class UnlinkAccountAction extends BaseAction {
 
-	private static Trace trace = TraceManager.getTrace(UnlinkAccountAction.class);
+	private static Trace LOGGER = TraceManager.getTrace(UnlinkAccountAction.class);
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
-			OperationResultType resultType) throws SynchronizationException {
-		trace.trace("executeChanges::start");
+			OperationResult result) throws SynchronizationException {
+		LOGGER.trace("executeChanges::start");
 
-		UserType userType = getUser(userOid, resultType);
+		UserType userType = getUser(userOid, result);
 		UserType oldUserType = null;
 		try {
 			oldUserType = (UserType) JAXBUtil.clone(userType);
@@ -85,22 +85,22 @@ public class UnlinkAccountAction extends BaseAction {
 			}
 		}
 		if (accountRef != null) {
-			trace.debug("Removing account ref {} from user {}.",
+			LOGGER.debug("Removing account ref {} from user {}.",
 					new Object[] { accountRef.getOid(), userOid });
 			references.remove(accountRef);
 
 			try {
 				ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUserType, userType);
-				getModel().modifyObject(changes, new Holder<OperationResultType>(resultType));
-			} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
-				throw new SynchronizationException("Can't unlink account. Can't save user", ex);
+				getModel().modifyObject(changes, result);
 			} catch (DiffException ex) {
-				trace.error("Couldn't create user diff for '{}', reason: {}.", userOid, ex.getMessage());
+				LoggingUtils.logException(LOGGER, "Couldn't create user diff for {}", ex, userOid);
 				throw new SynchronizationException("Couldn't create user diff for '" + userOid + "'.", ex);
+			} catch (Exception ex) {
+				throw new SynchronizationException("Can't unlink account. Can't save user", ex);
 			}
 		}
 
-		trace.trace("executeChanges::end");
+		LOGGER.trace("executeChanges::end");
 		return userOid;
 	}
 }

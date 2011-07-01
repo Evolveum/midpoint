@@ -25,22 +25,19 @@ package com.evolveum.midpoint.model.sync.action;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.ws.Holder;
-
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * 
@@ -48,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
  */
 public abstract class BaseAction implements Action {
 
-	private ModelPortType model;
+	private ModelController model;
 	private ProvisioningService provisioning;
 	private RepositoryService repository;
 	private SchemaHandling schemaHandling;
@@ -67,14 +64,13 @@ public abstract class BaseAction implements Action {
 		this.parameters = parameters;
 	}
 
-	protected UserType getUser(String oid, OperationResultType resultType) throws SynchronizationException {
+	protected UserType getUser(String oid, OperationResult result) throws SynchronizationException {
 		if (oid == null) {
 			return null;
 		}
 
 		try {
-			ObjectType object = model.getObject(oid, new PropertyReferenceListType(),
-					new Holder<OperationResultType>(resultType));
+			ObjectType object = model.getObject(oid, new PropertyReferenceListType(), result);
 			if (object == null) {
 				return null;
 			}
@@ -83,21 +79,20 @@ public abstract class BaseAction implements Action {
 						+ UserType.class.getName() + ".");
 			}
 			return (UserType) object;
-		} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
-			FaultType info = ex.getFaultInfo();
-			if (info == null || !(info instanceof ObjectNotFoundFaultType)) {
-				throw new SynchronizationException("Can't get user. Unknown error occured.", ex);
-			}
+		} catch (ObjectNotFoundException ex) {
+			// user was not found, we return null
+		} catch (Exception ex) {
+			throw new SynchronizationException("Can't get user. Unknown error occured.", ex);
 		}
 
 		return null;
 	}
 
-	public void setModel(ModelPortType model) {
+	public void setModel(ModelController model) {
 		this.model = model;
 	}
 
-	protected ModelPortType getModel() {
+	protected ModelController getModel() {
 		return model;
 	}
 
