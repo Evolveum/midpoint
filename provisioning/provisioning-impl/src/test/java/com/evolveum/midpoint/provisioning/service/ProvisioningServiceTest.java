@@ -30,6 +30,8 @@ import org.w3c.dom.Document;
 import com.evolveum.midpoint.provisioning.util.ShadowUtil;
 import com.evolveum.midpoint.provisioning.objects.ResourceAttribute;
 import org.junit.After;
+import org.junit.Ignore;
+
 import javax.xml.bind.JAXBException;
 import org.junit.Test;
 import java.io.InputStream;
@@ -63,6 +65,7 @@ import static org.mockito.Mockito.*;
  *
  * @author elek
  */
+@Ignore
 public class ProvisioningServiceTest {
 
     private JAXBContext ctx;

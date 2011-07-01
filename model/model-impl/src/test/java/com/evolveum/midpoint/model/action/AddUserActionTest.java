@@ -45,7 +45,6 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
@@ -76,8 +75,8 @@ public class AddUserActionTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AddUserActionTest.class);
 	@Autowired(required = true)
-//	private ResourceObjectChangeListener resourceObjectChangeService;
-	 private ResourceObjectChangeListenerPortType resourceObjectChangeService;
+	// private ResourceObjectChangeListener resourceObjectChangeService;
+	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
 
@@ -131,8 +130,8 @@ public class AddUserActionTest {
 
 			assertNotNull(resourceType);
 			OperationResult result = new OperationResult("Test Operation");
-			 resourceObjectChangeService.notifyChange(change);
-//			resourceObjectChangeService.notifyChange(change, result);
+			resourceObjectChangeService.notifyChange(change);
+			// resourceObjectChangeService.notifyChange(change, result);
 			LOGGER.info(result.debugDump());
 			// creating filter to search user according to the user name
 			Document doc = DOMUtil.getDocument();
@@ -155,11 +154,11 @@ public class AddUserActionTest {
 					new OperationResult("Search Objects"));
 			assertNotNull(list);
 			assertEquals(1, list.getObject().size());
-			
+
 			addedUser = (UserType) list.getObject().get(0);
 			assertNotNull(addedUser);
-			
-			List<ObjectReferenceType> accountRefs = addedUser.getAccountRef();			
+
+			List<ObjectReferenceType> accountRefs = addedUser.getAccountRef();
 			assertEquals(accountOid, accountRefs.get(0).getOid());
 
 			AccountShadowType addedAccount = (AccountShadowType) repositoryService.getObject(accountOid,
@@ -175,8 +174,9 @@ public class AddUserActionTest {
 			ModelServiceUtil.deleteObject(repositoryService, accountOid);
 			ModelServiceUtil.deleteObject(repositoryService, resourceOid);
 			ModelServiceUtil.deleteObject(repositoryService, userTemplateOid);
-			ModelServiceUtil.deleteObject(repositoryService, addedUser.getOid());
-
+			if (addedUser != null) {
+				ModelServiceUtil.deleteObject(repositoryService, addedUser.getOid());
+			}
 		}
 	}
 }

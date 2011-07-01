@@ -49,6 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage
  *
  * @author laszlohordos
  */
+@Ignore
 public class BaseXDatabaseFactoryTest {
 
     private ObjectFactory objectFactory = new ObjectFactory();

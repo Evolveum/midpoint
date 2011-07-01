@@ -30,6 +30,8 @@ import java.io.File;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -75,6 +77,9 @@ public class ModelServiceUtil {
 	}
 
 	public static void deleteObject(RepositoryService repositoryService, String oid) {
+		if (StringUtils.isEmpty(oid)) {
+			return;
+		}
 		try {
 			repositoryService.deleteObject(oid, new OperationResult("Delete Object"));
 		} catch (Exception e) {
