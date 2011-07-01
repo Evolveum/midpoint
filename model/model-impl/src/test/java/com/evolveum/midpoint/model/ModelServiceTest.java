@@ -431,7 +431,7 @@ public class ModelServiceTest {
 
 		try {
 			modelService.listResourceObjectShadows(resourceOid, ObjectTypes.ACCOUNT.getObjectTypeUri(),
-				new Holder<OperationResultType>(new OperationResultType()));
+					new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			ModelServiceUtil.assertObjectNotFoundFault(ex);
 		}
@@ -445,5 +445,27 @@ public class ModelServiceTest {
 
 		assertNotNull(list);
 		assertEquals(0, list.getObject().size());
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullAccountOidListAccountShadowOwner() throws FaultMessage {
+		try {
+			modelService.listAccountShadowOwner(null, new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument excetion must be thrown");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void emptyAccountOidListAccountShadowOwner() throws FaultMessage {
+		try {
+			modelService.listAccountShadowOwner("",
+					new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument excetion must be thrown");
 	}
 }
