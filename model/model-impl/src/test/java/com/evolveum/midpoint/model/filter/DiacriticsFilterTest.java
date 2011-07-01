@@ -66,6 +66,12 @@ public class DiacriticsFilterTest {
 		assertEquals(node, testNode);
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void testValueInBadElementType() {
+		Node testNode = DOMUtil.getDocument().createComment(input);
+		filter.apply(testNode);
+	}
+
 	@Test
 	public void testValueInElement() {
 		Node testNode = DOMUtil.getDocument().createElement("tag");

@@ -26,10 +26,14 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.model.controller.Filter;
 import com.evolveum.midpoint.util.DOMUtil;
+
+import static com.evolveum.midpoint.model.filter.PatternFilter.*;
 
 /**
  * 
@@ -62,7 +66,7 @@ public class PatternFilterTest {
 	}
 
 	@Test
-	public void testNullValue() {		
+	public void testNullValue() {
 		Node testNode = DOMUtil.getDocument().createElement("testTag");
 		testNode.setTextContent(null);
 		Node node = filter.apply(testNode);
@@ -79,11 +83,35 @@ public class PatternFilterTest {
 
 	@Test
 	public void testValueInElement() {
-		List<Object> parameters = createParameters();
+		List<Object> parameters = createGoodParameters();
 		filter.setParameters(parameters);
-		
+
 		Node testNode = DOMUtil.getDocument().createElement("tag");
-		testNode.setTextContent(input);		
+		testNode.setTextContent(input);
+		Node node = filter.apply(testNode);
+
+		assertEquals(expected, node.getTextContent());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testValueInElementBadParameters() {
+		List<Object> parameters = createBadParameters();
+		filter.setParameters(parameters);
+
+		Node testNode = DOMUtil.getDocument().createElement("tag");
+		testNode.setTextContent(input);
+		Node node = filter.apply(testNode);
+
+		assertEquals(expected, node.getTextContent());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testValueInElementBadParameters2() {
+		List<Object> parameters = createBadParameters2();
+		filter.setParameters(parameters);
+
+		Node testNode = DOMUtil.getDocument().createElement("tag");
+		testNode.setTextContent(input);
 		Node node = filter.apply(testNode);
 
 		assertEquals(expected, node.getTextContent());
@@ -91,21 +119,91 @@ public class PatternFilterTest {
 
 	@Test
 	public void testValueInTextnode() {
-		List<Object> parameters = createParameters();
+		List<Object> parameters = createGoodParameters();
 		filter.setParameters(parameters);
-		
+
 		Node testNode = DOMUtil.getDocument().createTextNode(input);
 		Node node = filter.apply(testNode);
 
 		assertEquals(expected, node.getNodeValue());
 	}
-	
-	public List<Object> createParameters() {
+
+	private List<Object> createGoodParameters() {
 		List<Object> parameters = new ArrayList<Object>();
-		parameters.add(new Object());		
+		parameters.add(new Object());
+
+		Document document = DOMUtil.getDocument();
+		Element replace = document.createElementNS(ELEMENT_REPLACE.getNamespaceURI(),
+				ELEMENT_REPLACE.getLocalPart());
+		parameters.add(replace);
+
+		Element pattern = document.createElementNS(ELEMENT_PATTERN.getNamespaceURI(),
+				ELEMENT_PATTERN.getLocalPart());
+		pattern.setTextContent("[aeiouy]");
+		replace.appendChild(pattern);
+
+		Element replacement = document.createElementNS(ELEMENT_REPLACEMENT.getNamespaceURI(),
+				ELEMENT_REPLACEMENT.getLocalPart());
+		replacement.setTextContent("x");
+		replace.appendChild(replacement);
+
+		// unknown parameter test
+		parameters.add(document.createElementNS("http://example.com", "unknown"));
+
+		return parameters;
+	}
+
+	private List<Object> createBadParameters() {
+		List<Object> parameters = new ArrayList<Object>();
+		parameters.add(new Object());
+
+		Document document = DOMUtil.getDocument();
+		Element replace = document.createElementNS(ELEMENT_REPLACE.getNamespaceURI(),
+				ELEMENT_REPLACE.getLocalPart());
+		parameters.add(replace);
+
+		Element pattern1 = document.createElementNS(ELEMENT_PATTERN.getNamespaceURI(),
+				ELEMENT_PATTERN.getLocalPart());
+		pattern1.setTextContent("[aeiouy]");
+		replace.appendChild(pattern1);
+
+		Element pattern2 = document.createElementNS(ELEMENT_PATTERN.getNamespaceURI(),
+				ELEMENT_PATTERN.getLocalPart());
+		pattern2.setTextContent("[a-z]");
+		replace.appendChild(pattern2);
+
+		Element replacement = document.createElementNS(ELEMENT_REPLACEMENT.getNamespaceURI(),
+				ELEMENT_REPLACEMENT.getLocalPart());
+		replacement.setTextContent("x");
+		replace.appendChild(replacement);
+
+		return parameters;
+	}
+
+	private List<Object> createBadParameters2() {
+		List<Object> parameters = new ArrayList<Object>();
+		parameters.add(new Object());
+
+		Document document = DOMUtil.getDocument();
+		Element replace = document.createElementNS(ELEMENT_REPLACE.getNamespaceURI(),
+				ELEMENT_REPLACE.getLocalPart());
+		parameters.add(replace);
+
+		Element pattern1 = document.createElementNS(ELEMENT_PATTERN.getNamespaceURI(),
+				ELEMENT_PATTERN.getLocalPart());
+		pattern1.setTextContent("[aeiouy]");
+		replace.appendChild(pattern1);
+
+		Element replacement = document.createElementNS(ELEMENT_REPLACEMENT.getNamespaceURI(),
+				ELEMENT_REPLACEMENT.getLocalPart());
+		replacement.setTextContent("x");
+		replace.appendChild(replacement);
 		
-		//TODO: finish
-		
+		Element replacement2 = document.createElementNS(ELEMENT_REPLACEMENT.getNamespaceURI(),
+				ELEMENT_REPLACEMENT.getLocalPart());
+		replacement2.setTextContent("2");
+		replace.appendChild(replacement2);
+
 		return parameters;
 	}
 }

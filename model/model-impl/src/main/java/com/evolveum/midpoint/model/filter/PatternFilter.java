@@ -40,89 +40,81 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
- * Pattern-based filter. Can replace portions of imput matched by patterns with
+ * Pattern-based filter. Can replace portions of input matched by patterns with
  * a static values. Works only on strings now.
  * 
  * @author Igor Farinic
  * @author Radovan Semancik
- * @version $Revision$ $Date$
- * @since 0.1
+ * 
  */
 public class PatternFilter extends AbstractFilter {
 
-	private static final QName ELEMENT_REPLACE = new QName(SchemaConstants.NS_FILTER, "replace");
-	private static final QName ELEMENT_PATTERN = new QName(SchemaConstants.NS_FILTER, "pattern");
-	private static final QName ELEMENT_REPLACEMENT = new QName(SchemaConstants.NS_FILTER, "replacement");
-
+	public static final QName ELEMENT_REPLACE = new QName(SchemaConstants.NS_FILTER, "replace");
+	public static final QName ELEMENT_PATTERN = new QName(SchemaConstants.NS_FILTER, "pattern");
+	public static final QName ELEMENT_REPLACEMENT = new QName(SchemaConstants.NS_FILTER, "replacement");
 	private static final Trace LOGGER = TraceManager.getTrace(PatternFilter.class);
-	private List<Replace> replaces;
 
 	@Override
 	public Node apply(Node node) {
-		Validate.notNull(node, "Node must not be null.");		
+		Validate.notNull(node, "Node must not be null.");
 		String value = getValue(node);
 		if (StringUtils.isEmpty(value)) {
 			return node;
 		}
-		
+
 		Validate.notEmpty(getParameters(), "Parameters must not be null or empty.");
-		List<Replace> repls = getReplaces();
-		for (Replace repl : repls) {
-			Matcher matcher = repl.getPattern().matcher(value);
-			value = matcher.replaceAll(repl.getReplacement());
+		List<Replace> replaces = getReplaces();
+		for (Replace replace : replaces) {
+			Matcher matcher = replace.getPattern().matcher(value);
+			value = matcher.replaceAll(replace.getReplacement());
 		}
 
 		return createReturnNode(node, value);
 	}
 
-	// TODO: Error handling and reporting should really be improved here
-
 	private List<Replace> getReplaces() {
-
-		if (replaces != null) {
-			return replaces;
-		}
-		replaces = new ArrayList<Replace>();
+		List<Replace> replaces = new ArrayList<Replace>();
 
 		List<Object> parameters = getParameters();
-
-		for (Object o : parameters) {
-			if (!(o instanceof Element)) {
+		for (Object object : parameters) {
+			if (!(object instanceof Element)) {
 				continue;
 			}
 
-			Element e = (Element) o;
-			if (ELEMENT_REPLACE.getLocalPart().equals(e.getLocalName())) {
-				NodeList patternNodeList = e.getElementsByTagNameNS(ELEMENT_PATTERN.getNamespaceURI(),
-						ELEMENT_PATTERN.getLocalPart());
-				if (patternNodeList.getLength() != 1) {
-					throw new IllegalArgumentException("Wrong number of " + ELEMENT_PATTERN + " elements ("
-							+ patternNodeList.getLength() + ")");
-				}
-				String patternStr = ((Element) patternNodeList.item(0)).getTextContent();
-				Pattern pattern = Pattern.compile(patternStr);
-
-				NodeList replacementNodeList = e.getElementsByTagNameNS(
-						ELEMENT_REPLACEMENT.getNamespaceURI(), ELEMENT_REPLACEMENT.getLocalPart());
-				if (replacementNodeList.getLength() != 1) {
-					throw new IllegalArgumentException("Wrong number of " + ELEMENT_REPLACEMENT
-							+ " elements (" + replacementNodeList.getLength() + ")");
-				}
-				String replacement = ((Element) replacementNodeList.item(0)).getTextContent();
-
-				replaces.add(new Replace(pattern, replacement));
-
-			} else {
-				LOGGER.debug("Ignoring unknown parameter {} in PatternFilter", e.getLocalName());
+			Element element = (Element) object;
+			if (!ELEMENT_REPLACE.getLocalPart().equals(element.getLocalName())) {
+				LOGGER.debug("Ignoring unknown parameter {} in PatternFilter",
+						new Object[] { element.getLocalName() });
+				continue;
 			}
+
+			NodeList patternNodeList = element.getElementsByTagNameNS(ELEMENT_PATTERN.getNamespaceURI(),
+					ELEMENT_PATTERN.getLocalPart());
+			if (patternNodeList.getLength() != 1) {
+				throw new IllegalArgumentException("Wrong number of " + ELEMENT_PATTERN + " elements ("
+						+ patternNodeList.getLength() + ")");
+			}
+			String patternStr = ((Element) patternNodeList.item(0)).getTextContent();
+			Pattern pattern = Pattern.compile(patternStr);
+
+			NodeList replacementNodeList = element.getElementsByTagNameNS(
+					ELEMENT_REPLACEMENT.getNamespaceURI(), ELEMENT_REPLACEMENT.getLocalPart());
+			if (replacementNodeList.getLength() != 1) {
+				throw new IllegalArgumentException("Wrong number of " + ELEMENT_REPLACEMENT + " elements ("
+						+ replacementNodeList.getLength() + ")");
+			}
+			String replacement = ((Element) replacementNodeList.item(0)).getTextContent();
+
+			replaces.add(new Replace(pattern, replacement));
 		}
 
 		return replaces;
 	}
 
-	private static class Replace {
+	private class Replace {
 
 		private String replacement;
+		private Pattern pattern;
 
 		public Replace(Pattern pattern, String replacement) {
 			this.replacement = replacement;
@@ -139,18 +131,6 @@ public class PatternFilter extends AbstractFilter {
 		}
 
 		/**
-		 * Set the value of replacement
-		 * 
-		 * @param replacement
-		 *            new value of replacement
-		 */
-		public void setReplacement(String replacement) {
-			this.replacement = replacement;
-		}
-
-		private Pattern pattern;
-
-		/**
 		 * Get the value of pattern
 		 * 
 		 * @return the value of pattern
@@ -158,17 +138,5 @@ public class PatternFilter extends AbstractFilter {
 		public Pattern getPattern() {
 			return pattern;
 		}
-
-		/**
-		 * Set the value of pattern
-		 * 
-		 * @param pattern
-		 *            new value of pattern
-		 */
-		public void setPattern(Pattern pattern) {
-			this.pattern = pattern;
-		}
-
 	}
-
 }
