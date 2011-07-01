@@ -22,213 +22,399 @@
 
 package com.evolveum.midpoint.model;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.util.List;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
-import org.apache.commons.codec.binary.Base64;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.provisioning.objects.ResourceAttribute;
-import com.evolveum.midpoint.provisioning.objects.ResourceObject;
-import com.evolveum.midpoint.provisioning.service.ResourceAccessInterface;
-import com.evolveum.midpoint.provisioning.service.ResourceConnector;
+import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * 
- * @author Vilo Repan
+ * @author lazyman
  */
-@Ignore //FIXME: fix test
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml" })
+@ContextConfiguration(locations = { "classpath:application-context-model-unit-test.xml",
+		"classpath:application-context-model.xml" })
 public class ModelServiceTest {
 
-	private static final Trace trace = TraceManager.getTrace(ModelServiceTest.class);
+	private static final File TEST_FOLDER_CONTROLLER = new File("./src/test/resources/controller");
 	@Autowired(required = true)
 	ModelPortType modelService;
 	@Autowired(required = true)
-	RepositoryService repositoryService;
-	@SuppressWarnings("rawtypes")
+	ProvisioningService provisioningService;
 	@Autowired(required = true)
-	private ResourceAccessInterface rai;
+	RepositoryService repositoryService;
 
+	@Before
+	public void before() {
+		Mockito.reset(provisioningService, repositoryService);
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void addNullObject() throws FaultMessage {
+		try {
+			modelService.addObject(null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Add must fail.");
+	}
+
+	@Test(expected = FaultMessage.class)
 	@SuppressWarnings("unchecked")
-	@Test
-	public void createDefaultUserAccounts() throws Exception {
-		String resourceOid = null;
-		String userOid = null;
-		String accountOid = null;
+	public void addUserWithoutName() throws Exception {
+		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"))).getValue();
 		try {
-			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/resource-simple.xml"))).getValue();
-			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/user-default-accounts.xml"))).getValue();
+			modelService.addObject(expectedUser, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("add must fail.");
+	}
 
-			resourceOid = resource.getOid();
-			// test objects
-			skipTestsIfExists(resource.getOid());
-			skipTestsIfExists(user.getOid());
+	@Test(expected = FaultMessage.class)
+	public void testGetNullOid() throws FaultMessage {
+		try {
+			modelService.getObject(null, new PropertyReferenceListType(), new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("get must fail");
+	}
 
-			// mocking repository
-			repositoryService.addObject(resource, new OperationResult("Add Object"));
-			// mock provisioning
-			ResourceConnector c = new ResourceConnector(resource) {
+	@Test(expected = FaultMessage.class)
+	public void testGetEmptyOid() throws FaultMessage {
+		try {
+			modelService.getObject("", new PropertyReferenceListType(), new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("get must fail");
+	}
 
-				@Override
-				public Object getConfiguration() {
-					throw new UnsupportedOperationException(
-							"Get configuration method not implemented - mock.");
-				}
-			};
-			when(rai.getConnector()).thenReturn(c);
+	@Test(expected = FaultMessage.class)
+	public void testGetNullOidAndPropertyRef() throws FaultMessage {
+		try {
+			modelService.getObject(null, null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("get must fail");
+	}
 
-			Answer<Object> answer = new Answer<Object>() {
+	@Test(expected = FaultMessage.class)
+	public void testGetNullPropertyRef() throws FaultMessage {
+		try {
+			modelService.getObject("001", null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("get must fail");
+	}
 
-				ResourceObject object;
-
-				@Override
-				public Object answer(InvocationOnMock invocation) throws Throwable {
-					if ("get".equals(invocation.getMethod().getName())) {
-						return object;
-					}
-					object = (ResourceObject) invocation.getArguments()[1];
-
-					ResourceObjectShadowType shadow = (ResourceObjectShadowType) invocation.getArguments()[2];
-					List<Element> elements = shadow.getAttributes().getAny();
-					for (Element element : elements) {
-						ResourceAttribute attribute = object.getValue(new QName(element.getNamespaceURI(),
-								element.getLocalName()));
-						if (attribute != null) {
-							attribute.addJavaValue(element.getTextContent());
-						}
-					}
-					return object;
-				}
-			};
+	@Test(expected = FaultMessage.class)
+	public void getNonexistingObject() throws FaultMessage, ObjectNotFoundException, SchemaException {
+		try {
+			final String oid = "abababab-abab-abab-abab-000000000001";
 			when(
-					rai.add(any(OperationalResultType.class), any(ResourceObject.class),
-							any(ResourceObjectShadowType.class))).thenAnswer(answer);
-			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenAnswer(answer);
+					repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class),
+							any(OperationResult.class))).thenThrow(
+					new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
-			// test begins
-			userOid = modelService
-					.addObject(user, new Holder<OperationResultType>(new OperationResultType()));
-
-			user = (UserType) repositoryService.getObject(userOid, new PropertyReferenceListType(),
-					new OperationResult("Get Object"));
-
-			// test user
-			assertNotNull(user);
-			assertEquals("chivas", user.getName());
-			assertEquals("Chivas Regal", user.getFullName());
-			assertEquals("Chivas", user.getGivenName());
-			assertEquals("Regal", user.getFamilyName());
-			assertEquals(1, user.getEMailAddress().size());
-			assertEquals("chivas@regal.com", user.getEMailAddress().get(0));
-			// test user account
-			assertEquals(1, user.getAccountRef().size());
-			ObjectReferenceType accountRef = user.getAccountRef().get(0);
-			accountOid = accountRef.getOid();
-
-			AccountShadowType account = (AccountShadowType) modelService.getObject(accountOid,
-					new PropertyReferenceListType(), new Holder<OperationResultType>(
-							new OperationResultType()));
-			// test account credentials
-			assertEquals(resource.getOid(), account.getResourceRef().getOid());
-			assertNotNull(account.getCredentials());
-			assertNotNull(account.getCredentials().getPassword());
-			assertNotNull(account.getCredentials().getPassword().getAny());
-
-			Element element = (Element) account.getCredentials().getPassword().getAny();
-			assertNotNull(element.getTextContent());
-			assertEquals(4, new String(Base64.decodeBase64(element.getTextContent())).length());
-			// test account attributes
-			assertEquals(
-					"uid=chivas,ou=people,dc=example,dc=com",
-					getAttributeValue("http://midpoint.evolveum."
-							+ "com/xml/ns/public/resource/idconnector/resource-schema-1.xsd", "__NAME__",
-							account));
-			assertEquals("Chivas Regal", getAttributeValue("cn", account));
-			assertEquals("Chivas", getAttributeValue("givenName", account));
-			assertEquals("Regal", getAttributeValue("sn", account));
-			assertEquals("Created by IDM", getAttributeValue("description", account));
-		} finally {
-			deleteObject(accountOid);
-			deleteObject(resourceOid);
-			deleteObject(userOid);
+			modelService.getObject(oid, new PropertyReferenceListType(), new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertObjectNotFoundFault(ex);
 		}
+		fail("get must fail");
 	}
 
-	private String getAttributeValue(String namespace, String name, AccountShadowType account) {
-		ResourceObjectShadowType.Attributes attributes = account.getAttributes();
-		List<Element> elements = attributes.getAny();
-		for (Element element : elements) {
-			if (namespace.equals(element.getNamespaceURI()) && element.getLocalName().equals(name)) {
-				return element.getTextContent();
-			}
-		}
-
-		return null;
-	}
-
-	private String getAttributeValue(String name, AccountShadowType account) {
-		return getAttributeValue("http://midpoint.evolveum.com/xml/ns/public/resource/instances/"
-				+ "a1a1a1a1-76e0-48e2-86d6-3d4f02d3e1a2", name, account);
-	}
-
-	private void deleteObject(String oid) {
-		if (oid == null) {
-			return;
-		}
-		trace.info("Test cleanup: Removing object '{}'", oid);
+	@Test(expected = FaultMessage.class)
+	public void testDeleteNullOid() throws FaultMessage {
 		try {
-			repositoryService.deleteObject(oid, new OperationResult("Delete Object"));
-		} catch (Exception ex) {
-			trace.error("Couldn't delete '{}', reason: {}", new Object[] { oid, ex.getMessage() });
+			modelService.deleteObject(null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("delete must fail");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void testDeleteEmptyOid() throws FaultMessage {
+		try {
+			modelService.deleteObject("", null);
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("delete must fail");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void testDeleteNullResult() throws FaultMessage {
+		try {
+			modelService.deleteObject("1", null);
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("delete must fail");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void testDeleteNonExisting() throws FaultMessage, ObjectNotFoundException, SchemaException {
+		try {
+			final String oid = "abababab-abab-abab-abab-000000000001";
+			when(
+					repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class),
+							any(OperationResult.class))).thenThrow(
+					new ObjectNotFoundException("Object with oid '' not found."));
+
+			modelService.deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertObjectNotFoundFault(ex);
+		}
+		fail("delete must fail");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullObjectType() throws FaultMessage {
+		try {
+			modelService.listObjects(null, new PagingType(), new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullObjectTypeAndPaging() throws FaultMessage {
+		try {
+			modelService.listObjects(null, null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullPagingList() throws FaultMessage {
+		try {
+			modelService.listObjects("", null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void badPagingList() throws FaultMessage {
+		PagingType paging = new PagingType();
+		paging.setMaxSize(-1);
+		paging.setOffset(-1);
+
+		try {
+			modelService.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging,
+					new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullOid() throws FaultMessage {
+		try {
+			modelService.getPropertyAvailableValues(null, new PropertyReferenceListType(),
+					new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument excetion must be thrown");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void emptyOid() throws FaultMessage {
+		try {
+			modelService.getPropertyAvailableValues("", new PropertyReferenceListType(),
+					new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument excetion must be thrown");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullQueryType() throws FaultMessage {
+		try {
+			modelService.searchObjects(null, new PagingType(), new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullQueryTypeAndPaging() throws FaultMessage {
+		try {
+			modelService
+					.searchObjects(null, null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullPagingSearch() throws FaultMessage {
+		try {
+			modelService.searchObjects(new QueryType(), null, new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void badPagingSearch() throws FaultMessage {
+		PagingType paging = new PagingType();
+		paging.setMaxSize(-1);
+		paging.setOffset(-1);
+
+		try {
+			modelService.searchObjects(new QueryType(), paging, new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullResourceOidImport() throws FaultMessage {
+		try {
+			modelService.getImportStatus(null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void emptyResourceOidImport() throws FaultMessage {
+		try {
+			modelService.getImportStatus("", new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullChangeModify() throws FaultMessage {
+		try {
+			modelService.modifyObject(null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
 		}
 	}
 
-	private void skipTestsIfExists(String oid) {
-		try {
-			repositoryService.getObject(oid, new PropertyReferenceListType(), new OperationResult(
-					"Get Object"));
+	@Test(expected = FaultMessage.class)
+	public void nonExistingUidModify() throws FaultMessage, ObjectNotFoundException, SchemaException {
+		final String oid = "1";
+		ObjectModificationType modification = new ObjectModificationType();
+		PropertyModificationType mod1 = new PropertyModificationType();
+		mod1.setModificationType(PropertyModificationTypeType.add);
+		mod1.setValue(new PropertyModificationType.Value());
 
-			// delete
-			repositoryService.deleteObject(oid, new OperationResult("Delete Object"));
-			// skip
-			// fail("Object with oid '" + oid + "'");
-		} catch (Exception ex) {
+		modification.getPropertyModification().add(mod1);
+		modification.setOid(oid);
+
+		when(
+				repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenThrow(
+				new ObjectNotFoundException("Oid '" + oid + "' not found."));
+
+		try {
+			modelService.modifyObject(modification,
+					new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertObjectNotFoundFault(ex);
+		}
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullResourceOidListShadows() throws FaultMessage {
+		try {
+			modelService.listResourceObjectShadows(null, "notRelevant", new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void emptyResourceOidListShadows() throws FaultMessage {
+		try {
+			modelService.listResourceObjectShadows(null, "notRelevant", new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullShadowTypeListShadows() throws FaultMessage {
+		try {
+			modelService.listResourceObjectShadows("1", null, new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void emptyShadowTypeListShadows() throws FaultMessage {
+		try {
+			modelService.listResourceObjectShadows("1", "", new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
 		}
 	}
 }

@@ -50,6 +50,7 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.model.test.util.equal.ResourceObjectShadowTypeComparator;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -85,30 +86,6 @@ public class ModelListResourceObjectShadowsTest {
 	@Before
 	public void before() {
 		Mockito.reset(provisioningService, repositoryService);
-	}
-
-	@Test(expected = FaultMessage.class)
-	public void nullResourceOid() throws FaultMessage {
-		modelService.listResourceObjectShadows(null, "notRelevant", new Holder<OperationResultType>(
-				new OperationResultType()));
-	}
-
-	@Test(expected = FaultMessage.class)
-	public void emptyResourceOid() throws FaultMessage {
-		modelService.listResourceObjectShadows(null, "notRelevant", new Holder<OperationResultType>(
-				new OperationResultType()));
-	}
-
-	@Test(expected = FaultMessage.class)
-	public void nullShadowType() throws FaultMessage {
-		modelService.listResourceObjectShadows("1", null, new Holder<OperationResultType>(
-				new OperationResultType()));
-	}
-
-	@Test(expected = FaultMessage.class)
-	public void emptyShadowType() throws FaultMessage {
-		modelService.listResourceObjectShadows("1", "", new Holder<OperationResultType>(
-				new OperationResultType()));
 	}
 
 	@Ignore //FIXME: fix test
