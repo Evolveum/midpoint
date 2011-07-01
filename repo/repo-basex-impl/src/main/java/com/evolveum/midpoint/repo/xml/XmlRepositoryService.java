@@ -509,7 +509,7 @@ public class XmlRepositoryService implements RepositoryService {
 				String defaultNamespace = firstChild.lookupNamespaceURI(null);
 				if (StringUtils.isNotEmpty(defaultNamespace)) {
 					//FIXME: possible problem with many generated prefixes
-					prefix = new Integer((new Random()).nextInt(10000)).toString();
+					prefix = "ns"+(new Random()).nextInt(10000);
 					namespace = defaultNamespace;
 					lastPathSegment = prefix + ":" + firstChild.getLocalName();					
 				} else {
