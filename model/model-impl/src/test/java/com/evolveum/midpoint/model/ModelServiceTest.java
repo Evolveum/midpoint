@@ -22,6 +22,8 @@
 
 package com.evolveum.midpoint.model;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
@@ -55,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
@@ -416,5 +419,31 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelServiceUtil.assertIllegalArgumentFault(ex);
 		}
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nonexistingResourceOidListResourceShadow() throws FaultMessage, ObjectNotFoundException {
+		final String resourceOid = "abababab-abab-abab-abab-000000000001";
+		when(
+				repositoryService.listResourceObjectShadows(eq(resourceOid),
+						eq(ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class))).thenThrow(
+				new ObjectNotFoundException("Resource with oid '" + resourceOid + "' not found."));
+
+		try {
+			modelService.listResourceObjectShadows(resourceOid, ObjectTypes.ACCOUNT.getObjectTypeUri(),
+				new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertObjectNotFoundFault(ex);
+		}
+	}
+
+	@Test
+	public void badResourceShadowTypeListResourceObjectShadows() throws FaultMessage {
+		ResourceObjectShadowListType list = modelService.listResourceObjectShadows(
+				"abababab-abab-abab-abab-000000000001", ObjectTypes.GENERIC_OBJECT.getObjectTypeUri(),
+				new Holder<OperationResultType>(new OperationResultType()));
+
+		assertNotNull(list);
+		assertEquals(0, list.getObject().size());
 	}
 }
