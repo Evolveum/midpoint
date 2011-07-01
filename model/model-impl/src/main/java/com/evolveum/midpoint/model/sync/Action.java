@@ -20,28 +20,26 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.model.sync.action;
+package com.evolveum.midpoint.model.sync;
 
 import java.util.List;
 
-import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 
 /**
- *
+ * 
  * @author Vilo Repan
  */
 public interface Action {
 
-    String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
+	String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
 			OperationResultType resultType) throws SynchronizationException;
 
-    void setParameters(List<Object> parameters);
+	void setParameters(List<Object> parameters);
 
-    List<Object> getParameters();
-
+	List<Object> getParameters();
 }

@@ -66,7 +66,7 @@
         <constructor-arg type="java.lang.String" value="ModelLoggerMXBean" />
     </bean>-->
 
-    <bean id="actionManager" class="com.evolveum.midpoint.model.sync.action.ActionManagerImpl">
+    <bean id="actionManager" class="com.evolveum.midpoint.model.sync.ActionManagerImpl">
         <property name="actionMapping">
             <map>
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">

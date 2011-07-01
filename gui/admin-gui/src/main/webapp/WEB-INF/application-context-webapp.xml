@@ -63,21 +63,6 @@
 		</property>
 	</bean>
 
-	<bean id="guiUserDtoManager" class="com.evolveum.midpoint.web.model.impl.UserTypeManager" scope="singleton">
-		<constructor-arg name="constructUserType" value="com.evolveum.midpoint.web.model.dto.GuiUserDto" />
-	</bean>
-
-	<bean id="guiResourceDtoManager" class="com.evolveum.midpoint.web.model.impl.ResourceTypeManager" scope="singleton">
-		<constructor-arg name="constructResourceType" value="com.evolveum.midpoint.web.model.dto.GuiResourceDto" />
-	</bean>
-
-	<bean id="guiAccountShadowDtoManager" class="com.evolveum.midpoint.web.model.impl.AccountShadowTypeManager" scope="singleton">
-		<constructor-arg name="constructAccountShadowType" value="com.evolveum.midpoint.web.model.dto.GuiAccountShadowDto" />
-	</bean>
-	<bean id="connectorManager" class="com.evolveum.midpoint.web.model.impl.ConnectorTypeManager" scope="singleton" />
-	<bean id="systemConfigurationManager" class="com.evolveum.midpoint.web.model.impl.SystemConfigurationTypeManager"
-		scope="singleton" />
-
 	<bean id="objectTypeCatalog" class="com.evolveum.midpoint.web.model.impl.ObjectTypeCatalogImpl" scope="singleton">
 		<property name="supportedObjectManagers">
 			<map>
@@ -85,31 +70,37 @@
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.UserType</value>
 					</key>
-					<ref bean="guiUserDtoManager" />
+					<bean class="com.evolveum.midpoint.web.model.impl.UserTypeManager" scope="singleton">
+						<constructor-arg name="constructUserType" value="com.evolveum.midpoint.web.model.dto.GuiUserDto" />
+					</bean>
 				</entry>
 				<entry>
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType</value>
 					</key>
-					<ref bean="guiResourceDtoManager" />
+					<bean class="com.evolveum.midpoint.web.model.impl.ResourceTypeManager" scope="singleton">
+						<constructor-arg name="constructResourceType" value="com.evolveum.midpoint.web.model.dto.GuiResourceDto" />
+					</bean>
 				</entry>
 				<entry>
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType</value>
 					</key>
-					<ref bean="guiAccountShadowDtoManager" />
+					<bean class="com.evolveum.midpoint.web.model.impl.AccountShadowTypeManager" scope="singleton">
+						<constructor-arg name="constructAccountShadowType" value="com.evolveum.midpoint.web.model.dto.GuiAccountShadowDto" />
+					</bean>
 				</entry>
 				<entry>
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType</value>
 					</key>
-					<ref bean="connectorManager" />
+					<bean class="com.evolveum.midpoint.web.model.impl.ConnectorTypeManager" scope="singleton" />
 				</entry>
 				<entry>
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType</value>
 					</key>
-					<ref bean="systemConfigurationManager" />
+					<bean class="com.evolveum.midpoint.web.model.impl.SystemConfigurationTypeManager" scope="singleton" />
 				</entry>
 			</map>
 		</property>

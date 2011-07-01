@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.xml.ws.Holder;
 
+import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;

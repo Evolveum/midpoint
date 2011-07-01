@@ -20,13 +20,14 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.model.sync.action;
+package com.evolveum.midpoint.model.sync;
 
 import java.util.Map;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.sync.action.BaseAction;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
