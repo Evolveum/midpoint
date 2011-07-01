@@ -54,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.repository.repository_1.FaultMessage
  * 
  * @author elek
  */
+@Ignore
 public class ProvisioningServiceIntegrationTest extends OpenDJUnitTestAdapter {
 
     private JAXBContext ctx;
