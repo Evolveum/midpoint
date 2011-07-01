@@ -33,7 +33,6 @@ import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
@@ -70,15 +69,7 @@ public abstract class BaseAction implements Action {
 		}
 
 		try {
-			ObjectType object = model.getObject(oid, new PropertyReferenceListType(), result);
-			if (object == null) {
-				return null;
-			}
-			if (!(object instanceof UserType)) {
-				throw new SynchronizationException("Returned object is null or not type of "
-						+ UserType.class.getName() + ".");
-			}
-			return (UserType) object;
+			return model.getObject(oid, new PropertyReferenceListType(), result, UserType.class);
 		} catch (ObjectNotFoundException ex) {
 			// user was not found, we return null
 		} catch (Exception ex) {

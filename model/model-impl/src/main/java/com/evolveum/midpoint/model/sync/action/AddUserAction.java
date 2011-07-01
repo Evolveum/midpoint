@@ -137,8 +137,8 @@ public class AddUserAction extends BaseAction {
 
 		UserTemplateType userTemplate = null;
 		try {
-			userTemplate = (UserTemplateType) getModel().getObject(userTemplateOid,
-					new PropertyReferenceListType(), result);
+			userTemplate = getModel().getObject(userTemplateOid,
+					new PropertyReferenceListType(), result, UserTemplateType.class);
 		} catch (Exception ex) {
 			throw new SynchronizationException("Couldn't get user template with oid '" + userTemplateOid
 					+ "'.", ex);

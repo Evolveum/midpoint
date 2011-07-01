@@ -27,9 +27,7 @@ import javax.xml.bind.JAXBElement;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
@@ -49,7 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
 public abstract class BaseActionTest {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/sync");
-	private static final Trace LOGGER = TraceManager.getTrace(BaseActionTest.class);
 	protected Action action;
 	@Autowired(required = true)
 	protected ModelController controller;

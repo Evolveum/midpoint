@@ -31,24 +31,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 /**
  * 
  * @author lazyman
- *
+ * 
  */
 public class AddUserAction2 {
 
 	private ModelController model;
-	
+
 	public void action() throws Exception {
 		OperationResult subResult = new OperationResult("Add User Action");
 		UserType user = new UserType();
-		
-		ObjectType object = model.getObject("USER_TEMPLATE_OID", new PropertyReferenceListType(), subResult);
-		if (!(object instanceof UserTemplateType)) {
-			//TODO: exception message and logging
-			throw new SynchronizationException("object is not user template.");
-		}
-		
-		UserTemplateType userTemplate = (UserTemplateType) object;
-		
+
+		UserTemplateType userTemplate = model.getObject("USER_TEMPLATE_OID", new PropertyReferenceListType(),
+				subResult, UserTemplateType.class);
 		String userOid = model.addUser(user, userTemplate, subResult);
 	}
 }

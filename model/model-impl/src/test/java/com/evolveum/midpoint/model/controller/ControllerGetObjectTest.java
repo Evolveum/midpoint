@@ -46,6 +46,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
@@ -69,17 +70,23 @@ public class ControllerGetObjectTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void getObjectNullOid() throws ObjectNotFoundException {
-		controller.getObject(null, null, null);
+		controller.getObject(null, null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void getObjectNullPropertyReferenceListType() throws ObjectNotFoundException {
-		controller.getObject("1", null, null);
+		controller.getObject("1", null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void getObjectNullResultType() throws ObjectNotFoundException {
-		controller.getObject("1", new PropertyReferenceListType(), null);
+		controller.getObject("1", new PropertyReferenceListType(), null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void nullClass() throws Exception {
+		controller.getObject("abababab-abab-abab-abab-000000000001", new PropertyReferenceListType(),
+				new OperationResult("Get Object"), null);
 	}
 
 	@Test(expected = ObjectNotFoundException.class)
@@ -88,7 +95,8 @@ public class ControllerGetObjectTest {
 		when(repository.getObject(eq(oid), any(PropertyReferenceListType.class), any(OperationResult.class)))
 				.thenThrow(new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
-		controller.getObject(oid, new PropertyReferenceListType(), new OperationResult("Get Object"));
+		controller.getObject(oid, new PropertyReferenceListType(), new OperationResult("Get Object"),
+				ObjectType.class);
 	}
 
 	@Test
@@ -103,8 +111,8 @@ public class ControllerGetObjectTest {
 
 		OperationResult result = new OperationResult("Get Object");
 		try {
-			final UserType user = (UserType) controller.getObject(oid, new PropertyReferenceListType(),
-					result);
+			final UserType user = controller.getObject(oid, new PropertyReferenceListType(), result,
+					UserType.class);
 
 			assertNotNull(user);
 			assertEquals(expectedUser.getName(), user.getName());

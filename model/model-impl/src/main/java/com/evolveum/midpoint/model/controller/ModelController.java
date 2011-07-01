@@ -156,20 +156,21 @@ public class ModelController {
 		return oid;
 	}
 
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult result)
-			throws ObjectNotFoundException {
+	public <T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve,
+			OperationResult result, Class<T> clazz) throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(resolve, "Property reference list must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
+		Validate.notNull(clazz, "Class must not be null.");
 		LOGGER.debug("Getting object with oid {}.", new Object[] { oid });
 
 		OperationResult subResult = new OperationResult("Get Object");
 		result.addSubresult(subResult);
-		ObjectType object = null;
+		T object = null;
 		try {
-			object = getObjectFromRepository(oid, resolve, subResult, ObjectType.class);
+			object = getObjectFromRepository(oid, resolve, subResult, clazz);
 			if (ProvisioningTypes.isManagedByProvisioning(object)) {
-				object = getObjectFromProvisioning(oid, resolve, subResult, ObjectType.class);
+				object = getObjectFromProvisioning(oid, resolve, subResult, clazz);
 			}
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
@@ -178,8 +179,6 @@ public class ModelController {
 			LoggingUtils.logException(LOGGER, "Couldn't get object {}", ex, oid);
 			subResult.recordFatalError("Couldn't get object with oid '" + oid + "'.", ex);
 		}
-
-		resolveObjectAttributes(object, resolve, subResult);
 
 		LOGGER.debug(subResult.debugDump());
 		return object;
@@ -543,19 +542,19 @@ public class ModelController {
 		return null;
 	}
 
-	private <T> T getObjectFromRepository(String oid, PropertyReferenceListType resolve,
+	private <T extends ObjectType> T getObjectFromRepository(String oid, PropertyReferenceListType resolve,
 			OperationResult result, Class<T> clazz) throws ObjectNotFoundException {
 		return getObject(oid, resolve, result, clazz, false);
 	}
 
-	private <T> T getObjectFromProvisioning(String oid, PropertyReferenceListType resolve,
+	private <T extends ObjectType> T getObjectFromProvisioning(String oid, PropertyReferenceListType resolve,
 			OperationResult result, Class<T> clazz) throws ObjectNotFoundException {
 		return getObject(oid, resolve, result, clazz, true);
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T> T getObject(String oid, PropertyReferenceListType resolve, OperationResult result,
-			Class<T> clazz, boolean fromProvisioning) throws ObjectNotFoundException {
+	public <T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve,
+			OperationResult result, Class<T> clazz, boolean fromProvisioning) throws ObjectNotFoundException {
 		T object = null;
 
 		try {
@@ -571,6 +570,8 @@ public class ModelController {
 			} else {
 				object = (T) objectType;
 			}
+
+			resolveObjectAttributes(object, resolve, result);
 		} catch (ObjectNotFoundException ex) {
 			throw ex;
 		} catch (Exception ex) {

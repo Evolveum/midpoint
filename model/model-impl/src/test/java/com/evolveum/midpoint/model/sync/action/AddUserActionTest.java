@@ -47,7 +47,7 @@ public class AddUserActionTest extends BaseActionTest {
 	}
 
 	@Test
-	public void test() {
+	public void testUserExists() {
 		
 	}
 }

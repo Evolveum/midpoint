@@ -94,7 +94,7 @@ public class ModelService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service Get Object");
 		try {
-			ObjectType object = model.getObject(oid, resolve, operationResult);
+			ObjectType object = model.getObject(oid, resolve, operationResult, ObjectType.class);
 			handleOperationResult(operationResult, result);
 
 			return object;
