@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.xml;
 
 import java.io.IOException;
 
+import org.apache.commons.lang.StringUtils;
 import org.basex.BaseXServer;
 import org.basex.core.BaseXException;
 import org.basex.server.ClientQuery;
@@ -36,52 +37,78 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 public class XmlRepositoryServiceFactory {
 
 	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryServiceFactory.class);
-	
-	/** Database driver. */
-	public static final String DRIVER = "org.basex.api.xmldb.BXDatabase";
 
-	private static final String url = "xmldb:basex://localhost:1984/midPoint";
-
-	BaseXServer server;
+	private boolean runServer = true;
+	private boolean embedded = true;
+	private String serverPath;
+	private String initialDataPath;
+	private String host;
+	private int port;
+	private String username;
+	private String password;
+	private String databaseName;
 
 	public void init() throws RepositoryServiceFactoryException {
 
-		// start BaseX server
-		TRACE.debug("Starting BaseX Server");
-		//args ordering is important!
-		//set debug mode and run it in the same process
-		server = new BaseXServer("-d", "-D", "-s");
-		//set debug mode and run it as a Daemon process
-		//server = new BaseXServer("-d", "-s");
-		TRACE.debug("BaseX Server started");
+		if (runServer) {
+			// start BaseX server, it registers its own shutdown hook, therefore
+			// no cleanup is required
+			TRACE.trace("Starting BaseX Server");
+			if (StringUtils.isNotEmpty(serverPath)) {
+				TRACE.debug("BaseX Server base path: {}", serverPath);
+			} else {
+				TRACE.debug("BaseX Server base not set, using default value");
+			}
+
+			StringBuffer commands = new StringBuffer();
+			if (StringUtils.isNotEmpty(serverPath)) {
+				if (StringUtils.equals("memory", serverPath)) {
+					commands.append("-cset mainmem true;info");
+				} else {
+					commands.append("-cset dbpath ").append(serverPath).append(";info");
+					
+				}
+			}
+
+			// args ordering is important!
+			if (embedded) {
+				// set debug mode and run it in the same process
+				new BaseXServer("-d", "-D", "-s", commands.toString());
+			} else {
+				// set debug mode and run it as a Daemon process
+				new BaseXServer("-d", "-s", commands.toString());
+			}
+			TRACE.trace("BaseX Server started");
+		}
+
 		boolean newDb = false;
 
 		try {
-			TRACE.debug("Creating BaseX client Session");
-			ClientSession session = new ClientSession("localhost", 1984, "admin", "admin");
-			TRACE.debug("BaseX client Session created");
-			
+			TRACE.trace("Creating BaseX client Session");
+			ClientSession session = new ClientSession(host, port, username, password);
+			TRACE.trace("BaseX client Session created");
+
 			try {
-			session.execute("OPEN midPoint");
+				session.execute("OPEN " + databaseName);
 			} catch (BaseXException ex) {
-				if ("Database 'midPoint' was not found.".equals(ex.getMessage())) {
+				if (("Database '" + databaseName + "' was not found.").equals(ex.getMessage())) {
 					newDb = true;
 				}
 			}
 			if (newDb) {
-				//create and initialize midPoint DB
-				// FIXME: remove hardcoded values
-				session.execute("CREATE DB midPoint");
-				String serializedObject = "<c:objects xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"/>";
-				StringBuilder query = new StringBuilder()
-						.append("declare namespace c='" + SchemaConstants.NS_C + "';\n")
-						.append("let $x := ").append(serializedObject).append("\n")
-						.append("return insert node $x into doc(\"midPoint\")");
-
-				ClientQuery cq;
-
-				cq = session.query(query.toString());
-				cq.execute();
+				// create and initialize DB
+				session.execute("CREATE DB " + databaseName + " " + initialDataPath);
+				if (StringUtils.isEmpty(initialDataPath)) {
+					// FIXME: remove hardcoded values
+					String serializedObject = "<c:objects xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"/>";
+					StringBuilder query = new StringBuilder()
+							.append("declare namespace c='" + SchemaConstants.NS_C + "';\n")
+							.append("let $x := ").append(serializedObject).append("\n")
+							.append("return insert node $x into doc(\"").append(databaseName).append("\")");
+					ClientQuery cq;
+					cq = session.query(query.toString());
+					cq.execute();
+				}
 			}
 		} catch (BaseXException e) {
 			throw new RepositoryServiceFactoryException("XML DB Exception during DB initialization", e);
@@ -92,17 +119,12 @@ public class XmlRepositoryServiceFactory {
 	}
 
 	public void destroy() {
-//		if (null != server) {
-//			server.stop();
-//		}
 	}
 
 	public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
 		try {
-
-			// TODO: remove hardcoded values
-			ClientSession session = new ClientSession("localhost", 1984, "admin", "admin");
-			session.execute("OPEN midPoint");
+			ClientSession session = new ClientSession(host, port, username, password);
+			session.execute("OPEN " + databaseName);
 			RepositoryService repositoryService = new XmlRepositoryService(session);
 			return repositoryService;
 		} catch (IOException e) {
@@ -110,6 +132,78 @@ public class XmlRepositoryServiceFactory {
 		} catch (BaseXException e) {
 			throw new RepositoryServiceFactoryException("XML DB Exception during client initialization", e);
 		}
+	}
+
+	public boolean isRunServer() {
+		return runServer;
+	}
+
+	public void setRunServer(boolean runServer) {
+		this.runServer = runServer;
+	}
+
+	public boolean isEmbedded() {
+		return embedded;
+	}
+
+	public void setEmbedded(boolean embedded) {
+		this.embedded = embedded;
+	}
+
+	public String getServerPath() {
+		return serverPath;
+	}
+
+	public void setServerPath(String serverPath) {
+		this.serverPath = serverPath;
+	}
+
+	public String getInitialDataPath() {
+		return initialDataPath;
+	}
+
+	public void setInitialDataPath(String initialDataPath) {
+		this.initialDataPath = initialDataPath;
+	}
+
+	public String getHost() {
+		return host;
+	}
+
+	public void setHost(String host) {
+		this.host = host;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getDatabaseName() {
+		return databaseName;
+	}
+
+	public void setDatabaseName(String databaseName) {
+		this.databaseName = databaseName;
 	}
 
 }

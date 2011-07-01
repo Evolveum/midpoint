@@ -34,6 +34,25 @@
     <context:annotation-config />
     <context:component-scan base-package="com.evolveum.midpoint.repo.xml"/>
 
+		<bean name="xmlRepositoryServiceFactory" class="com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory" init-method="init" destroy-method="destroy">
+		<property name="runServer" value="true"/>
+		<!-- embedded is applicable only if runServer = true -->
+		<property name="embedded" value="true"/>
+		<!-- serverPath - where should BaseXServer store DB files, if no value set then default is used, if value="memory", then db is stored only in memory -->
+		<property name="serverPath" value="/tmp/basex/"/>
+		<!-- initialDataPath - path containing xmls that should be loaded into DB -->
+		<property name="initialDataPath" value=""/>
+		<!-- database name -->
+		<property name="databaseName" value="midPoint-test"/>
+		<!-- client connection properties -->
+		<property name="host" value="localhost"/>
+		<property name="port" value="1984"/>
+		<property name="username" value="admin"/>
+		<property name="password" value="admin"/>
+	</bean>
+	
+	<!-- scope=prototype is mandatory, because every xml repo service has to be connected with separated session to the basex server -->
+	<bean name="repositoryService" factory-bean="xmlRepositoryServiceFactory" factory-method="getRepositoryService" class="com.evolveum.midpoint.repo.xml.XmlRepositoryService" scope="prototype" depends-on="xmlRepositoryServiceFactory"></bean>
 	
 
 </beans>
