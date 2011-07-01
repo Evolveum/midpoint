@@ -45,10 +45,13 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
@@ -201,5 +204,121 @@ public class ModelService2Test {
 			ModelServiceUtil.assertObjectNotFoundFault(ex);
 		}
 		fail("delete must fail");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullObjectType() throws FaultMessage {
+		try {
+			modelService.listObjects(null, new PagingType(), new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullObjectTypeAndPaging() throws FaultMessage {
+		try {
+			modelService.listObjects(null, null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullPagingList() throws FaultMessage {
+		try {
+			modelService.listObjects("", null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void badPagingList() throws FaultMessage {
+		PagingType paging = new PagingType();
+		paging.setMaxSize(-1);
+		paging.setOffset(-1);
+
+		try {
+			modelService.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging,
+					new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullOid() throws FaultMessage {
+		try {
+			modelService.getPropertyAvailableValues(null, new PropertyReferenceListType(),
+					new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument excetion must be thrown");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void emptyOid() throws FaultMessage {
+		try {
+			modelService.getPropertyAvailableValues("", new PropertyReferenceListType(),
+					new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument excetion must be thrown");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullQueryType() throws FaultMessage {
+		try {
+			modelService.searchObjects(null, new PagingType(), new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullQueryTypeAndPaging() throws FaultMessage {
+		try {
+			modelService
+					.searchObjects(null, null, new Holder<OperationResultType>(new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void nullPagingSearch() throws FaultMessage {
+		try {
+			modelService.searchObjects(new QueryType(), null, new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
+	}
+
+	@Test(expected = FaultMessage.class)
+	public void badPagingSearch() throws FaultMessage {
+		PagingType paging = new PagingType();
+		paging.setMaxSize(-1);
+		paging.setOffset(-1);
+
+		try {
+			modelService.searchObjects(new QueryType(), paging, new Holder<OperationResultType>(
+					new OperationResultType()));
+		} catch (FaultMessage ex) {
+			ModelServiceUtil.assertIllegalArgumentFault(ex);
+		}
+		fail("Illegal argument exception was not thrown.");
 	}
 }
