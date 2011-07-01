@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
 /**
@@ -61,6 +62,13 @@ public class ModelServiceUtil {
 				repository.getObject(eq(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
 				systemConfiguration);
+	}
+
+	public static void assertObjectNotFoundFault(FaultMessage ex) throws FaultMessage {
+		if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
+			fail("not object not found fault.");
+		}
+		throw ex;
 	}
 
 	public static void assertIllegalArgumentFault(FaultMessage ex) throws FaultMessage {
