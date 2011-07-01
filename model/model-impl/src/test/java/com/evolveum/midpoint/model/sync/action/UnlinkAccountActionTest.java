@@ -18,12 +18,10 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.action;
+package com.evolveum.midpoint.model.sync.action;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 import java.util.List;
@@ -42,17 +40,13 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
-import com.evolveum.midpoint.provisioning.objects.ResourceObject;
-import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
-import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
-import com.evolveum.midpoint.provisioning.service.BaseResourceIntegration;
-import com.evolveum.midpoint.provisioning.service.ResourceAccessInterface;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.processor.ResourceObject;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -63,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml" })
-public class ModifyUserActionTest {
+public class UnlinkAccountActionTest {
 
 	@Autowired(required = true)
 	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
@@ -80,44 +74,41 @@ public class ModifyUserActionTest {
 		return change;
 	}
 
-//	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
-//			throws ParserConfigurationException {
-//		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
-//		return valueWriter.buildResourceObject(shadow, schema);
+//	private ResourceObject createSampleResourceObject(ResourceType resourceType,
+//			ResourceObjectShadowType shadow) throws ParserConfigurationException, SchemaProcessorException {
+//		Schema schema = Schema.parse(resourceType.getSchema().getAny().get(0));
+//		ResourceObjectDefinition definition = (ResourceObjectDefinition) schema
+//				.findContainerDefinitionByType(shadow.getObjectClass());
+//		ResourceObject object = definition.instantiate();
+//
+//		// TODO: set properties
+//
+//		return object;
 //	}
 
 	@Ignore //FIXME: fix test
 	@Test
-	public void testModifyUserAction() throws Exception {
+	public void testUnlinkAccountAction() throws Exception {
 
-		final String resourceOid = "87654321-d34d-b33f-f00d-333222111111";
-		final String userOid = "87654321-d34d-b33f-f00d-987987987987";
-		final String accountOid = "87654321-d34d-b44f-f11d-333222111111";
-
-		// UserType addedUser = null;
+		final String resourceOid = "45645645-d34d-b33f-f00d-333222111111";
+		final String userOid = "45645645-d34d-b33f-f00d-987987987987";
+		final String accountOid = "45645645-d34d-b44f-f11d-333222111111";
 
 		try {
 			// create additional change
-			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-modify-user.xml");
+			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-unlink-account.xml");
 			// adding objects to repo
-			final ResourceType resourceType = (ResourceType) ModelServiceUtil.addObjectToRepo(
-					repositoryService, change.getResource());
-			final AccountShadowType accountType = (AccountShadowType) ModelServiceUtil.addObjectToRepo(
+			ResourceType resourceType = (ResourceType) ModelServiceUtil.addObjectToRepo(repositoryService,
+					change.getResource());
+			AccountShadowType accountType = (AccountShadowType) ModelServiceUtil.addObjectToRepo(
 					repositoryService, change.getShadow());
-			UserType userType = (UserType) ModelServiceUtil.addObjectToRepo(repositoryService,
-					"src/test/resources/user-modify-action.xml");
-
-			// setting resource for ResourceObjectShadowType
-			ObjectModificationType objChange = ((ObjectChangeModificationType) change.getObjectChange())
-					.getObjectModification();
+			ModelServiceUtil.addObjectToRepo(repositoryService,
+					"src/test/resources/user-unlink-account-action.xml");
 
 			assertNotNull(resourceType);
 			// setup provisioning mock
-//			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
-//			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
-//
+//			ResourceObject ro = createSampleResourceObject(resourceType, accountType);
 //			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
-//
 //			when(rai.getConnector()).thenReturn(bri);
 
 			resourceObjectChangeService.notifyChange(change);
@@ -125,10 +116,9 @@ public class ModifyUserActionTest {
 			UserType changedUser = (UserType) repositoryService.getObject(userOid,
 					new PropertyReferenceListType(), new OperationResult("Get Object"));
 			List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
-			assertNotNull(changedUser);
-			assertEquals(accountOid, accountRefs.get(0).getOid());
 
-			assertEquals("First", changedUser.getFamilyName());
+			assertNotNull(changedUser);
+			assertEquals(0, accountRefs.size());
 
 		} finally {
 			// cleanup repo

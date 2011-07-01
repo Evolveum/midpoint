@@ -42,8 +42,8 @@ import static com.evolveum.midpoint.model.filter.PatternFilter.*;
  */
 public class PatternFilterTest {
 
-	private static final String input = "TODO";
-	private static final String expected = "TODO";
+	private static final String input = "midPoint";
+	private static final String expected = "mxdPxxnt";
 	private Filter filter;
 
 	@Before
@@ -118,7 +118,7 @@ public class PatternFilterTest {
 	}
 
 	@Test
-	public void testValueInTextnode() {
+	public void testValueInTextNode() {
 		List<Object> parameters = createGoodParameters();
 		filter.setParameters(parameters);
 
