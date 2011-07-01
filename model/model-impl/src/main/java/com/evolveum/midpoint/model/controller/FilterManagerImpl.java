@@ -24,6 +24,8 @@ package com.evolveum.midpoint.model.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
@@ -40,6 +42,7 @@ public class FilterManagerImpl<T extends Filter> implements FilterManager<T> {
 
 	@Override
 	public void setFilterMapping(Map<String, Class<T>> filterMap) {
+		Validate.notNull(filterMap, "Filter mapping must not be null.");
 		this.filterMap = filterMap;
 	}
 
@@ -50,6 +53,7 @@ public class FilterManagerImpl<T extends Filter> implements FilterManager<T> {
 
 	@Override
 	public Filter getFilterInstance(String uri, List<Object> parameters) {
+		Validate.notEmpty(uri, "Filter uri must not be null or empty.");
 		Class<T> clazz = filterMap.get(uri);
 		if (clazz == null) {
 			return null;

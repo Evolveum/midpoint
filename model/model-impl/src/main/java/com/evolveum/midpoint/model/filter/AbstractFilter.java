@@ -25,6 +25,7 @@ package com.evolveum.midpoint.model.filter;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
 
@@ -67,5 +68,17 @@ public abstract class AbstractFilter implements Filter {
 		}
 
 		return value;
+	}
+
+	protected Node createReturnNode(Node node, String newValue) {
+		Node newNode = node.cloneNode(false);
+		if (node.getNodeType() == Node.TEXT_NODE) {
+			newNode.setTextContent(newValue);
+		} else {
+			// Element Node
+			((Element) newNode).setTextContent(newValue);
+		}
+
+		return newNode;
 	}
 }

@@ -25,7 +25,6 @@ import java.text.Normalizer.Form;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /**
@@ -46,14 +45,6 @@ public class DiacriticsFilter extends AbstractFilter {
 		String newValue = Normalizer.normalize(value, Form.NFD).replaceAll(
 				"\\p{InCombiningDiacriticalMarks}+", "");
 
-		Node newNode = node.cloneNode(false);
-		if (node.getNodeType() == Node.TEXT_NODE) {
-			newNode.setTextContent(newValue);
-		} else {
-			// Element Node
-			((Element) newNode).setTextContent(newValue);
-		}
-
-		return newNode;
+		return createReturnNode(node, newValue);
 	}
 }

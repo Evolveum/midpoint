@@ -568,8 +568,6 @@
 						as a result of this action, it will be created according to this template. -->
 					<i:userTemplateRef oid="c0c010c0-d34d-b55f-f22d-777666111111" />
 				</i:action>
-				<i:action
-					ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount" />
 			</i:reaction>
 
 		</i:synchronization>

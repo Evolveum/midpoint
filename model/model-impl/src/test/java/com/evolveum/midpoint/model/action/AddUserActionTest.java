@@ -31,6 +31,7 @@ import java.util.Set;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -101,7 +102,8 @@ public class AddUserActionTest {
 		return resourceObject;
 	}
 
-	// @Ignore //FIXME: fix test
+	@Ignore
+	// FIXME: fix test
 	@Test
 	public void testAddUserAction() throws Exception {
 
