@@ -220,7 +220,7 @@ public interface ProvisioningService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	public void searchObjectsIterative(QueryType query, PagingType paging, ResultHandler handler, OperationResult parentResult)
+	public void searchObjectsIterative(QueryType query, PagingType paging, final ResultHandler handler, final OperationResult parentResult)
 			throws SchemaException;
 
 	/**

@@ -627,6 +627,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			result.recordFatalError("Unable to detemine object class", ex);
 			throw ex;
 		}
+		//TODO: fetchSchema for resource..needed for converting connector object to the resourceObject
 
 		ResultsHandler icfHandler = new ResultsHandler() {
 			@Override
@@ -634,6 +635,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				// Convert ICF-specific connetor object to a generic
 				// ResourceObject
 				ResourceObject resourceObject = convertToResourceObject(connectorObject, null);
+				System.out.println("founbd resource object: "+resourceObject);
 				// .. and pass it to the handler
 				boolean cont = handler.handle(resourceObject);
 				if (!cont) {
@@ -814,8 +816,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		// Uid is always there
 		Uid uid = co.getUid();
+//		PropertyDefinition propDef = new PropertyDefinition(SchemaConstants.ICFS_NAME, SchemaConstants.XSD_STRING);
+//		Property p = propDef.instantiate();
 		ResourceObjectAttribute uidRoa = setUidAttribute(uid);
+//		p = setUidAttribute(uid);
 		ro.getAttributes().add(uidRoa);
+//		ro.getProperties().add(p);
 
 		for (Attribute icfAttr : co.getAttributes()) {
 			if (icfAttr.getName().equals(Uid.NAME)) {
@@ -823,9 +829,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				continue;
 			}
 			QName qname = convertAttributeNameToQName(icfAttr.getName());
+			
+//			QName type = XsdTypeConverter.toXsdType(icfAttr.getValue().get(0).getClass());
+//			PropertyDefinition pd = new PropertyDefinition(qname, type);
+//			Property roa = pd.instantiate();
+//			ResourceObjectAttribute roa = road.instantiate();
 			ResourceObjectAttribute roa = new ResourceObjectAttribute(qname);
 			List<Object> icfValues = icfAttr.getValue();
 			roa.getValues().addAll(icfValues);
+//			ro.getProperties().add(roa);
 			ro.getAttributes().add(roa);
 		}
 

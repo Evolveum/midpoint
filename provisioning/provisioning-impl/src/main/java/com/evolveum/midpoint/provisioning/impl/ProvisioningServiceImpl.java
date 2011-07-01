@@ -24,8 +24,13 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -35,6 +40,8 @@ import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -45,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * Implementation of provisioning service.
@@ -112,7 +120,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		try {
 			repositoryObject = getRepositoryService().getObject(oid, resolve, result);
-			
+
 		} catch (ObjectNotFoundException e) {
 			result.record(e);
 			throw e;
@@ -127,7 +135,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ResourceObjectShadowType shadow = null;
 			try {
 				shadow = getShadowCache().getShadow(oid, (ResourceObjectShadowType) repositoryObject, result);
-				
+
 			} catch (ObjectNotFoundException e) {
 				result.record(e);
 				throw e;
@@ -187,12 +195,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		ObjectListType objListType = null;
-		
+
 		if (ResourceObjectShadowType.class.isAssignableFrom(objectType)) {
 			// Listing of shadows is not supported because this operation does
 			// not specify resource
 			// to search. Maybe we need another operation for this.
-			
+
 			throw new NotImplementedException("Listing of shadows is not supported");
 
 		} else {
@@ -212,7 +220,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts,
-			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException {
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+			CommunicationException {
 		if (objectChange == null || objectChange.getOid() == null) {
 			throw new IllegalArgumentException("Object change or object change oid cannot be null");
 		}
@@ -275,26 +284,28 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException {
-		OperationResult parentResult = new OperationResult(ProvisioningService.class.getName()+".testResource");
+		OperationResult parentResult = new OperationResult(ProvisioningService.class.getName()
+				+ ".testResource");
 		parentResult.addParam("resourceOid", resourceOid);
 		parentResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-		if (resourceOid == null){
+		if (resourceOid == null) {
 			throw new IllegalArgumentException("Resource OID to test is null.");
 		}
-		
+
 		OperationResult result = null;
-		
-		try{
-			ObjectType objectType = getRepositoryService().getObject(resourceOid, new PropertyReferenceListType(), parentResult);
-			if (objectType instanceof ResourceType){
+
+		try {
+			ObjectType objectType = getRepositoryService().getObject(resourceOid,
+					new PropertyReferenceListType(), parentResult);
+			if (objectType instanceof ResourceType) {
 				ResourceType resourceType = (ResourceType) objectType;
 				result = getShadowCache().testConnection(resourceType);
-			} else{
-				throw new IllegalArgumentException("Object with oid is not resource. OID: "+resourceOid);
-			}		
-		} catch (ObjectNotFoundException ex){
-			throw new ObjectNotFoundException("Object with OID "+resourceOid+" not found");
-		} catch (SchemaException ex){
+			} else {
+				throw new IllegalArgumentException("Object with oid is not resource. OID: " + resourceOid);
+			}
+		} catch (ObjectNotFoundException ex) {
+			throw new ObjectNotFoundException("Object with OID " + resourceOid + " not found");
+		} catch (SchemaException ex) {
 			throw new IllegalArgumentException(ex.getMessage(), ex);
 		}
 		return result;
@@ -308,10 +319,75 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public void searchObjectsIterative(QueryType query, PagingType paging, ResultHandler handler, OperationResult parentResult)
-			throws SchemaException {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
+	public void searchObjectsIterative(QueryType query, PagingType paging, final ResultHandler handler,
+			final OperationResult parentResult) throws SchemaException {
+
+		Element filter = query.getFilter();
+		NodeList list = filter.getChildNodes();
+		String resourceOid = null;
+		QName objectClass = null;
+
+		if (QNameUtil.compareQName(SchemaConstants.C_FILTER_AND, filter)) {
+			for (int i = 0; i < list.getLength() - 1; i++) {
+				if (QNameUtil.compareQName(SchemaConstants.C_FILTER_TYPE, list.item(i))) {
+					String type = list.item(i).getAttributes().getNamedItem("uri").getNodeValue();
+					if (type == null || "".equals(type)) {
+						throw new IllegalArgumentException("Object type is not defined.");
+					}
+
+				} else if (QNameUtil.compareQName(SchemaConstants.C_FILTER_EQUAL, list.item(i))) {
+					NodeList equealList = list.item(i).getChildNodes();
+
+					for (int j = 0; j < equealList.getLength() - 1; j++) {
+						if (QNameUtil.compareQName(SchemaConstants.C_FILTER_VALUE, equealList.item(j))) {
+							Node value = equealList.item(j).getFirstChild();
+							if (QNameUtil.compareQName(SchemaConstants.I_RESOURCE_REF, value)) {
+								resourceOid = value.getAttributes().getNamedItem("oid").getNodeValue();
+
+							} else if (QNameUtil.compareQName(SchemaConstants.I_OBJECT_CLASS, value)) {
+								String textContent = value.getTextContent();
+								String prefix = null;
+								String namespace = null;
+								String localPart = null;
+								if (textContent.contains(":")) {
+									prefix = textContent.substring(0, textContent.lastIndexOf(":"));
+									namespace = value.lookupNamespaceURI(prefix);
+									localPart = textContent.substring(textContent.lastIndexOf(":") + 1);
+									objectClass = new QName(namespace, localPart);
+								} else {
+									throw new IllegalArgumentException("Object class was not defined.");
+								}
+							}
+						}
+					}
+				}
+				Node node = list.item(i);
+			}
+		}
+
+		if (resourceOid == null){
+			throw new IllegalArgumentException("Resource where objects sholud be searched is not defined.");
+		}
+		
+		ResourceType resource = null;
+		try {
+			resource = (ResourceType) getRepositoryService().getObject(resourceOid,
+					new PropertyReferenceListType(), parentResult);
+
+		} catch (ObjectNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		final ShadowHandler shadowHandler = new ShadowHandler() {
+
+			@Override
+			public boolean handle(ResourceObjectShadowType shadow) {
+				return handler.handle(shadow, parentResult);
+			}
+		};
+
+		getShadowCache().searchObjectsIterative(objectClass, resource, shadowHandler, parentResult);
 	}
 
 }

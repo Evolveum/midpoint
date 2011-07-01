@@ -26,6 +26,8 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
+
 /**
  * Resource Object.
  * 
@@ -91,8 +93,13 @@ public final class ResourceObject extends PropertyContainer {
 	 *             if resource object has multiple identifiers
 	 */
 	public Property getIdentifier() {
-		throw new IllegalStateException("not implemented yet.");
-		// TODO assert single value
+		Set<ResourceObjectAttribute> attrDefs = getAttributes();
+		for (Property attr : attrDefs){
+			if (attr.getName().equals(SchemaConstants.ICFS_UID)){
+				return attr;
+			}
+		}
+		return null;
 	}
 
 	/**

@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,7 +48,9 @@ import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -278,8 +281,6 @@ public class ShadowCache {
 	public void listShadows(ResourceType resource, QName objectClass, final ShadowHandler handler,
 			final OperationResult parentResult) throws CommunicationException {
 
-		
-		
 		ConnectorInstance connector = getConnectorInstance(resource);
 
 		ResultHandler resultHandler = new ResultHandler() {
@@ -405,28 +406,28 @@ public class ShadowCache {
 
 	public void modifyShadow(ObjectType objectType, ResourceType resource,
 			ObjectModificationType objectChange, ScriptsType scripts, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException, ObjectNotFoundException, SchemaException {
+			throws CommunicationException, GenericFrameworkException, ObjectNotFoundException,
+			SchemaException {
 
 		if (objectType instanceof AccountShadowType) {
 			AccountShadowType accountType = (AccountShadowType) objectType;
 			if (resource == null) {
-			
-					resource = getResource(ResourceObjectShadowUtil.getResourceOid(accountType), parentResult);
-				
+
+				resource = getResource(ResourceObjectShadowUtil.getResourceOid(accountType), parentResult);
+
 			}
 
 			ConnectorInstance connector = getConnectorInstance(resource);
-			
+
 			Schema schema = getResourceSchema(resource, connector, parentResult);
 
 			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
 					.findContainerDefinitionByType(accountType.getObjectClass());
 			Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(accountType.getAttributes()
 					.getAny());
-			
-			Set<Operation> changes = getAttributeChanges(objectChange, rod);//new HashSet<Operation>();
 
-			
+			Set<Operation> changes = getAttributeChanges(objectChange, rod);// new
+																			// HashSet<Operation>();
 
 			try {
 				connector.modifyObject(accountType.getObjectClass(), identifiers, changes, parentResult);
@@ -438,15 +439,58 @@ public class ShadowCache {
 			}
 		}
 	}
-	
-	public OperationResult testConnection(ResourceType resourceType){
-		
+
+	public OperationResult testConnection(ResourceType resourceType) {
+
 		ConnectorInstance connector = getConnectorInstance(resourceType);
 		return connector.test();
-		
+
 	}
 
-	
+	public void searchObjectsIterative(QName objectClass, ResourceType resourceType,
+			final ShadowHandler handler, final OperationResult parentResult) {
+
+		ConnectorInstance connector = getConnectorInstance(resourceType);
+
+		ResultHandler resultHandler = new ResultHandler() {
+
+			@Override
+			public boolean handle(ResourceObject object) {
+				ResourceObjectShadowType shadow;
+				System.out.println();
+				try {
+					shadow = lookupShadow(object, parentResult);
+					
+				} catch (SchemaProcessorException e) {
+					// TODO: better error handling
+					// TODO log it?
+					return false;
+				} catch (SchemaException e) {
+					// TODO: better error handling
+					// TODO log it?
+					return false;
+				}
+
+				// TODO: if shadow does not exists, create it now
+
+				return handler.handle(shadow);
+			}
+		};
+
+		try {
+
+			connector.search(objectClass, resultHandler, parentResult);
+		} catch (GenericFrameworkException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+			// throw new CommunicationException(ex.getMessage(), ex);
+			// TODO Auto-generated catch block
+			ex.printStackTrace();
+		}
+
+	}
 
 	// TODO: methods with native identification (Set<Attribute> identifier)
 	// instead of OID.
@@ -500,6 +544,17 @@ public class ShadowCache {
 		// value for it in the filter
 		Property identifier = resourceObject.getIdentifier();
 
+		if (identifier.getDefinition() == null) {
+			// HACK setting property definition for indetifier
+			// set string as type
+			Set<Object> values = identifier.getValues();
+			PropertyDefinition pd = new PropertyDefinition(identifier.getName(), SchemaConstants.XSD_STRING);
+			identifier = pd.instantiate();
+			for (Object value : values) {
+				identifier.setValue(value);
+			}
+		}
+
 		Set<Object> idValues = identifier.getValues();
 		// Only one value is supported for an identifier
 		if (idValues.size() > 1) {
@@ -523,6 +578,8 @@ public class ShadowCache {
 
 		QueryType query = new QueryType();
 		query.setFilter(filter);
+
+		System.out.println("created query " + DOMUtil.printDom(filter));
 
 		return query;
 	}
@@ -619,16 +676,17 @@ public class ShadowCache {
 		return resourceObjectShadow;
 	}
 
-	private Set<Operation> getAttributeChanges(ObjectModificationType objectChange, ResourceObjectDefinition rod) {
+	private Set<Operation> getAttributeChanges(ObjectModificationType objectChange,
+			ResourceObjectDefinition rod) {
 		Set<Operation> changes = new HashSet<Operation>();
 		for (PropertyModificationType modification : objectChange.getPropertyModification()) {
-			
-			if (modification.getPath() == null){
+
+			if (modification.getPath() == null) {
 				throw new IllegalArgumentException("Path to modificated attributes is null.");
 			}
-			
+
 			if (modification.getPath().getTextContent().contains(SchemaConstants.I_ATTRIBUTES.getLocalPart())) {
-				
+
 				Set<Property> changedProperties = rod.parseProperties(modification.getValue().getAny());
 				for (Property p : changedProperties) {
 
@@ -638,7 +696,8 @@ public class ShadowCache {
 					changes.add(attributeModification);
 				}
 			} else {
-				throw new IllegalArgumentException("Wrong path value: "+ modification.getPath().getTextContent());
+				throw new IllegalArgumentException("Wrong path value: "
+						+ modification.getPath().getTextContent());
 			}
 		}
 		return changes;
