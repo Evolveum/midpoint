@@ -88,6 +88,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * The test calls the new Provisioning Service Interface (java). No WSDL mess.
  * 
  * @author Radovan Semancik
+ * @author Katka Valalikova
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
