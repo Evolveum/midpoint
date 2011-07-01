@@ -87,7 +87,7 @@ public class OpenDJController {
         }
         this.configFile = new File(serverRoot, "config/config.ldif");
         if (templateDir==null){
-        this.templateServerRoot = new File(serverRoot.getParentFile(), "opendj.template");
+        	this.templateServerRoot = new File(serverRoot.getParentFile(), "opendj.template");
         } else {
             this.templateServerRoot = templateDir;
         }

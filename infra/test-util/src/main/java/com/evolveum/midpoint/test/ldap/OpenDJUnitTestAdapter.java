@@ -45,31 +45,47 @@ public class OpenDJUnitTestAdapter {
 
 	protected static String ldapTmpDir = "target/tmp-data";
 
-	protected static String dbTemplateDir = "test-data/opendj.template";
+	protected static String djTemplatePath = "test-data/opendj.template";
 
 	protected static OpenDJController controller;
 
 	public OpenDJUnitTestAdapter() {
 	}
 
-	private static File extractTemplate() {
-		System.out.println("--- Extraction ----");
-		String u = ClassLoader.getSystemResource(dbTemplateDir).getPath();
-		System.out.println(u);
-
-		File file = new File(u);
-
-		if (file.isDirectory()) {
-			return file;
+	/**
+	 * 
+	 * Note: this does not copy the files, just locates the template or extracts it
+	 * from system resources.
+	 * The OpenDJController will copy the files.
+	 * 
+	 * @return
+	 */
+	private static File extractTemplate(String customTemplatePath) {
+		
+		String templatePath = djTemplatePath;
+		if (customTemplatePath!=null) {
+			templatePath = customTemplatePath;
 		}
-		System.out.println("Not a directory !! expanding");
-		u = u.replace("file:", "").split("!")[0];
+		
+		File templateFile = new File(templatePath);
+		if (templateFile.isDirectory()) {
+			return templateFile;
+		}
+		
+		String templateResourcePath = ClassLoader.getSystemResource(templatePath).getPath();
+		System.out.println("Template resource path: "+templateResourcePath);
 
-		System.out.println(u);
+		File templateResourceFile = new File(templateResourcePath);
+		if (templateResourceFile.isDirectory()) {
+			return templateResourceFile;
+		}
+		System.out.println("--- Extracting OpenDJ from a system resource, template path "+templatePath+" ----");
+		templateResourcePath = templateResourcePath.replace("file:", "").split("!")[0];
+		System.out.println("path after expansion: "+templateResourcePath);
 
 		JarFile jf = null;
 		try {
-			jf = new JarFile(u);
+			jf = new JarFile(templateResourcePath);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -79,9 +95,9 @@ public class OpenDJUnitTestAdapter {
 
 		for (Enumeration en = jf.entries(); en.hasMoreElements();) {
 			JarEntry je = (JarEntry) en.nextElement();
-			if (je.getName().contains(dbTemplateDir)) {
+			if (je.getName().contains(templatePath)) {
 				String srcName = je.getName();
-				String dstName = srcName.replace(dbTemplateDir, "");
+				String dstName = srcName.replace(templatePath, "");
 				if (dstName.length() < 3)
 					continue;
 				System.out.println("++ " + srcName + " -->" + dstName + "  (" + je.getSize() + ")");
@@ -119,16 +135,20 @@ public class OpenDJUnitTestAdapter {
 		return dst;
 	}
 
-	public static void startACleanDJ() throws Exception {
+	public static void startACleanDJ(String templatePath) throws Exception {
 		if (controller == null) {
-			;
 			controller = new OpenDJController(new File(ldapDataDir),
-					extractTemplate());
+					extractTemplate(templatePath));
 		}
 		controller.refreshFromTemplate();
 		controller.start();
 	}
 
+	public static void startACleanDJ() throws Exception {
+		startACleanDJ(null);
+	}
+
+	
 	public static void stopDJ() throws Exception {
 		controller.stop();
 	}
