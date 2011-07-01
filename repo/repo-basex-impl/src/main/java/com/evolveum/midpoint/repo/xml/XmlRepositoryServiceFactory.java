@@ -28,11 +28,15 @@ import org.basex.core.BaseXException;
 import org.basex.server.ClientQuery;
 import org.basex.server.ClientSession;
 
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 public class XmlRepositoryServiceFactory {
 
+	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryServiceFactory.class);
+	
 	/** Database driver. */
 	public static final String DRIVER = "org.basex.api.xmldb.BXDatabase";
 
@@ -42,15 +46,21 @@ public class XmlRepositoryServiceFactory {
 
 	public void init() throws RepositoryServiceFactoryException {
 
-		// set debug mode for BaseX server
-		String args = "-d";
 		// start BaseX server
-		server = new BaseXServer(args);
-		
+		TRACE.debug("Starting BaseX Server");
+		//args ordering is important!
+		//set debug mode and run it in the same process
+		server = new BaseXServer("-d", "-D", "-s");
+		//set debug mode and run it as a Daemon process
+		//server = new BaseXServer("-d", "-s");
+		TRACE.debug("BaseX Server started");
 		boolean newDb = false;
 
 		try {
+			TRACE.debug("Creating BaseX client Session");
 			ClientSession session = new ClientSession("localhost", 1984, "admin", "admin");
+			TRACE.debug("BaseX client Session created");
+			
 			try {
 			session.execute("OPEN midPoint");
 			} catch (BaseXException ex) {
@@ -82,9 +92,9 @@ public class XmlRepositoryServiceFactory {
 	}
 
 	public void destroy() {
-		if (null != server) {
-			server.stop();
-		}
+//		if (null != server) {
+//			server.stop();
+//		}
 	}
 
 	public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {

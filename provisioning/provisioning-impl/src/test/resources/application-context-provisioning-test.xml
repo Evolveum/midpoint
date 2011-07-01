@@ -48,6 +48,4 @@
 	<!-- scope=prototype is mandatory, because every xml repo service has to be connected with separated session to the basex server -->
 	<bean name="repositoryService" factory-bean="xmlRepositoryServiceFactory" factory-method="getRepositoryService" class="com.evolveum.midpoint.repo.xml.XmlRepositoryService" scope="prototype" depends-on="xmlRepositoryServiceFactory"></bean>
 
-
-
 </beans>

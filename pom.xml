@@ -65,9 +65,9 @@
     <modules>
         <module>build-system</module>
         <module>infra</module>
-        <module>provisioning</module>
         <module>repo</module>
-        <module>model</module>
+        <module>provisioning</module>
+   	<module>model</module>
         <module>gui</module>
     </modules>
     <profiles>

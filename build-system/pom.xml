@@ -40,7 +40,7 @@
         <verbose.jaxb2>false</verbose.jaxb2>
         <verbose.jaxws>false</verbose.jaxws>
         <!-- Dependencies global versions -->
-        <basex.version>6.6</basex.version>
+        <basex.version>6.7</basex.version>
         <commons.io.version>2.0.1</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
         <dbunit.version>2.4.7</dbunit.version>
@@ -197,8 +197,12 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>2.8.1</version>
+                        <version>2.9</version>
                         <configuration>
+          		    <forkMode>once</forkMode>
+          		    <parallel>false</parallel> 
+			    <perCoreThreadCount>false</perCoreThreadCount>
+			    <threadCount>1</threadCount>
                             <redirectTestOutputToFile>true</redirectTestOutputToFile>
                         </configuration>
                     </plugin>
