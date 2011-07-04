@@ -85,54 +85,6 @@ public class AddUserAction extends BaseAction {
 		}
 
 		return userOid;
-
-		// ObjectFactory of = new ObjectFactory();
-		// if (user == null) {
-		// // user was not found, so create user
-		// user = of.createUserType();
-		// UserTemplateType userTemplate = getUserTemplate(result);
-		//
-		// try {
-		//
-		// if (LOGGER.isDebugEnabled()) {
-		// LOGGER.debug("Action:addUser: Resource Object Shadow before action: {}",
-		// DebugUtil.toReadableString(shadowAfterChange));
-		// }
-		// user = getSchemaHandling().applyInboundSchemaHandlingOnUser(user,
-		// shadowAfterChange);
-		//
-		// if (LOGGER.isDebugEnabled()) {
-		// LOGGER.debug("Action:addUser: User after processing of inbound expressions: {}",
-		// DebugUtil.toReadableString(user));
-		// }
-		//
-		// // apply user template
-		// user = getSchemaHandling().applyUserTemplate(user, userTemplate);
-		//
-		// if (LOGGER.isDebugEnabled()) {
-		// LOGGER.debug("Action:addUser: User after processing of user template: {}",
-		// DebugUtil.toReadableString(user));
-		// }
-		//
-		// // save user
-		// userOid = getModel().addObject(user, result);
-		// } catch (SchemaHandlingException ex) {
-		// throw new SynchronizationException("Couldn't apply user template '" +
-		// userTemplate.getOid()
-		// + "' on user '" + userOid + "'.", ex);
-		// } catch (PatchException ex) {
-		// throw new SynchronizationException("Couldn't apply user template '" +
-		// userTemplate.getOid()
-		// + "' on user '" + userOid + "'.", ex);
-		// } catch (Exception ex) {
-		// throw new SynchronizationException("Can't save user", ex);
-		// }
-		// } else {
-		// LOGGER.debug("User already exists ({}), skipping create.",
-		// user.getOid());
-		// }
-		//
-		// return userOid;
 	}
 
 	private String getUserTemplateOid() {

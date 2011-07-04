@@ -20,14 +20,22 @@
  */
 package com.evolveum.midpoint.model.sync.action;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
@@ -35,11 +43,12 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
@@ -48,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml" })
+		"classpath:application-context-model-unit-test.xml" })
 public class AddUserActionTest extends BaseActionTest {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/addUser");
@@ -56,23 +65,43 @@ public class AddUserActionTest extends BaseActionTest {
 
 	@Before
 	public void before() {
-		before(new AddUserAction());
+		Mockito.reset(provisioning, repository);
+		before(new AddUserAction());		
 	}
 
+	/**
+	 * This method should test addUser action when user already exists.
+	 * Therefore no changes must be made in repository on user, because he
+	 * already exists.
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testUserExists() throws SynchronizationException, JAXBException {
+	public void testUserExists() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
-				.unmarshal(new File(TEST_FOLDER, "existing-user.xml"))).getValue();
+				.unmarshal(new File(TEST_FOLDER, "existing-user-change.xml"))).getValue();
 		OperationResult result = new OperationResult("Add User Action Test");
 
-		//TODO: finish mocking repository
+		UserType user = ((JAXBElement<UserType>) JAXBUtil
+				.unmarshal(new File(TEST_FOLDER, "existing-user.xml"))).getValue();
+		when(repository.getObject(eq("1"), any(PropertyReferenceListType.class), any(OperationResult.class)))
+				.thenReturn(user);
+		when(repository.addObject(any(UserType.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
+			@Override
+			public String answer(InvocationOnMock invocation) throws Throwable {
+				LOGGER.info(repository.toString());
+				throw new RuntimeException();
+//				return null;
+			}
+		});
 		try {
 			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
-			action.executeChanges("1", change, SynchronizationSituationType.UNMATCHED,
+			action.executeChanges("1", change, SynchronizationSituationType.CONFIRMED,
 					(ResourceObjectShadowType) addition.getObject(), result);
 		} finally {
 			LOGGER.debug(result.debugDump());
 		}
+		verify(repository, times(0)).addObject(any(UserType.class), any(OperationResult.class));
 	}
 }

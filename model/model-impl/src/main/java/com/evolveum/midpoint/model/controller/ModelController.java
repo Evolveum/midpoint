@@ -126,17 +126,22 @@ public class ModelController {
 	}
 
 	public String addUser(UserType user, UserTemplateType userTemplate, OperationResult result)
-			throws ObjectAlreadyExistsException {
+			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
-		
+
 		if (userTemplate == null) {
-			//TODO: get user template from system configuration
+			SystemConfigurationType systemConfiguration = getSystemConfiguration(result);
+			userTemplate = systemConfiguration.getDefaultUserTemplate();
 		}
-		
-//		Validate.notNull(userTemplate, "User template must not be null.");		
-//		LOGGER.debug("Adding user {}, oid {} using template {}, oid {}.",
-//				new Object[] { user.getName(), user.getOid(), userTemplate.getName(), userTemplate.getOid() });
+
+		if (userTemplate != null) {
+			LOGGER.debug("Adding user {}, oid {} using template {}, oid {}.", new Object[] { user.getName(),
+					user.getOid(), userTemplate.getName(), userTemplate.getOid() });
+		} else {
+			LOGGER.debug("Adding user {}, oid {} using no template.",
+					new Object[] { user.getName(), user.getOid() });
+		}
 
 		OperationResult subResult = new OperationResult("Add User With User Template");
 		result.addSubresult(subResult);
@@ -607,23 +612,29 @@ public class ModelController {
 		}
 	}
 
+	private SystemConfigurationType getSystemConfiguration(OperationResult result)
+			throws ObjectNotFoundException {
+		OperationResult configResult = new OperationResult("Get System Configuration");
+		result.addSubresult(configResult);
+		SystemConfigurationType systemConfiguration = null;
+		try {
+			systemConfiguration = getObject(SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+					ModelUtils.createPropertyReferenceListType("defaultUserTemplate"), result,
+					SystemConfigurationType.class, false);
+			configResult.recordSuccess();
+		} catch (ObjectNotFoundException ex) {
+			configResult.recordFatalError("Couldn't get system configuration.", ex);
+			throw ex;
+		}
+
+		return systemConfiguration;
+	}
+
 	private String addRepositoryObject(ObjectType object, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		if (object instanceof UserType) {
 			// At first we get default user template from system configuration
-			OperationResult configResult = new OperationResult("Get System Configuration");
-			result.addSubresult(configResult);
-			SystemConfigurationType systemConfiguration = null;
-			try {
-				systemConfiguration = getObject(SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-						ModelUtils.createPropertyReferenceListType("defaultUserTemplate"), result,
-						SystemConfigurationType.class, false);
-				configResult.recordSuccess();
-			} catch (ObjectNotFoundException ex) {
-				configResult.recordFatalError("Couldn't get system configuration.", ex);
-				throw ex;
-			}
-
+			SystemConfigurationType systemConfiguration = getSystemConfiguration(result);
 			UserTemplateType userTemplate = systemConfiguration.getDefaultUserTemplate();
 			processUserTemplateForUser((UserType) object, userTemplate, result);
 		}

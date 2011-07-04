@@ -73,7 +73,7 @@ public abstract class BaseAction implements Action {
 		try {
 			return model.getObject(oid, new PropertyReferenceListType(), result, UserType.class);
 		} catch (ObjectNotFoundException ex) {
-			// user was not found, we return null
+			// user was not found, we return null			
 		} catch (Exception ex) {
 			throw new SynchronizationException("Can't get user with oid '" + oid
 					+ "'. Unknown error occured.", ex);
