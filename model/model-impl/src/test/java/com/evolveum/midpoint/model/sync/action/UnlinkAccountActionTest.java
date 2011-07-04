@@ -47,6 +47,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -78,7 +79,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 	@Before
 	public void before() {
 		Mockito.reset(provisioning, repository);
-		before(new LinkAccountAction());
+		before(new UnlinkAccountAction());
 	}
 
 	@Test(expected = SynchronizationException.class)
@@ -102,18 +103,6 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private String mockUser(String fileName) throws Exception {
-		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, fileName)))
-				.getValue();
-
-		when(
-				repository.getObject(eq(user.getOid()), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(user);
-
-		return user.getOid();
-	}
-
 	@Test
 	@SuppressWarnings("unchecked")
 	public void nonAccountShadow() throws Exception {
@@ -121,7 +110,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 				.unmarshal(new File(TEST_FOLDER, "group-change.xml"))).getValue();
 		OperationResult result = new OperationResult("Unlink Account Action Test");
 
-		String userOid = mockUser("user.xml");
+		String userOid = ModelServiceUtil.mockUser(repository, new File(TEST_FOLDER, "user.xml"), null);
 
 		try {
 			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
@@ -144,7 +133,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 
 		final String shadowOid = change.getShadow().getOid();
 
-		final String userOid = mockUser("user.xml");
+		final String userOid = ModelServiceUtil.mockUser(repository, new File(TEST_FOLDER, "user.xml"), null);
 		doNothing().doAnswer(new Answer<Void>() {
 
 			@Override

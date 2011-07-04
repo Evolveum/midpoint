@@ -63,7 +63,8 @@ public class DeleteUserAction extends BaseAction {
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete user {}", ex, userOid);
 			subResult.recordFatalError("Couldn't delete user '" + userOid + "'.", ex);
-			throw new SynchronizationException("Couldn't delete user '" + userOid + "', reason: " + ex.getMessage(), ex);
+			throw new SynchronizationException("Couldn't delete user '" + userOid + "', reason: "
+					+ ex.getMessage(), ex);
 		}
 
 		return null;

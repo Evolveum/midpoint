@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -89,11 +90,12 @@ public class DeleteUserActionTest extends BaseActionTest {
 	@Ignore
 	@Test(expected = SynchronizationException.class)
 	public void nonExistingUser() throws Exception {
-		//TODO: implement !!!
+		// TODO: implement !!!
+		ModelServiceUtil.mockUser(repository, new File(TEST_FOLDER, "asdf.xml"), null);
 	}
 
 	@Test
 	public void correctDelete() throws Exception {
-		//TODO: implement !!!
+		// TODO: implement !!!
 	}
 }

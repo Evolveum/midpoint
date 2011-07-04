@@ -20,12 +20,14 @@
  */
 package com.evolveum.midpoint.model.sync.action;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.*;
-import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 
@@ -47,6 +49,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -59,7 +62,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
@@ -102,18 +104,6 @@ public class LinkAccountActionTest extends BaseActionTest {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private String mockUser(String fileName) throws Exception {
-		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, fileName)))
-				.getValue();
-
-		when(
-				repository.getObject(eq(user.getOid()), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(user);
-
-		return user.getOid();
-	}
-
 	@Test
 	@SuppressWarnings("unchecked")
 	public void nonAccountShadow() throws Exception {
@@ -121,7 +111,7 @@ public class LinkAccountActionTest extends BaseActionTest {
 				.unmarshal(new File(TEST_FOLDER, "group-change.xml"))).getValue();
 		OperationResult result = new OperationResult("Link Account Action Test");
 
-		String userOid = mockUser("user.xml");
+		String userOid = ModelServiceUtil.mockUser(repository, new File(TEST_FOLDER, "user.xml"), null);
 
 		try {
 			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
@@ -144,7 +134,7 @@ public class LinkAccountActionTest extends BaseActionTest {
 
 		final String shadowOid = change.getShadow().getOid();
 
-		final String userOid = mockUser("user.xml");
+		final String userOid = ModelServiceUtil.mockUser(repository, new File(TEST_FOLDER, "user.xml"), null);
 		doNothing().doAnswer(new Answer<Void>() {
 
 			@Override

@@ -82,7 +82,7 @@ public class DiacriticsFilterTest {
 	}
 
 	@Test
-	public void testValueInTextnode() {
+	public void testValueInTextNode() {
 		Node testNode = DOMUtil.getDocument().createTextNode(input);
 		Node node = filter.apply(testNode);
 

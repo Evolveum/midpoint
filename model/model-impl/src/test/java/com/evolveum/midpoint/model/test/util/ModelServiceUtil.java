@@ -41,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.IllegalArgumentFaultType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
@@ -100,5 +101,35 @@ public class ModelServiceUtil {
 		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(fileString))).getValue();
 		repositoryService.addObject(object, new OperationResult("Add Object"));
 		return object;
+	}
+
+	/**
+	 * 
+	 * @param repository
+	 * @param file
+	 *            - user to be found
+	 * @param userOid
+	 *            - if file == null then userOid when repo should throw
+	 *            ObjectNotFoundException
+	 * @return
+	 * @throws Exception
+	 */
+	@SuppressWarnings("unchecked")
+	public static String mockUser(RepositoryService repository, File file, String userOid) throws Exception {
+		String userOidExpected = userOid;
+		if (file != null) {
+			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(file)).getValue();
+			userOidExpected = user.getOid();
+			when(
+					repository.getObject(eq(user.getOid()), any(PropertyReferenceListType.class),
+							any(OperationResult.class))).thenReturn(user);
+		} else {
+			when(
+					repository.getObject(eq(userOid), any(PropertyReferenceListType.class),
+							any(OperationResult.class))).thenThrow(
+					new ObjectNotFoundException("user not found."));
+		}
+
+		return userOidExpected;
 	}
 }

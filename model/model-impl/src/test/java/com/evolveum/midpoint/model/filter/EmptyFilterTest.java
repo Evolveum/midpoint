@@ -17,35 +17,43 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.model.filter;
 
-import org.apache.commons.lang.Validate;
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Before;
+import org.junit.Test;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.DebugUtil;
-import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.controller.Filter;
+import com.evolveum.midpoint.util.DOMUtil;
 
 /**
- * Empty filter. It does not tranformate the value at all. It only logs it. Can
- * be used in tests and for diagnostics.
  * 
- * @author Igor Farinic
- * @author Radovan Semancik
+ * @author lazyman
  * 
  */
-public class EmptyFilter extends AbstractFilter {
+public class EmptyFilterTest {
 
-	private static final Trace LOGGER = TraceManager.getTrace(EmptyFilter.class);
+	private Filter filter;
 
-	@Override
-	public Node apply(Node node) {
-		Validate.notNull(node, "Node must not be null.");
-		
-		LOGGER.debug("EmptyFilter see {}", DebugUtil.prettyPrint(node));
-		return node;
+	@Before
+	public void before() {
+		filter = new EmptyFilter();
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void testNullNode() {
+		filter.apply(null);
+	}
+
+	@Test
+	public void testNode() {
+		String input = "test content";
+		Node testNode = DOMUtil.getDocument().createTextNode(input);
+		Node node = filter.apply(testNode);
+
+		assertEquals(input, node.getNodeValue());
 	}
 }
