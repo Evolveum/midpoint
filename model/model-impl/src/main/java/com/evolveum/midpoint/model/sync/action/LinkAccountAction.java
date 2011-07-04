@@ -46,7 +46,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  */
 public class LinkAccountAction extends BaseAction {
 
-	private static Trace trace = TraceManager.getTrace(LinkAccountAction.class);
+	private static Trace LOGGER = TraceManager.getTrace(LinkAccountAction.class);
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
@@ -78,9 +78,11 @@ public class LinkAccountAction extends BaseAction {
 								SchemaConstants.I_ACCOUNT_REF, accountRef));
 
 				getModel().modifyObject(changes, subResult);
+			} else {
+				LOGGER.debug("Skipping link account to user, shadow in change is not AccountShadowType.");
 			}
 		} catch (Exception ex) {
-			LoggingUtils.logException(trace, "Couldn't link account {} to user {}.", ex,
+			LoggingUtils.logException(LOGGER, "Couldn't link account {} to user {}.", ex,
 					shadowAfterChange.getName(), user.getName());
 			subResult.recordFatalError("Couldn't link account '" + shadowAfterChange.getName()
 					+ "' to user '" + user.getName() + "'.", ex);
