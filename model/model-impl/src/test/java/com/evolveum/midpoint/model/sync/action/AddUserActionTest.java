@@ -119,7 +119,7 @@ public class AddUserActionTest extends BaseActionTest {
 	@SuppressWarnings("unchecked")
 	public void templateNotFound() throws Exception {
 		setActionParameters();
-		
+
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "existing-user-change.xml"))).getValue();
 		OperationResult result = new OperationResult("Add User Action Test");
@@ -133,17 +133,17 @@ public class AddUserActionTest extends BaseActionTest {
 		try {
 			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
 			action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
-					(ResourceObjectShadowType) addition.getObject(), result);		
+					(ResourceObjectShadowType) addition.getObject(), result);
 		} finally {
 			LOGGER.debug(result.debugDump());
 		}
 	}
-	
+
 	private void setActionParameters() {
 		List<Object> parameters = new ArrayList<Object>();
 		Element element = DOMUtil.getDocument().createElementNS(SchemaConstants.NS_C, "userTemplateRef");
 		element.setAttribute("oid", "c0c010c0-d34d-b55f-f22d-777666111111");
-		parameters.add(element);		
+		parameters.add(element);
 		action.setParameters(parameters);
 	}
 
@@ -151,7 +151,7 @@ public class AddUserActionTest extends BaseActionTest {
 	@SuppressWarnings("unchecked")
 	public void correctAddUser() throws Exception {
 		setActionParameters();
-		
+
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "existing-user-change.xml"))).getValue();
 		OperationResult result = new OperationResult("Add User Action Test");
@@ -168,8 +168,7 @@ public class AddUserActionTest extends BaseActionTest {
 					@Override
 					public String answer(InvocationOnMock invocation) throws Throwable {
 						UserType user = (UserType) invocation.getArguments()[0];
-						// TODO: test user (with evaluated inbound expression)
-
+						
 						XmlAsserts.assertPatch(new File("new-user.xml"),
 								JAXBUtil.marshalWrap(user, SchemaConstants.I_USER_TYPE));
 

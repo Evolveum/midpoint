@@ -54,7 +54,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author lazyman
  * 
  */
-public class JAXBUtil {
+public final class JAXBUtil {
 
 	private static final Trace TRACE = TraceManager.getTrace(JAXBUtil.class);
 	private static final JAXBContext context;
@@ -72,7 +72,7 @@ public class JAXBUtil {
 		context = ctx;
 	}
 
-	private static final Marshaller createMarshaller(Map<String, Object> jaxbProperties) throws JAXBException {
+	private static Marshaller createMarshaller(Map<String, Object> jaxbProperties) throws JAXBException {
 		Marshaller marshaller = context.createMarshaller();
 		// set default properties
 		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -88,12 +88,12 @@ public class JAXBUtil {
 		return marshaller;
 	}
 
-	private static final Unmarshaller createUnmarshaller() throws JAXBException {
+	private static Unmarshaller createUnmarshaller() throws JAXBException {
 		return context.createUnmarshaller();
 	}
 
 	@SuppressWarnings("unchecked")
-	public static final ObjectType clone(ObjectType object) throws JAXBException {
+	public static ObjectType clone(ObjectType object) throws JAXBException {
 		if (object == null) {
 			return null;
 		}
@@ -104,12 +104,11 @@ public class JAXBUtil {
 		return obj.getValue();
 	}
 
-	public static final String marshal(Object object) throws JAXBException {
+	public static String marshal(Object object) throws JAXBException {
 		return marshal(null, object);
 	}
 
-	public static final String marshal(Map<String, Object> jaxbProperties, Object object)
-			throws JAXBException {
+	public static String marshal(Map<String, Object> jaxbProperties, Object object) throws JAXBException {
 		if (object == null) {
 			return "";
 		}
@@ -121,28 +120,28 @@ public class JAXBUtil {
 		return writer.getBuffer().toString();
 	}
 
-	public static final String marshalWrap(Object object) throws JAXBException {
+	public static String marshalWrap(Object object) throws JAXBException {
 		JAXBElement<Object> element = new JAXBElement<Object>(new QName(SchemaConstants.NS_C, "object"),
 				Object.class, object);
 		return marshal(element);
 	}
 
 	@SuppressWarnings("unchecked")
-	public static final <T> String marshalWrap(T jaxbObject, QName elementQName) throws JAXBException {
+	public static <T> String marshalWrap(T jaxbObject, QName elementQName) throws JAXBException {
 		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
 				jaxbObject);
 		return marshal(jaxbElement);
 	}
 
 	@SuppressWarnings("unchecked")
-	public static final <T> String marshalWrap(Map<String, Object> jaxbProperties, T jaxbObject,
-			QName elementQName) throws JAXBException {
+	public static <T> String marshalWrap(Map<String, Object> jaxbProperties, T jaxbObject, QName elementQName)
+			throws JAXBException {
 		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
 				jaxbObject);
 		return marshal(jaxbProperties, jaxbElement);
 	}
 
-	public static final String silentMarshal(Object xmlObject) {
+	public static String silentMarshal(Object xmlObject) {
 		try {
 			return marshal(xmlObject);
 		} catch (JAXBException ex) {
@@ -152,7 +151,7 @@ public class JAXBUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static final <T> String silentMarshalWrap(T jaxbObject, QName elementQName) {
+	public static <T> String silentMarshalWrap(T jaxbObject, QName elementQName) {
 		try {
 			JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
 					jaxbObject);
@@ -163,16 +162,16 @@ public class JAXBUtil {
 		}
 	}
 
-	public static final void marshal(Object xmlObject, Element element) throws JAXBException {
+	public static void marshal(Object xmlObject, Element element) throws JAXBException {
 		createMarshaller(null).marshal(xmlObject, element);
 	}
 
-	public static final void marshal(Map<String, Object> properties, Object xmlObject, OutputStream stream)
+	public static void marshal(Map<String, Object> properties, Object xmlObject, OutputStream stream)
 			throws JAXBException {
 		createMarshaller(properties).marshal(xmlObject, stream);
 	}
 
-	public static final void silentMarshal(Object xmlObject, Element element) {
+	public static void silentMarshal(Object xmlObject, Element element) {
 		try {
 			marshal(xmlObject, element);
 		} catch (JAXBException ex) {
@@ -180,7 +179,7 @@ public class JAXBUtil {
 		}
 	}
 
-	public static final Object unmarshal(String xmlString) throws JAXBException {
+	public static Object unmarshal(String xmlString) throws JAXBException {
 		if (xmlString == null) {
 			return null;
 			// throw new
@@ -207,11 +206,11 @@ public class JAXBUtil {
 		}
 	}
 
-	public static final Object unmarshal(InputStream input) throws JAXBException {
+	public static Object unmarshal(InputStream input) throws JAXBException {
 		return createUnmarshaller().unmarshal(input);
 	}
 
-	public static final Object silentUnmarshal(String xmlString) {
+	public static Object silentUnmarshal(String xmlString) {
 		try {
 			return unmarshal(xmlString);
 		} catch (JAXBException ex) {
@@ -220,7 +219,7 @@ public class JAXBUtil {
 		}
 	}
 
-	public static final Object silentUnmarshal(File file) {
+	public static Object silentUnmarshal(File file) {
 		try {
 			return unmarshal(file);
 		} catch (JAXBException ex) {
@@ -229,7 +228,7 @@ public class JAXBUtil {
 		}
 	}
 
-	public static final Object unmarshal(File file) throws JAXBException {
+	public static Object unmarshal(File file) throws JAXBException {
 		if (file == null) {
 			throw new IllegalArgumentException("File argument can't be null.");
 		}
@@ -248,8 +247,7 @@ public class JAXBUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static final <T> Element jaxbToDom(T jaxbObject, QName elementQName, Document doc)
-			throws JAXBException {
+	public static <T> Element jaxbToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {
 		if (doc == null) {
 			doc = DOMUtil.getDocument();
 		}

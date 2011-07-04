@@ -54,10 +54,7 @@ public class AddUserAction extends BaseAction {
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
 			OperationResult result) throws SynchronizationException {
-		Validate.notNull(change, "Resource object change description must not be null.");
-		Validate.notNull(situation, "Synchronization situation must not be null.");
-		Validate.notNull(shadowAfterChange, "Resource object shadow after change must not be null.");
-		Validate.notNull(result, "Operation result must not be null.");
+		super.executeChanges(userOid, change, situation, shadowAfterChange, result);
 
 		OperationResult subResult = new OperationResult("Add User Action");
 		result.addSubresult(subResult);

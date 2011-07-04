@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.controller.ModelController;
@@ -36,8 +37,11 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -73,11 +77,23 @@ public abstract class BaseAction implements Action {
 		try {
 			return model.getObject(oid, new PropertyReferenceListType(), result, UserType.class);
 		} catch (ObjectNotFoundException ex) {
-			// user was not found, we return null			
+			// user was not found, we return null
 		} catch (Exception ex) {
 			throw new SynchronizationException("Can't get user with oid '" + oid
 					+ "'. Unknown error occured.", ex);
 		}
+
+		return null;
+	}
+
+	@Override
+	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
+			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
+			OperationResult result) throws SynchronizationException {
+		Validate.notNull(change, "Resource object change description must not be null.");
+		Validate.notNull(situation, "Synchronization situation must not be null.");
+		Validate.notNull(shadowAfterChange, "Resource object shadow after change must not be null.");
+		Validate.notNull(result, "Operation result must not be null.");
 
 		return null;
 	}

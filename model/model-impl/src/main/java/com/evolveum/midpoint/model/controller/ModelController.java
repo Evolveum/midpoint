@@ -565,6 +565,10 @@ public class ModelController {
 	@SuppressWarnings("unchecked")
 	public <T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve,
 			OperationResult result, Class<T> clazz, boolean fromProvisioning) throws ObjectNotFoundException {
+		Validate.notEmpty(oid, "Object oid must not be null or empty.");
+		Validate.notNull(resolve, "Property reference list must not be null.");
+		Validate.notNull(result, "Operation result must not be null.");
+		Validate.notNull(clazz, "Object class must not be null.");
 		T object = null;
 
 		try {
@@ -576,7 +580,8 @@ public class ModelController {
 			}
 			if (!clazz.isInstance(objectType)) {
 				throw new ObjectNotFoundException("Bad object type returned for referenced oid '" + oid
-						+ "'. Expected '" + clazz + "', but was '" + objectType.getClass() + "'.");
+						+ "'. Expected '" + clazz + "', but was '"
+						+ (objectType == null ? "null" : objectType.getClass()) + "'.");
 			} else {
 				object = (T) objectType;
 			}

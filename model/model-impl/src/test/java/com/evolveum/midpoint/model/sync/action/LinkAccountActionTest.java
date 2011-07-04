@@ -20,119 +20,84 @@
  */
 package com.evolveum.midpoint.model.sync.action;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.util.List;
 
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.parsers.ParserConfigurationException;
 
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.Mockito;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
+import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
-import com.evolveum.midpoint.provisioning.objects.ResourceObject;
-import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
-import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
-import com.evolveum.midpoint.provisioning.service.BaseResourceIntegration;
-import com.evolveum.midpoint.provisioning.service.ResourceAccessInterface;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
- * @author Katuska
+ * @author lazyman
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml" })
-public class LinkAccountActionTest {
+		"classpath:application-context-model-unit-test.xml" })
+public class LinkAccountActionTest extends BaseActionTest {
 
-	@Autowired(required = true)
-	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
-	@Autowired(required = true)
-	private RepositoryService repositoryService;
-//	@Autowired(required = true)
-//	private ResourceAccessInterface rai;
-//
-	@SuppressWarnings("unchecked")
-	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
-			throws JAXBException {
-		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
-				.unmarshal(new File(file))).getValue();
-		return change;
+	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/linkAccount");
+	private static final Trace LOGGER = TraceManager.getTrace(LinkAccountActionTest.class);
+
+	@Before
+	public void before() {
+		Mockito.reset(provisioning, repository);
+		before(new LinkAccountAction());
 	}
 
-//	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
-//			throws ParserConfigurationException {
-//		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
-//		return valueWriter.buildResourceObject(shadow, schema);
-//	}
-
-	@Ignore //FIXME: fix test
-	@Test
-	public void testLinkAccountAction() throws Exception {
-
-		final String resourceOid = "ef2bc95b-76e0-48e2-97e7-3d4f02d3e1a2";
-		final String userOid = "12345678-d34d-b33f-f00d-987987987987";
-		final String accountOid = "c0c010c0-d34d-b33f-f00d-222333444555";
-
+	@Test(expected = SynchronizationException.class)
+	@SuppressWarnings("unchecked")
+	public void nonExistingUser() throws Exception {
+		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
+				.unmarshal(new File(TEST_FOLDER, "../addUser/existing-user-change.xml"))).getValue();
+		OperationResult result = new OperationResult("Link Account Action Test");
+		
+		String userOid = "1";
+		when(
+				repository.getObject(eq(userOid), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenThrow(new ObjectNotFoundException("user not found"));
+		
 		try {
-			// create additional change
-			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-link.xml");
-			// adding objects to repo
-			ModelServiceUtil.addObjectToRepo(repositoryService, "src/test/resources/user.xml");
-			ResourceType resourceType = (ResourceType) ModelServiceUtil.addObjectToRepo(repositoryService,
-					change.getResource());
-			AccountShadowType accountType = (AccountShadowType) ModelServiceUtil.addObjectToRepo(
-					repositoryService, change.getShadow());
-
-			assertNotNull(resourceType);
-			// setup provisioning mock
-//			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
-//			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
-//			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
-//			when(rai.getConnector()).thenReturn(bri);
-
-			resourceObjectChangeService.notifyChange(change);
-
-			UserType changedUser = (UserType) repositoryService.getObject(userOid,
-					new PropertyReferenceListType(), new OperationResult("Get Object"));
-			List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
-
-			assertNotNull(changedUser);
-			assertEquals(1, accountRefs.size());
-			assertEquals(accountOid, accountRefs.get(0).getOid());
-
-			AccountShadowType linkedAccount = (AccountShadowType) repositoryService.getObject(accountOid,
-					new PropertyReferenceListType(), new OperationResult("Get Object"));
-
-			assertNotNull(linkedAccount);
-			assertEquals(changedUser.getName(), linkedAccount.getName());
+			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
+			action.executeChanges(userOid, change, SynchronizationSituationType.CONFIRMED,
+					(ResourceObjectShadowType) addition.getObject(), result);
 		} finally {
-			// cleanup repo
-			ModelServiceUtil.deleteObject(repositoryService, accountOid);
-			ModelServiceUtil.deleteObject(repositoryService, resourceOid);
-			ModelServiceUtil.deleteObject(repositoryService, userOid);
+			LOGGER.debug(result.debugDump());
 		}
 	}
 }
