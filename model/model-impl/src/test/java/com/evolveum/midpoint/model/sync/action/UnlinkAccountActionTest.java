@@ -74,7 +74,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 		"classpath:application-context-model-unit-test.xml" })
 public class UnlinkAccountActionTest extends BaseActionTest {
 
-	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/linkAccount");
+	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/account");
 	private static final Trace LOGGER = TraceManager.getTrace(UnlinkAccountActionTest.class);
 
 	@Before
@@ -87,7 +87,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 	@SuppressWarnings("unchecked")
 	public void nonExistingUser() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
-				.unmarshal(new File(TEST_FOLDER, "../addUser/existing-user-change.xml"))).getValue();
+				.unmarshal(new File(TEST_FOLDER, "../user/existing-user-change.xml"))).getValue();
 		OperationResult result = new OperationResult("Link Account Action Test");
 
 		String userOid = "1";
@@ -129,7 +129,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 	@SuppressWarnings("unchecked")
 	public void correctLinkAccount() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
-				.unmarshal(new File(TEST_FOLDER, "../addUser/existing-user-change.xml"))).getValue();
+				.unmarshal(new File(TEST_FOLDER, "../user/existing-user-change.xml"))).getValue();
 		OperationResult result = new OperationResult("Unlink Account Action Test");
 
 		final String shadowOid = change.getShadow().getOid();

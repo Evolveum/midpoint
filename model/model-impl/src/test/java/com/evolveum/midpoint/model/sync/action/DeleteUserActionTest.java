@@ -52,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
 		"classpath:application-context-model-unit-test.xml" })
 public class DeleteUserActionTest extends BaseActionTest {
 
-	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/addUser");
+	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/user");
 	private static final Trace LOGGER = TraceManager.getTrace(DeleteUserActionTest.class);
 
 	@Before

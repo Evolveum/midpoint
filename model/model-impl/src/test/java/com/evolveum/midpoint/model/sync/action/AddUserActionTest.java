@@ -69,7 +69,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 		"classpath:application-context-model-unit-test.xml" })
 public class AddUserActionTest extends BaseActionTest {
 
-	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/addUser");
+	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/user");
 	private static final Trace LOGGER = TraceManager.getTrace(AddUserActionTest.class);
 
 	@Before
