@@ -22,20 +22,17 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
-import java.util.List;
-
-import javax.xml.bind.JAXBException;
-
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.common.diff.DiffException;
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
@@ -44,7 +41,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
- * @author Vilo Repan
+ * @author lazyman
  */
 public class UnlinkAccountAction extends BaseAction {
 
@@ -54,53 +51,43 @@ public class UnlinkAccountAction extends BaseAction {
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
 			OperationResult result) throws SynchronizationException {
-		LOGGER.trace("executeChanges::start");
+		super.executeChanges(userOid, change, situation, shadowAfterChange, result);
 
-		UserType userType = getUser(userOid, result);
-		UserType oldUserType = null;
+		OperationResult subResult = new OperationResult("Unlink Account Action");
+		result.addSubresult(subResult);
+
+		UserType user = getUser(userOid, result);
+		if (user == null) {
+			String message = "User with oid '" + userOid
+					+ "' doesn't exits. Try insert create action before this action.";
+			subResult.recordFatalError(message);
+			throw new SynchronizationException(message);
+		}
+
 		try {
-			oldUserType = (UserType) JAXBUtil.clone(userType);
-		} catch (JAXBException ex) {
-			// TODO: logging
-			throw new SynchronizationException("Couldn't clone user.", ex);
-		}
-		ResourceObjectShadowType resourceShadow = change.getShadow();
+			if (shadowAfterChange instanceof AccountShadowType) {
+				ObjectReferenceType accountRef = new ObjectReferenceType();
+				accountRef.setOid(shadowAfterChange.getOid());
+				accountRef.setType(ObjectTypes.ACCOUNT.getQName());
 
-		if (userType == null) {
-			throw new SynchronizationException("Can't unlink account. User with oid '" + userOid
-					+ "' doesn't exits. Try insert create action before this action.");
-		}
+				ObjectModificationType changes = new ObjectModificationType();
+				changes.setOid(user.getOid());
+				changes.getPropertyModification().add(
+						ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.delete,
+								null, SchemaConstants.I_ACCOUNT_REF, accountRef));
 
-		List<ObjectReferenceType> references = userType.getAccountRef();
-
-		ObjectReferenceType accountRef = null;
-		for (ObjectReferenceType reference : references) {
-			if (!SchemaConstants.I_ACCOUNT_SHADOW_TYPE.equals(reference.getType())) {
-				continue;
+				getModel().modifyObject(changes, subResult);
+			} else {
+				LOGGER.debug("Skipping unlink account from user, shadow in change is not AccountShadowType.");
 			}
-
-			if (reference.getOid().equals(resourceShadow.getOid())) {
-				accountRef = reference;
-				break;
-			}
-		}
-		if (accountRef != null) {
-			LOGGER.debug("Removing account ref {} from user {}.",
-					new Object[] { accountRef.getOid(), userOid });
-			references.remove(accountRef);
-
-			try {
-				ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUserType, userType);
-				getModel().modifyObject(changes, result);
-			} catch (DiffException ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't create user diff for {}", ex, userOid);
-				throw new SynchronizationException("Couldn't create user diff for '" + userOid + "'.", ex);
-			} catch (Exception ex) {
-				throw new SynchronizationException("Can't unlink account. Can't save user", ex);
-			}
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't unlink account {} from user {}.", ex,
+					shadowAfterChange.getName(), user.getName());
+			subResult.recordFatalError("Couldn't unlink account '" + shadowAfterChange.getName()
+					+ "' from user '" + user.getName() + "'.", ex);
+			throw new SynchronizationException(ex.getMessage(), ex);
 		}
 
-		LOGGER.trace("executeChanges::end");
 		return userOid;
 	}
 }

@@ -54,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAddition
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -155,6 +156,7 @@ public class LinkAccountActionTest extends BaseActionTest {
 				PropertyModificationType modification = change.getPropertyModification().get(0);
 				assertNotNull(modification.getValue());
 				assertEquals(1, modification.getValue().getAny().size());
+				assertEquals(modification.getModificationType(), PropertyModificationTypeType.add);
 
 				Element element = modification.getValue().getAny().get(0);
 
