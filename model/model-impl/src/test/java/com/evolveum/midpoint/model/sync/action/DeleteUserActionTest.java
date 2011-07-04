@@ -25,7 +25,6 @@ import java.io.File;
 import javax.xml.bind.JAXBElement;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -87,15 +86,37 @@ public class DeleteUserActionTest extends BaseActionTest {
 		}
 	}
 
-	@Ignore
+	@SuppressWarnings("unchecked")
 	@Test(expected = SynchronizationException.class)
 	public void nonExistingUser() throws Exception {
-		// TODO: implement !!!
-		ModelServiceUtil.mockUser(repository, new File(TEST_FOLDER, "asdf.xml"), null);
+		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
+				.unmarshal(new File(TEST_FOLDER, "existing-user-change.xml"))).getValue();
+		String userOid = ModelServiceUtil.mockUser(repository, null, "1");
+		
+		OperationResult result = new OperationResult("Delete User Action Test");
+		try {
+			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
+			action.executeChanges(userOid, change, SynchronizationSituationType.CONFIRMED,
+					(ResourceObjectShadowType) addition.getObject(), result);
+		} finally {
+			LOGGER.debug(result.debugDump());
+		}
 	}
-
+	
 	@Test
+	@SuppressWarnings("unchecked")
 	public void correctDelete() throws Exception {
-		// TODO: implement !!!
+		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
+				.unmarshal(new File(TEST_FOLDER, "existing-user-change.xml"))).getValue();
+		String userOid = ModelServiceUtil.mockUser(repository, new File(TEST_FOLDER, "existing-user.xml"), null);
+		
+		OperationResult result = new OperationResult("Delete User Action Test");
+		try {
+			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
+			action.executeChanges(userOid, change, SynchronizationSituationType.CONFIRMED,
+					(ResourceObjectShadowType) addition.getObject(), result);
+		} finally {
+			LOGGER.debug(result.debugDump());
+		}
 	}
 }

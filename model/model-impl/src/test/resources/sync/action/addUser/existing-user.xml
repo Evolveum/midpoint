@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -18,12 +19,10 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2011 lazyman 						 -->
 <!--                                                         -->
-<c:user oid="1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-    <name>johny</name>
-    <fullName>Jan Prvy</fullName>
-    <givenName>Jan</givenName>
-    <familyName>Prvy</familyName>
-    <honorificSuffix>007</honorificSuffix>
-</c:user>
+<user oid="1" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+	<name>johny</name>
+	<fullName>Jan Prvy</fullName>
+	<givenName>Jan</givenName>
+	<familyName>Prvy</familyName>
+	<honorificSuffix>007</honorificSuffix>
+</user>
