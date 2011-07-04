@@ -22,6 +22,8 @@
 
 package com.evolveum.midpoint.model.sync.action;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -33,7 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
 
 /**
  * 
- * @author Vilo Repan
+ * @author lazyman
+ * 
  */
 public class DeleteUserAction extends BaseAction {
 
@@ -43,15 +46,24 @@ public class DeleteUserAction extends BaseAction {
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
 			OperationResult result) throws SynchronizationException {
-		if (userOid == null) {
-			throw new SynchronizationException("Can't delete user, because user oid is null.");
+		super.executeChanges(userOid, change, situation, shadowAfterChange, result);
+
+		OperationResult subResult = new OperationResult("Delete User Action");
+		result.addSubresult(subResult);
+
+		if (StringUtils.isEmpty(userOid)) {
+			String message = "Can't delete user, because user oid is null.";
+			subResult.recordFatalError(message);
+			throw new SynchronizationException(message);
 		}
 
 		try {
 			getModel().deleteObject(userOid, result);
+			subResult.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete user {}", ex, userOid);
-			throw new SynchronizationException("Couldn't delete user '" + userOid + "'.", ex);
+			subResult.recordFatalError("Couldn't delete user '" + userOid + "'.", ex);
+			throw new SynchronizationException("Couldn't delete user '" + userOid + "', reason: " + ex.getMessage(), ex);
 		}
 
 		return null;

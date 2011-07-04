@@ -146,6 +146,7 @@ public class LinkAccountActionTest extends BaseActionTest {
 
 		final String userOid = mockUser("user.xml");
 		doNothing().doAnswer(new Answer<Void>() {
+
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
 				ObjectModificationType change = (ObjectModificationType) invocation.getArguments()[0];

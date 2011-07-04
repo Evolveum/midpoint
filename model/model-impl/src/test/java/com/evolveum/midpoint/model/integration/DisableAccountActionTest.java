@@ -18,15 +18,13 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.sync.action;
+package com.evolveum.midpoint.model.integration;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.when;
 
 import java.io.File;
-import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -40,7 +38,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.provisioning.objects.ResourceObject;
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
@@ -49,28 +46,23 @@ import com.evolveum.midpoint.provisioning.service.BaseResourceIntegration;
 import com.evolveum.midpoint.provisioning.service.ResourceAccessInterface;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml" })
-public class ModifyUserActionTest {
+public class DisableAccountActionTest {
 
 	@Autowired(required = true)
 	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
-//	@Autowired(required = true)
-//	private ResourceAccessInterface rai;
+	@Autowired(required = true)
+	private ResourceAccessInterface rai;
 
 	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
@@ -80,36 +72,26 @@ public class ModifyUserActionTest {
 		return change;
 	}
 
-//	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
-//			throws ParserConfigurationException {
-//		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
-//		return valueWriter.buildResourceObject(shadow, schema);
-//	}
+	private ResourceObject createSampleResourceObject(ResourceSchema schema, ResourceObjectShadowType shadow)
+			throws ParserConfigurationException {
+		ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
+		return valueWriter.buildResourceObject(shadow, schema);
+	}
 
-	@Ignore //FIXME: fix test
 	@Test
-	public void testModifyUserAction() throws Exception {
-
-		final String resourceOid = "87654321-d34d-b33f-f00d-333222111111";
-		final String userOid = "87654321-d34d-b33f-f00d-987987987987";
-		final String accountOid = "87654321-d34d-b44f-f11d-333222111111";
-
-		// UserType addedUser = null;
+	@Ignore
+	public void testDeleteAccountAction() throws Exception {
+		final String resourceOid = "66666666-d34d-b33f-f00d-333222111111";
+		final String accountOid = "66666666-d34d-b44f-f11d-333222111111";
 
 		try {
 			// create additional change
-			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-modify-user.xml");
+			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-disable-account.xml");
 			// adding objects to repo
 			final ResourceType resourceType = (ResourceType) ModelServiceUtil.addObjectToRepo(
 					repositoryService, change.getResource());
 			final AccountShadowType accountType = (AccountShadowType) ModelServiceUtil.addObjectToRepo(
 					repositoryService, change.getShadow());
-			UserType userType = (UserType) ModelServiceUtil.addObjectToRepo(repositoryService,
-					"src/test/resources/user-modify-action.xml");
-
-			// setting resource for ResourceObjectShadowType
-			ObjectModificationType objChange = ((ObjectChangeModificationType) change.getObjectChange())
-					.getObjectModification();
 
 			assertNotNull(resourceType);
 			// setup provisioning mock
@@ -122,19 +104,12 @@ public class ModifyUserActionTest {
 
 			resourceObjectChangeService.notifyChange(change);
 
-			UserType changedUser = (UserType) repositoryService.getObject(userOid,
-					new PropertyReferenceListType(), new OperationResult("Get Object"));
-			List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
-			assertNotNull(changedUser);
-			assertEquals(accountOid, accountRefs.get(0).getOid());
-
-			assertEquals("First", changedUser.getFamilyName());
+			// TODO:make some asserts to verify the result
 
 		} finally {
 			// cleanup repo
 			ModelServiceUtil.deleteObject(repositoryService, accountOid);
 			ModelServiceUtil.deleteObject(repositoryService, resourceOid);
-			ModelServiceUtil.deleteObject(repositoryService, userOid);
 		}
 	}
 }
