@@ -113,9 +113,9 @@ public class ModifyUserAction extends BaseAction {
 	private ResourceObjectShadowType resolveResource(ResourceObjectShadowType shadowAfterChange)
 			throws SynchronizationException {
 		try {
-			ResourceType resourceType = (ResourceType) getRepository().getObject(
-					shadowAfterChange.getResourceRef().getOid(), new PropertyReferenceListType(),
-					new OperationResult("Get Object"));
+			ResourceType resourceType = getModel().getObject(shadowAfterChange.getResourceRef().getOid(),
+					new PropertyReferenceListType(), new OperationResult("Get Object"), ResourceType.class,
+					false);
 
 			shadowAfterChange.setResource(resourceType);
 			shadowAfterChange.setResourceRef(null);

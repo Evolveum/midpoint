@@ -101,14 +101,8 @@
         <property name="model" >
             <ref bean="modelController"/>
         </property>
-        <property name="provisioning" >
-            <ref bean="provisioningService"/>
-        </property>
         <property name="schemaHandling" >
             <ref bean="schemaHandling"/>
-        </property>
-        <property name="repository" >
-            <ref bean="repositoryService"/>
         </property>
     </bean>
 

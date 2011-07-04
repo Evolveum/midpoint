@@ -61,8 +61,6 @@ public abstract class BaseActionTest {
 		this.action = action;
 		BaseAction base = (BaseAction) this.action;
 		base.setModel(controller);
-		base.setProvisioning(provisioning);
-		base.setRepository(repository);
 		base.setSchemaHandling(schemaHandling);
 	}
 

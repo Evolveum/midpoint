@@ -35,7 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 
 /**
@@ -66,12 +65,12 @@ public class DisableAccountAction extends BaseAction {
 		activation.setEnabled(false);
 
 		try {
-			AccountShadowType oldAccount = (AccountShadowType) getProvisioning().getObject(account.getOid(),
-					new PropertyReferenceListType(), new OperationResult("Get Object"));
+			AccountShadowType oldAccount = getModel().getObject(account.getOid(),
+					new PropertyReferenceListType(), new OperationResult("Get Object"),
+					AccountShadowType.class, true);
 
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldAccount, account);
-			ScriptsType scripts = getScripts(change.getResource());
-			getProvisioning().modifyObject(changes, scripts, new OperationResult("Modify Object"));
+			getModel().modifyObject(changes, new OperationResult("Modify Object"));
 		} catch (DiffException ex) {
 			trace.error("Couldn't disable account {}, error while creating diff: {}.",
 					new Object[] { account.getOid(), ex.getMessage() });

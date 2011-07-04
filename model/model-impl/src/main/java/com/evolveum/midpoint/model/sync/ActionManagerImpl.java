@@ -32,8 +32,6 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 
 /**
  * 
@@ -44,8 +42,6 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 	private static transient Trace trace = TraceManager.getTrace(ActionManagerImpl.class);
 	private Map<String, Class<T>> actionMap;
 	private ModelController model;
-	private ProvisioningService provisioning;
-	private RepositoryService repository;
 	private SchemaHandling schemaHandling;
 
 	@Override
@@ -66,9 +62,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 		try {
 			action = clazz.newInstance();
 			((BaseAction) action).setModel(model);
-			((BaseAction) action).setProvisioning((ProvisioningService) provisioning);
 			((BaseAction) action).setSchemaHandling(schemaHandling);
-			((BaseAction) action).setRepository(repository);
 		} catch (Exception ex) {
 			LoggingUtils.logException(trace, "Couln't create action instance", ex);
 		}
@@ -80,15 +74,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 		this.model = model;
 	}
 
-	public void setProvisioning(ProvisioningService provisioning) {
-		this.provisioning = provisioning;
-	}
-
 	public void setSchemaHandling(SchemaHandling schemaHandling) {
 		this.schemaHandling = schemaHandling;
-	}
-
-	public void setRepository(RepositoryService repository) {
-		this.repository = repository;
 	}
 }

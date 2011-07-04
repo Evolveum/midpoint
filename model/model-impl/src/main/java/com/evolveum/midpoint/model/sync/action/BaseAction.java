@@ -33,14 +33,10 @@ import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandling;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -51,8 +47,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public abstract class BaseAction implements Action {
 
 	private ModelController model;
-	private ProvisioningService provisioning;
-	private RepositoryService repository;
 	private SchemaHandling schemaHandling;
 	private List<Object> parameters;
 
@@ -106,36 +100,11 @@ public abstract class BaseAction implements Action {
 		return model;
 	}
 
-	public ProvisioningService getProvisioning() {
-		return provisioning;
-	}
-
-	public void setProvisioning(ProvisioningService provisioning) {
-		this.provisioning = provisioning;
-	}
-
-	public RepositoryService getRepository() {
-		return repository;
-	}
-
-	public void setRepository(RepositoryService repository) {
-		this.repository = repository;
-	}
-
-	public SchemaHandling getSchemaHandling() {
+	protected SchemaHandling getSchemaHandling() {
 		return schemaHandling;
 	}
 
 	public void setSchemaHandling(SchemaHandling schemaHandling) {
 		this.schemaHandling = schemaHandling;
-	}
-
-	protected ScriptsType getScripts(ResourceType resource) {
-		ScriptsType scripts = resource.getScripts();
-		if (scripts == null) {
-			scripts = new ScriptsType();
-		}
-
-		return scripts;
 	}
 }
