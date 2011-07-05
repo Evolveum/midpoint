@@ -53,7 +53,7 @@ public class AddAccountAction extends BaseAction {
 
 		if (!(shadowAfterChange instanceof AccountShadowType)) {
 			subResult.recordWarning("Resource object is not account (class '" + AccountShadowType.class
-					+ "'), but it's '" + change.getShadow().getClass() + "'.");
+					+ "'), but it's '" + shadowAfterChange.getClass() + "'.");
 			return userOid;
 		}
 

@@ -27,6 +27,7 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
@@ -48,6 +49,12 @@ public class DeleteAccountAction extends BaseAction {
 
 		OperationResult subResult = new OperationResult("Delete Account Action");
 		result.addSubresult(subResult);
+
+		if (!(shadowAfterChange instanceof AccountShadowType)) {
+			subResult.recordWarning("Resource object is not account (class '" + AccountShadowType.class
+					+ "'), but it's '" + shadowAfterChange.getClass() + "'.");
+			return userOid;
+		}
 
 		try {
 			getModel().deleteObject(shadowAfterChange.getOid(), subResult);
