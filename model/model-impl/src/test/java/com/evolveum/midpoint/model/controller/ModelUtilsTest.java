@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model.controller;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.File;
 
@@ -191,5 +192,28 @@ public class ModelUtilsTest {
 		assertEquals(2, list.getProperty().size());
 
 		XmlAsserts.assertPatch(new File(TEST_FOLDER, "property-list-type.xml"), JAXBUtil.marshalWrap(list));
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void unresolveResourceObjectNull() {
+		ModelUtils.unresolveResourceObjectShadow(null);
+	}
+	
+	@Test
+	@SuppressWarnings("unchecked")
+	public void unresolveResourceObject() throws Exception {
+		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER, "account-schema-handling.xml"))).getValue();
+		
+		assertNotNull(account.getResource());
+		String resourceOid = account.getResource().getOid();
+		
+		ModelUtils.unresolveResourceObjectShadow(account);
+		assertNull(account.getResource());
+		assertNotNull(account.getResourceRef());
+		
+		ObjectReferenceType ref = account.getResourceRef();
+		assertEquals(resourceOid, ref.getOid());
+		assertEquals(ObjectTypes.RESOURCE.getQName(), ref.getType());
 	}
 }

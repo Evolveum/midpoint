@@ -24,9 +24,9 @@ package com.evolveum.midpoint.model.sync.action;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
@@ -35,7 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
 
 /**
  * 
- * @author Vilo Repan
+ * @author lazyman
+ * 
  */
 public class AddAccountAction extends BaseAction {
 
@@ -45,52 +46,27 @@ public class AddAccountAction extends BaseAction {
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
 			OperationResult result) throws SynchronizationException {
-		if (!(change.getShadow() instanceof AccountShadowType)) {
-			throw new SynchronizationException("Resource object is not account (class '"
-					+ AccountShadowType.class + "'), but it's '" + change.getShadow().getClass() + "'.");
+		super.executeChanges(userOid, change, situation, shadowAfterChange, result);
+
+		OperationResult subResult = new OperationResult("Add Account Action");
+		result.addSubresult(subResult);
+
+		if (!(shadowAfterChange instanceof AccountShadowType)) {
+			subResult.recordWarning("Resource object is not account (class '" + AccountShadowType.class
+					+ "'), but it's '" + change.getShadow().getClass() + "'.");
+			return userOid;
 		}
 
-		AccountShadowType account = (AccountShadowType) change.getShadow();
-
-		// account password generator
-		// int randomPasswordLength = getRandomPasswordLength(account);
-		// if (randomPasswordLength != -1) {
-		// generatePassword(account, randomPasswordLength);
-		// }
-		// account password generator end
-
-		// UserType userType = getUser(userOid);
-		Utils.unresolveResource(account);
+		ModelUtils.unresolveResourceObjectShadow(shadowAfterChange);
 		try {
-			// trace.debug("Applying outbound schema handling on account '{}'.",
-			// account.getOid());
-			// SchemaHandling util = new SchemaHandling();
-			// util.setModel(getModel());
-			// account = (AccountShadowType)
-			// util.applyOutboundSchemaHandlingOnAccount(userType, account);
-			// ScriptsType scripts = getScripts(change.getResource());
-			//
-			// trace.debug("Adding account '{}' to provisioning.",
-			// account.getOid());
-			// provisioning.addObject(container, scripts, new
-			// Holder<OperationalResultType>());
-			getModel().addObject(account, result);
-			// } catch (SchemaHandlingException ex) {
-			// trace.error("Couldn't add account to provisioning: Couldn't apply resource outbound schema handling "
-			// +
-			// "(resource '{}') on account '{}', reason: {}", new
-			// Object[]{change.getResource().getOid(),
-			// account.getOid(), ex.getMessage()});
-			// throw new
-			// SynchronizationException("Couldn't add account to provisioning: Couldn't apply resource "
-			// +
-			// "outbound schema handling (resource '" +
-			// change.getResource().getOid() + "') on account '" +
-			// account.getOid() + "', reason: " + ex.getMessage() + ".",
-			// ex.getFaultType());
+			getModel().addObject(shadowAfterChange, subResult);
+			subResult.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(trace, "Couldn't add account to provisioning", ex);
-			throw new SynchronizationException("Can't add account to provisioning.", ex);
+			LoggingUtils.logException(trace, "Couldn't add account {}, oid {}", ex,
+					shadowAfterChange.getName(), shadowAfterChange.getOid());
+			subResult.recordFatalError("Couldn't add account '" + shadowAfterChange.getName() + "', oid '"
+					+ shadowAfterChange.getOid() + "'.", ex);
+			throw new SynchronizationException(ex.getMessage(), ex);
 		}
 
 		return userOid;

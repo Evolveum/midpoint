@@ -119,7 +119,7 @@ public class DeleteAccountActionTest extends BaseActionTest {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test(expected = SynchronizationException.class)
+	@Test
 	public void correctDeleteAccount() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "../user/existing-user-change.xml"))).getValue();
@@ -131,6 +131,9 @@ public class DeleteAccountActionTest extends BaseActionTest {
 				repository.getObject(eq(shadowOid), any(PropertyReferenceListType.class),
 						any(OperationResult.class))).thenReturn(addition.getObject());
 		when(
+				repository.getObject(eq("c0c010c0-d34d-b44f-f11d-333222111111"), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(change.getResource());
+		when(							  
 				provisioning.getObject(eq("c0c010c0-d34d-b44f-f11d-333222111111"),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
 				change.getResource());

@@ -54,16 +54,28 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 public class ModelUtils {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelUtils.class);
+	
+	public static void unresolveResourceObjectShadow(ResourceObjectShadowType shadow){
+		Validate.notNull(shadow, "Resource object shadow must not be null.");
+		
+		if (shadow.getResource() == null) {
+			return;
+		}
+		
+		ObjectReferenceType reference = createReference(shadow.getResource().getOid(), ObjectTypes.RESOURCE);
+		shadow.setResource(null);
+		shadow.setResourceRef(reference);
+	}
 
 	public static ObjectReferenceType createReference(String oid, ObjectTypes type) {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(type, "Object type must not be null.");
 
-		ObjectReferenceType accountRef = new ObjectReferenceType();
-		accountRef.setType(type.getQName());
-		accountRef.setOid(oid);
+		ObjectReferenceType reference = new ObjectReferenceType();
+		reference.setType(type.getQName());
+		reference.setOid(oid);
 
-		return accountRef;
+		return reference;
 	}
 
 	public static void validatePaging(PagingType paging) {
