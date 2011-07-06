@@ -48,21 +48,17 @@
 		<system>Atlassian JIRA</system>
 		<url>http://jira.evolveum.com/</url>
 	</issueManagement>
-	<build>
+	<!--build>
 		<plugins>
 			<plugin>
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.8.1</version>
 				<configuration>
-					<forkMode>pertest</forkMode>
-					<parallel>classes</parallel>
-					<perCoreThreadCount>false</perCoreThreadCount>
-					<threadCount>1</threadCount>
 					<runOrder>alphabetical</runOrder>
 				</configuration>
 			</plugin>
 		</plugins>
-	</build>
+	</build-->
 	<dependencies>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
