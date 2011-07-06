@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.testing.sanity;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
@@ -42,6 +43,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -69,9 +72,9 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelService;
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
-		"classpath:application-context-provisioning-test.xml",
-		"classpath:application-context-model.xml"})
+@ContextConfiguration(locations = { "classpath:application-context-sanity-test.xml",
+		"classpath:application-context-model.xml",
+		"classpath:application-context-provisioning.xml"})
 public class TestSanity extends OpenDJUnitTestAdapter {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/repo/opendj-resource.xml";
@@ -149,12 +152,21 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	
 	/**
 	 * Test integrity of the test setup.
+	 * @throws SchemaException 
+	 * @throws ObjectNotFoundException 
 	 */
 	@Test
-	public void test000Integrity() {
+	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
 		assertNotNull(resource);
 		assertNotNull(model);
 		assertNotNull(repositoryService);
+		
+		OperationResult result = new OperationResult(TestSanity.class.getName()
+				+ ".test000Integrity");
+		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
+		assertTrue(object instanceof ResourceType);
+		assertEquals(RESOURCE_OPENDJ_OID,object.getOid());
+		
 		// TODO: test if OpenDJ is running
 	}
 	
