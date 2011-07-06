@@ -92,9 +92,12 @@ public class Test990deleteResources {
 		}
 		se.click("debugListForm:deleteButton" + h.get("Localhost OpenDJ"));
 		assertTrue(se.waitForText("Do you really want to delete this object?", 10));
-		se.click("debugListForm:no");
+		se.click("debugListForm:yes");
+		
 		se.waitForText("List Objects");
-	
+		se.select("debugListForm:selectOneMenuList", "label=Resource");
+		se.click("debugListForm:listObjectsButton");
+		
 		// validate
 		assertFalse(se.isTextPresent("Localhost OpenDJ"));
 	}
