@@ -1,3 +1,22 @@
+/*
+ * Copyright (c) 2011 Evolveum
+ * 
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ * 
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ * 
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * Portions Copyrighted 2011 [name of copyright owner]
+ */
 package com.evolveum.midpoint.testing.sanity;
 
 import static org.junit.Assert.assertNotNull;
@@ -10,6 +29,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.ws.Holder;
 
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -26,7 +46,10 @@ import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelService;
 
 
@@ -51,7 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelService;
 		"classpath:application-context-model.xml"})
 public class TestSanity extends OpenDJUnitTestAdapter {
 
-	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
+	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/repo/opendj-resource.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
 	/**
@@ -72,7 +95,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * The instance of ModelService. This is the interface that we will test.
 	 */
 	@Autowired(required = true)
-	private ModelService model;
+	private ModelPortType model;
 	
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
@@ -84,7 +107,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	}
 
 	/**
-	 * Initialize embedded OpenDJ instace
+	 * Initialize embedded OpenDJ instance
 	 * @throws Exception
 	 */
 	@BeforeClass
@@ -124,8 +147,23 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		return object;
 	}
 	
+	/**
+	 * Test integrity of the test setup.
+	 */
 	@Test
-	void testFoo() {
-		//TODO
+	public void test000Integrity() {
+		assertNotNull(resource);
+		assertNotNull(model);
+		assertNotNull(repositoryService);
+		// TODO: test if OpenDJ is running
 	}
+	
+	@Test
+	public void test001TestConnection() throws FaultMessage {
+		OperationResultType result = new OperationResultType();
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
+		model.testResource(RESOURCE_OPENDJ_OID, holder);
+		
+	}
+	
 }
