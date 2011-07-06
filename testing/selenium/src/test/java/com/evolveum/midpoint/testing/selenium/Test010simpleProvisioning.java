@@ -95,9 +95,20 @@ public class Test010simpleProvisioning {
 		se.click("admin-content:editButton");
 		se.waitForText("Save changes",30); //button is present
 		se.click("admin-content:icePnlTbSet:0.1");	//tab accounts
+		se.waitForText("This tab shows user accounts on resources.", 10);
+		se.select("admin-content:icePnlTbSet:0:selectAccount", "Localhost OpenDJ");
+		se.click("admin-content:icePnlTbSet:0:addAccountButton"); // click add account
+		se.waitForText("Localhost OpenDJ: Account");
 		
-		
-		
+		se.type("admin-content:icePnlTbSet:0:j_idt78:__UID___0_0", "jack");
+		se.type("admin-content:icePnlTbSet:0:j_idt78:givenName_1_0", "Jack");
+		se.type("admin-content:icePnlTbSet:0:j_idt78:sn_2_0", "Sparrow");
+		se.type("admin-content:icePnlTbSet:0:j_idt78:cn_3_0", "Cpt. Jack Sparrow");
+		se.type("admin-content:icePnlTbSet:0:j_idt78:__PASSWORD___4_0", "secret");
+		se.type("admin-content:icePnlTbSet:0:j_idt78:description_5_0", "Cpt. of Black Pearl");
+		se.type("admin-content:icePnlTbSet:0:j_idt78:__NAME___6_0", "uid=jack,ou=People,dc=example,dc=com")
+		se.click("admin-content:saveButton");
+		assertTrue(se.waitForText("Save changes successfully."));
 		
 	}
 }
