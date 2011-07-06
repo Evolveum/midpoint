@@ -40,7 +40,6 @@ public class XmlRepositoryServiceFactory {
 
 	private boolean runServer = true;
 	private boolean embedded = true;
-	private String serverPath;
 	private String initialDataPath;
 	private String host;
 	private int port;
@@ -54,29 +53,14 @@ public class XmlRepositoryServiceFactory {
 			// start BaseX server, it registers its own shutdown hook, therefore
 			// no cleanup is required
 			TRACE.trace("Starting BaseX Server");
-			if (StringUtils.isNotEmpty(serverPath)) {
-				TRACE.debug("BaseX Server base path: {}", serverPath);
-			} else {
-				TRACE.debug("BaseX Server base not set, using default value");
-			}
-
-			StringBuffer commands = new StringBuffer();
-			if (StringUtils.isNotEmpty(serverPath)) {
-				if (StringUtils.equals("memory", serverPath)) {
-					commands.append("-cset mainmem true;info");
-				} else {
-					commands.append("-cset dbpath ").append(serverPath).append(";info");
-					
-				}
-			}
 
 			// args ordering is important!
 			if (embedded) {
 				// set debug mode and run it in the same process
-				new BaseXServer("-d", "-D", "-s", commands.toString());
+				new BaseXServer("-d", "-D", "-s");
 			} else {
 				// set debug mode and run it as a Daemon process
-				new BaseXServer("-d", "-s", commands.toString());
+				new BaseXServer("-d", "-s");
 			}
 			TRACE.trace("BaseX Server started");
 		}
@@ -148,14 +132,6 @@ public class XmlRepositoryServiceFactory {
 
 	public void setEmbedded(boolean embedded) {
 		this.embedded = embedded;
-	}
-
-	public String getServerPath() {
-		return serverPath;
-	}
-
-	public void setServerPath(String serverPath) {
-		this.serverPath = serverPath;
 	}
 
 	public String getInitialDataPath() {
