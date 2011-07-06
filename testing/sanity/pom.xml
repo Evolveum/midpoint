@@ -70,36 +70,6 @@
 			<version>1.8-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.seleniumhq.webdriver</groupId>
-			<artifactId>webdriver-firefox</artifactId>
-			<version>0.9.7376</version>
-		</dependency>
-		<dependency>
-			<groupId>org.seleniumhq.webdriver</groupId>
-			<artifactId>webdriver-htmlunit</artifactId>
-			<version>0.9.7376</version>
-		</dependency>
-		<dependency>
-			<groupId>org.seleniumhq.webdriver</groupId>
-			<artifactId>webdriver-ie</artifactId>
-			<version>0.9.7376</version>
-		</dependency>
-		<dependency>
-			<groupId>org.seleniumhq.webdriver</groupId>
-			<artifactId>webdriver-chrome</artifactId>
-			<version>0.9.7376</version>
-		</dependency>
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-server</artifactId>
-			<version>2.0rc2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-remote-control</artifactId>
-			<version>2.0rc2</version>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>${junit.version}</version>
@@ -120,14 +90,12 @@
         	<groupId>com.evolveum.midpoint.infra</groupId>
         	<artifactId>common</artifactId>
         	<version>1.8-SNAPSHOT</version>
-        	<type>jar</type>
         	<scope>compile</scope>
         </dependency>
         <dependency>
         	<groupId>com.evolveum.midpoint.repo</groupId>
         	<artifactId>repo-api</artifactId>
         	<version>1.8-SNAPSHOT</version>
-        	<type>pom</type>
         	<scope>compile</scope>
         </dependency>
 	</dependencies>
