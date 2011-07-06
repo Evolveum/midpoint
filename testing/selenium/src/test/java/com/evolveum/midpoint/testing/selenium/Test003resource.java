@@ -1,3 +1,26 @@
+/*
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2011 Peter Prochazka
+ */
+
+
 package com.evolveum.midpoint.testing.selenium;
 
 import java.util.HashMap;
@@ -151,7 +174,7 @@ public class Test003resource {
 		+ "                                                <r:encryption>HASH</r:encryption>\n"
 		+ "                                                <r:classificationLevel>password</r:classificationLevel>\n"
 		+ "                                            </r:classifiedAttribute>\n"
-		+ "                                            <r:nativeAttributeName>__PASSWORD__</r:nativeAttributeName>\n"
+		+ "                                            <r:attributeDisplayName>Password</r:attributeDisplayName>\n"
 		+ "                                        </xsd:appinfo>\n"
 		+ "                                    </xsd:annotation>\n"
 		+ "                                </xsd:element>\n"
@@ -174,6 +197,7 @@ public class Test003resource {
 		+ "                                        <xsd:appinfo>\n"
 		+ "                                            <r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>\n"
 		+ "                                            <r:nativeAttributeName>__UID__</r:nativeAttributeName>\n"
+		+ "                                            <r:attributeDisplayName>uid</r:attributeDisplayName>\n"
 		+ "                                        </xsd:appinfo>\n"
 		+ "                                    </xsd:annotation>\n"
 		+ "                                </xsd:element>\n"
@@ -222,6 +246,7 @@ public class Test003resource {
 		+ "                                        <xsd:appinfo>\n"
 		+ "                                            <r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>\n"
 		+ "                                            <r:nativeAttributeName>__UID__</r:nativeAttributeName>\n"
+		+ "                                            <r:attributeDisplayName>uid</r:attributeDisplayName>\n"
 		+ "                                        </xsd:appinfo>\n"
 		+ "                                    </xsd:annotation>\n"
 		+ "                                </xsd:element>\n"
