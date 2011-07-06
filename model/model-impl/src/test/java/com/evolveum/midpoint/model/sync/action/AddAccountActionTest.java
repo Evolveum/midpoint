@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.model.sync.action;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -45,6 +45,7 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
@@ -71,6 +72,27 @@ public class AddAccountActionTest extends BaseActionTest {
 	public void before() {
 		Mockito.reset(provisioning, repository);
 		before(new AddAccountAction());
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void nonAccountShadow() throws Exception {
+		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
+				.unmarshal(new File(TEST_FOLDER, "group-change.xml"))).getValue();
+		OperationResult result = new OperationResult("Add Account Action Test");
+
+		String userOid = ModelServiceUtil.mockUser(repository, new File(TEST_FOLDER, "user.xml"), null);
+
+		try {
+			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
+			action.executeChanges(userOid, change, SynchronizationSituationType.CONFIRMED,
+					(ResourceObjectShadowType) addition.getObject(), result);
+		} finally {
+			LOGGER.debug(result.debugDump());
+		}
+
+		verify(provisioning, times(0)).addObject(any(AccountShadowType.class), any(ScriptsType.class),
+				any(OperationResult.class));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -116,10 +138,10 @@ public class AddAccountActionTest extends BaseActionTest {
 						any(OperationResult.class))).thenAnswer(new Answer<String>() {
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
-				AccountShadowType account = (AccountShadowType)invocation.getArguments()[0];
-				
-				//TODO: test account
-				
+				AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];
+
+				// TODO: test added account
+
 				return "1";
 			}
 		});
