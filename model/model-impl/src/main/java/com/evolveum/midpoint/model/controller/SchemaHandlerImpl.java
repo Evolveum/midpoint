@@ -21,7 +21,10 @@
 package com.evolveum.midpoint.model.controller;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -32,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -52,6 +56,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.VariableDefinitionType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
@@ -117,7 +122,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 					+ resourceObjectShadow.getObjectClass() + "'.");
 			return changes;
 		}
-		
+
 		ResourceObjectDefinition objectDefinition = getResourceObjectDefinition(resource,
 				resourceObjectShadow);
 		if (objectDefinition == null) {
@@ -130,13 +135,13 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		for (AttributeDescriptionType attributeHandling : accountType.getAttribute()) {
 			ResourceObjectAttributeDefinition attributeDefinition = objectDefinition
 					.findAttributeDefinition(attributeHandling.getRef());
-			if (attributeDefinition == null) {				
+			if (attributeDefinition == null) {
 				LOGGER.trace("Attribute {} defined in schema handling is not defined in the resource "
 						+ "schema {}. Attribute was not processed", new Object[] {
 						attributeHandling.getRef(), resource.getName() });
 				continue;
-			}			
-			// insertUserDefinedVariables(attributeHandling, variables);
+			}
+			insertUserDefinedVariables(attributeHandling, variables, subResult);
 			// processOutboundSection(attributeHandling, variables,
 			// resourceObjectShadow);
 		}
@@ -203,5 +208,61 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		}
 
 		return (ResourceObjectDefinition) objectDefinition;
+	}
+
+	private void insertUserDefinedVariables(AttributeDescriptionType attributeHandling,
+			Map<QName, Variable> variables, OperationResult result) {
+		// clear old variables defined by user
+		for (Iterator<Entry<QName, Variable>> i = variables.entrySet().iterator(); i.hasNext();) {
+			Entry<QName, Variable> entry = i.next();
+			if (entry.getValue().isUserDefined()) {
+				i.remove();
+			}
+		}
+
+		if (attributeHandling.getOutbound() == null) {
+			return;
+		}
+
+		List<VariableDefinitionType> variableDefinitions = attributeHandling.getOutbound().getVariable();
+		for (VariableDefinitionType varDef : variableDefinitions) {
+			OperationResult subResult = new OperationResult("Insert User Variable");
+			result.addSubresult(subResult);
+
+			Object object = varDef.getValue();
+			if (object == null) {
+				ObjectReferenceType reference = varDef.getObjectRef();
+				if (reference != null) {
+					object = resolveObject(reference.getOid(), result);
+				}
+			}
+
+			if (object != null) {
+				variables.put(varDef.getName(), new Variable(object));
+				subResult.recordSuccess();
+			} else {
+				subResult.recordWarning("Couldn't resolve variable '" + varDef.getName() + "'.");
+				LOGGER.debug("Variable {} couldn't be resolved, skipping.", new Object[] { varDef.getName() });
+			}
+		}
+	}
+
+	private Object resolveObject(String oid, OperationResult result) {
+		Object object = null;
+
+		try {
+			ObjectType objectType = model.getObject(oid, new PropertyReferenceListType(), result,
+					ObjectType.class);
+			if (objectType == null) {
+				return null;
+			}
+
+			// We have got JAXB object here, but the code expects DOM
+			object = JAXBUtil.objectTypeToDom(objectType, null);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Variable {} couldn't be serialized to XML, skipping", ex);
+		}
+
+		return object;
 	}
 }
