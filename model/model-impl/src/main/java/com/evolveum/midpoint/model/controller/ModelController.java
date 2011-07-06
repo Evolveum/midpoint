@@ -152,6 +152,8 @@ public class ModelController {
 			oid = repository.addObject(user, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectAlreadyExistsException ex) {
+			subResult.recordFatalError("Couldn't add user '" + user.getName() + "', oid '" + user.getOid()
+					+ "' because user already exists.", ex);
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add user {}, oid {} using template {}, oid {}", ex,
@@ -184,6 +186,7 @@ public class ModelController {
 			}
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
+			subResult.recordFatalError("Object with oid '" + oid + "' not found.", ex);
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object {}", ex, oid);
@@ -311,6 +314,8 @@ public class ModelController {
 			}
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
+			subResult.recordFatalError("Coudln't update object with oid '" + change.getOid()
+					+ "', object was not found.", ex);
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update object with oid {}", ex, change.getOid());

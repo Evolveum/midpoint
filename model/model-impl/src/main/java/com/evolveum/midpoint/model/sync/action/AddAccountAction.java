@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
  */
 public class AddAccountAction extends BaseAction {
 
-	private static Trace trace = TraceManager.getTrace(AddAccountAction.class);
+	private static Trace LOGGING = TraceManager.getTrace(AddAccountAction.class);
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
@@ -62,7 +62,7 @@ public class AddAccountAction extends BaseAction {
 			getModel().addObject(shadowAfterChange, subResult);
 			subResult.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(trace, "Couldn't add account {}, oid {}", ex,
+			LoggingUtils.logException(LOGGING, "Couldn't add account {}, oid {}", ex,
 					shadowAfterChange.getName(), shadowAfterChange.getOid());
 			subResult.recordFatalError("Couldn't add account '" + shadowAfterChange.getName() + "', oid '"
 					+ shadowAfterChange.getOid() + "'.", ex);

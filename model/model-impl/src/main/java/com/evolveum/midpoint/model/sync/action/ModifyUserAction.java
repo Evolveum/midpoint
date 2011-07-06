@@ -33,8 +33,6 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
@@ -45,22 +43,27 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
- * @author Vilo Repan
+ * @author lazyman
+ * 
  */
 public class ModifyUserAction extends BaseAction {
 
-	private static transient Trace logger = TraceManager.getTrace(ModifyUserAction.class);
-
-	// @Autowired
-	// private SchemaHandling schemaHandling;
+	private static transient Trace LOGGER = TraceManager.getTrace(ModifyUserAction.class);
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
 			OperationResult result) throws SynchronizationException {
-		UserType userType = getUser(userOid, result);
+		super.executeChanges(userOid, change, situation, shadowAfterChange, result);
+
+		OperationResult subResult = new OperationResult("Modify User Action");
+		result.addSubresult(subResult);
+
+		UserType userType = getUser(userOid, subResult);
 		if (userType == null) {
-			throw new SynchronizationException("Can't find user with oid '" + userOid + "'.");
+			String message = "Can't find user with oid '" + userOid + "'.";
+			subResult.recordFatalError(message);
+			throw new SynchronizationException(message);
 		}
 
 		// As this implementation is in fact diffing user before change and
@@ -84,15 +87,12 @@ public class ModifyUserAction extends BaseAction {
 			}
 
 			userType = getSchemaHandling().applyInboundSchemaHandlingOnUser(userType, shadowAfterChange);
-			ObjectFactory of = new ObjectFactory();
-			ObjectContainerType userContainer = of.createObjectContainerType();
-			userContainer.setObject(userType);
 
 			ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
 			if (modification != null && modification.getOid() != null) {
-				getModel().modifyObject(modification, result);
+				getModel().modifyObject(modification, subResult);
 			} else {
-				logger.warn("Diff returned null for changes of user {}, caused by shadow {}",
+				LOGGER.warn("Diff returned null for changes of user {}, caused by shadow {}",
 						userType.getOid(), shadowAfterChange.getOid());
 			}
 		} catch (SchemaHandlingException ex) {
@@ -120,7 +120,7 @@ public class ModifyUserAction extends BaseAction {
 			shadowAfterChange.setResource(resourceType);
 			shadowAfterChange.setResourceRef(null);
 		} catch (Exception ex) {
-			logger.error("Failed to resolve resource with oid {}", shadowAfterChange.getResourceRef()
+			LOGGER.error("Failed to resolve resource with oid {}", shadowAfterChange.getResourceRef()
 					.getOid(), ex);
 			throw new SynchronizationException("Resource can't be resolved.", ex);
 		}
