@@ -25,10 +25,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
+import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
 import org.junit.AfterClass;
@@ -39,6 +41,8 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -47,6 +51,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
@@ -72,9 +77,9 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelService;
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:application-context-sanity-test.xml",
-		"classpath:application-context-model.xml",
-		"classpath:application-context-provisioning.xml"})
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-provisioning.xml",
+		"classpath:application-context-sanity-test.xml"})
 public class TestSanity extends OpenDJUnitTestAdapter {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/repo/opendj-resource.xml";
@@ -102,6 +107,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
+	private static boolean repoInitialized = false;
 
 	public TestSanity() throws JAXBException {
 		djUtil = new OpenDJUtil();
@@ -129,8 +135,12 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		
 	@Before
 	public void initRepository() throws Exception {
-
-		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
+		System.out.println("start initRepository("+this+"): repoInitialized="+repoInitialized);
+		if (!repoInitialized) {
+			resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
+			repoInitialized = true;
+		}
+		System.out.println("finish initRepository("+this+"): repoInitialized="+repoInitialized);
 	}
 
 	private ObjectType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException {
@@ -176,7 +186,9 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
 		model.testResource(RESOURCE_OPENDJ_OID, holder);
 		
-		System.out.println(JAXBUtil.marshal(result));
+		Document doc = DOMUtil.getDocument();
+		Element element = JAXBUtil.jaxbToDom(result, new QName("result"), doc);
+		System.out.println(DOMUtil.serializeDOMToString(element));
 	}
 	
 	//TODO: create user
