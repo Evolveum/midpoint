@@ -38,6 +38,7 @@ public class XmlRepositoryServiceFactory {
 
 	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryServiceFactory.class);
 
+	private boolean dropDatabase = false;
 	private boolean runServer = true;
 	private boolean embedded = true;
 	private String initialDataPath;
@@ -72,6 +73,10 @@ public class XmlRepositoryServiceFactory {
 			ClientSession session = new ClientSession(host, port, username, password);
 			TRACE.trace("BaseX client Session created");
 
+			if (dropDatabase) {
+				session.execute("DROP DATABASE " + databaseName);
+			}
+			
 			try {
 				session.execute("OPEN " + databaseName);
 			} catch (BaseXException ex) {
@@ -182,4 +187,12 @@ public class XmlRepositoryServiceFactory {
 		this.databaseName = databaseName;
 	}
 
+	public boolean isDropDatabase() {
+		return dropDatabase;
+	}
+
+	public void setDropDatabase(boolean dropDatabase) {
+		this.dropDatabase = dropDatabase;
+	}
+	
 }
