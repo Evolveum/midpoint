@@ -68,7 +68,7 @@ public class ModifyUserAction extends BaseAction {
 
 		// As this implementation is in fact diffing user before change and
 		// after change,
-		// it can easily be applied to modification and addintion.
+		// it can easily be applied to modification and addition.
 		// However, this is wrong. This approach may be appropriate for
 		// addition.
 		// But for modification we should be a bit smarter and process only the

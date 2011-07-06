@@ -20,16 +20,39 @@
  */
 package com.evolveum.midpoint.model.sync.action;
 
+import static org.junit.Assert.*;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.io.File;
 
+import javax.xml.bind.JAXBElement;
+
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 
 /**
  * 
@@ -48,5 +71,73 @@ public class AddAccountActionTest extends BaseActionTest {
 	public void before() {
 		Mockito.reset(provisioning, repository);
 		before(new AddAccountAction());
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test(expected = SynchronizationException.class)
+	public void accountExists() throws Exception {
+		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
+				.unmarshal(new File(TEST_FOLDER, "../user/existing-user-change.xml"))).getValue();
+
+		ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
+
+		when(
+				provisioning.addObject(any(AccountShadowType.class), any(ScriptsType.class),
+						any(OperationResult.class))).thenThrow(
+				new ObjectAlreadyExistsException("resource object shadow not found."));
+		assertNotNull(change.getResource());
+		when(
+				provisioning.getObject(eq(change.getResource().getOid()),
+						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+				change.getResource());
+
+		OperationResult result = new OperationResult("Add Account Action Test");
+		try {
+			action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
+					(ResourceObjectShadowType) addition.getObject(), result);
+		} finally {
+			LOGGER.debug(result.debugDump());
+		}
+
+		verify(provisioning, times(1)).addObject(any(AccountShadowType.class), any(ScriptsType.class),
+				any(OperationResult.class));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void correctAdd() throws Exception {
+		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
+				.unmarshal(new File(TEST_FOLDER, "../user/existing-user-change.xml"))).getValue();
+
+		ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
+
+		when(
+				provisioning.addObject(any(AccountShadowType.class), any(ScriptsType.class),
+						any(OperationResult.class))).thenAnswer(new Answer<String>() {
+			@Override
+			public String answer(InvocationOnMock invocation) throws Throwable {
+				AccountShadowType account = (AccountShadowType)invocation.getArguments()[0];
+				
+				//TODO: test account
+				
+				return "1";
+			}
+		});
+		assertNotNull(change.getResource());
+		when(
+				provisioning.getObject(eq(change.getResource().getOid()),
+						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+				change.getResource());
+
+		OperationResult result = new OperationResult("Add Account Action Test");
+		try {
+			action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
+					(ResourceObjectShadowType) addition.getObject(), result);
+		} finally {
+			LOGGER.debug(result.debugDump());
+		}
+
+		verify(provisioning, times(1)).addObject(any(AccountShadowType.class), any(ScriptsType.class),
+				any(OperationResult.class));
 	}
 }
