@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
  */
 public class AddAccountAction extends BaseAction {
 
-	private static Trace LOGGING = TraceManager.getTrace(AddAccountAction.class);
+	private static final Trace LOGGING = TraceManager.getTrace(AddAccountAction.class);
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,

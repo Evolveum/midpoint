@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  */
 public class UnlinkAccountAction extends BaseAction {
 
-	private static Trace LOGGER = TraceManager.getTrace(UnlinkAccountAction.class);
+	private static final Trace LOGGER = TraceManager.getTrace(UnlinkAccountAction.class);
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,

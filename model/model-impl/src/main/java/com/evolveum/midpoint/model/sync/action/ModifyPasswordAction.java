@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  */
 public class ModifyPasswordAction extends BaseAction {
 
-	private static Trace trace = TraceManager.getTrace(ModifyPasswordAction.class);
+	private static final Trace trace = TraceManager.getTrace(ModifyPasswordAction.class);
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,

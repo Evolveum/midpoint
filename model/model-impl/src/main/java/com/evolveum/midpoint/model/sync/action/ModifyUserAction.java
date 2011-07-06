@@ -48,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public class ModifyUserAction extends BaseAction {
 
-	private static transient Trace LOGGER = TraceManager.getTrace(ModifyUserAction.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ModifyUserAction.class);
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,

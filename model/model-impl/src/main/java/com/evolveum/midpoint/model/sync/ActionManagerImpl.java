@@ -36,6 +36,7 @@ import com.evolveum.midpoint.model.xpath.SchemaHandling;
 /**
  * 
  * @author Vilo Repan
+ * 
  */
 public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 

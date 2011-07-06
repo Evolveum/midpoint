@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
  */
 public class DisableAccountAction extends BaseAction {
 
-	private static Trace trace = TraceManager.getTrace(DisableAccountAction.class);
+	private static final Trace trace = TraceManager.getTrace(DisableAccountAction.class);
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,

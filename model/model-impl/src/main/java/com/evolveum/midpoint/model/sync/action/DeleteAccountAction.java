@@ -39,7 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
  */
 public class DeleteAccountAction extends BaseAction {
 
-	private static Trace LOGGER = TraceManager.getTrace(DeleteAccountAction.class);
+	private static final Trace LOGGER = TraceManager.getTrace(DeleteAccountAction.class);
 
 	@Override
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
