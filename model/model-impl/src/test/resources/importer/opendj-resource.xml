@@ -20,6 +20,10 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
+<!-- Resource definition for an embedded OpenDJ instance.
+     It is used in internal midPoint tests, mostly in "integration"
+     tests. -->
+
 <resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -27,12 +31,20 @@
 		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
+	<!-- Resource printable name -->
 	<name>Embedded Test OpenDJ</name>
+	
+	<!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->
 	<connectorRef oid="icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector"/>
+	
+	<!-- Connector namespace -->
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
+	
+	<!-- Resource configuration section -->
 	<configuration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf/configuration-1.xsd">
 					   
+		<!-- Configuration specific for the LDAP connector -->
 		<icfcldap:configurationProperties>
 			<icfcldap:port>10389</icfcldap:port>
 			<icfcldap:host>localhost</icfcldap:host>
@@ -41,6 +53,8 @@
 			<icfcldap:credentials>secret</icfcldap:credentials>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 		</icfcldap:configurationProperties>
+		
+		<!-- Generic ICF configuration -->
 		
 		<icfc:connectorPoolConfiguration>
 			<icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>

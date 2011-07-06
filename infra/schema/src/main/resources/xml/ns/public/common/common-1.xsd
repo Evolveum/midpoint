@@ -5570,7 +5570,10 @@
 	<!-- The following clauses belong to the operation support. -->
 	<xsd:complexType name="OperationalResultType">
 		<xsd:annotation>
-			<xsd:documentation>This object is and INOUT part of every operation.
+			<xsd:documentation>
+				DEPRECATED
+			
+				This object is and INOUT part of every operation.
 
 				@WebParam(name = "result", mode =
 				WebParam.Mode.INOUT,
@@ -5749,6 +5752,7 @@
 			<xsd:element name="messageCode" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="message" type="xsd:string"/>
 			<xsd:element name="localizedMessage" type="tns:LocalizedMessageType" minOccurs="0"/>
+			<xsd:element name="details" type="xsd:string" minOccurs="0"/>
 			<xsd:element name="partialResults" type="tns:OperationResultType" minOccurs="0" maxOccurs="unbounded"/>
 		</xsd:sequence>
 	</xsd:complexType>

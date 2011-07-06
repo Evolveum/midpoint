@@ -260,7 +260,7 @@ public class ModelWebService implements ModelPortType {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notNullResultHolder(result);
 
-		OperationResult operationResult = new OperationResult("Model Service Test Resource");
+		OperationResult operationResult = new OperationResult(ModelWebService.class.getName()+".testResource");
 		try {
 			model.testResource(resourceOid, operationResult);
 			handleOperationResult(operationResult, result);

@@ -55,6 +55,7 @@ import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
+import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.util.ClasspathUrlFinder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -109,13 +110,18 @@ public class ConnectorManagerIcfImpl implements ConnectorManager {
 	 * It will initialize the connector by taking the XML Resource definition,
 	 * transforming it to the ICF configuration and applying that to the 
 	 * new connector instance.
+	 * @throws ObjectNotFoundException 
 	 * 
 	 */
 	@Override
-	public ConnectorInstance createConnectorInstance(ResourceType resource) {
+	public ConnectorInstance createConnectorInstance(ResourceType resource) throws ObjectNotFoundException {
 		// Take the ConnectorInfo from the memory store
 		String connectorOid = ResourceTypeUtil.getConnectorOid(resource);
 		ConnectorInfo cinfo = findConnectorInfoByOid(connectorOid);
+		
+		if (cinfo==null) {
+			throw new ObjectNotFoundException("The connector with OID "+connectorOid+" was not found");
+		}
 		
 		// Get default configuration for the connector. This is important, as
 		// it contains types of connector configuration properties.

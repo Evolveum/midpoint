@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.object.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
@@ -277,9 +278,10 @@ public class ShadowCache {
 	 * @param handler
 	 * @param parentResult
 	 * @throws CommunicationException
+	 * @throws ObjectNotFoundException the connector object was not found
 	 */
 	public void listShadows(ResourceType resource, QName objectClass, final ShadowHandler handler,
-			final OperationResult parentResult) throws CommunicationException {
+			final OperationResult parentResult) throws CommunicationException, ObjectNotFoundException {
 
 		ConnectorInstance connector = getConnectorInstance(resource);
 
@@ -318,7 +320,7 @@ public class ShadowCache {
 
 	public String addShadow(ObjectType object, ScriptsType scripts, ResourceType resource,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
-			ObjectAlreadyExistsException, SchemaException {
+			ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
 
 		if (object == null) {
 			throw new IllegalArgumentException("Object to add must not be null.");
@@ -442,13 +444,22 @@ public class ShadowCache {
 
 	public OperationResult testConnection(ResourceType resourceType) {
 
-		ConnectorInstance connector = getConnectorInstance(resourceType);
-		return connector.test();
-
+		ConnectorInstance connector;
+		try {
+			connector = getConnectorInstance(resourceType);
+			return connector.test();
+		} catch (ObjectNotFoundException e) {
+			// The connector was not found. The resource definition is either wrong or the connector is not
+			// installed.
+			OperationResult result = new OperationResult(ProvisioningService.TEST_CONNECTION_INIT_OPERATION);
+			result.addParam("resource", resourceType);
+			result.recordFatalError("The connector was not found", e);
+			return result;
+		}
 	}
 
 	public void searchObjectsIterative(QName objectClass, ResourceType resourceType,
-			final ShadowHandler handler, final OperationResult parentResult) {
+			final ShadowHandler handler, final OperationResult parentResult) throws ObjectNotFoundException {
 
 		ConnectorInstance connector = getConnectorInstance(resourceType);
 
@@ -586,9 +597,13 @@ public class ShadowCache {
 
 	// UTILITY METHODS
 
-	private ConnectorInstance getConnectorInstance(ResourceType resource) {
+	private ConnectorInstance getConnectorInstance(ResourceType resource) throws ObjectNotFoundException {
 		// TODO: Add caching later
-		return getConnectorManager().createConnectorInstance(resource);
+		try {
+			return getConnectorManager().createConnectorInstance(resource);
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
+			throw new ObjectNotFoundException(e.getMessage(),e);
+		}
 	}
 
 	private Schema getResourceSchema(ResourceType resource, ConnectorInstance connector,

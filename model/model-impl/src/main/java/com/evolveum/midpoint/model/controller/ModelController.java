@@ -26,6 +26,7 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.importer.ImportFromResourceTaskHandler;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -52,6 +54,8 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -92,6 +96,14 @@ public class ModelController {
 	private transient RepositoryService repository;
 	@Autowired(required = true)
 	private transient SchemaHandler schemaHandler;
+	
+	// TODO
+	// @Autowired(required = true)
+	private transient TaskManager taskManager;
+	
+	// TODO: initialization: register this to TaskManager
+	// @Autowired(required = true)
+	private transient ImportFromResourceTaskHandler importTaskHandler;
 
 	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException {
 		Validate.notNull(object, "Object must not be null.");
@@ -487,7 +499,7 @@ public class ModelController {
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't test status for resource {}", ex, resourceOid);
 
-			subResult = new OperationResult("Test Resource");
+			subResult = new OperationResult(ModelController.class.getName()+".testResource");
 			subResult.recordFatalError("Couldn't test status for resource with oid '" + resourceOid + "'.",
 					ex);
 			result.addSubresult(subResult);
@@ -500,36 +512,34 @@ public class ModelController {
 		}
 	}
 
+	@Deprecated
 	public void launchImportFromResource(String resourceOid, QName objectClass, OperationResult result)
+			throws ObjectNotFoundException {
+		throw new NotImplementedException("DEPRECATED");
+	}
+	
+	// Note: The result is in the task. No need to pass it explicitly
+	public void importFromResource(String resourceOid, QName objectClass, Task task)
 			throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object class must not be null.");
-		Validate.notNull(result, "Result type must not be null.");
+		Validate.notNull(task, "Task must not be null.");
 		LOGGER.debug("Launching import from resource with oid {} for object class {}.", new Object[] {
 				resourceOid, objectClass });
 
-		OperationResult subResult = new OperationResult("Launch Import From Resource");
-		result.addSubresult(subResult);
+		OperationResult result = task.getResult().createSubresult(ModelController.class.getName()+".importFromResource");
+		// TODO: add params and context to the result
+		
+		// Fetch resource definition from the repo/provisioning
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		ResourceType resource = getObject(resourceOid,resolve,result,ResourceType.class);
 
-		// TODO: WORK THIS OUT!!!!!!!!!!!!!!!
-		// try {
-		// provisioning.launchImportFromResource(resourceOid, objectClass,
-		// subResult);
-		// subResult.recordSuccess();
-		// } catch (ObjectNotFoundException ex) {
-		// throw ex;
-		// } catch (Exception ex) {
-		// LoggingUtils.logException(LOGGER,
-		// "Couldn't launch import for objects of type {} on resource, "
-		// + "oid {}", ex, objectClass, resourceOid);
-		// subResult.recordFatalError("Couldn't launch import for objects of type '"
-		// + objectClass
-		// + "' on resource, oid '" + resourceOid + "'.", ex);
-		// }
+		importTaskHandler.launch(resource, task, taskManager);
 
-		LOGGER.debug(subResult.debugDump());
+		// The launch should switch task to asynchronous. It is in/out, so no other action is needed
 	}
 
+	@Deprecated
 	public TaskStatusType getImportStatus(String resourceOid, OperationResult result)
 			throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");

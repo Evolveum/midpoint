@@ -67,8 +67,9 @@ public interface ConnectorManager {
 	 * 
 	 * @param resource resource definition
 	 * @return configured and initialized connector instance
+	 * @throws ObjectNotFoundException is the specified connector was not found
 	 */
-	public ConnectorInstance createConnectorInstance(ResourceType resource);
+	public ConnectorInstance createConnectorInstance(ResourceType resource) throws ObjectNotFoundException;
 
 	/**
 	 * Returns a list of all known connectors.

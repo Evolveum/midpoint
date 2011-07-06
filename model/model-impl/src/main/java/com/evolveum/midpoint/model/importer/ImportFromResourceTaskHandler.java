@@ -30,6 +30,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -88,6 +89,9 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 	 * @param manager
 	 */
 	public void launch(ResourceType resource, Task task, TaskManager manager) {
+		
+		// TODO: result (it is in the Task)
+		
 		// Set handler URI so we will be called back
 		task.setHanderUri(HANDLER_URI);
 		
@@ -120,6 +124,9 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		try {
 			provisioning.searchObjectsIterative(createAccountShadowTypeQuery(resource), null, handler, parentResult);
 		} catch (SchemaException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ObjectNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

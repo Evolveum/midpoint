@@ -550,6 +550,21 @@ public class OperationResult implements Serializable {
 		result.setOperation(opResult.getOperation());
 		result.setMessage(opResult.getMessage());
 		result.setMessageCode(opResult.getMessageCode());
+		
+		if (opResult.getCause()!=null) {
+			Exception ex = opResult.getCause();
+			StringBuilder details = new StringBuilder();
+			details.append(ex.getClass().getName());
+			details.append(": ");
+			details.append(ex.getMessage());
+			details.append("\n");
+			StackTraceElement[] stackTrace = ex.getStackTrace();
+			for (int i=0; i<stackTrace.length;i++) {
+				details.append(stackTrace[i].toString());
+				details.append("\n");
+			}
+			result.setDetails(details.toString());
+		}
 
 		if (StringUtils.isNotEmpty(opResult.getLocalizationMessage())) {
 			LocalizedMessageType message = new LocalizedMessageType();

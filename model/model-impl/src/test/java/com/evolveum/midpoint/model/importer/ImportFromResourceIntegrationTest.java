@@ -10,6 +10,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.ws.Holder;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -28,6 +29,9 @@ import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 //@RunWith(SpringJUnit4ClassRunner.class)
 //@ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
@@ -89,9 +93,10 @@ public class ImportFromResourceIntegrationTest extends OpenDJUnitTestAdapter {
 	}
 
 	@Test
-	public void testLaunchImportFromResource() {
+	public void testLaunchImportFromResource() throws FaultMessage {
 		
-		// model.launchImportFromResource(FILENAME_RESOURCE_OPENDJ_OID, objectClass, result)
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(new OperationResultType());
+		model.launchImportFromResource(FILENAME_RESOURCE_OPENDJ_OID, SchemaConstants.ICFS_ACCOUNT, resultHolder);
 		
 		// TODO: check results
 	}

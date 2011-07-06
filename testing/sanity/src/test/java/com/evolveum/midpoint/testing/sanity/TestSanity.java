@@ -24,6 +24,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBContext;
@@ -54,11 +55,11 @@ import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelService;
 
 
 /**
@@ -133,14 +134,15 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		stopDJ();
 	}
 		
+	// We need this complicated init as we want to initialize repo only once. JUnit will
+	// create new class instance for every test, so @Before and @PostInit will not work
+	// directly. We also need to init the repo after spring autowire is done, so @BeforeClass won't work either.
 	@Before
 	public void initRepository() throws Exception {
-		System.out.println("start initRepository("+this+"): repoInitialized="+repoInitialized);
 		if (!repoInitialized) {
 			resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
 			repoInitialized = true;
 		}
-		System.out.println("finish initRepository("+this+"): repoInitialized="+repoInitialized);
 	}
 
 	private ObjectType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException {
@@ -189,6 +191,16 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		Document doc = DOMUtil.getDocument();
 		Element element = JAXBUtil.jaxbToDom(result, new QName("result"), doc);
 		System.out.println(DOMUtil.serializeDOMToString(element));
+		
+		assertSuccess(result.getPartialResults().get(0));
+	}
+	
+	private void assertSuccess(OperationResultType result) {
+		assertEquals(OperationResultStatusType.SUCCESS,result.getStatus());
+		List<OperationResultType> partialResults = result.getPartialResults();
+		for (OperationResultType subResult : partialResults) {
+			assertSuccess(subResult);
+		}
 	}
 	
 	//TODO: create user

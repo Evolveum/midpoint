@@ -45,6 +45,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
  * @author Radovan Semancik
  */
 public interface ProvisioningService {
+	
+	public static final String TEST_CONNECTION_INIT_OPERATION = ProvisioningService.class.getName()+".testResource.initialization";
 
 	/**
 	 * Returns object for provided OID.
@@ -114,13 +116,14 @@ public interface ProvisioningService {
 	 *             error dealing with resource schema, e.g. schema violation
 	 * @throws CommunicationException
 	 *             error communicating with the resource
+	 * @throws ObjectNotFoundException appropriate connector object was not found
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
 	public String addObject(ObjectType object, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, SchemaException, CommunicationException;
+			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException;
 
 	/**
 	 * Collect external changes on a resource and call the business logic with
@@ -219,9 +222,10 @@ public interface ProvisioningService {
 	 *             unknown connector framework error
 	 * @throws SchemaException
 	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException appropriate connector object was not found
 	 */
 	public void searchObjectsIterative(QueryType query, PagingType paging, final ResultHandler handler, final OperationResult parentResult)
-			throws SchemaException;
+			throws SchemaException, ObjectNotFoundException;
 
 	/**
 	 * Modifies object using relative change description. Must fail if user with

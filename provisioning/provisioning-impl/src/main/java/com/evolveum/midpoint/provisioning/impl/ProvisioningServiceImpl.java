@@ -157,7 +157,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public String addObject(ObjectType object, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, SchemaException, CommunicationException {
+			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException {
 		// TODO
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
@@ -320,7 +320,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public void searchObjectsIterative(QueryType query, PagingType paging, final ResultHandler handler,
-			final OperationResult parentResult) throws SchemaException {
+			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
 		Element filter = query.getFilter();
 		NodeList list = filter.getChildNodes();
