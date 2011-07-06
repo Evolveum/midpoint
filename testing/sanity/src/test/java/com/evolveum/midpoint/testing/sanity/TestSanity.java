@@ -20,7 +20,6 @@
 package com.evolveum.midpoint.testing.sanity;
 
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -171,11 +171,19 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	}
 	
 	@Test
-	public void test001TestConnection() throws FaultMessage {
+	public void test001TestConnection() throws FaultMessage, JAXBException {
 		OperationResultType result = new OperationResultType();
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
 		model.testResource(RESOURCE_OPENDJ_OID, holder);
 		
+		System.out.println(JAXBUtil.marshal(result));
 	}
+	
+	//TODO: create user
+	
+	//TODO: assign account to user: should create account on OpenDJ
+	//TODO: check with getObject
+	
+	//TODO: delete user (with the account): should also delete the account on OpenDJ
 	
 }
