@@ -1,9 +1,14 @@
 package com.evolveum.midpoint.testing.selenium;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashMap;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 
@@ -47,6 +52,51 @@ public class Test990deleteResources {
 	public void stop() {
 		se.stop();
 
+	}
+	
+
+	/***
+	 * Search user and delete it form  midPoint
+	 * 
+	 * Actions:
+	 * 		1. login as admin
+	 * 		2. click to configuration
+	 * 		3. click to List Objects
+	 * 		4. select from list Resource
+	 *		5. click list button
+	 *		8. click to delete button near resource Localhost OpenDJ
+	 *		9. delete it (click YES)
+	 *		10. validate if user Localhost OpenDJ is removed
+	*/
+	@Test
+	public void test01deleteResourceViaDebug() {
+		// failing import allready exists
+		se.click(se.findLink("topConfiguration"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/config/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("Debugging"));
+		se.click(se.findLink("leftList"));
+		assertTrue(se.waitForText("List Objects"));
+		se.select("debugListForm:selectOneMenuList", "label=Resource");
+		se.click("debugListForm:listObjectsButton");
+		
+		//validate if both user are there
+		assertTrue(se.isTextPresent("Localhost OpenDJ"));
+		
+		// get hashmap and login
+		HashMap<String, String> h = new HashMap<String, String>();
+		for (String l : se.getAllLinks()) {
+			if (!l.contains("debugListForm:link"))
+				continue;
+			h.put(se.getText(l), l.replace("debugListForm:link", ""));
+		}
+		se.click("debugListForm:deleteButton" + h.get("Localhost OpenDJ"));
+		assertTrue(se.waitForText("Do you really want to delete this object?", 10));
+		se.click("debugListForm:no");
+		se.waitForText("List Objects");
+	
+		// validate
+		assertFalse(se.isTextPresent("Localhost OpenDJ"));
 	}
 
 }
