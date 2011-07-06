@@ -22,7 +22,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.model.ModelService;
+import com.evolveum.midpoint.model.ModelWebService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
@@ -45,7 +45,7 @@ public class ImportFromResourceIntegrationTest extends OpenDJUnitTestAdapter {
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
 	@Autowired(required = true)
-	private ModelService model;
+	private ModelWebService model;
 	
 	public ImportFromResourceIntegrationTest() throws JAXBException {
 //		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());

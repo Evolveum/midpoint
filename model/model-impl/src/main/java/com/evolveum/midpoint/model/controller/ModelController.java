@@ -810,7 +810,7 @@ public class ModelController {
 			return;
 		}
 
-		AccountType accountType = ModelUtils.getAccountTypeDefinitionFromSchemaHandling(account, resource);
+		AccountType accountType = ModelUtils.getAccountTypeFromHandling(account, resource);
 		if (accountType == null || accountType.getCredentials() == null) {
 			return;
 		}
@@ -920,6 +920,7 @@ public class ModelController {
 					AccountShadowType account = getObject(accountRef.getOid(),
 							ModelUtils.createPropertyReferenceListType("Resource"), result,
 							AccountShadowType.class, true);
+					schemaHandler.setModel(this);
 					ObjectModificationType accountChange = schemaHandler.processOutboundHandling(user,
 							account, result);
 					modifyObjectWithExclusion(accountChange, accountOid, result);
@@ -941,6 +942,7 @@ public class ModelController {
 		ObjectModificationType change = null;
 		if (user != null) {
 			try {
+				schemaHandler.setModel(this);
 				change = schemaHandler.processOutboundHandling(user, (ResourceObjectShadowType) object,
 						result);
 			} catch (Exception ex) {
@@ -966,6 +968,7 @@ public class ModelController {
 			return;
 		}
 
+		
 		List<AccountConstructionType> accountConstructions = userTemplate.getAccountConstruction();
 		for (AccountConstructionType construction : accountConstructions) {
 			OperationResult addObject = new OperationResult("Link Object To User");

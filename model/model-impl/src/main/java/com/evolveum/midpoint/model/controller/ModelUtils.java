@@ -54,14 +54,14 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 public class ModelUtils {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelUtils.class);
-	
-	public static void unresolveResourceObjectShadow(ResourceObjectShadowType shadow){
+
+	public static void unresolveResourceObjectShadow(ResourceObjectShadowType shadow) {
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
-		
+
 		if (shadow.getResource() == null) {
 			return;
 		}
-		
+
 		ObjectReferenceType reference = createReference(shadow.getResource().getOid(), ObjectTypes.RESOURCE);
 		shadow.setResource(null);
 		shadow.setResourceRef(reference);
@@ -88,9 +88,9 @@ public class ModelUtils {
 			throw new IllegalArgumentException("Paging offset index must be more than 0.");
 		}
 	}
-
-	public static AccountType getAccountTypeDefinitionFromSchemaHandling(
-			ResourceObjectShadowType accountShadow, ResourceType resource) {
+	
+	public static AccountType getAccountTypeFromHandling(ResourceObjectShadowType accountShadow,
+			ResourceType resource) {
 		Validate.notNull(accountShadow, "Resource object shadow must not be null.");
 		Validate.notNull(resource, "Resource must not be null.");
 
@@ -171,7 +171,7 @@ public class ModelUtils {
 		return list;
 	}
 
-	public static AccountType getAccountTypeFromHandling(String name, ResourceType resource) {
+	public static AccountType getAccountTypeFromHandling(String accountTypeName, ResourceType resource) {
 		Validate.notNull(resource, "Resource must not be null.");
 
 		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
@@ -180,9 +180,9 @@ public class ModelUtils {
 					"Provided resource definition doesn't contain schema handling.");
 		}
 
-		if (StringUtils.isNotEmpty(name)) {
+		if (StringUtils.isNotEmpty(accountTypeName)) {
 			for (AccountType accountType : schemaHandling.getAccountType()) {
-				if (name.equals(accountType.getName())) {
+				if (accountTypeName.equals(accountType.getName())) {
 					return accountType;
 				}
 			}
@@ -195,6 +195,6 @@ public class ModelUtils {
 			}
 		}
 
-		throw new IllegalArgumentException("No schema handlig account type for name '" + name + "' found.");
+		throw new IllegalArgumentException("No schema handlig account type for name '" + accountTypeName + "' found.");
 	}
 }

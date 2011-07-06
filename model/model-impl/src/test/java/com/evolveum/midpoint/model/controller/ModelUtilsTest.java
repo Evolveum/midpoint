@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 
 /**
@@ -149,12 +150,12 @@ public class ModelUtilsTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void getAccountTypeDefinitionFromSchemaHandlingNullAccount() {
-		ModelUtils.getAccountTypeDefinitionFromSchemaHandling(null, null);
+		ModelUtils.getAccountTypeFromHandling((ResourceObjectShadowType)null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void getAccountTypeDefinitionFromSchemaHandlingNullResource() {
-		ModelUtils.getAccountTypeDefinitionFromSchemaHandling(new AccountShadowType(), null);
+		ModelUtils.getAccountTypeFromHandling(new AccountShadowType(), null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -172,7 +173,7 @@ public class ModelUtilsTest {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, fileName))).getValue();
 
-		ModelUtils.getAccountTypeDefinitionFromSchemaHandling(account, account.getResource());
+		ModelUtils.getAccountTypeFromHandling(account, account.getResource());
 	}
 
 	@Test
@@ -181,7 +182,7 @@ public class ModelUtilsTest {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "account-schema-handling.xml"))).getValue();
 
-		ModelUtils.getAccountTypeDefinitionFromSchemaHandling(account, account.getResource());
+		ModelUtils.getAccountTypeFromHandling(account, account.getResource());
 	}
 
 	@Test

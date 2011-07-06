@@ -18,22 +18,13 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.model.controller;
+package com.evolveum.midpoint.model.api;
 
 /**
  * 
  * @author lazyman
- * 
+ *
  */
-public class SchemaHandlerException extends Exception {
+public interface ModelService {
 
-	private static final long serialVersionUID = -2063273534278562012L;
-
-	public SchemaHandlerException(String message) {
-		super(message);
-	}
-
-	public SchemaHandlerException(String message, Throwable throwable) {
-		super(message, throwable);
-	}
 }

@@ -62,9 +62,9 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
  * 
  */
 @Service
-public class ModelService implements ModelPortType {
+public class ModelWebService implements ModelPortType {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ModelService.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
 	@Autowired(required = true)
 	private ModelController model;
 

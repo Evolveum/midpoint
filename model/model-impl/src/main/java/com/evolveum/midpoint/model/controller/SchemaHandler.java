@@ -40,6 +40,8 @@ public interface SchemaHandler {
 	ObjectModificationType processOutboundHandling(UserType user,
 			ResourceObjectShadowType resourceObjectShadow, OperationResult result)
 			throws SchemaHandlerException;
+	
+	void setModel(ModelController controller);
 
 	ExpressionHandler getExpressionHandler();
 }
