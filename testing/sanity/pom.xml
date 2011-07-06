@@ -22,14 +22,14 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<name>midPoint - Sanity testing</name>
 	<modelVersion>4.0.0</modelVersion>
-	<name>Selenium tests</name>
 	<groupId>com.evolveum.midpoint.testing</groupId>
-	<artifactId>selenium</artifactId>
+	<artifactId>sanity</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<parent>
 		<artifactId>parent</artifactId>
-		<groupId>com.evolveum.midpoint.testing</groupId>
+		<groupId>com.evolveum.midpoint</groupId>
 		<version>1.8-SNAPSHOT</version>
 	</parent>
 	<organization>
@@ -68,6 +68,36 @@
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
 			<version>1.8-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.webdriver</groupId>
+			<artifactId>webdriver-firefox</artifactId>
+			<version>0.9.7376</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.webdriver</groupId>
+			<artifactId>webdriver-htmlunit</artifactId>
+			<version>0.9.7376</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.webdriver</groupId>
+			<artifactId>webdriver-ie</artifactId>
+			<version>0.9.7376</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.webdriver</groupId>
+			<artifactId>webdriver-chrome</artifactId>
+			<version>0.9.7376</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-server</artifactId>
+			<version>2.0rc2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.seleniumhq.selenium</groupId>
+			<artifactId>selenium-remote-control</artifactId>
+			<version>2.0rc2</version>
 		</dependency>
 		<dependency>
 			<groupId>junit</groupId>
