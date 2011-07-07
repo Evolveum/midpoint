@@ -276,7 +276,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(this.getClass().getName()+".testSearch");
 		
 		// WHEN
-		cc.search(objectClass,handler,result);
+		cc.search(objectClass,accountDefinition,handler,result);
 		
 		// THEN
 		
