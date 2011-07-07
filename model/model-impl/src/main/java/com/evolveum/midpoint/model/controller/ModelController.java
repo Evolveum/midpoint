@@ -105,7 +105,8 @@ public class ModelController {
 	// @Autowired(required = true)
 	private transient ImportFromResourceTaskHandler importTaskHandler;
 
-	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException {
+	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException,
+			ObjectNotFoundException {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
@@ -125,12 +126,16 @@ public class ModelController {
 		} catch (ObjectAlreadyExistsException ex) {
 			subResult.recordFatalError("Object with name '" + object.getName() + "' already exists.", ex);
 			throw ex;
-		} catch (SystemException ex) {
+		} catch (ObjectNotFoundException ex) {
 			subResult.recordFatalError("Couldn't add object '" + object.getName() + "'.", ex);
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object", ex, object.getName());
 			subResult.recordFatalError("Couldn't add object '" + object.getName() + "'.", ex);
+			if (ex instanceof SystemException) {
+				throw (SystemException) ex;
+			}
+			throw new SystemException(ex.getMessage(), ex);
 		}
 
 		LOGGER.debug(subResult.debugDump());
@@ -487,15 +492,18 @@ public class ModelController {
 		return list;
 	}
 
-	// This returns OperationResult instead of taking it as in/out argument. This is different
-	// from the other methods. The testResource method is not using OperationResult to track its own
-	// execution but rather to track the execution of resource tests (that in fact happen in provisioning).
+	// This returns OperationResult instead of taking it as in/out argument.
+	// This is different
+	// from the other methods. The testResource method is not using
+	// OperationResult to track its own
+	// execution but rather to track the execution of resource tests (that in
+	// fact happen in provisioning).
 	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		LOGGER.debug("Testing resource with oid {}.", new Object[] { resourceOid });
 
 		OperationResult testResult = provisioning.testResource(resourceOid);
-		
+
 		if (testResult != null) {
 			LOGGER.debug(testResult.debugDump());
 		} else {

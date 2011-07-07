@@ -161,7 +161,8 @@ public class SchemaHandlerImpl implements SchemaHandler {
 				continue;
 			}
 			insertUserDefinedVariables(attribute, variables, subResult);
-			processOutboundAttribute(attribute, variables, resourceObjectShadow);
+			changes.getPropertyModification().addAll(
+					processOutboundAttribute(attribute, variables, resourceObjectShadow));
 		}
 
 		return changes;
@@ -434,10 +435,10 @@ public class SchemaHandlerImpl implements SchemaHandler {
 				LOGGER.trace("Changed account's attribute {} value to {}", new Object[] { attributeName,
 						attributeValue });
 
-				XPathType xpathType = null;
-				PropertyModificationType modification = ObjectTypeUtil.createPropertyModificationType(
-						PropertyModificationTypeType.replace, xpathType, attribute);
-				modifications.add(modification);
+//				XPathType xpathType = null;
+//				PropertyModificationType modification = ObjectTypeUtil.createPropertyModificationType(
+//						PropertyModificationTypeType.replace, xpathType, attribute);
+//				modifications.add(modification);
 
 				return modifications;
 			}
@@ -447,6 +448,11 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		Element element = createAttributeElement(namespace, localName, attributeValue);
 		attributes.add(element);
 
+		XPathType xpathType = null;
+		PropertyModificationType modification = ObjectTypeUtil.createPropertyModificationType(
+				PropertyModificationTypeType.add, xpathType, element);
+		modifications.add(modification);
+		
 		LOGGER.trace("Created account's attribute {} with value {}", new Object[] { attributeName,
 				attributeValue });
 
