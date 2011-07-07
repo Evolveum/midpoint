@@ -185,7 +185,6 @@ public class Validator {
 	}
 
 	void checkResource(ResourceType resource) {
-		checkUri(resource, resource.getType(), "type");
 		checkUri(resource, resource.getNamespace(), "namespace");
 	}
 
