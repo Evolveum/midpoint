@@ -158,12 +158,12 @@ public class ModelUtilsTest {
 		ModelUtils.getAccountTypeFromHandling(new AccountShadowType(), null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void getAccountTypeDefinitionFromSchemaHandlingNonExisting() throws Exception {
 		getAccountTypeDefinitionFromSchemaHandlingNonExisting("account-no-schema-handling.xml");
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void getAccountTypeDefinitionFromSchemaHandlingNonExisting2() throws Exception {
 		getAccountTypeDefinitionFromSchemaHandlingNonExisting("account-no-schema-handling2.xml");
 	}
@@ -173,7 +173,7 @@ public class ModelUtilsTest {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, fileName))).getValue();
 
-		ModelUtils.getAccountTypeFromHandling(account, account.getResource());
+		assertNull(ModelUtils.getAccountTypeFromHandling(account, account.getResource()));
 	}
 
 	@Test

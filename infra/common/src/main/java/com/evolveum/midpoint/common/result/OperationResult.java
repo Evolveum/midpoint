@@ -550,8 +550,8 @@ public class OperationResult implements Serializable {
 		result.setOperation(opResult.getOperation());
 		result.setMessage(opResult.getMessage());
 		result.setMessageCode(opResult.getMessageCode());
-		
-		if (opResult.getCause()!=null) {
+
+		if (opResult.getCause() != null) {
 			Exception ex = opResult.getCause();
 			StringBuilder details = new StringBuilder();
 			details.append(ex.getClass().getName());
@@ -559,7 +559,7 @@ public class OperationResult implements Serializable {
 			details.append(ex.getMessage());
 			details.append("\n");
 			StackTraceElement[] stackTrace = ex.getStackTrace();
-			for (int i=0; i<stackTrace.length;i++) {
+			for (int i = 0; i < stackTrace.length; i++) {
 				details.append(stackTrace[i].toString());
 				details.append("\n");
 			}
@@ -583,7 +583,9 @@ public class OperationResult implements Serializable {
 			for (Entry<String, Object> entry : params) {
 				EntryType entryType = new EntryType();
 				entryType.setKey(entry.getKey());
-				entry.setValue(entry.getValue().toString());
+				if (entry.getValue() != null) {
+					entry.setValue(entry.getValue().toString());
+				}
 
 				paramsType.getEntry().add(entryType);
 			}

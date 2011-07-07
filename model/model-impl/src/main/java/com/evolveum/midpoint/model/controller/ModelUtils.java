@@ -96,8 +96,7 @@ public class ModelUtils {
 
 		SchemaHandlingType schemaHandling = resource.getSchemaHandling();
 		if (schemaHandling == null) {
-			throw new IllegalArgumentException(
-					"Provided resource definition doesn't contain schema handling.");
+			return null;
 		}
 		QName accountObjectClass = accountShadow.getObjectClass();
 
@@ -113,10 +112,8 @@ public class ModelUtils {
 				return accountType;
 			}
 		}
-
-		throw new IllegalArgumentException("Provided wrong AccountShadow or SchemaHandling. "
-				+ "No AccountType definition found for provided account's object class: "
-				+ accountObjectClass);
+		
+		return null;
 	}
 
 	public static void generatePassword(AccountShadowType account, int length) {

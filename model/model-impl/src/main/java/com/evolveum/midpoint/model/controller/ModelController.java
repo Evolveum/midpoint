@@ -893,7 +893,8 @@ public class ModelController {
 				}
 
 				Node node = propertyChange.getValue().getAny().get(0);
-				if ("account".equals(node.getLocalName())) {
+				if ("account".equals(node.getLocalName())
+						&& SchemaConstants.NS_C.equals(node.getNamespaceURI())) {
 					try {
 						AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil
 								.unmarshal(DOMUtil.serializeDOMToString(node))).getValue();
@@ -905,16 +906,16 @@ public class ModelController {
 							String accountXml = patchXml.applyDifferences(accountChange, account);
 							account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml))
 									.getValue();
-
-							String newAccountOid = addObject(account, result);
-							ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid,
-									ObjectTypes.ACCOUNT);
-							Element accountRefElement = JAXBUtil.jaxbToDom(accountRef,
-									SchemaConstants.I_ACCOUNT_REF, DOMUtil.getDocument());
-
-							propertyChange.getValue().getAny().clear();
-							propertyChange.getValue().getAny().add(accountRefElement);
 						}
+
+						String newAccountOid = addObject(account, result);
+						ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid,
+								ObjectTypes.ACCOUNT);
+						Element accountRefElement = JAXBUtil.jaxbToDom(accountRef,
+								SchemaConstants.I_ACCOUNT_REF, DOMUtil.getDocument());
+
+						propertyChange.getValue().getAny().clear();
+						propertyChange.getValue().getAny().add(accountRefElement);
 					} catch (Exception ex) {
 						// TODO: error handling
 						ex.printStackTrace();
