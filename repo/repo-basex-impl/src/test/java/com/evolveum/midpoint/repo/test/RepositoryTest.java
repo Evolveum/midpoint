@@ -110,6 +110,31 @@ public class RepositoryTest {
 	}
 
 	@Test
+	@ExpectedException(value=ObjectAlreadyExistsException.class)
+	public void addObjectWithTheSameName() throws Exception {
+		String oid = "c0c010c0-d34d-b33f-f00d-111111111111";
+		try {
+			// store user
+			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/user.xml"))).getValue();
+			repositoryService.addObject(user, null);
+			
+			//try to store the same object with no oid again, exception is expected
+			user.setOid(null);
+			repositoryService.addObject(user, null);
+		} finally {
+			// to be sure try to delete the object as part of cleanup
+			try {
+				repositoryService.deleteObject(oid, null);
+			} catch (Exception ex) {
+				// ignore exceptions during cleanup
+			}
+		}
+
+	}
+
+	
+	@Test
 	@ExpectedException(value=ObjectNotFoundException.class)
 	public void getNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";

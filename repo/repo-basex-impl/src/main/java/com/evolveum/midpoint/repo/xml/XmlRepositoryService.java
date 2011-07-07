@@ -71,6 +71,8 @@ import com.evolveum.midpoint.xml.schema.XPathType;
 
 public class XmlRepositoryService implements RepositoryService {
 
+	private static final String OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS = "ObjectWithTheSameNameAlreadyExists";
+
 	private static final String C_PREFIX = "c";
 
 	private static final String COMMAND_PREFIX = "";
@@ -98,6 +100,7 @@ public class XmlRepositoryService implements RepositoryService {
 	public String addObject(ObjectType object, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException {
 		String oid = null;
+		ClientQuery cq = null;
 		try {
 			// FIXME: check and add have to be done in one transaction!
 			checkAndFailIfObjectAlreadyExists(object.getOid());
@@ -114,23 +117,39 @@ public class XmlRepositoryService implements RepositoryService {
 			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
 			serializedObject = StringUtils.replace(serializedObject, "}", "}}");
 
-			StringBuilder query = new StringBuilder(COMMAND_PREFIX).append(DECLARE_NAMESPACE_C)
+			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
+			if (object instanceof ResourceObjectShadowType) {
+					query.append(DECLARE_NAMESPACE_C)
 					.append("let $x := ").append(serializedObject).append("\n")
 					.append("return insert node $x into //c:objects");
-
+			} else {
+				ObjectTypes objType = ObjectTypes.getObjectType(object.getClass());
+				String oType = objType.getValue();
+				
+				query.append(DECLARE_NAMESPACE_C)
+				.append("if (every $object in //c:objects/c:object[").append("@xsi:type='").append(oType).append("']").append(" satisfies $object/c:name !='")
+				.append(object.getName()).append("' )")
+				.append(" then ").append(" let $x := ")
+				.append(serializedObject).append("\n").append("return insert node $x into //c:objects ")
+				.append(" else (fn:error(null,'").append(OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS).append("'))");				
+			}
 			TRACE.trace("generated query: " + query);
 
-			ClientQuery cq = session.query(query.toString());
+			cq = session.query(query.toString());
 			cq.execute();
-
+			
 			return oid;
 		} catch (JAXBException ex) {
 			TRACE.error("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (BaseXException ex) {
-			TRACE.error("Reported error by XML Database", ex);
-			throw new SystemException("Reported error by XML Database", ex);
-		}
+			if (StringUtils.contains(ex.getMessage(), OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS)) {
+				throw new ObjectAlreadyExistsException(ex);
+			} else {
+				TRACE.error("Reported error by XML Database", ex);
+				throw new SystemException("Reported error by XML Database", ex);
+			}
+		} 
 	}
 
 	@Override
@@ -505,15 +524,16 @@ public class XmlRepositoryService implements RepositoryService {
 				namespace = firstChild.getNamespaceURI();
 				lastPathSegment = prefix + ":" + firstChild.getLocalName();
 			} else {
-				//if element has no prefix, then check if it has defined/overriden default namespace
+				// if element has no prefix, then check if it has
+				// defined/overriden default namespace
 				String defaultNamespace = firstChild.lookupNamespaceURI(null);
 				if (StringUtils.isNotEmpty(defaultNamespace)) {
-					//FIXME: possible problem with many generated prefixes
-					prefix = "ns"+(new Random()).nextInt(10000);
+					// FIXME: possible problem with many generated prefixes
+					prefix = "ns" + (new Random()).nextInt(10000);
 					namespace = defaultNamespace;
-					lastPathSegment = prefix + ":" + firstChild.getLocalName();					
+					lastPathSegment = prefix + ":" + firstChild.getLocalName();
 				} else {
-					//default action: no prefix, no default namespace
+					// default action: no prefix, no default namespace
 					prefix = C_PREFIX;
 					namespace = SchemaConstants.NS_C;
 					lastPathSegment = prefix + ":" + firstChild.getLocalName();
