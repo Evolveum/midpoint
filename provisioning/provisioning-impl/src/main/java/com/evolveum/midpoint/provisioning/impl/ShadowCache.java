@@ -458,7 +458,7 @@ public class ShadowCache {
 
 	public void testConnection(ResourceType resourceType, OperationResult parentResult) {
 		
-		OperationResult initResult = parentResult.createSubresult(ProvisioningService.TEST_CONNECTION_INIT_OPERATION);
+		OperationResult initResult = parentResult.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_INIT_OPERATION);
 		ConnectorInstance connector;
 		try {
 			connector = getConnectorInstance(resourceType);

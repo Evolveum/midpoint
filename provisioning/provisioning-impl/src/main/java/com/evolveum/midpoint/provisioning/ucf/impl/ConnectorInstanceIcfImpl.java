@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
@@ -596,11 +597,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public void test(OperationResult parentResult) {
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".test");
-		result.addContext("resource", resource);
-
-		OperationResult connectionResult = result.createSubresult(ConnectorInstance.class.getName()
-				+ ".test.connectorConnection");
+		
+		OperationResult connectionResult = parentResult.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_CONNECTION_OPERATION);
+		connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS,ConnectorInstance.class);
+		connectionResult.addContext("resource", resource);
+		
 		try {
 			connector.test();
 			connectionResult.recordSuccess();
@@ -635,7 +636,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} catch (Exception ex) {
 			connectionResult.recordFatalError(ex);
 		}
-		result.computeStatus("Test connection failed");
 	}
 
 	@Override

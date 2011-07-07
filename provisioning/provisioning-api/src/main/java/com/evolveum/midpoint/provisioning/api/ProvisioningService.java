@@ -46,9 +46,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
  */
 public interface ProvisioningService {
 	
-	public static final String TEST_CONNECTION_INIT_OPERATION = ProvisioningService.class.getName()+".testResource.initialization";
+	/**
+	 * Prefix for all the "standardized" test resource tests.
+	 */
 	public static final String TEST_CONNECTION_OPERATION = ProvisioningService.class.getName()+".testResource";
-
+	/**
+	 * Check whether the configuration is valid e.g. well-formed XML, valid with regard to schema, etc.
+	 */
+	public static final String TEST_CONNECTION_CONNECTOR_VALIDATION_OPERATION = TEST_CONNECTION_OPERATION+".configurationValidation";
+	/**
+	 * Check whether the connector can be initialized.
+	 * E.g. connector classes can be loaded, it can process configuration, etc.
+	 */
+	public static final String TEST_CONNECTION_CONNECTOR_INIT_OPERATION = TEST_CONNECTION_OPERATION+".connectorInitialization";
+	/**
+	 * Check whether the connector can be initialized.
+	 * E.g. connector classes can be loaded, it can process configuration, etc.
+	 */
+	public static final String TEST_CONNECTION_CONNECTOR_CONNECTION_OPERATION = TEST_CONNECTION_OPERATION+".connectorConnection";
+	/**
+	 * Check whether the connector can fetch and process resource schema.
+	 */
+	public static final String TEST_CONNECTION_CONNECTOR_SCHEMA_OPERATION = TEST_CONNECTION_OPERATION+".connectorSchema";
+	/**
+	 * Check whether the connector can be used to fetch some mandatory objects (e.g. fetch a "root" user).
+	 */
+	public static final String TEST_CONNECTION_CONNECTOR_SANITY_OPERATION = TEST_CONNECTION_OPERATION+".connectorSanity";
+	
 	/**
 	 * Returns object for provided OID.
 	 * 
