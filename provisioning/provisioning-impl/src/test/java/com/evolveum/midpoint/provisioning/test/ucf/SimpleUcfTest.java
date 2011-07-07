@@ -19,32 +19,33 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.Set;
+
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import javax.xml.bind.JAXBContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-import java.io.FileInputStream;
-import java.io.File;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerIcfImpl;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
-import java.io.FileNotFoundException;
-import java.util.Set;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.w3c.dom.Element;
-
-import static org.junit.Assert.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**
  * Simple UCF tests. No real resource, just basic setup and sanity.
@@ -54,7 +55,7 @@ import static org.junit.Assert.*;
 public class SimpleUcfTest {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
-	
+
 	ConnectorManager manager;
 	ResourceType resource;
 
@@ -66,17 +67,17 @@ public class SimpleUcfTest {
 		ConnectorManagerIcfImpl managerImpl = new ConnectorManagerIcfImpl();
 		managerImpl.initialize();
 		manager = managerImpl;
-		
-        File file = new File(FILENAME_RESOURCE_OPENDJ);
-        FileInputStream fis = new FileInputStream(file);
 
-        Unmarshaller u = null;
+		File file = new File(FILENAME_RESOURCE_OPENDJ);
+		FileInputStream fis = new FileInputStream(file);
 
-        JAXBContext jc = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-        u = jc.createUnmarshaller();
+		Unmarshaller u = null;
 
-        Object object = u.unmarshal(fis);
-		
+		JAXBContext jc = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
+		u = jc.createUnmarshaller();
+
+		Object object = u.unmarshal(fis);
+
 		resource = (ResourceType) ((JAXBElement) object).getValue();
 
 	}
@@ -86,32 +87,34 @@ public class SimpleUcfTest {
 	}
 
 	/**
-	 * Test listing connectors. Very simple. Just test that the list
-	 * is non-empty and that there are mandatory values filled in.
+	 * Test listing connectors. Very simple. Just test that the list is
+	 * non-empty and that there are mandatory values filled in.
 	 */
 	@Test
 	public void testListConnectors() {
 		Set<ConnectorType> listConnectors = manager.listConnectors();
-		
+
 		assertNotNull(listConnectors);
 		assertFalse(listConnectors.isEmpty());
-		
+
 		for (ConnectorType connector : listConnectors) {
 			assertNotNull(connector.getOid());
 			assertNotNull(connector.getName());
-			System.out.println("CONNECTOR OID="+connector.getOid()+", name="+connector.getName()+", version="+connector.getConnectorVersion());
+			System.out.println("CONNECTOR OID=" + connector.getOid() + ", name=" + connector.getName()
+					+ ", version=" + connector.getConnectorVersion());
 		}
-		
+
 	}
-	
+
 	@Test
-	public void testCreateConfiguredConnector() throws FileNotFoundException, JAXBException {
-				
+	public void testCreateConfiguredConnector() throws FileNotFoundException, JAXBException,
+			com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException {
+
 		ConnectorInstance cc = manager.createConnectorInstance(resource);
 
 		assertNotNull(cc);
 	}
-	
+
 	@Test
 	public void testParseResourceSchema() throws SchemaProcessorException {
 		Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(resource);
