@@ -147,9 +147,11 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		System.out.println("*** Positive test connection");
         //GIVEN
 
+		OperationResult result = new OperationResult("testTestConnection");
+		
         //WHEN
 		
-        OperationResult result = cc.test();
+        cc.test(result);
 
         //THEN
         assertNotNull(result);
@@ -173,9 +175,11 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 
 		ConnectorInstance badConnector = manager.createConnectorInstance(badResource);
 		
+		OperationResult result = new OperationResult("testTestConnectionNegative");
+		
         //WHEN
 		
-        OperationResult result = badConnector.test();
+        badConnector.test(result);
 
         //THEN
         assertNotNull(result);
