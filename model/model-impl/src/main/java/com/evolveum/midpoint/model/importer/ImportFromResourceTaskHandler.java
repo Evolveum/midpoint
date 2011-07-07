@@ -133,6 +133,8 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		} catch (CommunicationException e){
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 		
 		handlers.remove(task);

@@ -16,6 +16,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
+@Ignore
 //@RunWith(SpringJUnit4ClassRunner.class)
 //@ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
 //		"classpath:application-context-provisioning-test.xml",

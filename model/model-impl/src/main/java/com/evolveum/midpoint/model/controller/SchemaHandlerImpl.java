@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -29,14 +30,22 @@ import java.util.Map.Entry;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
@@ -45,19 +54,27 @@ import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AttributeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType.Value;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.VariableDefinitionType;
+import com.evolveum.midpoint.xml.schema.ExpressionHolder;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.schema.XPathSegment;
+import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * 
@@ -132,18 +149,17 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		}
 
 		Map<QName, Variable> variables = getDefaultXPathVariables(user, resourceObjectShadow, resource);
-		for (AttributeDescriptionType attributeHandling : accountType.getAttribute()) {
+		for (AttributeDescriptionType attribute : accountType.getAttribute()) {
 			ResourceObjectAttributeDefinition attributeDefinition = objectDefinition
-					.findAttributeDefinition(attributeHandling.getRef());
+					.findAttributeDefinition(attribute.getRef());
 			if (attributeDefinition == null) {
 				LOGGER.trace("Attribute {} defined in schema handling is not defined in the resource "
-						+ "schema {}. Attribute was not processed", new Object[] {
-						attributeHandling.getRef(), resource.getName() });
+						+ "schema {}. Attribute was not processed", new Object[] { attribute.getRef(),
+						resource.getName() });
 				continue;
 			}
-			insertUserDefinedVariables(attributeHandling, variables, subResult);
-			// processOutboundSection(attributeHandling, variables,
-			// resourceObjectShadow);
+			insertUserDefinedVariables(attribute, variables, subResult);
+			processOutboundAttribute(attribute, variables, resourceObjectShadow);
 		}
 
 		return changes;
@@ -264,5 +280,177 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		}
 
 		return object;
+	}
+
+	private List<PropertyModificationType> processOutboundAttribute(AttributeDescriptionType attribute,
+			Map<QName, Variable> variables, ResourceObjectShadowType resourceObjectShadow)
+			throws SchemaHandlerException {
+		List<PropertyModificationType> modifications = new ArrayList<PropertyModificationType>();
+
+		QName attributeName = attribute.getRef();
+		ValueConstructionType outbound = attribute.getOutbound();
+
+		LOGGER.debug("Start outbound processing of attribute handling for attribute {}", attributeName);
+		if (outbound == null) {
+			LOGGER.debug("Outbound not found, skipping.");
+			return modifications;
+		}
+
+		ExpressionHolder expression = outbound.getValueExpression() == null ? null : new ExpressionHolder(
+				outbound.getValueExpression());
+		XPathType xpathType = getXPathForAttribute(attributeName);
+
+		String attributeValue;
+		// if (expression != null
+		// && StringUtils.isNotEmpty(expression.getExpressionAsString())
+		// &&
+		// isApplicablePropertyConstruction(attribute.getOutbound().isDefault(),
+		// xpathType,
+		// variables, resourceObjectShadow)) {
+		//
+		// }
+
+		if (isApplicablePropertyConstruction(outbound.isDefault(), xpathType, variables, resourceObjectShadow)) {
+			if (null != expression && !StringUtils.isEmpty(expression.getExpressionAsString())) {
+				attributeValue = evaluateExpression(variables, expression);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace(
+							"Outbound: expression {} for attribute {}, resource {}, was evaluated to {}",
+							new Object[] { expression.getExpressionAsString(), attributeName,
+									DebugUtil.resourceFromShadow(resourceObjectShadow), attributeValue });
+					if (variables != null) {
+						for (Entry<QName, Variable> entry : variables.entrySet()) {
+							LOGGER.trace("Outbound:  variable {}: {}", entry.getKey(), entry.getValue());
+						}
+					}
+				}
+			} else {
+				attributeValue = extractValue(attribute);
+				LOGGER.trace("Account's attribute value is '{}'", attributeValue);
+			}
+
+			modifications.addAll(applyValue(resourceObjectShadow, attributeName, attributeValue));
+		}
+		LOGGER.trace("Finished outbound processing of attribute handling for attribute '{}'", attributeName);
+
+		return modifications;
+	}
+
+	private boolean isApplicablePropertyConstruction(boolean isDefault, XPathType xpathType,
+			Map<QName, Variable> variables, ObjectType objectType) throws SchemaHandlerException {
+		if (isDefault) {
+			QName elementQName = null;
+			if (objectType instanceof UserType) {
+				elementQName = SchemaConstants.I_USER_TYPE;
+			} else if (objectType instanceof AccountShadowType) {
+				elementQName = SchemaConstants.I_ACCOUNT_TYPE;
+			} else {
+				throw new SchemaHandlerException("Provided unsupported object type: " + objectType.getClass());
+			}
+
+			try {
+				Node domObject = JAXBUtil.jaxbToDom(objectType, elementQName, DOMUtil.getDocument());
+				NodeList nodes;
+				try {
+					XPathUtil xpathUtil = new XPathUtil();
+					nodes = xpathUtil.matchedNodesByXPath(xpathType, variables, domObject);
+				} catch (XPathExpressionException ex) {
+					throw new SchemaHandlerException(ex.getMessage(), ex);
+				}
+				if (null != nodes && nodes.getLength() > 0) {
+					return false;
+				}
+			} catch (JAXBException ex) {
+				throw new SchemaHandlerException("Couldn't transform jaxb object '" + objectType
+						+ "' to dom.", ex);
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * construct XPath that points to resource object shadow's attribute
+	 */
+	private XPathType getXPathForAttribute(QName attributeName) {
+		List<XPathSegment> segments = new ArrayList<XPathSegment>();
+		XPathSegment segment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
+		segments.add(segment);
+		segment = new XPathSegment(attributeName);
+		segments.add(segment);
+		XPathType xpathType = new XPathType(segments);
+		return xpathType;
+	}
+
+	private String extractValue(AttributeDescriptionType attribute) {
+		JAXBElement<Value> value = attribute.getOutbound().getValue();
+		if (value == null) {
+			return null;
+		}
+
+		StringBuilder builder = new StringBuilder();
+		for (Object content : value.getValue().getContent()) {
+			if (content instanceof String) {
+				builder.append(content);
+			} else {
+				throw new IllegalArgumentException("Unsupported content (" + content
+						+ ") for value element in attribute's handling outbound section for attribute: "
+						+ attribute.getRef());
+			}
+		}
+		return builder.toString();
+	}
+
+	private String evaluateExpression(Map<QName, Variable> variables, ExpressionHolder expressionHolder) {
+		return (String) XPathUtil.evaluateExpression(variables, expressionHolder, XPathConstants.STRING);
+	}
+
+	private List<PropertyModificationType> applyValue(ResourceObjectShadowType account,
+			QName accountAttributeName, String accountAttributeValue) {
+		List<PropertyModificationType> modifications = new ArrayList<PropertyModificationType>();
+
+		// TODO: multi value attributes are not supported, yet
+		// TODO: attributes could have only simple values
+		LOGGER.trace("Account's attribute '{}' assign value '{}'", accountAttributeName,
+				accountAttributeValue);
+		String namespace = accountAttributeName.getNamespaceURI();
+		String localName = accountAttributeName.getLocalPart();
+		LOGGER.trace("Account's attribute namespace = '{}' and name = '{}'", new Object[] { namespace,
+				localName });
+
+		AccountShadowType.Attributes attrs = account.getAttributes();
+		if (null == attrs) {
+			attrs = new AccountShadowType.Attributes();
+			account.setAttributes(attrs);
+		}
+		List<Element> attributes = attrs.getAny();
+
+		for (Element attribute : attributes) {
+			LOGGER.trace("attribute: namespaceURI = '{}', localName = '{}'", attribute.getNamespaceURI(),
+					attribute.getLocalName());
+			if (localName.equals(attribute.getLocalName()) && namespace.equals(attribute.getNamespaceURI())) {
+				attribute.setTextContent(accountAttributeValue);
+				LOGGER.trace("Changed account's attribute '{}' value to '{}'", accountAttributeName,
+						accountAttributeValue);
+				return modifications;
+			}
+		}
+
+		// no value was set yet for the attribute, so create new attribute with
+		// value
+		LOGGER.trace("Account's attribute '{}' was not set, yet", accountAttributeName);
+		Document doc = DOMUtil.getDocument();
+		Element element;
+		if (StringUtils.isNotEmpty(accountAttributeName.getNamespaceURI())) {
+			element = doc.createElementNS(namespace, localName);
+		} else {
+			element = doc.createElementNS(SchemaConstants.NS_C, accountAttributeName.getLocalPart());
+		}
+		element.setTextContent(accountAttributeValue);
+		attributes.add(element);
+		LOGGER.trace("Created account's attribute '{}' with value '{}'", accountAttributeName,
+				accountAttributeValue);
+
+		return modifications;
 	}
 }

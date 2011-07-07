@@ -96,11 +96,11 @@ public class ModelController {
 	private transient RepositoryService repository;
 	@Autowired(required = true)
 	private transient SchemaHandler schemaHandler;
-	
+
 	// TODO
 	// @Autowired(required = true)
 	private transient TaskManager taskManager;
-	
+
 	// TODO: initialization: register this to TaskManager
 	// @Autowired(required = true)
 	private transient ImportFromResourceTaskHandler importTaskHandler;
@@ -499,7 +499,7 @@ public class ModelController {
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't test status for resource {}", ex, resourceOid);
 
-			subResult = new OperationResult(ModelController.class.getName()+".testResource");
+			subResult = new OperationResult(ModelController.class.getName() + ".testResource");
 			subResult.recordFatalError("Couldn't test status for resource with oid '" + resourceOid + "'.",
 					ex);
 			result.addSubresult(subResult);
@@ -517,7 +517,7 @@ public class ModelController {
 			throws ObjectNotFoundException {
 		throw new NotImplementedException("DEPRECATED");
 	}
-	
+
 	// Note: The result is in the task. No need to pass it explicitly
 	public void importFromResource(String resourceOid, QName objectClass, Task task)
 			throws ObjectNotFoundException {
@@ -527,16 +527,18 @@ public class ModelController {
 		LOGGER.debug("Launching import from resource with oid {} for object class {}.", new Object[] {
 				resourceOid, objectClass });
 
-		OperationResult result = task.getResult().createSubresult(ModelController.class.getName()+".importFromResource");
+		OperationResult result = task.getResult().createSubresult(
+				ModelController.class.getName() + ".importFromResource");
 		// TODO: add params and context to the result
-		
+
 		// Fetch resource definition from the repo/provisioning
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
-		ResourceType resource = getObject(resourceOid,resolve,result,ResourceType.class);
+		ResourceType resource = getObject(resourceOid, resolve, result, ResourceType.class);
 
 		importTaskHandler.launch(resource, task, taskManager);
 
-		// The launch should switch task to asynchronous. It is in/out, so no other action is needed
+		// The launch should switch task to asynchronous. It is in/out, so no
+		// other action is needed
 	}
 
 	@Deprecated
@@ -898,19 +900,21 @@ public class ModelController {
 
 						ObjectModificationType accountChange = processOutboundSchemaHandling(user, account,
 								result);
-						PatchXml patchXml = new PatchXml();
-						String accountXml = patchXml.applyDifferences(accountChange, account);
-						account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml))
-								.getValue();
+						if (accountChange != null) {
+							PatchXml patchXml = new PatchXml();
+							String accountXml = patchXml.applyDifferences(accountChange, account);
+							account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml))
+									.getValue();
 
-						String newAccountOid = addObject(account, result);
-						ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid,
-								ObjectTypes.ACCOUNT);
-						Element accountRefElement = JAXBUtil.jaxbToDom(accountRef,
-								SchemaConstants.I_ACCOUNT_REF, DOMUtil.getDocument());
+							String newAccountOid = addObject(account, result);
+							ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid,
+									ObjectTypes.ACCOUNT);
+							Element accountRefElement = JAXBUtil.jaxbToDom(accountRef,
+									SchemaConstants.I_ACCOUNT_REF, DOMUtil.getDocument());
 
-						propertyChange.getValue().getAny().clear();
-						propertyChange.getValue().getAny().add(accountRefElement);
+							propertyChange.getValue().getAny().clear();
+							propertyChange.getValue().getAny().add(accountRefElement);
+						}
 					} catch (Exception ex) {
 						// TODO: error handling
 						ex.printStackTrace();
@@ -978,7 +982,6 @@ public class ModelController {
 			return;
 		}
 
-		
 		List<AccountConstructionType> accountConstructions = userTemplate.getAccountConstruction();
 		for (AccountConstructionType construction : accountConstructions) {
 			OperationResult addObject = new OperationResult("Link Object To User");
@@ -996,13 +999,15 @@ public class ModelController {
 				account.setResourceRef(resourceRef);
 
 				ObjectModificationType changes = processOutboundSchemaHandling(user, account, result);
-
-				PatchXml patchXml = new PatchXml();
-				String accountXml = patchXml.applyDifferences(changes, account);
-				account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml)).getValue();
+				if (changes != null) {
+					PatchXml patchXml = new PatchXml();
+					String accountXml = patchXml.applyDifferences(changes, account);
+					account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml)).getValue();
+				}
 
 				String accountOid = addObject(account, result);
 				user.getAccountRef().add(ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT));
+
 				addObject.recordSuccess();
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't process account construction {} for user {}", ex,

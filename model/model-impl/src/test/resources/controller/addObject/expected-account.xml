@@ -34,11 +34,11 @@
 	<c:name>Localhost OpenDJ-bond</c:name>	
 	<c:resourceRef oid="10000000-0000-0000-0000-000000000003" type="ResourceType" />
 	<c:objectClass>ri:Account</c:objectClass>
-	<!-- <c:attributes>
-		<ldap:dn>uid=bond,o=mi6</ldap:dn>
-		<ldap:uid>bond</ldap:uid>
-		<ldap:cn>James Bond</ldap:cn>
-		<ldap:o>mi6</ldap:o>
-		<mi6:mi6Licence>to kill</mi6:mi6Licence>
-	</c:attributes> -->
+	<c:attributes>
+		<ics:__NAME__>uid=bond,ou=people,dc=example,dc=com</ics:__NAME__>
+		<ri:cn>James Bond 007</ri:cn>
+		<ri:sn></ri:sn>
+		<ri:givenName>James Jr.</ri:givenName>
+		<ri:description>Created by IDM</ri:description>
+	</c:attributes>
 </c:object>

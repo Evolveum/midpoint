@@ -134,8 +134,7 @@ public class SchemaHandling extends XPathUtil {
 		Validate.notNull(user, "user is null");
 		Validate.notNull(accountShadow, "accountShadow is null");
 
-		AccountType accountType = ModelUtils.getAccountTypeFromHandling(accountShadow,
-				resource);
+		AccountType accountType = ModelUtils.getAccountTypeFromHandling(accountShadow, resource);
 		List<AttributeDescriptionType> attributesHandling = accountType.getAttribute();
 
 		Map<QName, Variable> variables = getDefaultXPathVariables(user, accountShadow);
@@ -182,8 +181,7 @@ public class SchemaHandling extends XPathUtil {
 
 		// Prerequisite: resourceRef was resolved to resource
 		ResourceType resource = accountShadow.getResource();
-		AccountType accountType = ModelUtils.getAccountTypeFromHandling(accountShadow,
-				resource);
+		AccountType accountType = ModelUtils.getAccountTypeFromHandling(accountShadow, resource);
 		List<AttributeDescriptionType> attributesHandling = accountType.getAttribute();
 
 		Map<QName, Variable> variables = getDefaultXPathVariables(user, accountShadow);
