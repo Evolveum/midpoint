@@ -417,8 +417,8 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		LOGGER.trace("Account's attribute '{}' assign value '{}'", attributeName, attributeValue);
 		String namespace = attributeName.getNamespaceURI();
 		String localName = attributeName.getLocalPart();
-		LOGGER.trace("Account's attribute namespace = '{}' and name = '{}'", new Object[] { namespace,
-				localName });
+//		LOGGER.trace("Account's attribute namespace = '{}' and name = '{}'", new Object[] { namespace,
+//				localName });
 
 		ResourceObjectShadowType.Attributes attrs = resourceObjectShadow.getAttributes();
 		if (null == attrs) {
@@ -448,10 +448,10 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		Element element = createAttributeElement(namespace, localName, attributeValue);
 		attributes.add(element);
 
-		XPathType xpathType = null;
-		PropertyModificationType modification = ObjectTypeUtil.createPropertyModificationType(
-				PropertyModificationTypeType.add, xpathType, element);
-		modifications.add(modification);
+//		XPathType xpathType = null;
+//		PropertyModificationType modification = ObjectTypeUtil.createPropertyModificationType(
+//				PropertyModificationTypeType.add, xpathType, element);
+//		modifications.add(modification);
 		
 		LOGGER.trace("Created account's attribute {} with value {}", new Object[] { attributeName,
 				attributeValue });
