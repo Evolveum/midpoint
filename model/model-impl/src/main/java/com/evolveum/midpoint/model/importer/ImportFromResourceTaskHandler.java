@@ -120,7 +120,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		ImportFromResourceResultHandler handler = new ImportFromResourceResultHandler(resource,task,objectChangeListener);
 		
 		// TODO: error checking - already running
-		handlers.put(task,handler);
+		handlers.put(task, handler);
 		
 		try {
 			provisioning.searchObjectsIterative(createAccountShadowTypeQuery(resource), null, handler, parentResult);

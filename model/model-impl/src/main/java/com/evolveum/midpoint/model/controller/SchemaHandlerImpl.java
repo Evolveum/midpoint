@@ -47,6 +47,7 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
@@ -63,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -309,7 +311,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		// variables, resourceObjectShadow)) {
 		//
 		// }
-
+		// TODO: refactor this if clausule
 		if (isApplicablePropertyConstruction(outbound.isDefault(), xpathType, variables, resourceObjectShadow)) {
 			if (null != expression && !StringUtils.isEmpty(expression.getExpressionAsString())) {
 				attributeValue = evaluateExpression(variables, expression);
@@ -405,52 +407,62 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		return (String) XPathUtil.evaluateExpression(variables, expressionHolder, XPathConstants.STRING);
 	}
 
-	private List<PropertyModificationType> applyValue(ResourceObjectShadowType account,
-			QName accountAttributeName, String accountAttributeValue) {
+	private List<PropertyModificationType> applyValue(ResourceObjectShadowType resourceObjectShadow,
+			QName attributeName, String attributeValue) {
 		List<PropertyModificationType> modifications = new ArrayList<PropertyModificationType>();
 
 		// TODO: multi value attributes are not supported, yet
 		// TODO: attributes could have only simple values
-		LOGGER.trace("Account's attribute '{}' assign value '{}'", accountAttributeName,
-				accountAttributeValue);
-		String namespace = accountAttributeName.getNamespaceURI();
-		String localName = accountAttributeName.getLocalPart();
+		LOGGER.trace("Account's attribute '{}' assign value '{}'", attributeName, attributeValue);
+		String namespace = attributeName.getNamespaceURI();
+		String localName = attributeName.getLocalPart();
 		LOGGER.trace("Account's attribute namespace = '{}' and name = '{}'", new Object[] { namespace,
 				localName });
 
-		AccountShadowType.Attributes attrs = account.getAttributes();
+		ResourceObjectShadowType.Attributes attrs = resourceObjectShadow.getAttributes();
 		if (null == attrs) {
 			attrs = new AccountShadowType.Attributes();
-			account.setAttributes(attrs);
+			resourceObjectShadow.setAttributes(attrs);
 		}
 		List<Element> attributes = attrs.getAny();
 
 		for (Element attribute : attributes) {
-			LOGGER.trace("attribute: namespaceURI = '{}', localName = '{}'", attribute.getNamespaceURI(),
-					attribute.getLocalName());
+			LOGGER.trace("attribute: {}, name {}",
+					new Object[] { attribute.getNamespaceURI(), attribute.getLocalName() });
 			if (localName.equals(attribute.getLocalName()) && namespace.equals(attribute.getNamespaceURI())) {
-				attribute.setTextContent(accountAttributeValue);
-				LOGGER.trace("Changed account's attribute '{}' value to '{}'", accountAttributeName,
-						accountAttributeValue);
+				attribute.setTextContent(attributeValue);
+				LOGGER.trace("Changed account's attribute {} value to {}", new Object[] { attributeName,
+						attributeValue });
+
+				XPathType xpathType = null;
+				PropertyModificationType modification = ObjectTypeUtil.createPropertyModificationType(
+						PropertyModificationTypeType.replace, xpathType, attribute);
+				modifications.add(modification);
+
 				return modifications;
 			}
 		}
 
-		// no value was set yet for the attribute, so create new attribute with
-		// value
-		LOGGER.trace("Account's attribute '{}' was not set, yet", accountAttributeName);
-		Document doc = DOMUtil.getDocument();
-		Element element;
-		if (StringUtils.isNotEmpty(accountAttributeName.getNamespaceURI())) {
-			element = doc.createElementNS(namespace, localName);
-		} else {
-			element = doc.createElementNS(SchemaConstants.NS_C, accountAttributeName.getLocalPart());
-		}
-		element.setTextContent(accountAttributeValue);
+		// no value was set for the attribute, create new attribute with value
+		Element element = createAttributeElement(namespace, localName, attributeValue);
 		attributes.add(element);
-		LOGGER.trace("Created account's attribute '{}' with value '{}'", accountAttributeName,
-				accountAttributeValue);
+
+		LOGGER.trace("Created account's attribute {} with value {}", new Object[] { attributeName,
+				attributeValue });
 
 		return modifications;
+	}
+
+	private Element createAttributeElement(String namespace, String localName, String value) {
+		Document doc = DOMUtil.getDocument();
+		Element element = null;
+		if (StringUtils.isNotEmpty(namespace)) {
+			element = doc.createElementNS(namespace, localName);
+		} else {
+			element = doc.createElementNS(SchemaConstants.NS_C, localName);
+		}
+		element.setTextContent(value);
+
+		return element;
 	}
 }
