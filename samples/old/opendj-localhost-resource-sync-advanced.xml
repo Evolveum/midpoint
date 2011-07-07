@@ -23,11 +23,9 @@
 
 <!--
 
-THIS IS A VERSION FOR HYPERION (midPoint 1.8). DOES NOT WORK YET
-
 This file is an example of Resource definition. It defines an LDAP resource
-using an Identity Connector Framework LDAP connector. It contains configuration
-for use with stock OpenDJ and OpenDS servers.
+using an Indentity Connector Framework LDAP connector. It contains proper schema
+for use with a stock OpenDJ and OpenDS servers.
 
 This resource definition contains also definition to enable synchronization and
 especially an expression that is using a lookup of value from an configuration
@@ -36,27 +34,24 @@ object.
 -->
 
 <c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
            xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
            xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
-           xmlns:my="http://myself.me/schemas/whatever"
-           xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+           xmlns:my="http://myself.me/schemas/whatever">
 
 
     <c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
-    	<!-- Resource name. It will be displayed in GUI.  -->
         <c:name>Localhost OpenDJ</c:name>
-        
-        <c:connectorRef oid="icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector"/>
+        <c:type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</c:type>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
         <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:namespace>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-        <c:configuration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf/configuration-1.xsd">
+        <c:configuration>
 
             <!-- Configuration of ICF connector -->
             <idc:ConnectorConfiguration xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd"
@@ -278,11 +273,11 @@ object.
 
                 <!-- Reference to the Resoure Schema (see above) specifying
                      object class for this account type -->
-                <c:objectClass>ri:Account</c:objectClass>
+                <i:objectClass>ri:Account</i:objectClass>
 
                 <!-- Definition of __NAME__ attribute handling.
                      ICF will put entry DN into __NAME__ attribute.-->
-                <c:attribute ref="ids:__NAME__">
+                <i:attribute ref="ids:__NAME__">
 
                     <!-- Readable name for the attribute. This will be used in GUI -->
                     <c:name>Distinguished Name</c:name>
@@ -305,16 +300,16 @@ object.
                          be evaluated only if the entry already does not have an DN.
 
                          It is an XPath expression, similar to BPEL assignment expressions. -->
-                    <c:outbound default="true">
-                        <c:valueExpression>
+                    <i:outbound default="true">
+                        <i:valueExpression>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
-                        </c:valueExpression>
-                    </c:outbound>
+                            </i:valueExpression>
+                    </i:outbound>
 
                     <!-- No inbound expression here. We cannot sync changes in DN yet -->
 
-                </c:attribute>
+                </i:attribute>
 
                 <!-- Definition of __UID__ attribute handling.
                      ICF will put entry UUID into __UID__ attribute in case it
@@ -322,7 +317,7 @@ object.
                      other directory servers and it also dependes on connector
                      configuration. Please see connector documentation for
                      more details.-->
-                <c:attribute ref="ids:__UID__">
+                <i:attribute ref="ids:__UID__">
 
                     <!-- Readable name for the attribute. This will be used in GUI -->
                     <c:name>Entry UUID</c:name>
@@ -337,10 +332,10 @@ object.
 
                     <!-- No inbound expression here. Does not make sense to sync UUID as it is supposed to be immutable -->
 
-                </c:attribute>
+                </i:attribute>
 
                 <!-- Definition of cn attribute handling. -->
-                <c:attribute ref="ri:cn">
+                <i:attribute ref="ri:cn">
                     
                     <c:name>Common Name</c:name>
                     <c:access>create</c:access>
@@ -356,155 +351,155 @@ object.
                          Therefore this value will be copied on every change,
                          overwriting the original value of "cn" on the resource.
                      -->
-                    <c:outbound>
-                        <c:valueExpression>
+                    <i:outbound>
+                        <i:valueExpression>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:fullName
-                        </c:valueExpression>
-                    </c:outbound>
+                        </i:valueExpression>
+                    </i:outbound>
 
                     <!-- Inbound expression. It is used to synchronize changes
                          in the account to the user object in the IDM. This
                          expression specifies to copy the cn attribute value
                          from the account to the fullName property of the user.
                      -->
-                    <c:inbound>
-                        <c:target>
+                    <i:inbound>
+                        <i:target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:fullName
-                        </c:target>
-                    </c:inbound>
+                        </i:target>
+                    </i:inbound>
 
-                </c:attribute>
+                </i:attribute>
 
                 <!-- Definition of sn attribute handling. -->
-                <c:attribute ref="ri:sn">
+                <i:attribute ref="ri:sn">
                     <c:name>Surname</c:name>
                     <c:access>create</c:access>
                     <c:access>read</c:access>
                     <c:access>update</c:access>
-                    <c:outbound>
-                        <c:valueExpression>
+                    <i:outbound>
+                        <i:valueExpression>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:familyName
-                        </c:valueExpression>
-                    </c:outbound>
+                        </i:valueExpression>
+                    </i:outbound>
                     <!-- sn will be synchronized to user's familyName -->
-                    <c:inbound>
-                        <c:target>
+                    <i:inbound>
+                        <i:target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:familyName
-                        </c:target>
-                    </c:inbound>
-                </c:attribute>
+                        </i:target>
+                    </i:inbound>
+                </i:attribute>
 
                 <!-- Definition of givenName attribute handling. -->
-                <c:attribute ref="ri:givenName">
+                <i:attribute ref="ri:givenName">
                     <c:name>Given Name</c:name>
                     <c:access>create</c:access>
                     <c:access>read</c:access>
                     <c:access>update</c:access>
-                    <c:outbound>
-                        <c:valueExpression>
+                    <i:outbound>
+                        <i:valueExpression>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:givenName
-                        </c:valueExpression>
-                    </c:outbound>
+                        </i:valueExpression>
+                    </i:outbound>
                     <!-- givenName will be synchronized to user's givenName -->
-                    <c:inbound>
-                        <c:target>
+                    <i:inbound>
+                        <i:target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:givenName
-                        </c:target>
-                    </c:inbound>
-                </c:attribute>
+                        </i:target>
+                    </i:inbound>
+                </i:attribute>
 
                 <!-- Definition of uid attribute handling.
                      Do not confuse with __UID__! -->
-                <c:attribute ref="ri:uid">
+                <i:attribute ref="ri:uid">
                     <c:name>Login Name</c:name>
                     <c:access>create</c:access>
                     <c:access>read</c:access>
-                    <c:outbound>
+                    <i:outbound>
                         <!-- It is mapped from (and also to) "name" property of
                              user. It is essentially a login name -->
-                        <c:valueExpression>
+                        <i:valueExpression>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:name
-                        </c:valueExpression>
-                    </c:outbound>
+                        </i:valueExpression>
+                    </i:outbound>
                         <!-- It is mapped to (and also from) "name" property of
                              user. It is essentially a login name -->
-                    <c:inbound>
-                        <c:target>
+                    <i:inbound>
+                        <i:target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:name
-                        </c:target>
-                    </c:inbound>
-                </c:attribute>
+                        </i:target>
+                    </i:inbound>
+                </i:attribute>
 
                 <!-- Definition of description attribute handling. -->
-                <c:attribute ref="ri:description">
+                <i:attribute ref="ri:description">
 
                     <!-- This outbound expression is not really an expression.
                          It is using a fixed literal insead of dynamically
                          generated value. -->
-                    <c:outbound default="true">
-                        <c:value>Created by IDM</c:value>
-                    </c:outbound>
+                    <i:outbound default="true">
+                        <i:value>Created by IDM</i:value>
+                    </i:outbound>
 
-                    <c:inbound>
-                        <c:valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
+                    <i:inbound>
+                        <i:valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
                                   xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">
                                   <f:replace>
                                       <!-- Replaces all unicode control characters with emtpty string -->
                                       <f:pattern>\p{C}</f:pattern>
                                       <f:replacement></f:replacement>
                                   </f:replace>
-                        </c:valueFilter>
-                        <c:target>
+                        </i:valueFilter>
+                        <i:target>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             declare namespace my="http://whatever.com/my";
                             $i:user/i:extension/my:description
-                        </c:target>
-                    </c:inbound>
+                        </i:target>
+                    </i:inbound>
                     <!-- No inbound expression for description. We don't want to synchronize that -->
-                </c:attribute>
+                </i:attribute>
 
                 <!-- Definition of description attribute handling. -->
                 <!-- This attribute is using a lookup table to translate the values
                      valid for user to a values valid for the resource account. -->
-                <c:attribute ref="ri:l">
+                <i:attribute ref="ri:l">
 
                     <!-- Outbound expression definition. This expression is using
                          a configuration object (set into an XPath variable) to
                          translate values. -->
-                    <c:outbound>
+                    <i:outbound>
                         <!-- Definition of extra variable for the XPath expression.
                              The variable will appear as "$my:config" in the Xpath
                              expression below. It will contain the content of XML
                              object stored by OID c0c010c0-d34d-b33f-f00d-999111111111. -->
-                        <c:variable name="my:config">
-                            <c:objectRef oid="c0c010c0-d34d-b33f-f00d-999111111111"/>
-                        </c:variable>
+                        <i:variable name="my:config">
+                            <i:objectRef oid="c0c010c0-d34d-b33f-f00d-999111111111"/>
+                        </i:variable>
                         <!-- Example of setting a variable to a string value. -->
-                        <c:variable name="my:defaultLocation">
-                            <c:value>middle of nowhere</c:value>
-                        </c:variable>
+                        <i:variable name="my:defaultLocation">
+                            <i:value>middle of nowhere</i:value>
+                        </i:variable>
                         <!-- The expression itself. It translates the value of
                              user's attribute "locality" (expressed as $i:user/i:locality)
                              using a lookup table defined in the configuration object
                              in the $my:config variable specified above. -->
-                        <c:valueExpression>
+                        <i:valueExpression>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             declare namespace my="http://myself.me/schemas/whatever";
                             if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
                                 $my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]
                             else
                                 $my:defaultLocation
-                        </c:valueExpression>
-                    </c:outbound>
-                </c:attribute>
+                        </i:valueExpression>
+                    </i:outbound>
+                </i:attribute>
 
             </c:accountType>
         </c:schemaHandling>
@@ -513,20 +508,20 @@ object.
             Synchronization section describes the synchronization policy, timing,
             reactions and similar synchronization settings.
         -->
-        <c:synchronization>
+        <i:synchronization>
             <!--
                 The synchronization for this resource is enabled.
                 It means that the synchronization will poll for changes once
                 per interval specified below. -->
-            <c:enabled>true</c:enabled>
+            <i:enabled>true</i:enabled>
 
             <!-- Synchronization polling interval, in seconds -->
-            <c:pollingInterval>60</c:pollingInterval>
+            <i:pollingInterval>60</i:pollingInterval>
 
             <!-- Correlation expression.
                  It will be used to find appropriate user entry for an account.
               -->
-            <c:correlation> <!-- Correlation rule is a search query -->
+            <i:correlation> <!-- Correlation rule is a search query -->
             <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType"/> is implicit in correlation rules -->
                 <!-- Following search queury will look for users that have "name"
                      equal to the "uid" attribute of the account. Simply speaking,
@@ -539,7 +534,7 @@ object.
                         $i:account/i:attributes/dj:uid
                         </c:valueExpression>
                 </c:equal>
-            </c:correlation>
+            </i:correlation>
 
             <!-- Confirmation rule may be here, but as the search above will
                  always return at most one match, the confirmation rule is not needed. -->
@@ -550,60 +545,60 @@ object.
                  reflected as new users in IDM.
                  See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
              -->
-            <c:reaction>
-                <c:situation>confirmed</c:situation>
-                <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
-            </c:reaction>
-            <c:reaction>
-                <c:situation>deleted</c:situation>
-                <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
-            </c:reaction>
-            <c:reaction>
-                <c:situation>missing</c:situation>
-                <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount"/>
-            </c:reaction>
-            <c:reaction>
-                <c:situation>found</c:situation>
-                <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
-            </c:reaction>
-            <c:reaction>
-                <c:situation>unassigned</c:situation>
-                <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
-            </c:reaction>
-            <c:reaction>
-                <c:situation>unmatched</c:situation>
-                <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+            <i:reaction>
+                <i:situation>confirmed</i:situation>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+            </i:reaction>
+            <i:reaction>
+                <i:situation>deleted</i:situation>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+            </i:reaction>
+            <i:reaction>
+                <i:situation>missing</i:situation>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount"/>
+            </i:reaction>
+            <i:reaction>
+                <i:situation>found</i:situation>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+            </i:reaction>
+            <i:reaction>
+                <i:situation>unassigned</i:situation>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+            </i:reaction>
+            <i:reaction>
+                <i:situation>unmatched</i:situation>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
                     <!-- Reference to the User Template is here. If the user would be
                          created as a result of this action, it will be created according
                          to this template. -->
-                    <c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
-                </c:action>
-                <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
-            </c:reaction>
+                    <i:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+                </i:action>
+                <i:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+            </i:reaction>
 
-        </c:synchronization>
+        </i:synchronization>
 
     </c:resource>
 
      <!-- User Template Object.
           This object is used when creating a new account, to set it up as needed.
      -->
-     <c:userTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111">
+     <i:userTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111">
         <c:name>Default User Template</c:name>
 
         <!-- Property construction.
              Defines how properties of user object are set up.
              This specific definition sets a full name as a concatenation
              of givenName and familyName. -->
-        <c:propertyConstruction>
-            <c:property>i:fullName</c:property>
-            <c:valueConstruction default="true">
-                <c:valueExpression>
+        <i:propertyConstruction>
+            <i:property>i:fullName</i:property>
+            <i:valueConstruction default="true">
+                <i:valueExpression>
                     declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                     concat($i:user/i:givenName,' ',$i:user/i:familyName)
-                </c:valueExpression>
-            </c:valueConstruction>
-        </c:propertyConstruction>
+                </i:valueExpression>
+            </i:valueConstruction>
+        </i:propertyConstruction>
 
         <!-- Account construction.
              Defines what accounts should be assigned to a user when it is
@@ -612,12 +607,12 @@ object.
              account type in the resource definition, as usual.
              See http://wiki.evolveum.com/display/midPoint/Synchronization
              -->
-        <c:accountConstruction>
-            <c:resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112" type="c:ResourceType"/>
-            <c:type>default</c:type>
-        </c:accountConstruction>
+        <i:accountConstruction>
+            <i:resourceRef oid="c0c010c0-d34d-b33f-f00d-333111111112" type="i:ResourceType"/>
+            <i:type>default</i:type>
+        </i:accountConstruction>
 
-    </c:userTemplate>
+    </i:userTemplate>
 
     <!-- Sample custom configuration object. Object of the genericObject type are
          in fact free-form objects. They can contain almost any XML data in the
