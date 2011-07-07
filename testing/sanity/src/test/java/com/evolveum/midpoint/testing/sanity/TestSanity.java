@@ -26,7 +26,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -57,7 +56,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
@@ -85,6 +86,8 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/repo/opendj-resource.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	private static final String FILENAME_USER_JACK = "src/test/resources/repo/user-jack.xml";
+	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 
 	/**
 	 * Utility to control embedded OpenDJ instance (start/stop)
@@ -145,16 +148,16 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		}
 	}
 
-	private ObjectType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException {
+	private <T extends ObjectType> T createObjectFromFile(String filePath, Class<T> clazz) throws FileNotFoundException, JAXBException {
 		File file = new File(filePath);
 		FileInputStream fis = new FileInputStream(file);
 		Object object = unmarshaller.unmarshal(fis);
-		ObjectType objectType = ((JAXBElement<ObjectType>) object).getValue();
+		T objectType = ((JAXBElement<T>) object).getValue();
 		return objectType;
 	}
 
 	private ObjectType addObjectFromFile(String filePath) throws Exception {
-		ObjectType object = createObjectFromFile(filePath);
+		ObjectType object = createObjectFromFile(filePath,ObjectType.class);
 		System.out.println("obj: " + object.getName());
 		OperationResult result = new OperationResult(TestSanity.class.getName()
 				+ ".addObjectFromFile");
@@ -182,12 +185,25 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// TODO: test if OpenDJ is running
 	}
 	
+	/**
+	 * Test the testResource method. Expect a complete success for now.
+	 * 
+	 * TODO: better check for the returned result. Look inside and check if
+	 * all the expected tests were run.
+	 * 
+	 * @throws FaultMessage
+	 * @throws JAXBException
+	 */
 	@Test
 	public void test001TestConnection() throws FaultMessage, JAXBException {
+		// GIVEN
 		OperationResultType result = new OperationResultType();
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
+		
+		// WHEN
 		model.testResource(RESOURCE_OPENDJ_OID, holder);
 		
+		// THEN
 		Document doc = DOMUtil.getDocument();
 		Element element = JAXBUtil.jaxbToDom(result, new QName("result"), doc);
 		System.out.println(DOMUtil.serializeDOMToString(element));
@@ -201,6 +217,31 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		for (OperationResultType subResult : partialResults) {
 			assertSuccess(subResult);
 		}
+	}
+	
+	@Test
+	public void test002AddUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException, SchemaException {		
+		// GIVEN
+		UserType user = createObjectFromFile(FILENAME_USER_JACK,UserType.class);
+		
+		OperationResultType result = new OperationResultType();
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
+		
+		// WHEN
+		String oid = model.addObject(user, holder);
+		
+		// THEN
+		
+		assertEquals(USER_JACK_OID, oid);
+		
+		OperationResult repoResult = new OperationResult("getObject");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		ObjectType repoObject = repositoryService.getObject(oid, resolve, repoResult);
+		assertEquals(USER_JACK_OID,repoObject.getOid());
+		UserType repoUser = (UserType)repoObject;
+		assertEquals(user.getFullName(), repoUser.getFullName());
+		
+		//TODO: better checks
 	}
 	
 	//TODO: create user
