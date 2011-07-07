@@ -41,6 +41,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
@@ -94,14 +95,14 @@ public class RepositoryTest {
 			// store user
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user.xml"))).getValue();
-			repositoryService.addObject(user, null);
+			repositoryService.addObject(user, new OperationResult("test"));
 			
 			//try to store the same object again, exception is expected
-			repositoryService.addObject(user, null);
+			repositoryService.addObject(user, new OperationResult("test"));
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid, null);
+				repositoryService.deleteObject(oid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -117,15 +118,15 @@ public class RepositoryTest {
 			// store user
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user.xml"))).getValue();
-			repositoryService.addObject(user, null);
+			repositoryService.addObject(user, new OperationResult("test"));
 			
 			//try to store the same object with no oid again, exception is expected
 			user.setOid(null);
-			repositoryService.addObject(user, null);
+			repositoryService.addObject(user, new OperationResult("test"));
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid, null);
+				repositoryService.deleteObject(oid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -139,12 +140,12 @@ public class RepositoryTest {
 	public void getNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		//try to get not existing object, exception is expected
-		repositoryService.getObject(oid, null, null);
+		repositoryService.getObject(oid, null, new OperationResult("test"));
 	}
 	
 	@Test
 	public void listObjectsNoObjectsOfThatTypeReturnsEmptyList() throws Exception {
-		ObjectListType retrievedList = repositoryService.listObjects(ObjectTypes.RESOURCE.getClassDefinition(), null, null);
+		ObjectListType retrievedList = repositoryService.listObjects(ObjectTypes.RESOURCE.getClassDefinition(), null, new OperationResult("test"));
 		assertNotNull(retrievedList);
 		assertEquals(0, retrievedList.getObject().size());
 		assertEquals(0, retrievedList.getCount().intValue());
@@ -159,7 +160,7 @@ public class RepositoryTest {
 		PropertyModificationType modification = new PropertyModificationType();
 		objModifications.getPropertyModification().add(modification);
 		//try to modify not existing object, exception is expected
-		repositoryService.modifyObject(objModifications, null);
+		repositoryService.modifyObject(objModifications, new OperationResult("test"));
 	}
 	
 	@Test
@@ -167,7 +168,7 @@ public class RepositoryTest {
 	public void deleteNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		//try to delete not existing object, exception is expected
-		repositoryService.deleteObject(oid, null);	
+		repositoryService.deleteObject(oid, new OperationResult("test"));	
 	}
 	
 }

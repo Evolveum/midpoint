@@ -40,6 +40,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -93,22 +94,22 @@ public class RepositoryUserTemplateTest {
         try {
         	//add object
             UserTemplateType userTemplate = ((JAXBElement<UserTemplateType>) JAXBUtil.unmarshal(new File("src/test/resources/user-template.xml"))).getValue();
-            repositoryService.addObject(userTemplate, null);
+            repositoryService.addObject(userTemplate, new OperationResult("test"));
             
             //get object
-            ObjectType retrievedObject = repositoryService.getObject(userTemplateOid, new PropertyReferenceListType(), null);
+            ObjectType retrievedObject = repositoryService.getObject(userTemplateOid, new PropertyReferenceListType(), new OperationResult("test"));
             assertEquals(userTemplate.getPropertyConstruction().get(0).getProperty().getTextContent(), ((UserTemplateType) retrievedObject).getPropertyConstruction().get(0).getProperty().getTextContent());
             assertEquals(userTemplate.getAccountConstruction().get(0).getResourceRef().getOid(), ((UserTemplateType) retrievedObject).getAccountConstruction().get(0).getResourceRef().getOid());
             
             //list object
-            ObjectListType objects = repositoryService.listObjects(ObjectTypes.USER_TEMPLATE.getClassDefinition(), new PagingType(), null);
+            ObjectListType objects = repositoryService.listObjects(ObjectTypes.USER_TEMPLATE.getClassDefinition(), new PagingType(), new OperationResult("test"));
             assertEquals(1, objects.getObject().size());
             assertEquals(userTemplateOid, objects.getObject().get(0).getOid());
             
 			// delete object
-			repositoryService.deleteObject(userTemplateOid, null);
+			repositoryService.deleteObject(userTemplateOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(userTemplateOid, new PropertyReferenceListType(), null);
+				repositoryService.getObject(userTemplateOid, new PropertyReferenceListType(), new OperationResult("test"));
 				fail("Object with oid " + userTemplateOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
@@ -116,7 +117,7 @@ public class RepositoryUserTemplateTest {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(userTemplateOid, null);
+				repositoryService.deleteObject(userTemplateOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}

@@ -43,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -123,25 +124,25 @@ public class RepositoryGenericObjectTest {
 			// create object
 			GenericObjectType genericObject = ((JAXBElement<GenericObjectType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/generic-object.xml"))).getValue();
-			repositoryService.addObject(genericObject, null);
+			repositoryService.addObject(genericObject, new OperationResult("test"));
 
 			// get object
 			ObjectType retrievedObject = repositoryService.getObject(genericObjectOid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(genericObject, (GenericObjectType) retrievedObject);
 
 			// list objects of type
 			ObjectListType objects = repositoryService.listObjects(
-					ObjectTypes.GENERIC_OBJECT.getClassDefinition(), new PagingType(), null);
+					ObjectTypes.GENERIC_OBJECT.getClassDefinition(), new PagingType(), new OperationResult("test"));
 			assertNotNull(objects);
 			assertNotNull(objects.getObject());
 			assertEquals(1, objects.getObject().size());
 			compareObjects(genericObject, (GenericObjectType) objects.getObject().get(0));
 
 			// delete object
-			repositoryService.deleteObject(genericObjectOid, null);
+			repositoryService.deleteObject(genericObjectOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(genericObjectOid, new PropertyReferenceListType(), null);
+				repositoryService.getObject(genericObjectOid, new PropertyReferenceListType(), new OperationResult("test"));
 				fail("Object with oid " + genericObjectOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
@@ -149,7 +150,7 @@ public class RepositoryGenericObjectTest {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(genericObjectOid, null);
+				repositoryService.deleteObject(genericObjectOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}

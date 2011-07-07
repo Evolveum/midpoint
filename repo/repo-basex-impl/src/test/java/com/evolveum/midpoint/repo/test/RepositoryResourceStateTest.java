@@ -43,6 +43,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -125,43 +126,43 @@ public class RepositoryResourceStateTest {
 			// add resource referenced by resourcestate
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
-			repositoryService.addObject(resource, null);
+			repositoryService.addObject(resource, new OperationResult("test"));
 			ObjectType retrievedObject = repositoryService.getObject(resourceOid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(resource.getOid(), retrievedObject.getOid());
 
 			// add resource state object
 			ResourceStateType resourceState = ((JAXBElement<ResourceStateType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/resource-state.xml"))).getValue();
-			repositoryService.addObject(resourceState, null);
+			repositoryService.addObject(resourceState, new OperationResult("test"));
 
 			// get object
 			retrievedObject = repositoryService.getObject(resourceStateOid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(resourceState, (ResourceStateType) retrievedObject);
 
 			// list objects
 			ObjectListType objects = repositoryService.listObjects(
-					ObjectTypes.RESOURCE_STATE.getClassDefinition(), new PagingType(), null);
+					ObjectTypes.RESOURCE_STATE.getClassDefinition(), new PagingType(), new OperationResult("test"));
 			assertEquals(1, objects.getObject().size());
 			compareObjects(resourceState, (ResourceStateType) objects.getObject().get(0));
 
 			// delete object
-			repositoryService.deleteObject(resourceStateOid, null);
+			repositoryService.deleteObject(resourceStateOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(resourceStateOid, new PropertyReferenceListType(), null);
+				repositoryService.getObject(resourceStateOid, new PropertyReferenceListType(), new OperationResult("test"));
 				fail("Object with oid " + resourceStateOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
 			}
 		} finally {
 			try {
-				repositoryService.deleteObject(resourceOid, null);
+				repositoryService.deleteObject(resourceOid, new OperationResult("test"));
 			} catch (Exception e) {
 				// ignore errors during cleanup
 			}
 			try {
-				repositoryService.deleteObject(resourceStateOid, null);
+				repositoryService.deleteObject(resourceStateOid, new OperationResult("test"));
 			} catch (Exception e) {
 				// ignore errors during cleanup
 			}
@@ -177,19 +178,19 @@ public class RepositoryResourceStateTest {
 			// add resource referenced by resourcestate
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
-			repositoryService.addObject(resource, null);
+			repositoryService.addObject(resource, new OperationResult("test"));
 			ObjectType retrievedObject = repositoryService.getObject(resourceOid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(resource.getOid(), retrievedObject.getOid());
 
 			// add resource state object
 			ResourceStateType resourceState = ((JAXBElement<ResourceStateType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/resource-state.xml"))).getValue();
-			repositoryService.addObject(resourceState, null);
+			repositoryService.addObject(resourceState, new OperationResult("test"));
 
 			// get object
 			retrievedObject = repositoryService.getObject(resourceStateOid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(resourceState, (ResourceStateType) retrievedObject);
 
 			// modify object
@@ -198,28 +199,28 @@ public class RepositoryResourceStateTest {
 			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
 					"src/test/resources/resource-state.xml"), new File(
 					"src/test/resources/resource-state-after-sync.xml"));
-			repositoryService.modifyObject(objectModificationType, null);
+			repositoryService.modifyObject(objectModificationType, new OperationResult("test"));
 			retrievedObject = repositoryService.getObject(resourceStateOid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(resourceStateAfterSync,
 					(ResourceStateType) retrievedObject);
 
 			// delete object
-			repositoryService.deleteObject(resourceStateOid, null);
+			repositoryService.deleteObject(resourceStateOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(resourceStateOid, new PropertyReferenceListType(), null);
+				repositoryService.getObject(resourceStateOid, new PropertyReferenceListType(), new OperationResult("test"));
 				fail("Object with oid " + resourceStateOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
 			}
 		} finally {
 			try {
-				repositoryService.deleteObject(resourceOid, null);
+				repositoryService.deleteObject(resourceOid, new OperationResult("test"));
 			} catch (Exception e) {
 				// ignore errors during cleanup
 			}
 			try {
-				repositoryService.deleteObject(resourceStateOid, null);
+				repositoryService.deleteObject(resourceStateOid, new OperationResult("test"));
 			} catch (Exception e) {
 				// ignore errors during cleanup
 			}

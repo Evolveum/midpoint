@@ -45,6 +45,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -107,11 +108,11 @@ public class RepositorySearchTest {
 		try {
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user.xml"))).getValue();
-			repositoryService.addObject(user, null);
+			repositoryService.addObject(user, new OperationResult("test"));
 
 			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
 					"src/test/resources/query-user-by-name.xml"))).getValue();
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), null);
+			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertNotNull(objectList.getObject());
 			assertEquals(1, objectList.getObject().size());
@@ -121,7 +122,7 @@ public class RepositorySearchTest {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(userOid, null);
+				repositoryService.deleteObject(userOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -134,11 +135,11 @@ public class RepositorySearchTest {
 		try {
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user.xml"))).getValue();
-			repositoryService.addObject(user, null);
+			repositoryService.addObject(user, new OperationResult("test"));
 
 			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
 					"src/test/resources/query-all-by-name.xml"))).getValue();
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), null);
+			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertNotNull(objectList.getObject());
 			assertEquals(1, objectList.getObject().size());
@@ -148,7 +149,7 @@ public class RepositorySearchTest {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(userOid, null);
+				repositoryService.deleteObject(userOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -163,11 +164,11 @@ public class RepositorySearchTest {
 			// add account
 			AccountShadowType accountShadow = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/account.xml"))).getValue();
-			repositoryService.addObject(accountShadow, null);
+			repositoryService.addObject(accountShadow, new OperationResult("test"));
 
 			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
 					"src/test/resources/query-account-by-attributes.xml"))).getValue();
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), null);
+			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertNotNull(objectList.getObject());
 			assertEquals(1, objectList.getObject().size());
@@ -181,7 +182,7 @@ public class RepositorySearchTest {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(accountOid, null);
+				repositoryService.deleteObject(accountOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -196,11 +197,11 @@ public class RepositorySearchTest {
 			// add account
 			AccountShadowType accountShadow = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/account.xml"))).getValue();
-			repositoryService.addObject(accountShadow, null);
+			repositoryService.addObject(accountShadow, new OperationResult("test"));
 
 			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
 					"src/test/resources/query-account-by-attributes-and-resource-ref.xml"))).getValue();
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), null);
+			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertNotNull(objectList.getObject());
 			assertEquals(1, objectList.getObject().size());
@@ -214,7 +215,7 @@ public class RepositorySearchTest {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(accountOid, null);
+				repositoryService.deleteObject(accountOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -241,12 +242,12 @@ public class RepositorySearchTest {
 			doc.appendChild(element);
 			state.getAny().add((Element) doc.getFirstChild());
 			newResourceState.setSynchronizationState(state);
-			repositoryService.addObject(newResourceState, null);
+			repositoryService.addObject(newResourceState, new OperationResult("test"));
 
 			// search for object
 			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
 					"src/test/resources/query-resource-state-by-resource-ref.xml"))).getValue();
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), null);
+			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertNotNull(objectList.getObject());
 			assertEquals(1, objectList.getObject().size());
@@ -258,7 +259,7 @@ public class RepositorySearchTest {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(resourceStateOid, null);
+				repositoryService.deleteObject(resourceStateOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -282,7 +283,7 @@ public class RepositorySearchTest {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
-		repositoryService.searchObjects(query, new PagingType(), null);
+		repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
 
 	}
 
@@ -294,7 +295,7 @@ public class RepositorySearchTest {
 			// add account
 			AccountShadowType accountShadow = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/account.xml"))).getValue();
-			repositoryService.addObject(accountShadow, null);
+			repositoryService.addObject(accountShadow, new OperationResult("test"));
 
 			// prepare query's filter value
 			XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
@@ -317,7 +318,7 @@ public class RepositorySearchTest {
 			query.setFilter(filter);
 
 			// search objects
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), null);
+			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
 
 			assertNotNull(objectList);
 			assertNotNull(objectList.getObject());
@@ -332,7 +333,7 @@ public class RepositorySearchTest {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(accountOid, null);
+				repositoryService.deleteObject(accountOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}

@@ -43,6 +43,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -129,45 +130,45 @@ public class RepositoryAccountTest {
 			// add resource
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
-			repositoryService.addObject(resource, null);
+			repositoryService.addObject(resource, new OperationResult("test"));
 			ObjectType retrievedObject = repositoryService.getObject(resourceOid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(resource.getOid(), retrievedObject.getOid());
 
 			// add account
 			AccountShadowType accountShadow = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/account.xml"))).getValue();
-			repositoryService.addObject(accountShadow, null);
+			repositoryService.addObject(accountShadow, new OperationResult("test"));
 
 			// get account object
 			retrievedObject = repositoryService.getObject(accountOid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(accountShadow, (AccountShadowType)retrievedObject);
 
 			// list account objects with simple paging
 			PagingType pagingType = PagingTypeFactory
 					.createPaging(0, 5, OrderDirectionType.ASCENDING, "name");
 			ObjectListType objects = repositoryService.listObjects(
-					ObjectTypes.ACCOUNT.getClassDefinition(), pagingType, null);
+					ObjectTypes.ACCOUNT.getClassDefinition(), pagingType, new OperationResult("test"));
 			assertEquals(1, objects.getObject().size());
 			compareObjects(accountShadow, (AccountShadowType) objects.getObject().get(0));
 
 			// delete object
-			repositoryService.deleteObject(accountOid, null);
+			repositoryService.deleteObject(accountOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(accountOid, new PropertyReferenceListType(), null);
+				repositoryService.getObject(accountOid, new PropertyReferenceListType(), new OperationResult("test"));
 				fail("Object with oid " + accountOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
 			}
 		} finally {
 			try {
-				repositoryService.deleteObject(accountOid, null);
+				repositoryService.deleteObject(accountOid, new OperationResult("test"));
 			} catch (Exception e) {
 				// ignore errors during cleanup
 			}
 			try {
-				repositoryService.deleteObject(resourceOid, null);
+				repositoryService.deleteObject(resourceOid, new OperationResult("test"));
 			} catch (Exception e) {
 				// ignore errors during cleanup
 			}
@@ -183,36 +184,36 @@ public class RepositoryAccountTest {
 		try {
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/resource-modified-removed-tags.xml"))).getValue();
-			repositoryService.addObject(resource, null);
+			repositoryService.addObject(resource, new OperationResult("test"));
 
 			AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/account-delete-account-ref.xml"))).getValue();
-			repositoryService.addObject(account, null);
+			repositoryService.addObject(account, new OperationResult("test"));
 
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user-account-ref.xml"))).getValue();
 			assertEquals(1, user.getAccountRef().size());
-			repositoryService.addObject(user, null);
+			repositoryService.addObject(user, new OperationResult("test"));
 
-			UserType accountOwner = repositoryService.listAccountShadowOwner(accountRefOid, null);
+			UserType accountOwner = repositoryService.listAccountShadowOwner(accountRefOid, new OperationResult("test"));
 			assertNotNull(accountOwner);
 			assertEquals(userOid, accountOwner.getOid());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(resourceOid, null);
+				repositoryService.deleteObject(resourceOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(accountRefOid, null);
+				repositoryService.deleteObject(accountRefOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(userOid, null);
+				repositoryService.deleteObject(userOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -228,38 +229,38 @@ public class RepositoryAccountTest {
 		try {
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/resource-modified-removed-tags.xml"))).getValue();
-			repositoryService.addObject(resource, null);
+			repositoryService.addObject(resource, new OperationResult("test"));
 
 			AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/account-delete-account-ref.xml"))).getValue();
-			repositoryService.addObject(account, null);
+			repositoryService.addObject(account, new OperationResult("test"));
 
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user-account-ref.xml"))).getValue();
 			assertEquals(1, user.getAccountRef().size());
-			repositoryService.addObject(user, null);
+			repositoryService.addObject(user, new OperationResult("test"));
 
 			List<ResourceObjectShadowType> shadows = repositoryService.listResourceObjectShadows(
-					resourceOid, ObjectTypes.ACCOUNT.getClassDefinition(), null);
+					resourceOid, ObjectTypes.ACCOUNT.getClassDefinition(), new OperationResult("test"));
 			assertNotNull(shadows);
 			assertEquals(accountRefOid, shadows.get(0).getOid());
 
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(resourceOid, null);
+				repositoryService.deleteObject(resourceOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(accountRefOid, null);
+				repositoryService.deleteObject(accountRefOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(userOid, null);
+				repositoryService.deleteObject(userOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}

@@ -44,6 +44,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -139,25 +140,25 @@ public class RepositoryResourceTest {
 			// add resource
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
-			repositoryService.addObject(resource, null);
+			repositoryService.addObject(resource, new OperationResult("test"));
 
 			// get resource
 			ObjectType retrievedObject = repositoryService.getObject(resourceOid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(resource, (ResourceType) retrievedObject);
 
 			// list objects
 			ObjectListType objects = repositoryService.listObjects(
-					ObjectTypes.RESOURCE.getClassDefinition(), new PagingType(), null);
+					ObjectTypes.RESOURCE.getClassDefinition(), new PagingType(), new OperationResult("test"));
 			assertNotNull(objects);
 			assertNotNull(objects.getObject());
 			assertEquals(1, objects.getObject().size());
 			compareObjects(resource, (ResourceType) objects.getObject().get(0));
 
 			// delete resource
-			repositoryService.deleteObject(resourceOid, null);
+			repositoryService.deleteObject(resourceOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(resourceOid, new PropertyReferenceListType(), null);
+				repositoryService.getObject(resourceOid, new PropertyReferenceListType(), new OperationResult("test"));
 				fail("Object with oid " + resourceOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
@@ -165,7 +166,7 @@ public class RepositoryResourceTest {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(resourceOid, null);
+				repositoryService.deleteObject(resourceOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -180,11 +181,11 @@ public class RepositoryResourceTest {
 			// add object
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
-			repositoryService.addObject(resource, null);
+			repositoryService.addObject(resource, new OperationResult("test"));
 
 			// get object
 			ObjectType retrievedObject = repositoryService.getObject(resourceOid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(resource, (ResourceType) retrievedObject);
 
 			// modify object
@@ -193,16 +194,16 @@ public class RepositoryResourceTest {
 			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"), new File(
 					"src/test/resources/resource-modified-removed-tags.xml"));
-			repositoryService.modifyObject(objectModificationType, null);
+			repositoryService.modifyObject(objectModificationType, new OperationResult("test"));
 			retrievedObject = repositoryService.getObject(resourceOid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(modifiedResource, (ResourceType) retrievedObject);
 			compareNullObjects(modifiedResource, (ResourceType) retrievedObject);
 
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(resourceOid, null);
+				repositoryService.deleteObject(resourceOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}

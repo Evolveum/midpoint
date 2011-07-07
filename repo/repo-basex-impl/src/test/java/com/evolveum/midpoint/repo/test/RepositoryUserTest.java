@@ -44,6 +44,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
@@ -110,17 +111,17 @@ public class RepositoryUserTest {
 			
 			PagingType pagingType = PagingTypeFactory.createPaging(0, 5, OrderDirectionType.ASCENDING, "name");
 			ObjectListType objects = repositoryService.listObjects(
-					ObjectTypes.USER.getClassDefinition(), pagingType, null);
+					ObjectTypes.USER.getClassDefinition(), pagingType, new OperationResult("test"));
 			int actualSize = objects.getObject().size();
 
 			//add new user object
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user.xml"))).getValue();
-			repositoryService.addObject(user, null);
+			repositoryService.addObject(user, new OperationResult("test"));
 
 			//get the object
 			ObjectType retrievedObject = repositoryService.getObject(oid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(user.getOid(), retrievedObject.getOid());
 			assertEquals(1, ((UserType) retrievedObject).getAdditionalNames().size());
 			assertEquals(user.getAdditionalNames(),
@@ -146,7 +147,7 @@ public class RepositoryUserTest {
 
 			//list the objects
 			objects = repositoryService.listObjects(ObjectTypes.USER.getClassDefinition(),
-					pagingType, null);
+					pagingType, new OperationResult("test"));
 			boolean oidTest = false;
 
 			//check if user under test is retrieved from the repo
@@ -159,9 +160,9 @@ public class RepositoryUserTest {
 			assertEquals(actualSize + 1, objects.getObject().size());
 
 			// delete object
-			repositoryService.deleteObject(oid, null);
+			repositoryService.deleteObject(oid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(oid, new PropertyReferenceListType(), null);
+				repositoryService.getObject(oid, new PropertyReferenceListType(), new OperationResult("test"));
 				fail("Object with oid " + oid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
@@ -169,7 +170,7 @@ public class RepositoryUserTest {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid, null);
+				repositoryService.deleteObject(oid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -184,19 +185,19 @@ public class RepositoryUserTest {
 			//store user without extension
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user-without-extension.xml"))).getValue();
-			repositoryService.addObject(user, null);
+			repositoryService.addObject(user, new OperationResult("test"));
 			ObjectType retrievedObject = repositoryService.getObject(oid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(user.getOid(), ((UserType) (retrievedObject)).getOid());
 
 			//modify user add extension
 			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
 					"src/test/resources/user-without-extension.xml"), new File(
 					"src/test/resources/user-added-extension.xml"));
-			repositoryService.modifyObject(objectModificationType, null);
+			repositoryService.modifyObject(objectModificationType, new OperationResult("test"));
 
 			//check the extension in the object
-			retrievedObject = repositoryService.getObject(oid, new PropertyReferenceListType(), null);
+			retrievedObject = repositoryService.getObject(oid, new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(user.getOid(), retrievedObject.getOid());
 			assertNotNull(((UserType)retrievedObject).getExtension().getAny());
 			assertEquals("ship", ((UserType)retrievedObject).getExtension().getAny().get(0).getLocalName());
@@ -205,7 +206,7 @@ public class RepositoryUserTest {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid, null);
+				repositoryService.deleteObject(oid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -221,9 +222,9 @@ public class RepositoryUserTest {
 			ObjectContainerType objectContainer = new ObjectContainerType();
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user-without-oid.xml"))).getValue();	
-			oid = repositoryService.addObject(user, null);
+			oid = repositoryService.addObject(user, new OperationResult("test"));
 			ObjectType retrievedObject = repositoryService.getObject(oid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			//check if oid was generated for the object
 			final UserType retrievedUser = (UserType) retrievedObject;
 			assertEquals(oid, retrievedUser.getOid());
@@ -240,7 +241,7 @@ public class RepositoryUserTest {
 			if (oid != null) {
 				// to be sure try to delete the object as part of cleanup
 				try {
-					repositoryService.deleteObject(oid, null);
+					repositoryService.deleteObject(oid, new OperationResult("test"));
 				} catch (Exception ex) {
 					// ignore exceptions during cleanup
 				}
@@ -257,16 +258,16 @@ public class RepositoryUserTest {
 		try {
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/resource-modified-removed-tags.xml"))).getValue();
-			repositoryService.addObject(resource, null);
+			repositoryService.addObject(resource, new OperationResult("test"));
 
 			AccountShadowType accountToDelete = ((JAXBElement<AccountShadowType>) JAXBUtil
 					.unmarshal(new File("src/test/resources/account-delete-account-ref.xml"))).getValue();
-			repositoryService.addObject(accountToDelete, null);
+			repositoryService.addObject(accountToDelete, new OperationResult("test"));
 
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user-account-ref.xml"))).getValue();
 			assertEquals(1, user.getAccountRef().size());
-			repositoryService.addObject(user, null);
+			repositoryService.addObject(user, new OperationResult("test"));
 
 			// modify user - delete it's accountRef
 			ObjectModificationType modifications = new ObjectModificationType();
@@ -282,30 +283,30 @@ public class RepositoryUserTest {
 							.getFirstChild());
 			modification.setValue(value);
 			modifications.getPropertyModification().add(modification);
-			repositoryService.modifyObject(modifications, null);
+			repositoryService.modifyObject(modifications, new OperationResult("test"));
 
 			//check if account ref was removed from the object
 			ObjectType retrievedObject = repositoryService.getObject(oid,
-					new PropertyReferenceListType(), null);
+					new PropertyReferenceListType(), new OperationResult("test"));
 			UserType retrievedUser = (UserType) retrievedObject;
 			assertEquals(oid, retrievedUser.getOid());
 			assertEquals(0, retrievedUser.getAccountRef().size());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(resourceOid, null);
+				repositoryService.deleteObject(resourceOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(accountRefToDeleteOid, null);
+				repositoryService.deleteObject(accountRefToDeleteOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid, null);
+				repositoryService.deleteObject(oid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}

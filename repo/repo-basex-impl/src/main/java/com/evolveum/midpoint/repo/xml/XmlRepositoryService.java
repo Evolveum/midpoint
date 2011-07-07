@@ -33,6 +33,7 @@ import java.util.UUID;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.crypto.dsig.keyinfo.RetrievalMethod;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
@@ -101,9 +102,11 @@ public class XmlRepositoryService implements RepositoryService {
 			throws ObjectAlreadyExistsException, SchemaException {
 		String oid = null;
 		ClientQuery cq = null;
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".addObject");
+        result.addParam("object", object);
 		try {
 			// FIXME: check and add have to be done in one transaction!
-			checkAndFailIfObjectAlreadyExists(object.getOid());
+			checkAndFailIfObjectAlreadyExists(object.getOid(), result);
 
 			// generate new oid, if necessary
 			oid = (null != object.getOid() ? object.getOid() : UUID.randomUUID().toString());
@@ -137,16 +140,18 @@ public class XmlRepositoryService implements RepositoryService {
 
 			cq = session.query(query.toString());
 			cq.execute();
-			
+			result.recordSuccess();
 			return oid;
 		} catch (JAXBException ex) {
 			TRACE.error("Failed to (un)marshal object", ex);
+			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (BaseXException ex) {
 			if (StringUtils.contains(ex.getMessage(), OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS)) {
 				throw new ObjectAlreadyExistsException(ex);
 			} else {
 				TRACE.error("Reported error by XML Database", ex);
+				result.recordFatalError("Reported error by XML Database", ex);
 				throw new SystemException("Reported error by XML Database", ex);
 			}
 		} 
@@ -155,7 +160,10 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
-
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".getObject");
+        result.addParam("oid", oid);
+        result.addParam("resolve", resolve);
+        
 		validateOid(oid);
 
 		ObjectType object = null;
@@ -187,9 +195,11 @@ public class XmlRepositoryService implements RepositoryService {
 			}
 		} catch (JAXBException ex) {
 			TRACE.error("Failed to (un)marshal object", ex);
+			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (BaseXException ex) {
 			TRACE.error("Reported error by XML Database", ex);
+			result.recordFatalError("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
 		} finally {
 			if (null != cq) {
@@ -202,13 +212,19 @@ public class XmlRepositoryService implements RepositoryService {
 			}
 		}
 		if (object == null) {
+			result.recordFatalError("Object not found. OID: " + oid);
 			throw new ObjectNotFoundException("Object not found. OID: " + oid);
 		}
+		result.recordSuccess();
 		return object;
 	}
 
 	@Override
 	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".listObjects");
+        result.addParam("objectType", objectType);
+        result.addParam("paging", paging);
+        
 		if (null == objectType) {
 			TRACE.error("objectType is null");
 			throw new IllegalArgumentException("objectType is null");
@@ -222,12 +238,18 @@ public class XmlRepositoryService implements RepositoryService {
 		namespaces.put("c", SchemaConstants.NS_C);
 		namespaces.put("idmdn", SchemaConstants.NS_C);
 
-		return searchObjects(oType, paging, null, namespaces);
+		ObjectListType objects = searchObjects(oType, paging, null, namespaces, result);
+		result.recordSuccess();
+		return objects;
 	}
 
 	@Override
 	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException {
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".searchObjects");
+        result.addParam("query", query);
+        result.addParam("paging", paging);
+        
 		validateQuery(query);
 
 		NodeList children = query.getFilter().getChildNodes();
@@ -269,12 +291,15 @@ public class XmlRepositoryService implements RepositoryService {
 			}
 		}
 
-		return searchObjects(objectType, paging, filters, namespaces);
+		return searchObjects(objectType, paging, filters, namespaces, result);
 	}
 
 	@Override
 	public void modifyObject(ObjectModificationType objectChange, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".modifyObject");
+        result.addParam("objectChange", objectChange);
+		
 		validateObjectChange(objectChange);
 
 		try {
@@ -282,7 +307,7 @@ public class XmlRepositoryService implements RepositoryService {
 			// FIXME: possible problems with resolving property reference before
 			// xml patching
 			ObjectType objectType = this.getObject(objectChange.getOid(), new PropertyReferenceListType(),
-					null);
+					result);
 
 			// modify the object
 			PatchXml xmlPatchTool = new PatchXml();
@@ -309,14 +334,19 @@ public class XmlRepositoryService implements RepositoryService {
 
 	@Override
 	public void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException {
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".deleteObject");
+        result.addParam("oid", oid);
+        
 		validateOid(oid);
 
+		//TODO: check has to be atomic
 		try {
-			ObjectType retrievedObject = getObject(oid, null, null);
+			ObjectType retrievedObject = getObject(oid, null, result);
 		} catch (SchemaException ex) {
 			TRACE.error(
 					"Schema validation problem occured while checking existence of the object before its deletion",
 					ex);
+			result.recordFatalError("Schema validation problem occured while checking existence of the object before its deletion", ex);
 			throw new SystemException(
 					"Schema validation problem occured while checking existence of the object before its deletion",
 					ex);
@@ -329,9 +359,11 @@ public class XmlRepositoryService implements RepositoryService {
 
 			ClientQuery cq = session.query(query.toString());
 			cq.execute();
-
+			
+			result.recordSuccess();
 		} catch (BaseXException ex) {
 			TRACE.error("Reported error by XML Database", ex);
+			result.recordFatalError("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database");
 		}
 	}
@@ -346,18 +378,22 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public UserType listAccountShadowOwner(String accountOid, OperationResult parentResult)
 			throws ObjectNotFoundException {
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".listAccountShadowOwner");
+        result.addParam("accountOid", accountOid);
+
 		Map<String, String> filters = new HashMap<String, String>();
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:accountRef", accountOid);
 		ObjectListType retrievedObjects = searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, filters,
-				namespaces);
+				namespaces, result);
 		List<ObjectType> objects = retrievedObjects.getObject();
 
 		if (null == retrievedObjects || objects == null || objects.size() == 0) {
 			return null;
 		}
 		if (objects.size() > 1) {
+			result.recordFatalError("Found incorrect number of objects " + objects.size());
 			throw new SystemException("Found incorrect number of objects " + objects.size());
 		}
 
@@ -369,12 +405,16 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
 			Class resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".listResourceObjectShadows");
+        result.addParam("resourceOid", resourceOid);
+        result.addParam("resourceObjectShadowType", resourceObjectShadowType);
+        
 		Map<String, String> filters = new HashMap<String, String>();
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:resourceRef", resourceOid);
 		ObjectListType retrievedObjects = searchObjects(ObjectTypes.ACCOUNT.getObjectTypeUri(), null,
-				filters, namespaces);
+				filters, namespaces, result);
 
 		@SuppressWarnings("unchecked")
 		List<ResourceObjectShadowType> objects = (List<ResourceObjectShadowType>) CollectionUtils.collect(
@@ -390,12 +430,12 @@ public class XmlRepositoryService implements RepositoryService {
 		return ros;
 	}
 
-	private void checkAndFailIfObjectAlreadyExists(String oid) throws ObjectAlreadyExistsException,
+	private void checkAndFailIfObjectAlreadyExists(String oid, OperationResult result) throws ObjectAlreadyExistsException,
 			SchemaException {
 		// check if object with the same oid already exists, if yes, then fail
 		if (StringUtils.isNotEmpty(oid)) {
 			try {
-				ObjectType retrievedObject = getObject(oid, null, null);
+				ObjectType retrievedObject = getObject(oid, null, result);
 				if (null != retrievedObject) {
 					throw new ObjectAlreadyExistsException("Object with oid " + oid + " already exists");
 				}
@@ -406,7 +446,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters,
-			Map<String, String> namespaces) {
+			Map<String, String> namespaces, OperationResult result) {
 
 		ObjectListType objectList = new ObjectListType();
 		// FIXME: objectList.count has to contain all elements that match search
@@ -486,11 +526,16 @@ public class XmlRepositoryService implements RepositoryService {
 					}
 				}
 			}
+
+			result.recordSuccess();
+			return objectList;
 		} catch (JAXBException ex) {
 			TRACE.error("Failed to (un)marshal object", ex);
+			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (BaseXException ex) {
 			TRACE.error("Reported error by XML Database", ex);
+			result.recordFatalError("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
 		} finally {
 			if (null != cq) {
@@ -498,12 +543,11 @@ public class XmlRepositoryService implements RepositoryService {
 					cq.close();
 				} catch (BaseXException ex) {
 					TRACE.error("Reported error by XML Database", ex);
+					result.recordFatalError("Reported error by XML Database", ex);
 					throw new SystemException("Reported error by XML Database", ex);
 				}
 			}
 		}
-
-		return objectList;
 	}
 
 	private void processValueNode(Node criteriaValueNode, Map<String, String> filters,
