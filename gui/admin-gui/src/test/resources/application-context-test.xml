@@ -97,6 +97,6 @@
 		</property>
 	</bean>
 
-	<bean name="modelService" class="com.evolveum.midpoint.web.test.MockFactory" factory-method="createModelPortType" />
+	<bean name="modelWebService" class="com.evolveum.midpoint.web.test.MockFactory" factory-method="createModelPortType" />
 	<bean name="repositoryService" class="com.evolveum.midpoint.web.test.MockFactory" factory-method="createRepositoryService" />
 </beans>
