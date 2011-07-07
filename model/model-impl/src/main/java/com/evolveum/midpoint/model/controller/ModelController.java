@@ -994,6 +994,7 @@ public class ModelController {
 						resource);
 
 				AccountShadowType account = new AccountShadowType();
+				account.setAttributes(new ResourceObjectShadowType.Attributes());
 				account.setObjectClass(accountType.getObjectClass());
 				account.setName(resource.getName() + "-" + user.getName());
 				account.setResourceRef(resourceRef);
