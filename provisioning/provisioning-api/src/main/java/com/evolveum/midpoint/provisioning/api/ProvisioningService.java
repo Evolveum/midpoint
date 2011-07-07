@@ -196,7 +196,7 @@ public interface ProvisioningService {
 	 *             unknown property used in search query
 	 */
 	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
-			throws SchemaException;
+			throws SchemaException, ObjectNotFoundException, CommunicationException;
 	
 	/**
 	 * Search for objects iteratively. Searches through all object types. Calls a

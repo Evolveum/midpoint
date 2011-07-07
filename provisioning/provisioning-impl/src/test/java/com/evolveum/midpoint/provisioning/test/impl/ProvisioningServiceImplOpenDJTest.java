@@ -108,8 +108,10 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private static final String ACCOUNT_MODIFY_OID = "c0c010c0-d34d-b44f-f11d-333222444555";
 	private static final String FILENAME_ACCOUNT_DELETE = "src/test/resources/impl/account-delete.xml";
 	private static final String ACCOUNT_DELETE_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
+	private static final String FILENAME_ACCOUNT_SEARCH_ITERATIVE = "src/test/resources/impl/account-search-iterative.xml";
+	private static final String ACCOUNT_SEARCH_ITERATIVE_OID = "c0c010c0-d34d-b44f-f11d-333222666666";
 	private static final String FILENAME_ACCOUNT_SEARCH = "src/test/resources/impl/account-search.xml";
-	private static final String ACCOUNT_SEARCH_OID = "c0c010c0-d34d-b44f-f11d-333222666666";
+	private static final String ACCOUNT_SEARCH_OID = "c0c010c0-d34d-b44f-f11d-333222777777";
 	private static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
@@ -534,14 +536,14 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".searchObjectsIterativeTest");
 		try {
-			ObjectType object = createObjectFromFile(FILENAME_ACCOUNT_SEARCH);
+			ObjectType object = createObjectFromFile(FILENAME_ACCOUNT_SEARCH_ITERATIVE);
 
 			System.out.println(DebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
 					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 
 			String addedObjectOid = provisioningService.addObject(object, null, result);
-			assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
+			assertEquals(ACCOUNT_SEARCH_ITERATIVE_OID, addedObjectOid);
 
 			final List<ObjectType> objectTypeList = new ArrayList<ObjectType>();
 
@@ -556,14 +558,61 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 				}
 			}, result);
 
-			//TODO: check result
+			// TODO: check result
 			System.out.println("ObjectType list size: " + objectTypeList.size());
 
 			for (ObjectType objType : objectTypeList) {
-				if (objType == null){
+				if (objType == null) {
 					System.out.println("Object not found in repo");
 				} else {
-					System.out.println("obj name: "+objType.getName());
+					System.out.println("obj name: " + objType.getName());
+				}
+			}
+		} finally {
+			try {
+				repositoryService.deleteObject(ACCOUNT1_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(ACCOUNT_SEARCH_ITERATIVE_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+			} catch (Exception ex) {
+			}
+		}
+	}
+
+	@Test
+	public void testSearchObjects() throws Exception {
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".searchObjectsTest");
+
+		try {
+			ObjectType object = createObjectFromFile(FILENAME_ACCOUNT_SEARCH);
+
+			System.out.println(DebugUtil.prettyPrint(object));
+			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
+					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+
+			String addedObjectOid = provisioningService.addObject(object, null, result);
+			assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);
+
+			QueryType query = ((JAXBElement<QueryType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/impl/query-filter-all-accounts.xml"))).getValue();
+
+			ObjectListType objListType = provisioningService.searchObjects(query, new PagingType(), result);
+			for (ObjectType objType : objListType.getObject()) {
+				if (objType == null) {
+					System.out.println("Object not found in repository.");
+				} else {
+					System.out.println("found object: " + objType.getName());
 				}
 			}
 		} finally {

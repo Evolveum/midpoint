@@ -213,9 +213,20 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
-			throws SchemaException {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
+			throws SchemaException, ObjectNotFoundException, CommunicationException {
+		
+		final ObjectListType objListType = new ObjectListType();
+		
+		final ResultHandler handler = new ResultHandler() {
+					
+			@Override
+			public boolean handle(ObjectType object, OperationResult parentResult) {
+				return objListType.getObject().add(object);
+			}
+		};
+		
+		searchObjectsIterative(query, paging, handler, parentResult);
+		return objListType;
 	}
 
 	@Override
@@ -382,9 +393,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			@Override
 			public boolean handle(ResourceObjectShadowType shadow) {
-				if (shadow == null){
-					throw new IllegalStateException("Shadow not fount in repository.");
-				}
 				return handler.handle(shadow, parentResult);
 			}
 		};

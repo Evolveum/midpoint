@@ -20,17 +20,17 @@
 <!-- -->
 
 
-<c:account oid="c0c010c0-d34d-b44f-f11d-333222777777"
+<c:account oid="c0c010c0-d34d-b44f-f11d-333222666666"
 	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
-	<c:name>will123</c:name>
+	<c:name>william</c:name>
 	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" />
 	<c:objectClass>ri:AccountObjectClass</c:objectClass>
 	<c:attributes>
-		<icfs:name>uid=will123,ou=People,dc=example,dc=com</icfs:name>
-		<ri:uid>will123</ri:uid>
+		<icfs:name>uid=william,ou=People,dc=example,dc=com</icfs:name>
+		<ri:uid>william</ri:uid>
 		<ri:cn>Will Turner</ri:cn>
 		<ri:givenName>Will</ri:givenName>
 		<ri:sn>Turner</ri:sn>
