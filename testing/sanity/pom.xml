@@ -108,5 +108,11 @@
 			<type>jar</type>
 			<scope>compile</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.identityconnectors</groupId>
+			<artifactId>org.identityconnectors.ldap</artifactId>
+			<version>1.0.5754openidm</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

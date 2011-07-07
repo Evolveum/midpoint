@@ -212,6 +212,6 @@ public interface ConnectorInstance {
 	//public void applyConfiguration(ResourceConfiguration newConfiguration) throws MisconfigurationException;
 	
 	// Maybe this should be moved to ConnectorManager? In that way it can also test connector instantiation.
-	public OperationResult test();
+	public void test(OperationResult parentResult);
 	
 }

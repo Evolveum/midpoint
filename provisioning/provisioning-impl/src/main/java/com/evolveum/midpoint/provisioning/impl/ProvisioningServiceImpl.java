@@ -295,22 +295,23 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException {
-		OperationResult parentResult = new OperationResult(ProvisioningService.class.getName()
-				+ ".testResource");
+		// We are not going to create parent result here. We don't want to pollute the result with
+		// implementation details, as this will be usually displayed in the table of "test resource" results.
+		
+		OperationResult parentResult = new OperationResult(TEST_CONNECTION_OPERATION);
 		parentResult.addParam("resourceOid", resourceOid);
 		parentResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
 		if (resourceOid == null) {
 			throw new IllegalArgumentException("Resource OID to test is null.");
 		}
-
-		OperationResult result = null;
 
 		try {
 			ObjectType objectType = getRepositoryService().getObject(resourceOid,
 					new PropertyReferenceListType(), parentResult);
 			if (objectType instanceof ResourceType) {
 				ResourceType resourceType = (ResourceType) objectType;
-				result = getShadowCache().testConnection(resourceType);
+				getShadowCache().testConnection(resourceType,parentResult);
 			} else {
 				throw new IllegalArgumentException("Object with oid is not resource. OID: " + resourceOid);
 			}
@@ -319,7 +320,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} catch (SchemaException ex) {
 			throw new IllegalArgumentException(ex.getMessage(), ex);
 		}
-		return result;
+		parentResult.computeStatus();
+		return parentResult;
 	}
 
 	@Override

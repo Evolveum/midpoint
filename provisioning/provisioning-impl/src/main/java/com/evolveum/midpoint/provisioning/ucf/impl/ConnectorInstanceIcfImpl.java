@@ -54,6 +54,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
+
+import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
@@ -76,6 +78,7 @@ import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -592,8 +595,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public OperationResult test() {
-		OperationResult result = new OperationResult(ConnectorInstance.class.getName() + ".test");
+	public void test(OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".test");
 		result.addContext("resource", resource);
 
 		OperationResult connectionResult = result.createSubresult(ConnectorInstance.class.getName()
@@ -601,11 +604,38 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		try {
 			connector.test();
 			connectionResult.recordSuccess();
+		} catch (ConnectorSecurityException ex) {
+			// Looks like this happens for a wide variety of cases. It has inner exception that tells more
+			// about the cause
+			Throwable cause = ex.getCause();
+			if (cause!=null) {
+				if (cause instanceof javax.naming.CommunicationException) {
+					// This seems to be the usual error. However, it also does not describe the case directly
+					// We need to go even deeper
+					Throwable subCause = cause.getCause();
+					if (subCause!=null) {
+						if (subCause instanceof UnknownHostException) {
+							// Looks like the host is not known.
+							connectionResult.recordFatalError("The hostname is not known: "+cause.getMessage(), ex);
+						} else {
+							connectionResult.recordFatalError("Error communicating with the resource: "+cause.getMessage(), ex);
+						}
+					} else {
+						// No subCase
+						connectionResult.recordFatalError("Error communicating with the resource: "+cause.getMessage(), ex);
+					}
+				} else {
+					// Cause is not CommunicationException
+					connectionResult.recordFatalError("General error: "+cause.getMessage(), ex);
+				}
+			} else {
+				// No cause
+				connectionResult.recordFatalError("General error: "+ex.getMessage(), ex);
+			}
 		} catch (Exception ex) {
 			connectionResult.recordFatalError(ex);
 		}
 		result.computeStatus("Test connection failed");
-		return result;
 	}
 
 	@Override

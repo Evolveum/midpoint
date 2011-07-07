@@ -456,20 +456,20 @@ public class ShadowCache {
 		}
 	}
 
-	public OperationResult testConnection(ResourceType resourceType) {
-
+	public void testConnection(ResourceType resourceType, OperationResult parentResult) {
+		
+		OperationResult initResult = parentResult.createSubresult(ProvisioningService.TEST_CONNECTION_INIT_OPERATION);
 		ConnectorInstance connector;
 		try {
 			connector = getConnectorInstance(resourceType);
-			return connector.test();
+			initResult.recordSuccess();
 		} catch (ObjectNotFoundException e) {
 			// The connector was not found. The resource definition is either wrong or the connector is not
 			// installed.
-			OperationResult result = new OperationResult(ProvisioningService.TEST_CONNECTION_INIT_OPERATION);
-			result.addParam("resource", resourceType);
-			result.recordFatalError("The connector was not found", e);
-			return result;
+			initResult.recordFatalError("The connector was not found", e);
+			return;
 		}
+		connector.test(parentResult);
 	}
 
 	public void searchObjectsIterative(QName objectClass, ResourceType resourceType,

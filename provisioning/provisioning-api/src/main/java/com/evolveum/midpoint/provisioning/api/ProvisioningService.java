@@ -47,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 public interface ProvisioningService {
 	
 	public static final String TEST_CONNECTION_INIT_OPERATION = ProvisioningService.class.getName()+".testResource.initialization";
+	public static final String TEST_CONNECTION_OPERATION = ProvisioningService.class.getName()+".testResource";
 
 	/**
 	 * Returns object for provided OID.
