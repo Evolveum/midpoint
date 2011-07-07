@@ -320,18 +320,18 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public void searchObjectsIterative(QueryType query, PagingType paging, final ResultHandler handler,
-			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException {
 
 		Element filter = query.getFilter();
 		NodeList list = filter.getChildNodes();
 		String resourceOid = null;
 		QName objectClass = null;
-
+	
 		if (QNameUtil.compareQName(SchemaConstants.C_FILTER_AND, filter)) {
 			for (int i = 0; i < list.getLength() - 1; i++) {
 				if (QNameUtil.compareQName(SchemaConstants.C_FILTER_TYPE, list.item(i))) {
 					String type = list.item(i).getAttributes().getNamedItem("uri").getNodeValue();
-					if (type == null || "".equals(type)) {
+						if (type == null || "".equals(type)) {
 						throw new IllegalArgumentException("Object type is not defined.");
 					}
 
@@ -361,7 +361,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						}
 					}
 				}
-				Node node = list.item(i);
 			}
 		}
 
@@ -383,6 +382,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			@Override
 			public boolean handle(ResourceObjectShadowType shadow) {
+				if (shadow == null){
+					throw new IllegalStateException("Shadow not fount in repository.");
+				}
 				return handler.handle(shadow, parentResult);
 			}
 		};

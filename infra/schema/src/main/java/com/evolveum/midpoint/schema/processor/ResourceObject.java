@@ -93,12 +93,15 @@ public final class ResourceObject extends PropertyContainer {
 	 *             if resource object has multiple identifiers
 	 */
 	public Property getIdentifier() {
-		Set<ResourceObjectAttribute> attrDefs = getAttributes();
-		for (Property attr : attrDefs){
-			if (attr.getName().equals(SchemaConstants.ICFS_UID)){
-				return attr;
-			}
+		Set<Property> attrDefs = getIdentifiers();
+		if (attrDefs.size() > 1){
+			throw new IllegalStateException("Resource object has more than one identifier.");
 		}
+		
+		for (Property p : attrDefs){
+			return p;
+		}
+		
 		return null;
 	}
 

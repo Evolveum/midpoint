@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
@@ -285,6 +286,19 @@ public class ShadowCache {
 
 		ConnectorInstance connector = getConnectorInstance(resource);
 
+		if(resource == null){
+			throw new IllegalArgumentException("Resource must not be null.");
+		}
+		
+		Schema schema = getResourceSchema(resource, connector, parentResult);
+		
+		if (schema == null){
+			throw new IllegalArgumentException("Can't get resource schema.");
+		}
+		
+		ResourceObjectDefinition resourceDef = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
+
+		
 		ResultHandler resultHandler = new ResultHandler() {
 
 			@Override
@@ -310,7 +324,7 @@ public class ShadowCache {
 		};
 
 		try {
-			connector.search(objectClass, resultHandler, parentResult);
+			connector.search(objectClass, resourceDef, resultHandler, parentResult);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
 			throw new CommunicationException(e.getMessage(), e);
 		} catch (GenericFrameworkException e) {
@@ -459,9 +473,21 @@ public class ShadowCache {
 	}
 
 	public void searchObjectsIterative(QName objectClass, ResourceType resourceType,
-			final ShadowHandler handler, final OperationResult parentResult) throws ObjectNotFoundException {
+			final ShadowHandler handler, final OperationResult parentResult) throws ObjectNotFoundException, CommunicationException {
 
 		ConnectorInstance connector = getConnectorInstance(resourceType);
+		
+		if(resourceType == null){
+			throw new IllegalArgumentException("Resource must not be null.");
+		}
+		
+		Schema schema = getResourceSchema(resourceType, connector, parentResult);
+		
+		if (schema == null){
+			throw new IllegalArgumentException("Can't get resource schema.");
+		}
+		
+		ResourceObjectDefinition resourceDef = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
 
 		ResultHandler resultHandler = new ResultHandler() {
 
@@ -490,7 +516,7 @@ public class ShadowCache {
 
 		try {
 
-			connector.search(objectClass, resultHandler, parentResult);
+			connector.search(objectClass, resourceDef, resultHandler, parentResult);
 		} catch (GenericFrameworkException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -555,16 +581,6 @@ public class ShadowCache {
 		// value for it in the filter
 		Property identifier = resourceObject.getIdentifier();
 
-		if (identifier.getDefinition() == null) {
-			// HACK setting property definition for indetifier
-			// set string as type
-			Set<Object> values = identifier.getValues();
-			PropertyDefinition pd = new PropertyDefinition(identifier.getName(), SchemaConstants.XSD_STRING);
-			identifier = pd.instantiate();
-			for (Object value : values) {
-				identifier.setValue(value);
-			}
-		}
 
 		Set<Object> idValues = identifier.getValues();
 		// Only one value is supported for an identifier

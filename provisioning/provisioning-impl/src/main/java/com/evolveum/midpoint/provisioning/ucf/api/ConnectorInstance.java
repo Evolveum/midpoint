@@ -21,6 +21,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -133,7 +134,7 @@ public interface ConnectorInstance {
 	 * @param handler
 	 * @throws CommunicationException 
 	 */
-	public void search(QName objectClass, ResultHandler handler, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public void search(QName objectClass, final ResourceObjectDefinition definition, ResultHandler handler, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not

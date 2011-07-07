@@ -609,7 +609,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void search(QName objectClass, final ResultHandler handler, OperationResult parentResult)
+	public void search(QName objectClass, final ResourceObjectDefinition definition, final ResultHandler handler, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException {
 
 		// Result type for this operation
@@ -617,7 +617,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				+ ".search");
 		result.addParam("objectClass", objectClass);
 		result.addContext("resource", resource);
-
+		
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 		if (objectClass == null) {
 			IllegalArgumentException ex = new IllegalArgumentException(
@@ -629,12 +629,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		//TODO: fetchSchema for resource..needed for converting connector object to the resourceObject
 
+		
+		
 		ResultsHandler icfHandler = new ResultsHandler() {
 			@Override
 			public boolean handle(ConnectorObject connectorObject) {
 				// Convert ICF-specific connetor object to a generic
 				// ResourceObject
-				ResourceObject resourceObject = convertToResourceObject(connectorObject, null);
+				ResourceObject resourceObject = convertToResourceObject(connectorObject, definition);
 				System.out.println("founbd resource object: "+resourceObject);
 				// .. and pass it to the handler
 				boolean cont = handler.handle(resourceObject);

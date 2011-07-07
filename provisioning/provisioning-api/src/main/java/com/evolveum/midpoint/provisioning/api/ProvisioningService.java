@@ -225,7 +225,7 @@ public interface ProvisioningService {
 	 * @throws ObjectNotFoundException appropriate connector object was not found
 	 */
 	public void searchObjectsIterative(QueryType query, PagingType paging, final ResultHandler handler, final OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException;
+			throws SchemaException, ObjectNotFoundException, CommunicationException;
 
 	/**
 	 * Modifies object using relative change description. Must fail if user with
