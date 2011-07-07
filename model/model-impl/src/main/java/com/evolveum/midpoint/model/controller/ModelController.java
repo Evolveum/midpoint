@@ -487,29 +487,21 @@ public class ModelController {
 		return list;
 	}
 
-	public void testResource(String resourceOid, OperationResult result) {
+	// This returns OperationResult instead of taking it as in/out argument. This is different
+	// from the other methods. The testResource method is not using OperationResult to track its own
+	// execution but rather to track the execution of resource tests (that in fact happen in provisioning).
+	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Testing resource with oid {}.", new Object[] { resourceOid });
 
-		OperationResult subResult = null;
-		try {
-			subResult = provisioning.testResource(resourceOid);
-			result.addSubresult(subResult);
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't test status for resource {}", ex, resourceOid);
-
-			subResult = new OperationResult(ModelController.class.getName() + ".testResource");
-			subResult.recordFatalError("Couldn't test status for resource with oid '" + resourceOid + "'.",
-					ex);
-			result.addSubresult(subResult);
-		}
-
-		if (subResult != null) {
-			LOGGER.debug(subResult.debugDump());
+		OperationResult testResult = provisioning.testResource(resourceOid);
+		
+		if (testResult != null) {
+			LOGGER.debug(testResult.debugDump());
 		} else {
 			LOGGER.debug("Operation sub result was null (Error occured).");
 		}
+		return testResult;
 	}
 
 	@Deprecated

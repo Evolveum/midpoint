@@ -256,17 +256,16 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	@Override
-	public void testResource(String resourceOid, Holder<OperationResultType> result) throws FaultMessage {
+	public void testResource(String resourceOid, Holder<OperationResultType> resultHolder) throws FaultMessage {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
-		notNullResultHolder(result);
+		notNullResultHolder(resultHolder);
 
-		OperationResult operationResult = new OperationResult(ModelWebService.class.getName()+".testResource");
 		try {
-			model.testResource(resourceOid, operationResult);
-			handleOperationResult(operationResult, result);
+			OperationResult testResult = model.testResource(resourceOid);
+			handleOperationResult(testResult, resultHolder);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed", ex);
-			throw createSystemFault(ex, operationResult);
+			throw createSystemFault(ex, null);
 		}
 	}
 
@@ -336,7 +335,9 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	private FaultMessage createSystemFault(Exception ex, OperationResult result) {
-		result.recordFatalError(ex.getMessage(), ex);
+		if (result!=null) {
+			result.recordFatalError(ex.getMessage(), ex);
+		}
 
 		FaultType faultType;
 		if (ex instanceof ObjectNotFoundException) {
@@ -347,7 +348,9 @@ public class ModelWebService implements ModelPortType {
 			faultType = new SystemFaultType();
 		}
 		faultType.setMessage(ex.getMessage());
-		faultType.setOperationResult(result.createOperationResultType());
+		if (result!=null) {
+			faultType.setOperationResult(result.createOperationResultType());
+		}
 
 		return new FaultMessage(ex.getMessage(), faultType, ex);
 	}

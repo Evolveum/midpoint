@@ -51,16 +51,11 @@ public class ControllerLaunchImportTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullResourceOid() throws Exception {
-		controller.testResource(null, null);
+		controller.testResource(null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void emptyResourceOid() throws Exception {
-		controller.testResource("", null);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void nullResult() throws Exception {
-		controller.testResource("1", null);
+		controller.testResource("");
 	}
 }

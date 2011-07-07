@@ -29,6 +29,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 
 /**
  * 
@@ -47,12 +48,8 @@ public class ControllerTestResourceTest {
 	private ProvisioningService provisioning;
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testResourceNullOid() {
-		controller.testResource(null, null);
+	public void testResourceNullOid() throws ObjectNotFoundException {
+		controller.testResource(null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testResourceNullResult() {
-		controller.testResource("abababab-abab-abab-abab-000000000001", null);
-	}
 }
