@@ -36,6 +36,7 @@ import javax.xml.ws.Holder;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,10 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
@@ -84,10 +88,16 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 		"classpath:application-context-sanity-test.xml"})
 public class TestSanity extends OpenDJUnitTestAdapter {
 
+	private static final String FILENAME_SYSTEM_CONFIGURATION = "src/test/resources/repo/system-configuration.xml";
+	private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
+	
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/repo/opendj-resource.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	
 	private static final String FILENAME_USER_JACK = "src/test/resources/repo/user-jack.xml";
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	
+	private static final String FILENAME_REQUEST_USER_MODIFY_ADD_ACCOUNT = "src/test/resources/request/user-modify-add-account.xml";
 
 	/**
 	 * Utility to control embedded OpenDJ instance (start/stop)
@@ -144,11 +154,12 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	public void initRepository() throws Exception {
 		if (!repoInitialized) {
 			resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
+			addObjectFromFile(FILENAME_SYSTEM_CONFIGURATION);
 			repoInitialized = true;
 		}
 	}
 
-	private <T extends ObjectType> T createObjectFromFile(String filePath, Class<T> clazz) throws FileNotFoundException, JAXBException {
+	private <T> T unmarshallJaxbFromFile(String filePath, Class<T> clazz) throws FileNotFoundException, JAXBException {
 		File file = new File(filePath);
 		FileInputStream fis = new FileInputStream(file);
 		Object object = unmarshaller.unmarshal(fis);
@@ -157,12 +168,18 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	}
 
 	private ObjectType addObjectFromFile(String filePath) throws Exception {
-		ObjectType object = createObjectFromFile(filePath,ObjectType.class);
+		ObjectType object = unmarshallJaxbFromFile(filePath,ObjectType.class);
 		System.out.println("obj: " + object.getName());
 		OperationResult result = new OperationResult(TestSanity.class.getName()
 				+ ".addObjectFromFile");
 		repositoryService.addObject(object, result);
 		return object;
+	}
+	
+	private void displayJaxb(Object o, QName qname) throws JAXBException {
+		Document doc = DOMUtil.getDocument();
+		Element element = JAXBUtil.jaxbToDom(o, qname, doc);
+		System.out.println(DOMUtil.serializeDOMToString(element));
 	}
 	
 	/**
@@ -204,9 +221,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		model.testResource(RESOURCE_OPENDJ_OID, holder);
 		
 		// THEN
-		Document doc = DOMUtil.getDocument();
-		Element element = JAXBUtil.jaxbToDom(result, new QName("result"), doc);
-		System.out.println(DOMUtil.serializeDOMToString(element));
+		displayJaxb(result, new QName("result"));
 		
 		assertSuccess(result.getPartialResults().get(0));
 	}
@@ -219,10 +234,14 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		}
 	}
 	
+	/**
+	 * Attempt to add new user. It is only added to the repository, so check if it is in the repository after
+	 * the operation.
+	 */
 	@Test
 	public void test002AddUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException, SchemaException {		
 		// GIVEN
-		UserType user = createObjectFromFile(FILENAME_USER_JACK,UserType.class);
+		UserType user = unmarshallJaxbFromFile(FILENAME_USER_JACK,UserType.class);
 		
 		OperationResultType result = new OperationResultType();
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
@@ -244,11 +263,49 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		//TODO: better checks
 	}
 	
-	//TODO: create user
-	
-	//TODO: assign account to user: should create account on OpenDJ
-	//TODO: check with getObject
+	@Test
+	public void test003AddAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException, SchemaException {
+		// GIVEN
+		
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(FILENAME_REQUEST_USER_MODIFY_ADD_ACCOUNT, ObjectModificationType.class);
+
+		OperationResultType result = new OperationResultType();
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
+		
+		
+		// WHEN
+		model.modifyObject(objectChange, holder);
+		
+		// THEN
+		
+		// Check if user object was modified in the repo
+		
+		OperationResult repoResult = new OperationResult("getObject");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		ObjectType repoObject = repositoryService.getObject(USER_JACK_OID, resolve, repoResult);
+		UserType repoUser = (UserType)repoObject;
+		displayJaxb(repoUser, new QName("user"));
+		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+		assertEquals(1,accountRefs.size());
+		ObjectReferenceType accountRef = accountRefs.get(0);
+		String shadowOid = accountRef.getOid();
+		assertFalse(shadowOid.isEmpty());
+		
+		// Check if shadow was created in the repo
+		
+		repoResult = new OperationResult("getObject");
+		repoObject = repositoryService.getObject(shadowOid, resolve, repoResult);
+		AccountShadowType repoShadow = (AccountShadowType)repoObject;
+		displayJaxb(repoShadow, new QName("shadow"));
+		assertNotNull(repoShadow);
+		assertEquals(RESOURCE_OPENDJ_OID,repoShadow.getResourceRef().getOid());
+		
+		// TODO: check attributes in the shadow (should be only identifiers)
+		
+		// TODO: check if account was created in LDAP
+	}
 	
 	//TODO: delete user (with the account): should also delete the account on OpenDJ
 	
+	//TODO: test for missing/corrupt system configuration
 }
