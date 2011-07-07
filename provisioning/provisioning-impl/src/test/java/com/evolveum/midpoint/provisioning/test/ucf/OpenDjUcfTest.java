@@ -154,6 +154,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
         cc.test(result);
 
         //THEN
+        result.computeStatus();
         assertNotNull(result);
         OperationResult connectorConnectionResult = result.getSubresults().get(0);
         assertNotNull(connectorConnectionResult);
@@ -182,6 +183,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
         badConnector.test(result);
 
         //THEN
+        result.computeStatus();
         assertNotNull(result);
         OperationResult connectorConnectionResult = result.getSubresults().get(0);
         assertNotNull(connectorConnectionResult);
