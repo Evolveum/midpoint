@@ -466,7 +466,9 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		assertAttribute(response, "sn", "Sparrow");
 		// These two should be assigned from the User modification by schemaHandling
 		assertAttribute(response, "cn", "Cpt. Jack Sparrow");
-		assertAttribute(response, "l", "somewhere");
+				
+		assertAttribute(response, "l", "There there over the corner"); //IS THIS NOT RIGHT?
+//		assertAttribute(response, "l", "somewhere");
 	}
 	
 	/**

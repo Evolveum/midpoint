@@ -168,9 +168,9 @@ public class AddUserActionTest extends BaseActionTest {
 					@Override
 					public String answer(InvocationOnMock invocation) throws Throwable {
 						UserType user = (UserType) invocation.getArguments()[0];
-						
-						XmlAsserts.assertPatch(new File("new-user.xml"),
-								JAXBUtil.marshalWrap(user, SchemaConstants.I_USER_TYPE));
+						//TODO: finish test and new-user.xml
+						XmlAsserts.assertPatch(new File(TEST_FOLDER, "new-user.xml"),
+								JAXBUtil.marshalWrap(user, SchemaConstants.I_USER));
 
 						return userOid;
 					}

@@ -185,6 +185,7 @@ public class ModelController {
 			subResult.recordFatalError("Couldn't add user " + user.getName() + ", oid '" + user.getOid()
 					+ "' using template " + userTemplate.getName() + ", oid '" + userTemplate.getOid() + "'",
 					ex);
+			throw new SystemException(ex.getMessage(), ex);
 		}
 
 		LOGGER.debug(subResult.debugDump());
@@ -257,6 +258,7 @@ public class ModelController {
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
 			subResult.recordFatalError("Couldn't list objects.", ex);
+			throw new SystemException(ex.getMessage(), ex);
 		}
 
 		if (list == null) {
@@ -902,46 +904,60 @@ public class ModelController {
 	}
 
 	@SuppressWarnings("unchecked")
+	private void processAddAccount(ObjectModificationType change, UserType userBeforeChange,
+			OperationResult result) {
+		for (PropertyModificationType propertyChange : change.getPropertyModification()) {
+			if (!PropertyModificationTypeType.add.equals(propertyChange.getModificationType())
+					|| propertyChange.getValue() == null || propertyChange.getValue().getAny().isEmpty()) {
+				continue;
+			}
+
+			Node node = propertyChange.getValue().getAny().get(0);
+			if ("account".equals(node.getLocalName()) && SchemaConstants.NS_C.equals(node.getNamespaceURI())) {
+				try {
+					AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(DOMUtil
+							.serializeDOMToString(node))).getValue();
+
+					ObjectModificationType accountChange = processOutboundSchemaHandling(userBeforeChange,
+							account, result);
+					if (accountChange != null) {
+						PatchXml patchXml = new PatchXml();
+						String accountXml = patchXml.applyDifferences(accountChange, account);
+						account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml))
+								.getValue();
+					}
+
+					String newAccountOid = addObject(account, result);
+					ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid,
+							ObjectTypes.ACCOUNT);
+					Element accountRefElement = JAXBUtil.jaxbToDom(accountRef, SchemaConstants.I_ACCOUNT_REF,
+							DOMUtil.getDocument());
+
+					propertyChange.getValue().getAny().clear();
+					propertyChange.getValue().getAny().add(accountRefElement);
+				} catch (Exception ex) {
+					// TODO: error handling
+					ex.printStackTrace();
+				}
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
 	private void modifyRepositoryObjectWithExclusion(ObjectModificationType change, String accountOid,
 			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException {
 		if (object instanceof UserType) {
 			UserType user = (UserType) object;
 			// processing add account
-			for (PropertyModificationType propertyChange : change.getPropertyModification()) {
-				if (!PropertyModificationTypeType.add.equals(propertyChange.getModificationType())
-						|| propertyChange.getValue() == null || propertyChange.getValue().getAny().isEmpty()) {
-					continue;
-				}
+			processAddAccount(change, user, result);
 
-				Node node = propertyChange.getValue().getAny().get(0);
-				if ("account".equals(node.getLocalName())
-						&& SchemaConstants.NS_C.equals(node.getNamespaceURI())) {
-					try {
-						AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil
-								.unmarshal(DOMUtil.serializeDOMToString(node))).getValue();
-
-						ObjectModificationType accountChange = processOutboundSchemaHandling(user, account,
-								result);
-						if (accountChange != null) {
-							PatchXml patchXml = new PatchXml();
-							String accountXml = patchXml.applyDifferences(accountChange, account);
-							account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml))
-									.getValue();
-						}
-
-						String newAccountOid = addObject(account, result);
-						ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid,
-								ObjectTypes.ACCOUNT);
-						Element accountRefElement = JAXBUtil.jaxbToDom(accountRef,
-								SchemaConstants.I_ACCOUNT_REF, DOMUtil.getDocument());
-
-						propertyChange.getValue().getAny().clear();
-						propertyChange.getValue().getAny().add(accountRefElement);
-					} catch (Exception ex) {
-						// TODO: error handling
-						ex.printStackTrace();
-					}
-				}
+			repository.modifyObject(change, result);
+			try {
+				PatchXml patchXml = new PatchXml();
+				String u = patchXml.applyDifferences(change, user);
+				user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(u)).getValue();
+			} catch (Exception ex) {
+				ex.printStackTrace();
 			}
 
 			// if we're updating user, process outbound for every account
@@ -969,8 +985,6 @@ public class ModelController {
 				}
 			}
 		}
-
-		repository.modifyObject(change, result);
 	}
 
 	private ObjectModificationType processOutboundSchemaHandling(UserType user,

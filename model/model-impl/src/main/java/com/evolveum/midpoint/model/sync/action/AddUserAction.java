@@ -62,6 +62,8 @@ public class AddUserAction extends BaseAction {
 			UserType user = getUser(userOid, subResult);
 			if (user == null) {
 				user = new ObjectFactory().createUserType();
+				
+				//TODO: process inbound schema handling here
 
 				UserTemplateType userTemplate = null;
 				String userTemplateOid = getUserTemplateOid();
