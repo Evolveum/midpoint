@@ -34,6 +34,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.ResourceManager;
+import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
@@ -133,6 +134,11 @@ public class ResourceTypeManagerMock extends ResourceManager {
 	@Override
 	public Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> listResourceObjects(
 			String resourceOid, QName objectClass, PagingType paging) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+	
+	@Override
+	public ConnectorDto getConnector(String oid) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }
