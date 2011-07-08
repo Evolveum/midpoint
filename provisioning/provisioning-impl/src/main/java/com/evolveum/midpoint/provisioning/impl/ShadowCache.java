@@ -279,26 +279,27 @@ public class ShadowCache {
 	 * @param handler
 	 * @param parentResult
 	 * @throws CommunicationException
-	 * @throws ObjectNotFoundException the connector object was not found
+	 * @throws ObjectNotFoundException
+	 *             the connector object was not found
 	 */
 	public void listShadows(ResourceType resource, QName objectClass, final ShadowHandler handler,
 			final OperationResult parentResult) throws CommunicationException, ObjectNotFoundException {
 
 		ConnectorInstance connector = getConnectorInstance(resource);
 
-		if(resource == null){
+		if (resource == null) {
 			throw new IllegalArgumentException("Resource must not be null.");
 		}
-		
+
 		Schema schema = getResourceSchema(resource, connector, parentResult);
-		
-		if (schema == null){
+
+		if (schema == null) {
 			throw new IllegalArgumentException("Can't get resource schema.");
 		}
-		
-		ResourceObjectDefinition resourceDef = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
 
-		
+		ResourceObjectDefinition resourceDef = (ResourceObjectDefinition) schema
+				.findContainerDefinitionByType(objectClass);
+
 		ResultHandler resultHandler = new ResultHandler() {
 
 			@Override
@@ -337,6 +338,7 @@ public class ShadowCache {
 			ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
 
 		if (object == null) {
+			parentResult.recordFatalError("Object to add must not be null.");
 			throw new IllegalArgumentException("Object to add must not be null.");
 		}
 
@@ -344,13 +346,8 @@ public class ShadowCache {
 			AccountShadowType resourceObjectShadow = (AccountShadowType) object;
 
 			if (resource == null) {
-				try {
-					resource = getResource(ResourceObjectShadowUtil.getResourceOid(resourceObjectShadow),
-							parentResult);
-				} catch (ObjectNotFoundException e) {
-					throw new CommunicationException("Error while getting resource. Resource with oid "
-							+ ResourceObjectShadowUtil.getResourceOid(resourceObjectShadow) + " not found.");
-				}
+				resource = getResource(ResourceObjectShadowUtil.getResourceOid(resourceObjectShadow),
+						parentResult);
 			}
 
 			ConnectorInstance connector = getConnectorInstance(resource);
@@ -366,9 +363,12 @@ public class ShadowCache {
 				resourceAttributes = connector.addObject(resourceObject, null, parentResult);
 				resourceObject.getProperties().addAll(resourceAttributes);
 			} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+				parentResult.recordFatalError("Error communitacing with the connector " + connector + ": "
+						+ ex.getMessage(), ex);
 				throw new CommunicationException("Error communitacing with the connector " + connector + ": "
 						+ ex.getMessage(), ex);
 			} catch (GenericFrameworkException ex) {
+				parentResult.recordFatalError(ex.getMessage(), ex);
 				throw new GenericConnectorException(ex.getMessage(), ex);
 			}
 
@@ -377,7 +377,14 @@ public class ShadowCache {
 			// of the identifiers added to the repo
 			resourceObjectShadow = (AccountShadowType) createResourceShadow(resourceObject.getIdentifiers(),
 					resourceObjectShadow);
+			
+			if (resourceObjectShadow == null){
+				parentResult.recordFatalError("Error while creating account shadow object to save in the reposiotory. AccountShadow is null.");
+				throw new IllegalStateException("Error while creating account shadow object to save in the reposiotory. AccountShadow is null.");
+			}
+			
 			result = getRepositoryService().addObject(resourceObjectShadow, parentResult);
+			parentResult.recordSuccess();
 			return result;
 		}
 		return null;
@@ -457,14 +464,16 @@ public class ShadowCache {
 	}
 
 	public void testConnection(ResourceType resourceType, OperationResult parentResult) {
-		
-		OperationResult initResult = parentResult.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_INIT_OPERATION);
+
+		OperationResult initResult = parentResult
+				.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_INIT_OPERATION);
 		ConnectorInstance connector;
 		try {
 			connector = getConnectorInstance(resourceType);
 			initResult.recordSuccess();
 		} catch (ObjectNotFoundException e) {
-			// The connector was not found. The resource definition is either wrong or the connector is not
+			// The connector was not found. The resource definition is either
+			// wrong or the connector is not
 			// installed.
 			initResult.recordFatalError("The connector was not found", e);
 			return;
@@ -473,21 +482,23 @@ public class ShadowCache {
 	}
 
 	public void searchObjectsIterative(QName objectClass, ResourceType resourceType,
-			final ShadowHandler handler, final OperationResult parentResult) throws ObjectNotFoundException, CommunicationException {
+			final ShadowHandler handler, final OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException {
 
 		ConnectorInstance connector = getConnectorInstance(resourceType);
-		
-		if(resourceType == null){
+
+		if (resourceType == null) {
 			throw new IllegalArgumentException("Resource must not be null.");
 		}
-		
+
 		Schema schema = getResourceSchema(resourceType, connector, parentResult);
-		
-		if (schema == null){
+
+		if (schema == null) {
 			throw new IllegalArgumentException("Can't get resource schema.");
 		}
-		
-		ResourceObjectDefinition resourceDef = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
+
+		ResourceObjectDefinition resourceDef = (ResourceObjectDefinition) schema
+				.findContainerDefinitionByType(objectClass);
 
 		ResultHandler resultHandler = new ResultHandler() {
 
@@ -497,7 +508,7 @@ public class ShadowCache {
 				System.out.println();
 				try {
 					shadow = lookupShadow(object, parentResult);
-					
+
 				} catch (SchemaProcessorException e) {
 					// TODO: better error handling
 					// TODO log it?
@@ -581,7 +592,6 @@ public class ShadowCache {
 		// value for it in the filter
 		Property identifier = resourceObject.getIdentifier();
 
-
 		Set<Object> idValues = identifier.getValues();
 		// Only one value is supported for an identifier
 		if (idValues.size() > 1) {
@@ -618,7 +628,7 @@ public class ShadowCache {
 		try {
 			return getConnectorManager().createConnectorInstance(resource);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
-			throw new ObjectNotFoundException(e.getMessage(),e);
+			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
 	}
 
@@ -666,12 +676,20 @@ public class ShadowCache {
 	private ResourceObject convertFromXml(ResourceObjectShadowType resourceObjectShadow, Schema schema) {
 		QName objectClass = resourceObjectShadow.getObjectClass();
 
+		if (objectClass == null) {
+			throw new IllegalArgumentException("Object class is not defined.");
+		}
+
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
 				.findContainerDefinitionByType(objectClass);
 		ResourceObject resourceObject = rod.instantiate();
 
-		Set<ResourceObjectAttribute> resAttr = rod.parseAttributes(resourceObjectShadow.getAttributes()
-				.getAny());
+		List<Element> attributes = resourceObjectShadow.getAttributes().getAny();
+		if (attributes == null) {
+			throw new IllegalArgumentException("Attributes for the account was not defined.");
+		}
+
+		Set<ResourceObjectAttribute> resAttr = rod.parseAttributes(attributes);
 		resourceObject.getAttributes().addAll(resAttr);
 
 		return resourceObject;

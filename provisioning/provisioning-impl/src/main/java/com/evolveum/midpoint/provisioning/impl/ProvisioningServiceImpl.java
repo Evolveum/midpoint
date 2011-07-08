@@ -117,16 +117,20 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		ObjectType repositoryObject = null;
+		
+		//HACK: connector objects are not stored in the repo..
+		if (!oid.startsWith("icf1")) {
 
-		try {
-			repositoryObject = getRepositoryService().getObject(oid, resolve, result);
+			try {
+				repositoryObject = getRepositoryService().getObject(oid, resolve, result);
 
-		} catch (ObjectNotFoundException e) {
-			result.record(e);
-			throw e;
+			} catch (ObjectNotFoundException e) {
+				result.record(e);
+				throw e;
+			}
 		}
 
-		if (repositoryObject instanceof ResourceObjectShadowType) {
+		if ( oid.startsWith("icf1") || repositoryObject instanceof ResourceObjectShadowType) {
 			// ResourceObjectShadowType shadow =
 			// (ResourceObjectShadowType)object;
 			// TODO: optimization needed: avoid multiple "gets" of the same
@@ -157,7 +161,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public String addObject(ObjectType object, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException {
+			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
+			ObjectNotFoundException {
 		// TODO
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
@@ -170,6 +175,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		try {
 			addedShadow = getShadowCache().addShadow(object, scripts, null, parentResult);
+			result.recordSuccess();
 		} catch (GenericFrameworkException ex) {
 			result.recordFatalError("Failed to add shadow object: " + ex.getMessage(), ex);
 			throw new CommunicationException(ex.getMessage(), ex);
@@ -214,17 +220,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException {
-		
+
 		final ObjectListType objListType = new ObjectListType();
-		
+
 		final ResultHandler handler = new ResultHandler() {
-					
+
 			@Override
 			public boolean handle(ObjectType object, OperationResult parentResult) {
 				return objListType.getObject().add(object);
 			}
 		};
-		
+
 		searchObjectsIterative(query, paging, handler, parentResult);
 		return objListType;
 	}
@@ -295,13 +301,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException {
-		// We are not going to create parent result here. We don't want to pollute the result with
-		// implementation details, as this will be usually displayed in the table of "test resource" results.
-		
+		// We are not going to create parent result here. We don't want to
+		// pollute the result with
+		// implementation details, as this will be usually displayed in the
+		// table of "test resource" results.
+
 		OperationResult parentResult = new OperationResult(TEST_CONNECTION_OPERATION);
 		parentResult.addParam("resourceOid", resourceOid);
 		parentResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
-		
+
 		if (resourceOid == null) {
 			throw new IllegalArgumentException("Resource OID to test is null.");
 		}
@@ -311,7 +319,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					new PropertyReferenceListType(), parentResult);
 			if (objectType instanceof ResourceType) {
 				ResourceType resourceType = (ResourceType) objectType;
-				getShadowCache().testConnection(resourceType,parentResult);
+				getShadowCache().testConnection(resourceType, parentResult);
 			} else {
 				throw new IllegalArgumentException("Object with oid is not resource. OID: " + resourceOid);
 			}
@@ -333,18 +341,19 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public void searchObjectsIterative(QueryType query, PagingType paging, final ResultHandler handler,
-			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException {
+			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+			CommunicationException {
 
 		Element filter = query.getFilter();
 		NodeList list = filter.getChildNodes();
 		String resourceOid = null;
 		QName objectClass = null;
-	
+
 		if (QNameUtil.compareQName(SchemaConstants.C_FILTER_AND, filter)) {
 			for (int i = 0; i < list.getLength() - 1; i++) {
 				if (QNameUtil.compareQName(SchemaConstants.C_FILTER_TYPE, list.item(i))) {
 					String type = list.item(i).getAttributes().getNamedItem("uri").getNodeValue();
-						if (type == null || "".equals(type)) {
+					if (type == null || "".equals(type)) {
 						throw new IllegalArgumentException("Object type is not defined.");
 					}
 
@@ -377,10 +386,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		}
 
-		if (resourceOid == null){
+		if (resourceOid == null) {
 			throw new IllegalArgumentException("Resource where objects sholud be searched is not defined.");
 		}
-		
+
 		ResourceType resource = null;
 		try {
 			resource = (ResourceType) getRepositoryService().getObject(resourceOid,

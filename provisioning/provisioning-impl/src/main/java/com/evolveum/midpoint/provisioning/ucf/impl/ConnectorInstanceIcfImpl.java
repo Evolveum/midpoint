@@ -429,8 +429,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// getting icf object class from resource object class
 		ObjectClass objectClass = objectClassToIcf(object.getDefinition().getTypeName());
 
+		if (objectClass == null) {
+			result.recordFatalError("Couldn't get icf object class from resource definition.");
+			throw new IllegalArgumentException("Couldn't get icf object class from resource definition.");
+		}
+
 		// setting ifc attributes from resource object attributes
 		Set<Attribute> attributes = convertFromResourceObject(object.getAttributes());
+
+		if (attributes == null) {
+			result.recordFatalError("Couldn't set attributes for icf.");
+			throw new IllegalStateException("Couldn't set attributes for icf.");
+		}
 
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
 		icfResult.addParam("objectClass", objectClass);
@@ -438,11 +448,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		icfResult.addParam("options", null);
 		icfResult.addContext("connector", connector);
 
-		Uid uid = connector.create(objectClass, attributes, new OperationOptionsBuilder().build());
+		try {
+			Uid uid = connector.create(objectClass, attributes, new OperationOptionsBuilder().build());
+			ResourceObjectAttribute attribute = setUidAttribute(uid);
+			object.getAttributes().add(attribute);
+			icfResult.recordSuccess();
+		} catch (Exception ex) {
 
-		ResourceObjectAttribute attribute = setUidAttribute(uid);
-		object.getAttributes().add(attribute);
+			icfResult.recordFatalError(ex);
+			throw new GenericFrameworkException(ex);
+		}
 
+		result.recordSuccess();
 		return object.getAttributes();
 	}
 
@@ -522,9 +539,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public Token deserializeToken(String serializedToken) {
-		Token token = new TokenImpl(serializedToken);
-		return token;
-		// throw new UnsupportedOperationException("Not supported yet.");
+		// Token token = new TokenImpl(serializedToken);
+		// return token;
+		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
@@ -534,18 +551,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ObjectClass objClass = objectClassToIcf(objectClass);
 
 		SyncToken syncToken = connector.getLatestSyncToken(objClass);
-		Object object = syncToken.getValue();
-		
-		QName type = XsdTypeConverter.toXsdType(object.getClass());
-			
-		Set<Object> objs = new HashSet<Object>();
-		objs.add(object);
-		PropertyDefinition propDef = new PropertyDefinition(SchemaConstants.C_TOKEN, type);
-		
-		Property property = new Property(SchemaConstants.C_TOKEN, propDef, objs);
+
+		Property property = getToken(syncToken);
 
 		return property;
-		}
+	}
 
 	@Override
 	public List<Change> fetchChanges(QName objectClass, Property lastToken, OperationResult parentResult)
@@ -566,10 +576,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		for (Element e : elements){
+		for (Element e : elements) {
 			obj = XsdTypeConverter.toJavaValue(e, lastToken.getDefinition().getTypeName());
 		}
-		
+
 		final Set<SyncDelta> result = new HashSet<SyncDelta>();
 
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
@@ -597,41 +607,47 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public void test(OperationResult parentResult) {
-		
-		OperationResult connectionResult = parentResult.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_CONNECTION_OPERATION);
-		connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS,ConnectorInstance.class);
+
+		OperationResult connectionResult = parentResult
+				.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_CONNECTION_OPERATION);
+		connectionResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorInstance.class);
 		connectionResult.addContext("resource", resource);
-		
+
 		try {
 			connector.test();
 			connectionResult.recordSuccess();
 		} catch (ConnectorSecurityException ex) {
-			// Looks like this happens for a wide variety of cases. It has inner exception that tells more
+			// Looks like this happens for a wide variety of cases. It has inner
+			// exception that tells more
 			// about the cause
 			Throwable cause = ex.getCause();
-			if (cause!=null) {
+			if (cause != null) {
 				if (cause instanceof javax.naming.CommunicationException) {
-					// This seems to be the usual error. However, it also does not describe the case directly
+					// This seems to be the usual error. However, it also does
+					// not describe the case directly
 					// We need to go even deeper
 					Throwable subCause = cause.getCause();
-					if (subCause!=null) {
+					if (subCause != null) {
 						if (subCause instanceof UnknownHostException) {
 							// Looks like the host is not known.
-							connectionResult.recordFatalError("The hostname is not known: "+cause.getMessage(), ex);
+							connectionResult.recordFatalError(
+									"The hostname is not known: " + cause.getMessage(), ex);
 						} else {
-							connectionResult.recordFatalError("Error communicating with the resource: "+cause.getMessage(), ex);
+							connectionResult.recordFatalError("Error communicating with the resource: "
+									+ cause.getMessage(), ex);
 						}
 					} else {
 						// No subCase
-						connectionResult.recordFatalError("Error communicating with the resource: "+cause.getMessage(), ex);
+						connectionResult.recordFatalError(
+								"Error communicating with the resource: " + cause.getMessage(), ex);
 					}
 				} else {
 					// Cause is not CommunicationException
-					connectionResult.recordFatalError("General error: "+cause.getMessage(), ex);
+					connectionResult.recordFatalError("General error: " + cause.getMessage(), ex);
 				}
 			} else {
 				// No cause
-				connectionResult.recordFatalError("General error: "+ex.getMessage(), ex);
+				connectionResult.recordFatalError("General error: " + ex.getMessage(), ex);
 			}
 		} catch (Exception ex) {
 			connectionResult.recordFatalError(ex);
@@ -639,15 +655,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void search(QName objectClass, final ResourceObjectDefinition definition, final ResultHandler handler, OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException {
+	public void search(QName objectClass, final ResourceObjectDefinition definition,
+			final ResultHandler handler, OperationResult parentResult) throws CommunicationException,
+			GenericFrameworkException {
 
 		// Result type for this operation
 		final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".search");
 		result.addParam("objectClass", objectClass);
 		result.addContext("resource", resource);
-		
+
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 		if (objectClass == null) {
 			IllegalArgumentException ex = new IllegalArgumentException(
@@ -657,17 +674,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			result.recordFatalError("Unable to detemine object class", ex);
 			throw ex;
 		}
-		//TODO: fetchSchema for resource..needed for converting connector object to the resourceObject
+		// TODO: fetchSchema for resource..needed for converting connector
+		// object to the resourceObject
 
-		
-		
 		ResultsHandler icfHandler = new ResultsHandler() {
 			@Override
 			public boolean handle(ConnectorObject connectorObject) {
 				// Convert ICF-specific connetor object to a generic
 				// ResourceObject
 				ResourceObject resourceObject = convertToResourceObject(connectorObject, definition);
-				System.out.println("founbd resource object: "+resourceObject);
+
 				// .. and pass it to the handler
 				boolean cont = handler.handle(resourceObject);
 				if (!cont) {
@@ -848,12 +864,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		// Uid is always there
 		Uid uid = co.getUid();
-//		PropertyDefinition propDef = new PropertyDefinition(SchemaConstants.ICFS_NAME, SchemaConstants.XSD_STRING);
-//		Property p = propDef.instantiate();
+		// PropertyDefinition propDef = new
+		// PropertyDefinition(SchemaConstants.ICFS_NAME,
+		// SchemaConstants.XSD_STRING);
+		// Property p = propDef.instantiate();
 		ResourceObjectAttribute uidRoa = setUidAttribute(uid);
-//		p = setUidAttribute(uid);
+		// p = setUidAttribute(uid);
 		ro.getAttributes().add(uidRoa);
-//		ro.getProperties().add(p);
+		// ro.getProperties().add(p);
 
 		for (Attribute icfAttr : co.getAttributes()) {
 			if (icfAttr.getName().equals(Uid.NAME)) {
@@ -861,15 +879,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				continue;
 			}
 			QName qname = convertAttributeNameToQName(icfAttr.getName());
-			
-//			QName type = XsdTypeConverter.toXsdType(icfAttr.getValue().get(0).getClass());
-//			PropertyDefinition pd = new PropertyDefinition(qname, type);
-//			Property roa = pd.instantiate();
-//			ResourceObjectAttribute roa = road.instantiate();
+
+			// QName type =
+			// XsdTypeConverter.toXsdType(icfAttr.getValue().get(0).getClass());
+			// PropertyDefinition pd = new PropertyDefinition(qname, type);
+			// Property roa = pd.instantiate();
+			// ResourceObjectAttribute roa = road.instantiate();
 			ResourceObjectAttribute roa = new ResourceObjectAttribute(qname);
 			List<Object> icfValues = icfAttr.getValue();
 			roa.getValues().addAll(icfValues);
-//			ro.getProperties().add(roa);
+			// ro.getProperties().add(roa);
 			ro.getAttributes().add(roa);
 		}
 
@@ -896,8 +915,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				ResourceObject resourceObject = convertToResourceObject(delta.getObject(), null);
 				ObjectChangeDeletionType deletionType = new ObjectChangeDeletionType();
 				deletionType.setOid(delta.getUid().getUidValue());
-				Change change = new Change(resourceObject.getIdentifiers(), deletionType, new TokenImpl(delta
-						.getToken().getValue().toString()));
+				Change change = new Change(resourceObject.getIdentifiers(), deletionType,
+						getToken(delta.getToken()));
 				changeList.add(change);
 			} else {
 
@@ -906,7 +925,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						resourceObject);
 
 				Change change = new Change(resourceObject.getIdentifiers(), modificationChangeType,
-						new TokenImpl((String) delta.getToken().getValue()));
+						getToken(delta.getToken()));
 				changeList.add(change);
 			}
 
@@ -940,4 +959,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		modificationChangeType.setObjectModification(modificationType);
 		return modificationChangeType;
 	}
+
+	private Property getToken(SyncToken syncToken) {
+		Object object = syncToken.getValue();
+		QName type = XsdTypeConverter.toXsdType(object.getClass());
+
+		Set<Object> objs = new HashSet<Object>();
+		objs.add(object);
+		PropertyDefinition propDef = new PropertyDefinition(SchemaConstants.C_TOKEN, type);
+
+		Property property = new Property(SchemaConstants.C_TOKEN, propDef, objs);
+		return property;
+	}
+
 }

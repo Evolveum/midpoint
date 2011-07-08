@@ -31,9 +31,10 @@ public final class Change {
 	
     private Set<Property> identifiers;
     private ObjectChangeType change;
-    private Token token;
+    private Property token;
+//    private Token token;
 
-    public Change(Set<Property> identifiers, ObjectChangeType change, Token token) {
+    public Change(Set<Property> identifiers, ObjectChangeType change, Property token) {
         this.identifiers = identifiers;
         this.change = change;
         this.token = token;
@@ -57,12 +58,22 @@ public final class Change {
         this.identifiers = identifiers;
     }
 
-    public Token getToken() {
-        return token;
-    }
+	public Property getToken() {
+		return token;
+	}
 
-    public void setToken(Token token) {
-        this.token = token;
-    }
+	public void setToken(Property token) {
+		this.token = token;
+	}
+
+    
+    
+//    public Token getToken() {
+//        return token;
+//    }
+//
+//    public void setToken(Token token) {
+//        this.token = token;
+//    }
 
 }
