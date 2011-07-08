@@ -222,6 +222,9 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			System.out.println(DebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
 					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+			
+			assertEquals("jbond", object.getName());
+			
 		} finally {
 			try {
 				repositoryService.deleteObject(ACCOUNT1_OID, result);
