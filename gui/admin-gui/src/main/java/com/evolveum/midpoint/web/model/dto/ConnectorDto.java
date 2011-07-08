@@ -36,4 +36,12 @@ public class ConnectorDto extends ExtensibleObjectDto<ConnectorType> {
 	public ConnectorDto(ConnectorType connector) {
 		super(connector);
 	}
+
+	public String getConnectorType() {		
+		return getXmlObject().getConnectorType();
+	}
+
+	public String getConnectorVersion() {
+		return getXmlObject().getConnectorVersion();
+	}
 }

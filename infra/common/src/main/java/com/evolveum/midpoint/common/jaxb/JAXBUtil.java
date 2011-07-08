@@ -152,14 +152,22 @@ public final class JAXBUtil {
 
 	@SuppressWarnings("unchecked")
 	public static <T> String silentMarshalWrap(T jaxbObject, QName elementQName) {
+		if (jaxbObject == null) {
+			return null;
+		}
+		
 		try {
 			JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
 					jaxbObject);
 			return marshal(jaxbElement);
 		} catch (JAXBException ex) {
-			TRACE.debug("Failed to marshal object {}", jaxbObject, ex);
+			TRACE.trace("Failed to marshal object {}", jaxbObject, ex);
 			return null;
 		}
+	}
+	
+	public static String silentMarshalWrap(Object object) {
+		return silentMarshalWrap(object, new QName(SchemaConstants.NS_C, "object"));
 	}
 
 	public static void marshal(Object xmlObject, Element element) throws JAXBException {

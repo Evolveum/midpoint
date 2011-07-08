@@ -56,13 +56,19 @@ public enum ProvisioningTypes {
 
 	public static boolean isManagedByProvisioning(ObjectType object) {
 		Validate.notNull(object, "Object must not be null.");
-
+		
+		return isClassManagedByProvisioning(object.getClass());
+	}
+	
+	public static boolean isClassManagedByProvisioning(Class<? extends ObjectType> clazz) {		
+		Validate.notNull(clazz, "Class must not be null.");
+		
 		for (ProvisioningTypes type : ProvisioningTypes.values()) {
-			if (type.clazz.isInstance(object)) {
+			if (type.clazz.isAssignableFrom(clazz)) {
 				return true;
 			}
 		}
-
+		
 		return false;
 	}
 

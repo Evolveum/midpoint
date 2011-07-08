@@ -112,6 +112,9 @@ public class ModelController {
 		Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
 		LOGGER.debug("Adding object {} with oid {} and name {}.", new Object[] {
 				object.getClass().getSimpleName(), object.getOid(), object.getName() });
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
+		}
 
 		OperationResult subResult = new OperationResult("Add Object");
 		result.addSubresult(subResult);
@@ -146,6 +149,10 @@ public class ModelController {
 			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(JAXBUtil.silentMarshalWrap(user));
+			LOGGER.trace(JAXBUtil.silentMarshal(userTemplate));
+		}
 
 		if (userTemplate == null) {
 			SystemConfigurationType systemConfiguration = getSystemConfiguration(result);
@@ -197,9 +204,18 @@ public class ModelController {
 		result.addSubresult(subResult);
 		T object = null;
 		try {
-			object = getObjectFromRepository(oid, resolve, subResult, clazz);
-			if (ProvisioningTypes.isManagedByProvisioning(object)) {
+			// TODO: HACK !!!!!!!!!!!!!! START till we parametrize getObject
+			// (can't get connector type from admin-gui now)
+			if (oid.startsWith("icf")) {
 				object = getObjectFromProvisioning(oid, resolve, subResult, clazz);
+			} else {
+				// TODO: END HACK
+
+				if (ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
+					object = getObjectFromProvisioning(oid, resolve, subResult, clazz);
+				} else {
+					object = getObjectFromRepository(oid, resolve, subResult, clazz);
+				}
 			}
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
@@ -208,6 +224,11 @@ public class ModelController {
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object {}", ex, oid);
 			subResult.recordFatalError("Couldn't get object with oid '" + oid + "'.", ex);
+			throw new SystemException(ex.getMessage(), ex);
+		}
+
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 		}
 
 		LOGGER.debug(subResult.debugDump());
@@ -256,7 +277,7 @@ public class ModelController {
 		LOGGER.debug("Searching objects from {} to {} ordered {} by {} (query in TRACE).", new Object[] {
 				paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(), paging.getOrderBy() });
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(DebugUtil.prettyPrint(query));
+			LOGGER.trace(JAXBUtil.silentMarshalWrap(query));
 		}
 
 		OperationResult subResult = new OperationResult("Search Objects");
@@ -311,7 +332,7 @@ public class ModelController {
 		LOGGER.debug("Modifying object with oid {} with exclusion account oid {} (change in TRACE).",
 				new Object[] { change.getOid(), accountOid });
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(DebugUtil.prettyPrint(change));
+			LOGGER.trace(JAXBUtil.silentMarshalWrap(change));
 		}
 
 		if (change.getPropertyModification().isEmpty()) {

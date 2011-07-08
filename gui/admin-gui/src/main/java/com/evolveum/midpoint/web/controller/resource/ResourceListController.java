@@ -52,10 +52,12 @@ import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.SortableListController;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
+import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.ResourceItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
@@ -184,8 +186,17 @@ public class ResourceListController extends SortableListController<ResourceListI
 	}
 
 	private ResourceListItem createResourceListItem(ResourceType resource) {
-		String type = getConnectorInfo("bundleName", resource);
-		String version = getConnectorInfo("bundleVersion", resource);
+		ObjectReferenceType reference = resource.getConnectorRef();
+		if (reference == null) {
+			// TODO: error handling
+			return null;
+		}
+
+		ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+		ConnectorDto connector = manager.getConnector(reference.getOid());
+
+		String type = connector.getConnectorType();
+		String version = connector.getConnectorVersion();
 
 		ResourceListItem item = new ResourceListItem(resource.getOid(), resource.getName(), type, version);
 		XmlSchemaType xmlSchema = resource.getSchema();
@@ -210,21 +221,6 @@ public class ResourceListController extends SortableListController<ResourceListI
 		}
 
 		return item;
-	}
-
-	private String getConnectorInfo(String name, ResourceType resource) {
-		Configuration configuration = resource.getConfiguration();
-		if (configuration != null) {
-			for (Element element : configuration.getAny()) {
-				NamedNodeMap attributes = element.getFirstChild().getAttributes();
-				Node attribute = attributes.getNamedItem(name);
-				if (attribute != null) {
-					return attribute.getTextContent();
-				}
-			}
-		}
-
-		return "Unknown";
 	}
 
 	public String showSyncStatus() {

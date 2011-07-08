@@ -36,6 +36,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
@@ -75,6 +76,46 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 		logger.debug(result.debugDump());
 	}
 
+	@SuppressWarnings("unchecked")
+	protected <O extends ObjectType> O get(String oid, PropertyReferenceListType resolve, Class<O> clazz) {
+		Validate.notNull(oid, "Object oid must not be null or empty.");
+		LOGGER.debug("Get object with oid {}.", new Object[] { oid });
+
+		OperationResult result = new OperationResult("Get Object");
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(
+				result.createOperationResultType());
+
+		O object = null;
+		try {
+			ObjectType objectType = getModel().getObject(oid, resolve, holder);
+			if (!clazz.isInstance(objectType)) {
+				throw new ObjectNotFoundException("Bad object type returned for referenced oid '" + oid
+						+ "'. Expected '" + clazz + "', but was '"
+						+ (objectType == null ? "null" : objectType.getClass()) + "'.");
+			} else {
+				object = (O) objectType;
+			}
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordSuccess();
+		} catch (FaultMessage ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
+
+			OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
+					.getOperationResult() == null) ? holder.value : ex.getFaultInfo().getOperationResult();
+			result = OperationResult.createOperationResult(resultType);
+			result.recordFatalError(ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
+
+			result = OperationResult.createOperationResult(holder.value);
+			result.recordFatalError(ex);
+		}
+
+		printResults(LOGGER, result);
+
+		return object;
+	}
+
 	@Override
 	public T get(String oid, PropertyReferenceListType resolve) {
 		Validate.notNull(oid, "Object oid must not be null or empty.");
@@ -86,18 +127,11 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 
 		T object = null;
 		try {
-			ObjectType objectType = getModel().getObject(oid, resolve, holder);
+			ObjectType objectType = get(oid, resolve, ObjectType.class);
 			object = createObject(objectType);
 
 			result = OperationResult.createOperationResult(holder.value);
 			result.recordSuccess();
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
-
-			OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
-					.getOperationResult() == null) ? holder.value : ex.getFaultInfo().getOperationResult();
-			result = OperationResult.createOperationResult(resultType);
-			result.recordFatalError(ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
 
