@@ -27,10 +27,10 @@
     <c:extension>
         <piracy:ship>Black Pearl</piracy:ship>
     </c:extension>
-    <i:fullName>Cpt. Jack Sparrow</i:fullName>
+    <i:fullName>Jack Sparrow</i:fullName>
     <i:givenName>Jack</i:givenName>
     <i:familyName>Sparrow</i:familyName>
-    <i:additionalNames>yet another name</i:additionalNames>
+    <i:additionalNames>Jackie</i:additionalNames>
     <i:honorificPrefix>Cpt.</i:honorificPrefix>
     
     <i:honorificSuffix>PhD.</i:honorificSuffix>

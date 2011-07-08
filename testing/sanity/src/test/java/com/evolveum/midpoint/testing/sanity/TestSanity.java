@@ -101,17 +101,21 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 		"classpath:application-context-provisioning.xml", "classpath:application-context-sanity-test.xml" })
 public class TestSanity extends OpenDJUnitTestAdapter {
 
-	private static final String FILENAME_SYSTEM_CONFIGURATION = "src/test/resources/repo/system-configuration.xml";
+	private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
 	private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
 
-	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/repo/opendj-resource.xml";
+	private static final String RESOURCE_OPENDJ_FILENAME = "src/test/resources/repo/opendj-resource.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
-	private static final String FILENAME_USER_JACK = "src/test/resources/repo/user-jack.xml";
+	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = "src/test/resources/repo/sample-configuration-object.xml";
+	private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
+	
+	private static final String USER_JACK_FILENAME = "src/test/resources/repo/user-jack.xml";
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	private static final String USER_JACK_LDAP_UID = "jack";
 
-	private static final String FILENAME_REQUEST_USER_MODIFY_ADD_ACCOUNT = "src/test/resources/request/user-modify-add-account.xml";
+	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
+	private static final String REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME = "src/test/resources/request/user-modify-fullname-locality.xml";
 
 	/**
 	 * Utility to control embedded OpenDJ instance (start/stop)
@@ -122,10 +126,9 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * Unmarshalled resource definition to reach the embedded OpenDJ instance.
 	 * Used for convenience - the tests method may find it handy.
 	 */
-	ResourceType resource;
-
-	private JAXBContext jaxbctx;
-	private Unmarshaller unmarshaller;
+	private static ResourceType resource;
+	private static JAXBContext jaxbctx;
+	private static Unmarshaller unmarshaller;
 	private static String shadowOid;
 
 	/**
@@ -173,32 +176,11 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	@Before
 	public void initRepository() throws Exception {
 		if (!repoInitialized) {
-			resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
-			addObjectFromFile(FILENAME_SYSTEM_CONFIGURATION);
+			resource = (ResourceType) addObjectFromFile(RESOURCE_OPENDJ_FILENAME);
+			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
+			addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME);
 			repoInitialized = true;
 		}
-	}
-
-	private <T> T unmarshallJaxbFromFile(String filePath, Class<T> clazz) throws FileNotFoundException, JAXBException {
-		File file = new File(filePath);
-		FileInputStream fis = new FileInputStream(file);
-		Object object = unmarshaller.unmarshal(fis);
-		T objectType = ((JAXBElement<T>) object).getValue();
-		return objectType;
-	}
-
-	private ObjectType addObjectFromFile(String filePath) throws Exception {
-		ObjectType object = unmarshallJaxbFromFile(filePath, ObjectType.class);
-		System.out.println("obj: " + object.getName());
-		OperationResult result = new OperationResult(TestSanity.class.getName() + ".addObjectFromFile");
-		repositoryService.addObject(object, result);
-		return object;
-	}
-
-	private void displayJaxb(Object o, QName qname) throws JAXBException {
-		Document doc = DOMUtil.getDocument();
-		Element element = JAXBUtil.jaxbToDom(o, qname, doc);
-		System.out.println(DOMUtil.serializeDOMToString(element));
 	}
 
 	/**
@@ -261,7 +243,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	public void test002AddUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException,
 			SchemaException {
 		// GIVEN
-		UserType user = unmarshallJaxbFromFile(FILENAME_USER_JACK, UserType.class);
+		UserType user = unmarshallJaxbFromFile(USER_JACK_FILENAME, UserType.class);
 
 		OperationResultType result = new OperationResultType();
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
@@ -283,12 +265,15 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// TODO: better checks
 	}
 
+	/**
+	 * Add account to user. This should result in account provisioning. Check if that happens in repo and in LDAP.
+	 */
 	@Test
 	public void test003AddAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException,
 			SchemaException, DirectoryException {
 		// GIVEN
 
-		ObjectModificationType objectChange = unmarshallJaxbFromFile(FILENAME_REQUEST_USER_MODIFY_ADD_ACCOUNT,
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(REQUEST_USER_MODIFY_ADD_ACCOUNT_FILENAME,
 				ObjectModificationType.class);
 
 		OperationResultType result = new OperationResultType();
@@ -362,13 +347,15 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		assertEquals(1, op.getEntriesSent());
 		SearchResultEntry response = op.getSearchEntries().get(0);
 
-		System.out.println(response.toString());
-
+		display(response);
+		
 		assertAttribute(response, "uid", "jack");
 		assertAttribute(response, "givenName", "Jack");
 		assertAttribute(response, "sn", "Sparrow");
 		assertAttribute(response, "cn", "Jack Sparrow");
-
+		// The "l" attribute is assigned indirectly through schemaHandling and config object
+		assertAttribute(response, "l", "middle of nowhere");
+		
 		// Use getObject to test fetch of complete shadow
 
 		result = new OperationResultType();
@@ -384,17 +371,110 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		assertAttribute(repoShadow, resource, "givenName", "Jack");
 		assertAttribute(repoShadow, resource, "sn", "Sparrow");
 		assertAttribute(repoShadow, resource, "cn", "Jack Sparrow");
+		assertAttribute(repoShadow, resource, "l", "middle of nowhere");
+	}
+	
+
+	/**
+	 * We are going to modify the user. As the user has an account, the user changes
+	 * should be also applied to the account (by schemaHandling).
+	 * @throws DirectoryException 
+	 */
+	@Test
+	public void test004modifyUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException, SchemaException, DirectoryException {
+		// GIVEN
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME,
+				ObjectModificationType.class);
+
+		OperationResultType result = new OperationResultType();
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
+
+		// WHEN
+		model.modifyObject(objectChange, holder);
+
+		// THEN
+
+		// Check if user object was modified in the repo
+
+		OperationResult repoResult = new OperationResult("getObject");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		ObjectType repoObject = repositoryService.getObject(USER_JACK_OID, resolve, repoResult);
+		UserType repoUser = (UserType) repoObject;
+		displayJaxb(repoUser, new QName("user"));
+		
+		assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
+		assertEquals("somewhere", repoUser.getLocality());
+
+		// Check if appropriate accountRef is still there
+		
+		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+		assertEquals(1, accountRefs.size());
+		ObjectReferenceType accountRef = accountRefs.get(0);
+		String newShadowOid = accountRef.getOid();
+		assertEquals(shadowOid,newShadowOid);
+				
+		// Check if shadow is still in the repo and that it is untouched
+
+		repoResult = new OperationResult("getObject");
+		repoObject = repositoryService.getObject(shadowOid, resolve, repoResult);
+		AccountShadowType repoShadow = (AccountShadowType) repoObject;
+		displayJaxb(repoShadow, new QName("shadow"));
+		assertNotNull(repoShadow);
+		assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+
+		// check attributes in the shadow: should be only identifiers (ICF UID)
+
+		String uid = null;
+		boolean hasOthers = false;
+		List<Element> xmlAttributes = repoShadow.getAttributes().getAny();
+		for (Element element : xmlAttributes) {
+			if (element.getNamespaceURI().equals(SchemaConstants.ICFS_UID.getNamespaceURI())
+					&& element.getLocalName().equals(SchemaConstants.ICFS_UID.getLocalPart())) {
+				if (uid != null) {
+					fail("Multiple values for ICF UID in shadow attributes");
+				} else {
+					uid = element.getTextContent();
+				}
+			} else {
+				hasOthers = true;
+			}
+		}
+
+		assertFalse(hasOthers);
+		assertNotNull(uid);
+
+		// Check if LDAP account was updated
+		
+		InternalSearchOperation op = controller.getInternalConnection().processSearch(
+				"dc=example,dc=com",
+				SearchScope.WHOLE_SUBTREE, 
+				DereferencePolicy.NEVER_DEREF_ALIASES, 
+				100, 
+				100, 
+				false, 
+				"(entryUUID=" + uid + ")",
+				null);
+
+		assertEquals(1, op.getEntriesSent());
+		SearchResultEntry response = op.getSearchEntries().get(0);
+
+		display(response);
+		
+		assertAttribute(response, "uid", "jack");
+		assertAttribute(response, "givenName", "Jack");
+		assertAttribute(response, "sn", "Sparrow");
+		// These two should be assigned from the User modification by schemaHandling
+		assertAttribute(response, "cn", "Cpt. Jack Sparrow");
+		assertAttribute(response, "l", "somewhere");
 	}
 	
 	/**
 	 * The user should have an account now. Let's try to delete the user.
 	 * The account should be gone as well.
-	 * @throws SchemaException 
-	 * @throws FaultMessage 
-	 * @throws DirectoryException 
 	 */
 	@Test
-	public void test004DeleteUser() throws SchemaException, FaultMessage, DirectoryException {
+	public void test005DeleteUser() throws SchemaException, FaultMessage, DirectoryException {
 		// GIVEN
 
 		OperationResultType result = new OperationResultType();
@@ -438,7 +518,14 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		assertEquals(0, op.getEntriesSent());
 		
 	}
-
+	
+	// TODO: test for missing/corrupt system configuration
+	// TODO: test for missing sample config (bad reference in expression arguments)
+	
+	// UTILITY METHODS
+	
+	// TODO: maybe we should move them to a common utility class
+	
 	private void assertAttribute(AccountShadowType repoShadow, ResourceType resource, String name, String value) {
 		assertAttribute(repoShadow,new QName(resource.getNamespace(),name),value);
 	}
@@ -465,6 +552,33 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
 		Assert.assertEquals(value, attribute.iterator().next().getValue().toString());
 	}
+	
+	private <T> T unmarshallJaxbFromFile(String filePath, Class<T> clazz) throws FileNotFoundException, JAXBException {
+		File file = new File(filePath);
+		FileInputStream fis = new FileInputStream(file);
+		Object object = unmarshaller.unmarshal(fis);
+		T objectType = ((JAXBElement<T>) object).getValue();
+		return objectType;
+	}
 
-	// TODO: test for missing/corrupt system configuration
+	private ObjectType addObjectFromFile(String filePath) throws Exception {
+		ObjectType object = unmarshallJaxbFromFile(filePath, ObjectType.class);
+		System.out.println("obj: " + object.getName());
+		OperationResult result = new OperationResult(TestSanity.class.getName() + ".addObjectFromFile");
+		repositoryService.addObject(object, result);
+		return object;
+	}
+
+	private void displayJaxb(Object o, QName qname) throws JAXBException {
+		Document doc = DOMUtil.getDocument();
+		Element element = JAXBUtil.jaxbToDom(o, qname, doc);
+		System.out.println(DOMUtil.serializeDOMToString(element));
+	}
+
+	private void display(SearchResultEntry response) {
+		// TODO Auto-generated method stub
+		System.out.println(response.toLDIFString());
+	}
+
+
 }

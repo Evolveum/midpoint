@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -17,28 +17,23 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!--                                                         -->
 
-<systemConfiguration oid="00000000-0000-0000-0000-000000000001"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-	<name>SystemConfiguration</name>
-	<logging>
-		<logger>
-			<level>all</level>
-			<category>category1</category>
-			<category>category2</category>
-			<component>util</component>
-			<component>common</component>
-			<component>model</component>
-			<component>provisioning</component>
-			<component>repository</component>
-			<component>gui</component>
-			<package>com.evolveum.midpoint</package>
-			<appender>File Appender</appender>
-		</logger>
-		<appender xsi:type="FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-			<pattern>%d{HH:mm:ss,SSS} %-5p [%c] - %m%n</pattern>
-			<filePath>${catalina.base}/logs/idm.log</filePath>
-			<maxFileSize>1024</maxFileSize>
-		</appender>
-	</logging>
-</systemConfiguration>
+<!-- Object modification description that is changing user "jack" by adding a new account -->
+
+<objectModification xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd'>
+	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
+	<!-- Let's honor Jack with a proper title -->
+	<propertyModification modificationType="replace">
+		<value>
+			<fullName>Cpt. Jack Sparrow</fullName>
+		</value>
+	</propertyModification>
+	<!-- And place him somewhere -->
+	<propertyModification modificationType="replace">
+		<value>
+			<locality>somewhere</locality>
+		</value>
+	</propertyModification>
+</objectModification>
