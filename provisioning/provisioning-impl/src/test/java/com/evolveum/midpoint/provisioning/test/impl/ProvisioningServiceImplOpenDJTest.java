@@ -157,6 +157,8 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 		assertNotNull(manager);
 
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".initProvisioning");
 		// The default repository content is using old format of resource
 		// configuration
 		// We need a sample data in the new format, so we need to set it up
@@ -165,8 +167,8 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
 		addObjectFromFile(FILENAME_ACCOUNT1);
 		addObjectFromFile(FILENAME_ACCOUNT_BAD);
-
 		assertNotNull(provisioningService);
+
 	}
 
 	private ObjectType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException {
@@ -188,16 +190,19 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 	@After
 	public void shutdownUcf() throws Exception {
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".shutdownUcf");
 		try {
-			repositoryService.deleteObject(ACCOUNT1_OID, null);
+			repositoryService.deleteObject(ACCOUNT1_OID, result);
 		} catch (Exception e) {
 		}
 		try {
-			repositoryService.deleteObject(ACCOUNT_BAD_OID, null);
+			repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
 		} catch (Exception e) {
 		}
 		try {
-			repositoryService.deleteObject(RESOURCE_OPENDJ_OID, null);
+			repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
 		} catch (Exception e) {
 		}
 	}
@@ -524,10 +529,12 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 	@Test
 	public void testConnection() throws Exception {
-		OperationResult operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID);
-		System.out.println("OperationResult");
-		// TODO: check return values
-		assertEquals(true, operationResult.isSuccess());
+
+		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID);
+			System.out.println("OperationResult");
+			// TODO: check return values
+			assertEquals(true, operationResult.isSuccess());
+	
 	}
 
 	@Test
