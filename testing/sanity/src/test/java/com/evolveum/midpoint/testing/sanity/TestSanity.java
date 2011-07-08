@@ -109,6 +109,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 	private static final String FILENAME_USER_JACK = "src/test/resources/repo/user-jack.xml";
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	private static final String USER_JACK_LDAP_UID = "jack";
 
 	private static final String FILENAME_REQUEST_USER_MODIFY_ADD_ACCOUNT = "src/test/resources/request/user-modify-add-account.xml";
 
@@ -125,6 +126,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 	private JAXBContext jaxbctx;
 	private Unmarshaller unmarshaller;
+	private static String shadowOid;
 
 	/**
 	 * The instance of ModelService. This is the interface that we will test.
@@ -307,7 +309,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
 		assertEquals(1, accountRefs.size());
 		ObjectReferenceType accountRef = accountRefs.get(0);
-		String shadowOid = accountRef.getOid();
+		shadowOid = accountRef.getOid();
 		assertFalse(shadowOid.isEmpty());
 
 		// Check if shadow was created in the repo
@@ -347,8 +349,14 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// "ds-pwp-account-disabled");
 		// attributes.add(
 		// "givenName");
-		InternalSearchOperation op = controller.getInternalConnection().processSearch("dc=example,dc=com",
-				SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100, 100, false, "(entryUUID=" + uid + ")",
+		InternalSearchOperation op = controller.getInternalConnection().processSearch(
+				"dc=example,dc=com",
+				SearchScope.WHOLE_SUBTREE, 
+				DereferencePolicy.NEVER_DEREF_ALIASES, 
+				100, 
+				100, 
+				false, 
+				"(entryUUID=" + uid + ")",
 				null);
 
 		assertEquals(1, op.getEntriesSent());
@@ -361,7 +369,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		assertAttribute(response, "sn", "Sparrow");
 		assertAttribute(response, "cn", "Jack Sparrow");
 
-		// TODO: use getObject to test fetch
+		// Use getObject to test fetch of complete shadow
 
 		result = new OperationResultType();
 		holder.value = result;
@@ -376,6 +384,59 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		assertAttribute(repoShadow, resource, "givenName", "Jack");
 		assertAttribute(repoShadow, resource, "sn", "Sparrow");
 		assertAttribute(repoShadow, resource, "cn", "Jack Sparrow");
+	}
+	
+	/**
+	 * The user should have an account now. Let's try to delete the user.
+	 * The account should be gone as well.
+	 * @throws SchemaException 
+	 * @throws FaultMessage 
+	 * @throws DirectoryException 
+	 */
+	@Test
+	public void test004DeleteUser() throws SchemaException, FaultMessage, DirectoryException {
+		// GIVEN
+
+		OperationResultType result = new OperationResultType();
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
+
+		// WHEN
+		model.deleteObject(USER_JACK_OID,holder);
+
+		// THEN
+		
+		// User should be gone from the repository
+		OperationResult repoResult = new OperationResult("getObject");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		try {
+			repositoryService.getObject(USER_JACK_OID, resolve, repoResult);
+			fail("User still exists in repo after delete");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+		
+		// Account shadow should be gone from the repository
+		repoResult = new OperationResult("getObject");
+		try {
+			repositoryService.getObject(shadowOid, resolve, repoResult);
+			fail("Shadow still exists in repo after delete");
+		} catch (ObjectNotFoundException e) {
+			// This is expected
+		}
+		
+		// Account should be deleted from LDAP
+		InternalSearchOperation op = controller.getInternalConnection().processSearch(
+				"dc=example,dc=com",
+				SearchScope.WHOLE_SUBTREE, 
+				DereferencePolicy.NEVER_DEREF_ALIASES, 
+				100, 
+				100, 
+				false, 
+				"(uid=" + USER_JACK_LDAP_UID + ")",
+				null);
+
+		assertEquals(0, op.getEntriesSent());
+		
 	}
 
 	private void assertAttribute(AccountShadowType repoShadow, ResourceType resource, String name, String value) {
@@ -404,9 +465,6 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
 		Assert.assertEquals(value, attribute.iterator().next().getValue().toString());
 	}
-
-	// TODO: delete user (with the account): should also delete the account on
-	// OpenDJ
 
 	// TODO: test for missing/corrupt system configuration
 }
