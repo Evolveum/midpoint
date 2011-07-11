@@ -178,6 +178,7 @@ public class ConnectorManagerIcfImpl implements ConnectorManager {
 		connectorType.setOid(oid);
 		ConnectorKey key = cinfo.getConnectorKey();
 		connectorType.setName("ICF " + key.getConnectorName());
+		connectorType.setConnectorType(key.getConnectorName());
 		connectorType.setNamespace(ICF_CONFIGURATION_NAMESPACE_PREFIX + oid);
 		connectorType.setConnectorVersion(key.getBundleVersion());
 		return connectorType;

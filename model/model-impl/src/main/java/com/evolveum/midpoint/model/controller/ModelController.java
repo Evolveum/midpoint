@@ -960,7 +960,8 @@ public class ModelController {
 				ex.printStackTrace();
 			}
 
-			// if we're updating user, process outbound for every account
+			// from now on we have updated user, next step is processing
+			// outbound for every account
 			List<ObjectReferenceType> accountRefs = user.getAccountRef();
 			for (ObjectReferenceType accountRef : accountRefs) {
 				if (StringUtils.isNotEmpty(accountOid) && accountOid.equals(accountRef.getOid())) {

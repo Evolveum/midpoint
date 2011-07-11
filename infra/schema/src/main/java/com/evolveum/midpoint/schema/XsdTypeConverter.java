@@ -86,6 +86,8 @@ public class XsdTypeConverter {
 		} else if (type.equals(byte[].class)) {
 			byte[] decodedData = Base64.decodeBase64(xmlElement.getTextContent());
 			return decodedData;
+		} else if (type.equals(boolean.class) || Boolean.class.isAssignableFrom(type)){
+			return Boolean.parseBoolean(stringContent);
 		} else {
 			throw new IllegalArgumentException("Unknown type for conversion: " + type);
 		}

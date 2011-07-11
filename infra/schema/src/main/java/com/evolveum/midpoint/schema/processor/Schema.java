@@ -62,7 +62,7 @@ public class Schema {
 	private String namespace;
 	private Set<Definition> definitions;
 	static final String INDENT = "  ";
-	
+
 	public Schema(String namespace) {
 		if (StringUtils.isEmpty(namespace)) {
 			throw new IllegalArgumentException("Namespace can't be null or empty.");
@@ -96,32 +96,35 @@ public class Schema {
 		return definitions;
 	}
 
-//	public static Schema parse(String text) throws SchemaProcessorException {
-//		if (StringUtils.isEmpty(text)) {
-//			throw new IllegalArgumentException("String argument (schema) can't be empty.");
-//		}
-//
-//		try {
-//			return parse(new ByteArrayInputStream(text.getBytes("utf-8")));
-//		} catch (UnsupportedEncodingException ex) {
-//			throw new SchemaProcessorException("Unsupported encoding used: " + ex.getMessage());
-//		}
-//	}
-//
-//	public static Schema parse(InputStream input) throws SchemaProcessorException {
-//		if (input == null) {
-//			throw new IllegalArgumentException("Input stream must not be null.");
-//		}
-//
-//		DomToSchemaProcessor processor = new DomToSchemaProcessor();
-//		return processor.parseDom(input);
-//	}	
+	// public static Schema parse(String text) throws SchemaProcessorException {
+	// if (StringUtils.isEmpty(text)) {
+	// throw new
+	// IllegalArgumentException("String argument (schema) can't be empty.");
+	// }
+	//
+	// try {
+	// return parse(new ByteArrayInputStream(text.getBytes("utf-8")));
+	// } catch (UnsupportedEncodingException ex) {
+	// throw new SchemaProcessorException("Unsupported encoding used: " +
+	// ex.getMessage());
+	// }
+	// }
+	//
+	// public static Schema parse(InputStream input) throws
+	// SchemaProcessorException {
+	// if (input == null) {
+	// throw new IllegalArgumentException("Input stream must not be null.");
+	// }
+	//
+	// DomToSchemaProcessor processor = new DomToSchemaProcessor();
+	// return processor.parseDom(input);
+	// }
 
 	public static Schema parse(Element schema) throws SchemaProcessorException {
 		if (schema == null) {
 			throw new IllegalArgumentException("Input stream must not be null.");
 		}
-		
+
 		DomToSchemaProcessor processor = new DomToSchemaProcessor();
 		return processor.parseDom(schema);
 	}
@@ -149,7 +152,9 @@ public class Schema {
 	 */
 	public PropertyContainerDefinition findContainerDefinitionByType(QName typeName) {
 		// TODO: check for multiple definition with the same type
+		System.out.println("Looking for: " + typeName.toString());
 		for (Definition definition : definitions) {
+			System.out.println(definition.getTypeName().toString());
 			if (definition instanceof PropertyContainerDefinition
 					&& typeName.equals(definition.getTypeName())) {
 				return (PropertyContainerDefinition) definition;
@@ -157,13 +162,13 @@ public class Schema {
 		}
 		return null;
 	}
-	
+
 	public String debugDump() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Schema ns=");
 		sb.append(getNamespace());
 		sb.append("\n");
-		for (Definition def: getDefinitions()) {
+		for (Definition def : getDefinitions()) {
 			sb.append(def.debugDump(1));
 		}
 		return sb.toString();
