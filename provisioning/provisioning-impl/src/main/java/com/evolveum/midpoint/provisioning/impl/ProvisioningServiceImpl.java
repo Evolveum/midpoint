@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -117,20 +118,22 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		ObjectType repositoryObject = null;
-		
-		//HACK: connector objects are not stored in the repo..
-		if (!oid.startsWith("icf1")) {
 
-			try {
-				repositoryObject = getRepositoryService().getObject(oid, resolve, result);
-
-			} catch (ObjectNotFoundException e) {
-				result.record(e);
-				throw e;
-			}
+		// HACK: connector objects are not stored in the repo..
+		if (oid.startsWith("icf1")) {
+			ConnectorType connectorType = shadowCache.getConnectorManager().getConnector(oid);
+			return connectorType;
 		}
 
-		if ( oid.startsWith("icf1") || repositoryObject instanceof ResourceObjectShadowType) {
+		try {
+			repositoryObject = getRepositoryService().getObject(oid, resolve, result);
+
+		} catch (ObjectNotFoundException e) {
+			result.record(e);
+			throw e;
+		}
+
+		if (repositoryObject instanceof ResourceObjectShadowType) {
 			// ResourceObjectShadowType shadow =
 			// (ResourceObjectShadowType)object;
 			// TODO: optimization needed: avoid multiple "gets" of the same
