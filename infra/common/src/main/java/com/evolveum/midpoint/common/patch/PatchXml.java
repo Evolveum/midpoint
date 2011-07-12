@@ -157,7 +157,8 @@ public class PatchXml extends XPathUtil {
         return null;
     }
 
-    private static JAXBElement prepareJaxbObject(File oldXmlFile) throws PatchException {
+    @SuppressWarnings("unchecked")
+	private static JAXBElement<ExtensibleObjectType> prepareJaxbObject(File oldXmlFile) throws PatchException {
         JAXBElement<ExtensibleObjectType> object = null;
         try {
             object = (JAXBElement<ExtensibleObjectType>) JAXBUtil.unmarshal(oldXmlFile);

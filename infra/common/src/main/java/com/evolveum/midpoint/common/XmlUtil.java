@@ -172,13 +172,13 @@ public class XmlUtil {
 		}
 	}
 
-	private static void removeChildNodes(Node parentNode, String newNodeName) {
+	private static void removeChildNodes(Node parentNode, String namespace, String newNodeName) {
 		NodeList childNodes = parentNode.getChildNodes();
 		for (int j = 0; j < childNodes.getLength(); j++) {
 			Node child = childNodes.item(j);
 			// TODO: we should match not only parent name, but also namespace
 			if (null != child.getLocalName()
-					&& child.getLocalName().equals(newNodeName)) {
+					&& child.getLocalName().equals(newNodeName) && child.getNamespaceURI().equals(namespace)) {
 				parentNode.removeChild(child);
 			}
 		}
@@ -190,7 +190,7 @@ public class XmlUtil {
 	// Problem is in not-functioning isEquals method for two different
 	// implementation of Nodes that should be compared
 	public static void replaceChildNodes(Node parentNode, Element newNode) {
-		removeChildNodes(parentNode, newNode.getLocalName());
+		removeChildNodes(parentNode, newNode.getNamespaceURI(), newNode.getLocalName());
 		addChildNodes(parentNode, newNode);
 	}
 
@@ -198,7 +198,7 @@ public class XmlUtil {
 		if (null == newNodes || newNodes.size() == 0) {
 			return;
 		}
-		String newNodeName = newNodes.get(0).getLocalName();
+		String newNodeName = newNodes.get(0).getLocalName();		
 
 		// Prerequisite: we are replacing multi-value node, e.g. all elements
 		// have the same name
@@ -210,7 +210,7 @@ public class XmlUtil {
 			}
 		}
 
-		removeChildNodes(parentNode, newNodeName);
+		removeChildNodes(parentNode, newNodes.get(0).getNamespaceURI(), newNodeName);
 		addChildNodes(parentNode, newNodes);
 	}
 

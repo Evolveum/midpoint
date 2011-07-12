@@ -27,10 +27,6 @@ import static junit.framework.Assert.assertNotNull;
 
 import java.io.File;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
@@ -38,115 +34,117 @@ import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 
 /**
- *
+ * 
  * @author Igor Farinic
  */
 public class DiffPatchTest {
 
-    public DiffPatchTest() {
-    }
+	@Test
+	public void testDiffPatchAccount() throws Exception {
+		ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File(
+				"src/test/resources/account-old.xml"), new File("src/test/resources/account-new.xml"));
+		assertNotNull(changes);
+		assertEquals(5, changes.getPropertyModification().size());
+		assertEquals("12345", changes.getOid());
 
-    @BeforeClass
-    public static void setUpClass() throws Exception {
-    }
+		String patchedXml = (new PatchXml()).applyDifferences(changes, new File(
+				"src/test/resources/account-old.xml"));
+		XmlAsserts.assertPatch(new File("src/test/resources/account-new.xml"), patchedXml);
+	}
 
-    @AfterClass
-    public static void tearDownClass() throws Exception {
-    }
+	@Test
+	public void testDiffPatchAccountWithResourceSchemaHandlingConfiguration() throws Exception {
+		ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File(
+				"src/test/resources/account-full-old.xml"), new File(
+				"src/test/resources/account-full-new.xml"));
+		assertNotNull(changes);
+		assertEquals(5, changes.getPropertyModification().size());
+		assertEquals("12345", changes.getOid());
 
-    @Before
-    public void setUp() {
-    }
+		String patchedXml = (new PatchXml()).applyDifferences(changes, new File(
+				"src/test/resources/account-full-old.xml"));
+		XmlAsserts.assertPatch(new File("src/test/resources/account-full-new.xml"), patchedXml);
+	}
 
-    @After
-    public void tearDown() {
-    }
+	@Test
+	public void testDiffPatchUser() throws Exception {
+		ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File(
+				"src/test/resources/user-old.xml"), new File("src/test/resources/user-new.xml"));
+		assertNotNull(changes);
+		assertEquals(6, changes.getPropertyModification().size());
+		assertEquals("007", changes.getOid());
 
-    @Test
-    public void testDiffPatchAccount() throws Exception {
-        ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File("src/test/resources/account-old.xml"), new File("src/test/resources/account-new.xml"));
-        assertNotNull(changes);
-        assertEquals(5, changes.getPropertyModification().size());
-        assertEquals("12345", changes.getOid());
+		String patchedXml = (new PatchXml()).applyDifferences(changes, new File(
+				"src/test/resources/user-old.xml"));
+		XmlAsserts.assertPatch(new File("src/test/resources/user-new.xml"), patchedXml);
+	}
 
-        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/account-old.xml"));
-        XmlAsserts.assertPatch(new File("src/test/resources/account-new.xml"), patchedXml);
-    }
+	@Test
+	public void testDiffPatchUserExtension() throws Exception {
+		ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File(
+				"src/test/resources/user-extension-old.xml"), new File(
+				"src/test/resources/user-extension-new.xml"));
+		assertNotNull(changes);
+		assertEquals(1, changes.getPropertyModification().size());
+		assertEquals("007", changes.getOid());
 
-    @Test
-    public void testDiffPatchAccountWithResourceSchemaHandlingConfiguration() throws Exception {
-        ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File("src/test/resources/account-full-old.xml"), new File("src/test/resources/account-full-new.xml"));
-        assertNotNull(changes);
-        assertEquals(5, changes.getPropertyModification().size());
-        assertEquals("12345", changes.getOid());
+		String patchedXml = (new PatchXml()).applyDifferences(changes, new File(
+				"src/test/resources/user-extension-old.xml"));
+		XmlAsserts.assertPatch(new File("src/test/resources/user-extension-new.xml"), patchedXml);
+	}
 
-        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/account-full-old.xml"));
-        XmlAsserts.assertPatch(new File("src/test/resources/account-full-new.xml"), patchedXml);
-    }
+	@Test
+	public void testDiffPatchResource() throws Exception {
+		ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File(
+				"src/test/resources/resource-old.xml"), new File("src/test/resources/resource-new.xml"));
+		assertNotNull(changes);
+		assertEquals(1, changes.getPropertyModification().size());
+		assertEquals("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", changes.getOid());
 
-    @Test
-    public void testDiffPatchUser() throws Exception {
-        ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File("src/test/resources/user-old.xml"), new File("src/test/resources/user-new.xml"));
-        assertNotNull(changes);
-        assertEquals(6, changes.getPropertyModification().size());
-        assertEquals("007", changes.getOid());
+		String patchedXml = (new PatchXml()).applyDifferences(changes, new File(
+				"src/test/resources/resource-old.xml"));
+		XmlAsserts.assertPatch(new File("src/test/resources/resource-new.xml"), patchedXml);
+	}
 
-        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/user-old.xml"));
-        XmlAsserts.assertPatch(new File("src/test/resources/user-new.xml"), patchedXml);
-    }
+	@Test
+	public void testDiffPatchAdvancedResource() throws Exception {
+		ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File(
+				"src/test/resources/resource-advanced-old.xml"), new File(
+				"src/test/resources/resource-advanced-new.xml"));
+		assertNotNull(changes);
+		assertEquals(1, changes.getPropertyModification().size());
+		assertEquals("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", changes.getOid());
 
-    @Test
-    public void testDiffPatchUserExtension() throws Exception {
-        ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File("src/test/resources/user-extension-old.xml"), new File("src/test/resources/user-extension-new.xml"));
-        assertNotNull(changes);
-        assertEquals(1, changes.getPropertyModification().size());
-        assertEquals("007", changes.getOid());
+		String patchedXml = (new PatchXml()).applyDifferences(changes, new File(
+				"src/test/resources/resource-advanced-old.xml"));
+		XmlAsserts.assertPatch(new File("src/test/resources/resource-advanced-new.xml"), patchedXml);
+	}
 
-        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/user-extension-old.xml"));
-        XmlAsserts.assertPatch(new File("src/test/resources/user-extension-new.xml"), patchedXml);
-    }
+	@Test
+	public void testDiffPatchResourceSchemaHandling() throws Exception {
+		ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File(
+				"src/test/resources/resource-schemahandling-old.xml"), new File(
+				"src/test/resources/resource-schemahandling-new.xml"));
+		assertNotNull(changes);
+		assertEquals(1, changes.getPropertyModification().size());
+		assertEquals("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", changes.getOid());
 
-    @Test
-    public void testDiffPatchResource() throws Exception {
-        ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File("src/test/resources/resource-old.xml"), new File("src/test/resources/resource-new.xml"));
-        assertNotNull(changes);
-        assertEquals(1, changes.getPropertyModification().size());
-        assertEquals("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", changes.getOid());
+		String patchedXml = (new PatchXml()).applyDifferences(changes, new File(
+				"src/test/resources/resource-schemahandling-old.xml"));
+		XmlAsserts.assertPatch(new File("src/test/resources/resource-schemahandling-new.xml"), patchedXml);
+	}
 
-        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/resource-old.xml"));
-        XmlAsserts.assertPatch(new File("src/test/resources/resource-new.xml"), patchedXml);
-    }
+	@Test
+	public void testDiffPatchUserCredentials() throws Exception {
+		ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File(
+				"src/test/resources/user-credentials-old.xml"), new File(
+				"src/test/resources/user-credentials-new.xml"));
+		assertNotNull(changes);
+		assertEquals(2, changes.getPropertyModification().size());
+		assertEquals("d7f1f990-b1fc-4001-9003-2106bd289c5b", changes.getOid());
 
-    @Test
-    public void testDiffPatchAdvancedResource() throws Exception {
-        ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File("src/test/resources/resource-advanced-old.xml"), new File("src/test/resources/resource-advanced-new.xml"));
-        assertNotNull(changes);
-        assertEquals(1, changes.getPropertyModification().size());
-        assertEquals("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", changes.getOid());
-
-        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/resource-advanced-old.xml"));
-        XmlAsserts.assertPatch(new File("src/test/resources/resource-advanced-new.xml"), patchedXml);
-    }
-
-    @Test
-    public void testDiffPatchResourceSchemaHandling() throws Exception {
-        ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File("src/test/resources/resource-schemahandling-old.xml"), new File("src/test/resources/resource-schemahandling-new.xml"));
-        assertNotNull(changes);
-        assertEquals(1, changes.getPropertyModification().size());
-        assertEquals("ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2", changes.getOid());
-
-        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/resource-schemahandling-old.xml"));
-        XmlAsserts.assertPatch(new File("src/test/resources/resource-schemahandling-new.xml"), patchedXml);
-    }
-
-    @Test
-    public void testDiffPatchUserCredentials() throws Exception {
-        ObjectModificationType changes = CalculateXmlDiff.calculateChanges(new File("src/test/resources/user-credentials-old.xml"), new File("src/test/resources/user-credentials-new.xml"));
-        assertNotNull(changes);
-        assertEquals(2, changes.getPropertyModification().size());
-        assertEquals("d7f1f990-b1fc-4001-9003-2106bd289c5b", changes.getOid());
-
-        String patchedXml = (new PatchXml()).applyDifferences(changes, new File("src/test/resources/user-credentials-old.xml"));
-        XmlAsserts.assertPatch(new File("src/test/resources/user-credentials-new.xml"), patchedXml);
-    }
+		String patchedXml = (new PatchXml()).applyDifferences(changes, new File(
+				"src/test/resources/user-credentials-old.xml"));
+		XmlAsserts.assertPatch(new File("src/test/resources/user-credentials-new.xml"), patchedXml);
+	}
 }
