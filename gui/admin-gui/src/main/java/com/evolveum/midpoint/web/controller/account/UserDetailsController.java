@@ -46,8 +46,6 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
-import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
@@ -75,7 +73,6 @@ import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -164,27 +161,17 @@ public class UserDetailsController implements Serializable {
 
 		// we are going to work with user details, we will get it's fresh
 		// version from model because we need resolved accountRefs to accounts
-		if (user != null) {
-			try {
-//				UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
-//
-//				PropertyReferenceListType resolve = new PropertyReferenceListType();
-//				resolve.getProperty().add(Utils.fillPropertyReference("Account"));
-//
-//				this.user = (GuiUserDto) userManager.get(user.getOid(), resolve);
-				this.user = user;
-				System.out.println(JAXBUtil.silentMarshalWrap(this.user.getXmlObject()));
+		try {
+			this.user = user;
 
+			if (this.user != null) {
 				accountList = createFormBeanList(this.user.getAccount(), false);
 				getAvailableResourceList().clear();
 				availableResourceList = createResourceList(this.user.getAccount());
-			} catch (Exception ex) {
-				LoggingUtils.logException(TRACE, "Couldn't create account list for user {}", ex,
-						user.getName());
-				FacesUtils.addErrorMessage("Couldn't create account list for user.", ex);
 			}
-		} else {
-			this.user = null;
+		} catch (Exception ex) {
+			LoggingUtils.logException(TRACE, "Couldn't create account list for user {}", ex, user.getName());
+			FacesUtils.addErrorMessage("Couldn't create account list for user.", ex);
 		}
 	}
 

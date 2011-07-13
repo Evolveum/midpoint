@@ -36,6 +36,7 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.bean.ResourceState;
@@ -195,41 +196,44 @@ public class ControllerUtil {
 		return (SystemConfigurationManager) (manager);
 	}
 
-	public static void updateResourceState(ResourceState state, ResourceTestResultType result) {
-		ExtraTest extra = result.getExtraTest();
-		if (extra != null) {
-			state.setExtraName(extra.getName());
-			state.setExtra(getStatusFromResultType(extra.getResult()));
-		}
-		state.setConConnection(getStatusFromResultType(result.getConnectorConnection()));
-		state.setConfValidation(getStatusFromResultType(result.getConfigurationValidation()));
-		state.setConInitialization(getStatusFromResultType(result.getConnectorInitialization()));
-		state.setConSanity(getStatusFromResultType(result.getConnectorSanity()));
-		state.setConSchema(getStatusFromResultType(result.getConnectorSchema()));
+	public static void updateResourceState(ResourceState state, OperationResult result) {
+		Validate.notNull(result, "Operation result must not be null.");
+		List<OperationResult> subResults = result.getSubresults();
+
+		state.setExtraName("Unknown (todo: fix)");
+		state.setExtra(getStatusFromResultType(ConnectorTestOperation.EXTRA_TEST, subResults));
+		state.setConConnection(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_CONNECTION,
+				subResults));
+		state.setConfValidation(getStatusFromResultType(ConnectorTestOperation.CONFIGURATION_VALIDATION,
+				subResults));
+		state.setConInitialization(getStatusFromResultType(ConnectorTestOperation.CONNECTION_INITIALIZATION,
+				subResults));
+		state.setConSanity(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_SANITY, subResults));
+		state.setConSchema(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_SCHEMA, subResults));
 	}
 
-	private static ResourceStatus getStatusFromResultType(TestResultType result) {
-		if (result == null) {
-			return ResourceStatus.NOT_TESTED;
-		}
+	private static ResourceStatus getStatusFromResultType(ConnectorTestOperation operation,
+			List<OperationResult> results) {
+		ResourceStatus status = ResourceStatus.NOT_TESTED;
 
-		ResourceStatus status = result.isSuccess() ? ResourceStatus.SUCCESS : ResourceStatus.ERROR;
+//TODO: get resource status from operation result
+//		status = result.isSuccess() ? ResourceStatus.SUCCESS : ResourceStatus.ERROR;
 
-		List<JAXBElement<DiagnosticsMessageType>> messages = result.getErrorOrWarning();
-		for (JAXBElement<DiagnosticsMessageType> element : messages) {
-			DiagnosticsMessageType message = element.getValue();
-			StringBuilder builder = new StringBuilder();
-			builder.append(message.getMessage());
-			if (!StringUtils.isEmpty(message.getDetails())) {
-				builder.append("Reason: ");
-				builder.append(message.getDetails());
-			}
-			if (message.getTimestamp() != null) {
-				builder.append("Time: ");
-				builder.append(message.getTimestamp().toGregorianCalendar().getTime());
-			}
-			FacesUtils.addErrorMessage(builder.toString());
-		}
+//		List<JAXBElement<DiagnosticsMessageType>> messages = result.getErrorOrWarning();
+//		for (JAXBElement<DiagnosticsMessageType> element : messages) {
+//			DiagnosticsMessageType message = element.getValue();
+//			StringBuilder builder = new StringBuilder();
+//			builder.append(message.getMessage());
+//			if (!StringUtils.isEmpty(message.getDetails())) {
+//				builder.append("Reason: ");
+//				builder.append(message.getDetails());
+//			}
+//			if (message.getTimestamp() != null) {
+//				builder.append("Time: ");
+//				builder.append(message.getTimestamp().toGregorianCalendar().getTime());
+//			}
+//			FacesUtils.addErrorMessage(builder.toString());
+//		}
 
 		return status;
 	}

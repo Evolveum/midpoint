@@ -142,7 +142,7 @@ public class ResourceTypeManager extends ResourceManager {
 		}
 
 		printResults(LOGGER, result);
-		LOGGER.error("***RESOURCE TEST CONNECTION IS BROKEN, WE'RE NOT USING RESOUCE "
+		LOGGER.error("REMOVE WHEN FIXED: ***RESOURCE TEST CONNECTION IS BROKEN, WE'RE NOT USING RESOUCE "
 				+ "TEST TYPE BUT OPERATION RESULT AS RETURN VALUE.***");
 		return result;
 	}

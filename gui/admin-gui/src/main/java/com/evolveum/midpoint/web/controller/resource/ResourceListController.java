@@ -33,9 +33,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
@@ -56,7 +53,6 @@ import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.ResourceItemComparator;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
@@ -176,9 +172,9 @@ public class ResourceListController extends SortableListController<ResourceListI
 
 		try {
 			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
-			// TODO: rework test connection
+
 			OperationResult result = manager.testConnection(resource.getOid());
-			// ControllerUtil.updateResourceState(resource.getState(), result);
+			ControllerUtil.updateResourceState(resource.getState(), result);
 		} catch (Exception ex) {
 			LoggingUtils.logException(TRACE, "Couldn't test resource {}", ex, resource.getName());
 			FacesUtils.addErrorMessage("Couldn't test resource '" + resource.getName() + "'.", ex);

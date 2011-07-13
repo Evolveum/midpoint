@@ -85,9 +85,9 @@ public class ResourceDetailsController implements Serializable {
 
 		try {
 			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
-			// TODO: rework test connection
+
 			OperationResult result = manager.testConnection(resource.getOid());
-			// ControllerUtil.updateResourceState(resource.getState(), result);
+			ControllerUtil.updateResourceState(resource.getState(), result);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't test resource {}", ex, resource.getName());
 			FacesUtils.addErrorMessage("Couldn't test resource '" + resource.getName() + "'.", ex);
