@@ -538,10 +538,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Token deserializeToken(String serializedToken) {
-		// Token token = new TokenImpl(serializedToken);
-		// return token;
-		throw new UnsupportedOperationException("Not supported yet.");
+	public Property deserializeToken(Object serializedToken) {
+		return createTokenProperty(serializedToken);
 	}
 
 	@Override
@@ -962,6 +960,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	private Property getToken(SyncToken syncToken) {
 		Object object = syncToken.getValue();
+		return createTokenProperty(object);
+	}
+	
+	private Property createTokenProperty(Object object){
 		QName type = XsdTypeConverter.toXsdType(object.getClass());
 
 		Set<Object> objs = new HashSet<Object>();

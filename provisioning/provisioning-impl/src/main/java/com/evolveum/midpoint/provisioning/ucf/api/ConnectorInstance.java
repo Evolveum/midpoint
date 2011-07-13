@@ -186,7 +186,7 @@ public interface ConnectorInstance {
 	 * @param serializedToken
 	 * @return
 	 */
-	public Token deserializeToken(String serializedToken);
+	public Property deserializeToken(Object serializedToken);
 	
 	/**
 	 * Returns the latest token. In other words, returns a token that
