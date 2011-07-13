@@ -21,8 +21,8 @@
 package com.evolveum.midpoint.model.controller;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -200,15 +200,67 @@ public class SchemaHandlerImplTest {
 	@SuppressWarnings("unchecked")
 	public void testApplyInboundSchemaHandlingOnEmptyUserExtension() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-		"src/test/resources/account-xpath-evaluation-extension.xml"))).getValue();
-		
+				"src/test/resources/account-xpath-evaluation-extension.xml"))).getValue();
+
 		OperationResult result = new OperationResult("testApplyInboundSchemaHandlingOnEmptyUserExtension");
-		UserType appliedUser = handler.processInboundHandling(new UserType(),
-				account, result);
+		UserType appliedUser = handler.processInboundHandling(new UserType(), account, result);
 		LOGGER.info(result.debugDump());
-				
+
 		assertNotNull(appliedUser.getExtension());
 		assertEquals("MikeFromExtension", appliedUser.getExtension().getAny().get(0).getTextContent());
 		assertEquals("DudikoffFromExtension", appliedUser.getExtension().getAny().get(1).getTextContent());
 	}
+
+	// @Test
+	// @SuppressWarnings("unchecked")
+	// public void testConfirmUser() throws Exception {
+	// JAXBElement<AccountShadowType> accountJaxb =
+	// (JAXBElement<AccountShadowType>) JAXBUtil
+	// .unmarshal(new File("src/test/resources/account-xpath-evaluation.xml"));
+	// JAXBElement<UserType> userJaxb = (JAXBElement<UserType>)
+	// JAXBUtil.unmarshal(new File(
+	// "src/test/resources/user-new.xml"));
+	// Document doc = DOMUtil
+	// .parseDocument("<confirmation xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' xmlns:dj='http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ'>$c:user/c:givenName = $c:account/c:attributes/dj:givenName</confirmation>");
+	// Element domElement = (Element) doc.getFirstChild();
+	// ExpressionHolder expressionHolder = new ExpressionHolder(domElement);
+	// boolean confirmed = schemaHandling.confirmUser(userJaxb.getValue(),
+	// accountJaxb.getValue(),
+	// expressionHolder);
+	// assertTrue(confirmed);
+	// }
+	//
+	// @Test
+	// @SuppressWarnings("unchecked")
+	// public void testEvaluateCorrelationExpression() throws Exception {
+	// JAXBElement<AccountShadowType> accountJaxb =
+	// (JAXBElement<AccountShadowType>) JAXBUtil
+	// .unmarshal(new File("src/test/resources/account-xpath-evaluation.xml"));
+	// Document doc = DOMUtil
+	// .parseDocument("<c:valueExpression ref='c:familyName' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' xmlns:dj='http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ'>$c:account/c:attributes/dj:givenName</c:valueExpression>");
+	// Element domElement = (Element) doc.getFirstChild();
+	// ExpressionHolder expressionHolder = new ExpressionHolder(domElement);
+	// String evaluatedExpression =
+	// schemaHandling.evaluateCorrelationExpression(accountJaxb.getValue(),
+	// expressionHolder);
+	// assertEquals("James Jr.", evaluatedExpression);
+	// }
+	//
+	// @Test
+	// @SuppressWarnings("unchecked")
+	// public void testApplyUserTemplate() throws Exception {
+	// JAXBElement<AccountShadowType> accountJaxb =
+	// (JAXBElement<AccountShadowType>) JAXBUtil
+	// .unmarshal(new File("src/test/resources/account-user-template.xml"));
+	// UserType appliedUser =
+	// schemaHandling.applyInboundSchemaHandlingOnUser(new UserType(),
+	// accountJaxb.getValue());
+	//
+	// JAXBElement<UserTemplateType> userTemplate =
+	// (JAXBElement<UserTemplateType>) JAXBUtil
+	// .unmarshal(new File("src/test/resources/user-template.xml"));
+	// UserType finalAppliedUser = schemaHandling.applyUserTemplate(appliedUser,
+	// userTemplate.getValue());
+	// assertEquals("jan prvy", finalAppliedUser.getFullName());
+	// }
 }
