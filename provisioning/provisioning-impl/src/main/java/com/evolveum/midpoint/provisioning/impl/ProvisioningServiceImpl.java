@@ -188,8 +188,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ObjectNotFoundException {
 		// TODO
 
-		Validate.notNull(object);
-		
 		LOGGER.debug("**PROVISIONING: Start to add object {}", object);
 		
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()

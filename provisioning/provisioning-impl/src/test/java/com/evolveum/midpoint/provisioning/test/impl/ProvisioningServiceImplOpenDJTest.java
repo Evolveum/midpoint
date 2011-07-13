@@ -379,6 +379,40 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		}
 	}
 
+	
+	@Test
+	public void testAddObjectNull() throws Exception {
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".addObjectTest");
+
+		String addedObjectOid = null;
+		
+		try {
+		
+			addedObjectOid = provisioningService.addObject(null, null, result);
+			fail("Expected IllegalArgumentException but haven't got one.");
+		} catch(IllegalArgumentException ex){
+			assertEquals("Object to add must not be null.", ex.getMessage());
+			assertNull(addedObjectOid);
+		} finally {
+			try {
+				repositoryService.deleteObject(ACCOUNT1_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+			} catch (Exception ex) {
+			}
+
+		}
+	}
+
+	
 	@Test
 	public void testDeleteObject() throws Exception {
 
