@@ -30,8 +30,8 @@ import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.controller.SchemaHandlerException;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.model.xpath.SchemaHandlingException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -86,7 +86,7 @@ public class ModifyUserAction extends BaseAction {
 				resolveResource(shadowAfterChange);
 			}
 
-			userType = getSchemaHandling().applyInboundSchemaHandlingOnUser(userType, shadowAfterChange);
+			userType = getSchemaHandler().processInboundHandling(userType, shadowAfterChange, result);
 
 			ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
 			if (modification != null && modification.getOid() != null) {
@@ -95,7 +95,7 @@ public class ModifyUserAction extends BaseAction {
 				LOGGER.warn("Diff returned null for changes of user {}, caused by shadow {}",
 						userType.getOid(), shadowAfterChange.getOid());
 			}
-		} catch (SchemaHandlingException ex) {
+		} catch (SchemaHandlerException ex) {
 			throw new SynchronizationException("Can't handle inbound section in schema handling", ex);
 		} catch (DiffException ex) {
 			throw new SynchronizationException("Can't save user. Unexpected error: "

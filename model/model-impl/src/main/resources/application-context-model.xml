@@ -101,8 +101,8 @@
         <property name="model" >
             <ref bean="modelController"/>
         </property>
-        <property name="schemaHandling" >
-            <ref bean="schemaHandling"/>
+        <property name="schemaHandler" >
+            <ref bean="schemaHandler"/>
         </property>
     </bean>
 

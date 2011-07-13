@@ -88,7 +88,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  * @author lazyman
  * 
  */
-@Component
+@Component("schemaHandler")
 public class SchemaHandlerImpl implements SchemaHandler {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlerImpl.class);

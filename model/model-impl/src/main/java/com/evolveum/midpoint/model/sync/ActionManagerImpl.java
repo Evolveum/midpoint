@@ -30,8 +30,8 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.controller.SchemaHandler;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
-import com.evolveum.midpoint.model.xpath.SchemaHandling;
 
 /**
  * 
@@ -43,7 +43,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 	private static transient Trace trace = TraceManager.getTrace(ActionManagerImpl.class);
 	private Map<String, Class<T>> actionMap;
 	private ModelController model;
-	private SchemaHandling schemaHandling;
+	private SchemaHandler schemaHandler;
 
 	@Override
 	public void setActionMapping(Map<String, Class<T>> actionMap) {
@@ -63,7 +63,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 		try {
 			action = clazz.newInstance();
 			((BaseAction) action).setModel(model);
-			((BaseAction) action).setSchemaHandling(schemaHandling);
+			((BaseAction) action).setSchemaHandler(schemaHandler);
 		} catch (Exception ex) {
 			LoggingUtils.logException(trace, "Couln't create action instance", ex);
 		}
@@ -75,7 +75,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 		this.model = model;
 	}
 
-	public void setSchemaHandling(SchemaHandling schemaHandling) {
-		this.schemaHandling = schemaHandling;
+	public void setSchemaHandler(SchemaHandler schemaHandler) {
+		this.schemaHandler = schemaHandler;
 	}
 }

@@ -30,9 +30,9 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.controller.SchemaHandler;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public abstract class BaseAction implements Action {
 
 	private ModelController model;
-	private SchemaHandling schemaHandling;
+	private SchemaHandler schemaHandler;
 	private List<Object> parameters;
 
 	@Override
@@ -100,11 +100,11 @@ public abstract class BaseAction implements Action {
 		return model;
 	}
 
-	protected SchemaHandling getSchemaHandling() {
-		return schemaHandling;
+	protected SchemaHandler getSchemaHandler() {
+		return schemaHandler;
 	}
 
-	public void setSchemaHandling(SchemaHandling schemaHandling) {
-		this.schemaHandling = schemaHandling;
+	public void setSchemaHandler(SchemaHandler schemaHandler) {
+		this.schemaHandler = schemaHandler;
 	}
 }

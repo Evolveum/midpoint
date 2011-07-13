@@ -29,8 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.controller.SchemaHandler;
 import com.evolveum.midpoint.model.sync.Action;
-import com.evolveum.midpoint.model.xpath.SchemaHandling;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
@@ -55,13 +55,13 @@ public abstract class BaseActionTest {
 	@Autowired(required = true)
 	protected RepositoryService repository;
 	@Autowired(required = true)
-	protected SchemaHandling schemaHandling;
+	protected SchemaHandler schemaHandler;
 
 	protected void before(Action action) {
 		this.action = action;
 		BaseAction base = (BaseAction) this.action;
 		base.setModel(controller);
-		base.setSchemaHandling(schemaHandling);
+		base.setSchemaHandler(schemaHandler);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
