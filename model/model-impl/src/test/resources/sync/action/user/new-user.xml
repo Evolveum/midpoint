@@ -20,10 +20,8 @@
 <!-- Portions Copyrighted 2011 lazyman 						 -->
 <!--                                                         -->
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-	<!-- FINISH THIS -->
-	<!-- <name>johny</name>
-	<fullName>Jan Prvy</fullName>
-	<givenName>Jan</givenName>
-	<familyName>Prvy</familyName>
-	<honorificSuffix>007</honorificSuffix> -->
+	<name>will</name>
+	<fullName>Will Turner</fullName>
+	<givenName>Will</givenName>
+	<familyName>Turner</familyName>	
 </user>

@@ -37,6 +37,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.XPathUtil;
+import com.evolveum.midpoint.common.XmlUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -67,14 +69,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType.Value;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.VariableDefinitionType;
 import com.evolveum.midpoint.xml.schema.ExpressionHolder;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.schema.ValueAssignmentHolder;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
 
@@ -100,22 +105,70 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		return expressionHandler;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
-	public ObjectModificationType processInboundHandling(UserType user,
-			ResourceObjectShadowType resourceObjectShadow, OperationResult result)
-			throws SchemaHandlerException {
+	public UserType processInboundHandling(UserType user, ResourceObjectShadowType resourceObjectShadow,
+			OperationResult result) throws SchemaHandlerException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(resourceObjectShadow, "Resource object shadow must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 		LOGGER.debug("Processing inbound handling for user {} with oid {} and resource object shadow {}.",
 				new Object[] { user.getName(), user.getOid(), resourceObjectShadow.getName() });
 
-		ObjectModificationType changes = new ObjectModificationType();
-		changes.setOid(user.getOid());
+		Element domUser = null;
+		try {
+			domUser = JAXBUtil.objectTypeToDom(user, null);
+		} catch (JAXBException ex) {
+			throw new SchemaHandlerException(ex.getMessage(), ex);
+		}
 
-		// TODO: implement
+		OperationResult subResult = new OperationResult("Process Inbound Handling");
+		result.addSubresult(subResult);
 
-		return changes;
+		// ObjectModificationType changes = new ObjectModificationType();
+		// changes.setOid(user.getOid());
+
+		ResourceType resource = resolveResource(resourceObjectShadow, result);
+		AccountType accountType = ModelUtils.getAccountTypeFromHandling(resourceObjectShadow, resource);
+		if (accountType == null) {
+			subResult.recordWarning("Account type in schema handling was not found for shadow type '"
+					+ resourceObjectShadow.getObjectClass() + "'.");
+			return user;
+			// return changes;
+		}
+		ResourceObjectDefinition objectDefinition = getResourceObjectDefinition(resource,
+				resourceObjectShadow);
+		if (objectDefinition == null) {
+			subResult.recordWarning("Resource object definition was not found for shadow type '"
+					+ resourceObjectShadow.getObjectClass() + "'");
+			return user;
+			// return changes;
+		}
+
+		Map<QName, Variable> variables = getDefaultXPathVariables(user, resourceObjectShadow, resource);
+		for (AttributeDescriptionType attribute : accountType.getAttribute()) {
+			ResourceObjectAttributeDefinition definition = objectDefinition.findAttributeDefinition(attribute
+					.getRef());
+			if (definition != null) {
+				domUser = (Element) processInboundAttribute(attribute, variables, resourceObjectShadow,
+						domUser, user, subResult);
+			} else {
+				LOGGER.debug("Attribute {} defined in schema handling is not defined in the resource {}. "
+						+ "Attribute was not processed",
+						new Object[] { attribute.getRef(), resource.getName() });
+			}
+		}
+
+		try {
+			JAXBElement<UserType> jaxbUser = (JAXBElement<UserType>) JAXBUtil.unmarshal(DOMUtil
+					.serializeDOMToString(domUser));
+			user = jaxbUser.getValue();
+		} catch (JAXBException ex) {
+			throw new SchemaHandlerException(ex.getMessage(), ex);
+		}
+
+		return user;
+		// return changes;
 	}
 
 	@Override
@@ -140,7 +193,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		ObjectModificationType changes = new ObjectModificationType();
 		changes.setOid(resourceObjectShadow.getOid());
 
-		ResourceType resource = resolveResource(resourceObjectShadow, result);
+		ResourceType resource = resolveResource(resourceObjectShadow, subResult);
 		AccountType accountType = ModelUtils.getAccountTypeFromHandling(resourceObjectShadow, resource);
 		if (accountType == null) {
 			subResult.recordWarning("Account type in schema handling was not found for shadow type '"
@@ -170,6 +223,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			changes.getPropertyModification().addAll(
 					processOutboundAttribute(attribute, variables, resourceObjectShadow));
 		}
+		subResult.recordSuccess();
 
 		return changes;
 	}
@@ -180,9 +234,16 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		try {
 			ObjectFactory of = new ObjectFactory();
 			if (user != null) {
+				// Following code is wrong, but it works
 				JAXBElement<ObjectType> userJaxb = of.createObject(user);
-				Element userEl = JAXBUtil.objectTypeToDom(userJaxb.getValue(), null);
-				variables.put(SchemaConstants.I_USER, new Variable(userEl, false));
+				Document userDoc = DOMUtil.parseDocument(JAXBUtil.marshal(userJaxb));
+				variables.put(SchemaConstants.I_USER, new Variable(userDoc.getFirstChild(), false));
+
+				// JAXBElement<ObjectType> userJaxb = of.createObject(user);
+				// Element userEl =
+				// JAXBUtil.objectTypeToDom(userJaxb.getValue(), null);
+				// variables.put(SchemaConstants.I_USER, new Variable(userEl,
+				// false));
 			}
 
 			if (shadow != null) {
@@ -385,7 +446,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		List<XPathSegment> segments = new ArrayList<XPathSegment>();
 		segments.add(new XPathSegment(SchemaConstants.I_ATTRIBUTES));
 		segments.add(new XPathSegment(attributeName));
-		
+
 		return new XPathType(segments);
 	}
 
@@ -432,7 +493,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		}
 
 		List<XPathSegment> segments = new ArrayList<XPathSegment>();
-//		segments.add(new XPathSegment(SchemaConstants.C_OBJECT));
+		// segments.add(new XPathSegment(SchemaConstants.C_OBJECT));
 		segments.add(new XPathSegment(SchemaConstants.I_ATTRIBUTES));
 		XPathType xpathType = new XPathType(segments);
 
@@ -478,5 +539,237 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		element.setTextContent(value);
 
 		return element;
+	}
+
+	private List<ValueAssignmentHolder> getInbound(AttributeDescriptionType attribute) {
+		List<ValueAssignmentHolder> holders = new ArrayList<ValueAssignmentHolder>();
+		if (attribute.getInbound() == null) {
+			return holders;
+		}
+
+		for (Element element : attribute.getInbound()) {
+			holders.add(new ValueAssignmentHolder(element));
+		}
+
+		return holders;
+	}
+
+	private Node processInboundAttribute(AttributeDescriptionType attribute, Map<QName, Variable> variables,
+			ResourceObjectShadowType resourceObjectShadow, Node domUser, UserType user, OperationResult result)
+			throws SchemaHandlerException {
+
+		QName attributeName = attribute.getRef();
+		LOGGER.trace("Start inbound processing of attribute handling for attribute {}",
+				new Object[] { attributeName });
+
+		List<ValueAssignmentHolder> inbounds = getInbound(attribute);
+		if (inbounds.isEmpty()) {
+			LOGGER.trace("Finished inbound processing for attribute {}, nothing to process",
+					new Object[] { attributeName });
+			return domUser;
+		}
+
+		OperationResult subResult;
+		for (ValueAssignmentHolder inbound : inbounds) {
+			subResult = result.createSubresult("Process Inbound");
+			if (null != inbound.getSource()) {
+				subResult.recordWarning("Inbound attribute where source is not null is not supported yet.");
+				continue;
+			}
+
+			List<ValueFilterType> filters = inbound.getFilter();
+			XPathType xpathType = inbound.getTarget();
+			NodeList matchedNodes;
+			try {
+				matchedNodes = new XPathUtil().matchedNodesByXPath(xpathType, variables, domUser);
+			} catch (XPathExpressionException ex) {
+				throw new SchemaHandlerException(ex.getMessage(), ex);
+			}
+
+			// I. extract new nodesAttributesFromAccountShadow with values from
+			// accountShadow
+			List<Element> nodesAttributesFromAccountShadow = extractAttributeValuesFromShadow(
+					resourceObjectShadow, attribute);
+
+			Node parentNode;
+			QName userPropertyQName;
+			if (matchedNodes.getLength() == 0) {
+				// if the value does not exists
+				LOGGER.debug(
+						"No nodes were matched by xpath {} in context of namespaces {} and variables {}",
+						new Object[] { xpathType.getXPath(), xpathType.getNamespaceMap(), variables });
+				// if no matches found, then we will search for the parent of
+				// the element and add new node to it
+
+				XPathType parentXpath = constructParentXpath(xpathType);
+				try {
+					matchedNodes = new XPathUtil().matchedNodesByXPath(parentXpath, variables, domUser);
+					parentNode = matchedNodes.item(0);
+
+					if (null == parentNode) {
+						// if there is no extension section at all and we have
+						// extension attributes then we will create it
+						List<XPathSegment> segments = parentXpath.toSegments();
+						XPathType relativeParentXPath = null;
+						// if first element in the xpath is variable, we assume
+						// it is referencing the doc and we will replace it
+						if (segments != null && !segments.isEmpty() && segments.get(0).isVariable()) {
+							// we will remove the segment, because
+							// DOMUtil.createNodesDefinedByXPath expects
+							// relative xpath
+							relativeParentXPath = new XPathType(segments.subList(1, segments.size()));
+							Document doc = DOMUtil.getDocument();
+							doc.adoptNode(domUser);
+							doc.appendChild(domUser);
+							XPathUtil.createNodesDefinedByXPath(doc, relativeParentXPath);
+							domUser = doc.getFirstChild();
+							Validate.notNull(domUser, "null value assigned to domUser");
+							variables.put(SchemaConstants.I_USER, new Variable(domUser, false));
+							matchedNodes = new XPathUtil().matchedNodesByXPath(parentXpath, variables,
+									domUser);
+						}
+					}
+				} catch (XPathExpressionException ex) {
+					throw new SchemaHandlerException(ex.getMessage(), ex);
+				}
+				parentNode = matchedNodes.item(0);
+				// TODO: reimplement
+				boolean wasEmpty = false;
+				if (null == parentNode) {
+					parentNode = domUser;
+					wasEmpty = true;
+				}
+				userPropertyQName = getUserPropertyQNameFromXPathType(xpathType);
+				// II. transform tag names from account's attribute to user tags
+				List<Element> newNodes = transformAccountAttributeToUserProperty(
+						nodesAttributesFromAccountShadow, userPropertyQName, filters);
+				// III.b set new values in transformed
+				// nodesAttributesFromAccountShadow to user
+				XmlUtil.addChildNodes(parentNode, newNodes);
+				// IV. set modified user
+				if (wasEmpty) {
+					domUser = parentNode;
+					Validate.notNull(domUser, "null value assigned to domUser");
+				} else {
+					domUser = parentNode.getOwnerDocument().getFirstChild();
+					Validate.notNull(domUser, "null value assigned to domUser");
+				}
+				LOGGER.debug(
+						"INBOUND: expression [attribute:{}] =(new)=> [user:{},path:{}] {}",
+						new Object[] { attribute.getName(), DebugUtil.prettyPrint(user), xpathType,
+								DebugUtil.prettyPrint(newNodes) });
+
+			} else {
+				userPropertyQName = new QName(matchedNodes.item(0).getNamespaceURI(), matchedNodes.item(0)
+						.getLocalName());
+				parentNode = matchedNodes.item(0).getParentNode();
+				Validate.notNull(parentNode, "parentNode is null");
+				// II. transform tag names from account's attribute to user tags
+				List<Element> newNodes = transformAccountAttributeToUserProperty(
+						nodesAttributesFromAccountShadow, userPropertyQName, filters);
+				// III.a replace values in transformed
+				// nodesAttributesFromAccountShadow to user
+				XmlUtil.replaceChildNodes(parentNode, newNodes);
+				// IV. set modified user
+				domUser = parentNode.getOwnerDocument().getDocumentElement();// getFirstChild();
+				LOGGER.debug(
+						"INBOUND: expression [attribute:{}] =(replace)=> [user:{}, path:{}] {}",
+						new Object[] { attribute.getName(), DebugUtil.prettyPrint(user), xpathType,
+								DebugUtil.prettyPrint(newNodes) });
+				Validate.notNull(domUser, "null value assigned to domUser");
+			}
+
+		}
+		LOGGER.trace("Finished inbound processing of attribute handling for attribute '{}'", attributeName);
+		// if (null != domUser) {
+		// domUser.normalize();
+		// }
+
+		return domUser;
+	}
+
+	private XPathType constructParentXpath(XPathType xpathType) {
+		List<XPathSegment> segments = xpathType.toSegments();
+		List<XPathSegment> parentSegments = new ArrayList<XPathSegment>();
+		parentSegments.addAll(segments.subList(0, segments.size() - 1));
+		XPathType parentXpath = new XPathType(parentSegments);
+
+		return parentXpath;
+	}
+
+	private List<Element> extractAttributeValuesFromShadow(ResourceObjectShadowType resourceObjectShadow,
+			AttributeDescriptionType attribute) {
+		List<Element> values = new ArrayList<Element>();
+		QName attributeName = attribute.getRef();
+		Attributes attributes = resourceObjectShadow.getAttributes();
+		if (attributes == null) {
+			return values;
+		}
+
+		for (Element attrElement : attributes.getAny()) {
+			if (StringUtils.equals(attributeName.getNamespaceURI(), attrElement.getNamespaceURI())
+					&& StringUtils.equals(attributeName.getLocalPart(), attrElement.getLocalName())) {
+				values.add(attrElement);
+			}
+		}
+
+		return values;
+	}
+
+	private List<Element> transformAccountAttributeToUserProperty(List<Element> nodes, QName propertyQName,
+			List<ValueFilterType> filters) throws DOMException {
+		Validate.notNull(nodes, "nodes are null");
+		Validate.notNull(propertyQName, "propertyQName are null");
+
+		List<Element> newNodes = new ArrayList<Element>();
+		Document doc = DOMUtil.getDocument();
+		for (Element element : nodes) {
+			Element transformedElement = doc.createElementNS(propertyQName.getNamespaceURI(),
+					propertyQName.getLocalPart());
+			// transformedElement.setPrefix("attr" + (new
+			// Random()).nextInt(Integer.MAX_VALUE));
+			if (StringUtils.isNotEmpty(propertyQName.getPrefix())) {
+				transformedElement.setPrefix(propertyQName.getPrefix());
+			} else {
+				transformedElement.setPrefix(propertyQName.getLocalPart());
+			}
+
+			Node valueNode = applyFilters(filters, element.getFirstChild());
+			if (null != valueNode) {
+				transformedElement.getOwnerDocument().adoptNode(valueNode);
+				transformedElement.appendChild(valueNode);
+			}
+			newNodes.add(transformedElement);
+		}
+		return newNodes;
+	}
+
+	private QName getUserPropertyQNameFromXPathType(XPathType xpathType) {
+		List<XPathSegment> segments = xpathType.toSegments();
+		XPathSegment lastSegment = segments.get(segments.size() - 1);
+		return lastSegment.getQName();
+	}
+
+	private Node applyFilters(List<ValueFilterType> filters, Node node) {
+		return node;
+
+		// if (null == filters || filters.isEmpty()) {
+		// // no filters defined return immediately
+		// LOGGER.trace("No filters defined");
+		// return node;
+		// }
+		//
+		// Node returnNode = node;
+		// for (ValueFilterType filterType : filters) {
+		// Filter filter = filterManager.getFilterInstance(filterType.getType(),
+		// filterType.getAny());
+		// if (null != filter) {
+		// returnNode = filter.apply(returnNode);
+		// } else {
+		// LOGGER.warn("Filter not found for uri {}", filterType.getType());
+		// }
+		// }
+		//
+		// return returnNode;
 	}
 }

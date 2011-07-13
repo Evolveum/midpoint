@@ -31,6 +31,8 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.controller.SchemaHandler;
+import com.evolveum.midpoint.model.controller.SchemaHandlerImpl;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -64,6 +66,9 @@ public class AddUserAction extends BaseAction {
 				user = new ObjectFactory().createUserType();
 				
 				//TODO: process inbound schema handling here
+				SchemaHandler schemaHandler = new SchemaHandlerImpl();
+				schemaHandler.setModel(getModel());
+				user = schemaHandler.processInboundHandling(user, shadowAfterChange, subResult);
 
 				UserTemplateType userTemplate = null;
 				String userTemplateOid = getUserTemplateOid();

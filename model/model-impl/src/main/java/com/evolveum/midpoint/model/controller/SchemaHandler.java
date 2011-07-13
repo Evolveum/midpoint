@@ -33,7 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public interface SchemaHandler {
 
-	ObjectModificationType processInboundHandling(UserType user,
+	//XXX: probably change return value to ObjectModificationType
+	UserType processInboundHandling(UserType user,
 			ResourceObjectShadowType resourceObjectShadow, OperationResult result)
 			throws SchemaHandlerException;
 

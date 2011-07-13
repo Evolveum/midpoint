@@ -162,13 +162,17 @@ public class AddUserActionTest extends BaseActionTest {
 				repository.getObject(eq(template.getOid()), any(PropertyReferenceListType.class),
 						any(OperationResult.class))).thenReturn(template);
 
+		when(
+				provisioning.getObject(eq(change.getResource().getOid()),
+						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+				change.getResource());
+
 		final String userOid = "2";
 		when(repository.addObject(any(UserType.class), any(OperationResult.class))).thenAnswer(
 				new Answer<String>() {
 					@Override
 					public String answer(InvocationOnMock invocation) throws Throwable {
 						UserType user = (UserType) invocation.getArguments()[0];
-						//TODO: finish test and new-user.xml
 						XmlAsserts.assertPatch(new File(TEST_FOLDER, "new-user.xml"),
 								JAXBUtil.marshalWrap(user, SchemaConstants.I_USER));
 
