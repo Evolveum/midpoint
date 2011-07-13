@@ -205,6 +205,10 @@ public class OperationResult implements Serializable {
 	public boolean isSuccess() {
 		return (status == OperationResultStatus.SUCCESS);
 	}
+	
+	public boolean isWarning() {
+		return status == OperationResultStatus.WARNING;
+	}
 
 	/**
 	 * Returns true if the result is acceptable for further processing.

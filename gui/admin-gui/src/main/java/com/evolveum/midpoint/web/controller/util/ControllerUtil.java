@@ -24,10 +24,8 @@ import java.util.List;
 
 import javax.faces.event.PhaseId;
 import javax.faces.event.ValueChangeEvent;
-import javax.xml.bind.JAXBElement;
 import javax.xml.ws.Holder;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -54,15 +52,11 @@ import com.evolveum.midpoint.web.model.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType.ExtraTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
@@ -216,24 +210,33 @@ public class ControllerUtil {
 			List<OperationResult> results) {
 		ResourceStatus status = ResourceStatus.NOT_TESTED;
 
-//TODO: get resource status from operation result
-//		status = result.isSuccess() ? ResourceStatus.SUCCESS : ResourceStatus.ERROR;
+		OperationResult resultFound = null;
+		for (OperationResult result : results) {
+			if (operation.equals(ConnectorTestOperation.valueOf(result.getOperation()))) {
+				resultFound = result;
+				break;
+			}
+		}
 
-//		List<JAXBElement<DiagnosticsMessageType>> messages = result.getErrorOrWarning();
-//		for (JAXBElement<DiagnosticsMessageType> element : messages) {
-//			DiagnosticsMessageType message = element.getValue();
-//			StringBuilder builder = new StringBuilder();
-//			builder.append(message.getMessage());
-//			if (!StringUtils.isEmpty(message.getDetails())) {
-//				builder.append("Reason: ");
-//				builder.append(message.getDetails());
-//			}
-//			if (message.getTimestamp() != null) {
-//				builder.append("Time: ");
-//				builder.append(message.getTimestamp().toGregorianCalendar().getTime());
-//			}
-//			FacesUtils.addErrorMessage(builder.toString());
-//		}
+		if (resultFound == null) {
+			return status;
+		}
+
+		switch (resultFound.getStatus()) {
+			case SUCCESS:
+				status = ResourceStatus.SUCCESS;
+				break;
+			case WARNING:
+				status = ResourceStatus.WARNING;
+				break;
+			case FATAL_ERROR:
+			case PARTIAL_ERROR:
+				status = ResourceStatus.ERROR;
+		}
+
+		if (!resultFound.isSuccess() && !resultFound.isUnknown()) {
+			FacesUtils.addErrorMessage(resultFound.getMessage());
+		}
 
 		return status;
 	}

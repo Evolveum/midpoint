@@ -27,25 +27,15 @@ package com.evolveum.midpoint.schema;
  */
 public enum ConnectorTestOperation {
 
-	CONFIGURATION_VALIDATION(""),
+	CONFIGURATION_VALIDATION,
 	
-	CONNECTION_INITIALIZATION(""),
+	CONNECTION_INITIALIZATION,
 	
-	CONNECTOR_CONNECTION(""),
+	CONNECTOR_CONNECTION,
 	
-	CONNECTOR_SANITY(""),
+	CONNECTOR_SANITY,
 	
-	CONNECTOR_SCHEMA(""),
+	CONNECTOR_SCHEMA,
 	
-	EXTRA_TEST("");
-	
-	private String localizationKey;
-	
-	private ConnectorTestOperation(String localizationKey) {
-		this.localizationKey = localizationKey;
-	}
-	
-	public String getLocalizationKey() {
-		return localizationKey;
-	}
+	EXTRA_TEST;
 }
