@@ -55,19 +55,6 @@
         <url>https://fisheye.evolveum.com/midpoint/</url>
     </scm>
     <!-- Special repository for scannotation -->
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>2.3.2</version>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
     <repositories>
         <repository>
             <id>evolveum</id>
@@ -153,7 +140,23 @@
             <artifactId>xsom</artifactId>
             <version>20100725</version>
         </dependency>
+ 
+        <!--https://jira.springsource.org/browse/ROO-181 -->
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>${spring.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- https://jira.springsource.org/browse/SPR-6819 -->
+        <dependency>
+          <groupId>javax.persistence</groupId>
+          <artifactId>persistence-api</artifactId>
+          <version>1.0</version>
+          <optional>true</optional>
+        </dependency>
+
+       <dependency>
             <groupId>org.forgerock.opendj</groupId>
             <artifactId>opendj</artifactId>
             <version>2.4.2</version>
@@ -227,4 +230,30 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+<build>
+<plugins>
+<plugin>
+    <groupId>org.codehaus.mojo</groupId>
+    <artifactId>aspectj-maven-plugin</artifactId>
+    <configuration>
+        <aspectLibraries>
+            <aspectLibrary>
+                        <groupId>com.evolveum.midpoint.infra</groupId>
+                        <artifactId>util</artifactId>
+            </aspectLibrary>
+        </aspectLibraries>
+    </configuration>
+    <executions>
+        <execution>
+            <goals>
+                <goal>compile</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+
+</plugins>
+</build>
+
 </project>

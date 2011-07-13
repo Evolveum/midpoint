@@ -33,6 +33,7 @@
 
     <context:annotation-config />
     <context:component-scan base-package="com.evolveum.midpoint.repo.xml"/>
+	<context:spring-configured />
 
 	<bean name="xmlRepositoryServiceFactory" class="com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory" init-method="init" destroy-method="destroy">
 		<property name="runServer" value="true"/>
@@ -52,5 +53,8 @@
 	
 	<!-- scope=prototype is mandatory, because every xml repo service has to be connected with separated session to the basex server -->
 	<bean name="repositoryService" factory-bean="xmlRepositoryServiceFactory" factory-method="getRepositoryService" class="com.evolveum.midpoint.repo.xml.XmlRepositoryService" scope="prototype" depends-on="xmlRepositoryServiceFactory"></bean>
+
+	<bean id="ndcAspect" class="com.evolveum.midpoint.aspect.NdcAspect">
+	</bean>
 
 </beans>

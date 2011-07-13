@@ -88,5 +88,21 @@
 			<artifactId>saxonhe</artifactId>
 			<version>9.3</version>
 		</dependency>
+
+        <!--https://jira.springsource.org/browse/ROO-181 -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>${spring.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- https://jira.springsource.org/browse/SPR-6819 -->
+        <dependency>
+          <groupId>javax.persistence</groupId>
+          <artifactId>persistence-api</artifactId>
+          <version>1.0</version>
+          <optional>true</optional>
+        </dependency>
+
 	</dependencies>
 </project>

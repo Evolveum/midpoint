@@ -20,38 +20,42 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:context="http://www.springframework.org/schema/context"
-    xsi:schemaLocation="
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
      http://www.springframework.org/schema/beans
      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
      http://www.springframework.org/schema/context
      http://www.springframework.org/schema/context/spring-context-3.0.xsd"
-     default-lazy-init="false"
-     default-autowire="byName"
-     >
+	default-lazy-init="false" default-autowire="byName">
 
-    <context:annotation-config />
-    <context:component-scan base-package="com.evolveum.midpoint.repo.xml"/>
+	<context:annotation-config />
+	<context:component-scan base-package="com.evolveum.midpoint.repo.xml" />
+	<context:spring-configured />
 
-		<bean name="xmlRepositoryServiceFactory" class="com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory" init-method="init" destroy-method="destroy">
-		<property name="runServer" value="true"/>
+	<bean name="xmlRepositoryServiceFactory"
+		class="com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory"
+		init-method="init" destroy-method="destroy">
+		<property name="runServer" value="true" />
 		<!-- embedded is applicable only if runServer = true -->
-		<property name="embedded" value="true"/>
-		<property name="dropDatabase" value="true"/>
-		<!-- initialDataPath - path containing xmls that should be loaded into DB -->
-		<property name="initialDataPath" value=""/>
+		<property name="embedded" value="true" />
+		<property name="dropDatabase" value="true" />
+		<!-- initialDataPath - path containing xmls that should be loaded into 
+			DB -->
+		<property name="initialDataPath" value="" />
 		<!-- database name -->
-		<property name="databaseName" value="midPoint-test"/>
+		<property name="databaseName" value="midPoint-test" />
 		<!-- client connection properties -->
-		<property name="host" value="localhost"/>
-		<property name="port" value="1984"/>
-		<property name="username" value="admin"/>
-		<property name="password" value="admin"/>
+		<property name="host" value="localhost" />
+		<property name="port" value="1984" />
+		<property name="username" value="admin" />
+		<property name="password" value="admin" />
 	</bean>
-	
-	<!-- scope=prototype is mandatory, because every xml repo service has to be connected with separated session to the basex server -->
-	<bean name="repositoryService" factory-bean="xmlRepositoryServiceFactory" factory-method="getRepositoryService" class="com.evolveum.midpoint.repo.xml.XmlRepositoryService" scope="prototype" depends-on="xmlRepositoryServiceFactory"></bean>
-	
+
+	<!-- scope=prototype is mandatory, because every xml repo service has to 
+		be connected with separated session to the basex server -->
+	<bean name="repositoryService" factory-bean="xmlRepositoryServiceFactory"
+		factory-method="getRepositoryService" class="com.evolveum.midpoint.repo.xml.XmlRepositoryService"
+		scope="prototype" depends-on="xmlRepositoryServiceFactory"></bean>
+
 
 </beans>
