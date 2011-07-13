@@ -21,8 +21,8 @@
 package com.evolveum.midpoint.model.controller;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -33,7 +33,6 @@ import javax.xml.bind.JAXBElement;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.AssertThrows;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Element;
@@ -150,11 +149,7 @@ public class SchemaHandlerImplTest {
 		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 				"src/test/resources/user-new.xml"))).getValue();
 
-		// UserType appliedUser =
-		// handler.applyInboundSchemaHandlingOnUser(userJaxb.getValue(),
-		// accountJaxb.getValue());
 		OperationResult result = new OperationResult("testApplyInboundSchemaHandlingOnUserReplace");
-//		UserType appliedUser = ((SchemaHandlerImpl)handler).applyInboundSchemaHandlingOnUser(user, account);
 		UserType appliedUser = handler.processInboundHandling(user, account, result);
 		LOGGER.info(result.debugDump());
 
@@ -166,56 +161,54 @@ public class SchemaHandlerImplTest {
 		assertNull(appliedUser.getFamilyName());
 	}
 
-	// @Test
-	// @SuppressWarnings("unchecked")
-	// public void testApplyInboundSchemaHandlingOnUserAdd() throws Exception {
-	// JAXBElement<AccountShadowType> accountJaxb =
-	// (JAXBElement<AccountShadowType>) JAXBUtil
-	// .unmarshal(new File("src/test/resources/account-xpath-evaluation.xml"));
-	// UserType appliedUser =
-	// schemaHandling.applyInboundSchemaHandlingOnUser(new UserType(),
-	// accountJaxb.getValue());
-	// assertEquals("jan prvy", appliedUser.getFullName());
-	// assertEquals("Mr.", appliedUser.getHonorificPrefix());
-	// assertNull(appliedUser.getHonorificSuffix());
-	// }
-	//
-	// @Test
-	// @SuppressWarnings("unchecked")
-	// public void testApplyInboundSchemaHandlingOnUserAddWithFilter() throws
-	// Exception {
-	// JAXBElement<AccountShadowType> accountJaxb =
-	// (JAXBElement<AccountShadowType>) JAXBUtil
-	// .unmarshal(new
-	// File("src/test/resources/account-xpath-evaluation-filter.xml"));
-	// List<Element> domAttrs = accountJaxb.getValue().getAttributes().getAny();
-	// for (Element e : domAttrs) {
-	// if ("cn".equals(e.getLocalName())) {
-	// e.setTextContent("jan\u0007 prvy");
-	// }
-	// }
-	// UserType appliedUser =
-	// schemaHandling.applyInboundSchemaHandlingOnUser(new UserType(),
-	// accountJaxb.getValue());
-	// assertEquals("jan prvy", appliedUser.getFullName());
-	// assertEquals("Mr.", appliedUser.getHonorificPrefix());
-	// }
-	//
-	// @Test
-	// @SuppressWarnings("unchecked")
-	// public void testApplyInboundSchemaHandlingOnEmptyUserExtension() throws
-	// Exception {
-	// JAXBElement<AccountShadowType> accountJaxb =
-	// (JAXBElement<AccountShadowType>) JAXBUtil
-	// .unmarshal(new
-	// File("src/test/resources/account-xpath-evaluation-extension.xml"));
-	// UserType appliedUser =
-	// schemaHandling.applyInboundSchemaHandlingOnUser(new UserType(),
-	// accountJaxb.getValue());
-	// assertNotNull(appliedUser.getExtension());
-	// assertEquals("MikeFromExtension",
-	// appliedUser.getExtension().getAny().get(0).getTextContent());
-	// assertEquals("DudikoffFromExtension",
-	// appliedUser.getExtension().getAny().get(1).getTextContent());
-	// }
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testApplyInboundSchemaHandlingOnUserAdd() throws Exception {
+		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+				"src/test/resources/account-xpath-evaluation.xml"))).getValue();
+
+		OperationResult result = new OperationResult("testApplyInboundSchemaHandlingOnUserAdd");
+		UserType appliedUser = handler.processInboundHandling(new UserType(), account, result);
+		LOGGER.info(result.debugDump());
+
+		assertEquals("jan prvy", appliedUser.getFullName());
+		assertEquals("Mr.", appliedUser.getHonorificPrefix());
+		assertNull(appliedUser.getHonorificSuffix());
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testApplyInboundSchemaHandlingOnUserAddWithFilter() throws Exception {
+		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+				"src/test/resources/account-xpath-evaluation-filter.xml"))).getValue();
+		List<Element> domAttrs = account.getAttributes().getAny();
+		for (Element e : domAttrs) {
+			if ("cn".equals(e.getLocalName())) {
+				e.setTextContent("jan\u0007 prvy");
+			}
+		}
+
+		OperationResult result = new OperationResult("testApplyInboundSchemaHandlingOnUserAddWithFilter");
+		UserType appliedUser = handler.processInboundHandling(new UserType(), account, result);
+		LOGGER.info(result.debugDump());
+
+		assertEquals("jan prvy", appliedUser.getFullName());
+		assertEquals("Mr.", appliedUser.getHonorificPrefix());
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testApplyInboundSchemaHandlingOnEmptyUserExtension() throws Exception {
+		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+		"src/test/resources/account-xpath-evaluation-extension.xml"))).getValue();
+		
+		OperationResult result = new OperationResult("testApplyInboundSchemaHandlingOnEmptyUserExtension");
+		UserType appliedUser = handler.processInboundHandling(new UserType(),
+				account, result);
+		LOGGER.info(result.debugDump());
+				
+		assertNotNull(appliedUser.getExtension());
+		assertEquals("MikeFromExtension", appliedUser.getExtension().getAny().get(0).getTextContent());
+		assertEquals("DudikoffFromExtension", appliedUser.getExtension().getAny().get(1).getTextContent());
+	}
 }

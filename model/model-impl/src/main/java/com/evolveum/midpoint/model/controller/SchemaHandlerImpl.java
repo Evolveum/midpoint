@@ -94,6 +94,8 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlerImpl.class);
 	@Autowired(required = true)
 	private transient ExpressionHandler expressionHandler;
+	@Autowired(required=true)
+	private transient FilterManager<Filter> filterManager;
 	private ModelController model;
 
 	public void setModel(ModelController model) {
@@ -751,25 +753,22 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	}
 
 	private Node applyFilters(List<ValueFilterType> filters, Node node) {
-		return node;
+		if (null == filters || filters.isEmpty()) {
+			// no filters defined return immediately
+			LOGGER.trace("No filters defined");
+			return node;
+		}
 
-		// if (null == filters || filters.isEmpty()) {
-		// // no filters defined return immediately
-		// LOGGER.trace("No filters defined");
-		// return node;
-		// }
-		//
-		// Node returnNode = node;
-		// for (ValueFilterType filterType : filters) {
-		// Filter filter = filterManager.getFilterInstance(filterType.getType(),
-		// filterType.getAny());
-		// if (null != filter) {
-		// returnNode = filter.apply(returnNode);
-		// } else {
-		// LOGGER.warn("Filter not found for uri {}", filterType.getType());
-		// }
-		// }
-		//
-		// return returnNode;
+		Node returnNode = node;
+		for (ValueFilterType filterType : filters) {
+			Filter filter = filterManager.getFilterInstance(filterType.getType(), filterType.getAny());
+			if (null != filter) {
+				returnNode = filter.apply(returnNode);
+			} else {
+				LOGGER.warn("Filter not found for uri {}", filterType.getType());
+			}
+		}
+
+		return returnNode;
 	}
 }
