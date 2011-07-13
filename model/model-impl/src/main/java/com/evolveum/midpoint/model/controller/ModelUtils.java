@@ -72,7 +72,7 @@ public class ModelUtils {
 		Validate.notNull(type, "Object type must not be null.");
 
 		ObjectReferenceType reference = new ObjectReferenceType();
-		reference.setType(type.getQName());
+		reference.setType(type.getTypeQName());
 		reference.setOid(oid);
 
 		return reference;

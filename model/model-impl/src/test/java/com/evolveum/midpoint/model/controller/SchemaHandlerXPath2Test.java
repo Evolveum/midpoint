@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 /**
  * 
  * @author Igor Farinic
- * @author lazyman s
+ * @author lazyman
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
@@ -57,7 +57,7 @@ public class SchemaHandlerXPath2Test {
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlerXPath2Test.class);
 	@Autowired
 	private SchemaHandler schemaHandler;
-	
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testIfThenElseSupportInOutboundSection() throws Exception {

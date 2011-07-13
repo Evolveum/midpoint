@@ -427,10 +427,9 @@ public class ResourceObjectChangeService implements ResourceObjectChangeListener
 		return list;
 	}
 
-	// TODO: in situation when one account belongs to two different idm users
+	// XXX: in situation when one account belongs to two different idm users
 	// (repository returns only first user). It should be changed because
-	// otherwise
-	// we can't check SynchronizationSituationType.CONFLICT situation
+	// otherwise we can't check SynchronizationSituationType.CONFLICT situation
 	private SituationState checkSituation(ResourceObjectShadowChangeDescriptionType change)
 			throws FaultMessage {
 		trace.trace("checkSituation::begin");

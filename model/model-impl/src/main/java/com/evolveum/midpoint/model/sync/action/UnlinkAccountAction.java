@@ -68,7 +68,7 @@ public class UnlinkAccountAction extends BaseAction {
 			if (shadowAfterChange instanceof AccountShadowType) {
 				ObjectReferenceType accountRef = new ObjectReferenceType();
 				accountRef.setOid(shadowAfterChange.getOid());
-				accountRef.setType(ObjectTypes.ACCOUNT.getQName());
+				accountRef.setType(ObjectTypes.ACCOUNT.getTypeQName());
 
 				ObjectModificationType changes = new ObjectModificationType();
 				changes.setOid(user.getOid());

@@ -76,7 +76,7 @@ public class ModelUtilsTest {
 		ObjectReferenceType ref = ModelUtils.createReference(expectedOid, ObjectTypes.SYSTEM_CONFIGURATION);
 		assertNotNull(ref);
 		assertEquals(ref.getOid(), expectedOid);
-		assertEquals(ObjectTypes.SYSTEM_CONFIGURATION.getQName(), ref.getType());
+		assertEquals(ObjectTypes.SYSTEM_CONFIGURATION.getTypeQName(), ref.getType());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -215,6 +215,6 @@ public class ModelUtilsTest {
 		
 		ObjectReferenceType ref = account.getResourceRef();
 		assertEquals(resourceOid, ref.getOid());
-		assertEquals(ObjectTypes.RESOURCE.getQName(), ref.getType());
+		assertEquals(ObjectTypes.RESOURCE.getTypeQName(), ref.getType());
 	}
 }

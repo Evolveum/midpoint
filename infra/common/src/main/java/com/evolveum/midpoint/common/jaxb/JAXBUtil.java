@@ -44,6 +44,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -155,7 +156,7 @@ public final class JAXBUtil {
 		if (jaxbObject == null) {
 			return null;
 		}
-		
+
 		try {
 			JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
 					jaxbObject);
@@ -165,7 +166,7 @@ public final class JAXBUtil {
 			return null;
 		}
 	}
-	
+
 	public static String silentMarshalWrap(Object object) {
 		return silentMarshalWrap(object, new QName(SchemaConstants.NS_C, "object"));
 	}
@@ -268,11 +269,12 @@ public final class JAXBUtil {
 		return (Element) element.getFirstChild();
 	}
 
-	public static <T> Element objectTypeToDom(T jaxbObject, Document doc) throws JAXBException {
+	public static <T extends ObjectType> Element objectTypeToDom(T jaxbObject, Document doc)
+			throws JAXBException {
 		if (doc == null) {
 			doc = DOMUtil.getDocument();
 		}
-		QName qname = SchemaConstants.getElementByObjectType(jaxbObject.getClass());
+		QName qname = ObjectTypes.getObjectType(jaxbObject.getClass()).getQName();
 		if (qname == null) {
 			throw new IllegalArgumentException("Cannot find element for class " + jaxbObject.getClass());
 		}

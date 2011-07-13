@@ -33,14 +33,17 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
@@ -160,14 +163,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		if (synchronization == null || synchronization.isEnabled() == null) {
 			return false;
 		}
-
 		return synchronization.isEnabled();
 	}
 
 	// XXX: in situation when one account belongs to two different idm users
 	// (repository returns only first user). It should be changed because
-	// otherwise
-	// we can't check SynchronizationSituationType.CONFLICT situation
+	// otherwise we can't check SynchronizationSituationType.CONFLICT situation
 	private SynchronizationSituation checkSituation(ResourceObjectShadowChangeDescriptionType change,
 			ResourceObjectShadowType objectShadowAfterChange, OperationResult result) {
 		OperationResult subResult = new OperationResult("Check Synchronization Situation");
@@ -204,7 +205,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				situation = new SynchronizationSituation(user, state);
 			} else {
 				LOGGER.trace("Resource object shadow doesn't have owner.");
-				situation = checkSituationWithCorrelation(change, objectShadowAfterChange, modification);
+				situation = checkSituationWithCorrelation(change, objectShadowAfterChange, modification,
+						result);
 			}
 		} catch (Exception ex) {
 			LOGGER.error("Error occured during resource object shadow owner lookup.");
@@ -221,7 +223,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 	private SynchronizationSituation checkSituationWithCorrelation(
 			ResourceObjectShadowChangeDescriptionType change,
-			ResourceObjectShadowType objectShadowAfterChange, ModificationType modification) {
+			ResourceObjectShadowType objectShadowAfterChange, ModificationType modification,
+			OperationResult result) {
 		// account is not linked to user. you have to use correlation
 		// and confirmation rule to be shure user for this account
 		// doesn't exists resourceShadow only contains the data that
@@ -239,7 +242,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		SynchronizationSituationType state = null;
 
 		List<UserType> users = findUsersByCorrelationRule(objectShadowAfterChange,
-				synchronization.getCorrelation());
+				synchronization.getCorrelation(), result);
 		if (synchronization.getConfirmation() == null) {
 			if (resourceShadow != null) {
 				LOGGER.debug("CONFIRMATION: No expression for oid {}, accepting all results of correlation",
@@ -351,7 +354,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		return actions;
 	}
 
-	private List<UserType> findUsersByCorrelationRule(ResourceObjectShadowType resourceShadow, QueryType query) {
+	private List<UserType> findUsersByCorrelationRule(ResourceObjectShadowType resourceShadow,
+			QueryType query, OperationResult result) {
 		List<UserType> users = new ArrayList<UserType>();
 
 		if (query == null) {
@@ -368,14 +372,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 		Element filter = updateFilterWithAccountValues(resourceShadow, element);
 		try {
-			ObjectFactory of = new ObjectFactory();
-			query = of.createQueryType();
+			query = new ObjectFactory().createQueryType();
 			query.setFilter(filter);
 			LOGGER.debug("CORRELATION: expression for OID {} results in filter {}", resourceShadow.getOid(),
 					DebugUtil.prettyPrint(query));
 			PagingType paging = new PagingType();
-			ObjectListType container = controller.searchObjectsInRepository(query, paging,
-					new OperationResult("Search Objects"));
+			ObjectListType container = controller.searchObjectsInRepository(query, paging, result);
 			if (container == null) {
 				return users;
 			}
@@ -387,7 +389,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				}
 			}
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			LoggingUtils.logException(LOGGER,
+					"Couldn't search users in repository, based on filter (simplified)\n{}.", ex,
+					DebugUtil.prettyPrint(filter));
 		}
 
 		LOGGER.debug("CORRELATION: expression for OID {} returned {} users.",
@@ -427,18 +431,14 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		try {
 			LOGGER.trace("Transforming search filter from:\n{}", DOMUtil.printDom(filter.getOwnerDocument()));
 			Document document = DOMUtil.getDocument();
-			String prefix = filter.lookupPrefix(SchemaConstants.NS_C) == null ? "c" : filter
-					.lookupPrefix(SchemaConstants.NS_C);
-			Element and = document.createElementNS(SchemaConstants.NS_C, prefix + ":and");
+
+			Element and = document.createElementNS(SchemaConstants.NS_C, "and");
 			document.appendChild(and);
-			Element type = document.createElementNS(SchemaConstants.NS_C, prefix + ":type");
-			type.setAttribute("uri",
-					"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType");
-			and.appendChild(type);
+			and.appendChild(QueryUtil.createTypeFilter(document, ObjectTypes.USER.getObjectTypeUri()));
+			Element equal = null;
 			if (SchemaConstants.NS_C.equals(filter.getNamespaceURI())
 					&& "equal".equals(filter.getLocalName())) {
-				Element equal = (Element) document.adoptNode(filter.cloneNode(true));
-				and.appendChild(equal);
+				equal = (Element) document.adoptNode(filter.cloneNode(true));
 
 				Element path = findChildElement(equal, SchemaConstants.NS_C, "path");
 				if (path != null) {
@@ -455,21 +455,20 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 						namespace = filter.lookupNamespaceURI(pref);
 					}
 
-					Element value = document.createElementNS(SchemaConstants.NS_C, prefix + ":value");
+					Element value = document.createElementNS(SchemaConstants.NS_C, "value");
 					equal.appendChild(value);
 					Element attribute = document.createElementNS(namespace, ref);
 					String expressionResult = resolveValueExpression(path, valueExpression,
 							resourceObjectShadow);
 					// TODO: log more context
-					LOGGER.debug("Search filter expression in the rule for OID {} evaluated to '{}'",
-							resourceObjectShadow.getOid(), expressionResult);
+					LOGGER.debug("Search filter expression in the rule for OID {} evaluated to {}.",
+							new Object[] { resourceObjectShadow.getOid(), expressionResult });
 					attribute.setTextContent(expressionResult);
 					value.appendChild(attribute);
 				} else {
 					LOGGER.warn("No valueExpression in rule for OID {}", resourceObjectShadow.getOid());
 				}
 			}
-
 			filter = and;
 			LOGGER.trace("Transforming filter to:\n{}", DOMUtil.printDom(filter.getOwnerDocument()));
 		} catch (Exception ex) {

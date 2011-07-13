@@ -29,21 +29,12 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.namespace.QName;
 
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * @author Vilo Repan
@@ -87,11 +78,13 @@ public abstract class SchemaConstants {
 	public static final QName I_USER = new QName(NS_C, "user");
 	public static final QName I_USER_TEMPLATE_TYPE = new QName(NS_C, "UserTemplateType");
 	public static final QName I_GENERIC_OBJECT_TYPE = new QName(NS_C, "GenericObjectType");
+	public static final QName I_GENERIC_OBJECT = new QName(NS_C, "genericObject");
 	public static final QName I_USER_TEMPLATE = new QName(NS_C, "userTemplate");
 	public static final QName I_ACCOUNT_TYPE = new QName(NS_C, "AccountType");
 	public static final QName I_ACCOUNT_SHADOW_TYPE = new QName(NS_C, "AccountShadowType");
 	public static final QName I_RESOURCE_TYPE = new QName(NS_C, "ResourceType");
 	public static final QName I_CONNECTOR_TYPE = new QName(NS_C, "ConnectorType");
+	public static final QName I_CONNECTOR = new QName(NS_C, "connector");
 	public static final QName I_SCHEMA = new QName(NS_C, "schema");
 	public static final QName I_ACCOUNT = new QName(NS_C, "account");
 	public static final QName I_RESOURCE_OBJECT_SHADOW = new QName(NS_C, "resourceObjectShadow");
@@ -120,6 +113,7 @@ public abstract class SchemaConstants {
 	public static final QName I_DIAGNOSTICS_MESSAGE_ERROR = new QName(NS_C, "error");
 	public static final QName I_DIAGNOSTICS_MESSAGE_WARNING = new QName(NS_C, "error");
 	public static final QName I_SYSTEM_CONFIGURATION_TYPE = new QName(NS_C, "SystemConfigurationType");
+	public static final QName I_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
 
 	public static final QName R_PROTECTED_STRING_TYPE = new QName(NS_RESOURCE, "ProtectedStringType");
 	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
@@ -139,8 +133,6 @@ public abstract class SchemaConstants {
 	public static final QName XSD_BASE64BINARY = new QName(W3C_XML_SCHEMA_NS_URI, "base64Binary",
 			NS_W3C_XML_SCHEMA_PREFIX);
 
-	private static Map<Class, QName> objectTypeElementMap;
-
 	// Synchronization constants
 
 	public static final String NS_CHANNEL = "http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-1";
@@ -152,9 +144,6 @@ public abstract class SchemaConstants {
 	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";
 
 	static {
-
-		initObjectTypeElementMap();
-
 		CatalogManager catalogManager = new CatalogManager();
 		catalogManager.setUseStaticCatalog(true);
 		catalogManager.setIgnoreMissingProperties(true);
@@ -164,25 +153,6 @@ public abstract class SchemaConstants {
 		Catalog resolver = catalogResolver.getCatalog();
 
 		initResolver(resolver);
-	}
-
-	public static void initObjectTypeElementMap() {
-		objectTypeElementMap = new HashMap<Class, QName>();
-		objectTypeElementMap.put(UserType.class, I_USER);
-		objectTypeElementMap.put(GenericObjectType.class, C_GENERIC_OBJECT);
-		objectTypeElementMap.put(UserTemplateType.class, I_USER_TEMPLATE);
-		objectTypeElementMap.put(ResourceType.class, I_RESOURCE);
-		objectTypeElementMap.put(ResourceStateType.class, I_RESOURCE_STATE);
-		objectTypeElementMap.put(AccountShadowType.class, I_ACCOUNT);
-	}
-
-	@SuppressWarnings("rawtypes")
-	public static QName getElementByObjectType(Class clazz) {
-		QName qname = objectTypeElementMap.get(clazz);
-		if (qname != null) {
-			return qname;
-		}
-		return C_OBJECT;
 	}
 
 	public static CatalogResolver getEntityResolver() {

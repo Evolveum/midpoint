@@ -153,7 +153,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 
 				ObjectReferenceType accountRef = new ObjectReferenceType();
 				accountRef.setOid(shadowOid);
-				accountRef.setType(ObjectTypes.ACCOUNT.getQName());
+				accountRef.setType(ObjectTypes.ACCOUNT.getTypeQName());
 
 				XmlAsserts.assertPatch(JAXBUtil.marshalWrap(accountRef, SchemaConstants.I_ACCOUNT_REF),
 						DOMUtil.printDom(element).toString());

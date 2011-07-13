@@ -41,33 +41,40 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  */
 public enum ObjectTypes {
 
-	ACCOUNT("schema.objectTypes.account", SchemaConstants.I_ACCOUNT_SHADOW_TYPE, AccountShadowType.class),
+	ACCOUNT("schema.objectTypes.account", SchemaConstants.I_ACCOUNT_SHADOW_TYPE, SchemaConstants.I_ACCOUNT,
+			AccountShadowType.class),
 
-	CONNECTOR("schema.objectTypes.connector", SchemaConstants.I_CONNECTOR_TYPE, ConnectorType.class),
+	CONNECTOR("schema.objectTypes.connector", SchemaConstants.I_CONNECTOR_TYPE, SchemaConstants.I_CONNECTOR,
+			ConnectorType.class),
 
 	GENERIC_OBJECT("schema.objectTypes.genericObject", SchemaConstants.I_GENERIC_OBJECT_TYPE,
-			GenericObjectType.class),
+			SchemaConstants.I_GENERIC_OBJECT, GenericObjectType.class),
 
-	RESOURCE("schema.objectTypes.resource", SchemaConstants.I_RESOURCE_TYPE, ResourceType.class),
+	RESOURCE("schema.objectTypes.resource", SchemaConstants.I_RESOURCE_TYPE, SchemaConstants.I_RESOURCE,
+			ResourceType.class),
 
 	RESOURCE_STATE("schema.objectTypes.resourceState", SchemaConstants.I_RESOURCE_STATE_TYPE,
-			ResourceStateType.class),
+			SchemaConstants.I_RESOURCE_STATE, ResourceStateType.class),
 
-	USER("schema.objectTypes.user", SchemaConstants.I_USER_TYPE, UserType.class),
+	USER("schema.objectTypes.user", SchemaConstants.I_USER_TYPE, SchemaConstants.I_USER, UserType.class),
 
 	USER_TEMPLATE("schema.objectTypes.userTemplate", SchemaConstants.I_USER_TEMPLATE_TYPE,
-			UserTemplateType.class),
-	
-	SYSTEM_CONFIGURATION("schema.objectTypes.systemConfiguration", SchemaConstants.I_SYSTEM_CONFIGURATION_TYPE, SystemConfigurationType.class);
+			SchemaConstants.I_USER_TEMPLATE, UserTemplateType.class),
+
+	SYSTEM_CONFIGURATION("schema.objectTypes.systemConfiguration",
+			SchemaConstants.I_SYSTEM_CONFIGURATION_TYPE, SchemaConstants.I_SYSTEM_CONFIGURATION,
+			SystemConfigurationType.class);
 
 	private String localizationKey;
-	private QName value;
+	private QName type;
+	private QName name;
 	private Class<? extends ObjectType> classDefinition;
 	private boolean managedByProvisioning;
 
-	private ObjectTypes(String key, QName value, Class<? extends ObjectType> classDefinition) {
+	private ObjectTypes(String key, QName type, QName name, Class<? extends ObjectType> classDefinition) {
 		this.localizationKey = key;
-		this.value = value;
+		this.type = type;
+		this.name = name;
 		this.classDefinition = classDefinition;
 	}
 
@@ -80,11 +87,15 @@ public enum ObjectTypes {
 	}
 
 	public String getValue() {
-		return value.getLocalPart();
+		return type.getLocalPart();
 	}
 
 	public QName getQName() {
-		return value;
+		return name;
+	}
+
+	public QName getTypeQName() {
+		return type;
 	}
 
 	public Class<? extends ObjectType> getClassDefinition() {
@@ -92,7 +103,7 @@ public enum ObjectTypes {
 	}
 
 	public String getObjectTypeUri() {
-		return QNameUtil.qNameToUri(getQName());
+		return QNameUtil.qNameToUri(getTypeQName());
 	}
 
 	public static ObjectTypes getObjectType(String objectType) {
@@ -104,7 +115,7 @@ public enum ObjectTypes {
 
 		throw new IllegalArgumentException("Unsupported object type " + objectType);
 	}
-	
+
 	public static ObjectTypes getObjectTypeFromUri(String objectTypeUri) {
 		for (ObjectTypes type : values()) {
 			if (type.getObjectTypeUri().equals(objectTypeUri)) {
@@ -128,7 +139,7 @@ public enum ObjectTypes {
 
 		throw new IllegalArgumentException("Unsupported object type " + objectType);
 	}
-	
+
 	public static ObjectTypes getObjectType(Class<? extends ObjectType> objectType) {
 		for (ObjectTypes type : values()) {
 			if (type.getClassDefinition().equals(objectType)) {
