@@ -210,7 +210,7 @@ public class ModelController {
 			if (oid.startsWith("icf")) {
 				object = getObjectFromProvisioning(oid, resolve, subResult, clazz);
 			} else {
-				// TODO: END HACK
+			// TODO: END HACK
 
 				if (ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
 					object = getObjectFromProvisioning(oid, resolve, subResult, clazz);

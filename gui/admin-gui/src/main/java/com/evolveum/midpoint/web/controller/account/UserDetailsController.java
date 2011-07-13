@@ -47,6 +47,7 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
@@ -74,6 +75,7 @@ import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -160,14 +162,19 @@ public class UserDetailsController implements Serializable {
 	public void setUser(GuiUserDto user) {
 		editMode = false;
 
-		// if we are going to work with user details, we will get it's fresh
-		// version from model
-		// Requirement: we will need resolved accountRefs to accounts
+		// we are going to work with user details, we will get it's fresh
+		// version from model because we need resolved accountRefs to accounts
 		if (user != null) {
 			try {
-				UserManager userManager = getUserManager();
+//				UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
+//
+//				PropertyReferenceListType resolve = new PropertyReferenceListType();
+//				resolve.getProperty().add(Utils.fillPropertyReference("Account"));
+//
+//				this.user = (GuiUserDto) userManager.get(user.getOid(), resolve);
+				this.user = user;
+				System.out.println(JAXBUtil.silentMarshalWrap(this.user.getXmlObject()));
 
-				this.user = (GuiUserDto) userManager.get(user.getOid(), Utils.getResolveResourceList());
 				accountList = createFormBeanList(this.user.getAccount(), false);
 				getAvailableResourceList().clear();
 				availableResourceList = createResourceList(this.user.getAccount());

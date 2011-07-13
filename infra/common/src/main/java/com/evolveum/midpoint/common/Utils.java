@@ -144,7 +144,7 @@ public class Utils {
 		for (PropertyReferenceType property : resolve.getProperty()) {
 			XPathType xpath = new XPathType(property.getProperty());
 			List<XPathSegment> segments = xpath.toSegments();
-			if (!CollectionUtils.isEmpty(segments)) {
+			if (CollectionUtils.isEmpty(segments)) {
 				continue;
 			}
 

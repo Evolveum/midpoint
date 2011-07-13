@@ -35,6 +35,7 @@ import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -93,11 +94,13 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 
 			TRACE.info("userSelectionListener start");
-			user = (GuiUserDto) userManager.get(userOid, new PropertyReferenceListType());
+			PropertyReferenceListType resolve = new PropertyReferenceListType();
+			resolve.getProperty().add(Utils.fillPropertyReference("Account"));
+			
+			user = (GuiUserDto) userManager.get(userOid, resolve);
 			TRACE.info("userSelectionListener end");
-
-			// TODO: handle exception
-			userDetailsController.setUser(user);
+			
+			userDetailsController.setUser(user);			
 		} catch (Exception ex) {
 			LoggingUtils.logException(TRACE, "Can't select user, unknown error occured", ex);
 			FacesUtils.addErrorMessage("Can't select user, unknown error occured.", ex);
