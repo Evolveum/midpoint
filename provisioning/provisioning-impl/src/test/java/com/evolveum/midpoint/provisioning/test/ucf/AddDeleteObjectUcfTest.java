@@ -144,6 +144,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 
 	@After
 	public void shutdownUcf() throws Exception {
+	
 	}
 
 	private Set<ResourceObjectAttribute> addSampleResourceObject(String name,

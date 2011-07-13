@@ -198,6 +198,8 @@ public class ShadowCache {
 		ConnectorInstance connector = getConnectorInstance(resource);
 		Schema schema = null;
 		schema = getResourceSchema(resource, connector, parentResult);
+		
+		
 
 		QName objectClass = repositoryShadow.getObjectClass();
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema

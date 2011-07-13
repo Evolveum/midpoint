@@ -22,16 +22,20 @@ package com.evolveum.midpoint.provisioning.impl;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.XPathUtil;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -77,6 +81,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Autowired
 	private RepositoryService repositoryService;
 
+	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
+	
 	public ShadowCache getShadowCache() {
 		return shadowCache;
 	}
@@ -110,6 +116,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException {
 
+		Validate.notNull(oid);
+		Validate.notNull(resolve);
+		Validate.notNull(parentResult);
+		
+		LOGGER.debug("**PROVISIONING: Getting object with oid {}", oid);
+		
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".getObject");
@@ -122,13 +134,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		// HACK: connector objects are not stored in the repo..
 		if (oid.startsWith("icf1")) {
 			ConnectorType connectorType = shadowCache.getConnectorManager().getConnector(oid);
+			LOGGER.trace("**PROVISIONING: Got connector object {}", JAXBUtil.silentMarshalWrap(connectorType));
 			return connectorType;
 		}
 
 		try {
 			repositoryObject = getRepositoryService().getObject(oid, resolve, result);
-
+			LOGGER.trace("**PROVISIONING: Got repository object {}", JAXBUtil.silentMarshalWrap(repositoryObject));
 		} catch (ObjectNotFoundException e) {
+			LOGGER.error("**PROVISIONING: Can't get obejct with oid {}. Reason {}", oid, e);
 			result.record(e);
 			throw e;
 		}
@@ -142,19 +156,25 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ResourceObjectShadowType shadow = null;
 			try {
 				shadow = getShadowCache().getShadow(oid, (ResourceObjectShadowType) repositoryObject, result);
-
+				LOGGER.trace("**PROVISIONING: Got shadow object {}", JAXBUtil.silentMarshalWrap(shadow));
 			} catch (ObjectNotFoundException e) {
+				LOGGER.error("**PROVISIONING: Can't get obejct with oid {}. Reason {}", oid, e);
 				result.record(e);
 				throw e;
 			} catch (CommunicationException e) {
+				LOGGER.error("**PROVISIONING: Can't get obejct with oid {}. Reason {}", oid, e);
 				result.record(e);
 				throw e;
 			} catch (SchemaException e) {
+				LOGGER.error("**PROVISIONING: Can't get obejct with oid {}. Reason {}", oid, e);
 				result.record(e);
 				throw e;
 			}
 
 			// TODO: object resolving
+			
+			LOGGER.debug("**PROVISIONING: Get object finished.");
+			
 			return shadow;
 		} else {
 			return repositoryObject;
@@ -168,6 +188,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			ObjectNotFoundException {
 		// TODO
 
+		Validate.notNull(object);
+		
+		LOGGER.debug("**PROVISIONING: Start to add object {}", object);
+		
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".addObject");
 		result.addParam("object", object);
@@ -178,11 +202,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		try {
 			addedShadow = getShadowCache().addShadow(object, scripts, null, parentResult);
+			LOGGER.debug("**PROVISIONING: Added shadow object {}", JAXBUtil.silentMarshalWrap(addedShadow));
 			result.recordSuccess();
 		} catch (GenericFrameworkException ex) {
+			LOGGER.error("**PROVISIONING: Can't add object {}. Reason {}", object, ex);
 			result.recordFatalError("Failed to add shadow object: " + ex.getMessage(), ex);
 			throw new CommunicationException(ex.getMessage(), ex);
 		}
+		
+		LOGGER.debug("**PROVISIONING: Adding object finished.");
 		return addedShadow;
 	}
 
@@ -195,7 +223,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	@Override
 	public ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
 			OperationResult parentResult) {
+		
+		Validate.notNull(objectType);
 
+		LOGGER.debug("**PROVISIONING: Start listing objects of type {}", objectType);
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".listObjects");
@@ -210,12 +241,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// not specify resource
 			// to search. Maybe we need another operation for this.
 
+			result.recordFatalError("Listing of shadows is not supported");
 			throw new NotImplementedException("Listing of shadows is not supported");
 
 		} else {
 			// TODO: delegate to repository
 			objListType = getRepositoryService().listObjects(objectType, paging, parentResult);
+			result.recordSuccess();
 		}
+		
+		LOGGER.debug("**PROVISIONING: Finished listing object.");
+		
 		return objListType;
 
 	}
@@ -242,23 +278,44 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException {
+		
+		Validate.notNull(objectChange);
+		Validate.notNull(parentResult);
+		
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".modifyObject");
+		result.addParam("objectChange", objectChange);
+		result.addParam("scripts", scripts);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+
+		LOGGER.debug("**PROVISIONING: Start to modify object.");
+		LOGGER.trace("*PROVISIONING: Object change: {}", JAXBUtil.silentMarshalWrap(objectChange));
+		
 		if (objectChange == null || objectChange.getOid() == null) {
+			result.recordFatalError("Object change or object change oid cannot be null");
 			throw new IllegalArgumentException("Object change or object change oid cannot be null");
 		}
 
 		ObjectType objectType = getRepositoryService().getObject(objectChange.getOid(),
 				new PropertyReferenceListType(), parentResult);
+		
+		LOGGER.debug("**PROVISIONING: Modifying object with oid {}", objectChange.getOid());
+		LOGGER.trace("**PROVISIONING: Object to modify: {}.", JAXBUtil.silentMarshalWrap(objectType));
 
 		try {
 			getShadowCache().modifyShadow(objectType, null, objectChange, scripts, parentResult);
+			result.recordSuccess();
 		} catch (CommunicationException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			result.recordFatalError("Can't modify object with oid "+ objectChange.getOid()+". Reason: " + e.getMessage(), e);
+			throw new CommunicationException(e.getMessage(), e);
 		} catch (GenericFrameworkException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			result.recordFatalError("Can't modify object with oid "+ objectChange.getOid()+". Reason: " + e.getMessage(), e);
+			throw new CommunicationException(e.getMessage(), e);
 		}
 
+		LOGGER.debug("Finished modifying of object with oid {}", objectType.getOid());
 		// TODO Auto-generated method stub
 	}
 
@@ -266,6 +323,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public void deleteObject(String oid, ScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException {
 		// TODO Auto-generated method stub
+		
+		Validate.notNull(oid);
+		Validate.notNull(parentResult);
+		
+		LOGGER.debug("**PROVISIONING: Start to delete object with oid {}", oid);
+		
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".deleteObject");
 		result.addParam("oid", oid);
@@ -275,22 +338,26 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		ObjectType objectType = null;
 		try {
 			objectType = getRepositoryService().getObject(oid, new PropertyReferenceListType(), parentResult);
+			LOGGER.debug("**PROVISIONING: Object from repository to delete: {}", JAXBUtil.silentMarshalWrap(objectType));
 		} catch (SchemaException e) {
+			result.recordFatalError("Can't get object with oid "+oid+" from repository. Reason:  " +e.getMessage() +" "+ e);
 			throw new ObjectNotFoundException(e.getMessage());
 		}
 
 		try {
 			getShadowCache().deleteShadow(objectType, null, parentResult);
+			result.recordSuccess();
 		} catch (CommunicationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			result.recordFatalError(e.getMessage());
+			throw new CommunicationException(e.getMessage(), e);
 		} catch (GenericFrameworkException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			 result.recordFatalError(e.getMessage());
+			throw new CommunicationException(e.getMessage(), e);
 		} catch (SchemaException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			 result.recordFatalError(e.getMessage());
+			throw new SchemaException(e.getMessage(), e);
 		}
+		LOGGER.debug("**PROVISIONING: Finished deleting object.");
 
 	}
 
@@ -309,17 +376,20 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		// implementation details, as this will be usually displayed in the
 		// table of "test resource" results.
 
+		if (resourceOid == null) {
+			throw new IllegalArgumentException("Resource OID to test is null.");
+		}
+		
+		LOGGER.debug("Start testing resource with oid {} ", resourceOid);
+		
 		OperationResult parentResult = new OperationResult(TEST_CONNECTION_OPERATION);
 		parentResult.addParam("resourceOid", resourceOid);
 		parentResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
-		if (resourceOid == null) {
-			throw new IllegalArgumentException("Resource OID to test is null.");
-		}
-
 		try {
 			ObjectType objectType = getRepositoryService().getObject(resourceOid,
 					new PropertyReferenceListType(), parentResult);
+			
 			if (objectType instanceof ResourceType) {
 				ResourceType resourceType = (ResourceType) objectType;
 				getShadowCache().testConnection(resourceType, parentResult);
@@ -332,6 +402,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new IllegalArgumentException(ex.getMessage(), ex);
 		}
 		parentResult.computeStatus();
+		
+		LOGGER.debug("Finished testing resource with oid {} ", resourceOid);
 		return parentResult;
 	}
 
@@ -347,6 +419,17 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException {
 
+		Validate.notNull(query);
+		Validate.notNull(parentResult);
+		
+		LOGGER.debug("Start to search object. Query {}", JAXBUtil.silentMarshalWrap(query));
+		
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".searchObjectsIterative");
+		result.addParam("query", query);
+		result.addParam("paging", paging);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
 		Element filter = query.getFilter();
 		NodeList list = filter.getChildNodes();
 		String resourceOid = null;
@@ -357,9 +440,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				if (QNameUtil.compareQName(SchemaConstants.C_FILTER_TYPE, list.item(i))) {
 					String type = list.item(i).getAttributes().getNamedItem("uri").getNodeValue();
 					if (type == null || "".equals(type)) {
+						result.recordFatalError("Object type is not defined.");
 						throw new IllegalArgumentException("Object type is not defined.");
 					}
-
+		
 				} else if (QNameUtil.compareQName(SchemaConstants.C_FILTER_EQUAL, list.item(i))) {
 					NodeList equealList = list.item(i).getChildNodes();
 
@@ -368,7 +452,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 							Node value = equealList.item(j).getFirstChild();
 							if (QNameUtil.compareQName(SchemaConstants.I_RESOURCE_REF, value)) {
 								resourceOid = value.getAttributes().getNamedItem("oid").getNodeValue();
-
+								LOGGER.debug("**PROVISIONING: Search objects on resource with oid {}", resourceOid);
+								
 							} else if (QNameUtil.compareQName(SchemaConstants.I_OBJECT_CLASS, value)) {
 								String textContent = value.getTextContent();
 								String prefix = null;
@@ -379,7 +464,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 									namespace = value.lookupNamespaceURI(prefix);
 									localPart = textContent.substring(textContent.lastIndexOf(":") + 1);
 									objectClass = new QName(namespace, localPart);
+									LOGGER.debug("**PROVISIONING: Object class to search: {}", objectClass);
 								} else {
+									result.recordFatalError("Object class was not defined.");
 									throw new IllegalArgumentException("Object class was not defined.");
 								}
 							}
@@ -399,19 +486,21 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					new PropertyReferenceListType(), parentResult);
 
 		} catch (ObjectNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			result.recordFatalError("Resource with oid "+ resourceOid+ "not found. Reason: "+ e);
+			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
 
 		final ShadowHandler shadowHandler = new ShadowHandler() {
 
 			@Override
 			public boolean handle(ResourceObjectShadowType shadow) {
+				LOGGER.debug("Found shadow: {}", DebugUtil.prettyPrint(shadow));
 				return handler.handle(shadow, parentResult);
 			}
 		};
 
 		getShadowCache().searchObjectsIterative(objectClass, resource, shadowHandler, parentResult);
+		result.recordSuccess();
 	}
 
 }
