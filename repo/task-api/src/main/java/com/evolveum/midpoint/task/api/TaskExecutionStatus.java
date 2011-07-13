@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
+
 /**
  * Task execution status.
  * 
@@ -55,5 +57,21 @@ public enum TaskExecutionStatus {
 	 * this state is considered immutable and the only things that can happen to
 	 * it is a delete by a cleanup code.
 	 */
-	CLOSED
+	CLOSED;
+
+	public static TaskExecutionStatus fromTaskType(TaskExecutionStatusType executionStatus) {
+		if (executionStatus == null) {
+			return null;
+		}
+		if (executionStatus == TaskExecutionStatusType.RUNNING) {
+			return RUNNING;
+		}
+		if (executionStatus == TaskExecutionStatusType.WAITING) {
+			return WAITING;
+		}
+		if (executionStatus == TaskExecutionStatusType.CLOSED) {
+			return CLOSED;
+		}
+		throw new IllegalArgumentException("Unknown exectution status type "+executionStatus);
+	}
 }

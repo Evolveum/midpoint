@@ -60,6 +60,10 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -98,7 +102,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-provisioning.xml", "classpath:application-context-sanity-test.xml" })
+		"classpath:application-context-provisioning.xml", "classpath:application-context-sanity-test.xml", "classpath:application-context-task.xml" })
 public class TestSanity extends OpenDJUnitTestAdapter {
 
 	private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
@@ -106,6 +110,9 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 	private static final String RESOURCE_OPENDJ_FILENAME = "src/test/resources/repo/opendj-resource.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	
+	private static final String TASK_OPENDJ_SYNC_FILENAME = "src/test/resources/repo/opendj-sync-task.xml";
+	private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
 	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = "src/test/resources/repo/sample-configuration-object.xml";
 	private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
@@ -140,6 +147,9 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
 	private static boolean repoInitialized = false;
+	
+	@Autowired(required = true)
+	private TaskManager taskManager;
 
 	public TestSanity() throws JAXBException {
 		djUtil = new OpenDJUtil();
@@ -519,6 +529,42 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 		assertEquals(0, op.getEntriesSent());
 		
+	}
+	
+	
+	// Synchronization tests
+	
+	@Test
+	public void test100Synchronization() throws Exception { 
+		// Now it is the right time to add task definition to the repository
+		// We don't want it there any sooner, as it may interfere with the
+		// previous tests
+		
+		addObjectFromFile(TASK_OPENDJ_SYNC_FILENAME);
+		
+		// We need to wait for a sync interval, so the task scanner has a chance to pick up this
+		// task
+		
+		System.out.println("Waining for task manager to pick up the task");
+		Thread.sleep(5000);
+		System.out.println("... done");
+		
+		// Check task status
+		
+		OperationResult result = new OperationResult(TestSanity.class.getName()+".test100Synchronization");
+		Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+		
+		assertNotNull(task);
+		// .. it should be running
+		assertEquals(TaskExecutionStatus.RUNNING,task.getExecutionStatus());
+		
+		// .. and either claimer or have been running at least once
+		if (task.getExclusivityStatus() != TaskExclusivityStatus.CLAIMED) {
+			// Failure is expected here now
+			// assertNotNull(task.getLastRunTimestamp());
+		}
+		
+		// TODO
 	}
 	
 	// TODO: test for missing/corrupt system configuration

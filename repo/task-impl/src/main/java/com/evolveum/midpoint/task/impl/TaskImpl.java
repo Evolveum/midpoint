@@ -20,12 +20,19 @@
  */
 package com.evolveum.midpoint.task.impl;
 
+import java.util.List;
+
+import org.apache.commons.lang.NotImplementedException;
+
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
  * Implementation of a Task.
@@ -46,11 +53,27 @@ public class TaskImpl implements Task {
 	private ObjectType object;
 	private String oid;
 	private String name;
+	private Long lastRunTimestamp;
 
 	public TaskImpl() {
 		executionStatus = TaskExecutionStatus.RUNNING;
 		exclusivityStatus = TaskExclusivityStatus.CLAIMED;
 		persistenceStatus = TaskPersistenceStatus.TRANSIENT;
+	}
+
+	public TaskImpl(TaskType taskType) {
+		executionStatus = TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
+		exclusivityStatus = TaskExclusivityStatus.fromTaskType(taskType.getExclusivityStatus());
+		// If that is created from the TaskType, then this is persistent task
+		persistenceStatus = TaskPersistenceStatus.PERSISTENT;
+		oid = taskType.getOid();
+		handlerUri = taskType.getHandlerUri();
+		// TODO: object = 
+		name = taskType.getName();
+		if (taskType.getLastRunTimestamp()!=null) {
+			lastRunTimestamp = new Long(taskType.getLastRunTimestamp().getMillisecond());
+		}
+		// TODO: extension
 	}
 
 	/* (non-Javadoc)
@@ -146,6 +169,26 @@ public class TaskImpl implements Task {
 	@Override
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	@Override
+	public List<Property> getExtension() {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public void modifyExtension(PropertyModification modification) {
+		throw new NotImplementedException();
+	}
+	
+	@Override
+	public TaskType getTaskTypeObject() {
+		throw new NotImplementedException();
+	}
+
+	@Override
+	public Long getLastRunTimestamp() {
+		return lastRunTimestamp;
 	}
 
 }

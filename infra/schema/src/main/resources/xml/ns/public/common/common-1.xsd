@@ -1469,6 +1469,181 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
+	<xsd:complexType name="TaskType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:ExtensibleObjectType">
+				<xsd:sequence>
+					<xsd:element name="executionStatus" type="tns:TaskExecutionStatusType">
+						<xsd:annotation>
+							<xsd:documentation>
+								Execution status provides information about the task overall high-level execution state. It tells
+								whether the task is running/runnable, waits for something or is done.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="exclusivityStatus" type="tns:TaskExclusivityStatusType">
+						<xsd:annotation>
+							<xsd:documentation>
+								Exclusivity status tells about task "locking" to a particular node.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="node" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Identifier of the node that has claimed this task. Should be only present if excelusivity status is
+								"claimed".
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="claimExpirationTimestamp" type="xsd:dateTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Expiration of the claim. If a "claimed" task is found after the moment specified in this attribute,
+								the task is no longer considered claimed.
+								Should be only present if excelusivity status is "claimed".
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="handlerUri" type="xsd:anyURI">
+						<xsd:annotation>
+							<xsd:documentation>
+								Handler URI indirectly specifies which class is responsible to handle the task. The handler will
+								execute reaction to a task lifecycle events such as executing the task, task heartbeat, etc.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="result" type="tns:OperationResultType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								OperationResult that is used to compile task results (parent result).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="objectRef" type="tns:ObjectReferenceType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Object that the task is associated with. Tasks may be associated with a particular objects. For
+								example a "import from resource" task is associated with the resource definition object that it imports from. Similarly
+								for synchronization and reconciliation tasks (cycles).
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="lastRunTimestamp" type="xsd:dateTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								TODO
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="schedule" type="tns:ScheduleType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Task schedule. Specifies when and how often to execute the task.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:element name="task" type="tns:TaskType"/>
+	
+	<xsd:simpleType name="TaskExecutionStatusType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Execution status provides information about the task overall high-level execution state. It tells
+								whether the task is running/runnable, waits for something or is done.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="running">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task is running or is ready to be executed. This state implies that the task is being actively executed by IDM nodes, e.g. there is a thread on one of the IDM nodes that executes the task or the system needs to allocate such thread.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="RUNNING"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="waiting">
+				<xsd:annotation>
+					<xsd:documentation>
+						The IDM system is waiting while the task is being executed on an external node (e.g. external workflow engine) or is waiting for some kind of external signal (e.g. approval in internal workflow). The task may be running on external node or blocked on IDM node. One way or another, there is no point in allocating a thread to run this task. Other task properties provide more information about the actual "business" state of the task.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="WAITING"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="closed">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task is done. No other changes or progress will happen. The task in this state is considered immutable and the only things that can happen to it is a delete by a cleanup code.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CLOSED"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="TaskExclusivityStatusType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Exclusivity status tells about task "locking" to a particular node.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="claimed">
+				<xsd:annotation>
+					<xsd:documentation>
+						The tasks is being held by one of the IDM nodes. The node is either executing the task or making some kind of "exclusive" operation on the task. Only one node may "claim" a task. Claimed tasks has an allocated *thread* that is used for task execution.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="CLAIMED"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="released">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task is free for all nodes to participate. Any node may try to "claim" the task to execute it or make another step in the task lifecycle. Released task is not being executed by an IDM node and therefore does not have an allocated thread.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="RELEASED"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:complexType name="ScheduleType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Task schedule. Specifies when and how often something should happen.
+				UNSTABLE. This type will most likely change. A lot.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="interval" type="xsd:integer" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Interval in seconds between task invocations.
+						UNSTABLE. This element will most likely change. A lot.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 
 	<!-- Following types SHOULD NOT be here. They should be in the respository 
 		WSDL definition. However, there is a bug in OpenESB (OPENESB-5) and placing 
@@ -2108,7 +2283,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				!!! DEPRECATED !!!
-			
+
 				ResourceAccessConfiguration represents a
 				provisioning subsystem
 				system which we manage.
@@ -4557,18 +4732,21 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				!!! DEPRECATED !!!
-				
+
 				TODO
 
 				This should REALY REALY be in the IDM model
 				interface
-				definition. The specific properties of a
+				definition. The specific
+				properties of a
 				stage may
 				be
 				different
-				for each implementation. The implementation may replace
+				for each
+				implementation. The implementation may replace
 				this
-				with a similar concept of stage.
+				with a similar concept of
+				stage.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -4614,19 +4792,23 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				!!! DEPRECATED !!!
-				
+
 				The result of resource test. It indicates whather
 				the resource
-				configuration is correct, whether
+				configuration is correct,
+				whether
 				the
 				connector can be
-				initialized, can reach the target system, etc.
+				initialized,
+				can reach the target system, etc.
 
 				All the tests are
 				optional. If a respective
-				element is not
+				element is
+				not
 				present, it is assumed that
-				the test was not executed. For
+				the test
+				was not executed. For
 				example because of failure of a
 				previous
 				required test.
@@ -4720,7 +4902,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				!!! DEPRECATED !!!
-				
+
 				Result of a internal midPoint test.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -4780,7 +4962,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				!!! DEPRECATED !!!
-				
+
 				A situation (error or warning) that was detected
 				during a test.
 			</xsd:documentation>
@@ -5572,7 +5754,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				DEPRECATED
-			
+
 				This object is and INOUT part of every operation.
 
 				@WebParam(name = "result", mode =
@@ -5580,10 +5762,12 @@
 				partName =
 				"result")
 
-				It collects all custom operation result that not
+				It
+				collects all custom operation result that not
 				part of the
 				actual
-				operation but usefull in some case.
+				operation but usefull
+				in some case.
 				It
 				can trace and collect
 				information from all operation call

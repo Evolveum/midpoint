@@ -22,6 +22,9 @@ package com.evolveum.midpoint.task.api;
 
 import java.util.Set;
 
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 
 /**
@@ -59,8 +62,10 @@ public interface TaskManager {
 	 * 
 	 * @param taskOid OID of the persistent task.
 	 * @return Task instance
+	 * @throws SchemaException error dealing with resource schema
+	 * @throws ObjectNotFoundException wrong OID format, etc.
 	 */
-	public Task getTask(String taskOid);
+	public Task getTask(String taskOid,OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
 	// TODO
 	public void modifyTask(ObjectModificationType objectChange);

@@ -114,5 +114,12 @@
 			<version>1.0.5754openidm</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>task-impl</artifactId>
+			<version>1.8-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 </project>

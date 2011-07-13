@@ -20,6 +20,9 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
+
 /**
  * Exclusivity status tells about task "locking" to a particular node.
  * 
@@ -42,5 +45,18 @@ public enum TaskExclusivityStatus {
 	 * lifecycle. Released task is not being executed by an IDM node and
 	 * therefore does not have an allocated thread.
 	 */
-	RELEASED
+	RELEASED;
+
+	public static TaskExclusivityStatus fromTaskType(TaskExclusivityStatusType exclusivityStatus) {
+		if (exclusivityStatus == null) {
+			return null;
+		}
+		if (exclusivityStatus == TaskExclusivityStatusType.CLAIMED) {
+			return CLAIMED;
+		}
+		if (exclusivityStatus == TaskExclusivityStatusType.RELEASED) {
+			return RELEASED;
+		}
+		throw new IllegalArgumentException("Unknown exclusivity status type "+exclusivityStatus);
+	}
 }

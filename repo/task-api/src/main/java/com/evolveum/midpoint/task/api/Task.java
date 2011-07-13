@@ -20,8 +20,13 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import java.util.List;
+
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
  * Task instance - a logical unit of work that is either done synchronously, asynchronously, it is deferred, scheduled, etc.
@@ -125,7 +130,7 @@ public interface Task {
 	public boolean isAsynchronous();
 	
 	// TODO
-	// public TaskType getTaskTypeObject();
+	public TaskType getTaskTypeObject();
 	
 	/**
 	 * Returns task OID.
@@ -164,6 +169,8 @@ public interface Task {
 	 */
 	public OperationResult getResult();
 	
+	public Long getLastRunTimestamp();
+	
 	/**
 	 * Returns human-readable name of the task.
 	 * 
@@ -177,5 +184,34 @@ public interface Task {
 	 * @param name new human-readable name of the task.
 	 */
 	public void setName(String name);
+	
+	/**
+	 * Returns task extension.
+	 * 
+	 * The extension is a part of task that can store arbitrary data.
+	 * It usually holds data specific to a task type, internal task state,
+	 * business state or similar data that are out of scope of this
+	 * interface definition.
+	 * 
+	 * Although this methods returns list, it should be rather regarded as
+	 * set. The list is used to avoid unnecessary reordering of properties
+	 * in the storage (in case store is ordering-sensitive).
+	 * 
+	 * Returned list should be regarded as immutable. In case that the client
+	 * does any change, weird things may happen.
+	 * 
+	 * @return task extension
+	 */
+	public List<Property> getExtension();
+	
+	/**
+	 * TODO
+	 * 
+	 * The modification path is relative to the extension, therefore it will
+	 * almost always be "." (or null). 
+	 * 
+	 * @param modification
+	 */
+	public void modifyExtension(PropertyModification modification);
 
 }

@@ -20,17 +20,32 @@
  */
 package com.evolveum.midpoint.task.impl;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.commons.lang.NotImplementedException;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
+import org.apache.commons.lang.NotImplementedException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
  * Task Manager implementation.
@@ -43,13 +58,36 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
  * @author Radovan Semancik
  *
  */
+@Service(value = "taskManager")
 public class TaskManagerImpl implements TaskManager {
 	
+	private static final String THREAD_NAME = "midpoint-task-scanner";
+	private long JOIN_TIMEOUT = 5000;
+	
 	private Map<String,TaskHandler> handlers;
+
+	private TaskScanner scannerThread;
 	
 	// Temporary HACK
-	private Map<String,Task> tasks;
+	private Map<String,Task> claimedTasks = new HashMap<String, Task>();
 
+	@Autowired(required=true)
+	private RepositoryService repositoryService;
+	
+	private static final transient Trace logger = TraceManager.getTrace(TaskManagerImpl.class);
+	
+	@PostConstruct
+	public void init() {
+		logger.info("Task Manager initialization");
+		startThread();
+	}
+	
+	@PreDestroy
+	public void shutdown() {
+		logger.info("Task Manager shutdown");
+		stopThread();
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance()
 	 */
@@ -62,8 +100,25 @@ public class TaskManagerImpl implements TaskManager {
 	 * @see com.evolveum.midpoint.task.api.TaskManager#getTask(java.lang.String)
 	 */
 	@Override
-	public Task getTask(String taskOid) {
-		return tasks.get(taskOid);
+	public Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = parentResult.createSubresult(TaskManagerImpl.class.getName()+".getTask");
+		result.addParam("oid", taskOid);
+		
+		// Look through the claimed tasks first. This is fast and provides a live java instance.
+		Task claimedTask = claimedTasks.get(taskOid);
+		if (claimedTask != null) {
+			return claimedTask;
+		}
+		
+		// Otherwise we need to fetch the task from repository
+		return fetchTaskFromRepository(taskOid, result);
+	}
+
+	private Task fetchTaskFromRepository(String taskOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		ObjectType object = repositoryService.getObject(taskOid, resolve, result);
+		TaskType taskType = (TaskType) object;
+		return new TaskImpl(taskType);
 	}
 
 	/* (non-Javadoc)
@@ -126,7 +181,7 @@ public class TaskManagerImpl implements TaskManager {
 		task.setPersistenceStatus(TaskPersistenceStatus.PERSISTENT);
 		task.setOid(""+new Random().nextInt());
 
-		tasks.put(task.getOid(), task);
+		claimedTasks.put(task.getOid(), task);
 		
 		thread.start();
 
@@ -147,6 +202,43 @@ public class TaskManagerImpl implements TaskManager {
 	@Override
 	public void registerHandler(String uri, TaskHandler handler) {
 		handlers.put(uri, handler);
+	}
+	
+	private void startThread() {
+		if (scannerThread == null) {
+			scannerThread = new TaskScanner();
+			scannerThread.setName(THREAD_NAME);
+			scannerThread.setRepositoryService(repositoryService);
+			scannerThread.setTaskManagerImpl(this);
+		}
+		if (scannerThread.isAlive()) {
+			logger.warn("Attempt to start task scanner thread that is already running");
+		} else {
+			scannerThread.start();
+		}
+	}
+
+	private void stopThread() {
+		if (scannerThread == null) {
+			logger.warn("Attempt to stop non-existing task scanner thread");
+		} else {
+			if (scannerThread.isAlive()) {
+				scannerThread.disable();
+				scannerThread.interrupt();
+				try {
+					scannerThread.join(JOIN_TIMEOUT);
+				} catch (InterruptedException ex) {
+					logger.warn("Wait to thread join in task manager was interrupted");
+				}
+			} else {
+				logger.warn("Attempt to stop a task scanner thread that is not alive");
+			}
+		}
+	}
+
+
+	public void processRunnableTaskType(TaskType task) {
+		throw new NotImplementedException();
 	}
 
 }

@@ -117,4 +117,17 @@ public class QueryUtil {
         and.appendChild(el2);
         return and;
     }
+
+    public static Element createAndFilter(Document doc, Element el1, Element el2, Element el3) {
+        Validate.notNull(doc);
+        Validate.notNull(el1);
+        Validate.notNull(el2);
+        Validate.notNull(el3);
+
+        Element and = doc.createElementNS(SchemaConstants.C_FILTER_AND.getNamespaceURI(), SchemaConstants.C_FILTER_AND.getLocalPart());
+        and.appendChild(el1);
+        and.appendChild(el2);
+        and.appendChild(el3);
+        return and;
+    }
 }
