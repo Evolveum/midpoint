@@ -113,6 +113,16 @@
             <version>1.8-SNAPSHOT</version>
         </dependency>
         <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>task-api</artifactId>
+            <version>1.8-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>task-impl</artifactId>
+            <version>1.8-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>commons-pool</groupId>
             <artifactId>commons-pool</artifactId>
             <version>1.5.6</version>

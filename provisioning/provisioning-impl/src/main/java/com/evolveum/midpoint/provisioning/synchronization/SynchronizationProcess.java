@@ -31,6 +31,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.task.impl.TaskImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -111,7 +112,7 @@ public class SynchronizationProcess extends Thread {
 										logger.debug("Synchronization Thread: calling synchronize() for resource "
 												+ resource.getName() + " oid: " + oid);
 
-										provisioning.synchronize(oid, new OperationResult("Synchronize"));
+										provisioning.synchronize(oid, new TaskImpl(), new OperationResult("Synchronize"));
 
 										// Remember the start time only if the
 										// call is successful
