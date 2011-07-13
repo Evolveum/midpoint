@@ -36,7 +36,7 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
+import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -66,7 +66,7 @@ public class ModifyUserActionTest extends BaseActionTest {
 	public void nonExistingUser() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "existing-user-change.xml"))).getValue();
-		String userOid = ModelServiceUtil.mockUser(repository, null, "1");
+		String userOid = ModelTUtil.mockUser(repository, null, "1");
 
 		OperationResult result = new OperationResult("Modify User Action Test");
 		try {

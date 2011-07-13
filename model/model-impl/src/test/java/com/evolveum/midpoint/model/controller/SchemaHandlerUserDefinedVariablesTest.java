@@ -39,9 +39,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -70,8 +70,6 @@ public class SchemaHandlerUserDefinedVariablesTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testApplyOutboundSchemaHandlingWithUserDefinedVariablesOnAccount() throws Exception {
-		LOGGER.info(repositoryService.toString());
-
 		ObjectType object = ((JAXBElement<ObjectType>) JAXBUtil.unmarshal(new File(
 				"src/test/resources/generic-object-my-config.xml"))).getValue();
 		when(
@@ -88,13 +86,10 @@ public class SchemaHandlerUserDefinedVariablesTest {
 				"testApplyOutboundSchemaHandlingWithUserDefinedVariablesOnAccount");
 		ObjectModificationType changes = schemaHandler.processOutboundHandling(user, account, result);
 		LOGGER.info(result.debugDump());
-		
-		//TODO: test changes object
 
-		PatchXml patchXml = new PatchXml();
-		String xml = patchXml.applyDifferences(changes, account);
-		ResourceObjectShadowType appliedAccountShadow = ((JAXBElement<AccountShadowType>) JAXBUtil
-				.unmarshal(xml)).getValue();
+		// TODO: test changes object
+		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, account,
+				AccountShadowType.class);
 
 		assertEquals(2, appliedAccountShadow.getAttributes().getAny().size());
 		assertEquals("l", appliedAccountShadow.getAttributes().getAny().get(1).getLocalName());

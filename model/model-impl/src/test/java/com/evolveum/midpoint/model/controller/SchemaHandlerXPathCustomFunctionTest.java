@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.model;
+package com.evolveum.midpoint.model.controller;
 
 import static org.junit.Assert.assertEquals;
 
@@ -34,9 +34,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.model.xpath.SchemaHandling;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -47,20 +51,28 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml" })
-public class SchemaHandlingXPathCustomFunctionTest {
+		"classpath:application-context-model-unit-test.xml" })
+public class SchemaHandlerXPathCustomFunctionTest {
 
+	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlerXPathCustomFunctionTest.class);
 	@Autowired
-	SchemaHandling schemaHandling;
+	private SchemaHandler schemaHandler;
 
 	@Test
+	@SuppressWarnings("unchecked")
 	public void testCustomFunction() throws Exception {
-		JAXBElement<AccountShadowType> accountJaxb = (JAXBElement<AccountShadowType>) JAXBUtil
-				.unmarshal(new File("src/test/resources/account-custom-function.xml"));
-		JAXBElement<UserType> userJaxb = (JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-				"src/test/resources/user-custom-function.xml"));
-		ResourceObjectShadowType appliedAccountShadow = schemaHandling.applyOutboundSchemaHandlingOnAccount(
-				userJaxb.getValue(), accountJaxb.getValue(), accountJaxb.getValue().getResource());
+		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+				"src/test/resources/account-custom-function.xml"))).getValue();
+		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+				"src/test/resources/user-custom-function.xml"))).getValue();
+
+		OperationResult result = new OperationResult("testCustomFunction");
+		ObjectModificationType changes = schemaHandler.processOutboundHandling(user, account, result);
+		LOGGER.info(result.debugDump());
+
+		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, account,
+				AccountShadowType.class);
+
 		assertEquals("__NAME__", appliedAccountShadow.getAttributes().getAny().get(0).getLocalName());
 		assertEquals("Bond", appliedAccountShadow.getAttributes().getAny().get(0).getTextContent());
 	}

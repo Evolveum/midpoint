@@ -44,7 +44,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
+import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -89,7 +89,7 @@ public class ModelServiceTest {
 		try {
 			modelService.addObject(null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Add must fail.");
 	}
@@ -102,7 +102,7 @@ public class ModelServiceTest {
 		try {
 			modelService.addObject(expectedUser, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("add must fail.");
 	}
@@ -113,7 +113,7 @@ public class ModelServiceTest {
 			modelService.getObject(null, new PropertyReferenceListType(), new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("get must fail");
 	}
@@ -124,7 +124,7 @@ public class ModelServiceTest {
 			modelService.getObject("", new PropertyReferenceListType(), new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("get must fail");
 	}
@@ -134,7 +134,7 @@ public class ModelServiceTest {
 		try {
 			modelService.getObject(null, null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("get must fail");
 	}
@@ -144,7 +144,7 @@ public class ModelServiceTest {
 		try {
 			modelService.getObject("001", null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("get must fail");
 	}
@@ -161,7 +161,7 @@ public class ModelServiceTest {
 			modelService.getObject(oid, new PropertyReferenceListType(), new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertObjectNotFoundFault(ex);
+			ModelTUtil.assertObjectNotFoundFault(ex);
 		}
 		fail("get must fail");
 	}
@@ -171,7 +171,7 @@ public class ModelServiceTest {
 		try {
 			modelService.deleteObject(null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("delete must fail");
 	}
@@ -181,7 +181,7 @@ public class ModelServiceTest {
 		try {
 			modelService.deleteObject("", null);
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("delete must fail");
 	}
@@ -191,7 +191,7 @@ public class ModelServiceTest {
 		try {
 			modelService.deleteObject("1", null);
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("delete must fail");
 	}
@@ -207,7 +207,7 @@ public class ModelServiceTest {
 
 			modelService.deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertObjectNotFoundFault(ex);
+			ModelTUtil.assertObjectNotFoundFault(ex);
 		}
 		fail("delete must fail");
 	}
@@ -218,7 +218,7 @@ public class ModelServiceTest {
 			modelService.listObjects(null, new PagingType(), new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument exception was not thrown.");
 	}
@@ -228,7 +228,7 @@ public class ModelServiceTest {
 		try {
 			modelService.listObjects(null, null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument exception was not thrown.");
 	}
@@ -238,7 +238,7 @@ public class ModelServiceTest {
 		try {
 			modelService.listObjects("", null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument exception was not thrown.");
 	}
@@ -253,7 +253,7 @@ public class ModelServiceTest {
 			modelService.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging,
 					new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument exception was not thrown.");
 	}
@@ -264,7 +264,7 @@ public class ModelServiceTest {
 			modelService.getPropertyAvailableValues(null, new PropertyReferenceListType(),
 					new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument excetion must be thrown");
 	}
@@ -275,7 +275,7 @@ public class ModelServiceTest {
 			modelService.getPropertyAvailableValues("", new PropertyReferenceListType(),
 					new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument excetion must be thrown");
 	}
@@ -286,7 +286,7 @@ public class ModelServiceTest {
 			modelService.searchObjects(null, new PagingType(), new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument exception was not thrown.");
 	}
@@ -297,7 +297,7 @@ public class ModelServiceTest {
 			modelService
 					.searchObjects(null, null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument exception was not thrown.");
 	}
@@ -308,7 +308,7 @@ public class ModelServiceTest {
 			modelService.searchObjects(new QueryType(), null, new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument exception was not thrown.");
 	}
@@ -323,7 +323,7 @@ public class ModelServiceTest {
 			modelService.searchObjects(new QueryType(), paging, new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument exception was not thrown.");
 	}
@@ -333,7 +333,7 @@ public class ModelServiceTest {
 		try {
 			modelService.getImportStatus(null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument exception was not thrown.");
 	}
@@ -343,7 +343,7 @@ public class ModelServiceTest {
 		try {
 			modelService.getImportStatus("", new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument exception was not thrown.");
 	}
@@ -353,7 +353,7 @@ public class ModelServiceTest {
 		try {
 			modelService.modifyObject(null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 	}
 
@@ -377,7 +377,7 @@ public class ModelServiceTest {
 			modelService.modifyObject(modification,
 					new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertObjectNotFoundFault(ex);
+			ModelTUtil.assertObjectNotFoundFault(ex);
 		}
 	}
 
@@ -387,7 +387,7 @@ public class ModelServiceTest {
 			modelService.listResourceObjectShadows(null, "notRelevant", new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 	}
 
@@ -397,7 +397,7 @@ public class ModelServiceTest {
 			modelService.listResourceObjectShadows(null, "notRelevant", new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 	}
 
@@ -407,7 +407,7 @@ public class ModelServiceTest {
 			modelService.listResourceObjectShadows("1", null, new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 	}
 
@@ -417,7 +417,7 @@ public class ModelServiceTest {
 			modelService.listResourceObjectShadows("1", "", new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 	}
 
@@ -433,7 +433,7 @@ public class ModelServiceTest {
 			modelService.listResourceObjectShadows(resourceOid, ObjectTypes.ACCOUNT.getObjectTypeUri(),
 					new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertObjectNotFoundFault(ex);
+			ModelTUtil.assertObjectNotFoundFault(ex);
 		}
 	}
 
@@ -453,7 +453,7 @@ public class ModelServiceTest {
 			modelService.listAccountShadowOwner(null, new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument excetion must be thrown");
 	}
@@ -464,7 +464,7 @@ public class ModelServiceTest {
 			modelService.listAccountShadowOwner("",
 					new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
-			ModelServiceUtil.assertIllegalArgumentFault(ex);
+			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
 		fail("Illegal argument excetion must be thrown");
 	}

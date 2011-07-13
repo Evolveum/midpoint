@@ -45,7 +45,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
+import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
@@ -117,11 +117,11 @@ public class AddUserActionTest {
 			// create additional change
 			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-add-user.xml");
 			// adding objects to repo
-			ModelServiceUtil.addObjectToRepo(repositoryService,
+			ModelTUtil.addObjectToRepo(repositoryService,
 					"src/test/resources/user-template-create-account.xml");
-			ResourceType resourceType = (ResourceType) ModelServiceUtil.addObjectToRepo(repositoryService,
+			ResourceType resourceType = (ResourceType) ModelTUtil.addObjectToRepo(repositoryService,
 					change.getResource());
-			AccountShadowType accountType = (AccountShadowType) ModelServiceUtil.addObjectToRepo(
+			AccountShadowType accountType = (AccountShadowType) ModelTUtil.addObjectToRepo(
 					repositoryService, change.getShadow());
 
 			// setting resource for ResourceObjectShadowType
@@ -173,11 +173,11 @@ public class AddUserActionTest {
 			throw ex;
 		} finally {
 			// cleanup repo
-			ModelServiceUtil.deleteObject(repositoryService, accountOid);
-			ModelServiceUtil.deleteObject(repositoryService, resourceOid);
-			ModelServiceUtil.deleteObject(repositoryService, userTemplateOid);
+			ModelTUtil.deleteObject(repositoryService, accountOid);
+			ModelTUtil.deleteObject(repositoryService, resourceOid);
+			ModelTUtil.deleteObject(repositoryService, userTemplateOid);
 			if (addedUser != null) {
-				ModelServiceUtil.deleteObject(repositoryService, addedUser.getOid());
+				ModelTUtil.deleteObject(repositoryService, addedUser.getOid());
 			}
 		}
 	}

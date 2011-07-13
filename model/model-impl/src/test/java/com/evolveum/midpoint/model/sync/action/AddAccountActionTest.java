@@ -45,7 +45,7 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
+import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
@@ -81,7 +81,7 @@ public class AddAccountActionTest extends BaseActionTest {
 				.unmarshal(new File(TEST_FOLDER, "group-change.xml"))).getValue();
 		OperationResult result = new OperationResult("Add Account Action Test");
 
-		String userOid = ModelServiceUtil.mockUser(repository, new File(TEST_FOLDER, "user.xml"), null);
+		String userOid = ModelTUtil.mockUser(repository, new File(TEST_FOLDER, "user.xml"), null);
 
 		try {
 			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();

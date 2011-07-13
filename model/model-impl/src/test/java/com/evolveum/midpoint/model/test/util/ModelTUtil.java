@@ -33,10 +33,13 @@ import javax.xml.bind.JAXBException;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.patch.PatchException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
@@ -51,7 +54,16 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
  * @author lazyman
  * 
  */
-public class ModelServiceUtil {
+public class ModelTUtil {
+
+	@SuppressWarnings("unchecked")
+	public static <T extends ObjectType> T patchXml(ObjectModificationType changes, ObjectType object,
+			Class<T> clazz) throws PatchException, JAXBException {
+
+		PatchXml patchXml = new PatchXml();
+		String xml = patchXml.applyDifferences(changes, object);
+		return ((JAXBElement<T>) JAXBUtil.unmarshal(xml)).getValue();
+	}
 
 	@SuppressWarnings("unchecked")
 	public static void mockGetSystemConfiguration(RepositoryService repository, File file)

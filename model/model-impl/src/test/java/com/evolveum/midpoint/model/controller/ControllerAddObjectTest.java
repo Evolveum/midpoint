@@ -50,7 +50,7 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
+import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.model.test.util.mock.ObjectTypeNameMatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -118,7 +118,7 @@ public class ControllerAddObjectTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addUserCorrect() throws Exception {
-		ModelServiceUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER,
+		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER,
 				"system-configuration.xml"));
 
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
@@ -155,7 +155,7 @@ public class ControllerAddObjectTest {
 	@Test(expected = ObjectAlreadyExistsException.class)
 	@SuppressWarnings("unchecked")
 	public void addUserWithExistingOid() throws Exception {
-		ModelServiceUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER,
+		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER,
 				"system-configuration.xml"));
 
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
@@ -177,7 +177,7 @@ public class ControllerAddObjectTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addUserAndCreateDefaultAccount() throws Exception {
-		ModelServiceUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER,
+		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER,
 				"system-configuration-with-template.xml"));
 
 		final String resourceOid = "10000000-0000-0000-0000-000000000003";

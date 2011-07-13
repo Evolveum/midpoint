@@ -39,9 +39,9 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -104,11 +104,9 @@ public class SchemaHandlerImplTest {
 		ObjectModificationType changes = handler.processOutboundHandling(user, objectShadow, result);
 		LOGGER.info(result.debugDump());
 		// TODO: test changes object
-
-		PatchXml patchXml = new PatchXml();
-		String xml = patchXml.applyDifferences(changes, objectShadow);
-		ResourceObjectShadowType appliedAccountShadow = ((JAXBElement<AccountShadowType>) JAXBUtil
-				.unmarshal(xml)).getValue();
+		
+		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, objectShadow,
+				AccountShadowType.class);
 
 		assertEquals(8, appliedAccountShadow.getAttributes().getAny().size());
 		final String NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";

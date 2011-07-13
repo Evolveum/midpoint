@@ -49,7 +49,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
-import com.evolveum.midpoint.model.test.util.ModelServiceUtil;
+import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -111,7 +111,7 @@ public class LinkAccountActionTest extends BaseActionTest {
 				.unmarshal(new File(TEST_FOLDER, "group-change.xml"))).getValue();
 		OperationResult result = new OperationResult("Link Account Action Test");
 
-		String userOid = ModelServiceUtil.mockUser(repository, new File(TEST_FOLDER, "user.xml"), null);
+		String userOid = ModelTUtil.mockUser(repository, new File(TEST_FOLDER, "user.xml"), null);
 
 		try {
 			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
@@ -134,7 +134,7 @@ public class LinkAccountActionTest extends BaseActionTest {
 
 		final String shadowOid = change.getShadow().getOid();
 
-		final String userOid = ModelServiceUtil.mockUser(repository, new File(TEST_FOLDER, "user.xml"), null);
+		final String userOid = ModelTUtil.mockUser(repository, new File(TEST_FOLDER, "user.xml"), null);
 		doNothing().doAnswer(new Answer<Void>() {
 
 			@Override
