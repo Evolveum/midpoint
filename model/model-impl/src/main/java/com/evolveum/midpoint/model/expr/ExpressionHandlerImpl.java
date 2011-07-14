@@ -71,6 +71,19 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 		return model;
 	}
 
+	@Override
+	public String evaluateExpression(ResourceObjectShadowType shadow, ExpressionHolder expression,
+			OperationResult result) throws ExpressionException {
+		Validate.notNull(shadow, "Resource object shadow must not be null.");
+		Validate.notNull(expression, "Expression must not be null.");
+		Validate.notNull(result, "Operation result must not be null.");
+
+		ResourceType resource = resolveResource(shadow, result);
+		Map<QName, Variable> variables = getDefaultXPathVariables(null, shadow, resource);
+
+		return (String) XPathUtil.evaluateExpression(variables, expression, XPathConstants.STRING);
+	}
+
 	public boolean evaluateConfirmationExpression(UserType user, ResourceObjectShadowType shadow,
 			ExpressionHolder expression, OperationResult result) throws ExpressionException {
 		Validate.notNull(user, "User must not be null.");
@@ -86,6 +99,7 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 		return Boolean.valueOf(confirmed);
 	}
 
+	//TODO: refactor - this method is also in SchemaHandlerImpl
 	private ResourceType resolveResource(ResourceObjectShadowType shadow, OperationResult result)
 			throws ExpressionException {
 		if (shadow.getResource() != null) {
@@ -101,12 +115,12 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 			return getModel().getObject(ref.getOid(), new PropertyReferenceListType(), result,
 					ResourceType.class, true);
 		} catch (Exception ex) {
-			throw new ExpressionException("Couldn't get resource object.", ex);
+			throw new ExpressionException("Couldn't get resource object, reason: " + ex.getMessage(), ex);
 		}
 	}
 
-	private Map<QName, Variable> getDefaultXPathVariables(UserType user, ResourceObjectShadowType shadow,
-			ResourceType resource) {
+	public static Map<QName, Variable> getDefaultXPathVariables(UserType user,
+			ResourceObjectShadowType shadow, ResourceType resource) {
 		Map<QName, Variable> variables = new HashMap<QName, Variable>();
 		try {
 			ObjectFactory of = new ObjectFactory();

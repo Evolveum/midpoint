@@ -21,7 +21,6 @@
 package com.evolveum.midpoint.model.controller;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +52,7 @@ import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
+import com.evolveum.midpoint.model.expr.ExpressionHandlerImpl;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -61,7 +61,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AttributeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -147,7 +146,8 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			// return changes;
 		}
 
-		Map<QName, Variable> variables = getDefaultXPathVariables(user, resourceObjectShadow, resource);
+		Map<QName, Variable> variables = ExpressionHandlerImpl.getDefaultXPathVariables(user,
+				resourceObjectShadow, resource);
 		for (AttributeDescriptionType attribute : accountType.getAttribute()) {
 			ResourceObjectAttributeDefinition definition = objectDefinition.findAttributeDefinition(attribute
 					.getRef());
@@ -211,7 +211,8 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			return changes;
 		}
 
-		Map<QName, Variable> variables = getDefaultXPathVariables(user, resourceObjectShadow, resource);
+		Map<QName, Variable> variables = ExpressionHandlerImpl.getDefaultXPathVariables(user,
+				resourceObjectShadow, resource);
 		for (AttributeDescriptionType attribute : accountType.getAttribute()) {
 			ResourceObjectAttributeDefinition attributeDefinition = objectDefinition
 					.findAttributeDefinition(attribute.getRef());
@@ -228,41 +229,6 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		subResult.recordSuccess();
 
 		return changes;
-	}
-
-	private Map<QName, Variable> getDefaultXPathVariables(UserType user, ResourceObjectShadowType shadow,
-			ResourceType resource) {
-		Map<QName, Variable> variables = new HashMap<QName, Variable>();
-		try {
-			ObjectFactory of = new ObjectFactory();
-			if (user != null) {
-				// Following code is wrong, but it works
-				JAXBElement<ObjectType> userJaxb = of.createObject(user);
-				Document userDoc = DOMUtil.parseDocument(JAXBUtil.marshal(userJaxb));
-				variables.put(SchemaConstants.I_USER, new Variable(userDoc.getFirstChild(), false));
-
-				// JAXBElement<ObjectType> userJaxb = of.createObject(user);
-				// Element userEl =
-				// JAXBUtil.objectTypeToDom(userJaxb.getValue(), null);
-				// variables.put(SchemaConstants.I_USER, new Variable(userEl,
-				// false));
-			}
-
-			if (shadow != null) {
-				JAXBElement<ObjectType> accountJaxb = of.createObject(shadow);
-				Element accountEl = JAXBUtil.objectTypeToDom(accountJaxb.getValue(), null);
-				variables.put(SchemaConstants.I_ACCOUNT, new Variable(accountEl, false));
-			}
-
-			if (resource != null) {
-				JAXBElement<ObjectType> resourceJaxb = of.createObject(resource);
-				Element resourceEl = JAXBUtil.objectTypeToDom(resourceJaxb.getValue(), null);
-				variables.put(SchemaConstants.I_RESOURCE, new Variable(resourceEl, false));
-			}
-		} catch (JAXBException ex) {
-			throw new IllegalArgumentException(ex);
-		}
-		return variables;
 	}
 
 	private ResourceType resolveResource(ResourceObjectShadowType shadow, OperationResult result)

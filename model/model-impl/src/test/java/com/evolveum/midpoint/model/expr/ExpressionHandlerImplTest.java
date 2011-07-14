@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.model.expr;
 
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 
@@ -56,6 +57,31 @@ public class ExpressionHandlerImplTest {
 	private static final Trace LOGGER = TraceManager.getTrace(ExpressionHandlerImplTest.class);
 	@Autowired
 	private ExpressionHandler expressionHandler;
+
+	@Test(expected = ExpressionException.class)
+	@SuppressWarnings("unchecked")
+	public void testConfirmUserWithoutModel() throws Exception {
+		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+				"src/test/resources/expr/account-xpath-evaluation-without-resource.xml"))).getValue();
+		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+				"src/test/resources/user-new.xml"))).getValue();
+
+		Document doc = DOMUtil.parseDocument("<confirmation "
+				+ "xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' "
+				+ "xmlns:dj='http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ'>"
+				+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</confirmation>");
+		Element element = (Element) doc.getFirstChild();
+		ExpressionHolder expression = new ExpressionHolder(element);
+
+		OperationResult result = new OperationResult("testConfirmUserWithoutModel");
+		try {
+			expressionHandler.evaluateConfirmationExpression(user, account, expression,
+					result);
+			fail();
+		} finally {
+			LOGGER.info(result.debugDump());
+		}
+	}
 
 	@Test
 	@SuppressWarnings("unchecked")

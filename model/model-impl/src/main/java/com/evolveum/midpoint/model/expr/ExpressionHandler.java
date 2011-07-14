@@ -37,4 +37,7 @@ public interface ExpressionHandler {
 
 	boolean evaluateConfirmationExpression(UserType user, ResourceObjectShadowType shadow,
 			ExpressionHolder expression, OperationResult result) throws ExpressionException;
+
+	String evaluateExpression(ResourceObjectShadowType shadow, ExpressionHolder expression,
+			OperationResult result) throws ExpressionException;
 }

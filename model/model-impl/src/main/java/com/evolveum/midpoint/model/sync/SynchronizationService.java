@@ -82,7 +82,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	@Autowired(required = true)
 	private ActionManager<Action> actionManager;
 	@Autowired
-	private transient ExpressionHandler expressionHandler;
+	private ExpressionHandler expressionHandler;
 
 	@Override
 	public void notifyChange(ResourceObjectShadowChangeDescriptionType change, OperationResult parentResult) {
@@ -376,7 +376,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 					+ "returning empty list of users.", resourceShadow.getName());
 			return users;
 		}
-		Element filter = updateFilterWithAccountValues(resourceShadow, element);
+		Element filter = updateFilterWithAccountValues(resourceShadow, element, result);
 		try {
 			query = new ObjectFactory().createQueryType();
 			query.setFilter(filter);
@@ -425,7 +425,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	}
 
 	private Element updateFilterWithAccountValues(ResourceObjectShadowType resourceObjectShadow,
-			Element filter) {
+			Element filter, OperationResult result) {
 		LOGGER.trace("updateFilterWithAccountValues::begin");
 		if (filter == null) {
 			return null;
@@ -461,8 +461,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 					Element value = document.createElementNS(SchemaConstants.NS_C, "value");
 					equal.appendChild(value);
 					Element attribute = document.createElementNS(namespace, ref);
-					String expressionResult = resolveValueExpression(path, valueExpression,
-							resourceObjectShadow);
+
+					String expressionResult = expressionHandler.evaluateExpression(resourceObjectShadow,
+							new ExpressionHolder(valueExpression), result);
+
 					// TODO: log more context
 					LOGGER.debug("Search filter expression in the rule for OID {} evaluated to {}.",
 							new Object[] { resourceObjectShadow.getOid(), expressionResult });
@@ -500,16 +502,5 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 		return expressionHandler.evaluateConfirmationExpression(user, resourceObjectShadow, expression,
 				result);
-	}
-
-	// XXX: what to do with path element?
-	private String resolveValueExpression(Element path, Element expression,
-			ResourceObjectShadowType resourceObjectShadow) {
-		// return
-		// schemaHandling.evaluateCorrelationExpression(resourceObjectShadow,
-		// new ExpressionHolder(
-		// expression));
-		// TODO: implement
-		return null;
 	}
 }
