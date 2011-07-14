@@ -30,6 +30,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.UUID;
 
+import javax.naming.spi.DirStateFactory.Result;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
@@ -47,11 +48,13 @@ import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -63,9 +66,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathType;
@@ -654,5 +662,48 @@ public class XmlRepositoryService implements RepositoryService {
 		if (null == query.getFilter()) {
 			throw new IllegalArgumentException("No filter in query");
 		}
+	}
+
+	@Override
+	public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException {
+		
+		// TODO: atomicity
+		
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()+".claimTask");
+		result.addParam(OperationResult.PARAM_OID, oid);
+		
+		// Check whether the task is claimed
+		
+		ObjectType object = getObject(oid,null,result);
+		// TODO: check
+		TaskType task = (TaskType) object;
+		
+		if (task.getExclusivityStatus()!=TaskExclusivityStatusType.RELEASED) {
+			// TODO: check whether the claim is not expired yet
+			throw new ConcurrencyException("Attempt to claim already claimed task (OID:"+oid+")");
+		}
+		
+		// Modify the status to claim the task.
+		// TODO: mark node identifier and claim expiration (later)
+		
+		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid, SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.CLAIMED.value());
+		
+		modifyObject(modification , result);
+		
+	}
+
+	@Override
+	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()+".releaseTask");
+		result.addParam(OperationResult.PARAM_OID, oid);
+		
+		// Modify the status to claim the task.
+		
+		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid, SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.RELEASED.value());
+		
+		modifyObject(modification , result);
+
+		
 	}
 }

@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.task.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -54,11 +55,13 @@ public class TaskImpl implements Task {
 	private String oid;
 	private String name;
 	private Long lastRunTimestamp;
+	private List<Property> extension;
 
 	public TaskImpl() {
 		executionStatus = TaskExecutionStatus.RUNNING;
 		exclusivityStatus = TaskExclusivityStatus.CLAIMED;
 		persistenceStatus = TaskPersistenceStatus.TRANSIENT;
+		extension = new ArrayList<Property>();
 	}
 
 	public TaskImpl(TaskType taskType) {
@@ -173,7 +176,7 @@ public class TaskImpl implements Task {
 
 	@Override
 	public List<Property> getExtension() {
-		throw new NotImplementedException();
+		return extension;
 	}
 
 	@Override
@@ -189,6 +192,33 @@ public class TaskImpl implements Task {
 	@Override
 	public Long getLastRunTimestamp() {
 		return lastRunTimestamp;
+	}
+
+	@Override
+	public String dump() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Task(");
+		sb.append(TaskImpl.class.getName());
+		sb.append(")\n");
+		sb.append("  OID: ");
+		sb.append(oid);
+		sb.append("\n  name: ");
+		sb.append(name);
+		sb.append("\n  executionStatus: ");
+		sb.append(executionStatus);
+		sb.append("\n  exclusivityStatus: ");
+		sb.append(exclusivityStatus);
+		sb.append("\n  persistenceStatus: ");
+		sb.append(persistenceStatus);
+		sb.append("\n  handlerUri: ");
+		sb.append(handlerUri);
+		sb.append("\n  object: ");
+		sb.append(object);
+		sb.append("\n  lastRunTimestamp: ");
+		sb.append(lastRunTimestamp);
+		sb.append("\n  extension: ");
+		sb.append(extension);
+		return sb.toString();
 	}
 
 }

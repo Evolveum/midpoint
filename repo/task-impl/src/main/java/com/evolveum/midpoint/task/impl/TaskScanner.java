@@ -33,6 +33,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -133,43 +134,59 @@ public class TaskScanner extends Thread {
 												.currentTimeMillis()) {
 									long startTime = System.currentTimeMillis();
 
+									boolean claimed = false;
 									try {
-
-										// TODO: try to claim the task (later)
+										repositoryService.claimTask(task.getOid(), loopResult);
+										claimed = true;
+									} catch (ConcurrencyException ex) {
+										// Claim failed. This means that the task was claimed by another
+										// host in the meantime. We don't really need to care. It will
+										// get executed by the host that succeeded in claiming the
+										// task.
+										// Just log warning for now. This can be switched to DEBUG later.
+										logger.warn("Task scanner: Claiming of task {} failed due to concurrency exception \"{}\", skipping it.",DebugUtil.prettyPrint(task),ex.getMessage());
 										
-										logger.debug("Task scanner is passing task to task manager:  "
-												+ DebugUtil.prettyPrint(task));
-										
-										taskManagerImpl.processRunnableTaskType(task);
-
-										// TODO
-
-										// TODO: Remember the start time only if the
-										// call is successful
-										
-										// TODO release task (later)
-										
-									} catch (RuntimeException ex) {
-										// Runtime exceptions are used from time
-										// to time, although all the
-										// exceptions that could be reasonably
-										// caught should be transformed to
-										// Faults, obvious not all of them are.
-										// Do not cause this thread to die
-										// because of bug in the synchronize
-										// method.
-
-										// TODO: Better error reporting
-										logger.error(
-												"Task scanner got runtime exception (processRunnableTaskType): {} : {}",
-												new Object[] { ex.getClass().getSimpleName(),
-														ex.getMessage(), ex });
 									}
-							} else {
-								logger.trace("Task scanner: skipping task "
-										+ DebugUtil.prettyPrint(task) + " because it should not run yet");
-							}
 
+									if (claimed) {
+										
+
+										try {
+	
+											logger.debug("Task scanner is passing task to task manager:  "
+													+ DebugUtil.prettyPrint(task));
+											
+											taskManagerImpl.processRunnableTaskType(task);
+	
+											// TODO: Remember the start time only if the
+											// call is successful
+											
+											// We do not release the task here. Task manager should do it.
+											// We don't know the state of the task. The task manage may have
+											// allocated the thread for the task and the task may be still running
+											// releasing it now may be an error.
+											
+										} catch (RuntimeException ex) {
+											// Runtime exceptions are used from time
+											// to time, although all the
+											// exceptions that could be reasonably
+											// caught should be transformed to
+											// Faults, obvious not all of them are.
+											// Do not cause this thread to die
+											// because of bug in the synchronize
+											// method.
+	
+											// TODO: Better error reporting
+											logger.error(
+													"Task scanner got runtime exception (processRunnableTaskType): {} : {}",
+													new Object[] { ex.getClass().getSimpleName(),
+															ex.getMessage(), ex });
+										}
+								} else {
+									logger.trace("Task scanner: skipping task "
+											+ DebugUtil.prettyPrint(task) + " because it should not run yet");
+								}
+							}
 
 						logger.trace("Task scanner: End processing task " + DebugUtil.prettyPrint(task));
 					} else {
@@ -208,9 +225,9 @@ public class TaskScanner extends Thread {
 		Document doc = DOMUtil.getDocument();
 		
 		Element executionStatusElement = doc.createElementNS(SchemaConstants.C_TASK_EXECUTION_STATUS.getNamespaceURI(), SchemaConstants.C_TASK_EXECUTION_STATUS.getLocalPart());
-		executionStatusElement.setTextContent(TaskExecutionStatusType.RUNNING.toString());
+		executionStatusElement.setTextContent(TaskExecutionStatusType.RUNNING.value());
 		Element exclusivityStatusElement = doc.createElementNS(SchemaConstants.C_TASK_EXECLUSIVITY_STATUS.getNamespaceURI(), SchemaConstants.C_TASK_EXECLUSIVITY_STATUS.getLocalPart());
-		exclusivityStatusElement.setTextContent(TaskExclusivityStatusType.RELEASED.toString());
+		exclusivityStatusElement.setTextContent(TaskExclusivityStatusType.RELEASED.value());
 		
 		// We have all the data, we can construct the filter now
 		Element filter = QueryUtil.createAndFilter(

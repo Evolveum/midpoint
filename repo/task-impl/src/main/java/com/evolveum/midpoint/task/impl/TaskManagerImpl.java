@@ -238,7 +238,7 @@ public class TaskManagerImpl implements TaskManager {
 
 
 	public void processRunnableTaskType(TaskType task) {
-		throw new NotImplementedException();
+		// TODO
 	}
 
 }

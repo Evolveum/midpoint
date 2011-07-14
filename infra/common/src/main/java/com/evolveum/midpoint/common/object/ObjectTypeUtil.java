@@ -22,9 +22,11 @@
 
 package com.evolveum.midpoint.common.object;
 
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
@@ -149,8 +151,34 @@ public class ObjectTypeUtil {
 
         return propertyChange;
     }
+    
+    public static ObjectModificationType createModificationReplaceProperty(String oid, QName propertyName, Object propertyValue) {
+		ObjectModificationType modification = new ObjectModificationType();
+		modification.setOid(oid);
+		List<PropertyModificationType> propertyModifications = modification.getPropertyModification();
+		PropertyModificationType propertyModification = createPropertyModificationType(PropertyModificationTypeType.replace, null, propertyName, propertyValue);		
+		propertyModifications.add(propertyModification);
+		return modification;
+	}
 	
 	public static String toShortString(ObjectType object) {
-		return object.getName()+"(OID:"+object.getOid()+")";
+		return object.getClass().getSimpleName()+": "+object.getName()+"(OID:"+object.getOid()+")";
+	}
+	
+	public static String dump(ObjectType object) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(toShortString(object));
+		sb.append("\n");
+		Document doc = DOMUtil.getDocument();
+		ObjectTypes objectTypeType = ObjectTypes.getObjectType(object.getClass());
+		Element element;
+		try {
+			element = JAXBUtil.jaxbToDom(object, objectTypeType.getQName(), doc);
+			sb.append(DOMUtil.serializeDOMToString(element));
+		} catch (JAXBException e) {
+			sb.append("Cannot serialize object to DOM: ");
+			sb.append(e);
+		}
+		return sb.toString();
 	}
 }

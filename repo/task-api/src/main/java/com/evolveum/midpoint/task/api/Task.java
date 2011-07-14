@@ -214,4 +214,11 @@ public interface Task {
 	 */
 	public void modifyExtension(PropertyModification modification);
 
+	/**
+	 * Return human-readable representation of the task content.
+	 * Useful for diagnostics. May return multi-line string.
+	 * @return human-readable representation of the task content
+	 */
+	public String dump();
+
 }

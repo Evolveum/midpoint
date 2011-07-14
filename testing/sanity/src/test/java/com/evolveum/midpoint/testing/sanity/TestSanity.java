@@ -55,7 +55,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -555,11 +557,17 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
 		
 		assertNotNull(task);
+		System.out.println(task.dump());
+		
+		ObjectType o = repositoryService.getObject(TASK_OPENDJ_SYNC_OID,null, result);
+		System.out.println(ObjectTypeUtil.dump(o));
+		
 		// .. it should be running
 		assertEquals(TaskExecutionStatus.RUNNING,task.getExecutionStatus());
 		
 		// .. and either claimer or have been running at least once
 		if (task.getExclusivityStatus() != TaskExclusivityStatus.CLAIMED) {
+			fail("task not claimed");
 			// Failure is expected here now
 			// assertNotNull(task.getLastRunTimestamp());
 		}

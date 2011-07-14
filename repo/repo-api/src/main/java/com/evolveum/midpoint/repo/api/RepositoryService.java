@@ -23,6 +23,7 @@ package com.evolveum.midpoint.repo.api;
 import java.util.List;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -61,7 +62,7 @@ public interface RepositoryService {
 	 * @throws ObjectNotFoundException
 	 *             requested object does not exist
 	 * @throws SchemaException
-	 *             error dealing with resource schema
+	 *             error dealing with storage schema
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
@@ -100,7 +101,7 @@ public interface RepositoryService {
 	 * @throws ObjectAlreadyExistsException
 	 *             object with specified identifiers already exists, cannot add
 	 * @throws SchemaException
-	 *             error dealing with resource schema, e.g. schema violation
+	 *             error dealing with storage schema, e.g. schema violation
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
@@ -289,4 +290,40 @@ public interface RepositoryService {
 	 */
 	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
 			Class resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException;
+	
+	/**
+	 * Claim a task.
+	 * 
+	 * The task can be claimed only by a single node in the cluster. Attempt to claim an
+	 * already claimed task results in an exception. The claim must be atomic. It is kind
+	 * of a lock for the system.
+	 * 
+	 * TODO: better description
+	 * 
+	 * @param oid task OID
+	 * @param parentResult parentResult parent OperationResult (in/out)
+	 * @throws ObjectNotFoundException the task with specified OID was not found
+	 * @throws ConcurrencyException attempt to claim already claimed task
+	 * @throws SchemaException error dealing with storage schema
+	 * @throws IllegalArgumentException
+	 *             wrong OID format or a specified object is not a task
+	 */
+	public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException;
+	
+	/**
+	 * Release a claimed task.
+	 * 
+	 * TODO: better description
+	 * 
+	 * Note: Releasing a task that is not claimed is not an error. Warning should be logged, but this
+	 * should not throw any exception.
+	 *  
+	 * @param oid task OID
+	 * @param parentResult parentResult parent OperationResult (in/out)
+	 * @throws ObjectNotFoundException the task with specified OID was not found
+	 * @throws SchemaException error dealing with storage schema
+	 * @throws IllegalArgumentException
+	 *             wrong OID format or a specified object is not a task
+	 */
+	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 }
