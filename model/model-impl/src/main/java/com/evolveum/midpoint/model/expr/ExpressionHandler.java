@@ -20,11 +20,21 @@
  */
 package com.evolveum.midpoint.model.expr;
 
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.schema.ExpressionHolder;
+
 /**
  * 
  * @author lazyman
- *
+ * 
  */
 public interface ExpressionHandler {
 
+	void setModel(ModelController model);
+
+	boolean evaluateConfirmationExpression(UserType user, ResourceObjectShadowType shadow,
+			ExpressionHolder expression, OperationResult result) throws ExpressionException;
 }

@@ -72,10 +72,10 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
  * 
  * @author katuska
  */
-public class UserTypeManager extends UserManager {
+public class UserManagerImpl extends UserManager {
 
 	private static final long serialVersionUID = -3457278299468312767L;
-	private static final Trace TRACE = TraceManager.getTrace(UserTypeManager.class);
+	private static final Trace TRACE = TraceManager.getTrace(UserManagerImpl.class);
 	private Class<?> constructUserType;
 
 	@Autowired(required = true)
@@ -83,7 +83,7 @@ public class UserTypeManager extends UserManager {
 	@Autowired(required = true)
 	private transient ModelPortType model;
 
-	public UserTypeManager(Class<?> constructUserType) {
+	public UserManagerImpl(Class<?> constructUserType) {
 		this.constructUserType = constructUserType;
 	}
 

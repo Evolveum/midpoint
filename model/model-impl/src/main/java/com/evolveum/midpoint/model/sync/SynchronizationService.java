@@ -42,6 +42,8 @@ import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.expr.ExpressionException;
+import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.SystemException;
@@ -79,6 +81,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	private ModelController controller;
 	@Autowired(required = true)
 	private ActionManager<Action> actionManager;
+	@Autowired
+	private transient ExpressionHandler expressionHandler;
 
 	@Override
 	public void notifyChange(ResourceObjectShadowChangeDescriptionType change, OperationResult parentResult) {
@@ -221,17 +225,19 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		return situation;
 	}
 
+	/**
+	 * account is not linked to user. you have to use correlation and
+	 * confirmation rule to be shure user for this account doesn't exists
+	 * resourceShadow only contains the data that were in the repository before
+	 * the change. But the correlation/confirmation should work on the updated
+	 * data. Therefore let's apply the changes before running
+	 * correlation/confirmation
+	 */
 	private SynchronizationSituation checkSituationWithCorrelation(
 			ResourceObjectShadowChangeDescriptionType change,
 			ResourceObjectShadowType objectShadowAfterChange, ModificationType modification,
 			OperationResult result) {
-		// account is not linked to user. you have to use correlation
-		// and confirmation rule to be shure user for this account
-		// doesn't exists resourceShadow only contains the data that
-		// were in the repository before the change. But the
-		// correlation/confirmation should work on the updated data.
-		// Therefore let's apply the changes before running
-		// correlation/confirmation
+
 		ResourceObjectShadowType resourceShadow = change.getShadow();
 		// It is better to get resource from change. The resource object may
 		// have only resourceRef
@@ -252,7 +258,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 		} else {
 			users = findUserByConfirmationRule(users, objectShadowAfterChange, new ExpressionHolder(
-					synchronization.getConfirmation()));
+					synchronization.getConfirmation()), result);
 		}
 		switch (users.size()) {
 			case 0:
@@ -400,25 +406,22 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	}
 
 	private List<UserType> findUserByConfirmationRule(List<UserType> users,
-			ResourceObjectShadowType resourceObjectShadowType, ExpressionHolder expression) {
+			ResourceObjectShadowType resourceObjectShadowType, ExpressionHolder expression,
+			OperationResult result) {
 		List<UserType> list = new ArrayList<UserType>();
 		for (UserType user : users) {
-			if (user != null && confirmUser(user, resourceObjectShadowType, expression)) {
-				list.add(user);
+			try {
+				if (user != null && confirmUser(user, resourceObjectShadowType, expression, result)) {
+					list.add(user);
+				}
+			} catch (ExpressionException ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
 			}
 		}
 
 		LOGGER.debug("CONFIRMATION: expression for OID {} matched {} users.",
 				resourceObjectShadowType.getOid(), list.size());
 		return list;
-	}
-
-	private boolean confirmUser(UserType user, ResourceObjectShadowType resourceObjectShadowType,
-			ExpressionHolder expression) {
-		// return schemaHandling.confirmUser(user, resourceObjectShadowType,
-		// expression)
-		// TODO: implement
-		return false;
 	}
 
 	private Element updateFilterWithAccountValues(ResourceObjectShadowType resourceObjectShadow,
@@ -489,6 +492,14 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 		}
 		return null;
+	}
+
+	private boolean confirmUser(UserType user, ResourceObjectShadowType resourceObjectShadow,
+			ExpressionHolder expression, OperationResult result) throws ExpressionException {
+		expressionHandler.setModel(controller);
+
+		return expressionHandler.evaluateConfirmationExpression(user, resourceObjectShadow, expression,
+				result);
 	}
 
 	// XXX: what to do with path element?

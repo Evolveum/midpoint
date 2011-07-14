@@ -20,7 +20,34 @@
  */
 package com.evolveum.midpoint.model.expr;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+import javax.xml.xpath.XPathConstants;
+
+import org.apache.commons.lang.Validate;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.common.XPathUtil;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.Variable;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.schema.ExpressionHolder;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -30,8 +57,85 @@ import org.springframework.stereotype.Component;
 @Component
 public class ExpressionHandlerImpl implements ExpressionHandler {
 
-	// public void evaluateExpression(List<Expression> expressions) throws
-	// ExpressionException {
-	//
-	// }
+	private ModelController model;
+
+	public void setModel(ModelController model) {
+		this.model = model;
+	}
+
+	private ModelController getModel() {
+		if (model == null) {
+			throw new IllegalStateException(
+					"Model controller is null. Please set model before using expression handler.");
+		}
+		return model;
+	}
+
+	public boolean evaluateConfirmationExpression(UserType user, ResourceObjectShadowType shadow,
+			ExpressionHolder expression, OperationResult result) throws ExpressionException {
+		Validate.notNull(user, "user object is null");
+		Validate.notNull(shadow, "resourceObjectShadow is null");
+		Validate.notNull(expression, "expression is null");
+
+		ResourceType resource = resolveResource(shadow, result);
+		Map<QName, Variable> variables = getDefaultXPathVariables(user, shadow, resource);
+		String confirmed = (String) XPathUtil
+				.evaluateExpression(variables, expression, XPathConstants.STRING);
+		return Boolean.valueOf(confirmed);
+	}
+
+	private ResourceType resolveResource(ResourceObjectShadowType shadow, OperationResult result)
+			throws ExpressionException {
+		if (shadow.getResource() != null) {
+			return shadow.getResource();
+		}
+
+		ObjectReferenceType ref = shadow.getResourceRef();
+		if (ref == null) {
+			throw new ExpressionException("Resource shadow object '', oid '' doesn't have defined resource.");
+		}
+
+		try {
+			return getModel().getObject(ref.getOid(), new PropertyReferenceListType(), result,
+					ResourceType.class, true);
+		} catch (Exception ex) {
+			throw new ExpressionException("Couldn't get resource object.", ex);
+		}
+	}
+
+	private Map<QName, Variable> getDefaultXPathVariables(UserType user, ResourceObjectShadowType shadow,
+			ResourceType resource) {
+		Map<QName, Variable> variables = new HashMap<QName, Variable>();
+		try {
+			ObjectFactory of = new ObjectFactory();
+			if (user != null) {
+				// Following code is wrong, but it works
+				JAXBElement<ObjectType> userJaxb = of.createObject(user);
+				Document userDoc = DOMUtil.parseDocument(JAXBUtil.marshal(userJaxb));
+				variables.put(SchemaConstants.I_USER, new Variable(userDoc.getFirstChild(), false));
+
+				// JAXBElement<ObjectType> userJaxb = of.createObject(user);
+				// Element userEl =
+				// JAXBUtil.objectTypeToDom(userJaxb.getValue(), null);
+				// variables.put(SchemaConstants.I_USER, new Variable(userEl,
+				// false));
+			}
+
+			if (shadow != null) {
+				JAXBElement<ObjectType> accountJaxb = of.createObject(shadow);
+				Element accountEl = JAXBUtil.objectTypeToDom(accountJaxb.getValue(), null);
+				variables.put(SchemaConstants.I_ACCOUNT, new Variable(accountEl, false));
+			}
+
+			if (resource != null) {
+				JAXBElement<ObjectType> resourceJaxb = of.createObject(resource);
+				Element resourceEl = JAXBUtil.objectTypeToDom(resourceJaxb.getValue(), null);
+				variables.put(SchemaConstants.I_RESOURCE, new Variable(resourceEl, false));
+			}
+		} catch (JAXBException ex) {
+			throw new IllegalArgumentException(ex);
+		}
+
+		return variables;
+	}
 }
