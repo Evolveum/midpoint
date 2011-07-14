@@ -73,7 +73,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author lazyman
  * 
  */
-@Service
+@Service(value = "synchronizationService")
 public class SynchronizationService implements ResourceObjectChangeListener {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationService.class);

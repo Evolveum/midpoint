@@ -21,6 +21,8 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+
 import java.util.Set;
 
 /**
@@ -32,6 +34,7 @@ public final class Change {
     private Set<Property> identifiers;
     private ObjectChangeType change;
     private Property token;
+    private ResourceObjectShadowType oldShadow;
 //    private Token token;
 
     public Change(Set<Property> identifiers, ObjectChangeType change, Property token) {
@@ -64,6 +67,14 @@ public final class Change {
 
 	public void setToken(Property token) {
 		this.token = token;
+	}
+
+	public ResourceObjectShadowType getOldShadow() {
+		return oldShadow;
+	}
+
+	public void setOldShadow(ResourceObjectShadowType oldShadow) {
+		this.oldShadow = oldShadow;
 	}
 
     
