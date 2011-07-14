@@ -65,22 +65,24 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 
 	private ModelController getModel() {
 		if (model == null) {
-			throw new IllegalStateException(
-					"Model controller is null. Please set model before using expression handler.");
+			throw new IllegalStateException("Model controller is null. Please set model  property "
+					+ "before using expression handler.");
 		}
 		return model;
 	}
 
 	public boolean evaluateConfirmationExpression(UserType user, ResourceObjectShadowType shadow,
 			ExpressionHolder expression, OperationResult result) throws ExpressionException {
-		Validate.notNull(user, "user object is null");
-		Validate.notNull(shadow, "resourceObjectShadow is null");
-		Validate.notNull(expression, "expression is null");
+		Validate.notNull(user, "User must not be null.");
+		Validate.notNull(shadow, "Resource object shadow must not be null.");
+		Validate.notNull(expression, "Expression must not be null.");
+		Validate.notNull(result, "Operation result must not be null.");
 
 		ResourceType resource = resolveResource(shadow, result);
 		Map<QName, Variable> variables = getDefaultXPathVariables(user, shadow, resource);
 		String confirmed = (String) XPathUtil
 				.evaluateExpression(variables, expression, XPathConstants.STRING);
+
 		return Boolean.valueOf(confirmed);
 	}
 

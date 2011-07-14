@@ -94,7 +94,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlerImpl.class);
 	@Autowired(required = true)
 	private transient ExpressionHandler expressionHandler;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private transient FilterManager<Filter> filterManager;
 	private ModelController model;
 
@@ -273,8 +273,8 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 		ObjectReferenceType ref = shadow.getResourceRef();
 		if (ref == null) {
-			throw new SchemaHandlerException(
-					"Resource shadow object '', oid '' doesn't have defined resource.");
+			throw new SchemaHandlerException("Resource shadow object '" + shadow.getName() + "', oid '"
+					+ shadow.getOid() + "' doesn't have defined resource.");
 		}
 
 		try {

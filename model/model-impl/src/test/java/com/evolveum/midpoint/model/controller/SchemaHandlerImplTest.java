@@ -208,25 +208,7 @@ public class SchemaHandlerImplTest {
 		assertEquals("MikeFromExtension", appliedUser.getExtension().getAny().get(0).getTextContent());
 		assertEquals("DudikoffFromExtension", appliedUser.getExtension().getAny().get(1).getTextContent());
 	}
-
-	// @Test
-	// @SuppressWarnings("unchecked")
-	// public void testConfirmUser() throws Exception {
-	// JAXBElement<AccountShadowType> accountJaxb =
-	// (JAXBElement<AccountShadowType>) JAXBUtil
-	// .unmarshal(new File("src/test/resources/account-xpath-evaluation.xml"));
-	// JAXBElement<UserType> userJaxb = (JAXBElement<UserType>)
-	// JAXBUtil.unmarshal(new File(
-	// "src/test/resources/user-new.xml"));
-	// Document doc = DOMUtil
-	// .parseDocument("<confirmation xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' xmlns:dj='http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ'>$c:user/c:givenName = $c:account/c:attributes/dj:givenName</confirmation>");
-	// Element domElement = (Element) doc.getFirstChild();
-	// ExpressionHolder expressionHolder = new ExpressionHolder(domElement);
-	// boolean confirmed = schemaHandling.confirmUser(userJaxb.getValue(),
-	// accountJaxb.getValue(),
-	// expressionHolder);
-	// assertTrue(confirmed);
-	// }
+	
 	//
 	// @Test
 	// @SuppressWarnings("unchecked")
