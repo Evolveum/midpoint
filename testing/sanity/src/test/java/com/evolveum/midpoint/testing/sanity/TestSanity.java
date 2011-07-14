@@ -548,7 +548,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// task
 		
 		System.out.println("Waining for task manager to pick up the task");
-		Thread.sleep(5000);
+		Thread.sleep(10000);
 		System.out.println("... done");
 		
 		// Check task status

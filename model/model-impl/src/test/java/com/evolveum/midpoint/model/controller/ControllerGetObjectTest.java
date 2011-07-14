@@ -58,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml" })
+		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
 public class ControllerGetObjectTest {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/getObject");

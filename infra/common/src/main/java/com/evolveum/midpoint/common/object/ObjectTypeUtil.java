@@ -23,6 +23,7 @@
 package com.evolveum.midpoint.common.object;
 
 import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -127,11 +128,11 @@ public class ObjectTypeUtil {
 
         Value jaxbValue = new Value();
 
-        if (value instanceof String) {
-            Element e = doc.createElementNS(property.getNamespaceURI(), property.getLocalPart());
-            e.appendChild(doc.createTextNode((String) value));
-            jaxbValue.getAny().add(e);
-
+        if (XsdTypeConverter.canConvert(value.getClass())) {
+        	Element e = doc.createElementNS(property.getNamespaceURI(), property.getLocalPart());
+        	XsdTypeConverter.toXsdElement(value, e);
+        	jaxbValue.getAny().add(e);
+        	
         } else if (value.getClass().getPackage().equals(ObjectFactory.class.getPackage())) {
             // JAXB Object from a common schema
             Element e;

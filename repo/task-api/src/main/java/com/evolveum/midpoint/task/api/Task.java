@@ -23,6 +23,8 @@ package com.evolveum.midpoint.task.api;
 import java.util.List;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -186,6 +188,8 @@ public interface Task {
 	 */
 	public void setName(String name);
 	
+	public long getProgress();
+	
 	/**
 	 * Returns task extension.
 	 * 
@@ -221,10 +225,12 @@ public interface Task {
 	 * TODO: better documentation
 	 * 
 	 * @param runResult result of the run to record
+	 * @throws SchemaException 
+	 * @throws ObjectNotFoundException 
 	 */
-	public void recordRunFinish(TaskRunResult runResult);
+	public void recordRunFinish(TaskRunResult runResult,OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
-	public void recordRunStart();
+	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 
 	/**

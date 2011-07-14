@@ -38,7 +38,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml" })
+		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
 public class ControllerTestResourceTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerTestResourceTest.class);

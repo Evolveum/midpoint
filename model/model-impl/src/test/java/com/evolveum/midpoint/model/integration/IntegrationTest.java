@@ -71,7 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 @Ignore //FIXME: fix test
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml" })
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml", "classpath:application-context-task.xml" })
 public class IntegrationTest {
 
 	private static final Trace trace = TraceManager.getTrace(IntegrationTest.class);

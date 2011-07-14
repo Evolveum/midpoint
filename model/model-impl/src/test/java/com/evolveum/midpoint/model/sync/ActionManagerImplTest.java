@@ -36,7 +36,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml" })
+		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
 public class ActionManagerImplTest {
 
 	@Autowired(required = true)

@@ -20,11 +20,26 @@
  */
 package com.evolveum.midpoint.task.impl;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
+
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.NotImplementedException;
+
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.task.api.Task;
@@ -32,8 +47,12 @@ import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * Implementation of a Task.
@@ -58,16 +77,29 @@ public class TaskImpl implements Task {
 	private Long lastRunFinishTimestamp;
 	private List<Property> extension;
 	private long progress;
+	private RepositoryService repositoryService;
 
-	public TaskImpl() {
+	/**
+	 * Note: This constructor assumes that the task is transient.
+	 * @param taskType
+	 * @param repositoryService
+	 */	
+	TaskImpl() {
 		executionStatus = TaskExecutionStatus.RUNNING;
 		exclusivityStatus = TaskExclusivityStatus.CLAIMED;
 		persistenceStatus = TaskPersistenceStatus.TRANSIENT;
 		extension = new ArrayList<Property>();
 		progress = 0;
+		repositoryService = null;
 	}
 
-	public TaskImpl(TaskType taskType) {
+	/**
+	 * Note: This constructor assumes that the task is persistent.
+	 * @param taskType
+	 * @param repositoryService
+	 */
+	TaskImpl(TaskType taskType, RepositoryService repositoryService) {
+		this.repositoryService = repositoryService;
 		executionStatus = TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
 		exclusivityStatus = TaskExclusivityStatus.fromTaskType(taskType.getExclusivityStatus());
 		// If that is created from the TaskType, then this is persistent task
@@ -77,10 +109,10 @@ public class TaskImpl implements Task {
 		// TODO: object = 
 		name = taskType.getName();
 		if (taskType.getLastRunStartTimestamp()!=null) {
-			lastRunStartTimestamp = new Long(taskType.getLastRunStartTimestamp().getMillisecond());
+			lastRunStartTimestamp = new Long(XsdTypeConverter.toMillis(taskType.getLastRunStartTimestamp()));
 		}
 		if (taskType.getLastRunFinishTimestamp()!=null) {
-			lastRunFinishTimestamp = new Long(taskType.getLastRunFinishTimestamp().getMillisecond());
+			lastRunFinishTimestamp = new Long(XsdTypeConverter.toMillis(taskType.getLastRunFinishTimestamp()));
 		}
 		if (taskType.getProgress()!=null) {
 			progress = taskType.getProgress().longValue();
@@ -88,6 +120,14 @@ public class TaskImpl implements Task {
 			progress = 0;
 		}
 		// TODO: extension
+	}
+	
+	RepositoryService getRepositoryService() {
+		return repositoryService;
+	}
+	
+	void setRepositoryService(RepositoryService repositoryService) {
+		this.repositoryService = repositoryService;
 	}
 
 	/* (non-Javadoc)
@@ -242,18 +282,21 @@ public class TaskImpl implements Task {
 	}
 
 	@Override
-	public void recordRunStart() {
+	public void recordRunStart(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		// TODO 
 		lastRunStartTimestamp = System.currentTimeMillis();
 		// This is all we need to do for transient tasks
 		if (!isPersistent()) {
 			return;
 		}
-		// TODO: store status in repository
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTimeInMillis(lastRunStartTimestamp);
+		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid, SchemaConstants.C_TASK_LAST_RUN_START_TIMESTAMP, cal);
+		repositoryService.modifyObject(modification, parentResult);
 	}
 
 	@Override
-	public void recordRunFinish(TaskRunResult runResult) {
+	public void recordRunFinish(TaskRunResult runResult, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		// TODO
 		progress = runResult.getProgress(); 
 		lastRunFinishTimestamp = System.currentTimeMillis();
@@ -261,12 +304,28 @@ public class TaskImpl implements Task {
 		if (!isPersistent()) {
 			return;
 		}
-		// TODO: store status in repository
+		GregorianCalendar cal = new GregorianCalendar();
+		cal.setTimeInMillis(lastRunFinishTimestamp);
+		ObjectModificationType modification = new ObjectModificationType();
+		modification.setOid(oid);
+		PropertyModificationType timestampModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_LAST_RUN_FINISH_TIMESTAMP, cal);
+		modification.getPropertyModification().add(timestampModification);
+		PropertyModificationType progressModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_PROGRESS, progress);
+		modification.getPropertyModification().add(progressModification);
+		PropertyModificationType resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, parentResult.createOperationResultType());
+		modification.getPropertyModification().add(resultModification);
+		repositoryService.modifyObject(modification, parentResult);
+		// TODO: Also save the OpResult
 	}
 
 	
 	private boolean isPersistent() {
 		return persistenceStatus == TaskPersistenceStatus.PERSISTENT;
+	}
+
+	@Override
+	public long getProgress() {
+		return progress;
 	}
 
 }

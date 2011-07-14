@@ -51,7 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml" })
+		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
 public class ControllerModifyObjectWithExclusionTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerModifyObjectWithExclusionTest.class);

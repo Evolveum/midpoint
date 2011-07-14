@@ -55,14 +55,19 @@ public class SynchronizationCycle implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 		logger.info("SynchronizationCycle.run starting");
+		
+		long progress = task.getProgress();
+		
 		// TODO get the resource from the task
 		// TODO call sync in provisioning
-		
+
+		// Temporary "fake"
+		progress++;
 		
 		TaskRunResult runResult = new TaskRunResult();
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		// TODO: progress
+		runResult.setProgress(progress);
 		logger.info("SynchronizationCycle.run stopping");
 		return runResult;
 	}

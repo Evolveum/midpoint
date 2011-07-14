@@ -112,7 +112,7 @@ public class SynchronizationProcess extends Thread {
 										logger.debug("Synchronization Thread: calling synchronize() for resource "
 												+ resource.getName() + " oid: " + oid);
 
-										provisioning.synchronize(new ResourceType(), new TaskImpl(), new OperationResult("Synchronize"));
+										provisioning.synchronize(new ResourceType(), null, new OperationResult("Synchronize"));
 
 										// Remember the start time only if the
 										// call is successful

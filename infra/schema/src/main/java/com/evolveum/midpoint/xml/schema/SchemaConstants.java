@@ -74,6 +74,10 @@ public abstract class SchemaConstants {
 	public static final QName C_TASK = new QName(NS_C,"task");
 	public static final QName C_TASK_EXECUTION_STATUS = new QName(NS_C,"executionStatus");
 	public static final QName C_TASK_EXECLUSIVITY_STATUS = new QName(NS_C,"exclusivityStatus");
+	public static final QName C_TASK_LAST_RUN_START_TIMESTAMP = new QName(NS_C,"lastRunStartTimestamp");
+	public static final QName C_TASK_LAST_RUN_FINISH_TIMESTAMP = new QName(NS_C,"lastRunFinishTimestamp");
+	public static final QName C_TASK_RESULT = new QName(NS_C,"result");
+	public static final QName C_TASK_PROGRESS = new QName(NS_C,"progress");
 	public static final QName I_RESOURCE = new QName(NS_C, "resource");
 	public static final QName I_RESOURCE_STATE = new QName(NS_C, "resourceState");
 	public static final QName I_TYPE = new QName(NS_C, "type");
@@ -135,6 +139,8 @@ public abstract class SchemaConstants {
 	public static final QName XSD_BOOLEAN = new QName(W3C_XML_SCHEMA_NS_URI, "boolean",
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_BASE64BINARY = new QName(W3C_XML_SCHEMA_NS_URI, "base64Binary",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_DATETIME = new QName(W3C_XML_SCHEMA_NS_URI, "dateTime",
 			NS_W3C_XML_SCHEMA_PREFIX);
 
 	// Synchronization constants

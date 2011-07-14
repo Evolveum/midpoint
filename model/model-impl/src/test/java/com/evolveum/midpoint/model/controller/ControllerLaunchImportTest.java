@@ -38,7 +38,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml" })
+		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
 public class ControllerLaunchImportTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerLaunchImportTest.class);

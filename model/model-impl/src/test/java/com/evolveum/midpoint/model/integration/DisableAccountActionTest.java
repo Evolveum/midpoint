@@ -51,7 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml" })
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml", "classpath:application-context-task.xml" })
 public class DisableAccountActionTest {
 
 	@Autowired(required = true)

@@ -119,7 +119,7 @@ public class TaskManagerImpl implements TaskManager {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		ObjectType object = repositoryService.getObject(taskOid, resolve, result);
 		TaskType taskType = (TaskType) object;
-		return new TaskImpl(taskType);
+		return new TaskImpl(taskType,repositoryService);
 	}
 
 	/* (non-Javadoc)
@@ -258,7 +258,7 @@ public class TaskManagerImpl implements TaskManager {
 		
 		taskType.getSchedule();
 		
-		Task task = new TaskImpl(taskType);
+		Task task = new TaskImpl(taskType,repositoryService);
 		TaskHandler handler = getHandler(task.getHanderUri());
 		
 		if (handler==null) {
