@@ -46,6 +46,7 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
@@ -65,7 +66,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathType;
 
@@ -76,8 +76,7 @@ public class AddUserActionTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AddUserActionTest.class);
 	@Autowired(required = true)
-	// private ResourceObjectChangeListener resourceObjectChangeService;
-	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
+	private ResourceObjectChangeListener resourceObjectChangeListener;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
 
@@ -121,8 +120,8 @@ public class AddUserActionTest {
 					"src/test/resources/user-template-create-account.xml");
 			ResourceType resourceType = (ResourceType) ModelTUtil.addObjectToRepo(repositoryService,
 					change.getResource());
-			AccountShadowType accountType = (AccountShadowType) ModelTUtil.addObjectToRepo(
-					repositoryService, change.getShadow());
+			AccountShadowType accountType = (AccountShadowType) ModelTUtil.addObjectToRepo(repositoryService,
+					change.getShadow());
 
 			// setting resource for ResourceObjectShadowType
 			((ResourceObjectShadowType) ((ObjectChangeAdditionType) change.getObjectChange()).getObject())
@@ -131,8 +130,8 @@ public class AddUserActionTest {
 					.setResourceRef(null);
 
 			assertNotNull(resourceType);
-			OperationResult result = new OperationResult("Test Operation");
-			resourceObjectChangeService.notifyChange(change);
+			OperationResult result = new OperationResult("testAddUserAction");
+			resourceObjectChangeListener.notifyChange(change, result);
 			// resourceObjectChangeService.notifyChange(change, result);
 			LOGGER.info(result.debugDump());
 			// creating filter to search user according to the user name

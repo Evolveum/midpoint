@@ -28,7 +28,6 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.parsers.ParserConfigurationException;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -40,19 +39,14 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.processor.ResourceObject;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
-import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
@@ -60,11 +54,12 @@ import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_
 public class UnlinkAccountActionTest {
 
 	@Autowired(required = true)
-	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
+	private ResourceObjectChangeListener resourceObjectChangeListener;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
-//	@Autowired(required = true)
-//	private ResourceAccessInterface rai;
+
+	// @Autowired(required = true)
+	// private ResourceAccessInterface rai;
 
 	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowChangeDescriptionType createChangeDescription(String file)
@@ -74,19 +69,22 @@ public class UnlinkAccountActionTest {
 		return change;
 	}
 
-//	private ResourceObject createSampleResourceObject(ResourceType resourceType,
-//			ResourceObjectShadowType shadow) throws ParserConfigurationException, SchemaProcessorException {
-//		Schema schema = Schema.parse(resourceType.getSchema().getAny().get(0));
-//		ResourceObjectDefinition definition = (ResourceObjectDefinition) schema
-//				.findContainerDefinitionByType(shadow.getObjectClass());
-//		ResourceObject object = definition.instantiate();
-//
-//		// TODO: set properties
-//
-//		return object;
-//	}
+	// private ResourceObject createSampleResourceObject(ResourceType
+	// resourceType,
+	// ResourceObjectShadowType shadow) throws ParserConfigurationException,
+	// SchemaProcessorException {
+	// Schema schema = Schema.parse(resourceType.getSchema().getAny().get(0));
+	// ResourceObjectDefinition definition = (ResourceObjectDefinition) schema
+	// .findContainerDefinitionByType(shadow.getObjectClass());
+	// ResourceObject object = definition.instantiate();
+	//
+	// // TODO: set properties
+	//
+	// return object;
+	// }
 
-	@Ignore //FIXME: fix test
+	@Ignore
+	// FIXME: fix test
 	@Test
 	public void testUnlinkAccountAction() throws Exception {
 
@@ -100,18 +98,20 @@ public class UnlinkAccountActionTest {
 			// adding objects to repo
 			ResourceType resourceType = (ResourceType) ModelTUtil.addObjectToRepo(repositoryService,
 					change.getResource());
-			AccountShadowType accountType = (AccountShadowType) ModelTUtil.addObjectToRepo(
-					repositoryService, change.getShadow());
-			ModelTUtil.addObjectToRepo(repositoryService,
-					"src/test/resources/user-unlink-account-action.xml");
+			AccountShadowType accountType = (AccountShadowType) ModelTUtil.addObjectToRepo(repositoryService,
+					change.getShadow());
+			ModelTUtil
+					.addObjectToRepo(repositoryService, "src/test/resources/user-unlink-account-action.xml");
 
 			assertNotNull(resourceType);
 			// setup provisioning mock
-//			ResourceObject ro = createSampleResourceObject(resourceType, accountType);
-//			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
-//			when(rai.getConnector()).thenReturn(bri);
+			// ResourceObject ro = createSampleResourceObject(resourceType,
+			// accountType);
+			// when(rai.get(any(OperationalResultType.class),
+			// any(ResourceObject.class))).thenReturn(ro);
+			// when(rai.getConnector()).thenReturn(bri);
 
-			resourceObjectChangeService.notifyChange(change);
+			resourceObjectChangeListener.notifyChange(change, new OperationResult("testUnlinkAccountAction"));
 
 			UserType changedUser = (UserType) repositoryService.getObject(userOid,
 					new PropertyReferenceListType(), new OperationResult("Get Object"));

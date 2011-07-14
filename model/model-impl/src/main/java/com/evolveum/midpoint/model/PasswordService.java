@@ -43,6 +43,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -69,7 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordPortType;
 import com.evolveum.midpoint.xml.ns._public.model.password_1.PasswordSynchronizeRequestType;
 import com.evolveum.midpoint.xml.ns._public.model.password_1.SelfPasswordChangeRequestType;
 import com.evolveum.midpoint.xml.ns._public.provisioning.provisioning_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
@@ -83,7 +83,7 @@ public class PasswordService implements PasswordPortType {
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
 	@Autowired(required = true)
-	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
+	private ResourceObjectChangeListener resourceObjectChangeListener;
 
 	@Override
 	public PasswordChangeResponseType selfChangePassword(SelfPasswordChangeRequestType spcrt) {
@@ -162,7 +162,8 @@ public class PasswordService implements PasswordPortType {
 					mod.getPropertyModification().add(passwordChange);
 					pwchange.setObjectModification(mod);
 					change.setObjectChange(pwchange);
-					resourceObjectChangeService.notifyChange(change);
+					resourceObjectChangeListener.notifyChange(change, new OperationResult(
+							"Synchronize Password"));
 				}
 			} catch (Exception ex) {
 				LOGGER.error("Failed to synchronize password", ex);

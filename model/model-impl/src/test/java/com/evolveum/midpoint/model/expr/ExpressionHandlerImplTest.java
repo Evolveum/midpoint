@@ -55,6 +55,7 @@ import com.evolveum.midpoint.xml.schema.ExpressionHolder;
 public class ExpressionHandlerImplTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ExpressionHandlerImplTest.class);
+	private static final File TEST_FOLDER = new File("./src/test/resources");
 	@Autowired
 	private ExpressionHandler expressionHandler;
 
@@ -62,9 +63,9 @@ public class ExpressionHandlerImplTest {
 	@SuppressWarnings("unchecked")
 	public void testConfirmUserWithoutModel() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				"src/test/resources/expr/account-xpath-evaluation-without-resource.xml"))).getValue();
-		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-				"src/test/resources/user-new.xml"))).getValue();
+				TEST_FOLDER, "./expr/account-xpath-evaluation-without-resource.xml"))).getValue();
+		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "./user-new.xml")))
+				.getValue();
 
 		Document doc = DOMUtil.parseDocument("<confirmation "
 				+ "xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' "
@@ -75,8 +76,7 @@ public class ExpressionHandlerImplTest {
 
 		OperationResult result = new OperationResult("testConfirmUserWithoutModel");
 		try {
-			expressionHandler.evaluateConfirmationExpression(user, account, expression,
-					result);
+			expressionHandler.evaluateConfirmationExpression(user, account, expression, result);
 			fail();
 		} finally {
 			LOGGER.info(result.debugDump());
@@ -87,9 +87,9 @@ public class ExpressionHandlerImplTest {
 	@SuppressWarnings("unchecked")
 	public void testConfirmUser() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				"src/test/resources/account-xpath-evaluation.xml"))).getValue();
-		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-				"src/test/resources/user-new.xml"))).getValue();
+				TEST_FOLDER, "./account-xpath-evaluation.xml"))).getValue();
+		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "./user-new.xml")))
+				.getValue();
 
 		Document doc = DOMUtil.parseDocument("<confirmation "
 				+ "xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' "

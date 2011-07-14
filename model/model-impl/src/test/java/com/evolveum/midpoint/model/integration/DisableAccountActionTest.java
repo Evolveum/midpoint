@@ -21,8 +21,6 @@
 package com.evolveum.midpoint.model.integration;
 
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.when;
 
 import java.io.File;
 
@@ -38,19 +36,18 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.objects.ResourceObject;
 import com.evolveum.midpoint.provisioning.schema.ResourceSchema;
 import com.evolveum.midpoint.provisioning.schema.util.ObjectValueWriter;
-import com.evolveum.midpoint.provisioning.service.BaseResourceIntegration;
 import com.evolveum.midpoint.provisioning.service.ResourceAccessInterface;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.ResourceObjectChangeListenerPortType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
@@ -58,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_
 public class DisableAccountActionTest {
 
 	@Autowired(required = true)
-	private ResourceObjectChangeListenerPortType resourceObjectChangeService;
+	private ResourceObjectChangeListener resourceObjectChangeListener;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
 	@Autowired(required = true)
@@ -88,21 +85,24 @@ public class DisableAccountActionTest {
 			// create additional change
 			ResourceObjectShadowChangeDescriptionType change = createChangeDescription("src/test/resources/account-change-disable-account.xml");
 			// adding objects to repo
-			final ResourceType resourceType = (ResourceType) ModelTUtil.addObjectToRepo(
-					repositoryService, change.getResource());
+			final ResourceType resourceType = (ResourceType) ModelTUtil.addObjectToRepo(repositoryService,
+					change.getResource());
 			final AccountShadowType accountType = (AccountShadowType) ModelTUtil.addObjectToRepo(
 					repositoryService, change.getShadow());
 
 			assertNotNull(resourceType);
 			// setup provisioning mock
-//			BaseResourceIntegration bri = new BaseResourceIntegration(resourceType);
-//			ResourceObject ro = createSampleResourceObject(bri.getSchema(), accountType);
-//
-//			when(rai.get(any(OperationalResultType.class), any(ResourceObject.class))).thenReturn(ro);
-//
-//			when(rai.getConnector()).thenReturn(bri);
+			// BaseResourceIntegration bri = new
+			// BaseResourceIntegration(resourceType);
+			// ResourceObject ro = createSampleResourceObject(bri.getSchema(),
+			// accountType);
+			//
+			// when(rai.get(any(OperationalResultType.class),
+			// any(ResourceObject.class))).thenReturn(ro);
+			//
+			// when(rai.getConnector()).thenReturn(bri);
 
-			resourceObjectChangeService.notifyChange(change);
+			resourceObjectChangeListener.notifyChange(change, new OperationResult("testDeleteAccountAction"));
 
 			// TODO:make some asserts to verify the result
 
