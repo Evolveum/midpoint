@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -64,7 +65,7 @@ public class TaskManagerImpl implements TaskManager {
 	private static final String THREAD_NAME = "midpoint-task-scanner";
 	private long JOIN_TIMEOUT = 5000;
 	
-	private Map<String,TaskHandler> handlers;
+	private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
 
 	private TaskScanner scannerThread;
 	
@@ -204,6 +205,10 @@ public class TaskManagerImpl implements TaskManager {
 		handlers.put(uri, handler);
 	}
 	
+	TaskHandler getHandler(String uri) {
+		return handlers.get(uri);
+	}
+	
 	private void startThread() {
 		if (scannerThread == null) {
 			scannerThread = new TaskScanner();
@@ -237,8 +242,42 @@ public class TaskManagerImpl implements TaskManager {
 	}
 
 
-	public void processRunnableTaskType(TaskType task) {
-		// TODO
+	/**
+	 * Process runnable task with TaskType XML object as an argument.
+	 * 
+	 * This is called by a task scanner or anyone that has a runnable task.
+	 * 
+	 * Precondition: claimed, runnable task
+	 * As the task is claimed as it enters this methods, all we need is to execute it.
+	 * 
+	 * @param task XML TaskType object
+	 */
+	public void processRunnableTaskType(TaskType taskType) {
+		// We assume that all tasks are cycles now.
+		// TODO: support more task types
+		
+		taskType.getSchedule();
+		
+		Task task = new TaskImpl(taskType);
+		TaskHandler handler = getHandler(task.getHanderUri());
+		
+		if (handler==null) {
+			logger.error("No handler for URI "+task.getHanderUri()+" "+DebugUtil.prettyPrint(taskType));
+			throw new IllegalStateException("No handler for URI "+task.getHanderUri());
+		}
+
+		CycleRunner cycleRunner = new CycleRunner(handler,task);
+		
+		Thread cycleThread = allocateThread(task, cycleRunner);
+		cycleThread.start();
+
+		// TODO: heartbeat, etc.
+	}
+	
+	private Thread allocateThread(Task task, Runnable target) {
+		// TODO: thread pooling (later)
+		return new Thread(target);
+		// TODO: set thread name, etc.
 	}
 
 }

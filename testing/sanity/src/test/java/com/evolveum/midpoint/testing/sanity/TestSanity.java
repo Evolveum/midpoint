@@ -565,13 +565,13 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// .. it should be running
 		assertEquals(TaskExecutionStatus.RUNNING,task.getExecutionStatus());
 		
-		// .. and either claimer or have been running at least once
-		if (task.getExclusivityStatus() != TaskExclusivityStatus.CLAIMED) {
-			fail("task not claimed");
-			// Failure is expected here now
-			// assertNotNull(task.getLastRunTimestamp());
-		}
+		// .. and claimed or have been running at least once
+		assertEquals(TaskExclusivityStatus.CLAIMED,task.getExclusivityStatus());
 		
+		// .. and last run should not be zero
+//		assertNotNull(task.getLastRunStartTimestamp());
+//		assertFalse(task.getLastRunStartTimestamp().longValue()==0);
+				
 		// TODO
 	}
 	

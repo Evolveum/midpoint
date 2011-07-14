@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.NotImplementedException;
-
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
@@ -32,6 +31,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
@@ -54,14 +54,17 @@ public class TaskImpl implements Task {
 	private ObjectType object;
 	private String oid;
 	private String name;
-	private Long lastRunTimestamp;
+	private Long lastRunStartTimestamp;
+	private Long lastRunFinishTimestamp;
 	private List<Property> extension;
+	private long progress;
 
 	public TaskImpl() {
 		executionStatus = TaskExecutionStatus.RUNNING;
 		exclusivityStatus = TaskExclusivityStatus.CLAIMED;
 		persistenceStatus = TaskPersistenceStatus.TRANSIENT;
 		extension = new ArrayList<Property>();
+		progress = 0;
 	}
 
 	public TaskImpl(TaskType taskType) {
@@ -73,8 +76,16 @@ public class TaskImpl implements Task {
 		handlerUri = taskType.getHandlerUri();
 		// TODO: object = 
 		name = taskType.getName();
-		if (taskType.getLastRunTimestamp()!=null) {
-			lastRunTimestamp = new Long(taskType.getLastRunTimestamp().getMillisecond());
+		if (taskType.getLastRunStartTimestamp()!=null) {
+			lastRunStartTimestamp = new Long(taskType.getLastRunStartTimestamp().getMillisecond());
+		}
+		if (taskType.getLastRunFinishTimestamp()!=null) {
+			lastRunFinishTimestamp = new Long(taskType.getLastRunFinishTimestamp().getMillisecond());
+		}
+		if (taskType.getProgress()!=null) {
+			progress = taskType.getProgress().longValue();
+		} else {
+			progress = 0;
 		}
 		// TODO: extension
 	}
@@ -190,8 +201,13 @@ public class TaskImpl implements Task {
 	}
 
 	@Override
-	public Long getLastRunTimestamp() {
-		return lastRunTimestamp;
+	public Long getLastRunStartTimestamp() {
+		return lastRunStartTimestamp;
+	}
+
+	@Override
+	public Long getLastRunFinishTimestamp() {
+		return lastRunFinishTimestamp;
 	}
 
 	@Override
@@ -214,11 +230,43 @@ public class TaskImpl implements Task {
 		sb.append(handlerUri);
 		sb.append("\n  object: ");
 		sb.append(object);
-		sb.append("\n  lastRunTimestamp: ");
-		sb.append(lastRunTimestamp);
+		sb.append("\n  lastRunStartTimestamp: ");
+		sb.append(lastRunStartTimestamp);
+		sb.append("\n  lastRunFinishTimestamp: ");
+		sb.append(lastRunFinishTimestamp);
+		sb.append("\n  progress: ");
+		sb.append(progress);
 		sb.append("\n  extension: ");
 		sb.append(extension);
 		return sb.toString();
+	}
+
+	@Override
+	public void recordRunStart() {
+		// TODO 
+		lastRunStartTimestamp = System.currentTimeMillis();
+		// This is all we need to do for transient tasks
+		if (!isPersistent()) {
+			return;
+		}
+		// TODO: store status in repository
+	}
+
+	@Override
+	public void recordRunFinish(TaskRunResult runResult) {
+		// TODO
+		progress = runResult.getProgress(); 
+		lastRunFinishTimestamp = System.currentTimeMillis();
+		// This is all we need to do for transient tasks
+		if (!isPersistent()) {
+			return;
+		}
+		// TODO: store status in repository
+	}
+
+	
+	private boolean isPersistent() {
+		return persistenceStatus == TaskPersistenceStatus.PERSISTENT;
 	}
 
 }

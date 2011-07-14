@@ -169,7 +169,8 @@ public interface Task {
 	 */
 	public OperationResult getResult();
 	
-	public Long getLastRunTimestamp();
+	public Long getLastRunStartTimestamp();
+	public Long getLastRunFinishTimestamp();
 	
 	/**
 	 * Returns human-readable name of the task.
@@ -213,6 +214,18 @@ public interface Task {
 	 * @param modification
 	 */
 	public void modifyExtension(PropertyModification modification);
+	
+	/**
+	 * Record finish of the last "run" of the task
+	 * 
+	 * TODO: better documentation
+	 * 
+	 * @param runResult result of the run to record
+	 */
+	public void recordRunFinish(TaskRunResult runResult);
+	
+	public void recordRunStart();
+
 
 	/**
 	 * Return human-readable representation of the task content.

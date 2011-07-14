@@ -1534,9 +1534,24 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="lastRunTimestamp" type="xsd:dateTime" minOccurs="0">
+					<xsd:element name="lastRunStartTimestamp" type="xsd:dateTime" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
+								TODO
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="lastRunFinishTimestamp" type="xsd:dateTime" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								TODO
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="progress" type="xsd:integer" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Relative metric of task progress.
 								TODO
 							</xsd:documentation>
 						</xsd:annotation>
