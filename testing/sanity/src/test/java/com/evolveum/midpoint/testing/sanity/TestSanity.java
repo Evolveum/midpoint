@@ -585,6 +585,15 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		Property deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","dead"));
 		assertEquals(Integer.class,deadProp.getValues().iterator().next().getClass());
 		assertEquals(Integer.valueOf(42),deadProp.getValue(Integer.class));
+
+		// The progress should be 0, as there were no changes yet
+		assertEquals(0,task.getProgress());
+		
+		// Test for presence of a result. It should be there and it should indicate success
+		OperationResult taskResult = task.getResult();
+		assertNotNull(taskResult);
+		assertTrue(taskResult.isSuccess());
+		
 		
 		// TODO
 	}

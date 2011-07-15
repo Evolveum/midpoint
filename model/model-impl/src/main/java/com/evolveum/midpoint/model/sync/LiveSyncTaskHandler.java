@@ -26,9 +26,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationConstants;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -52,6 +57,9 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	
 	@Autowired(required=true)
 	private TaskManager taskManager;
+	
+	@Autowired(required=true)
+	private ProvisioningService provisioningService;
 	
 	private static final transient Trace logger = TraceManager.getTrace(LiveSyncTaskHandler.class);
 
@@ -78,10 +86,46 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			return runResult;
 		}
 		
-		// TODO call sync in provisioning with resourceOid
-
-		// Temporary "fake"
-		progress++;
+		try {
+			
+			// MAIN PART
+			// Calling synchronize(..) in provisioning.
+			// This will detect the changes and notify model about them.
+			// It will use extension of task to store synchronization state
+			
+			progress += provisioningService.synchronize(resourceOid, task, opResult);
+			
+		} catch (ObjectNotFoundException ex) {
+			logger.error("Live Sync: Resource does not exist, OID: {}",resourceOid,ex);
+			// This is bad. The resource does not exist. Permanent problem.
+			opResult.recordFatalError("Resource does not exist, OID: "+resourceOid,ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (CommunicationException ex) {
+			logger.error("Live Sync: Communication error: {}",ex.getMessage(),ex);
+			// Error, but not critical. Just try later.
+			opResult.recordPartialError("Communication error: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (SchemaException ex) {
+			logger.error("Live Sync: Error dealing with schema: {}",ex.getMessage(),ex);
+			// Not sure about this. But most likely it is a misconfigured resource or connector
+			// It may be worth to retry. Error is fatal, but may not be permanent.
+			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (RuntimeException ex) {
+			logger.error("Live Sync: Internal Error: {}",ex.getMessage(),ex);
+			// Can be anything ... but we can't recover from that.
+			// It is most likely a programming error. Does not make much sense to retry.
+			opResult.recordFatalError("Internal Error: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		}
 		
 		opResult.computeStatus("Live sync run has failed");
 		// This "run" is finished. But the task goes on ...

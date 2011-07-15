@@ -31,6 +31,9 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.impl.TaskImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -112,7 +115,21 @@ public class SynchronizationProcess extends Thread {
 										logger.debug("Synchronization Thread: calling synchronize() for resource "
 												+ resource.getName() + " oid: " + oid);
 
-										provisioning.synchronize(new ResourceType(), null, new OperationResult("Synchronize"));
+										// DEPRECTAED
+										// The following code is badly hacked just to compile.
+										// This all will get deleted eventually
+										try {
+											provisioning.synchronize(null, null, new OperationResult("Synchronize"));
+										} catch (ObjectNotFoundException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										} catch (CommunicationException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										} catch (SchemaException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										}
 
 										// Remember the start time only if the
 										// call is successful

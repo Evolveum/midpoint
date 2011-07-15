@@ -162,7 +162,7 @@ public class SynchronizationTest {
 //		changes.add(ch);
 //		
 //		when(connector.fetchChanges(any(QName.class), any(Property.class), any(OperationResult.class))).thenReturn(changes);
-		provisioningService.synchronize(resource, task, result);
+		provisioningService.synchronize(resource.getOid(), task, result);
 		
 	}
 	

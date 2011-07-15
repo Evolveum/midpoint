@@ -164,11 +164,17 @@ public interface ProvisioningService {
 	 *            OID of the resource for which to attempt synchronization
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
-	 * 
+	 * @return the number of processed changes
+	 * @throws ObjectNotFoundException
+	 *             specified resource definition (OID) does not exist
+	 * @throws CommunicationException
+	 *             error communicating with the resource
+	 * @throws SchemaException
+	 *             error dealing with resource schema
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public void synchronize(ResourceType resourceType, Task task, OperationResult parentResult);
+	public int synchronize(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException;
 
 	/**
 	 * Returns all objects of specified type that are available to the

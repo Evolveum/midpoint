@@ -144,16 +144,19 @@ public abstract class SchemaConstants {
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_DATETIME = new QName(W3C_XML_SCHEMA_NS_URI, "dateTime",
 			NS_W3C_XML_SCHEMA_PREFIX);
-	
-	// Synchronization constants
 
-	public static final String NS_CHANNEL = "http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-1";
+	
+	public static final String NS_PROVISIONING = "http://midpoint.evolveum.com/xml/ns/public/provisioning";
+	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-1.xsd";
+	// Synchronization constants
+	public static final String NS_CHANNEL = NS_PROVISIONING + "/channels-1";
 	public static final QName CHANGE_CHANNEL_SYNC = new QName(NS_CHANNEL, "synchronization");
 	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_CHANNEL, "reconciliation");
 	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_CHANNEL, "discovery");
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_CHANNEL, "import");
 
 	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";
+
 
 	static {
 		CatalogManager catalogManager = new CatalogManager();
