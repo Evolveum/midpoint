@@ -288,4 +288,8 @@ public class Property {
 		return getClass().getSimpleName()+"("+getName()+"):"+getValues();
 	}
 
+	public String dump() {
+		return toString();
+	}
+
 }

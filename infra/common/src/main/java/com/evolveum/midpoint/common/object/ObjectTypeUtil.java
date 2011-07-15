@@ -128,7 +128,10 @@ public class ObjectTypeUtil {
 
         Value jaxbValue = new Value();
 
-        if (XsdTypeConverter.canConvert(value.getClass())) {
+        if (value==null) {
+        	// Emtpy value, that means empty element set. Nothing to do.
+        	// This may be used e.g. for deleting all values (replacing by empty value)
+        } else if (XsdTypeConverter.canConvert(value.getClass())) {
         	Element e = doc.createElementNS(property.getNamespaceURI(), property.getLocalPart());
         	XsdTypeConverter.toXsdElement(value, e);
         	jaxbValue.getAny().add(e);
@@ -163,6 +166,9 @@ public class ObjectTypeUtil {
 	}
 	
 	public static String toShortString(ObjectType object) {
+		if (object==null) {
+			return "null";
+		}
 		return object.getClass().getSimpleName()+": "+object.getName()+"(OID:"+object.getOid()+")";
 	}
 	
@@ -179,6 +185,18 @@ public class ObjectTypeUtil {
 		} catch (JAXBException e) {
 			sb.append("Cannot serialize object to DOM: ");
 			sb.append(e);
+		}
+		return sb.toString();
+	}
+
+	public static Object toShortString(ObjectReferenceType objectRef) {
+		if (objectRef==null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append("objectRef oid=").append(objectRef.getOid());
+		if (objectRef.getType()!=null) {
+			sb.append(" type=").append(objectRef.getType());
 		}
 		return sb.toString();
 	}

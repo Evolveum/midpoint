@@ -38,6 +38,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.impl.TaskImpl;
@@ -142,7 +143,7 @@ public class SynchronizationTest {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".synchronizationTest");
 		
-		List<Property> properties = new ArrayList<Property>();
+		PropertyContainer extension = new PropertyContainer();
 		
 		QName type = XsdTypeConverter.toXsdType(int.class);
 
@@ -152,9 +153,9 @@ public class SynchronizationTest {
 
 		Property property = new Property(SchemaConstants.C_TOKEN, propDef, objs);
 	
-		properties.add(property);
+		extension.getProperties().add(property);
 		
-		when(task.getExtension()).thenReturn(properties);
+		when(task.getExtension()).thenReturn(extension);
 		
 //		List<Change> changes = new ArrayList<Change>();
 //		Change ch = new Change(new HashSet<Property>(), new ObjectChangeAdditionType(), property);

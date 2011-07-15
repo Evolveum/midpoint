@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.task.api;
 
+import com.evolveum.midpoint.common.result.OperationResult;
+
 /**
  * Single-purpose class to return task run results.
  * 
@@ -32,11 +34,40 @@ package com.evolveum.midpoint.task.api;
 public final class TaskRunResult {
 
 	public enum TaskRunResultStatus {
-		FINISHED, IN_PROGRESS
+		/**
+		 * The task run has finished.
+		 * This does not necessarily mean that the task itself is finished. For single tasks this means that the task is finished, but it is different for reccurent tasks. 
+		 * The task may be a cycle and it will run again after it sleeps for a while.
+		 * Or it may be other type of recurrent task.
+		 */
+		FINISHED, 
+		
+		/**
+		 * Task run haven't finished. It is executed in a different thread or on a different system.
+		 * TODO: do we need it? Is it correct?
+		 */
+		IN_PROGRESS, 
+		
+		/**
+		 * The run has failed.
+		 * 
+		 * The error is permanent. Unless the administrator does something to recover from the situation, there is no point in
+		 * re-trying the run. Usual case of this error is task miscofiguration.
+		 */
+		PERMANENT_ERROR,
+		
+		/**
+		 * Temporary failure during the run.
+		 * 
+		 * The error is temporary. The situation may change later when the conditions will be more "favorable". It makes sense to
+		 * retry the run. Usual cases of this error are network timeouts.
+		 */
+		TEMPORARY_ERROR
 	}
 	
 	private long progress;
 	private TaskRunResultStatus runResultStatus;
+	private OperationResult operationResult;
 	
 	/**
 	 * @return the progress
@@ -61,6 +92,14 @@ public final class TaskRunResult {
 	 */
 	public void setRunResultStatus(TaskRunResultStatus status) {
 		this.runResultStatus = status;
+	}
+	
+	public OperationResult getOperationResult() {
+		return operationResult;
+	}
+	
+	public void setOperationResult(OperationResult operationResult) {
+		this.operationResult = operationResult;
 	}
 	
 }

@@ -49,6 +49,7 @@ public abstract class SchemaConstants {
 	// W3C_XML_SCHEMA_NS_URI public static final String NS_XSD =
 	// "http://www.w3.org/2001/XMLSchema";
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	public static final String NS_C_PREFIX = "c";
 	public static final String NS_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd";
 	public static final String NS_ICF_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd";
 	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd";
@@ -70,6 +71,7 @@ public abstract class SchemaConstants {
 	public static final QName C_TOKEN = new QName(NS_C, "token");
 	public static final QName C_OID_ATTRIBUTE = new QName(NS_C, "oid");
 	public static final QName I_OBJECTS = new QName(NS_C, "objects");
+	public static final QName C_EXTENSION = new QName(NS_C, "extension");;
 	public static final QName C_TASK_TYPE = new QName(NS_C,"TaskType");
 	public static final QName C_TASK = new QName(NS_C,"task");
 	public static final QName C_TASK_EXECUTION_STATUS = new QName(NS_C,"executionStatus");
@@ -142,7 +144,7 @@ public abstract class SchemaConstants {
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_DATETIME = new QName(W3C_XML_SCHEMA_NS_URI, "dateTime",
 			NS_W3C_XML_SCHEMA_PREFIX);
-
+	
 	// Synchronization constants
 
 	public static final String NS_CHANNEL = "http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-1";

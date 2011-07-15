@@ -66,10 +66,13 @@ public class CycleRunner implements Runnable {
 			while (enabled) {
 				logger.trace("CycleRunner loop: start");
 
-				OperationResult runOpResult = new OperationResult(CycleRunner.class.getName() + ".run");
+				// This is NOT the result of the run itself. That can be found in the RunResult
+				// this is a result of the runner, used to record "overhead" things like recording the
+				// run status 
+				OperationResult cycleRunnerRunOpResult = new OperationResult(CycleRunner.class.getName() + ".run");
 
 				try {
-					task.recordRunStart(runOpResult);
+					task.recordRunStart(cycleRunnerRunOpResult);
 				} catch (ObjectNotFoundException ex) {
 					logger.error("Unable to record run start: {}", ex.getMessage(), ex);
 				} catch (SchemaException ex) {
@@ -81,7 +84,7 @@ public class CycleRunner implements Runnable {
 				// record this run (this will also save the OpResult
 
 				try {
-					task.recordRunFinish(runResult, runOpResult);
+					task.recordRunFinish(runResult, cycleRunnerRunOpResult);
 				} catch (ObjectNotFoundException ex) {
 					logger.error("Unable to record run finish: {}", ex.getMessage(), ex);
 				} catch (SchemaException ex) {
@@ -89,6 +92,8 @@ public class CycleRunner implements Runnable {
 				} // there are otherwise quite safe to ignore
 
 				// Determine how long we need to sleep and hit the bed
+				
+				// TODO: consider the PERMANENT_ERROR state of the last run. in this case we should "suspend" the task
 
 				long sleepFor = ScheduleEvaluator.determineSleepTime(task);
 				logger.trace("CycleRunner loop: sleep ({})", sleepFor);
@@ -99,6 +104,8 @@ public class CycleRunner implements Runnable {
 					// status.
 				}
 
+				// TODO: refresh task definition somehow
+				
 				logger.trace("CycleRunner loop: end");
 			}
 

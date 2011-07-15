@@ -242,4 +242,14 @@ public class PropertyContainer {
 		return getClass().getSimpleName() + "(" + getName() + "):"
 				+ getProperties();
 	}
+
+	public String dump() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getClass().getSimpleName()).append("(").append(getName()).append(")\n");
+		for (Property prop : getProperties()) {
+			sb.append("  ");
+			sb.append(prop.dump());
+		}
+		return sb.toString();
+	}
 }

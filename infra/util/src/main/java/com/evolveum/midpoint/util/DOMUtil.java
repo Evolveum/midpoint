@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -37,15 +38,8 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPathExpressionException;
 import org.w3c.dom.Document;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.custommonkey.xmlunit.DetailedDiff;
-import org.custommonkey.xmlunit.Diff;
-import org.custommonkey.xmlunit.Difference;
-import org.custommonkey.xmlunit.XMLUnit;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -56,10 +50,16 @@ import org.xml.sax.SAXException;
  * 
  * 
  * @author Igor Farinic
+ * @author Radovan Semancik
  * @version $Revision$ $Date$
  * @since 0.1
  */
 public class DOMUtil {
+	
+	public static final String NS_W3C_XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
+	public static final String NS_W3C_XSI_PREFIX = "xsi";
+	public static final QName XSI_TYPE = new QName(NS_W3C_XSI_URI, "type",
+			NS_W3C_XSI_PREFIX);
 
 	public static String serializeDOMToString(org.w3c.dom.Node node) {
 		return printDom(node).toString();
@@ -253,6 +253,58 @@ public class DOMUtil {
 			}
 		}
 		return subelements;
+	}
+	
+	public static QName resolveQName(Node domNode, String prefixNotation, String defaultNamespacePrefix) {
+		if (prefixNotation==null) {
+			// No QName
+			return null;
+		}
+        String[] qnameArray = prefixNotation.split(":");
+        if (qnameArray.length > 2) {
+            throw new IllegalArgumentException("Unsupported format: more than one colon in Qname: " + prefixNotation);
+        }
+        QName qname;
+        if (qnameArray.length == 1 || qnameArray[1] == null || qnameArray[1].isEmpty()) {
+            // default namespace <= empty prefix
+            String namespace = findNamespace(domNode, null);
+            if (defaultNamespacePrefix!=null) {
+            	qname = new QName(namespace, qnameArray[0], defaultNamespacePrefix);
+            } else {
+            	qname = new QName(namespace, qnameArray[0]);
+            }
+        } else {
+            String namespace = findNamespace(domNode, qnameArray[0]);
+            qname = new QName(namespace, qnameArray[1], qnameArray[0]);
+        }
+        return qname;
+	}
+
+    public static String findNamespace(Node domNode, String prefix) {
+        String ns = null;
+        if (domNode != null) {
+            if (prefix == null || prefix.isEmpty()) {
+                ns = domNode.lookupNamespaceURI(null);
+            } else {
+                ns = domNode.lookupNamespaceURI(prefix);
+            }
+            if (ns != null) {
+                return ns;
+            }
+        }
+        return ns;
+    }
+
+	public static QName resolveXsiType(Element element, String defaultNamespacePrefix) {
+		String xsiType = element.getAttributeNS(XSI_TYPE.getNamespaceURI(), XSI_TYPE.getLocalPart());
+		if (xsiType == null || xsiType.isEmpty()) {
+			return null;
+		}
+		return resolveQName(element, xsiType, defaultNamespacePrefix);
+	}
+
+	public static QName getQName(Element element) {
+		return new QName(element.getNamespaceURI(),element.getLocalName(),element.getPrefix());
 	}
 
 }

@@ -26,7 +26,9 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
@@ -160,9 +162,28 @@ public interface Task {
 	 * 
 	 * Tasks may be associated with a particular objects. For example a "import from resource" task is associated with the resource definition object that it imports from. Similarly for synchronization and reconciliation tasks (cycles). This is an optional property.
 	 * 
+	 * The object will only be returned if the task really contains an object without OID (e.g. unfinished account shadow). In all other cases this method may return null. Use getObjectRef instead.
+	 * 
 	 * Optional. May return null.
 	 */
 	public ObjectType getObject();
+	
+	/**
+	 * Returns reference to the object that the task is associated with.
+	 * 
+	 * Tasks may be associated with a particular objects. For example a "import from resource" task is associated with the resource definition object that it imports from. Similarly for synchronization and reconciliation tasks (cycles). This is an optional property.
+	 * 
+	 * @return
+	 */
+	public ObjectReferenceType getObjectRef();
+	
+	/**
+	 * Returns OID of the object that the task is associated with.
+	 * 
+	 * Convenience method. This will get the OID from the objectRef.
+	 * 
+	 */
+	public String getObjectOid();
 
 	/**
 	 * Returns an OperationResult that is used to compile task results (parent result).
@@ -207,7 +228,7 @@ public interface Task {
 	 * 
 	 * @return task extension
 	 */
-	public List<Property> getExtension();
+	public PropertyContainer getExtension();
 	
 	/**
 	 * TODO

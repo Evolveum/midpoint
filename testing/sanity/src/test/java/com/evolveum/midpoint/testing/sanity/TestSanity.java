@@ -62,6 +62,8 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -565,13 +567,25 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// .. it should be running
 		assertEquals(TaskExecutionStatus.RUNNING,task.getExecutionStatus());
 		
-		// .. and claimed or have been running at least once
+		// .. and claimed
 		assertEquals(TaskExclusivityStatus.CLAIMED,task.getExclusivityStatus());
 		
 		// .. and last run should not be zero
-//		assertNotNull(task.getLastRunStartTimestamp());
-//		assertFalse(task.getLastRunStartTimestamp().longValue()==0);
-				
+		assertNotNull(task.getLastRunStartTimestamp());
+		assertFalse(task.getLastRunStartTimestamp().longValue()==0);
+		assertNotNull(task.getLastRunFinishTimestamp());
+		assertFalse(task.getLastRunFinishTimestamp().longValue()==0);
+
+		// Test for extension. This will also roughly test extension processor and schema processor
+		PropertyContainer taskExtension = task.getExtension();
+		assertNotNull(taskExtension);
+		System.out.println(taskExtension.dump());
+		Property shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","shipState"));
+		assertEquals("capsized",shipStateProp.getValue(String.class));
+		Property deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","dead"));
+		assertEquals(Integer.class,deadProp.getValues().iterator().next().getClass());
+		assertEquals(Integer.valueOf(42),deadProp.getValue(Integer.class));
+		
 		// TODO
 	}
 	

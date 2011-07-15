@@ -21,6 +21,8 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.NotImplementedException;
@@ -240,7 +242,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		// TODO: get token form task;
 		
-		List<Property> tokens = task.getExtension();
+		Set<Property> tokens = task.getExtension().getProperties();
 		
 		List<Change> changes = null;//new ArrayList<Change>();
 		for (Property token : tokens) {

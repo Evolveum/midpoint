@@ -44,6 +44,7 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
@@ -265,7 +266,7 @@ public class TaskManagerImpl implements TaskManager {
 			logger.error("No handler for URI "+task.getHanderUri()+" "+DebugUtil.prettyPrint(taskType));
 			throw new IllegalStateException("No handler for URI "+task.getHanderUri());
 		}
-
+		
 		CycleRunner cycleRunner = new CycleRunner(handler,task);
 		
 		Thread cycleThread = allocateThread(task, cycleRunner);

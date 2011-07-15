@@ -33,6 +33,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -40,7 +41,9 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.ExtensionProcessor;
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
@@ -48,6 +51,7 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
@@ -71,13 +75,15 @@ public class TaskImpl implements Task {
 	private TaskPersistenceStatus persistenceStatus;
 	private String handlerUri;
 	private ObjectType object;
+	private ObjectReferenceType objectRef;
 	private String oid;
 	private String name;
 	private Long lastRunStartTimestamp;
 	private Long lastRunFinishTimestamp;
-	private List<Property> extension;
+	private PropertyContainer extension;
 	private long progress;
 	private RepositoryService repositoryService;
+	private OperationResult result;
 
 	/**
 	 * Note: This constructor assumes that the task is transient.
@@ -88,9 +94,13 @@ public class TaskImpl implements Task {
 		executionStatus = TaskExecutionStatus.RUNNING;
 		exclusivityStatus = TaskExclusivityStatus.CLAIMED;
 		persistenceStatus = TaskPersistenceStatus.TRANSIENT;
-		extension = new ArrayList<Property>();
+		extension = new PropertyContainer();
 		progress = 0;
 		repositoryService = null;
+		object = null;
+		objectRef = null;
+		// TODO: Is this OK?
+		result = null;
 	}
 
 	/**
@@ -106,7 +116,8 @@ public class TaskImpl implements Task {
 		persistenceStatus = TaskPersistenceStatus.PERSISTENT;
 		oid = taskType.getOid();
 		handlerUri = taskType.getHandlerUri();
-		// TODO: object = 
+		// TODO: object =
+		objectRef = taskType.getObjectRef();
 		name = taskType.getName();
 		if (taskType.getLastRunStartTimestamp()!=null) {
 			lastRunStartTimestamp = new Long(XsdTypeConverter.toMillis(taskType.getLastRunStartTimestamp()));
@@ -119,7 +130,13 @@ public class TaskImpl implements Task {
 		} else {
 			progress = 0;
 		}
-		// TODO: extension
+		if (taskType.getResult()!=null) {
+			result = OperationResult.createOperationResult(taskType.getResult());
+		} else {
+			result = null;
+		}
+		// Parse the extension
+		extension = ExtensionProcessor.parseExtension(taskType.getExtension());
 	}
 	
 	RepositoryService getRepositoryService() {
@@ -162,6 +179,24 @@ public class TaskImpl implements Task {
 		// This is very simple now. It may complicate later.
 		return (persistenceStatus==TaskPersistenceStatus.PERSISTENT);
 	}
+	
+	@Override
+	public long getProgress() {
+		return progress;
+	}
+
+	@Override
+	public ObjectReferenceType getObjectRef() {
+		return objectRef;
+	}
+	
+	@Override
+	public String getObjectOid() {
+		if (objectRef!=null) {
+			return objectRef.getOid();
+		}
+		return null;
+	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.Task#getObject()
@@ -176,8 +211,7 @@ public class TaskImpl implements Task {
 	 */
 	@Override
 	public OperationResult getResult() {
-		// TODO Auto-generated method stub
-		return null;
+		return result;
 	}
 
 	@Override
@@ -226,7 +260,7 @@ public class TaskImpl implements Task {
 	}
 
 	@Override
-	public List<Property> getExtension() {
+	public PropertyContainer getExtension() {
 		return extension;
 	}
 
@@ -269,13 +303,17 @@ public class TaskImpl implements Task {
 		sb.append("\n  handlerUri: ");
 		sb.append(handlerUri);
 		sb.append("\n  object: ");
-		sb.append(object);
+		sb.append(ObjectTypeUtil.toShortString(object));
+		sb.append("\n  objectRef: ");
+		sb.append(ObjectTypeUtil.toShortString(objectRef));
 		sb.append("\n  lastRunStartTimestamp: ");
 		sb.append(lastRunStartTimestamp);
 		sb.append("\n  lastRunFinishTimestamp: ");
 		sb.append(lastRunFinishTimestamp);
 		sb.append("\n  progress: ");
 		sb.append(progress);
+		sb.append("\n  result: ");
+		sb.append(result);
 		sb.append("\n  extension: ");
 		sb.append(extension);
 		return sb.toString();
@@ -312,7 +350,13 @@ public class TaskImpl implements Task {
 		modification.getPropertyModification().add(timestampModification);
 		PropertyModificationType progressModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_PROGRESS, progress);
 		modification.getPropertyModification().add(progressModification);
-		PropertyModificationType resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, parentResult.createOperationResultType());
+		PropertyModificationType resultModification = null;
+		if (runResult.getOperationResult()!=null) {
+			resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, runResult.getOperationResult().createOperationResultType());
+		} else {
+			// Make sure we replace any stale result that may be stored there
+			resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, null);
+		}
 		modification.getPropertyModification().add(resultModification);
 		repositoryService.modifyObject(modification, parentResult);
 		// TODO: Also save the OpResult
@@ -322,10 +366,6 @@ public class TaskImpl implements Task {
 	private boolean isPersistent() {
 		return persistenceStatus == TaskPersistenceStatus.PERSISTENT;
 	}
-
-	@Override
-	public long getProgress() {
-		return progress;
-	}
+	
 
 }
