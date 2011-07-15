@@ -538,8 +538,13 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	
 	// Synchronization tests
 	
+	/**
+	 * Test initialization of synchronization.
+	 * It will create a cycle task and check if the cycle executes
+	 * No changes are synchronized yet.
+	 */
 	@Test
-	public void test100Synchronization() throws Exception { 
+	public void test100SynchronizationInit() throws Exception { 
 		// Now it is the right time to add task definition to the repository
 		// We don't want it there any sooner, as it may interfere with the
 		// previous tests
@@ -594,9 +599,9 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		assertNotNull(taskResult);
 		assertTrue(taskResult.isSuccess());
 		
-		
-		// TODO
 	}
+	
+	// TODO: insert changes in OpenDJ, let the cycle pick them up
 	
 	// TODO: test for missing/corrupt system configuration
 	// TODO: test for missing sample config (bad reference in expression arguments)
