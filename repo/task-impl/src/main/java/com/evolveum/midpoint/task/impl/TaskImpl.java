@@ -111,6 +111,10 @@ public class TaskImpl implements Task {
 	 */
 	TaskImpl(TaskType taskType, RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
+		initialize(taskType);
+	}
+		
+	private void initialize(TaskType taskType) {
 		executionStatus = TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
 		exclusivityStatus = TaskExclusivityStatus.fromTaskType(taskType.getExclusivityStatus());
 		// If that is created from the TaskType, then this is persistent task
@@ -404,11 +408,39 @@ public class TaskImpl implements Task {
 		repositoryService.modifyObject(modification, parentResult);
 		// TODO: Also save the OpResult
 	}
+	
+
+	@Override
+	public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = parentResult.createSubresult(Task.class.getName()+".refresh");
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskImpl.class);
+		result.addContext(OperationResult.CONTEXT_OID, getOid());
+		if (!isPersistent()) {
+			// Nothing to do for transient tasks
+			result.recordSuccess();
+			return;
+		}
+		
+		ObjectType repoObj = null;
+		try {
+			repoObj = repositoryService.getObject(getOid(), null, result);
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Object not found", ex);
+			throw ex;
+		} catch (SchemaException ex) {
+			result.recordFatalError("Schema error", ex);
+			throw ex;			
+		}
+		TaskType taskType = (TaskType)repoObj;
+		initialize(taskType);
+		result.recordSuccess();
+	}
+	
+
 
 	
 	private boolean isPersistent() {
 		return persistenceStatus == TaskPersistenceStatus.PERSISTENT;
 	}
-	
 
 }

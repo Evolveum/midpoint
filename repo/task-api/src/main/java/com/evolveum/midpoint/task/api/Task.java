@@ -213,6 +213,19 @@ public interface Task {
 	public long getProgress();
 	
 	/**
+	 * Re-reads the task state from the persistent storage.
+	 * 
+	 * The task state may be synchronized with the repository all the time. But the specified timing is implementation-specific.
+	 * Call to this method will make sure that the task contains fresh data.
+	 * 
+	 * This has no effect on transient tasks.
+	 * @param result
+	 * @throws SchemaException 
+	 * @throws ObjectNotFoundException 
+	 */
+	public void refresh(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+	
+	/**
 	 * Returns task extension.
 	 * 
 	 * The extension is a part of task that can store arbitrary data.

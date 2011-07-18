@@ -389,6 +389,9 @@ public class DOMUtil {
 	}
 
 	public static QName getQName(Element element) {
+		if (element.getPrefix()==null) {
+			return new QName(element.getNamespaceURI(),element.getLocalName());
+		}
 		return new QName(element.getNamespaceURI(),element.getLocalName(),element.getPrefix());
 	}
 

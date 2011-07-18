@@ -188,8 +188,10 @@ public class TestTaskManagerContract {
 		PropertyContainer taskExtension = task.getExtension();
 		assertNotNull(taskExtension);
 		System.out.println(taskExtension.dump());
+		
 		Property shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","shipState"));
 		assertEquals("capsized",shipStateProp.getValue(String.class));
+		
 		Property deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","dead"));
 		assertEquals(Integer.class,deadProp.getValues().iterator().next().getClass());
 		assertEquals(Integer.valueOf(42),deadProp.getValue(Integer.class));
@@ -203,7 +205,8 @@ public class TestTaskManagerContract {
 		// ... so remember the date
 		Property dateProp = new Property(new QName("http://myself.me/schemas/whatever","sinkTimestamp"));
 		// This has no type information or schema. The type has to be determined from the java type
-		mods.add(dateProp.createModification(PropertyModification.ModificationType.REPLACE, new GregorianCalendar()));
+		GregorianCalendar sinkDate = new GregorianCalendar();
+		mods.add(dateProp.createModification(PropertyModification.ModificationType.REPLACE, sinkDate));
 		
 		task.modifyExtension(mods, result);
 		
@@ -212,9 +215,24 @@ public class TestTaskManagerContract {
 		System.out.println(ObjectTypeUtil.dump(o));
 		
 		// Refresh the task
-		//task.refresh(result);
+		task.refresh(result);
 		
-		// TODO: check what happened
+		// get the extension again ... and test it ... again
+		taskExtension = task.getExtension();
+		assertNotNull(taskExtension);
+		System.out.println(taskExtension.dump());
+		
+		shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","shipState"));
+		assertEquals("sunk",shipStateProp.getValue(String.class));
+		
+		deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","dead"));
+		assertEquals(Integer.class,deadProp.getValues().iterator().next().getClass());
+		assertEquals(Integer.valueOf(43),deadProp.getValue(Integer.class));
+		
+		dateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","sinkTimestamp"));
+		assertEquals(GregorianCalendar.class,dateProp.getValues().iterator().next().getClass());
+		GregorianCalendar fetchedDate = dateProp.getValue(GregorianCalendar.class);
+		assertTrue(fetchedDate.compareTo(sinkDate)==0);
 		
 	}
 	
