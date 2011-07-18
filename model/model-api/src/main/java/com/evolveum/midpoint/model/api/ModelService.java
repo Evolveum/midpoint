@@ -34,7 +34,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
@@ -47,31 +46,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public interface ModelService {
 
+	<T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve, OperationResult result,
+			Class<T> clazz) throws ObjectNotFoundException;
+
+	PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
+			PropertyReferenceListType properties, OperationResult result);
+
+	ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
+			OperationResult result);
+
 	String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException,
 			ObjectNotFoundException;
 
 	String addUser(UserType user, UserTemplateType userTemplate, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException;
 
-	<T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve, OperationResult result,
-			Class<T> clazz) throws ObjectNotFoundException;
-
-	ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
-			OperationResult result);
-
-	ObjectListType searchObjectsInProvisioning(QueryType query, PagingType paging, OperationResult result);
-
-	ObjectListType searchObjectsInRepository(QueryType query, PagingType paging, OperationResult result);
-
 	void modifyObject(ObjectModificationType change, OperationResult result) throws ObjectNotFoundException;
 
-	void modifyObjectWithExclusion(ObjectModificationType change, String accountOid, OperationResult result)
-			throws ObjectNotFoundException;
-
 	boolean deleteObject(String oid, OperationResult result) throws ObjectNotFoundException;
-
-	PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
-			PropertyReferenceListType properties, OperationResult result);
 
 	UserType listAccountShadowOwner(String accountOid, OperationResult result) throws ObjectNotFoundException;
 
@@ -100,7 +92,4 @@ public interface ModelService {
 	@Deprecated
 	TaskStatusType getImportStatus(String resourceOid, OperationResult result) throws ObjectNotFoundException;
 
-	@SuppressWarnings("unchecked")
-	<T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve, OperationResult result,
-			Class<T> clazz, boolean fromProvisioning) throws ObjectNotFoundException;
 }
