@@ -1556,6 +1556,21 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="recurrence" type="tns:TaskRecurrenceType">
+						<xsd:annotation>
+							<xsd:documentation>
+								TODO
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="binding" type="tns:TaskBindingType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								TODO loose - tight
+								If not present the nodes may decide independently.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:element name="schedule" type="tns:ScheduleType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -1635,6 +1650,85 @@
 					</xsd:documentation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="RELEASED"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="TaskRecurrenceType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="single">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+						The task is executed only once, at the first moment that the scedule specifies. If that moment is in
+						the past, the task will be executed as soon as any execution environment (node) is available.
+						Once the task is finished, it will not be executed again.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="SINGLE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="recurring">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+						The task is executed as many times as the schedule specifies.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="RECURRING"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="TaskBindingType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="loose">
+				<xsd:annotation>
+					<xsd:documentation>
+						The task is claimed (exclusivelly locked) to a specific node only if it is executing.
+						
+						The thread is allocated only for the minimal amount of time.
+						
+						It does not matter which node will execute the task as long as there is an appropriate handler.
+						
+						This is efficient for tasks that take long time to execute and the execution mostly waits (e.g. approvals)
+						or for tasks which have long interval between executions (e.g. reconciliation).
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="LOOSE"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="tight">
+				<xsd:annotation>
+					<xsd:documentation>
+						Task is claimed (exclusivelly locked) to a specific node for a long time. It may be claimed until the
+						executing node is up and running.
+						
+						A theread may be running and allocated for the task all the time. The thread may to to sleep as needed,
+						but during that time the task remains claimed.
+						
+						The node that started to execute this task will be preferred for subsequent executions.
+						
+						This is efficient for recurring tasks executed in short intervals, such as live synchronization.
+					</xsd:documentation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="TIGHT"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>

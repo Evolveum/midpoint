@@ -20,9 +20,9 @@
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
-<!-- Synchronization task definition for OpenDJ resource -->
+<!-- Testing single task -->
 
-<task oid="91919191-76e0-59e2-86d6-3d4f02d3ffff"
+<task oid="91919191-76e0-59e2-86d6-556655665566"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -32,22 +32,12 @@
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
-	<!-- Resource printable name -->
-	<name>Synchronization: Embedded Test OpenDJ</name>
-	
-	<extension>
-		<my:shipState>capsized</my:shipState>
-		<my:dead xsi:type="xsd:integer">42</my:dead>
-	</extension>
+	<name>Testing single task</name>
 	
 	<executionStatus>running</executionStatus>
 	<exclusivityStatus>released</exclusivityStatus>
-	<handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
+	<handlerUri>http://midpoint.evolveum.com/test/single-task-handler</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-	<recurrence>recurring</recurrence>
-	<binding>tight</binding>
-	<schedule>
-		<interval>60</interval>
-	</schedule>
-
+	<recurrence>single</recurrence>
+	<!-- No schedule - will execute immediately -->
 </task>

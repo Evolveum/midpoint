@@ -79,8 +79,11 @@ public class TestTaskManagerContract {
 	
 	private static final String TASK_CYCLE_FILENAME = "src/test/resources/repo/cycle-task.xml";
 	private static final String TASK_CYCLE_OID = "91919191-76e0-59e2-86d6-998877665544";
+	private static final String TASK_SINGLE_FILENAME = "src/test/resources/repo/single-task.xml";
+	private static final String TASK_SINGLE_OID = "91919191-76e0-59e2-86d6-556655665566";
 
 	private static final String CYCLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/cycle-task-handler";
+	private static final String SINGLE_TASK_HANDLER_URI = "http://midpoint.evolveum.com/test/single-task-handler";
 	
 	private static JAXBContext jaxbctx;
 	private static Unmarshaller unmarshaller;

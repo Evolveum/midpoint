@@ -32,8 +32,7 @@
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
-	<!-- Resource printable name -->
-	<name>Testing task</name>
+	<name>Testing cycle task</name>
 	
 	<extension>
 		<my:shipState>capsized</my:shipState>
@@ -44,6 +43,8 @@
 	<exclusivityStatus>released</exclusivityStatus>
 	<handlerUri>http://midpoint.evolveum.com/test/cycle-task-handler</handlerUri>
 	<objectRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+	<recurrence>recurring</recurrence>
+	<binding>tight</binding>
 	<schedule>
 		<interval>15</interval>
 	</schedule>
