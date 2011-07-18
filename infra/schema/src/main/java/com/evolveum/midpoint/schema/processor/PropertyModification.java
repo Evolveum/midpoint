@@ -32,6 +32,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathType;
@@ -142,7 +143,9 @@ public class PropertyModification {
 		PropertyModificationType pmt = new PropertyModificationType();
 		pmt.setPath(absolutePath.toElement(SchemaConstants.I_PROPERTY_CONTAINER_REFERENCE_PATH, doc));
 		pmt.setModificationType(modificationType.getPropertyModificationTypeType());
-		pmt.getValue().getAny().addAll(property.serializeToDom(doc,null,modifyValues,recordType));
+		Value value = new Value();
+		value.getAny().addAll(property.serializeToDom(doc,null,modifyValues,recordType));
+		pmt.setValue(value);
 		return pmt;
 	}
 

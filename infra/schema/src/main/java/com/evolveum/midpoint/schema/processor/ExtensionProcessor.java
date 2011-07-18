@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.schema.TypedValue;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
@@ -50,9 +51,18 @@ public class ExtensionProcessor {
 		PropertyContainer container = new PropertyContainer(SchemaConstants.C_EXTENSION);
 		
 		for (Element element : xmlExtension) {
-			Object value = XsdTypeConverter.toJavaValueWithDefaultType(element, DEFAULT_TYPE);
-			Property property = new Property(DOMUtil.getQName(element));
+			QName propName = DOMUtil.getQName(element);
+			Property property = new Property(propName);
+			
+			// Convert value
+			TypedValue tval = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, DEFAULT_TYPE);
+			Object value = tval.getValue();
 			property.setValue(value);
+			
+			// create appropriate definition for the property - not to lose type information in serializations
+			PropertyDefinition def = new PropertyDefinition(propName, tval.getXsdType());
+			property.setDefinition(def);
+			
 			container.getProperties().add(property);
 		}
 		return container;

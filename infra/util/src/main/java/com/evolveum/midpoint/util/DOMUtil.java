@@ -66,8 +66,8 @@ public class DOMUtil {
 	public static final String NS_W3C_XSI_PREFIX = "xsi";
 	public static final QName XSI_TYPE = new QName(NS_W3C_XSI_URI, "type",
 			NS_W3C_XSI_PREFIX);
-	private static final String QNAME_ATTR_PREFIX_PREFIX = "qn";
-	private static final int QNAME_ATTR_PREFIX_RND = 1000;
+	private static final String RANDOM_ATTR_PREFIX_PREFIX = "qn";
+	private static final int RANDOM_ATTR_PREFIX_RND = 1000;
 	// To generate random namespace prefixes
 	private static Random rnd = new Random();
 
@@ -333,14 +333,45 @@ public class DOMUtil {
 			throw new IllegalArgumentException("Element already has a type");
 		}
 		// We need to figure out correct prefix. We have namespace URI, but we need a prefix to specify in the xsi:type
-		String valuePrefix = element.lookupPrefix(attributeValue.getNamespaceURI());
-		if (valuePrefix == null) {
-			// generate random prefix
-			valuePrefix = QNAME_ATTR_PREFIX_PREFIX + rnd.nextInt(QNAME_ATTR_PREFIX_RND);
-			setNamespaceDeclaration(element,valuePrefix,attributeValue.getNamespaceURI());
-		}
+		String valuePrefix = lookupOrCreateNamespaceDeclaration(element,attributeValue.getNamespaceURI(),attributeValue.getPrefix());
 		String attrValue = valuePrefix + ":" + attributeValue.getLocalPart();
-		element.setAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart(), attrValue);
+		
+		Document doc = element.getOwnerDocument();
+		NamedNodeMap attributes = element.getAttributes();
+        Attr attr = doc.createAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
+        String namePrefix = lookupOrCreateNamespaceDeclaration(element,attributeName.getNamespaceURI(),attributeName.getPrefix());
+        attr.setPrefix(namePrefix);
+        attr.setValue(attrValue);
+        attributes.setNamedItem(attr);
+	}
+	
+	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri, String preferredPrefix) {
+		// We need to figure out correct prefix. We have namespace URI, but we need a prefix to specify in the xsi:type
+		String prefix = element.lookupPrefix(namespaceUri);
+		if (prefix == null) {
+			// try to use preferred prefix from QName
+			prefix = preferredPrefix;
+			if (prefix != null) {
+				// check if a declaration for it exists
+				String namespaceDefinedForPreferredPrefix = element.lookupNamespaceURI(prefix);
+				if (namespaceDefinedForPreferredPrefix==null || namespaceDefinedForPreferredPrefix.isEmpty()) {
+					// No namespace definition for preferred prefix. So let's use it
+					setNamespaceDeclaration(element,prefix,namespaceUri);
+				} else if (namespaceUri.equals(namespaceDefinedForPreferredPrefix)) {
+					// Nothing to do, prefix already defined and the definition matches.
+					// The question is how this could happen. Why has element.lookupPrefix() haven't found it?
+				} else {
+					// prefix already defined, but the URI is different. Fallback to a random prefix.
+					prefix = null;
+				} 
+			}
+			if (prefix == null) {
+				// generate random prefix
+				prefix = RANDOM_ATTR_PREFIX_PREFIX + rnd.nextInt(RANDOM_ATTR_PREFIX_RND);
+				setNamespaceDeclaration(element,prefix,namespaceUri);
+			}
+		}
+		return prefix;
 	}
 	
 	public static void setNamespaceDeclaration(Element element,String prefix, String namespaceUri) {

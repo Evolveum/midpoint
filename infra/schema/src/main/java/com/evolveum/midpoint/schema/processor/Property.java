@@ -244,7 +244,13 @@ public class Property {
 	public PropertyModification createModification(PropertyModification.ModificationType modificationType, Set<Object> modifyValues) {
 		return new PropertyModification(this,modificationType,modifyValues);
 	}
-	
+
+	public PropertyModification createModification(PropertyModification.ModificationType modificationType, Object modifyValue) {
+		Set<Object> modifyValues = new HashSet<Object>();
+		modifyValues.add(modifyValue);
+		return new PropertyModification(this,modificationType,modifyValues);
+	}
+
 	/**
 	 * Serializes property to DOM element(s).
 	 * 

@@ -26,6 +26,8 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -56,6 +58,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -165,6 +168,22 @@ public class TestTaskManagerContract {
 		assertNotNull(task.getLastRunFinishTimestamp());
 		assertFalse(task.getLastRunFinishTimestamp().longValue()==0);
 
+		// The progress should be more than 0 as the task has run at least once
+		assertTrue(task.getProgress()>0);
+		
+		// Test for presence of a result. It should be there and it should indicate success
+		OperationResult taskResult = task.getResult();
+		assertNotNull(taskResult);		
+		assertTrue(taskResult.isSuccess());
+	}
+	
+	@Test
+	public void test003Extension() throws Exception {
+		
+		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test003Extension");
+		Task task = taskManager.getTask(TASK_CYCLE_OID, result);
+		assertNotNull(task);
+		
 		// Test for extension. This will also roughly test extension processor and schema processor
 		PropertyContainer taskExtension = task.getExtension();
 		assertNotNull(taskExtension);
@@ -174,14 +193,29 @@ public class TestTaskManagerContract {
 		Property deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","dead"));
 		assertEquals(Integer.class,deadProp.getValues().iterator().next().getClass());
 		assertEquals(Integer.valueOf(42),deadProp.getValue(Integer.class));
-
-		// The progress should be more than 0 as the task has run at least once
-		assertTrue(task.getProgress()>0);
 		
-		// Test for presence of a result. It should be there and it should indicate success
-		OperationResult taskResult = task.getResult();
-		assertNotNull(taskResult);		
-		assertTrue(taskResult.isSuccess());
+		List<PropertyModification> mods = new ArrayList<PropertyModification>();
+		// One more mariner drowned
+		int newDead = deadProp.getValue(Integer.class).intValue()+1;
+		mods.add(deadProp.createModification(PropertyModification.ModificationType.REPLACE, Integer.valueOf(newDead)));
+		// ... then the ship was lost
+		mods.add(shipStateProp.createModification(PropertyModification.ModificationType.REPLACE, "sunk"));
+		// ... so remember the date
+		Property dateProp = new Property(new QName("http://myself.me/schemas/whatever","sinkTimestamp"));
+		// This has no type information or schema. The type has to be determined from the java type
+		mods.add(dateProp.createModification(PropertyModification.ModificationType.REPLACE, new GregorianCalendar()));
+		
+		task.modifyExtension(mods, result);
+		
+		// Debug: display the real repository state
+		ObjectType o = repositoryService.getObject(TASK_CYCLE_OID,null, result);
+		System.out.println(ObjectTypeUtil.dump(o));
+		
+		// Refresh the task
+		//task.refresh(result);
+		
+		// TODO: check what happened
+		
 	}
 	
 	// UTILITY METHODS

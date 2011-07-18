@@ -19,7 +19,6 @@
  */
 package com.evolveum.midpoint.schema;
 
-import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
@@ -126,7 +125,7 @@ public class XsdTypeConverter {
 	 * @return
 	 */
 	public static Object toJavaValue(Element xmlElement) {
-		return toJavaValueWithDefaultType(xmlElement,null);
+		return toTypedJavaValueWithDefaultType(xmlElement,null).getValue();
 	}
 
 	/**
@@ -137,7 +136,7 @@ public class XsdTypeConverter {
 	 * @return converted java value
 	 * @throws IllegalStateException if no xsi:type or default type specified
 	 */
-	public static Object toJavaValueWithDefaultType(Element xmlElement, QName defaultType) {
+	public static TypedValue toTypedJavaValueWithDefaultType(Element xmlElement, QName defaultType) {
 		QName xsiType = DOMUtil.resolveXsiType(xmlElement, null);
 		if (xsiType==null) {
 			xsiType = defaultType;
@@ -145,7 +144,8 @@ public class XsdTypeConverter {
 				throw new IllegalStateException("Cannot conver element "+xmlElement+" to java, no type information available");
 			}
 		}
-		return toJavaValue(xmlElement, xsiType);
+
+		return new TypedValue(toJavaValue(xmlElement, xsiType),xsiType);
 	}
 	
 	public static void toXsdElement(Object val, QName typeName, Element element, boolean recordType) {
@@ -153,6 +153,10 @@ public class XsdTypeConverter {
 		toXsdElement(val,element,false);
 		// But record the correct type is asked to
 		if (recordType) {
+			if (typeName==null) {
+				// if no type was specified, just record the one that was used for automatic conversion
+				typeName=toXsdType(val.getClass());
+			}
 			DOMUtil.setXsiType(element, typeName);
 		}
 	}
@@ -216,5 +220,5 @@ public class XsdTypeConverter {
 	static {
 		initTypeMap();
 	}
-
+	
 }
