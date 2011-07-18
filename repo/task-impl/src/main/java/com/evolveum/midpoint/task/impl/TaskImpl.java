@@ -45,6 +45,7 @@ import com.evolveum.midpoint.schema.processor.ExtensionProcessor;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -265,8 +266,50 @@ public class TaskImpl implements Task {
 	}
 
 	@Override
-	public void modifyExtension(PropertyModification modification) {
-		throw new NotImplementedException();
+	public void modifyExtension(List<PropertyModification> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		OperationResult opResult = parentResult.createSubresult(Task.class.getName()+".modifyExtension");
+		opResult.addParam("modifications", modifications);
+		opResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskImpl.class);
+		opResult.addContext(OperationResult.CONTEXT_OID,oid);
+		
+		// Only works for persistent tasks
+		if (persistenceStatus!=TaskPersistenceStatus.PERSISTENT) {
+			IllegalStateException ex = new IllegalStateException("Modify only works on persistent tasks");
+			opResult.recordFatalError("Modify only works on persistent tasks", ex);
+			throw ex;
+		}
+		
+		ObjectModificationType objectChange = new ObjectModificationType();
+		objectChange.setOid(oid);
+		
+		for (PropertyModification modification : modifications) {
+			// Extension is schema-less now. Therefore we need to also record the types (hence "true" for recordType)
+			PropertyModificationType propertyModificationType = null;
+			try {
+				propertyModificationType = modification.toPropertyModificationType(SchemaConstants.C_EXTENSION,true);
+			} catch (SchemaProcessorException e) {
+				// This is unlikely now, almost impossible. But may happen in the future.
+				SchemaException ex = new SchemaException("Error dealing with extension schema, task OID "+oid,e);
+				opResult.recordFatalError("Error dealing with extension schema",e);
+				throw ex;
+			}			
+			objectChange.getPropertyModification().add(propertyModificationType);
+		}
+		
+		try {
+			repositoryService.modifyObject(objectChange, opResult);
+		} catch (ObjectNotFoundException ex) {
+			opResult.recordFatalError("Object not found", ex);
+			throw ex;
+		} catch (SchemaException ex) {
+			opResult.recordFatalError("Schema error", ex);
+			throw ex;
+		} catch (RuntimeException ex) {
+			opResult.recordFatalError("Internal error", ex);
+			throw ex;
+		}
+		
+		opResult.recordSuccess();
 	}
 	
 	@Override

@@ -81,16 +81,21 @@ public class CycleRunner implements Runnable {
 
 				TaskRunResult runResult = handler.run(task);
 
-				// record this run (this will also save the OpResult
-
-				try {
-					task.recordRunFinish(runResult, cycleRunnerRunOpResult);
-				} catch (ObjectNotFoundException ex) {
-					logger.error("Unable to record run finish: {}", ex.getMessage(), ex);
-				} catch (SchemaException ex) {
-					logger.error("Unable to record run finish: {}", ex.getMessage(), ex);
-				} // there are otherwise quite safe to ignore
-
+				// record this run (this will also save the OpResult)
+				// TODO: figure out how to do better error handling
+				if (runResult==null) {
+					// Obviously error in task handler
+					logger.error("Unable to record run finish: task returned null result");
+				} else {				
+					try {
+						task.recordRunFinish(runResult, cycleRunnerRunOpResult);
+					} catch (ObjectNotFoundException ex) {
+						logger.error("Unable to record run finish: {}", ex.getMessage(), ex);
+					} catch (SchemaException ex) {
+						logger.error("Unable to record run finish: {}", ex.getMessage(), ex);
+					} // there are otherwise quite safe to ignore
+				}
+				
 				// Determine how long we need to sleep and hit the bed
 				
 				// TODO: consider the PERMANENT_ERROR state of the last run. in this case we should "suspend" the task
