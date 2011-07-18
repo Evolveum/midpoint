@@ -64,7 +64,7 @@ public class ControllerGetObjectTest {
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/getObject");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerGetObjectTest.class);
 	@Autowired(required = true)
-	private ModelController controller;
+	private ModelControllerImpl controller;
 	@Autowired(required = true)
 	private RepositoryService repository;
 

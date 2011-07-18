@@ -36,7 +36,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.controller.ModelControllerImpl;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -57,13 +57,13 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 @Component
 public class ExpressionHandlerImpl implements ExpressionHandler {
 
-	private ModelController model;
+	private ModelControllerImpl model;
 
-	public void setModel(ModelController model) {
+	public void setModel(ModelControllerImpl model) {
 		this.model = model;
 	}
 
-	private ModelController getModel() {
+	private ModelControllerImpl getModel() {
 		if (model == null) {
 			throw new IllegalStateException("Model controller is null. Please set model  property "
 					+ "before using expression handler.");

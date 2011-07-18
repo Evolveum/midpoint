@@ -41,7 +41,7 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.controller.ModelControllerImpl;
 import com.evolveum.midpoint.model.expr.ExpressionException;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
@@ -78,7 +78,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationService.class);
 	@Autowired(required = true)
-	private ModelController controller;
+	private ModelControllerImpl controller;
 	@Autowired(required = true)
 	private ActionManager<Action> actionManager;
 	@Autowired

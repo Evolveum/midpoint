@@ -33,7 +33,7 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.controller.ModelControllerImpl;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
@@ -66,7 +66,7 @@ public class ModelWebService implements ModelPortType {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
 	@Autowired(required = true)
-	private ModelController model;
+	private ModelControllerImpl model;
 
 	@Override
 	public String addObject(ObjectType object, Holder<OperationResultType> result) throws FaultMessage {
