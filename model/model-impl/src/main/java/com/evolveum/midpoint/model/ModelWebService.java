@@ -33,7 +33,7 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.controller.ModelControllerImpl;
+import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EmptyType;
@@ -66,7 +66,7 @@ public class ModelWebService implements ModelPortType {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
 	@Autowired(required = true)
-	private ModelControllerImpl model;
+	private ModelController model;
 
 	@Override
 	public String addObject(ObjectType object, Holder<OperationResultType> result) throws FaultMessage {
@@ -256,7 +256,8 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	@Override
-	public void testResource(String resourceOid, Holder<OperationResultType> resultHolder) throws FaultMessage {
+	public void testResource(String resourceOid, Holder<OperationResultType> resultHolder)
+			throws FaultMessage {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notNullResultHolder(resultHolder);
 
@@ -335,7 +336,7 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	private FaultMessage createSystemFault(Exception ex, OperationResult result) {
-		if (result!=null) {
+		if (result != null) {
 			result.recordFatalError(ex.getMessage(), ex);
 		}
 
@@ -348,7 +349,7 @@ public class ModelWebService implements ModelPortType {
 			faultType = new SystemFaultType();
 		}
 		faultType.setMessage(ex.getMessage());
-		if (result!=null) {
+		if (result != null) {
 			faultType.setOperationResult(result.createOperationResultType());
 		}
 

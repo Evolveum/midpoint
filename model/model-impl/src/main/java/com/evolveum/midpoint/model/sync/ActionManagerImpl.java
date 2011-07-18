@@ -29,7 +29,7 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.controller.ModelControllerImpl;
+import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.controller.SchemaHandler;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
 
@@ -42,7 +42,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 
 	private static transient Trace trace = TraceManager.getTrace(ActionManagerImpl.class);
 	private Map<String, Class<T>> actionMap;
-	private ModelControllerImpl model;
+	private ModelController model;
 	private SchemaHandler schemaHandler;
 
 	@Override
@@ -71,7 +71,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
 		return action;
 	}
 
-	public void setModel(ModelControllerImpl model) {
+	public void setModel(ModelController model) {
 		this.model = model;
 	}
 

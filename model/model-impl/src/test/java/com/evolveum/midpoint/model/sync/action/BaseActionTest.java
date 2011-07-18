@@ -28,7 +28,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
-import com.evolveum.midpoint.model.controller.ModelControllerImpl;
+import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.controller.SchemaHandler;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -49,7 +49,7 @@ public abstract class BaseActionTest {
 	private static final File TEST_FOLDER = new File("./src/test/resources/sync");
 	protected Action action;
 	@Autowired(required = true)
-	protected ModelControllerImpl controller;
+	protected ModelController controller;
 	@Autowired(required = true)
 	protected ProvisioningService provisioning;
 	@Autowired(required = true)

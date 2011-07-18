@@ -213,7 +213,7 @@ public class ModelControllerImpl implements ModelController {
 			if (oid.startsWith("icf")) {
 				object = getObjectFromProvisioning(oid, resolve, subResult, clazz);
 			} else {
-			// TODO: END HACK
+				// TODO: END HACK
 
 				if (ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
 					object = getObjectFromProvisioning(oid, resolve, subResult, clazz);
@@ -567,7 +567,7 @@ public class ModelControllerImpl implements ModelController {
 				resourceOid, objectClass });
 
 		OperationResult result = task.getResult().createSubresult(
-				ModelControllerImpl.class.getName() + ".importFromResource");
+				ModelController.class.getName() + ".importFromResource");
 		// TODO: add params and context to the result
 
 		// Fetch resource definition from the repo/provisioning
