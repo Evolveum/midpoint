@@ -20,43 +20,130 @@
  */
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.NotImplementedException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
+ * Experimental ... kind of
+ * 
+ * Mutable? Immutable?
+ * 
  * @author Radovan Semancik
  *
  */
 public class PropertyModification {
 	
+	private XPathType path;
+	// Storing property instead of property name, so a property definition that may be associated with property will
+	// be passed on
+	private Property property;
+	private Set<Object> modifyValues;
+	private ModificationType modificationType;
+	
 	public enum ModificationType {
+		ADD(PropertyModificationTypeType.add),
+		REPLACE(PropertyModificationTypeType.replace),
+		DELETE(PropertyModificationTypeType.delete);
 		
+		private PropertyModificationTypeType xmlType;
+		
+		private ModificationType(PropertyModificationTypeType xmlType) {
+			this.xmlType = xmlType;
+		}
+		
+		public PropertyModificationTypeType getPropertyModificationTypeType() {
+			return this.xmlType;
+		}
+	}
+	
+	public PropertyModification() {
+		modifyValues = new HashSet<Object>();
+	}
+	
+	/**
+	 * @param path
+	 * @param propertyName
+	 * @param values
+	 * @param modificationType
+	 */
+	public PropertyModification(Property property, ModificationType modificationType, XPathType path, Set<Object> values) {
+		super();
+		this.path = path;
+		this.property = property;
+		this.modifyValues = values;
+		this.modificationType = modificationType;
+	}
+
+	/**
+	 * Assumes empty path (default)
+	 * 
+	 * @param path
+	 * @param propertyName
+	 * @param values
+	 * @param modificationType
+	 */
+	public PropertyModification(Property property, ModificationType modificationType, Set<Object> values) {
+		super();
+		this.path = new XPathType();
+		this.property = property;
+		this.modifyValues = values;
+		this.modificationType = modificationType;
 	}
 	
 	public XPathType getPath() {
-		throw new NotImplementedException();
+		return path;
 	}
 	
+	public Property getProperty() {
+		return property;
+	}
+
 	public QName getPropertyName() {
-		throw new NotImplementedException();
+		return property.getName();
 	}
 	
 	public Set<Object> getValues() {
-		throw new NotImplementedException();
+		return modifyValues;
 	}
 	
 	public ModificationType getModificationType() {
-		throw new NotImplementedException();
+		return modificationType;
 	}
 	
-	public PropertyModificationType toPropertyModificationType() {
-		throw new NotImplementedException();
+	public PropertyModificationType toPropertyModificationType() throws SchemaProcessorException {
+		return toPropertyModificationType(null,false);
+	}
+	
+	/**
+	 * With single-element parent path. It will "transpose" the path in the modification.
+	 * @param parentPath single-element parent path
+	 * @return
+	 * @throws SchemaProcessorException 
+	 */
+	public PropertyModificationType toPropertyModificationType(QName parentPath, boolean recordType) throws SchemaProcessorException {
+		XPathType absolutePath = path;
+		if (parentPath!=null) {
+			absolutePath = path.transposedPath(parentPath);
+		}
+		Document doc = DOMUtil.getDocument();
+		PropertyModificationType pmt = new PropertyModificationType();
+		pmt.setPath(absolutePath.toElement(SchemaConstants.I_PROPERTY_CONTAINER_REFERENCE_PATH, doc));
+		pmt.setModificationType(modificationType.getPropertyModificationTypeType());
+		pmt.getValue().getAny().addAll(property.serializeToDom(doc,null,modifyValues,recordType));
+		return pmt;
 	}
 
 }

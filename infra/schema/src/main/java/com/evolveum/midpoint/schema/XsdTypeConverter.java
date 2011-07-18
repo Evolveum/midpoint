@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 import java.util.GregorianCalendar;
@@ -117,12 +119,49 @@ public class XsdTypeConverter {
 		return toJavaValue(xmlElement,toJavaType(type));
 	}
 	
-	public static void toXsdElement(Object val, QName typeName, Element element) {
+	/**
+	 * Expects type information in xsi:type
+	 * 
+	 * @param xmlElement
+	 * @return
+	 */
+	public static Object toJavaValue(Element xmlElement) {
+		return toJavaValueWithDefaultType(xmlElement,null);
+	}
+
+	/**
+	 * Try to locate element type from xsi:type, fall back to specified default type.
+	 * 
+	 * @param xmlElement
+	 * @param defaultType
+	 * @return converted java value
+	 * @throws IllegalStateException if no xsi:type or default type specified
+	 */
+	public static Object toJavaValueWithDefaultType(Element xmlElement, QName defaultType) {
+		QName xsiType = DOMUtil.resolveXsiType(xmlElement, null);
+		if (xsiType==null) {
+			xsiType = defaultType;
+			if (xsiType==null) {
+				throw new IllegalStateException("Cannot conver element "+xmlElement+" to java, no type information available");
+			}
+		}
+		return toJavaValue(xmlElement, xsiType);
+	}
+	
+	public static void toXsdElement(Object val, QName typeName, Element element, boolean recordType) {
 		// Just ignore the typeName for now. The java type will determine the conversion
-		toXsdElement(val,element);
+		toXsdElement(val,element,false);
+		// But record the correct type is asked to
+		if (recordType) {
+			DOMUtil.setXsiType(element, typeName);
+		}
 	}
 	
 	public static void toXsdElement(Object val, Element element) {
+		toXsdElement(val, element,false);
+	}
+	
+	public static void toXsdElement(Object val, Element element, boolean recordType) {
 		Class type = val.getClass();
 		if (type.equals(String.class)) {
 			element.setTextContent((String)val);
@@ -138,6 +177,10 @@ public class XsdTypeConverter {
 			element.setTextContent(xmlCal.toXMLFormat());
 		} else {
 			throw new IllegalArgumentException("Unknown type for conversion: " + type);
+		}
+		if (recordType) {
+			QName xsdType = toXsdType(val.getClass());
+			DOMUtil.setXsiType(element, xsdType);
 		}
 	}
 	

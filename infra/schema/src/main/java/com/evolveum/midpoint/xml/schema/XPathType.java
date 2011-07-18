@@ -41,6 +41,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.util.DOMUtil;
+
 /**
  *
  * TODO: documentation
@@ -333,15 +335,7 @@ public class XPathType {
         if (namespaceMap != null) {
             NamedNodeMap attributes = e.getAttributes();
             for (Entry<String, String> entry : namespaceMap.entrySet()) {
-                Attr attr;
-                if (entry.getKey() == null || entry.getKey().isEmpty()) {
-                    // default namespace
-                    attr = document.createAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns");
-                } else {
-                    attr = document.createAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:" + entry.getKey());
-                }
-                attr.setValue(entry.getValue());
-                attributes.setNamedItem(attr);
+            	DOMUtil.setNamespaceDeclaration(e, entry.getKey(), entry.getValue());
             }
         }
         return e;
@@ -352,6 +346,33 @@ public class XPathType {
         return Collections.unmodifiableList(segments);
     }
 
+    /**
+     * Returns new XPath with a specified element prepended to the path.
+     * Useful for "transposing" relative paths to a absolute root.
+     * @param parentPath
+     * @return
+     */
+    public XPathType transposedPath(QName parentPath) {
+    	XPathSegment segment = new XPathSegment(parentPath);
+    	List<XPathSegment> segments = new ArrayList<XPathSegment>();
+    	segments.add(segment);
+    	return transposedPath(segments);
+    }
+
+    /**
+     * Returns new XPath with a specified element prepended to the path.
+     * Useful for "transposing" relative paths to a absolute root.
+     * @param parentPath
+     * @return
+     */
+    public XPathType transposedPath(List<XPathSegment> parentPath) {
+    	List<XPathSegment> allSegments = new ArrayList<XPathSegment>();
+    	allSegments.addAll(parentPath);
+    	allSegments.addAll(toSegments());
+    	return new XPathType(allSegments);
+    }
+
+    
     @Override
     public String toString() {
         // TODO: more verbose toString later

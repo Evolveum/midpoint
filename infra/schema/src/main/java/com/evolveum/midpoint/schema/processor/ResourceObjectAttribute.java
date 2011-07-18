@@ -21,7 +21,6 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import com.sun.org.apache.xerces.internal.impl.xs.identity.ValueStore;
 import java.util.Set;
 
 import javax.xml.namespace.QName;

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
@@ -237,8 +238,10 @@ public interface Task {
 	 * almost always be "." (or null). 
 	 * 
 	 * @param modification
+	 * @throws SchemaException 
+	 * @throws ObjectNotFoundException 
 	 */
-	public void modifyExtension(PropertyModification modification);
+	public void modifyExtension(List<PropertyModification> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
 	/**
 	 * Record finish of the last "run" of the task

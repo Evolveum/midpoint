@@ -50,13 +50,7 @@ public class ExtensionProcessor {
 		PropertyContainer container = new PropertyContainer(SchemaConstants.C_EXTENSION);
 		
 		for (Element element : xmlExtension) {
-			// check for xsi:type
-			QName xsiType = DOMUtil.resolveXsiType(element, null);
-			if (xsiType==null) {
-				// default to string
-				xsiType = DEFAULT_TYPE;
-			}
-			Object value = XsdTypeConverter.toJavaValue(element, xsiType);
+			Object value = XsdTypeConverter.toJavaValueWithDefaultType(element, DEFAULT_TYPE);
 			Property property = new Property(DOMUtil.getQName(element));
 			property.setValue(value);
 			container.getProperties().add(property);

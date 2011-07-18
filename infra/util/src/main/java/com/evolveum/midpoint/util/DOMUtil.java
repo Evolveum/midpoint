@@ -28,6 +28,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -40,6 +42,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.apache.commons.io.IOUtils;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -56,10 +59,17 @@ import org.xml.sax.SAXException;
  */
 public class DOMUtil {
 	
+	public static final String W3C_XML_SCHEMA_XMLNS_URI = "http://www.w3.org/2000/xmlns/";
+	public static final String W3C_XML_SCHEMA_XMLNS_PREFIX = "xmlns";
+	
 	public static final String NS_W3C_XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
 	public static final String NS_W3C_XSI_PREFIX = "xsi";
 	public static final QName XSI_TYPE = new QName(NS_W3C_XSI_URI, "type",
 			NS_W3C_XSI_PREFIX);
+	private static final String QNAME_ATTR_PREFIX_PREFIX = "qn";
+	private static final int QNAME_ATTR_PREFIX_RND = 1000;
+	// To generate random namespace prefixes
+	private static Random rnd = new Random();
 
 	public static String serializeDOMToString(org.w3c.dom.Node node) {
 		return printDom(node).toString();
@@ -301,6 +311,50 @@ public class DOMUtil {
 			return null;
 		}
 		return resolveQName(element, xsiType, defaultNamespacePrefix);
+	}
+
+	public static boolean hasXsiType(Element element) {
+		String xsiType = element.getAttributeNS(XSI_TYPE.getNamespaceURI(), XSI_TYPE.getLocalPart());
+		if (xsiType == null || xsiType.isEmpty()) {
+			return false;
+		}
+		return true;
+	}
+	
+	public static void setXsiType(Element element, QName type) {
+		if (hasXsiType(element)) {
+			throw new IllegalArgumentException("Element already has a type");
+		}
+		setQNameAttribute(element, XSI_TYPE, type);
+	}
+		
+	public static void setQNameAttribute(Element element, QName attributeName, QName attributeValue) {
+		if (hasXsiType(element)) {
+			throw new IllegalArgumentException("Element already has a type");
+		}
+		// We need to figure out correct prefix. We have namespace URI, but we need a prefix to specify in the xsi:type
+		String valuePrefix = element.lookupPrefix(attributeValue.getNamespaceURI());
+		if (valuePrefix == null) {
+			// generate random prefix
+			valuePrefix = QNAME_ATTR_PREFIX_PREFIX + rnd.nextInt(QNAME_ATTR_PREFIX_RND);
+			setNamespaceDeclaration(element,valuePrefix,attributeValue.getNamespaceURI());
+		}
+		String attrValue = valuePrefix + ":" + attributeValue.getLocalPart();
+		element.setAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart(), attrValue);
+	}
+	
+	public static void setNamespaceDeclaration(Element element,String prefix, String namespaceUri) {
+		Document doc = element.getOwnerDocument();
+		NamedNodeMap attributes = element.getAttributes();
+        Attr attr;
+        if (prefix == null || prefix.isEmpty()) {
+        	// default namespace
+            attr = doc.createAttributeNS(W3C_XML_SCHEMA_XMLNS_URI, W3C_XML_SCHEMA_XMLNS_PREFIX);
+       } else {
+            attr = doc.createAttributeNS(W3C_XML_SCHEMA_XMLNS_URI, W3C_XML_SCHEMA_XMLNS_PREFIX + ":" + prefix);
+       }
+       attr.setValue(namespaceUri);
+       attributes.setNamedItem(attr);
 	}
 
 	public static QName getQName(Element element) {

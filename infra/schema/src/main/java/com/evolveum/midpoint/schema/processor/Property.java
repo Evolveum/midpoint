@@ -241,6 +241,10 @@ public class Property {
 		return getDefinition() == null ? null : getDefinition().getHelp();
 	}
 	
+	public PropertyModification createModification(PropertyModification.ModificationType modificationType, Set<Object> modifyValues) {
+		return new PropertyModification(this,modificationType,modifyValues);
+	}
+	
 	/**
 	 * Serializes property to DOM element(s).
 	 * 
@@ -258,7 +262,7 @@ public class Property {
 	 * @throws SchemaProcessorException No definition or inconsistent definition 
 	 */
 	public List<Element> serializeToDom(Document doc) throws SchemaProcessorException {
-		return serializeToDom(doc,null);
+		return serializeToDom(doc,null,null,false);
 	}
 	
 	/**
@@ -267,17 +271,39 @@ public class Property {
 	 * Package-private. Useful for some internal calls inside schema processor.
 	 */
 	List<Element> serializeToDom(Document doc,PropertyDefinition propDef) throws SchemaProcessorException {
+		// No need to record types, we have schema definition here
+		return serializeToDom(doc,propDef,null,false);
+	}
+	
+	/**
+	 * Same as serializeToDom(Document doc) but allows external definition.
+	 * 
+	 * Allows alternate values.
+	 * Allows option to record type in the serialized output (using xsi:type)
+	 * 
+	 * Package-private. Useful for some internal calls inside schema processor.
+	 */
+	List<Element> serializeToDom(Document doc,PropertyDefinition propDef, Set<Object> alternateValues, boolean recordType) throws SchemaProcessorException {
+		
+		// Try to locate definition
 		List<Element> elements = new ArrayList<Element>();
 		if (propDef==null) {
 			propDef = getDefinition();
 		}
-		if (propDef==null) {
-			throw new SchemaProcessorException("Definition of property "+this+" not found");
+		
+		Set<Object> serializeValues = getValues();
+		if (alternateValues!=null) {
+			serializeValues = alternateValues;
 		}
-		Set<Object> values = getValues();
-		for (Object val : values) {
+		for (Object val : serializeValues) {
 			Element element = doc.createElementNS(getName().getNamespaceURI(), getName().getLocalPart());
-			XsdTypeConverter.toXsdElement(val,propDef.getTypeName(),element);
+			// If we have a definition then try to use it. The conversion may be more realiable
+			// Otherwise the conversion will be governed by Java type
+			QName xsdType = null;
+			if (propDef!=null) {
+				xsdType = propDef.getTypeName();
+			}
+			XsdTypeConverter.toXsdElement(val,xsdType,element,recordType);
 			elements.add(element);
 		}			
 		return elements;

@@ -269,7 +269,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				Property newToken = change.getToken();
 				// TODO: create property modification from new token
-				task.modifyExtension(new PropertyModification());
+				task.modifyExtension(new ArrayList<PropertyModification>(),result);
 
 				processedChanges++;
 
