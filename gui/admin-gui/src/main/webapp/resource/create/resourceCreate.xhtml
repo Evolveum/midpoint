@@ -20,13 +20,18 @@
 			<ice:inputText size="40" value="#{resourceCreate.name}" required="true" id="resourceName" />
 			<ice:message for="resourceName" errorClass="error" />
 
-<ui:remove>
-			<ice:outputLabel value="Connectory type" />
-			<ice:selectOneMenu id="resourceType" style="min-width: 200px;" value="">
-				<f:selectItems value="" />
+			<ice:outputLabel value="Connector type" />
+			<ice:selectOneMenu id="resourceType" style="min-width: 200px;" value="#{resourceCreate.connectorType}"
+				partialSubmit="true">
+				<f:selectItems value="#{resourceCreate.types}" />
 			</ice:selectOneMenu>
 			<ice:message for="resourceType" errorClass="error" />
-			</ui:remove>
+
+			<ice:outputLabel value="Connector version" />
+			<ice:selectOneMenu id="resourceType" style="min-width: 200px;" value="#{resourceCreate.connectorVersion}">
+				<f:selectItems value="#{resourceCreate.versions}" />
+			</ice:selectOneMenu>
+			<ice:message for="resourceVersion" errorClass="error" />
 		</ice:panelGrid>
 	</ui:define>
 </ui:composition>

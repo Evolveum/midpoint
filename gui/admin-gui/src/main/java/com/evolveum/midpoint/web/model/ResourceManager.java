@@ -28,7 +28,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.web.model.impl.ObjectManagerImpl;
@@ -57,6 +56,4 @@ public abstract class ResourceManager extends ObjectManagerImpl<ResourceDto> {
 
 	public abstract Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> listResourceObjects(
 			String resourceOid, QName objectClass, PagingType paging);
-
-	public abstract ConnectorDto getConnector(String oid);
 }

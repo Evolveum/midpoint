@@ -37,6 +37,7 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -254,11 +255,5 @@ public class ResourceTypeManager extends ResourceManager {
 		}
 
 		return collection;
-	}
-
-	@Override
-	public ConnectorDto getConnector(String oid) {
-		ConnectorType connector = get(oid, new PropertyReferenceListType(), ConnectorType.class);
-		return new ConnectorDto(connector);
 	}
 }

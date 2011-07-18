@@ -47,11 +47,13 @@ import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.SystemConfigurationManager;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -174,6 +176,14 @@ public class ControllerUtil {
 		ObjectManager<ResourceDto> manager = catalog.getObjectManager(ResourceType.class, ResourceDto.class);
 
 		return (ResourceManager) manager;
+	}
+
+	public static ObjectManager<ConnectorDto> getConnectorManager(ObjectTypeCatalog catalog) {
+		Validate.notNull(catalog, "Object type catalog must not be null.");
+		ObjectManager<ConnectorDto> manager = catalog.getObjectManager(ConnectorType.class,
+				ConnectorDto.class);
+
+		return manager;
 	}
 
 	public static AccountShadowManager getAccountManager(ObjectTypeCatalog catalog) {
