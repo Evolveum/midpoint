@@ -74,9 +74,6 @@ public class TaskManagerImpl implements TaskManager {
 	private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
 
 	private TaskScanner scannerThread;
-	
-	// Temporary HACK
-	private Map<String,Task> claimedTasks = new HashMap<String, Task>();
 
 	@Autowired(required=true)
 	private RepositoryService repositoryService;
@@ -117,13 +114,6 @@ public class TaskManagerImpl implements TaskManager {
 		result.addParam(OperationResult.PARAM_OID, taskOid);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerImpl.class);
 		
-		// Look through the claimed tasks first. This is fast and provides a live java instance.
-		Task claimedTask = claimedTasks.get(taskOid);
-		if (claimedTask != null) {
-			return claimedTask;
-		}
-		
-		// Otherwise we need to fetch the task from repository
 		return fetchTaskFromRepository(taskOid, result);
 	}
 
@@ -335,8 +325,8 @@ public class TaskManagerImpl implements TaskManager {
 			// Ignore otherwise. Nothing else to do.
 			
 		}
-
-		claimedTasks.put(task.getOid(), task);
+		
+		// TODO: thread pooling, etc.
 		
 		Thread taskThread = allocateThread(task, runner);
 		taskThread.start();		
@@ -348,12 +338,8 @@ public class TaskManagerImpl implements TaskManager {
 	
 	void finishRunnableTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		
-		if (task.isSingle()) {	
-			// We need to release the task here.
-			releaseTask(task,parentResult);
-			
-		} // We don't care about other types
-		
+		// We have claimed the task before, therefore we need to release the task here.
+		releaseTask(task,parentResult);		
 	}
 	
 	private Thread allocateThread(Task task, Runnable target) {

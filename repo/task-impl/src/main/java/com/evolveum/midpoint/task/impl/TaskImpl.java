@@ -445,7 +445,11 @@ public class TaskImpl implements Task {
 		sb.append("\n  progress: ");
 		sb.append(progress);
 		sb.append("\n  result: ");
-		sb.append(result.dump());
+		if (result==null) {
+			sb.append("null");
+		} else {
+			sb.append(result.dump());
+		}
 		sb.append("\n  extension: ");
 		sb.append(extension);
 		return sb.toString();
