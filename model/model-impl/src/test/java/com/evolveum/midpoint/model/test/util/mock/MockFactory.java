@@ -25,6 +25,7 @@ package com.evolveum.midpoint.model.test.util.mock;
 import org.mockito.Mockito;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager;
 import com.evolveum.midpoint.provisioning.api.SynchronizationProcessManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
@@ -35,7 +36,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 public class MockFactory {
 
 	public static ProvisioningService createProvisioningPortType() {
-		return Mockito.mock(ProvisioningService.class);
+		return Mockito.mock(ProvisioningServiceMock.class);
 	}
 
 	public static RepositoryService createRepositoryPortType() {
@@ -44,5 +45,9 @@ public class MockFactory {
 
 	public static SynchronizationProcessManager createSyncProcesManager() {
 		return Mockito.mock(SynchronizationProcessManager.class);
+	}
+	
+	public static abstract class ProvisioningServiceMock implements ProvisioningService, ResourceObjectChangeNotificationManager {
+		
 	}
 }
