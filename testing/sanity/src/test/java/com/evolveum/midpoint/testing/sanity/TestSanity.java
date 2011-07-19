@@ -617,9 +617,10 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	public void test200ImportFromResource() throws Exception {
 		// GIVEN
 		
-		TaskType taskType = new TaskType();
+		Task inTask = taskManager.createTaskInstance();
+		TaskType taskType = inTask.getTaskTypeObject();
 		OperationResultType resultType = new OperationResultType();
-		resultType.setOperation(TestSanity.class.getName()+".test200ImportFromResource");
+		resultType.setOperation(TestSanity.class.getName()+".test200ImportFromResource.launch");
 		taskType.setResult(resultType);
 		Holder<TaskType> taskHolder = new Holder<TaskType>(taskType);
 		
@@ -633,6 +634,30 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		assertNotNull(task);
 		assertNotNull(task.getOid());
 		assertTrue(task.isAsynchronous());
+		assertEquals(TaskExecutionStatus.RUNNING,task.getExecutionStatus());
+		assertEquals(TaskExclusivityStatus.CLAIMED,task.getExclusivityStatus());
+				
+		System.out.println("Import task after launch:");
+		System.out.println(task.dump());
+		
+		System.out.println("Waining for import to complete");
+		Thread.sleep(10000);
+		System.out.println("... done");
+		
+		OperationResult result = new OperationResult(TestSanity.class.getName()+".test200ImportFromResource.refresh");
+		task.refresh(result);
+
+		System.out.println("Import task after finish:");
+		System.out.println(task.dump());
+		
+		assertEquals(TaskExecutionStatus.CLOSED,task.getExecutionStatus());
+		assertEquals(TaskExclusivityStatus.RELEASED,task.getExclusivityStatus());
+		
+		OperationResult taskResult = task.getResult();
+		assertNotNull("Task has no result",taskResult);
+		assertTrue("Task failed",taskResult.isSuccess());
+		
+		assertTrue(task.getProgress()>0);
 		
 	}
 	

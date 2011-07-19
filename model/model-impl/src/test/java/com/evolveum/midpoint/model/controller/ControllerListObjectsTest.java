@@ -112,7 +112,7 @@ public class ControllerListObjectsTest {
 					any(PagingType.class), any(OperationResult.class));
 			testObjectListTypes(expectedUserList, returnedUserList);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 	}
 

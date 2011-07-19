@@ -100,7 +100,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 			action.executeChanges(userOid, change, SynchronizationSituationType.CONFIRMED,
 					(ResourceObjectShadowType) addition.getObject(), result);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 	}
 
@@ -118,7 +118,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 			action.executeChanges(userOid, change, SynchronizationSituationType.CONFIRMED,
 					(ResourceObjectShadowType) addition.getObject(), result);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 
 		verify(repository, times(0)).modifyObject(any(ObjectModificationType.class),
@@ -167,7 +167,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 			action.executeChanges(userOid, change, SynchronizationSituationType.CONFIRMED,
 					(ResourceObjectShadowType) addition.getObject(), result);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 
 		verify(repository, times(1)).modifyObject(any(ObjectModificationType.class),

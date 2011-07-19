@@ -131,7 +131,7 @@ public class PasswordPolicyValidatorTest {
 			logger.error("Generated password:" + psswd);
 			op.computeStatus();
 			if (!op.isSuccess()) {
-				logger.error("Result:" + op.debugDump());
+				logger.error("Result:" + op.dump());
 			}
 			assertTrue(op.isSuccess());
 			assertNotNull(psswd);
@@ -145,7 +145,7 @@ public class PasswordPolicyValidatorTest {
 			logger.error("Generated password:" + psswd);
 			op.computeStatus();
 			if (!op.isSuccess()) {
-				logger.error("Result:" + op.debugDump());
+				logger.error("Result:" + op.dump());
 			}
 			assertTrue(op.isSuccess());
 			assertNotNull(psswd);
@@ -197,7 +197,7 @@ public class PasswordPolicyValidatorTest {
 		OperationResult op = new OperationResult("Password Validator test with password:" + password);
 		PasswordPolicyUtils.validatePassword(password, pp, op);
 		op.computeStatus();
-		logger.error(op.debugDump());
+		logger.error(op.dump());
 		return (op.isSuccess());
 	}
 
@@ -226,7 +226,7 @@ public class PasswordPolicyValidatorTest {
 		
 		PasswordPolicyUtils.validatePassword(password, pps, op);
 		op.computeStatus();
-		logger.error(op.debugDump());
+		logger.error(op.dump());
 		assertTrue(op.isSuccess());
 		
 	}

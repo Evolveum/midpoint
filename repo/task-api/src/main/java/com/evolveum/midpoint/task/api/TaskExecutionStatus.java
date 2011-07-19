@@ -74,4 +74,17 @@ public enum TaskExecutionStatus {
 		}
 		throw new IllegalArgumentException("Unknown exectution status type "+executionStatus);
 	}
+
+	public TaskExecutionStatusType toTaskType() {
+		if (this==RUNNING) {
+			return TaskExecutionStatusType.RUNNING;
+		}
+		if (this==WAITING) {
+			return TaskExecutionStatusType.WAITING;
+		}
+		if (this==CLOSED) {
+			return TaskExecutionStatusType.CLOSED;
+		}
+		throw new IllegalArgumentException("Unknown exectution status type "+this);
+	}
 }

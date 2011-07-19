@@ -101,7 +101,7 @@ public class ControllerDeleteObjectTest {
 		try {
 			controller.deleteObject(oid, result);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 		verify(repository, atLeastOnce()).getObject(eq(oid), any(PropertyReferenceListType.class),
 				any(OperationResult.class));
@@ -122,7 +122,7 @@ public class ControllerDeleteObjectTest {
 		try {
 			controller.deleteObject(oid, result);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 
 		verify(repository, atLeastOnce()).getObject(eq(oid), any(PropertyReferenceListType.class),

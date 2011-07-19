@@ -103,7 +103,7 @@ public class AddUserActionTest extends BaseActionTest {
 			action.executeChanges(userOid, change, SynchronizationSituationType.CONFIRMED,
 					(ResourceObjectShadowType) addition.getObject(), result);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 		verify(repository, times(0)).addObject(any(UserType.class), any(OperationResult.class));
 	}
@@ -135,7 +135,7 @@ public class AddUserActionTest extends BaseActionTest {
 			action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
 					(ResourceObjectShadowType) addition.getObject(), result);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 	}
 
@@ -185,7 +185,7 @@ public class AddUserActionTest extends BaseActionTest {
 			action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
 					(ResourceObjectShadowType) addition.getObject(), result);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 		verify(repository, times(1)).addObject(any(UserType.class), any(OperationResult.class));
 	}

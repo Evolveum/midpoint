@@ -200,4 +200,17 @@ public class ObjectTypeUtil {
 		}
 		return sb.toString();
 	}
+
+	public static ObjectReferenceType createObjectRef(ObjectType objectType) {
+		if (objectType==null) {
+			return null;
+		}
+		ObjectReferenceType ref = new ObjectReferenceType();
+		ref.setOid(objectType.getOid());
+		ObjectTypes objectTypeType = ObjectTypes.getObjectType(objectType.getClass());
+		if (objectTypeType!=null) {
+			ref.setType(objectTypeType.getTypeQName());
+		}
+		return ref;
+	}
 }

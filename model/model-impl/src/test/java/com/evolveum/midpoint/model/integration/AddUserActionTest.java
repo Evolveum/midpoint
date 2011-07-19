@@ -133,7 +133,7 @@ public class AddUserActionTest {
 			OperationResult result = new OperationResult("testAddUserAction");
 			resourceObjectChangeListener.notifyChange(change, result);
 			// resourceObjectChangeService.notifyChange(change, result);
-			LOGGER.info(result.debugDump());
+			LOGGER.info(result.dump());
 			// creating filter to search user according to the user name
 			Document doc = DOMUtil.getDocument();
 

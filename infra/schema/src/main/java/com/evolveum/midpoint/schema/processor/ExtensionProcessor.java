@@ -75,6 +75,20 @@ public class ExtensionProcessor {
 		}
 		return container;
 	}
+
+	public static Extension createExtension(PropertyContainer extension) {
+		Extension xmlExtension = new Extension();
+		List<Element> elements;
+		try {
+			elements = extension.serializePropertiesToDom(DOMUtil.getDocument());
+		} catch (SchemaProcessorException e) {
+			// There is no extension schema, so getting this exception means probably a bug
+			// Change to a runtime exception instead
+			throw new IllegalStateException("Strange. Got schema error where no schema should appear.",e);
+		}
+		xmlExtension.getAny().addAll(elements);
+		return xmlExtension;
+	}
 	
 	
 	

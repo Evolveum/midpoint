@@ -252,4 +252,8 @@ public class PropertyContainer {
 		}
 		return sb.toString();
 	}
+
+	public boolean isEmpty() {
+		return properties.isEmpty();
+	}
 }

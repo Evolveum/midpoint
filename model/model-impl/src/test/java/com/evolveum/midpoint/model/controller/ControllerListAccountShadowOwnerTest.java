@@ -92,7 +92,7 @@ public class ControllerListAccountShadowOwnerTest {
 			final UserType returned = controller.listAccountShadowOwner("1", result);
 			assertNull(returned);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 	}
 
@@ -111,7 +111,7 @@ public class ControllerListAccountShadowOwnerTest {
 			assertNotNull(returned);
 			assertEquals(expected, returned);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 	}
 }

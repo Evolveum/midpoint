@@ -262,7 +262,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			result.recordFatalError("Error :-)");
 
 			System.out.println("NOT FOUND REPO result:");
-			System.out.println(result.debugDump());
+			System.out.println(result.dump());
 
 			assertFalse(result.hasUnknownStatus());
 			// TODO: check result
@@ -308,7 +308,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			result.recordFatalError("Error :-)");
 
 			System.out.println("NOT FOUND RESOURCE result:");
-			System.out.println(result.debugDump());
+			System.out.println(result.dump());
 
 			assertFalse(result.hasUnknownStatus());
 			// TODO: check result

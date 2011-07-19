@@ -133,7 +133,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 			notifyChange(change, situation, resource, objectShadowAfterChange, subResult);
 		} finally {
-			LOGGER.debug(subResult.debugDump());
+			LOGGER.debug(subResult.dump());
 		}
 	}
 

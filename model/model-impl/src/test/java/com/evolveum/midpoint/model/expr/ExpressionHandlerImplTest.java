@@ -79,7 +79,7 @@ public class ExpressionHandlerImplTest {
 			expressionHandler.evaluateConfirmationExpression(user, account, expression, result);
 			fail();
 		} finally {
-			LOGGER.info(result.debugDump());
+			LOGGER.info(result.dump());
 		}
 	}
 
@@ -101,7 +101,7 @@ public class ExpressionHandlerImplTest {
 		OperationResult result = new OperationResult("testConfirmUser");
 		boolean confirmed = expressionHandler.evaluateConfirmationExpression(user, account, expression,
 				result);
-		LOGGER.info(result.debugDump());
+		LOGGER.info(result.dump());
 
 		assertTrue(confirmed);
 	}

@@ -68,7 +68,7 @@ public class SchemaHandlerXPath2Test {
 
 		OperationResult result = new OperationResult("testIfThenElseSupportInOutboundSection");
 		ObjectModificationType changes = schemaHandler.processOutboundHandling(user, account, result);
-		LOGGER.info(result.debugDump());
+		LOGGER.info(result.dump());
 
 		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, account,
 				AccountShadowType.class);

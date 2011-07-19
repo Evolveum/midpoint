@@ -112,7 +112,7 @@ public class ControllerListResourceObjectShadowsTest {
 			assertNotNull(returned);
 			testShadowListType(expected, returned);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 	}
 

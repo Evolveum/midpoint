@@ -166,8 +166,10 @@ public interface Task {
 	 * The object will only be returned if the task really contains an object without OID (e.g. unfinished account shadow). In all other cases this method may return null. Use getObjectRef instead.
 	 * 
 	 * Optional. May return null.
+	 * @throws SchemaException 
+	 * @throws ObjectNotFoundException 
 	 */
-	public ObjectType getObject();
+	public ObjectType getObject(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
 	/**
 	 * Returns reference to the object that the task is associated with.
@@ -177,6 +179,8 @@ public interface Task {
 	 * @return
 	 */
 	public ObjectReferenceType getObjectRef();
+	
+	public void setObjectRef(ObjectReferenceType objectRef);
 	
 	/**
 	 * Returns OID of the object that the task is associated with.
@@ -300,5 +304,7 @@ public interface Task {
 	public void close(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	public boolean isSingle();
+
+	public boolean isCycle();
 
 }

@@ -210,6 +210,6 @@ public class RepositoryManagerImpl implements RepositoryManager {
 			FacesUtils.addMessage(result);
 		}
 
-		logger.debug(result.debugDump());
+		logger.debug(result.dump());
 	}
 }

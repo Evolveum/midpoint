@@ -90,7 +90,7 @@ public class InitialSetup {
 		}
 		mainResult.recordSuccess();
 
-		TRACE.info("Import status:\n" + mainResult.debugDump());
+		TRACE.info("Import status:\n" + mainResult.dump());
 		TRACE.info("Initial object import finished.");
 	}
 

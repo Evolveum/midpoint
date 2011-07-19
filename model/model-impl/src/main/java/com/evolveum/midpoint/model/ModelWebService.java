@@ -350,8 +350,14 @@ public class ModelWebService implements ModelPortType {
 		}
 	}
 
+	/**
+	 * Fill the task holder with appropriate form of taskType (and result) to return back
+	 * to a web service caller.
+	 * 
+	 * @param task
+	 * @param taskHolder
+	 */
 	private void handleTaskResult(Task task, Holder<TaskType> taskHolder) {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
+		taskHolder.value = task.getTaskTypeObject();
 	}
 }

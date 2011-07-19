@@ -57,4 +57,14 @@ public enum TaskRecurrence {
 			throw new IllegalArgumentException("Unknown recurrence type "+recurrenceType);
 	}
 
+	public TaskRecurrenceType toTaskType() {
+		if (this==RECURRING) {
+			return TaskRecurrenceType.RECURRING;
+		}
+		if (this==SINGLE) {
+			return TaskRecurrenceType.SINGLE;
+		}
+		throw new IllegalArgumentException("Unknown recurrence type "+this);
+	}
+
 }

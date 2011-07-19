@@ -52,6 +52,8 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -208,6 +210,11 @@ public class TaskImpl implements Task {
 	}
 	
 	@Override
+	public void setObjectRef(ObjectReferenceType objectRef) {
+		this.objectRef = objectRef;
+	}
+	
+	@Override
 	public String getObjectOid() {
 		if (objectRef!=null) {
 			return objectRef.getOid();
@@ -219,8 +226,31 @@ public class TaskImpl implements Task {
 	 * @see com.evolveum.midpoint.task.api.Task#getObject()
 	 */
 	@Override
-	public ObjectType getObject() {
-		return object;
+	public ObjectType getObject(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = parentResult.createSubresult(Task.class.getName()+".getObject");
+		result.addContext(OperationResult.CONTEXT_OID, oid);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskImpl.class);
+		
+		if ( object!=null ) {
+			// There is an embedded object in the task
+			result.recordSuccess();
+			return object;
+		}
+		if (objectRef != null) {
+			// There is object reference. Let's try to resolve it
+			try {
+				ObjectType object = repositoryService.getObject(objectRef.getOid(), null, result);
+				result.recordSuccess();
+				return object;
+			} catch (ObjectNotFoundException ex) {
+				result.recordFatalError("Object not found", ex);
+				throw ex;
+			} catch (SchemaException ex) {
+				result.recordFatalError("Schema error", ex);
+				throw ex;
+			}
+		}
+		return null;
 	}
 
 	/* (non-Javadoc)
@@ -340,7 +370,40 @@ public class TaskImpl implements Task {
 	
 	@Override
 	public TaskType getTaskTypeObject() {
-		throw new NotImplementedException();
+		TaskType taskType = new TaskType();
+		
+		taskType.setExecutionStatus(executionStatus.toTaskType());
+		taskType.setExclusivityStatus(exclusivityStatus.toTaskType());
+		taskType.setRecurrence(recurrenceStatus.toTaskType());
+		
+		if (persistenceStatus == TaskPersistenceStatus.PERSISTENT) {
+			taskType.setOid(oid);
+		} else {
+			// TRANSIENT task
+			// Nothing to do
+		}
+
+		taskType.setHandlerUri(handlerUri);
+		taskType.setName(name);
+		taskType.setProgress(BigInteger.valueOf(progress));
+		
+		if (objectRef!=null) {
+			taskType.setObjectRef(objectRef);
+		} else if (object!=null) {
+			// TODO
+		}
+
+		if (result!=null) {
+			taskType.setResult(result.createOperationResultType());
+		}
+
+		if (extension!=null && !extension.isEmpty()) {
+			Extension xmlExtension;
+			xmlExtension = ExtensionProcessor.createExtension(extension);
+			taskType.setExtension(xmlExtension);
+		}
+		
+		return taskType;
 	}
 
 	@Override
@@ -382,7 +445,7 @@ public class TaskImpl implements Task {
 		sb.append("\n  progress: ");
 		sb.append(progress);
 		sb.append("\n  result: ");
-		sb.append(result);
+		sb.append(result.dump());
 		sb.append("\n  extension: ");
 		sb.append(extension);
 		return sb.toString();
@@ -489,7 +552,13 @@ public class TaskImpl implements Task {
 
 	@Override
 	public boolean isSingle() {
-		return (recurrenceStatus==TaskRecurrence.SINGLE);
+		return (recurrenceStatus == TaskRecurrence.SINGLE);
+	}
+
+	@Override
+	public boolean isCycle() {
+		// TODO: binding
+		return (recurrenceStatus == TaskRecurrence.RECURRING);
 	}
 
 }

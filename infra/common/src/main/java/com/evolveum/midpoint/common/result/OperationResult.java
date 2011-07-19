@@ -457,13 +457,13 @@ public class OperationResult implements Serializable {
 		return OperationResult.class.getSimpleName() + "(" + operation + " " + status + " " + message;
 	}
 
-	public String debugDump() {
+	public String dump() {
 		StringBuilder sb = new StringBuilder();
-		debugDumpIndent(sb, 0);
+		dumpIndent(sb, 0);
 		return sb.toString();
 	}
 
-	private void debugDumpIndent(StringBuilder sb, int indent) {
+	private void dumpIndent(StringBuilder sb, int indent) {
 		for (int i = 0; i < indent; i++) {
 			sb.append(INDENT_STRING);
 		}
@@ -513,7 +513,7 @@ public class OperationResult implements Serializable {
 		}
 
 		for (OperationResult sub : getSubresults()) {
-			sub.debugDumpIndent(sb, indent + 1);
+			sub.dumpIndent(sb, indent + 1);
 		}
 	}
 

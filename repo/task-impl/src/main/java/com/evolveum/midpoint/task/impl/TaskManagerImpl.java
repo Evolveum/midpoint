@@ -38,12 +38,14 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ConcurrencyException;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
+import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -199,28 +201,38 @@ public class TaskManagerImpl implements TaskManager {
 	@Override
 	public void switchToBackground(final Task task) {
 		
-		final TaskHandler handler = handlers.get(task.getHanderUri());
+		// TODO: not sure how to handle the result here ...
+		
+		OperationResult result = new OperationResult(TaskManager.class.getName()+".switchToBackground");
+		persist(task,result);
+		
+		processRunnableTask(task);
+	}
 
-		// No thread pool here now. Just do the dumbest thing to execute a new
-		// thread.
+	private void persist(Task task,OperationResult parentResult)  {
+		if (task.getPersistenceStatus()==TaskPersistenceStatus.PERSISTENT) {
+			// Task already persistent. Nothing to do.
+			return;
+		}
 		
-		Thread thread = new Thread(task.getName()) {
-			@Override
-			public void run() {
-				handler.run(task);
-			}
-		};
-		
-		// formally switching to persistent, althouhg we are not going to persiste it now
-		// this is needed so the task will be considered asynchronous
+		if (task.getOid()!=null) {
+			// We don't support user-specified OIDs
+			throw new IllegalArgumentException("Transient task must not have OID (task:"+task+")");
+		}
 		
 		task.setPersistenceStatus(TaskPersistenceStatus.PERSISTENT);
-		task.setOid(""+new Random().nextInt());
-
-		claimedTasks.put(task.getOid(), task);
+		TaskType taskType = task.getTaskTypeObject();
+		try {
+			String oid = repositoryService.addObject(taskType, parentResult);
+			task.setOid(oid);
+		} catch (ObjectAlreadyExistsException ex) {
+			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
+			throw new IllegalStateException("Got ObjectAlreadyExistsException while not expecting it (task:"+task+")",ex);
+		} catch (SchemaException ex) {
+			// This should not happen. If it does, it is a bug. It is OK to convert to a runtime exception
+			throw new IllegalStateException("Got SchemaException while not expecting it (task:"+task+")",ex);
+		}
 		
-		thread.start();
-
 	}
 
 	/* (non-Javadoc)
@@ -276,7 +288,6 @@ public class TaskManagerImpl implements TaskManager {
 		}
 	}
 
-
 	/**
 	 * Process runnable task with TaskType XML object as an argument.
 	 * 
@@ -288,48 +299,50 @@ public class TaskManagerImpl implements TaskManager {
 	 * @param task XML TaskType object
 	 */
 	public void processRunnableTaskType(TaskType taskType) {
+		Task task = new TaskImpl(this,taskType,repositoryService);
+		processRunnableTask(task);
+	}
+
+	
+	public void processRunnableTask(Task task) {
 		// We assume that all tasks are singles or cycles now.
 		// TODO: support more task types
-		
-		Task task = new TaskImpl(this,taskType,repositoryService);
+
 		TaskHandler handler = getHandler(task.getHanderUri());
 		
 		if (handler==null) {
-			logger.error("No handler for URI "+task.getHanderUri()+" "+DebugUtil.prettyPrint(taskType));
+			logger.error("No handler for URI {}, task {}",task.getHanderUri(),task);
 			throw new IllegalStateException("No handler for URI "+task.getHanderUri());
 		}
 		
-		Thread taskThread = null;
-		
-		if (taskType.getRecurrence() == TaskRecurrenceType.RECURRING) {
-		
-			if (taskType.getBinding() == null || taskType.getBinding() == TaskBindingType.TIGHT) {
-				// This is CYCLE
+		TaskRunner runner = null;
 				
-				CycleRunner cycleRunner = new CycleRunner(handler,task, this);
-				
-				taskThread = allocateThread(task, cycleRunner);
-				taskThread.start();
-				
-			} else {
-				
-				// Not supported yet
-				logger.error("Tightly bound tasks (cycles) are the only supported reccuring tasks for now. Sorry.");
-				// Ignore otherwise. Nothing else to do.
-				
-			}
+		if (task.isCycle()) {
 			
-			// TODO: heartbeat, etc.
-		} else {
+			// CYCLE task
+			runner = new CycleRunner(handler,task, this);
+				
+		} else if (task.isSingle()) {
 			
 			// SINGLE task
 			
-			SingleRunner singleRunner = new SingleRunner(handler,task, this);
+			runner = new SingleRunner(handler,task, this);
+						
+		} else {
 			
-			taskThread = allocateThread(task, singleRunner);
-			taskThread.start();
+			// Not supported yet
+			logger.error("Tightly bound tasks (cycles) are the only supported reccuring tasks for now. Sorry.");
+			// Ignore otherwise. Nothing else to do.
 			
 		}
+
+		claimedTasks.put(task.getOid(), task);
+		
+		Thread taskThread = allocateThread(task, runner);
+		taskThread.start();		
+		
+		// TODO: heartbeat, etc.
+
 		
 	}
 	

@@ -120,7 +120,7 @@ public class ControllerGetObjectTest {
 			verify(repository, atLeastOnce()).getObject(eq(oid), any(PropertyReferenceListType.class),
 					any(OperationResult.class));
 		} finally {
-			LOGGER.debug("getUserCorrect" + result.debugDump());
+			LOGGER.debug("getUserCorrect" + result.dump());
 		}
 	}
 }

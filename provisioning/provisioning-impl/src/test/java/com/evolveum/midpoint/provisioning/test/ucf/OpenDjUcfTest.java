@@ -188,7 +188,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
         OperationResult connectorConnectionResult = result.getSubresults().get(0);
         assertNotNull(connectorConnectionResult);
 		System.out.println("Test \"connector connection\" result: "+connectorConnectionResult+" (FAILURE EXPECTED)");
-		System.out.println(result.debugDump());
+		System.out.println(result.dump());
         assertTrue(!connectorConnectionResult.isSuccess());
 		assertTrue(!result.isSuccess());
     }
@@ -256,7 +256,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		assertNotNull(ro);
 		System.out.println("Fetched object "+ro);
 		System.out.println("Result:");
-		System.out.println(result.debugDump());
+		System.out.println(result.dump());
 		
 	}
 

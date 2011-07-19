@@ -68,7 +68,7 @@ public class SchemaHandlerXPathCustomFunctionTest {
 
 		OperationResult result = new OperationResult("testCustomFunction");
 		ObjectModificationType changes = schemaHandler.processOutboundHandling(user, account, result);
-		LOGGER.info(result.debugDump());
+		LOGGER.info(result.dump());
 
 		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, account,
 				AccountShadowType.class);

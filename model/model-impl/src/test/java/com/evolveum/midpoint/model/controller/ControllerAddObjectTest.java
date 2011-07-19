@@ -107,7 +107,7 @@ public class ControllerAddObjectTest {
 
 		OperationResult result = new OperationResult("Test Operation");
 		controller.addObject(expectedUser, result);
-		LOGGER.debug(result.debugDump());
+		LOGGER.debug(result.dump());
 
 		fail("add must fail");
 	}
@@ -141,7 +141,7 @@ public class ControllerAddObjectTest {
 
 		OperationResult result = new OperationResult("Test Operation");
 		String userOid = controller.addObject(expectedUser, result);
-		LOGGER.debug(result.debugDump());
+		LOGGER.debug(result.dump());
 
 		verify(repository, times(1)).addObject(argThat(new ObjectTypeNameMatcher(expectedUser.getName())),
 				any(OperationResult.class));
@@ -167,7 +167,7 @@ public class ControllerAddObjectTest {
 		try {
 			controller.addObject(expectedUser, result);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 
 			verify(repository, times(1)).addObject(
 					argThat(new ObjectTypeNameMatcher(expectedUser.getName())), any(OperationResult.class));
@@ -219,7 +219,7 @@ public class ControllerAddObjectTest {
 		final UserType addedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"add-user-default-accounts.xml"))).getValue();
 		String userOid = controller.addObject(addedUser, result);
-		LOGGER.debug(result.debugDump());
+		LOGGER.debug(result.dump());
 
 		verify(provisioning, atLeast(1)).getObject(eq(resourceOid), any(PropertyReferenceListType.class),
 				any(OperationResult.class));
@@ -256,7 +256,7 @@ public class ControllerAddObjectTest {
 			String resourceOid = controller.addObject(expectedResource, result);
 			assertEquals(oid, resourceOid);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 
 			verify(provisioning, times(1)).addObject(
 					argThat(new ObjectTypeNameMatcher(expectedResource.getName())), any(ScriptsType.class),

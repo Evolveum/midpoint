@@ -85,7 +85,7 @@ public class SchemaHandlerUserDefinedVariablesTest {
 		OperationResult result = new OperationResult(
 				"testApplyOutboundSchemaHandlingWithUserDefinedVariablesOnAccount");
 		ObjectModificationType changes = schemaHandler.processOutboundHandling(user, account, result);
-		LOGGER.info(result.debugDump());
+		LOGGER.info(result.dump());
 
 		// TODO: test changes object
 		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, account,

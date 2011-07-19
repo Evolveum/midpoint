@@ -59,4 +59,14 @@ public enum TaskExclusivityStatus {
 		}
 		throw new IllegalArgumentException("Unknown exclusivity status type "+exclusivityStatus);
 	}
+
+	public TaskExclusivityStatusType toTaskType() {
+		if (this==CLAIMED) {
+			return TaskExclusivityStatusType.CLAIMED;
+		}
+		if (this==RELEASED) {
+			return TaskExclusivityStatusType.RELEASED;
+		}
+		throw new IllegalArgumentException("Unknown exclusivity status type "+this);
+	}
 }

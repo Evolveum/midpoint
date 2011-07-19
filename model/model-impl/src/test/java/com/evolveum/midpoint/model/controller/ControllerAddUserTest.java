@@ -147,7 +147,7 @@ public class ControllerAddUserTest {
 			LOGGER.info("repo" + repository.getClass());
 			assertEquals(userOid, controller.addUser(user, userTemplate, result));
 		} finally {
-			LOGGER.info(result.debugDump());
+			LOGGER.info(result.dump());
 		}
 	}
 }

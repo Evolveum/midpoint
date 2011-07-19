@@ -33,18 +33,12 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
  * @author Radovan Semancik
  * 
  */
-public class SingleRunner implements Runnable {
-
-	private TaskHandler handler;
-	private Task task;
-	private TaskManagerImpl taskManager;
+public class SingleRunner extends TaskRunner {
 
 	private static final transient Trace logger = TraceManager.getTrace(SingleRunner.class);
 
 	public SingleRunner(TaskHandler handler, Task task, TaskManagerImpl taskManager) {
-		this.handler = handler;
-		this.task = task;
-		this.taskManager = taskManager;
+		super(handler,task,taskManager);
 	}
 
 	/*

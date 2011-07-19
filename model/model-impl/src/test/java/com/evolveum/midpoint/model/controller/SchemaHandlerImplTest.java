@@ -102,7 +102,7 @@ public class SchemaHandlerImplTest {
 
 		OperationResult result = new OperationResult("Process Outbound");
 		ObjectModificationType changes = handler.processOutboundHandling(user, objectShadow, result);
-		LOGGER.info(result.debugDump());
+		LOGGER.info(result.dump());
 		// TODO: test changes object
 		
 		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, objectShadow,
@@ -149,7 +149,7 @@ public class SchemaHandlerImplTest {
 
 		OperationResult result = new OperationResult("testApplyInboundSchemaHandlingOnUserReplace");
 		UserType appliedUser = handler.processInboundHandling(user, account, result);
-		LOGGER.info(result.debugDump());
+		LOGGER.info(result.dump());
 
 		assertEquals("jan prvy", appliedUser.getFullName());
 		assertEquals("Mr.", appliedUser.getHonorificPrefix());
@@ -167,7 +167,7 @@ public class SchemaHandlerImplTest {
 
 		OperationResult result = new OperationResult("testApplyInboundSchemaHandlingOnUserAdd");
 		UserType appliedUser = handler.processInboundHandling(new UserType(), account, result);
-		LOGGER.info(result.debugDump());
+		LOGGER.info(result.dump());
 
 		assertEquals("jan prvy", appliedUser.getFullName());
 		assertEquals("Mr.", appliedUser.getHonorificPrefix());
@@ -188,7 +188,7 @@ public class SchemaHandlerImplTest {
 
 		OperationResult result = new OperationResult("testApplyInboundSchemaHandlingOnUserAddWithFilter");
 		UserType appliedUser = handler.processInboundHandling(new UserType(), account, result);
-		LOGGER.info(result.debugDump());
+		LOGGER.info(result.dump());
 
 		assertEquals("jan prvy", appliedUser.getFullName());
 		assertEquals("Mr.", appliedUser.getHonorificPrefix());
@@ -202,7 +202,7 @@ public class SchemaHandlerImplTest {
 
 		OperationResult result = new OperationResult("testApplyInboundSchemaHandlingOnEmptyUserExtension");
 		UserType appliedUser = handler.processInboundHandling(new UserType(), account, result);
-		LOGGER.info(result.debugDump());
+		LOGGER.info(result.dump());
 
 		assertNotNull(appliedUser.getExtension());
 		assertEquals("MikeFromExtension", appliedUser.getExtension().getAny().get(0).getTextContent());

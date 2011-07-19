@@ -73,7 +73,7 @@ public abstract class ObjectManagerImpl<T extends ObjectDto> implements ObjectMa
 			FacesUtils.addMessage(result);
 		}
 
-		logger.debug(result.debugDump());
+		logger.debug(result.dump());
 	}
 
 	@SuppressWarnings("unchecked")

@@ -97,13 +97,11 @@ public class ModelControllerImpl implements ModelController {
 	@Autowired(required = true)
 	private transient SchemaHandler schemaHandler;
 
-	// TODO
-	// @Autowired(required = true)
+	@Autowired(required = true)
 	private transient TaskManager taskManager;
 
-	// TODO: initialization: register this to TaskManager
-	// @Autowired(required = true)
-	private transient ImportFromResourceTaskHandler importTaskHandler;
+	@Autowired(required = true)
+	private transient ImportFromResourceTaskHandler importFromResourceTaskHandler;
 
 	@Override
 	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException,
@@ -142,7 +140,7 @@ public class ModelControllerImpl implements ModelController {
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
-		LOGGER.debug(subResult.debugDump());
+		LOGGER.debug(subResult.dump());
 		return oid;
 	}
 
@@ -190,7 +188,7 @@ public class ModelControllerImpl implements ModelController {
 			throw new SystemException(ex.getMessage(), ex);
 		}
 
-		LOGGER.debug(subResult.debugDump());
+		LOGGER.debug(subResult.dump());
 
 		return oid;
 	}
@@ -235,7 +233,7 @@ public class ModelControllerImpl implements ModelController {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 		}
 
-		LOGGER.debug(subResult.debugDump());
+		LOGGER.debug(subResult.dump());
 		return object;
 	}
 
@@ -270,7 +268,7 @@ public class ModelControllerImpl implements ModelController {
 			list.setCount(0);
 		}
 
-		LOGGER.debug(subResult.debugDump());
+		LOGGER.debug(subResult.dump());
 		return list;
 	}
 
@@ -312,7 +310,7 @@ public class ModelControllerImpl implements ModelController {
 			list.setCount(0);
 		}
 
-		LOGGER.debug(subResult.debugDump());
+		LOGGER.debug(subResult.dump());
 		return list;
 	}
 
@@ -370,7 +368,7 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordFatalError("Couldn't update object with oid '" + change.getOid() + "'.", ex);
 		}
 
-		LOGGER.debug(subResult.debugDump());
+		LOGGER.debug(subResult.dump());
 	}
 
 	@Override
@@ -408,7 +406,7 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordFatalError("Couldn't delete object with oid '" + oid + "'.", ex);
 		}
 
-		LOGGER.debug(subResult.debugDump());
+		LOGGER.debug(subResult.dump());
 		return deleted;
 	}
 
@@ -454,7 +452,7 @@ public class ModelControllerImpl implements ModelController {
 
 		}
 
-		LOGGER.debug(subResult.debugDump());
+		LOGGER.debug(subResult.dump());
 		return user;
 	}
 
@@ -488,7 +486,7 @@ public class ModelControllerImpl implements ModelController {
 			list = new ArrayList<ResourceObjectShadowType>();
 		}
 
-		LOGGER.debug(subResult.debugDump());
+		LOGGER.debug(subResult.dump());
 		return list;
 	}
 
@@ -524,7 +522,7 @@ public class ModelControllerImpl implements ModelController {
 			list.setCount(0);
 		}
 
-		LOGGER.debug(subResult.debugDump());
+		LOGGER.debug(subResult.dump());
 		return list;
 	}
 
@@ -542,7 +540,7 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult testResult = provisioning.testResource(resourceOid);
 
 		if (testResult != null) {
-			LOGGER.debug(testResult.debugDump());
+			LOGGER.debug(testResult.dump());
 		} else {
 			LOGGER.debug("Operation sub result was null (Error occured).");
 		}
@@ -574,7 +572,7 @@ public class ModelControllerImpl implements ModelController {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		ResourceType resource = getObject(resourceOid, resolve, result, ResourceType.class);
 
-		importTaskHandler.launch(resource, task, taskManager);
+		importFromResourceTaskHandler.launch(resource, task, taskManager);
 
 		// The launch should switch task to asynchronous. It is in/out, so no
 		// other action is needed
@@ -605,7 +603,7 @@ public class ModelControllerImpl implements ModelController {
 		// + resourceOid + "'.", ex);
 		// }
 
-		LOGGER.debug(subResult.debugDump());
+		LOGGER.debug(subResult.dump());
 		return null;
 	}
 

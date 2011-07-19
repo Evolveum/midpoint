@@ -38,20 +38,15 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
  * @author Radovan Semancik
  * 
  */
-public class CycleRunner implements Runnable {
+public class CycleRunner extends TaskRunner {
 
-	private TaskHandler handler;
-	private Task task;
 	private boolean enabled = true;
 	private long lastLoopRun = 0;
-	private TaskManagerImpl taskManager;
 
 	private static final transient Trace logger = TraceManager.getTrace(CycleRunner.class);
 
 	public CycleRunner(TaskHandler handler, Task task, TaskManagerImpl taskManager) {
-		this.handler = handler;
-		this.task = task;
-		this.taskManager = taskManager;
+		super(handler,task,taskManager);
 	}
 
 	/*

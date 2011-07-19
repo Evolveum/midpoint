@@ -87,7 +87,7 @@ public class DeleteAccountActionTest extends BaseActionTest {
 			action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
 					(ResourceObjectShadowType) addition.getObject(), result);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 
 		verify(provisioning, times(1)).deleteObject(eq(shadowOid), any(ScriptsType.class),
@@ -112,7 +112,7 @@ public class DeleteAccountActionTest extends BaseActionTest {
 			action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
 					(ResourceObjectShadowType) addition.getObject(), result);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 		verify(provisioning, times(1)).deleteObject(eq(shadowOid), any(ScriptsType.class),
 				any(OperationResult.class));
@@ -143,7 +143,7 @@ public class DeleteAccountActionTest extends BaseActionTest {
 			action.executeChanges(null, change, SynchronizationSituationType.CONFIRMED,
 					(ResourceObjectShadowType) addition.getObject(), result);
 		} finally {
-			LOGGER.debug(result.debugDump());
+			LOGGER.debug(result.dump());
 		}
 		verify(provisioning, times(1)).deleteObject(eq(shadowOid), any(ScriptsType.class),
 				any(OperationResult.class));
