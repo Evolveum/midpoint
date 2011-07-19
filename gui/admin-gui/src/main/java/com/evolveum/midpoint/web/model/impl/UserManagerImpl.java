@@ -89,7 +89,7 @@ public class UserManagerImpl extends UserManager {
 
 	@Override
 	public Set<PropertyChange> submit(UserDto changedObject) throws WebModelException {
-		Validate.notNull(changedObject);
+		Validate.notNull(changedObject, "User object must not be null.");
 
 		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
 

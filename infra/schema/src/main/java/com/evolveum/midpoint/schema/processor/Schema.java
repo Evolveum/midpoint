@@ -152,9 +152,7 @@ public class Schema {
 	 */
 	public PropertyContainerDefinition findContainerDefinitionByType(QName typeName) {
 		// TODO: check for multiple definition with the same type
-		System.out.println("Looking for: " + typeName.toString());
 		for (Definition definition : definitions) {
-			System.out.println(definition.getTypeName().toString());
 			if (definition instanceof PropertyContainerDefinition
 					&& typeName.equals(definition.getTypeName())) {
 				return (PropertyContainerDefinition) definition;

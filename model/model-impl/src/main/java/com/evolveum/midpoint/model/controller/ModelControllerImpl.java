@@ -645,6 +645,8 @@ public class ModelControllerImpl implements ModelController {
 			}
 
 			resolveObjectAttributes(object, resolve, result);
+		} catch (SystemException ex) {
+			throw ex;
 		} catch (ObjectNotFoundException ex) {
 			throw ex;
 		} catch (Exception ex) {
@@ -713,7 +715,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	private void resolveObjectAttributes(ObjectType object, PropertyReferenceListType resolve,
-			OperationResult result) {
+			OperationResult result) throws ObjectNotFoundException {
 		if (object == null) {
 			return;
 		}
@@ -739,7 +741,9 @@ public class ModelControllerImpl implements ModelController {
 				user.getAccount().add(account);
 				refToBeDeleted.add(accountRef);
 
-				resolveAccountAttributes(account, resolve, result);
+				// resolveAccountAttributes(account, resolve, result);
+			} catch (SystemException ex) {
+				throw ex;
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't resolve account with oid {}", ex,
 						accountRef.getOid());
@@ -750,7 +754,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	private void resolveAccountAttributes(AccountShadowType account, PropertyReferenceListType resolve,
-			OperationResult result) {
+			OperationResult result) throws ObjectNotFoundException {
 		if (!Utils.haveToResolve("Resource", resolve)) {
 			return;
 		}
@@ -759,6 +763,7 @@ public class ModelControllerImpl implements ModelController {
 		if (reference == null || StringUtils.isEmpty(reference.getOid())) {
 			LOGGER.debug("Skipping resolving resource for account {}, resource reference is null or "
 					+ "doesn't contain oid.", new Object[] { account.getName() });
+			return;
 		}
 
 		try {
@@ -766,6 +771,10 @@ public class ModelControllerImpl implements ModelController {
 					result, ResourceType.class);
 			account.setResource(resource);
 			account.setResourceRef(null);
+		} catch (ObjectNotFoundException ex) {
+			throw ex;
+		} catch (SystemException ex) {
+			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils
 					.logException(LOGGER, "Couldn't resolve resource with oid {}", ex, reference.getOid());
