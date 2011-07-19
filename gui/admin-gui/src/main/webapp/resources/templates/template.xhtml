@@ -9,10 +9,10 @@
 		<title>midPoint</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 		<ice:outputStyle href="/resources/css/reset.css" />
-		<ice:outputStyle href="/xmlhttp/css/xp/xp.css"/>
+		<ice:outputStyle href="/xmlhttp/css/xp/xp.css" />
 		<ice:outputStyle href="/resources/css/default.css" />
 		<ice:outputStyle href="/resources/css/evolveum.css" />
-		<h:outputScript name="evolveum.js" library="js"/>
+		<h:outputScript name="evolveum.js" library="js" />
 	</h:head>
 	<h:body>
 		<div id="header">
@@ -54,8 +54,7 @@
 		<h:panelGroup rendered="#{security.isUserLoggedIn}" id="nav" layout="block">
 			<div class="container">
 				<idm:topMenu selected="#{template.selectedTopId}">
-					<idm:topMenuItem id="topHome" action="/index?faces-redirect=true"
-						name="#{msg['page.template.top.home']}"
+					<idm:topMenuItem id="topHome" action="/index?faces-redirect=true" name="#{msg['page.template.top.home']}"
 						description="#{msg['page.template.top.description.home']}" />
 					<idm:topMenuItem id="topAccounts" action="#{userList.fillTableList}"
 						name="#{msg['page.template.top.accounts']}"
@@ -66,15 +65,14 @@
 							description="#{msg['page.template.top.description.workitems']}" />
 					</ui:remove>
 					<idm:topMenuItem id="topRoles" action="/role/index?faces-redirect=true"
-						name="#{msg['page.template.top.roles']}"
-						description="#{msg['page.template.top.description.roles']}" />
+						name="#{msg['page.template.top.roles']}" description="#{msg['page.template.top.description.roles']}" />
 					<idm:topMenuItem id="topResources" action="#{resourceList.listFirst}"
 						name="#{msg['page.template.top.resources']}"
 						description="#{msg['page.template.top.description.resources']}" />
+					<idm:topMenuItem id="topServerTasks" action="/server/index?faces-redirect=true"
+						name="#{msg['page.template.top.servertasks']}"
+						description="#{msg['page.template.top.description.servertasks']}" />
 					<ui:remove>
-						<idm:topMenuItem id="topServerTasks" action="/server/index?faces-redirect=true"
-							name="#{msg['page.template.top.servertasks']}"
-							description="#{msg['page.template.top.description.servertasks']}" />
 						<idm:topMenuItem id="topReports" action="/report/index?faces-redirect=true"
 							name="#{msg['page.template.top.reports']}"
 							description="#{msg['page.template.top.description.reports']}" />

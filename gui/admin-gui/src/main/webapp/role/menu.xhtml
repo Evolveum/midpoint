@@ -4,8 +4,7 @@
 	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<idm:leftMenuContainer name="#{msg['page.template.top.roles']}">
-		<idm:leftMenuItem id="leftAvailableRoles" name="#{msg['page.role.index.title']}"
-			action="#{roleList.initController}" />
+	<idm:leftMenuContainer name="#{msg['page.template.top.servertasks']}">
+		<idm:leftMenuItem id="leftAvailableTask" name="#{msg['page.server.index.title']}" action="/server/index" />
 	</idm:leftMenuContainer>
 </ui:composition>
