@@ -27,6 +27,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
+import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
@@ -39,7 +40,7 @@ import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.logging.impl.NdcFilteringRollingFileAppender;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
@@ -63,8 +64,6 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 public class LoggingManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingManager.class);
-	@Autowired(required = true)
-	private ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
 	private ModelPortType model;
 	private LoggingConfigurationType logging;
@@ -107,6 +106,10 @@ public class LoggingManager {
 		List<AppenderConfigurationType> appenders = config.getAppender();
 		List<LoggerConfigurationType> loggers = config.getLogger();
 		// TODO: update logger configuration
+
+		NdcFilteringRollingFileAppender appender = (NdcFilteringRollingFileAppender) Logger.getRootLogger()
+				.getAppender("R");
+
 	}
 
 	private LoggingConfigurationType saveConfiguration(LoggingConfigurationType logging,
