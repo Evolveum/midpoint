@@ -70,7 +70,7 @@
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.UserType</value>
 					</key>
-					<bean class="com.evolveum.midpoint.web.model.impl.UserTypeManager" scope="singleton">
+					<bean class="com.evolveum.midpoint.web.model.impl.UserManagerImpl" scope="singleton">
 						<constructor-arg name="constructUserType" value="com.evolveum.midpoint.web.model.dto.GuiUserDto" />
 					</bean>
 				</entry>
