@@ -620,7 +620,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		Task inTask = taskManager.createTaskInstance();
 		TaskType taskType = inTask.getTaskTypeObject();
 		OperationResultType resultType = new OperationResultType();
-		resultType.setOperation(TestSanity.class.getName()+".test200ImportFromResource.launch");
+		resultType.setOperation(TestSanity.class.getName()+".test200ImportFromResource");
 		taskType.setResult(resultType);
 		Holder<TaskType> taskHolder = new Holder<TaskType>(taskType);
 		
@@ -644,8 +644,9 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		Thread.sleep(10000);
 		System.out.println("... done");
 		
-		OperationResult result = new OperationResult(TestSanity.class.getName()+".test200ImportFromResource.refresh");
-		task.refresh(result);
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
+		ObjectType obj = model.getObject(task.getOid(), new PropertyReferenceListType(), resultHolder);
+		task = taskManager.createTaskInstance((TaskType)obj);
 
 		System.out.println("Import task after finish:");
 		System.out.println(task.dump());
