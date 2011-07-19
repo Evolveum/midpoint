@@ -46,26 +46,6 @@
     <context:annotation-config/>
     <context:component-scan base-package="com.evolveum.midpoint.model"/>
 
-    <!-- <bean id="ModelLoggerMXBean" class="com.evolveum.midpoint.logging.LoggerMXBeanImpl" lazy-init="false" scope="singleton">
-        <constructor-arg type="java.lang.String" value="Model" />
-        <constructor-arg type="java.lang.String" value="com.evolveum.midpoint.model" />
-    </bean>
-
-    <bean id="exporter" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false" />
-    <bean id="loggerExporter" class="com.evolveum.midpoint.logging.LoggerMXBeanExporter">
-        <property name="exporter" ref="exporter" />
-        <property name="beans">
-            <map>
-                <entry key="openidm:name=ModelLogger" value-ref="ModelLoggerBean" />
-            </map>
-        </property>
-    </bean>
-
-    <bean id="ModelLoggerBean" class="com.evolveum.midpoint.logging.LoggerMXBeanExporter$LoggerBean">
-        <constructor-arg type="java.lang.String" value="application-context-model.xml" />
-        <constructor-arg type="java.lang.String" value="ModelLoggerMXBean" />
-    </bean>-->
-
     <bean id="actionManager" class="com.evolveum.midpoint.model.sync.ActionManagerImpl">
         <property name="actionMapping">
             <map>

@@ -105,19 +105,4 @@
 			</map>
 		</property>
 	</bean>
-
-	<bean id="exporterWeb" class="org.springframework.jmx.export.MBeanExporter" lazy-init="false">
-		<property name="registrationBehavior">
-			<value>2</value>
-		</property>
-		<property name="beans">
-			<map>
-				<entry key="midPoint:name=WebApplicationLogger" value-ref="WebLoggerMXBean" />
-			</map>
-		</property>
-	</bean>
-	<bean id="WebLoggerMXBean" class="com.evolveum.midpoint.logging.LoggerMXBeanImpl" lazy-init="false" scope="singleton">
-		<constructor-arg type="java.lang.String" value="Web Application" />
-		<constructor-arg type="java.lang.String" value="com.evolveum.midpoint.web" />
-	</bean>
 </beans>

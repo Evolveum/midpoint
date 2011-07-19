@@ -12,7 +12,7 @@
             <component>provisioning</component>
             <component>repository</component>
             <component>gui</component>
-            <package>com.evolveum.midpoint</package>
+            <package>com.evolveum.midpoint.init</package>
             <appender>File Appender</appender>
         </logger>
         <appender xsi:type="FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">

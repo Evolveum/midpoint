@@ -143,9 +143,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException {
 
-		Validate.notNull(oid);
-		Validate.notNull(resolve);
-		Validate.notNull(parentResult);
+		Validate.notNull(oid, "Oid must not be null.");
+		Validate.notNull(resolve, "Property reference list must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.debug("**PROVISIONING: Getting object with oid {}", oid);
 

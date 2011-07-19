@@ -728,7 +728,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	private void resolveUserAttributes(UserType user, PropertyReferenceListType resolve,
-			OperationResult result) {
+			OperationResult result) throws ObjectNotFoundException {
 		if (!Utils.haveToResolve("Account", resolve)) {
 			return;
 		}
@@ -742,6 +742,8 @@ public class ModelControllerImpl implements ModelController {
 				refToBeDeleted.add(accountRef);
 
 				// resolveAccountAttributes(account, resolve, result);
+			} catch (ObjectNotFoundException ex) {
+				throw ex;
 			} catch (SystemException ex) {
 				throw ex;
 			} catch (Exception ex) {
