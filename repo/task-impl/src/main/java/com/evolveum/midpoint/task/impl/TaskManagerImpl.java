@@ -100,6 +100,11 @@ public class TaskManagerImpl implements TaskManager {
 	public Task createTaskInstance() {
 		return new TaskImpl(this);
 	}
+	
+	@Override
+	public Task createTaskInstance(TaskType taskType) {
+		return new TaskImpl(this,taskType,repositoryService);
+	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.TaskManager#getTask(java.lang.String)

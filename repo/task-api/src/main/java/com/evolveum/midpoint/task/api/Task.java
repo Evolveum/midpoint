@@ -187,11 +187,20 @@ public interface Task {
 	public String getObjectOid();
 
 	/**
-	 * Returns an OperationResult that is used to compile task results (parent result).
+	 * Returns a top-level OperationResult stored in the task.
 	 * 
 	 * @return task operation result. 
 	 */
 	public OperationResult getResult();
+	
+	/**
+	 * Returns an OperationResult that was marked as the "current".
+	 * It is the result used to compile task results (parent result) of an asynchronous operation,
+	 * operation spanning a web service, etc.
+	 * 
+	 * @return
+	 */
+	public OperationResult getCurrentResult();
 	
 	public Long getLastRunStartTimestamp();
 	public Long getLastRunFinishTimestamp();

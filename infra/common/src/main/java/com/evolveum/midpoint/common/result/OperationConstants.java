@@ -27,6 +27,7 @@ package com.evolveum.midpoint.common.result;
 public class OperationConstants {
 
 	public static final String PREFIX = "com.evolveum.midpoint.common.operation";
+	
 	public static final String LIVE_SYNC = PREFIX + ".liveSync";
-
+	public static final String IMPORT_FROM_RESOURCE = PREFIX + ".import.fromResource";
 }

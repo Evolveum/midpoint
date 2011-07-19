@@ -329,26 +329,6 @@ public class ModelServiceTest {
 	}
 
 	@Test(expected = FaultMessage.class)
-	public void nullResourceOidImport() throws FaultMessage {
-		try {
-			modelService.getImportStatus(null, new Holder<OperationResultType>(new OperationResultType()));
-		} catch (FaultMessage ex) {
-			ModelTUtil.assertIllegalArgumentFault(ex);
-		}
-		fail("Illegal argument exception was not thrown.");
-	}
-
-	@Test(expected = FaultMessage.class)
-	public void emptyResourceOidImport() throws FaultMessage {
-		try {
-			modelService.getImportStatus("", new Holder<OperationResultType>(new OperationResultType()));
-		} catch (FaultMessage ex) {
-			ModelTUtil.assertIllegalArgumentFault(ex);
-		}
-		fail("Illegal argument exception was not thrown.");
-	}
-
-	@Test(expected = FaultMessage.class)
 	public void nullChangeModify() throws FaultMessage {
 		try {
 			modelService.modifyObject(null, new Holder<OperationResultType>(new OperationResultType()));

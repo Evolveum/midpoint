@@ -23,10 +23,15 @@ package com.evolveum.midpoint.model.importer;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.result.OperationConstants;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
@@ -66,19 +71,28 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author Radovan Semancik
  *
  */
+@Component
 public class ImportFromResourceTaskHandler implements TaskHandler {
 	
-	// TODO: correct URI
-	public static final String HANDLER_URI = "http://foo.bar/ImportFromResourceTaskHandler";
+	public static final String HANDLER_URI = "http://midpoint.evolveum.com/model/import/handler-1";
 
+	@Autowired(required=true)
 	private ProvisioningService provisioning;
+	
+	@Autowired(required=true)
+	private TaskManager taskManager;
+
 	private ResourceObjectChangeListener objectChangeListener;
 	
 	private Map<Task,ImportFromResourceResultHandler> handlers;
 	
 	public ImportFromResourceTaskHandler() {
 		super();
-		handlers = new HashMap<Task, ImportFromResourceResultHandler>();
+	}
+
+	@PostConstruct
+	private void initialize() {
+		taskManager.registerHandler(HANDLER_URI, this);
 	}
 	
 	/**
@@ -90,9 +104,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 	 * @param manager
 	 */
 	public void launch(ResourceType resource, Task task, TaskManager manager) {
-		
-		// TODO: result (it is in the Task)
-		
+				
 		// Set handler URI so we will be called back
 		task.setHanderUri(HANDLER_URI);
 		
@@ -111,8 +123,10 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 		
-		OperationResult parentResult = task.getResult();
-		
+		// This is an operation result for the entire import task. Therefore use the constant for
+		// operation name.
+		OperationResult result = task.getResult().createSubresult(OperationConstants.IMPORT_FROM_RESOURCE);
+
 		ObjectType object = task.getObject();
 		// TODO: Error handling
 		ResourceType resource = (ResourceType)object;
@@ -123,7 +137,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		handlers.put(task, handler);
 		
 		try {
-			provisioning.searchObjectsIterative(createAccountShadowTypeQuery(resource), null, handler, parentResult);
+			provisioning.searchObjectsIterative(createAccountShadowTypeQuery(resource), null, handler, result);
 		} catch (SchemaException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

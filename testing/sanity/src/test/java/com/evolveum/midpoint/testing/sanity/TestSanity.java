@@ -80,6 +80,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
@@ -127,6 +128,8 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
 	private static final String REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME = "src/test/resources/request/user-modify-fullname-locality.xml";
+	
+	private static final QName IMPORT_OBJECTCLASS = new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff","AccountObjectClass");
 
 	/**
 	 * Utility to control embedded OpenDJ instance (start/stop)
@@ -253,6 +256,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * Attempt to add new user. It is only added to the repository, so check if
 	 * it is in the repository after the operation.
 	 */
+	@Ignore
 	@Test
 	public void test002AddUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException,
 			SchemaException {
@@ -282,6 +286,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	/**
 	 * Add account to user. This should result in account provisioning. Check if that happens in repo and in LDAP.
 	 */
+	@Ignore
 	@Test
 	public void test003AddAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException,
 			SchemaException, DirectoryException {
@@ -394,6 +399,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * should be also applied to the account (by schemaHandling).
 	 * @throws DirectoryException 
 	 */
+	@Ignore
 	@Test
 	public void test004modifyUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException, SchemaException, DirectoryException {
 		// GIVEN
@@ -489,6 +495,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * The user should have an account now. Let's try to delete the user.
 	 * The account should be gone as well.
 	 */
+	@Ignore
 	@Test
 	public void test005DeleteUser() throws SchemaException, FaultMessage, DirectoryException {
 		// GIVEN
@@ -543,6 +550,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * It will create a cycle task and check if the cycle executes
 	 * No changes are synchronized yet.
 	 */
+	@Ignore
 	@Test
 	public void test100SynchronizationInit() throws Exception { 
 		// Now it is the right time to add task definition to the repository
@@ -604,6 +612,20 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	}
 	
 	// TODO: insert changes in OpenDJ, let the cycle pick them up
+	
+	@Test
+	public void test200ImportFromResource() throws Exception {
+		// GIVEN
+		
+		TaskType taskType = new TaskType();
+		Holder<TaskType> taskHolder = new Holder<TaskType>(taskType);
+		
+		// WHEN
+		model.importFromResource(RESOURCE_OPENDJ_OID, IMPORT_OBJECTCLASS, taskHolder);
+		
+		// THEN
+		
+	}
 	
 	// TODO: test for missing/corrupt system configuration
 	// TODO: test for missing sample config (bad reference in expression arguments)

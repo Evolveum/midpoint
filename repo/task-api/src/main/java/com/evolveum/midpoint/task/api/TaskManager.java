@@ -27,6 +27,7 @@ import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
  * Task Manager - a component that controls (asynchronous) task execution.
@@ -53,6 +54,16 @@ public interface TaskManager {
 	 */
 	// TODO: parameters
 	public Task createTaskInstance();
+	
+	/**
+	 * TODO:
+	 * 
+	 * Creates task instance from the XML task representation.
+	 * 
+	 * @param taskType
+	 * @return
+	 */
+	public Task createTaskInstance(TaskType taskType);
 	
 	/**
 	 * Returns a task with specified OID.

@@ -125,9 +125,13 @@ public class TaskImpl implements Task {
 		executionStatus = TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
 		exclusivityStatus = TaskExclusivityStatus.fromTaskType(taskType.getExclusivityStatus());
 		recurrenceStatus = TaskRecurrence.fromTaskType(taskType.getRecurrence());
-		// If that is created from the TaskType, then this is persistent task
-		persistenceStatus = TaskPersistenceStatus.PERSISTENT;
-		oid = taskType.getOid();
+		if (taskType.getOid()==null || taskType.getOid().isEmpty()) {
+			persistenceStatus = TaskPersistenceStatus.TRANSIENT;
+			oid = null;			
+		} else {
+			persistenceStatus = TaskPersistenceStatus.PERSISTENT;
+			oid = taskType.getOid();
+		}
 		handlerUri = taskType.getHandlerUri();
 		// TODO: object =
 		objectRef = taskType.getObjectRef();
@@ -224,6 +228,16 @@ public class TaskImpl implements Task {
 	 */
 	@Override
 	public OperationResult getResult() {
+		return result;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.Task#getResult()
+	 */
+	@Override
+	public OperationResult getCurrentResult() {
+		// TODO
+		// return the top-level result for now. FIXME
 		return result;
 	}
 
