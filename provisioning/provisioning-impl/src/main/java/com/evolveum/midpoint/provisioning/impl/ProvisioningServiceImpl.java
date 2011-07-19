@@ -137,8 +137,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException {
 
-		Validate.notNull(oid);
-		Validate.notNull(parentResult);
+		Validate.notNull(oid, "Oid of object to get must not be null.");
+		Validate.notNull(resolve, "Property reference list type must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.debug("**PROVISIONING: Getting object with oid {}", oid);
 
@@ -209,6 +210,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 			ObjectNotFoundException {
 		// TODO
 
+		Validate.notNull(object, "Object to add must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
+		
 		LOGGER.debug("**PROVISIONING: Start to add object {}", object);
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
@@ -312,7 +316,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 	public ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
 			OperationResult parentResult) {
 
-		Validate.notNull(objectType);
+		Validate.notNull(objectType, "Object type to list must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.debug("**PROVISIONING: Start listing objects of type {}", objectType);
 		// Result type for this operation
@@ -367,8 +372,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
 			CommunicationException {
 
-		Validate.notNull(objectChange);
-		Validate.notNull(parentResult);
+		Validate.notNull(objectChange, "Object change must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".modifyObject");
@@ -414,8 +419,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 			throws ObjectNotFoundException, CommunicationException, SchemaException {
 		// TODO Auto-generated method stub
 
-		Validate.notNull(oid);
-		Validate.notNull(parentResult);
+		Validate.notNull(oid, "Oid of object to delete must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.debug("**PROVISIONING: Start to delete object with oid {}", oid);
 
@@ -468,9 +473,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 		// implementation details, as this will be usually displayed in the
 		// table of "test resource" results.
 
-		if (resourceOid == null) {
-			throw new IllegalArgumentException("Resource OID to test is null.");
-		}
+		Validate.notNull(resourceOid, "Resource OID to test is null.");
 
 		LOGGER.debug("Start testing resource with oid {} ", resourceOid);
 
@@ -511,8 +514,8 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
 			CommunicationException {
 
-		Validate.notNull(query);
-		Validate.notNull(parentResult);
+		Validate.notNull(query, "Search query must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.debug("Start to search object. Query {}", JAXBUtil.silentMarshalWrap(query));
 
