@@ -144,7 +144,6 @@
 					<sourceDestDir>${project.build.directory}/generated-sources/jaxws</sourceDestDir>
 					<wsdlDirectory>src/main/resources/xml/ns/</wsdlDirectory>
 					<wsdlFiles>
-						<wsdlFile>private/model/cycleManagementWrapper.wsdl</wsdlFile>
 						<wsdlFile>private/model/modelWrapper.wsdl</wsdlFile>
 						<wsdlFile>private/model/passwordWrapper.wsdl</wsdlFile>
 						<wsdlFile>private/repository/repositoryWrapper.wsdl</wsdlFile>

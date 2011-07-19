@@ -618,12 +618,21 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// GIVEN
 		
 		TaskType taskType = new TaskType();
+		OperationResultType resultType = new OperationResultType();
+		resultType.setOperation(TestSanity.class.getName()+".test200ImportFromResource");
+		taskType.setResult(resultType);
 		Holder<TaskType> taskHolder = new Holder<TaskType>(taskType);
 		
 		// WHEN
 		model.importFromResource(RESOURCE_OPENDJ_OID, IMPORT_OBJECTCLASS, taskHolder);
 		
 		// THEN
+		
+		// Convert the returned TaskType to a more useable Task
+		Task task = taskManager.createTaskInstance(taskHolder.value);
+		assertNotNull(task);
+		assertNotNull(task.getOid());
+		assertTrue(task.isAsynchronous());
 		
 	}
 	

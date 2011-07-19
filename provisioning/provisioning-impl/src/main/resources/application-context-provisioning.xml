@@ -55,11 +55,5 @@
 		</property>
 	</bean>
 
-	<bean id="synchronizationProcessManager"
-		class="com.evolveum.midpoint.provisioning.synchronization.SynchronizationProcessManagerImpl"
-		init-method="init" destroy-method="shutdown">
-		<property name="provisioningService" ref="provisioningService" />
-	</bean>
-
 
 </beans>
