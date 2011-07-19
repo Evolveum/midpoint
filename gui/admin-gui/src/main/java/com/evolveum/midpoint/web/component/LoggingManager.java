@@ -107,8 +107,8 @@ public class LoggingManager {
 		List<LoggerConfigurationType> loggers = config.getLogger();
 		// TODO: update logger configuration
 
-		NdcFilteringRollingFileAppender appender = (NdcFilteringRollingFileAppender) Logger.getRootLogger()
-				.getAppender("R");
+//		NdcFilteringRollingFileAppender appender = (NdcFilteringRollingFileAppender) Logger.getRootLogger()
+//				.getAppender("R");
 
 	}
 
