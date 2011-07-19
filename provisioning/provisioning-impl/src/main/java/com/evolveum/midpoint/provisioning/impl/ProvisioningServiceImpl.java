@@ -40,6 +40,7 @@ import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
+import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -88,18 +90,19 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author Radovan Semancik
  */
 @Service(value = "provisioningService")
-public class ProvisioningServiceImpl implements ProvisioningService {
+public class ProvisioningServiceImpl implements ProvisioningService, ResourceObjectChangeNotificationManager {
 
 	@Autowired
 	private ShadowCache shadowCache;
 	@Autowired
 	private RepositoryService repositoryService;
 
-	private ResourceObjectChangeListener objectChangeListener;
+	private List<ResourceObjectChangeListener> listeners = new ArrayList<ResourceObjectChangeListener>();
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
 
-	private static final QName TOKEN_ELEMENT_QNAME = new QName(SchemaConstants.NS_PROVISIONING_LIVE_SYNC, "token");
+	private static final QName TOKEN_ELEMENT_QNAME = new QName(SchemaConstants.NS_PROVISIONING_LIVE_SYNC,
+			"token");
 
 	public ShadowCache getShadowCache() {
 		return shadowCache;
@@ -130,27 +133,18 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		this.repositoryService = repositoryService;
 	}
 
-	@Autowired
-	public ResourceObjectChangeListener getObjectChangeListener() {
-		return objectChangeListener;
-	}
-
-	public void setObjectChangeListener(ResourceObjectChangeListener objectChangeListener) {
-		this.objectChangeListener = objectChangeListener;
-	}
-
 	@Override
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException {
 
-		Validate.notNull(oid, "Oid must not be null.");
-		Validate.notNull(resolve, "Property reference list must not be null.");
-		Validate.notNull(parentResult, "Operation result must not be null.");
+		Validate.notNull(oid);
+		Validate.notNull(parentResult);
 
 		LOGGER.debug("**PROVISIONING: Getting object with oid {}", oid);
 
 		// Result type for this operation
-		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".getObject");
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".getObject");
 		result.addParam("oid", oid);
 		result.addParam("resolve", resolve);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
@@ -166,7 +160,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		try {
 			repositoryObject = getRepositoryService().getObject(oid, resolve, result);
-			LOGGER.trace("**PROVISIONING: Got repository object {}", JAXBUtil.silentMarshalWrap(repositoryObject));
+			LOGGER.trace("**PROVISIONING: Got repository object {}",
+					JAXBUtil.silentMarshalWrap(repositoryObject));
 		} catch (ObjectNotFoundException e) {
 			LOGGER.error("**PROVISIONING: Can't get obejct with oid {}. Reason {}", oid, e);
 			result.record(e);
@@ -210,12 +205,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public String addObject(ObjectType object, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException {
+			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
+			ObjectNotFoundException {
 		// TODO
 
 		LOGGER.debug("**PROVISIONING: Start to add object {}", object);
 
-		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".addObject");
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".addObject");
 		result.addParam("object", object);
 		result.addParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
@@ -237,69 +234,90 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public int synchronize(String resourceOid, Task task, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException {
+	public int synchronize(String resourceOid, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, CommunicationException, SchemaException {
 
-		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".synchronize");
+		
+		Validate.notNull(resourceOid, "Resource oid must not be null.");
+		Validate.notNull(task, "Task must not be null.");
+		Validate.notNull(parentResult, "Operation result must not be null.");
+		
+		
+		
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".synchronize");
 		result.addParam(OperationResult.PARAM_OID, resourceOid);
 		result.addParam(OperationResult.PARAM_TASK, task);
 
 		int processedChanges = 0;
+		
 		// Resolve resource
-
 		ObjectType resourceObjectType = getObject(resourceOid, null, result);
+		
+		if (!(resourceObjectType instanceof ResourceType)){
+			result.recordFatalError("Object to synchronize must be type of resource.");
+			throw new IllegalArgumentException("Object to synchronize must be type of resource.");
+		}
+		
 		ResourceType resourceType = (ResourceType) resourceObjectType;
 
-		// TODO: get token form task;
-
+		LOGGER.debug("**PROVISIONING: Start synchronization of resource {} ", DebugUtil.prettyPrint(resourceType));
+		
+		// getting token form task
 		Property tokenProperty = task.getExtension().findProperty(TOKEN_ELEMENT_QNAME);
 
+		LOGGER.trace("**PROVISIONING: Got token property: {} from the task extension.", DebugUtil.prettyPrint(tokenProperty));
+
+		List<PropertyModification> modifications = new ArrayList<PropertyModification>();
 		List<Change> changes = null;// new ArrayList<Change>();
 		try {
 			changes = getShadowCache().fetchChanges(resourceType, tokenProperty, result);
 			for (Change change : changes) {
 
-				ResourceObjectShadowChangeDescriptionType shadowChangeDescription = new ResourceObjectShadowChangeDescriptionType();
-				shadowChangeDescription.setObjectChange(change.getChange());
-				shadowChangeDescription.setResource(resourceType);
-				shadowChangeDescription.setShadow(change.getOldShadow());
-				shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
-
-				objectChangeListener.notifyChange(shadowChangeDescription, result);
+				ResourceObjectShadowChangeDescriptionType shadowChangeDescription = createResourceShadowChangeDescription(
+						change, resourceType);
+				LOGGER.trace("**PROVISIONING: Created resource object shadow change description {}", DebugUtil.prettyPrint(shadowChangeDescription));
+				notifyResourceObjectChangeListeners(shadowChangeDescription, result);
 
 				Property newToken = change.getToken();
 				// TODO: create property modification from new token
-				task.modifyExtension(new ArrayList<PropertyModification>(),result);
+				PropertyModification propertyModification = newToken.createModification(
+						ModificationType.REPLACE, newToken.getValues());
+				modifications.add(propertyModification);
 
 				processedChanges++;
 
 			}
+			task.modifyExtension(modifications, result);
 		} catch (ObjectNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		    result.recordFatalError(e.getMessage(), e);
+			throw new ObjectNotFoundException(e.getMessage(), e);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			result.recordFatalError("Error communicating with connector: "+ e.getMessage(), e);
+			throw new CommunicationException(e.getMessage(), e);
 		} catch (GenericFrameworkException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			result.recordFatalError(e.getMessage(), e);
+			throw new CommunicationException(e.getMessage(), e);
 		} catch (SchemaException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			result.recordFatalError(e.getMessage(), e);
+			throw new SchemaException(e.getMessage(), e);
 		}
 
+		result.recordSuccess();
 		return processedChanges;
 
 	}
 
 	@Override
-	public ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging, OperationResult parentResult) {
+	public ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
+			OperationResult parentResult) {
 
 		Validate.notNull(objectType);
 
 		LOGGER.debug("**PROVISIONING: Start listing objects of type {}", objectType);
 		// Result type for this operation
-		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".listObjects");
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".listObjects");
 		result.addParam("objectType", objectType);
 		result.addParam("paging", paging);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
@@ -345,13 +363,15 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, CommunicationException {
+	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
+			CommunicationException {
 
 		Validate.notNull(objectChange);
 		Validate.notNull(parentResult);
 
-		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".modifyObject");
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".modifyObject");
 		result.addParam("objectChange", objectChange);
 		result.addParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
@@ -364,8 +384,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new IllegalArgumentException("Object change or object change oid cannot be null");
 		}
 
-		ObjectType objectType = getRepositoryService().getObject(objectChange.getOid(), new PropertyReferenceListType(),
-				parentResult);
+		ObjectType objectType = getRepositoryService().getObject(objectChange.getOid(),
+				new PropertyReferenceListType(), parentResult);
 
 		LOGGER.debug("**PROVISIONING: Modifying object with oid {}", objectChange.getOid());
 		LOGGER.trace("**PROVISIONING: Object to modify: {}.", JAXBUtil.silentMarshalWrap(objectType));
@@ -375,11 +395,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.recordSuccess();
 		} catch (CommunicationException e) {
 			// TODO Auto-generated catch block
-			result.recordFatalError("Can't modify object with oid " + objectChange.getOid() + ". Reason: " + e.getMessage(), e);
+			result.recordFatalError("Can't modify object with oid " + objectChange.getOid() + ". Reason: "
+					+ e.getMessage(), e);
 			throw new CommunicationException(e.getMessage(), e);
 		} catch (GenericFrameworkException e) {
 			// TODO Auto-generated catch block
-			result.recordFatalError("Can't modify object with oid " + objectChange.getOid() + ". Reason: " + e.getMessage(), e);
+			result.recordFatalError("Can't modify object with oid " + objectChange.getOid() + ". Reason: "
+					+ e.getMessage(), e);
 			throw new CommunicationException(e.getMessage(), e);
 		}
 
@@ -388,8 +410,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public void deleteObject(String oid, ScriptsType scripts, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException {
+	public void deleteObject(String oid, ScriptsType scripts, OperationResult parentResult)
+			throws ObjectNotFoundException, CommunicationException, SchemaException {
 		// TODO Auto-generated method stub
 
 		Validate.notNull(oid);
@@ -397,7 +419,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		LOGGER.debug("**PROVISIONING: Start to delete object with oid {}", oid);
 
-		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".deleteObject");
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".deleteObject");
 		result.addParam("oid", oid);
 		result.addParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
@@ -405,10 +428,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		ObjectType objectType = null;
 		try {
 			objectType = getRepositoryService().getObject(oid, new PropertyReferenceListType(), parentResult);
-			LOGGER.debug("**PROVISIONING: Object from repository to delete: {}", JAXBUtil.silentMarshalWrap(objectType));
+			LOGGER.debug("**PROVISIONING: Object from repository to delete: {}",
+					JAXBUtil.silentMarshalWrap(objectType));
 		} catch (SchemaException e) {
-			result.recordFatalError("Can't get object with oid " + oid + " from repository. Reason:  " + e.getMessage() + " "
-					+ e);
+			result.recordFatalError("Can't get object with oid " + oid + " from repository. Reason:  "
+					+ e.getMessage() + " " + e);
 			throw new ObjectNotFoundException(e.getMessage());
 		}
 
@@ -430,8 +454,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid, PropertyReferenceListType properties,
-			OperationResult parentResult) throws ObjectNotFoundException {
+	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
+			PropertyReferenceListType properties, OperationResult parentResult)
+			throws ObjectNotFoundException {
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();
 	}
@@ -454,8 +479,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		parentResult.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 
 		try {
-			ObjectType objectType = getRepositoryService()
-					.getObject(resourceOid, new PropertyReferenceListType(), parentResult);
+			ObjectType objectType = getRepositoryService().getObject(resourceOid,
+					new PropertyReferenceListType(), parentResult);
 
 			if (objectType instanceof ResourceType) {
 				ResourceType resourceType = (ResourceType) objectType;
@@ -483,14 +508,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public void searchObjectsIterative(QueryType query, PagingType paging, final ResultHandler handler,
-			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException {
+			final OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+			CommunicationException {
 
 		Validate.notNull(query);
 		Validate.notNull(parentResult);
 
 		LOGGER.debug("Start to search object. Query {}", JAXBUtil.silentMarshalWrap(query));
 
-		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName() + ".searchObjectsIterative");
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+				+ ".searchObjectsIterative");
 		result.addParam("query", query);
 		result.addParam("paging", paging);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
@@ -517,7 +544,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 							Node value = equealList.item(j).getFirstChild();
 							if (QNameUtil.compareQName(SchemaConstants.I_RESOURCE_REF, value)) {
 								resourceOid = value.getAttributes().getNamedItem("oid").getNodeValue();
-								LOGGER.debug("**PROVISIONING: Search objects on resource with oid {}", resourceOid);
+								LOGGER.debug("**PROVISIONING: Search objects on resource with oid {}",
+										resourceOid);
 
 							} else if (QNameUtil.compareQName(SchemaConstants.I_OBJECT_CLASS, value)) {
 								String textContent = value.getTextContent();
@@ -547,8 +575,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ResourceType resource = null;
 		try {
-			resource = (ResourceType) getRepositoryService().getObject(resourceOid, new PropertyReferenceListType(),
-					parentResult);
+			resource = (ResourceType) getRepositoryService().getObject(resourceOid,
+					new PropertyReferenceListType(), parentResult);
 
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError("Resource with oid " + resourceOid + "not found. Reason: " + e);
@@ -568,4 +596,47 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.recordSuccess();
 	}
 
+	@Override
+	public synchronized void registerNotificationListener(ResourceObjectChangeListener listener) {
+		if (listeners.contains(listener)) {
+			LOGGER.warn(
+					"Resource object change listener '{}' is already registered. Subsequent registration is ignored",
+					listener);
+		} else {
+			listeners.add(listener);
+		}
+
+	}
+
+	@Override
+	public synchronized void unregisterNotificationListener(ResourceObjectChangeListener listener) {
+		listeners.remove(listener);
+	}
+
+	private synchronized void notifyResourceObjectChangeListeners(
+			ResourceObjectShadowChangeDescriptionType change, OperationResult parentResult) {
+
+		Validate.notNull(change, "Change description of resource object shadow must not be null.");
+		
+		LOGGER.debug("Notifying change {} ", DebugUtil.prettyPrint(change));
+		
+		if ((null != listeners) && (!listeners.isEmpty())) {
+			for (ResourceObjectChangeListener listener : listeners) {
+				LOGGER.debug("Listener: {}", listener.getClass().getSimpleName());
+				listener.notifyChange(change, parentResult);
+
+			}
+		}
+	}
+
+	private ResourceObjectShadowChangeDescriptionType createResourceShadowChangeDescription(Change change,
+			ResourceType resourceType) {
+		ResourceObjectShadowChangeDescriptionType shadowChangeDescription = new ResourceObjectShadowChangeDescriptionType();
+		shadowChangeDescription.setObjectChange(change.getChange());
+		shadowChangeDescription.setResource(resourceType);
+		shadowChangeDescription.setShadow(change.getOldShadow());
+		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
+		return shadowChangeDescription;
+
+	}
 }

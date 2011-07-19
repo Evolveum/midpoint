@@ -23,6 +23,8 @@ package com.evolveum.midpoint.model.sync;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.xml.bind.JAXBElement;
 
 import org.apache.commons.lang.Validate;
@@ -44,6 +46,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.expr.ExpressionException;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.SystemException;
@@ -83,7 +86,19 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	private ActionManager<Action> actionManager;
 	@Autowired
 	private ExpressionHandler expressionHandler;
+	@Autowired
+	private ResourceObjectChangeNotificationManager notificationManager;
 
+	@PostConstruct
+	public void registerForResourceObjectChangeNotifications(){
+		notificationManager.registerNotificationListener(this);
+	}
+	
+	@PreDestroy
+	public void unregisterForResourceObjectChangeNotifications(){
+		notificationManager.unregisterNotificationListener(this);
+	}
+	
 	@Override
 	public void notifyChange(ResourceObjectShadowChangeDescriptionType change, OperationResult parentResult) {
 		Validate.notNull(change, "Resource object shadow change description must not be null.");

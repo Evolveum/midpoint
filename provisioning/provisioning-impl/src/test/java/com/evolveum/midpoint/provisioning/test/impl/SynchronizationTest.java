@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
@@ -28,9 +29,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager;
 import com.evolveum.midpoint.provisioning.impl.ShadowCache;
+import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
@@ -40,46 +46,54 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.impl.TaskImpl;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
-		"classpath:application-context-provisioning-test.xml" })
-@Ignore
+		"classpath:application-context-provisioning-test.xml", "classpath:application-context-task.xml" })
 public class SynchronizationTest {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-	
+	private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
+	private static final String FILENAME_SYNC_TASK = "src/test/resources/impl/sync-task-example.xml";
+	private static final QName TOKEN_ELEMENT_QNAME = new QName(SchemaConstants.NS_PROVISIONING_LIVE_SYNC,
+			"token");
+
 	private JAXBContext jaxbctx;
 	private Unmarshaller unmarshaller;
 	private ResourceType resource;
 	@Autowired
 	private ConnectorManager manager;
+	@Autowired
 	private ShadowCache shadowCache;
 	@Autowired
 	private ProvisioningService provisioningService;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
 	@Autowired
-	private Task task;
+	private TaskManager taskManager;
 	@Autowired
-	private ConnectorInstance connector;
-	
-	
-	
-	public Task getTask() {
-		return task;
+	ResourceObjectChangeListener syncServiceMock;
+
+	public TaskManager getTaskManager() {
+		return taskManager;
 	}
 
-	public void setTask(Task task) {
-		this.task = task;
+	public void setTaskManager(TaskManager taskManager) {
+		this.taskManager = taskManager;
 	}
 
 	public RepositoryService getRepositoryService() {
@@ -94,7 +108,7 @@ public class SynchronizationTest {
 		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
 		unmarshaller = jaxbctx.createUnmarshaller();
 	}
-	
+
 	@Before
 	public void initProvisioning() throws Exception {
 
@@ -111,15 +125,14 @@ public class SynchronizationTest {
 		assertNotNull(provisioningService);
 
 	}
-	
+
 	@After
-	public void cleadUpRepo() throws ObjectNotFoundException{
+	public void cleadUpRepo() throws ObjectNotFoundException {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".cleanUpRepo");
 		repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
 	}
-	
-	
+
 	private ObjectType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException {
 		File file = new File(filePath);
 		FileInputStream fis = new FileInputStream(file);
@@ -136,56 +149,67 @@ public class SynchronizationTest {
 		repositoryService.addObject(object, result);
 		return object;
 	}
-	
+
 	@Test
-	public void testSynchronization() throws Exception{
-		
+	public void testSynchronization() throws Exception {
+
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".synchronizationTest");
-		
-		PropertyContainer extension = new PropertyContainer();
-		
-		QName type = XsdTypeConverter.toXsdType(int.class);
 
-		Set<Object> objs = new HashSet<Object>();
-		objs.add(7);
-		PropertyDefinition propDef = new PropertyDefinition(SchemaConstants.C_TOKEN, type);
+		try {
 
-		Property property = new Property(SchemaConstants.C_TOKEN, propDef, objs);
-	
-		extension.getProperties().add(property);
-		
-		when(task.getExtension()).thenReturn(extension);
-		
-//		List<Change> changes = new ArrayList<Change>();
-//		Change ch = new Change(new HashSet<Property>(), new ObjectChangeAdditionType(), property);
-//		changes.add(ch);
-//		
-//		when(connector.fetchChanges(any(QName.class), any(Property.class), any(OperationResult.class))).thenReturn(changes);
-		provisioningService.synchronize(resource.getOid(), task, result);
-		
+			addObjectFromFile(FILENAME_SYNC_TASK);
+
+			// ObjectType object =
+			// createObjectFromFile(FILENAME_SYNC_CREATE_ACCOUNT);
+			// ObjectChangeAdditionType additionChange = new
+			// ObjectChangeAdditionType();
+			// additionChange.setObject(object);
+
+			Task task = taskManager.getTask(SYNC_TASK_OID, result);
+
+			Property property = task.getExtension().findProperty(TOKEN_ELEMENT_QNAME);
+
+			List<Change> changes = new ArrayList<Change>();
+			Change ch = new Change(new HashSet<Property>(), new ObjectChangeAdditionType(), property);
+			changes.add(ch);
+
+			when(
+					shadowCache.fetchChanges(any(ResourceType.class), any(Property.class),
+							any(OperationResult.class))).thenReturn(changes);
+
+			provisioningService.synchronize(resource.getOid(), task, result);
+
+			SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;
+			assertEquals(true, mock.isCalled());
+			
+		} finally {
+			repositoryService.deleteObject(SYNC_TASK_OID, result);
+		}
 	}
-	
-	
+
 	public ConnectorManager getManager() {
 		return manager;
 	}
+
 	public void setManager(ConnectorManager manager) {
 		this.manager = manager;
 	}
+
 	public ShadowCache getShadowCache() {
 		return shadowCache;
 	}
+
 	public void setShadowCache(ShadowCache shadowCache) {
 		this.shadowCache = shadowCache;
 	}
+
 	public ProvisioningService getProvisioningService() {
 		return provisioningService;
 	}
+
 	public void setProvisioningService(ProvisioningService provisioningService) {
 		this.provisioningService = provisioningService;
 	}
-	
-	
-	
+
 }
