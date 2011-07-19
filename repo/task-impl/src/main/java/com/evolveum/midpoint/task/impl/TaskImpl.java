@@ -50,12 +50,14 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
+import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
@@ -74,6 +76,7 @@ public class TaskImpl implements Task {
 	private TaskExecutionStatus executionStatus;
 	private TaskExclusivityStatus exclusivityStatus;
 	private TaskPersistenceStatus persistenceStatus;
+	private TaskRecurrence recurrenceStatus;
 	private String handlerUri;
 	private ObjectType object;
 	private ObjectReferenceType objectRef;
@@ -83,6 +86,7 @@ public class TaskImpl implements Task {
 	private Long lastRunFinishTimestamp;
 	private PropertyContainer extension;
 	private long progress;
+	private TaskManagerImpl taskManager;
 	private RepositoryService repositoryService;
 	private OperationResult result;
 
@@ -91,10 +95,12 @@ public class TaskImpl implements Task {
 	 * @param taskType
 	 * @param repositoryService
 	 */	
-	TaskImpl() {
+	TaskImpl(TaskManagerImpl taskManager) {
+		this.taskManager = taskManager;
 		executionStatus = TaskExecutionStatus.RUNNING;
 		exclusivityStatus = TaskExclusivityStatus.CLAIMED;
 		persistenceStatus = TaskPersistenceStatus.TRANSIENT;
+		recurrenceStatus = TaskRecurrence.SINGLE;
 		extension = new PropertyContainer();
 		progress = 0;
 		repositoryService = null;
@@ -109,7 +115,8 @@ public class TaskImpl implements Task {
 	 * @param taskType
 	 * @param repositoryService
 	 */
-	TaskImpl(TaskType taskType, RepositoryService repositoryService) {
+	TaskImpl(TaskManagerImpl taskManager, TaskType taskType, RepositoryService repositoryService) {
+		this.taskManager = taskManager;
 		this.repositoryService = repositoryService;
 		initialize(taskType);
 	}
@@ -117,6 +124,7 @@ public class TaskImpl implements Task {
 	private void initialize(TaskType taskType) {
 		executionStatus = TaskExecutionStatus.fromTaskType(taskType.getExecutionStatus());
 		exclusivityStatus = TaskExclusivityStatus.fromTaskType(taskType.getExclusivityStatus());
+		recurrenceStatus = TaskRecurrence.fromTaskType(taskType.getRecurrence());
 		// If that is created from the TaskType, then this is persistent task
 		persistenceStatus = TaskPersistenceStatus.PERSISTENT;
 		oid = taskType.getOid();
@@ -441,6 +449,33 @@ public class TaskImpl implements Task {
 	
 	private boolean isPersistent() {
 		return persistenceStatus == TaskPersistenceStatus.PERSISTENT;
+	}
+
+	@Override
+	public void close(OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = parentResult.createSubresult(Task.class.getName()+".close");
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskImpl.class);
+		result.addContext(OperationResult.CONTEXT_OID, getOid());
+		
+		// Close the task
+		ObjectModificationType modification = new ObjectModificationType();
+		modification.setOid(oid);
+		PropertyModificationType timestampModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_EXECUTION_STATUS, TaskExecutionStatusType.CLOSED.value());
+		modification.getPropertyModification().add(timestampModification);
+		try {
+			repositoryService.modifyObject(modification, result);
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Object not found", ex);
+			throw ex;
+		} catch (SchemaException ex) {
+			result.recordFatalError("Schema error", ex);
+			throw ex;
+		}		
+	}
+
+	@Override
+	public boolean isSingle() {
+		return (recurrenceStatus==TaskRecurrence.SINGLE);
 	}
 
 }

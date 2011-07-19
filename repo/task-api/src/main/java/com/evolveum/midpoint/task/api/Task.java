@@ -277,4 +277,19 @@ public interface Task {
 	 */
 	public String dump();
 
+	/**
+	 * Close the task.
+	 * 
+	 * This will NOT release the task.
+	 * 
+	 * TODO
+	 * 
+	 * @param runnerRunOpResult
+	 * @throws ObjectNotFoundException 
+	 * @throws SchemaException 
+	 */
+	public void close(OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+	public boolean isSingle();
+
 }

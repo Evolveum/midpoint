@@ -44,12 +44,14 @@ public class CycleRunner implements Runnable {
 	private Task task;
 	private boolean enabled = true;
 	private long lastLoopRun = 0;
+	private TaskManagerImpl taskManager;
 
 	private static final transient Trace logger = TraceManager.getTrace(CycleRunner.class);
 
-	public CycleRunner(TaskHandler handler, Task task) {
+	public CycleRunner(TaskHandler handler, Task task, TaskManagerImpl taskManager) {
 		this.handler = handler;
 		this.task = task;
+		this.taskManager = taskManager;
 	}
 
 	/*
@@ -61,6 +63,8 @@ public class CycleRunner implements Runnable {
 	public void run() {
 		logger.info("CycleRunner.run starting");
 
+		OperationResult cycleRunnerOpResult = new OperationResult(CycleRunner.class.getName() + ".run");
+		
 		try {
 
 			while (enabled) {
@@ -69,7 +73,7 @@ public class CycleRunner implements Runnable {
 				// This is NOT the result of the run itself. That can be found in the RunResult
 				// this is a result of the runner, used to record "overhead" things like recording the
 				// run status 
-				OperationResult cycleRunnerRunOpResult = new OperationResult(CycleRunner.class.getName() + ".run");
+				OperationResult cycleRunnerRunOpResult = new OperationResult(CycleRunner.class.getName() + ".run.loop");
 
 				try {
 					task.recordRunStart(cycleRunnerRunOpResult);
@@ -114,11 +118,15 @@ public class CycleRunner implements Runnable {
 				logger.trace("CycleRunner loop: end");
 			}
 
+			// Call back task manager to clean up things
+			taskManager.finishRunnableTask(task,cycleRunnerOpResult);
+			
+			logger.info("CycleRunner.run stopping");
 		} catch (Throwable t) {
-			logger.error("Fatal error in cycle runner: {}", t.getMessage(), t);
+			// This is supposed to run in a thread, so this kind of heavy artillery is needed. If throwable won't be
+			// caught here, nobody will catch it and it won't even get logged.
+			logger.error("CycleRunner got unexpected exception: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
 		}
-
-		logger.info("CycleRunner.run stopping");
 
 	}
 

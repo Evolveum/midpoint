@@ -41,15 +41,23 @@ public class ExtensionProcessor {
 	public static final QName DEFAULT_TYPE = SchemaConstants.XSD_STRING;
 	
 	public static PropertyContainer parseExtension(Extension xmlExtension) {
+		// Extension is optional, so don't die on null
+		if (xmlExtension==null) {
+			return parseExtension((List<Element>)null);
+		}
 		return parseExtension(xmlExtension.getAny());
 	}
 	
 	public static PropertyContainer parseExtension(List<Element> xmlExtension) {
-		// There is no extension schema at the moment. Therefore assume that all properties are strings unless there is an
-		// explicit xsi:type specification
-		
 		PropertyContainer container = new PropertyContainer(SchemaConstants.C_EXTENSION);
 		
+		// Extension is optional, so don't die on null
+		if (xmlExtension==null) {
+			return container;
+		}
+		
+		// There is no extension schema at the moment. Therefore assume that all properties are strings unless there is an
+		// explicit xsi:type specification
 		for (Element element : xmlExtension) {
 			QName propName = DOMUtil.getQName(element);
 			Property property = new Property(propName);

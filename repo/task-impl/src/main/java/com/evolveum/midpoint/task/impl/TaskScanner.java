@@ -20,9 +20,7 @@
  */
 package com.evolveum.midpoint.task.impl;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

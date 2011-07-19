@@ -35,8 +35,8 @@ public class ScheduleEvaluator {
 	public static boolean shouldRun(TaskType taskType) {
 		ScheduleType schedule = taskType.getSchedule();
 		if (schedule == null) {
-			// No schedule, no fun
-			return false;
+			// No schedule, big fun. Run right now.
+			return true;
 		}
 		
 		long lastRunTime = 0;

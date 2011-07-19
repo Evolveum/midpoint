@@ -40,6 +40,7 @@ import javax.xml.namespace.QName;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.opends.server.types.Attribute;
@@ -118,6 +119,8 @@ public class TestTaskManagerContract {
 	public void initHandlers() {
 		MockCycleTaskHandler cycleHandler = new MockCycleTaskHandler();
 		taskManager.registerHandler(CYCLE_TASK_HANDLER_URI, cycleHandler);
+		MockSingleTaskHandler singleHandler = new MockSingleTaskHandler();
+		taskManager.registerHandler(SINGLE_TASK_HANDLER_URI, singleHandler);
 	}
 
 	/**
@@ -137,8 +140,52 @@ public class TestTaskManagerContract {
 //		assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
 	}
 	
+
 	@Test
-	public void test002Cycle() throws Exception {
+	public void test002Single() throws Exception {
+		// Add single task. This will get picked by task scanner and executed
+		addObjectFromFile(TASK_SINGLE_FILENAME);
+		
+		// We need to wait for a sync interval, so the task scanner has a chance to pick up this
+		// task
+		System.out.println("Waining for task manager to pick up the task and run it");
+		Thread.sleep(10000);
+		System.out.println("... done");
+		
+		// Check task status
+		
+		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test004Single");
+		Task task = taskManager.getTask(TASK_SINGLE_OID, result);
+		
+		assertNotNull(task);
+		System.out.println(task.dump());
+		
+		ObjectType o = repositoryService.getObject(TASK_SINGLE_OID,null, result);
+		System.out.println(ObjectTypeUtil.dump(o));
+		
+		// .. it should be closed
+		assertEquals(TaskExecutionStatus.CLOSED,task.getExecutionStatus());
+		
+		// .. and released
+		assertEquals(TaskExclusivityStatus.RELEASED,task.getExclusivityStatus());
+		
+		// .. and last run should not be zero
+		assertNotNull(task.getLastRunStartTimestamp());
+		assertFalse(task.getLastRunStartTimestamp().longValue()==0);
+		assertNotNull(task.getLastRunFinishTimestamp());
+		assertFalse(task.getLastRunFinishTimestamp().longValue()==0);
+
+		// The progress should be more than 0 as the task has run at least once
+		assertTrue(task.getProgress()>0);
+		
+		// Test for presence of a result. It should be there and it should indicate success
+		OperationResult taskResult = task.getResult();
+		assertNotNull(taskResult);		
+		assertTrue(taskResult.isSuccess());
+	}
+
+	@Test
+	public void test003Cycle() throws Exception {
 		// Add cycle task. This will get picked by task scanner and executed
 		addObjectFromFile(TASK_CYCLE_FILENAME);
 		
@@ -181,7 +228,7 @@ public class TestTaskManagerContract {
 	}
 	
 	@Test
-	public void test003Extension() throws Exception {
+	public void test004Extension() throws Exception {
 		
 		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test003Extension");
 		Task task = taskManager.getTask(TASK_CYCLE_OID, result);
@@ -238,6 +285,8 @@ public class TestTaskManagerContract {
 		assertTrue(fetchedDate.compareTo(sinkDate)==0);
 		
 	}
+	
+
 	
 	// UTILITY METHODS
 	

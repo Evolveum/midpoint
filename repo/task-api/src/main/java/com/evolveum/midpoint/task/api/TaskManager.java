@@ -23,6 +23,7 @@ package com.evolveum.midpoint.task.api;
 import java.util.Set;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -93,8 +94,11 @@ public interface TaskManager {
 	 * TODO: EXCEPTIONS
 	 * 
 	 * @param task task instance to claim
+	 * @throws SchemaException 
+	 * @throws ConcurrencyException 
+	 * @throws ObjectNotFoundException 
 	 */
-	public void claimTask(Task task);
+	public void claimTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException;
 	
 	/**
 	 * Release a claimed task.
@@ -109,9 +113,11 @@ public interface TaskManager {
 	 * stay free of RepositoryService dependency.
 	 * 
 	 * @param task task instance to release
+	 * @throws ObjectNotFoundException 
+	 * @throws SchemaException 
 	 * @throws IllegalArgumentException attempt to release a task that is not claimed.
 	 */
-	public void releaseTask(Task task);
+	public void releaseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
 	/**
 	 * Switches the provided task to background, making it asynchronous.

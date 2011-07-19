@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
@@ -47,6 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
@@ -95,7 +98,7 @@ public class TaskManagerImpl implements TaskManager {
 	 */
 	@Override
 	public Task createTaskInstance() {
-		return new TaskImpl();
+		return new TaskImpl(this);
 	}
 
 	/* (non-Javadoc)
@@ -103,8 +106,9 @@ public class TaskManagerImpl implements TaskManager {
 	 */
 	@Override
 	public Task getTask(String taskOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = parentResult.createSubresult(TaskManagerImpl.class.getName()+".getTask");
-		result.addParam("oid", taskOid);
+		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".getTask");
+		result.addParam(OperationResult.PARAM_OID, taskOid);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerImpl.class);
 		
 		// Look through the claimed tasks first. This is fast and provides a live java instance.
 		Task claimedTask = claimedTasks.get(taskOid);
@@ -120,7 +124,7 @@ public class TaskManagerImpl implements TaskManager {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		ObjectType object = repositoryService.getObject(taskOid, resolve, result);
 		TaskType taskType = (TaskType) object;
-		return new TaskImpl(taskType,repositoryService);
+		return new TaskImpl(this,taskType,repositoryService);
 	}
 
 	/* (non-Javadoc)
@@ -145,18 +149,43 @@ public class TaskManagerImpl implements TaskManager {
 	 * @see com.evolveum.midpoint.task.api.TaskManager#claimTask(com.evolveum.midpoint.task.api.Task)
 	 */
 	@Override
-	public void claimTask(Task task) {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
+	public void claimTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException {
+		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".claimTask");
+		result.addParam(OperationResult.PARAM_OID, task.getOid());
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerImpl.class);
+		
+		try {
+			repositoryService.claimTask(task.getOid(), result);
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Task not found", ex);
+			throw ex;
+		} catch (ConcurrencyException ex) {
+			result.recordPartialError("Concurrency problem while claiming task (race condition?)", ex);
+			throw ex;
+		} catch (SchemaException ex) {
+			result.recordPartialError("Schema error", ex);
+			throw ex;
+		}
 	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.TaskManager#releaseTask(com.evolveum.midpoint.task.api.Task)
 	 */
 	@Override
-	public void releaseTask(Task task) {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
+	public void releaseTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".releaseTask");
+		result.addParam(OperationResult.PARAM_OID, task.getOid());
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerImpl.class);
+		
+		try {
+			repositoryService.releaseTask(task.getOid(), result);
+		} catch (ObjectNotFoundException ex) {
+			result.recordFatalError("Task not found", ex);
+			throw ex;
+		} catch (SchemaException ex) {
+			result.recordPartialError("Schema error", ex);
+			throw ex;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -254,12 +283,10 @@ public class TaskManagerImpl implements TaskManager {
 	 * @param task XML TaskType object
 	 */
 	public void processRunnableTaskType(TaskType taskType) {
-		// We assume that all tasks are cycles now.
+		// We assume that all tasks are singles or cycles now.
 		// TODO: support more task types
 		
-		taskType.getSchedule();
-		
-		Task task = new TaskImpl(taskType,repositoryService);
+		Task task = new TaskImpl(this,taskType,repositoryService);
 		TaskHandler handler = getHandler(task.getHanderUri());
 		
 		if (handler==null) {
@@ -267,12 +294,48 @@ public class TaskManagerImpl implements TaskManager {
 			throw new IllegalStateException("No handler for URI "+task.getHanderUri());
 		}
 		
-		CycleRunner cycleRunner = new CycleRunner(handler,task);
+		Thread taskThread = null;
 		
-		Thread cycleThread = allocateThread(task, cycleRunner);
-		cycleThread.start();
-
-		// TODO: heartbeat, etc.
+		if (taskType.getRecurrence() == TaskRecurrenceType.RECURRING) {
+		
+			if (taskType.getBinding() == null || taskType.getBinding() == TaskBindingType.TIGHT) {
+				// This is CYCLE
+				
+				CycleRunner cycleRunner = new CycleRunner(handler,task, this);
+				
+				taskThread = allocateThread(task, cycleRunner);
+				taskThread.start();
+				
+			} else {
+				
+				// Not supported yet
+				logger.error("Tightly bound tasks (cycles) are the only supported reccuring tasks for now. Sorry.");
+				// Ignore otherwise. Nothing else to do.
+				
+			}
+			
+			// TODO: heartbeat, etc.
+		} else {
+			
+			// SINGLE task
+			
+			SingleRunner singleRunner = new SingleRunner(handler,task, this);
+			
+			taskThread = allocateThread(task, singleRunner);
+			taskThread.start();
+			
+		}
+		
+	}
+	
+	void finishRunnableTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		
+		if (task.isSingle()) {	
+			// We need to release the task here.
+			releaseTask(task,parentResult);
+			
+		} // We don't care about other types
+		
 	}
 	
 	private Thread allocateThread(Task task, Runnable target) {
