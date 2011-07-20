@@ -545,6 +545,9 @@ public class ShadowCache {
 		if (resourceType == null) {
 			throw new IllegalArgumentException("Resource must not be null.");
 		}
+		if (objectClass == null) {
+			throw new IllegalArgumentException("Objectclass must not be null.");
+		}
 
 		LOGGER.debug("Searching objects iterative with obejct class {} on the resource with oid {}.",
 				objectClass, resourceType.getOid());

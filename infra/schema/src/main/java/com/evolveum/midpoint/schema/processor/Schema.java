@@ -151,6 +151,9 @@ public class Schema {
 	 *             if more than one definition is found
 	 */
 	public PropertyContainerDefinition findContainerDefinitionByType(QName typeName) {
+		if (typeName==null) {
+			throw new IllegalArgumentException("typeName must be supplied");
+		}
 		// TODO: check for multiple definition with the same type
 		for (Definition definition : definitions) {
 			if (definition instanceof PropertyContainerDefinition

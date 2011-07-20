@@ -531,7 +531,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 		QName objectClass = null;
 
 		if (QNameUtil.compareQName(SchemaConstants.C_FILTER_AND, filter)) {
-			for (int i = 0; i < list.getLength() - 1; i++) {
+			for (int i = 0; i < list.getLength(); i++) {
 				if (QNameUtil.compareQName(SchemaConstants.C_FILTER_TYPE, list.item(i))) {
 					String type = list.item(i).getAttributes().getNamedItem("uri").getNodeValue();
 					if (type == null || "".equals(type)) {
@@ -542,7 +542,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 				} else if (QNameUtil.compareQName(SchemaConstants.C_FILTER_EQUAL, list.item(i))) {
 					NodeList equealList = list.item(i).getChildNodes();
 
-					for (int j = 0; j < equealList.getLength() - 1; j++) {
+					for (int j = 0; j < equealList.getLength(); j++) {
 						if (QNameUtil.compareQName(SchemaConstants.C_FILTER_VALUE, equealList.item(j))) {
 							Node value = equealList.item(j).getFirstChild();
 							if (QNameUtil.compareQName(SchemaConstants.I_RESOURCE_REF, value)) {
@@ -573,7 +573,10 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 		}
 
 		if (resourceOid == null) {
-			throw new IllegalArgumentException("Resource where objects sholud be searched is not defined.");
+			throw new IllegalArgumentException("Resource not defined in a search query");
+		}
+		if (objectClass == null) {
+			throw new IllegalArgumentException("Objectclass not defined in a search query");
 		}
 
 		ResourceType resource = null;
