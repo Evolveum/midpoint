@@ -185,8 +185,10 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		
 		ResourceType resource = null;
 		try {
+			
 			ObjectType object = task.getObject(opResult);
 			resource = (ResourceType)object;
+			
 		} catch (ObjectNotFoundException ex) {
 			String resourceOid = null;
 			if (task.getObjectRef()!=null) {
@@ -237,6 +239,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 			return runResult;
 		}
 		
+		// Instantiate result handler. This will be called with every search result in the following iterative search
 		ImportFromResourceResultHandler handler = new ImportFromResourceResultHandler(resource,task,objectChangeListener);
 		
 		// TODO: error checking - already running
@@ -277,6 +280,8 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 			runResult.setProgress(handler.getProgress());
 			return runResult;
 		}		
+
+		// TODO: check last handler status
 		
 		handlers.remove(task);
 		runResult.setProgress(handler.getProgress());

@@ -519,7 +519,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 
 		LOGGER.debug("Start to search object. Query {}", JAXBUtil.silentMarshalWrap(query));
 
-		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
+		final OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()
 				+ ".searchObjectsIterative");
 		result.addParam("query", query);
 		result.addParam("paging", paging);
@@ -574,7 +574,7 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 		ResourceType resource = null;
 		try {
 			resource = (ResourceType) getRepositoryService().getObject(resourceOid,
-					new PropertyReferenceListType(), parentResult);
+					new PropertyReferenceListType(), result);
 
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError("Resource with oid " + resourceOid + "not found. Reason: " + e);
@@ -586,11 +586,11 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 			@Override
 			public boolean handle(ResourceObjectShadowType shadow) {
 				LOGGER.debug("Found shadow: {}", DebugUtil.prettyPrint(shadow));
-				return handler.handle(shadow, parentResult);
+				return handler.handle(shadow, result);
 			}
 		};
 
-		getShadowCache().searchObjectsIterative(objectClass, resource, shadowHandler, parentResult);
+		getShadowCache().searchObjectsIterative(objectClass, resource, shadowHandler, result);
 		result.recordSuccess();
 	}
 

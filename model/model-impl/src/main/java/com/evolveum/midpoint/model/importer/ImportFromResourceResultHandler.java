@@ -86,12 +86,13 @@ public class ImportFromResourceResultHandler implements ResultHandler {
 		progress++;
 
 		OperationResult result = parentResult
-				.createSubresult(ProvisioningService.class.getName() + ".handle");
+				.createSubresult(ImportFromResourceResultHandler.class.getName() + ".handle");
 		result.addParam("object", object);
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
 		if (objectChangeListener == null) {
 			logger.warn("No object change listener set for import task, ending the task");
+			result.recordFatalError("No object change listener set for import task, ending the task");
 			return false;
 		}
 
