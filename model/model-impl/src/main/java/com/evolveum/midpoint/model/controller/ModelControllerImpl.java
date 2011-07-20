@@ -241,11 +241,14 @@ public class ModelControllerImpl implements ModelController {
 	public ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
 			OperationResult result) {
 		Validate.notNull(objectType, "Object type must not be null.");
-		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
-		LOGGER.debug("Listing objects of type {} from {} to {} ordered {} by {}.", new Object[] { objectType,
+		if (paging==null) {
+			LOGGER.debug("Listing objects of type {} (no paging).", objectType);
+		} else {
+			LOGGER.debug("Listing objects of type {} from {} to {} ordered {} by {}.", new Object[] { objectType,
 				paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(), paging.getOrderBy() });
+		}
 
 		OperationResult subResult = new OperationResult("List Objects");
 		result.addSubresult(subResult);

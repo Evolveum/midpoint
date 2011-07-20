@@ -113,7 +113,6 @@ public class ModelWebService implements ModelPortType {
 	public ObjectListType listObjects(String objectType, PagingType paging, Holder<OperationResultType> result)
 			throws FaultMessage {
 		notEmptyArgument(objectType, "Object type must not be null or empty.");
-		notNullArgument(paging, "Paging  must not be null.");
 		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult("Model Service List Objects");

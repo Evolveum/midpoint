@@ -79,7 +79,9 @@ public class ModelUtils {
 	}
 
 	public static void validatePaging(PagingType paging) {
-		Validate.notNull(paging, "Paging must not be null.");
+		if (paging==null) {
+			return;
+		}
 
 		if (paging.getMaxSize() != null && paging.getMaxSize().longValue() < 0) {
 			throw new IllegalArgumentException("Paging max size must be more than 0.");
