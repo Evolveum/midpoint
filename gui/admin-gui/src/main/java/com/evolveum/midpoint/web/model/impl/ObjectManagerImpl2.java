@@ -21,8 +21,10 @@
 package com.evolveum.midpoint.web.model.impl;
 
 import java.io.Serializable;
-
-import javax.xml.ws.Holder;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,15 +34,21 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.model.ObjectManager;
+import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
+import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
+import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
-public class ObjectManagerImpl2<T extends ObjectDto>  {//implements ObjectManager<T>, Serializable {
+@SuppressWarnings("rawtypes")
+public abstract class ObjectManagerImpl2<T extends ObjectDto> implements ObjectManager<T>, Serializable {
 
 	private static final long serialVersionUID = -7853884441389039036L;
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectManagerImpl2.class);
@@ -51,6 +59,107 @@ public class ObjectManagerImpl2<T extends ObjectDto>  {//implements ObjectManage
 		return model;
 	}
 
+	@Override
+	public Collection<T> list() {
+		return list(PagingTypeFactory.createListAllPaging());
+	}
+
+	@Override
+	public List<PropertyAvailableValues> getPropertyAvailableValues(String oid, List<String> properties) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public T get(String oid, PropertyReferenceListType resolve) {
+		Validate.notEmpty(oid, "Object oid must not be null or empty.");
+		LOGGER.debug("Get object with oid {}.", new Object[] { oid });
+		OperationResult result = new OperationResult("Get Object");
+
+		T object = null;
+		try {
+			ObjectType objectType = getModel().getObject(oid, resolve, ObjectType.class, result);
+			object = createObject(objectType);
+			result.recordSuccess();
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
+			result.recordFatalError("Couldn't get object '" + oid + "' from model.", ex);
+		}
+
+		printResults(LOGGER, result);
+
+		return object;
+	}
+
+	@Override
+	public void delete(String oid) {
+		Validate.notEmpty(oid, "Object oid must not be null or empty.");
+		LOGGER.debug("Deleting object '" + oid + "'.");
+
+		OperationResult result = new OperationResult("Delete Object");
+		try {
+			getModel().deleteObject(oid, result);
+			result.recordSuccess();
+
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't delete object {} from model", ex, oid);
+			result.recordFatalError("Couldn't delete object '" + oid + "' from model.", ex);
+		}
+
+		printResults(LOGGER, result);
+	}
+
+	@Override
+	public String add(T object) {
+		Validate.notNull(object, "Object must not be null.");
+		Validate.notNull(object.getXmlObject(), "Xml object type in object must not be null.");
+		LOGGER.debug("Adding object '" + object.getName() + "'.");
+
+		OperationResult result = new OperationResult("Add Object");
+		String oid = null;
+		try {
+			oid = getModel().addObject(object.getXmlObject(), result);
+			result.recordSuccess();
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't add object {} to model", ex, object.getName());
+			result.recordFatalError("Couldn't add object '" + object.getName() + "' to model.", ex);
+		}
+
+		printResults(LOGGER, result);
+
+		return oid;
+	}
+
+	protected Collection<T> list(PagingType paging, ObjectTypes type) {
+		Validate.notNull(paging, "Paging must not be null.");
+		Validate.notNull(type, "Object type must not be null.");
+		LOGGER.debug("Listing '" + type.getValue() + "' objects.");
+
+		OperationResult result = new OperationResult("Get Connectors");
+		Collection<T> collection = new ArrayList<T>();
+		try {
+			ObjectListType list = getModel().listObjects(type.getClassDefinition(), paging, result);
+			if (list != null) {
+				for (ObjectType objectType : list.getObject()) {
+					collection.add(createObject(objectType));
+				}
+			}
+			result.recordSuccess();
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list {} objects from model", ex, type.getValue());
+			result.recordFatalError("Couldn't list '" + type.getTypeQName() + "' objects from model.", ex);
+		}
+
+		printResults(LOGGER, result);
+
+		return collection;
+	}
+
+	@Override
+	public Set<PropertyChange> submit(T changedObject) throws WebModelException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	protected void printResults(Trace logger, OperationResult result) {
 		if (!result.isSuccess()) {
 			FacesUtils.addMessage(result);
@@ -58,40 +167,16 @@ public class ObjectManagerImpl2<T extends ObjectDto>  {//implements ObjectManage
 
 		logger.debug(result.dump());
 	}
-	
-//	@Override
-//	public T get(String oid, PropertyReferenceListType resolve) {
-//		Validate.notNull(oid, "Object oid must not be null or empty.");
-//		LOGGER.debug("Get object with oid {}.", new Object[] { oid });
-//
-//		OperationResult result = new OperationResult("Get Object");
-//		Holder<OperationResultType> holder = new Holder<OperationResultType>(
-//				result.createOperationResultType());
-//
-//		T object = null;
-//		try {
-//			ObjectType objectType = getModel().getObject(oid, resolve, ObjectType.class, result);
-//			object = createObject(objectType);
-//
-//			result = OperationResult.createOperationResult(holder.value);
-//			result.recordSuccess();
-//		} catch (Exception ex) {
-//			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
-//
-//			result = OperationResult.createOperationResult(holder.value);
-//			result.recordFatalError(ex);
-//		}
-//
-//		printResults(LOGGER, result);
-//
-//		return object;
-//	}
-//
-//	@SuppressWarnings("unchecked")
-//	private T createObject(ObjectType objectType) {
-//		T object = create();
-//		object.setXmlObject(objectType);
-//
-//		return object;
-//	}
+
+	@SuppressWarnings("unchecked")
+	private T createObject(ObjectType objectType) {
+		T object = create();
+		if (objectType != null && !object.supportObjectType(objectType.getClass())) {
+			throw new IllegalArgumentException("Trying to set object type '" + objectType.getClass()
+					+ "' to object dto '" + object.getClass() + "'.");
+		}
+		object.setXmlObject(objectType);
+
+		return object;
+	}
 }

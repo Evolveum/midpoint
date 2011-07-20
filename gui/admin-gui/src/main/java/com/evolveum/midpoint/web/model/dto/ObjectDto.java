@@ -89,4 +89,8 @@ public class ObjectDto<T extends ObjectType> implements Serializable {
 	public void setVersion(String value) {
 		getXmlObject().setVersion(value);
 	}
+	
+	public boolean supportObjectType(Class<? extends ObjectType> objectTypeClazz) {
+		return ObjectType.class.isAssignableFrom(objectTypeClazz);
+	}
 }
