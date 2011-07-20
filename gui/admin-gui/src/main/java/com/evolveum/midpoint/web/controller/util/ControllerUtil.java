@@ -222,9 +222,14 @@ public class ControllerUtil {
 
 		OperationResult resultFound = null;
 		for (OperationResult result : results) {
-			if (operation.equals(ConnectorTestOperation.valueOf(result.getOperation()))) {
-				resultFound = result;
-				break;
+			try {
+				if (operation.equals(ConnectorTestOperation.valueOf(result.getOperation()))) {
+					resultFound = result;
+					break;
+				}
+			} catch (IllegalArgumentException ex) {
+				LOGGER.debug("Result operation name {} returned from test connection is not type of {}.",
+						new Object[] { result.getOperation(), ConnectorTestOperation.class });
 			}
 		}
 
