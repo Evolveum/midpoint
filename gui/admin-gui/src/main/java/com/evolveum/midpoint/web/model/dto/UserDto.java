@@ -37,7 +37,7 @@ public class UserDto extends ExtensibleObjectDto<UserType> {
 
 	private static final long serialVersionUID = 2178456879571587946L;
 
-	public UserDto() {		
+	public UserDto() {
 	}
 
 	public UserDto(UserType object) {

@@ -47,8 +47,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 
-@SuppressWarnings("rawtypes")
-public abstract class ObjectManagerImpl2<T extends ObjectDto> implements ObjectManager<T>, Serializable {
+/**
+ * 
+ * @author lazyman
+ *
+ */
+public abstract class ObjectManagerImpl2<C extends ObjectType, T extends ObjectDto<C>> implements
+		ObjectManager<T>, Serializable {
 
 	private static final long serialVersionUID = -7853884441389039036L;
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectManagerImpl2.class);
@@ -69,6 +74,7 @@ public abstract class ObjectManagerImpl2<T extends ObjectDto> implements ObjectM
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public T get(String oid, PropertyReferenceListType resolve) {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
@@ -78,7 +84,9 @@ public abstract class ObjectManagerImpl2<T extends ObjectDto> implements ObjectM
 		T object = null;
 		try {
 			ObjectType objectType = getModel().getObject(oid, resolve, ObjectType.class, result);
-			object = createObject(objectType);
+			isObjectTypeSupported(objectType);
+
+			object = createObject((C) objectType);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
@@ -129,6 +137,7 @@ public abstract class ObjectManagerImpl2<T extends ObjectDto> implements ObjectM
 		return oid;
 	}
 
+	@SuppressWarnings("unchecked")
 	protected Collection<T> list(PagingType paging, ObjectTypes type) {
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(type, "Object type must not be null.");
@@ -140,7 +149,9 @@ public abstract class ObjectManagerImpl2<T extends ObjectDto> implements ObjectM
 			ObjectListType list = getModel().listObjects(type.getClassDefinition(), paging, result);
 			if (list != null) {
 				for (ObjectType objectType : list.getObject()) {
-					collection.add(createObject(objectType));
+					isObjectTypeSupported(objectType);
+
+					collection.add(createObject((C) objectType));
 				}
 			}
 			result.recordSuccess();
@@ -155,9 +166,8 @@ public abstract class ObjectManagerImpl2<T extends ObjectDto> implements ObjectM
 	}
 
 	@Override
-	public Set<PropertyChange> submit(T changedObject) throws WebModelException {
-		// TODO Auto-generated method stub
-		return null;
+	public T create() {
+		return createObject(null);
 	}
 
 	protected void printResults(Trace logger, OperationResult result) {
@@ -168,15 +178,20 @@ public abstract class ObjectManagerImpl2<T extends ObjectDto> implements ObjectM
 		logger.debug(result.dump());
 	}
 
-	@SuppressWarnings("unchecked")
-	private T createObject(ObjectType objectType) {
-		T object = create();
-		if (objectType != null && !object.supportObjectType(objectType.getClass())) {
-			throw new IllegalArgumentException("Trying to set object type '" + objectType.getClass()
-					+ "' to object dto '" + object.getClass() + "'.");
-		}
-		object.setXmlObject(objectType);
+	private void isObjectTypeSupported(ObjectType object) {
+		Class<? extends ObjectType> type = getSupportedObjectClass();
+		Validate.notNull(type, "Supported object class must not be null.");
 
-		return object;
+		if (!type.isAssignableFrom(object.getClass())) {
+			throw new IllegalArgumentException("Object type '" + object.getClass()
+					+ "' is not supported, supported class is '" + type + "'.");
+		}
 	}
+
+	@Override
+	public abstract Set<PropertyChange> submit(T changedObject) throws WebModelException;
+
+	protected abstract Class<? extends ObjectType> getSupportedObjectClass();
+
+	protected abstract T createObject(C objectType);
 }
