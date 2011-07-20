@@ -41,9 +41,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 @Component
 public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispatcher {
 	
+	private List<ResourceObjectChangeListener> listeners = new ArrayList<ResourceObjectChangeListener>();
+	
 	private static final Trace LOGGER = TraceManager.getTrace(ChangeNotificationDispatcherImpl.class);
 	
-	private List<ResourceObjectChangeListener> listeners = new ArrayList<ResourceObjectChangeListener>();
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager#registerNotificationListener(com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener)
+	 */
+	@Override
+	public synchronized void registerNotificationListener(ResourceObjectChangeListener listener) {
+		if (listeners.contains(listener)) {
+			LOGGER.warn(
+					"Resource object change listener '{}' is already registered. Subsequent registration is ignored",
+					listener);
+		} else {
+			listeners.add(listener);
+		}
+
+	}
 	
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager#unregisterNotificationListener(com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener)
@@ -67,24 +82,10 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 			for (ResourceObjectChangeListener listener : listeners) {
 				LOGGER.debug("Listener: {}", listener.getClass().getSimpleName());
 				listener.notifyChange(change, parentResult);
-
 			}
-		}
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager#registerNotificationListener(com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener)
-	 */
-	@Override
-	public synchronized void registerNotificationListener(ResourceObjectChangeListener listener) {
-		if (listeners.contains(listener)) {
-			LOGGER.warn(
-					"Resource object change listener '{}' is already registered. Subsequent registration is ignored",
-					listener);
 		} else {
-			listeners.add(listener);
+			LOGGER.warn("Change notification received but listener list is empty, there is nobody to get the message");
 		}
-
 	}
 
 }
