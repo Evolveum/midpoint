@@ -79,17 +79,20 @@ public class TaskManagerImpl implements TaskManager {
 	private RepositoryService repositoryService;
 	
 	private static final transient Trace logger = TraceManager.getTrace(TaskManagerImpl.class);
+	private static final String TASK_THREAD_NAME_PREFIX = "midpoint-task-";
+	
+	private static long threadCounter = 0;
 	
 	@PostConstruct
 	public void init() {
 		logger.info("Task Manager initialization");
-		startThread();
+		startScannerThread();
 	}
 	
 	@PreDestroy
 	public void shutdown() {
 		logger.info("Task Manager shutdown");
-		stopThread();
+		stopScannerThread();
 	}
 	
 	/* (non-Javadoc)
@@ -246,7 +249,7 @@ public class TaskManagerImpl implements TaskManager {
 		return handlers.get(uri);
 	}
 	
-	private void startThread() {
+	private void startScannerThread() {
 		if (scannerThread == null) {
 			scannerThread = new TaskScanner();
 			scannerThread.setName(THREAD_NAME);
@@ -260,7 +263,7 @@ public class TaskManagerImpl implements TaskManager {
 		}
 	}
 
-	private void stopThread() {
+	private void stopScannerThread() {
 		if (scannerThread == null) {
 			logger.warn("Attempt to stop non-existing task scanner thread");
 		} else {
@@ -344,8 +347,11 @@ public class TaskManagerImpl implements TaskManager {
 	
 	private Thread allocateThread(Task task, Runnable target) {
 		// TODO: thread pooling (later)
-		return new Thread(target);
+		Thread thread = new Thread(target);
 		// TODO: set thread name, etc.
+		thread.setName(TASK_THREAD_NAME_PREFIX + (++threadCounter));
+		
+		return thread;
 	}
 
 }
