@@ -46,7 +46,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.expr.ExpressionException;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.SystemException;
@@ -87,7 +87,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	@Autowired
 	private ExpressionHandler expressionHandler;
 	@Autowired
-	private ResourceObjectChangeNotificationManager notificationManager;
+	private ChangeNotificationDispatcher notificationManager;
 
 	@PostConstruct
 	public void registerForResourceObjectChangeNotifications(){

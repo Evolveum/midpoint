@@ -39,6 +39,7 @@ import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationConstants;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
@@ -95,7 +96,8 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 	@Autowired(required=true)
 	private TaskManager taskManager;
 
-	private ResourceObjectChangeListener objectChangeListener;
+	@Autowired(required=true)
+	private ChangeNotificationDispatcher changeNotificationDispatcher;
 	
 	private Map<Task,ImportFromResourceResultHandler> handlers;
 	private PropertyDefinition objectclassPropertyDefinition;
@@ -240,7 +242,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		}
 		
 		// Instantiate result handler. This will be called with every search result in the following iterative search
-		ImportFromResourceResultHandler handler = new ImportFromResourceResultHandler(resource,task,objectChangeListener);
+		ImportFromResourceResultHandler handler = new ImportFromResourceResultHandler(resource,task,changeNotificationDispatcher);
 		
 		// TODO: error checking - already running
 		handlers.put(task, handler);

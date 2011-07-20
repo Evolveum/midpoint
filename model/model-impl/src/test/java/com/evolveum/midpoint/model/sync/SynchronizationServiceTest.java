@@ -50,11 +50,11 @@ public class SynchronizationServiceTest {
 	private static final File TEST_FOLDER = new File("./src/test/resources/sync");
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceTest.class);
 	@Autowired(required = true)
-	private transient ResourceObjectChangeListener listener;
+	private transient ResourceObjectChangeListener synchronizationService;
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullChange() {
-		listener.notifyChange(null, new OperationResult("Test Operation"));
+		synchronizationService.notifyChange(null, new OperationResult("Test Operation"));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -62,7 +62,7 @@ public class SynchronizationServiceTest {
 	public void nullChangeResource() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "change-without-resource.xml"))).getValue();
-		listener.notifyChange(change, new OperationResult("Test Operation"));
+		synchronizationService.notifyChange(change, new OperationResult("Test Operation"));
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -70,7 +70,7 @@ public class SynchronizationServiceTest {
 	public void nullChangeObject() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "change-without-object.xml"))).getValue();
-		listener.notifyChange(change, new OperationResult("Test Operation"));
+		synchronizationService.notifyChange(change, new OperationResult("Test Operation"));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -78,6 +78,6 @@ public class SynchronizationServiceTest {
 	public void nullResult() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "change-correct.xml"))).getValue();
-		listener.notifyChange(change, null);
+		synchronizationService.notifyChange(change, null);
 	}
 }

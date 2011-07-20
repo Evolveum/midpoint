@@ -40,7 +40,7 @@ import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
@@ -90,14 +90,14 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author Radovan Semancik
  */
 @Service(value = "provisioningService")
-public class ProvisioningServiceImpl implements ProvisioningService, ResourceObjectChangeNotificationManager {
+public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Autowired
 	private ShadowCache shadowCache;
 	@Autowired
 	private RepositoryService repositoryService;
-
-	private List<ResourceObjectChangeListener> listeners = new ArrayList<ResourceObjectChangeListener>();
+	@Autowired
+	private ChangeNotificationDispatcher changeNotificationDispatcher;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
 
@@ -594,37 +594,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 		result.recordSuccess();
 	}
 
-	@Override
-	public synchronized void registerNotificationListener(ResourceObjectChangeListener listener) {
-		if (listeners.contains(listener)) {
-			LOGGER.warn(
-					"Resource object change listener '{}' is already registered. Subsequent registration is ignored",
-					listener);
-		} else {
-			listeners.add(listener);
-		}
-
-	}
-
-	@Override
-	public synchronized void unregisterNotificationListener(ResourceObjectChangeListener listener) {
-		listeners.remove(listener);
-	}
-
 	private synchronized void notifyResourceObjectChangeListeners(
 			ResourceObjectShadowChangeDescriptionType change, OperationResult parentResult) {
-
-		Validate.notNull(change, "Change description of resource object shadow must not be null.");
-		
-		LOGGER.debug("Notifying change {} ", DebugUtil.prettyPrint(change));
-		
-		if ((null != listeners) && (!listeners.isEmpty())) {
-			for (ResourceObjectChangeListener listener : listeners) {
-				LOGGER.debug("Listener: {}", listener.getClass().getSimpleName());
-				listener.notifyChange(change, parentResult);
-
-			}
-		}
+		changeNotificationDispatcher.notifyChange(change, parentResult);
 	}
 
 	private ResourceObjectShadowChangeDescriptionType createResourceShadowChangeDescription(Change change,

@@ -10,7 +10,7 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 
@@ -23,7 +23,7 @@ public class SynchornizationServiceMock implements ResourceObjectChangeListener{
 	private boolean called = false;
 	
 	@Autowired
-	ResourceObjectChangeNotificationManager notificationManager;
+	ChangeNotificationDispatcher notificationManager;
 	
 	@PostConstruct
 	public void registerForResourceObjectChangeNotifications(){
