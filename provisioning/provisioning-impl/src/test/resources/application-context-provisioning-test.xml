@@ -49,6 +49,7 @@
 		<property name="runServer" value="true" />
 		<!-- embedded is applicable only if runServer = true -->
 		<property name="embedded" value="true" />
+		<property name="shutdown" value="false" />
 		<property name="dropDatabase" value="false" />
 		<!-- initialDataPath - path containing xmls that should be loaded into 
 			DB -->

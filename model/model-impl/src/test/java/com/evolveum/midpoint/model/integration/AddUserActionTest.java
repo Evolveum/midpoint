@@ -71,7 +71,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml", "classpath:application-context-task.xml" })
+		"classpath:application-context-repository-test.xml", "classpath:application-context-provisioning.xml", "classpath:application-context-task.xml" })
 public class AddUserActionTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AddUserActionTest.class);

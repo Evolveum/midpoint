@@ -105,8 +105,16 @@ public class LoggingManager {
 
 		List<AppenderConfigurationType> appenders = config.getAppender();
 		List<LoggerConfigurationType> loggers = config.getLogger();
+		
 		// TODO: update logger configuration
 
+		for (LoggerConfigurationType loggerConf: loggers) {
+		
+			for (String pckg: loggerConf.getPackage()) {
+				Logger.getRootLogger().getLogger(pckg).getAllAppenders();
+			}
+		}
+		
 //		NdcFilteringRollingFileAppender appender = (NdcFilteringRollingFileAppender) Logger.getRootLogger()
 //				.getAppender("R");
 

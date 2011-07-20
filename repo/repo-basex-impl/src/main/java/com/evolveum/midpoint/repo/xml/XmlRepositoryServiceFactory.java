@@ -22,6 +22,8 @@
 package com.evolveum.midpoint.repo.xml;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.basex.BaseXServer;
@@ -32,6 +34,7 @@ import org.basex.server.ClientSession;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 public class XmlRepositoryServiceFactory {
@@ -41,12 +44,17 @@ public class XmlRepositoryServiceFactory {
 	private boolean dropDatabase = false;
 	private boolean runServer = true;
 	private boolean embedded = true;
+	//shutdown = true for standalone run, shutdown = false for test run
+	private boolean shutdown = false;
 	private String initialDataPath;
 	private String host;
 	private int port;
 	private String username;
 	private String password;
 	private String databaseName;
+
+	private List<ClientSession> sessions = new ArrayList<ClientSession>();
+	BaseXServer server;
 
 	public void init() throws RepositoryServiceFactoryException {
 
@@ -58,25 +66,26 @@ public class XmlRepositoryServiceFactory {
 			// args ordering is important!
 			if (embedded) {
 				// set debug mode and run it in the same process
-				new BaseXServer("-d", "-D", "-s");
+				server = new BaseXServer("-d", "-D", "-s");
 			} else {
 				// set debug mode and run it as a Daemon process
-				new BaseXServer("-d", "-s");
+				server = new BaseXServer("-d", "-s");
 			}
 			TRACE.trace("BaseX Server started");
 		}
 
 		boolean newDb = false;
 
+		ClientSession session = null;
 		try {
 			TRACE.trace("Creating BaseX client Session");
-			ClientSession session = new ClientSession(host, port, username, password);
+			session = new ClientSession(host, port, username, password);
 			TRACE.trace("BaseX client Session created");
 
 			if (dropDatabase) {
 				session.execute("DROP DATABASE " + databaseName);
 			}
-			
+
 			try {
 				session.execute("OPEN " + databaseName);
 			} catch (BaseXException ex) {
@@ -103,16 +112,41 @@ public class XmlRepositoryServiceFactory {
 			throw new RepositoryServiceFactoryException("XML DB Exception during DB initialization", e);
 		} catch (IOException e) {
 			throw new RepositoryServiceFactoryException("XML DB IO Exception during DB initialization", e);
+		} finally {
+			if (session != null) {
+				try {
+					session.close();
+				} catch (IOException e) {
+					throw new RepositoryServiceFactoryException(
+							"XML DB Client Session IO Exception during DB initialization", e);
+				}
+			}
 		}
 
 	}
 
 	public void destroy() {
+		if (shutdown) {
+			for (ClientSession session : sessions) {
+				try {
+					TRACE.trace("Closing XML DB Client session");
+					session.close();
+				} catch (IOException ex) {
+					TRACE.error("Reported IO while closing session to XML Database", ex);
+					throw new SystemException("Reported IO while closing session to XML Database", ex);
+				}
+			}
+
+			if (server != null) {
+				server.stop();
+			}
+		}
 	}
 
 	public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
+		ClientSession session = null;
 		try {
-			ClientSession session = new ClientSession(host, port, username, password);
+			session = new ClientSession(host, port, username, password);
 			session.execute("OPEN " + databaseName);
 			RepositoryService repositoryService = new XmlRepositoryService(session);
 			return repositoryService;
@@ -120,6 +154,10 @@ public class XmlRepositoryServiceFactory {
 			throw new RepositoryServiceFactoryException("XML DB IO Exception during client initialization", e);
 		} catch (BaseXException e) {
 			throw new RepositoryServiceFactoryException("XML DB Exception during client initialization", e);
+		} finally {
+			if (session != null) {
+				sessions.add(session);
+			}
 		}
 	}
 
@@ -194,5 +232,13 @@ public class XmlRepositoryServiceFactory {
 	public void setDropDatabase(boolean dropDatabase) {
 		this.dropDatabase = dropDatabase;
 	}
-	
+
+	public boolean isShutdown() {
+		return shutdown;
+	}
+
+	public void setShutdown(boolean shutdown) {
+		this.shutdown = shutdown;
+	}
+
 }

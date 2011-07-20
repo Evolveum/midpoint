@@ -48,8 +48,9 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
-		"classpath:application-context-test.xml", "classpath:application-context-repository.xml",
-		"classpath:application-context-provisioning.xml" })
+		"classpath:application-context-repository.xml",
+		"classpath:application-context-provisioning.xml",
+		"classpath:application-context-test.xml"})
 public class SpringApplicationContextTest {
 
 	@Autowired(required = true)

@@ -39,6 +39,7 @@
 		<property name="runServer" value="true"/>
 		<!-- embedded is applicable only if runServer = true -->
 		<property name="embedded" value="true"/>
+		<property name="shutdown" value="true"/>
 		<property name="dropDatabase" value="false"/>
 		<!-- initialDataPath - path containing xmls that should be loaded into DB -->
 		<property name="initialDataPath" value=""/>
@@ -53,8 +54,5 @@
 	
 	<!-- scope=prototype is mandatory, because every xml repo service has to be connected with separated session to the basex server -->
 	<bean name="repositoryService" factory-bean="xmlRepositoryServiceFactory" factory-method="getRepositoryService" class="com.evolveum.midpoint.repo.xml.XmlRepositoryService" scope="prototype" depends-on="xmlRepositoryServiceFactory"></bean>
-
-	<bean id="ndcAspect" class="com.evolveum.midpoint.aspect.NdcAspect">
-	</bean>
 
 </beans>

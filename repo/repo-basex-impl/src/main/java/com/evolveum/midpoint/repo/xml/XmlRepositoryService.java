@@ -96,14 +96,16 @@ public class XmlRepositoryService implements RepositoryService {
 
 	}
 
-	public void close() {
-		try {
-			session.close();
-		} catch (IOException ex) {
-			TRACE.error("Reported IO while closing session to XML Database", ex);
-			throw new SystemException("Reported IO while closing session to XML Database", ex);
-		}
-	}
+	//Note: client session is closed in XmlRepositoryServiceFactory, because Spring is not managing lifecycle of prototype beans
+//	public void close() {
+//		try {
+//			TRACE.error("Closing XML DB Client session");
+//			session.close();
+//		} catch (IOException ex) {
+//			TRACE.error("Reported IO while closing session to XML Database", ex);
+//			throw new SystemException("Reported IO while closing session to XML Database", ex);
+//		}
+//	}
 
 	@Override
 	public String addObject(ObjectType object, OperationResult parentResult)
