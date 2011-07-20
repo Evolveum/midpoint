@@ -551,17 +551,9 @@ public class ProvisioningServiceImpl implements ProvisioningService, ResourceObj
 										resourceOid);
 
 							} else if (QNameUtil.compareQName(SchemaConstants.I_OBJECT_CLASS, value)) {
-								String textContent = value.getTextContent();
-								String prefix = null;
-								String namespace = null;
-								String localPart = null;
-								if (textContent.contains(":")) {
-									prefix = textContent.substring(0, textContent.lastIndexOf(":"));
-									namespace = value.lookupNamespaceURI(prefix);
-									localPart = textContent.substring(textContent.lastIndexOf(":") + 1);
-									objectClass = new QName(namespace, localPart);
-									LOGGER.debug("**PROVISIONING: Object class to search: {}", objectClass);
-								} else {
+								objectClass = DOMUtil.getQNameValue((Element)value);
+								LOGGER.debug("**PROVISIONING: Object class to search: {}", objectClass);
+								if (objectClass == null) {
 									result.recordFatalError("Object class was not defined.");
 									throw new IllegalArgumentException("Object class was not defined.");
 								}

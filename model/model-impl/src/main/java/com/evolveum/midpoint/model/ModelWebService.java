@@ -67,6 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 public class ModelWebService implements ModelPortType {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
+	private static final String DEFAULT_RI_PREFIX = null;
 	@Autowired(required = true)
 	private ModelController model;
 	@Autowired(required = true)

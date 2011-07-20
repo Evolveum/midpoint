@@ -265,6 +265,10 @@ public class DOMUtil {
 		return subelements;
 	}
 	
+	public static QName resolveQName(Node domNode, String prefixNotation) {
+		return resolveQName(domNode, prefixNotation, null);
+	}
+	
 	public static QName resolveQName(Node domNode, String prefixNotation, String defaultNamespacePrefix) {
 		if (prefixNotation==null) {
 			// No QName
@@ -329,13 +333,14 @@ public class DOMUtil {
 	}
 		
 	public static void setQNameAttribute(Element element, QName attributeName, QName attributeValue) {
-		if (hasXsiType(element)) {
-			throw new IllegalArgumentException("Element already has a type");
-		}
-		// We need to figure out correct prefix. We have namespace URI, but we need a prefix to specify in the xsi:type
 		String valuePrefix = lookupOrCreateNamespaceDeclaration(element,attributeValue.getNamespaceURI(),attributeValue.getPrefix());
-		String attrValue = valuePrefix + ":" + attributeValue.getLocalPart();
-		
+		String attrValue = null;
+		if (valuePrefix==null || valuePrefix.isEmpty()) {
+			// default namespace
+			attrValue = attributeValue.getLocalPart();
+		} else {
+			attrValue = valuePrefix + ":" + attributeValue.getLocalPart();
+		}
 		Document doc = element.getOwnerDocument();
 		NamedNodeMap attributes = element.getAttributes();
         Attr attr = doc.createAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
@@ -345,8 +350,24 @@ public class DOMUtil {
         attributes.setNamedItem(attr);
 	}
 	
+	public static void setQNameValue(Element element, QName elementValue) {
+		String valuePrefix = lookupOrCreateNamespaceDeclaration(element,elementValue.getNamespaceURI(),elementValue.getPrefix());
+		String stringValue = null;
+		if (valuePrefix==null || valuePrefix.isEmpty()) {
+			// default namespace
+			stringValue = elementValue.getLocalPart();
+		} else {
+			stringValue = valuePrefix + ":" + elementValue.getLocalPart();
+		}
+		element.setTextContent(stringValue);
+	}
+	
 	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri, String preferredPrefix) {
 		// We need to figure out correct prefix. We have namespace URI, but we need a prefix to specify in the xsi:type
+		if (element.isDefaultNamespace(namespaceUri)) {
+			// Namespace URI is a default namespace. Return empty prefix;
+			return "";
+		}
 		String prefix = element.lookupPrefix(namespaceUri);
 		if (prefix == null) {
 			// try to use preferred prefix from QName
@@ -355,8 +376,14 @@ public class DOMUtil {
 				// check if a declaration for it exists
 				String namespaceDefinedForPreferredPrefix = element.lookupNamespaceURI(prefix);
 				if (namespaceDefinedForPreferredPrefix==null || namespaceDefinedForPreferredPrefix.isEmpty()) {
-					// No namespace definition for preferred prefix. So let's use it
-					setNamespaceDeclaration(element,prefix,namespaceUri);
+					// No namespace definition for preferred prefix. So let's use it .. unless is is default namespace
+					if (prefix.isEmpty()) {
+						// Default namespace. Never generate definition for default namespace unless there is already one.
+						// This will trigger auto-generated prefix later
+						prefix = null;
+					} else {
+						setNamespaceDeclaration(element,prefix,namespaceUri);
+					}
 				} else if (namespaceUri.equals(namespaceDefinedForPreferredPrefix)) {
 					// Nothing to do, prefix already defined and the definition matches.
 					// The question is how this could happen. Why has element.lookupPrefix() haven't found it?
@@ -365,6 +392,7 @@ public class DOMUtil {
 					prefix = null;
 				} 
 			}
+			// Empty prefix means default namespace
 			if (prefix == null) {
 				// generate random prefix
 				prefix = RANDOM_ATTR_PREFIX_PREFIX + rnd.nextInt(RANDOM_ATTR_PREFIX_RND);
@@ -393,6 +421,10 @@ public class DOMUtil {
 			return new QName(element.getNamespaceURI(),element.getLocalName());
 		}
 		return new QName(element.getNamespaceURI(),element.getLocalName(),element.getPrefix());
+	}
+
+	public static QName getQNameValue(Element element) {
+		return resolveQName(element, element.getTextContent());
 	}
 
 }

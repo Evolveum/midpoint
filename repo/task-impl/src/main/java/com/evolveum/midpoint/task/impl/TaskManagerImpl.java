@@ -192,13 +192,14 @@ public class TaskManagerImpl implements TaskManager {
 	 * @see com.evolveum.midpoint.task.api.TaskManager#switchToBackground(com.evolveum.midpoint.task.api.Task)
 	 */
 	@Override
-	public void switchToBackground(final Task task) {
+	public void switchToBackground(final Task task, OperationResult parentResult) {
 		
-		// TODO: not sure how to handle the result here ...
-		
-		OperationResult result = new OperationResult(TaskManager.class.getName()+".switchToBackground");
+		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".switchToBackground");
 		persist(task,result);
 		
+		// TODO: The task should be released and claimed again here - to let other nodes participate
+		
+		// No result is passed here ... as this is just a kind of async notification
 		processRunnableTask(task);
 	}
 

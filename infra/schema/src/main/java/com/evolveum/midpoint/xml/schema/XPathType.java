@@ -406,4 +406,8 @@ public class XPathType {
             }
         }
     }
+
+	public boolean isEmpty() {
+		return segments.isEmpty();
+	}
 }

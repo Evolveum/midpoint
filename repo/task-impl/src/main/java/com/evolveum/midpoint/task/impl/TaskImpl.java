@@ -320,6 +320,11 @@ public class TaskImpl implements Task {
 	public PropertyContainer getExtension() {
 		return extension;
 	}
+	
+	@Override
+	public Property getExtension(QName propertyName) {
+		return extension.findProperty(propertyName);
+	}
 
 	@Override
 	public void modifyExtension(List<PropertyModification> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
@@ -330,9 +335,10 @@ public class TaskImpl implements Task {
 		
 		// Only works for persistent tasks
 		if (persistenceStatus!=TaskPersistenceStatus.PERSISTENT) {
-			IllegalStateException ex = new IllegalStateException("Modify only works on persistent tasks");
-			opResult.recordFatalError("Modify only works on persistent tasks", ex);
-			throw ex;
+			// No need to call repository. Just apply the updates to the container
+			extension.applyModifications(modifications);
+			opResult.recordSuccess();
+			return;
 		}
 		
 		ObjectModificationType objectChange = new ObjectModificationType();

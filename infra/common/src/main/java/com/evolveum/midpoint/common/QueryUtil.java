@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathType;
 import java.util.ArrayList;
@@ -89,6 +90,46 @@ public class QueryUtil {
 
         List<Element> values = new ArrayList<Element>();
         values.add(value);
+        return createEqualFilter(doc, xpath, values);
+    }
+    
+    /**
+     * Creates "equal" filter segment for single-valued properties with string content.
+     * 
+     * @param doc
+     * @param xpath property container xpath. may be null.
+     * @param value
+     * @return "equal" filter segment (as DOM)
+     */
+    public static Element createEqualFilter(Document doc, XPathType xpath, QName properyName, String value) {
+        Validate.notNull(doc);
+        Validate.notNull(properyName);
+        Validate.notNull(value);
+
+        Element element = doc.createElementNS(properyName.getNamespaceURI(), properyName.getLocalPart());
+        element.setTextContent(value);
+        List<Element> values = new ArrayList<Element>();
+        values.add(element);
+        return createEqualFilter(doc, xpath, values);
+    }
+    
+    /**
+     * Creates "equal" filter segment for single-valued properties with QName content.
+     * 
+     * @param doc
+     * @param xpath property container xpath. may be null.
+     * @param value
+     * @return "equal" filter segment (as DOM)
+     */
+    public static Element createEqualFilter(Document doc, XPathType xpath, QName properyName, QName value) {
+        Validate.notNull(doc);
+        Validate.notNull(properyName);
+        Validate.notNull(value);
+
+        Element element = doc.createElementNS(properyName.getNamespaceURI(), properyName.getLocalPart());
+        DOMUtil.setQNameValue(element, value);
+        List<Element> values = new ArrayList<Element>();
+        values.add(element);
         return createEqualFilter(doc, xpath, values);
     }
     

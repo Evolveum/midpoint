@@ -65,6 +65,7 @@ public class XsdTypeConverter {
         addMapping(boolean.class, SchemaConstants.XSD_BOOLEAN,true);
 		addMapping(byte[].class, SchemaConstants.XSD_BASE64BINARY,true);
 		addMapping(GregorianCalendar.class, SchemaConstants.XSD_DATETIME,true);
+		addMapping(QName.class, SchemaConstants.XSD_QNAME,true);
     }
 	
 	private static void addMapping(Class javaClass, QName xsdType,boolean both) {
@@ -109,6 +110,8 @@ public class XsdTypeConverter {
 			return Boolean.parseBoolean(stringContent);
 		} else if (type.equals(GregorianCalendar.class)){
 			return getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
+		} else if (type.equals(QName.class)){
+			return DOMUtil.getQNameValue(xmlElement);
 		} else {
 			throw new IllegalArgumentException("Unknown type for conversion: " + type);
 		}
@@ -179,6 +182,9 @@ public class XsdTypeConverter {
 		} else if (type.equals(GregorianCalendar.class)) {
 			XMLGregorianCalendar xmlCal = toXMLGregorianCalendar((GregorianCalendar)val);
 			element.setTextContent(xmlCal.toXMLFormat());
+		} else if (type.equals(QName.class)) {
+			QName qname = (QName)val;
+			DOMUtil.setQNameValue(element, qname);
 		} else {
 			throw new IllegalArgumentException("Unknown type for conversion: " + type);
 		}

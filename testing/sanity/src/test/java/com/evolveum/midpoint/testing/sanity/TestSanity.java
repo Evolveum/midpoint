@@ -130,7 +130,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	private static final String REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME = "src/test/resources/request/user-modify-fullname-locality.xml";
 	
 	private static final QName IMPORT_OBJECTCLASS = new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff","AccountObjectClass");
-
+	
 	/**
 	 * Utility to control embedded OpenDJ instance (start/stop)
 	 */
@@ -616,7 +616,9 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	@Test
 	public void test200ImportFromResource() throws Exception {
 		// GIVEN
-		
+
+		OperationResult result = new OperationResult(TestSanity.class.getName()+".test200ImportFromResource");
+
 		Task inTask = taskManager.createTaskInstance();
 		TaskType taskType = inTask.getTaskTypeObject();
 		OperationResultType resultType = new OperationResultType();
@@ -639,6 +641,10 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 				
 		System.out.println("Import task after launch:");
 		System.out.println(task.dump());
+		
+		System.out.println("Import task in repo after launch:");
+		ObjectType o = repositoryService.getObject(task.getOid(),null, result);
+		System.out.println(ObjectTypeUtil.dump(o));
 		
 		System.out.println("Waining for import to complete");
 		Thread.sleep(10000);

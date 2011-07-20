@@ -144,6 +144,8 @@ public abstract class SchemaConstants {
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_DATETIME = new QName(W3C_XML_SCHEMA_NS_URI, "dateTime",
 			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_QNAME = new QName(W3C_XML_SCHEMA_NS_URI, "QName",
+			NS_W3C_XML_SCHEMA_PREFIX);
 	
 	public static final String NS_PROVISIONING = "http://midpoint.evolveum.com/xml/ns/public/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-1.xsd";

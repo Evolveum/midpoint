@@ -22,6 +22,8 @@ package com.evolveum.midpoint.task.api;
 
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -256,6 +258,8 @@ public interface Task {
 	 * @return task extension
 	 */
 	public PropertyContainer getExtension();
+	
+	public Property getExtension(QName propertyName);
 	
 	/**
 	 * TODO

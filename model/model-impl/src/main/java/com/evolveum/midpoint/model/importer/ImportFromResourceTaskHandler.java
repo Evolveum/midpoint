@@ -20,10 +20,13 @@
  */
 package com.evolveum.midpoint.model.importer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,6 +44,10 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.PropertyDefinition;
+import com.evolveum.midpoint.schema.processor.PropertyModification;
+import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -77,7 +84,10 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 @Component
 public class ImportFromResourceTaskHandler implements TaskHandler {
 	
-	public static final String HANDLER_URI = "http://midpoint.evolveum.com/model/import/handler-1";
+	public static final String IMPORT_URI_PREFIX = "http://midpoint.evolveum.com/model/import";
+	public static final String HANDLER_URI = IMPORT_URI_PREFIX + "/handler-1";
+	public static final String IMPORT_EXTENSION_SCHEMA = IMPORT_URI_PREFIX + "/extension-1.xsd";
+	public static final QName OBJECTCLASS_PROPERTY_NAME = new QName(IMPORT_EXTENSION_SCHEMA,"objectclass");
 
 	@Autowired(required=true)
 	private ProvisioningService provisioning;
@@ -88,12 +98,14 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 	private ResourceObjectChangeListener objectChangeListener;
 	
 	private Map<Task,ImportFromResourceResultHandler> handlers;
+	private PropertyDefinition objectclassPropertyDefinition;
 	
 	private static final Trace logger = TraceManager.getTrace(ImportFromResourceTaskHandler.class);
 	
 	public ImportFromResourceTaskHandler() {
 		super();
 		handlers = new HashMap<Task, ImportFromResourceResultHandler>();
+		objectclassPropertyDefinition = new PropertyDefinition(OBJECTCLASS_PROPERTY_NAME, SchemaConstants.XSD_QNAME);
 	}
 
 	@PostConstruct
@@ -109,9 +121,14 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 	 * @param task
 	 * @param manager
 	 */
-	public void launch(ResourceType resource, Task task, TaskManager manager) {
+	public void launch(ResourceType resource, QName objectclass, Task task, OperationResult parentResult) {
 				
 		logger.debug("Launching import from resource {}",ObjectTypeUtil.toShortString(resource));
+		
+		OperationResult result = parentResult.createSubresult(ImportFromResourceTaskHandler.class.getName()+".launch");
+		result.addParam("resource", resource);
+		result.addParam("objectclass",objectclass);
+		// TODO
 		
 		// Set handler URI so we will be called back
 		task.setHanderUri(HANDLER_URI);
@@ -122,10 +139,29 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		// Set reference to the resource
 		task.setObjectRef(ObjectTypeUtil.createObjectRef(resource));
 		
+		// Set objectclass
+		Property objectclassProperty = objectclassPropertyDefinition.instantiate();
+		objectclassProperty.setValue(objectclass);
+		PropertyModification modification = objectclassProperty.createModification(
+				ModificationType.REPLACE, objectclass);
+		List<PropertyModification> modifications = new ArrayList<PropertyModification>();
+		modifications.add(modification);
+		try {
+			task.modifyExtension(modifications, result);
+		} catch (ObjectNotFoundException e) {
+			logger.error("Task object not found, expecting it to exist (task {})",task,e);
+			result.recordFatalError("Task object not found", e);
+			throw new IllegalStateException("Task object not found, expecting it to exist",e);
+		} catch (SchemaException e) {
+			logger.error("Error dealing with schema (task {})",task,e);
+			result.recordFatalError("Error dealing with schema", e);
+			throw new IllegalStateException("Error dealing with schema",e);
+		}
+		
 		// Switch task to background. This will start new thread and call
 		// the run(task) method.
 		// Note: the thread may be actually started on a different node
-		manager.switchToBackground(task);
+		taskManager.switchToBackground(task, result);
 		
 		logger.trace("Import from resource {} switched to background, control thread returning with task {}",ObjectTypeUtil.toShortString(resource),task);
 	}
@@ -145,6 +181,8 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		runResult.setOperationResult(opResult);
 		runResult.setProgress(0);
 
+		// Determine resource for the import
+		
 		ResourceType resource = null;
 		try {
 			ObjectType object = task.getObject(opResult);
@@ -182,6 +220,23 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 			return runResult;
 		}
 		
+		// Determine object class to import
+		Property objectclassProperty = task.getExtension(OBJECTCLASS_PROPERTY_NAME);
+		if (objectclassProperty == null) {
+			logger.error("Import: No objectclass specified");
+			opResult.recordFatalError("No objectclass specified");
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			return runResult;
+		}
+		
+		QName objectclass = objectclassProperty.getValue(QName.class);
+		if (objectclass == null) {
+			logger.error("Import: No objectclass specified");
+			opResult.recordFatalError("No objectclass specified");
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			return runResult;
+		}
+		
 		ImportFromResourceResultHandler handler = new ImportFromResourceResultHandler(resource,task,objectChangeListener);
 		
 		// TODO: error checking - already running
@@ -189,7 +244,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		
 		try {
 			
-			provisioning.searchObjectsIterative(createAccountShadowTypeQuery(resource), null, handler, opResult);
+			provisioning.searchObjectsIterative(createAccountShadowTypeQuery(resource, objectclass), null, handler, opResult);
 			
 		} catch (ObjectNotFoundException ex) {
 			logger.error("Import: Object not found: {}",ex.getMessage(),ex);
@@ -232,16 +287,18 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		return runResult;
 	}
 	
-	private QueryType createAccountShadowTypeQuery(ResourceType resource) {
+	private QueryType createAccountShadowTypeQuery(ResourceType resource, QName objectClass) {
 		
 		Document doc = DOMUtil.getDocument();
         Element filter =
                 QueryUtil.createAndFilter(doc,
-                // TODO: The account type is hardcoded now, it should determined
-                // from the schema later, or maybe we can make it entirely
-                // generic (use ResourceObjectShadowType instead).
-                QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
-                QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF,resource.getOid()));
+	                // TODO: The account type is hardcoded now, it should determined
+	                // from the schema later, or maybe we can make it entirely
+	                // generic (use ResourceObjectShadowType instead).
+	                QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
+	                QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF,resource.getOid()),
+	                QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS,objectClass)
+                );
 		
 		QueryType query = new QueryType();
         query.setFilter(filter);

@@ -21,13 +21,19 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.NotImplementedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 
 /**
  * Property container groups properties into logical blocks. The reason for
@@ -207,8 +213,14 @@ public class PropertyContainer {
 	 */
 	public List<Element> serializePropertiesToDom(Document doc) throws SchemaProcessorException {
 		if (getDefinition() == null) {
-			throw new IllegalStateException(
-					"Object definition missing, unable to serialize");
+			// No definition. Therefore serialize properties one by one using a schema-less serialization
+			// Although schema-full serialization is strogly preferred, this is needed for "extension" and
+			// other schema-less parts.
+			for (Property property : properties) {
+				List<Element> elements = new ArrayList<Element>();
+				elements.addAll(property.serializeToDom(doc));
+				return elements;
+			}
 		}
 		return getDefinition().serializePropertiesToDom(getProperties(), doc);
 	}
@@ -255,5 +267,30 @@ public class PropertyContainer {
 
 	public boolean isEmpty() {
 		return properties.isEmpty();
+	}
+
+	public void applyModifications(List<PropertyModification> modifications) {
+		for (PropertyModification modification : modifications) {
+			applyModification(modification);
+		}
+	}
+
+	public void applyModification(PropertyModification modification) {
+		// TODO Auto-generated method stub
+		if (modification.getPath() == null || modification.getPath().isEmpty()) {
+			// Modification in this container
+			
+			Property property = findProperty(modification.getPropertyName());
+			if (modification.getModificationType() ==  ModificationType.REPLACE) {
+				Property newProperty = modification.getProperty();
+				properties.remove(property);
+				properties.add(newProperty);
+			} else {
+				throw new NotImplementedException("Modification type "+modification.getModificationType()+" is not supported yet");
+			}
+			
+		} else {
+			throw new NotImplementedException("Modification in subcontainers is not supported yet");
+		}
 	}
 }

@@ -574,7 +574,7 @@ public class ModelControllerImpl implements ModelController {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		ResourceType resource = getObject(resourceOid, resolve, ResourceType.class, result);
 
-		importFromResourceTaskHandler.launch(resource, task, taskManager);
+		importFromResourceTaskHandler.launch(resource, objectClass, task, result);
 
 		// The launch should switch task to asynchronous. It is in/out, so no
 		// other action is needed

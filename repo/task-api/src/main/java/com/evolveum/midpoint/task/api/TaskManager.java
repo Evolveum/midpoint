@@ -140,7 +140,7 @@ public interface TaskManager {
 	 * 
 	 * @param task task to switch to background.
 	 */
-	public void switchToBackground(Task task);
+	public void switchToBackground(Task task, OperationResult parentResult);
 	
 	// TODO: signature
 	public Set<Task> listTasks();
