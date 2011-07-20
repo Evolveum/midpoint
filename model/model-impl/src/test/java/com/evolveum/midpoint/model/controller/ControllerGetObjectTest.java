@@ -85,8 +85,8 @@ public class ControllerGetObjectTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullClass() throws Exception {
-		controller.getObject("abababab-abab-abab-abab-000000000001", new PropertyReferenceListType(),
-				new OperationResult("Get Object"), null);
+		controller.getObject("abababab-abab-abab-abab-000000000001", new PropertyReferenceListType(), null,
+				new OperationResult("Get Object"));
 	}
 
 	@Test(expected = ObjectNotFoundException.class)
@@ -95,8 +95,8 @@ public class ControllerGetObjectTest {
 		when(repository.getObject(eq(oid), any(PropertyReferenceListType.class), any(OperationResult.class)))
 				.thenThrow(new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
-		controller.getObject(oid, new PropertyReferenceListType(), new OperationResult("Get Object"),
-				ObjectType.class);
+		controller.getObject(oid, new PropertyReferenceListType(), ObjectType.class, new OperationResult(
+				"Get Object"));
 	}
 
 	@Test
@@ -111,8 +111,8 @@ public class ControllerGetObjectTest {
 
 		OperationResult result = new OperationResult("Get Object");
 		try {
-			final UserType user = controller.getObject(oid, new PropertyReferenceListType(), result,
-					UserType.class);
+			final UserType user = controller.getObject(oid, new PropertyReferenceListType(), UserType.class,
+					result);
 
 			assertNotNull(user);
 			assertEquals(expectedUser.getName(), user.getName());

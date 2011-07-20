@@ -46,8 +46,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public interface ModelService {
 
-	<T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve, OperationResult result,
-			Class<T> clazz) throws ObjectNotFoundException;
+	<T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve, Class<T> clazz,
+			OperationResult result) throws ObjectNotFoundException;
 
 	PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
 			PropertyReferenceListType properties, OperationResult result);

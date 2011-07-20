@@ -305,8 +305,8 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		Object object = null;
 
 		try {
-			ObjectType objectType = model.getObject(oid, new PropertyReferenceListType(), result,
-					ObjectType.class);
+			ObjectType objectType = model.getObject(oid, new PropertyReferenceListType(), ObjectType.class,
+					result);
 			if (objectType == null) {
 				return null;
 			}

@@ -64,8 +64,8 @@ public class AddUserAction extends BaseAction {
 			UserType user = getUser(userOid, subResult);
 			if (user == null) {
 				user = new ObjectFactory().createUserType();
-				
-				//TODO: process inbound schema handling here
+
+				// TODO: process inbound schema handling here
 				SchemaHandler schemaHandler = new SchemaHandlerImpl();
 				schemaHandler.setModel(getModel());
 				user = schemaHandler.processInboundHandling(user, shadowAfterChange, subResult);
@@ -74,7 +74,7 @@ public class AddUserAction extends BaseAction {
 				String userTemplateOid = getUserTemplateOid();
 				if (StringUtils.isNotEmpty(userTemplateOid)) {
 					userTemplate = getModel().getObject(userTemplateOid, new PropertyReferenceListType(),
-							subResult, UserTemplateType.class);
+							UserTemplateType.class, subResult);
 				}
 
 				userOid = getModel().addUser(user, userTemplate, subResult);

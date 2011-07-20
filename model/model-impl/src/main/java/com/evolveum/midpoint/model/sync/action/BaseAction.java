@@ -69,7 +69,7 @@ public abstract class BaseAction implements Action {
 		}
 
 		try {
-			return model.getObject(oid, new PropertyReferenceListType(), result, UserType.class);
+			return model.getObject(oid, new PropertyReferenceListType(), UserType.class, result);
 		} catch (ObjectNotFoundException ex) {
 			// user was not found, we return null
 		} catch (Exception ex) {

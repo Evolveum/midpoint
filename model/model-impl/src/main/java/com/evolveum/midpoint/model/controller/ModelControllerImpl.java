@@ -194,8 +194,8 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public <T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve,
-			OperationResult result, Class<T> clazz) throws ObjectNotFoundException {
+	public <T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve, Class<T> clazz,
+			OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(resolve, "Property reference list must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -572,7 +572,7 @@ public class ModelControllerImpl implements ModelController {
 
 		// Fetch resource definition from the repo/provisioning
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
-		ResourceType resource = getObject(resourceOid, resolve, result, ResourceType.class);
+		ResourceType resource = getObject(resourceOid, resolve, ResourceType.class, result);
 
 		importFromResourceTaskHandler.launch(resource, task, taskManager);
 

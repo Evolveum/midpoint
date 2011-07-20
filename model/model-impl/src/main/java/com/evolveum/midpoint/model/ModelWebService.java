@@ -25,7 +25,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
@@ -71,7 +69,7 @@ public class ModelWebService implements ModelPortType {
 	private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
 	@Autowired(required = true)
 	private ModelController model;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private TaskManager taskManager;
 
 	@Override
@@ -100,7 +98,7 @@ public class ModelWebService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service Get Object");
 		try {
-			ObjectType object = model.getObject(oid, resolve, operationResult, ObjectType.class);
+			ObjectType object = model.getObject(oid, resolve, ObjectType.class, operationResult);
 			handleOperationResult(operationResult, result);
 
 			return object;
@@ -286,7 +284,7 @@ public class ModelWebService implements ModelPortType {
 		notNullArgument(holder, "Holder must not be null.");
 		notNullArgument(holder.value, "Result type must not be null.");
 	}
-	
+
 	private <T> void notNullHolder(Holder<T> holder) throws FaultMessage {
 		notNullArgument(holder, "Holder must not be null.");
 		notNullArgument(holder.value, holder.getClass().getSimpleName() + " must not be null (in Holder).");
@@ -331,14 +329,16 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	@Override
-	public EmptyType importFromResource(String resourceOid, QName objectClass, Holder<TaskType> taskHolder) throws FaultMessage {
+	public EmptyType importFromResource(String resourceOid, QName objectClass, Holder<TaskType> taskHolder)
+			throws FaultMessage {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notNullArgument(objectClass, "Object class must not be null.");
 		notNullHolder(taskHolder);
 
 		Task task = taskManager.createTaskInstance(taskHolder.value);
-		OperationResult operationResult = task.getCurrentResult().createSubresult(ModelPortType.class.getName()+".importFromResource");
-		
+		OperationResult operationResult = task.getCurrentResult().createSubresult(
+				ModelPortType.class.getName() + ".importFromResource");
+
 		try {
 			model.importFromResource(resourceOid, objectClass, task);
 			handleTaskResult(task, taskHolder);
@@ -351,8 +351,8 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	/**
-	 * Fill the task holder with appropriate form of taskType (and result) to return back
-	 * to a web service caller.
+	 * Fill the task holder with appropriate form of taskType (and result) to
+	 * return back to a web service caller.
 	 * 
 	 * @param task
 	 * @param taskHolder
