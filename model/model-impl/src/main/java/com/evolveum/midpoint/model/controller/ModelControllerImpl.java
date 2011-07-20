@@ -252,8 +252,10 @@ public class ModelControllerImpl implements ModelController {
 		ObjectListType list = null;
 		try {
 			if (ProvisioningTypes.isObjectTypeManagedByProvisioning(objectType)) {
+				LOGGER.debug("Listing objects from provisioning.");
 				list = provisioning.listObjects(objectType, paging, subResult);
 			} else {
+				LOGGER.debug("Listing objects from repository.");
 				list = repository.listObjects(objectType, paging, subResult);
 			}
 			subResult.recordSuccess();

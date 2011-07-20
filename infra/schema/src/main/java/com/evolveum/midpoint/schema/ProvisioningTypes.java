@@ -76,7 +76,7 @@ public enum ProvisioningTypes {
 		Validate.notNull(objectType, "Object type must not be null.");
 
 		for (ProvisioningTypes type : ProvisioningTypes.values()) {
-			if (type.getDeclaringClass().equals(objectType)) {
+			if (type.clazz.equals(objectType)) {
 				return true;
 			}
 		}
