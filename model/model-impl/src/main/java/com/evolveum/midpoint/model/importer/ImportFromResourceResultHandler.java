@@ -114,15 +114,20 @@ public class ImportFromResourceResultHandler implements ResultHandler {
 
 		logger.debug("Going to call notification with new object: " + DebugUtil.prettyPrint(newShadow));
 		try {
+			
+			// Invoke the change notification
 			objectChangeListener.notifyChange(change, result);
+			
 		} catch (Exception ex) {
-			// TODO: record it in the result
 			logger.error("Change notication listener failed for import of object {}: {}: ", new Object[] {
 					newShadow, ex.getClass().getSimpleName(), ex.getMessage(), ex });
+			result.recordPartialError("failed to import", ex);
 			return !isStopOnError();
 		}
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
+		
+		result.computeStatus();
+		// Everything fine ... signal to continue
+		return true;
 	}
 
 	public long heartbeat() {

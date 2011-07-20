@@ -75,6 +75,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
@@ -400,7 +401,9 @@ public class ShadowCache {
 			// add object using connector, setting new properties to the
 			// resourceObject
 			try {
+				
 				resourceAttributes = connector.addObject(resourceObject, null, parentResult);
+				
 				LOGGER.debug("Added object: {}", DebugUtil.prettyPrint(resourceAttributes));
 				resourceObject.getProperties().addAll(resourceAttributes);
 			} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
@@ -417,6 +420,7 @@ public class ShadowCache {
 			// account shadow consisted
 			// of the identifiers added to the repo
 			LOGGER.debug("Setting identifier of added obejct to the repository object");
+			
 			resourceObjectShadow = (AccountShadowType) createResourceShadow(resourceObject.getIdentifiers(),
 					resourceObjectShadow);
 
@@ -427,7 +431,9 @@ public class ShadowCache {
 						"Error while creating account shadow object to save in the reposiotory. AccountShadow is null.");
 			}
 			LOGGER.debug("Adding object with identifiers to the repository.");
+			
 			result = getRepositoryService().addObject(resourceObjectShadow, parentResult);
+			
 			parentResult.recordSuccess();
 			return result;
 		}
@@ -538,8 +544,8 @@ public class ShadowCache {
 		connector.test(parentResult);
 	}
 
-	public void searchObjectsIterative(QName objectClass, ResourceType resourceType,
-			final ShadowHandler handler, final OperationResult parentResult) throws ObjectNotFoundException,
+	public void searchObjectsIterative(final QName objectClass, final ResourceType resourceType,
+			final ShadowHandler handler, final DiscoveryHandler discoveryHandler, final OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException {
 
 		if (resourceType == null) {
@@ -549,12 +555,12 @@ public class ShadowCache {
 			throw new IllegalArgumentException("Objectclass must not be null.");
 		}
 
-		LOGGER.debug("Searching objects iterative with obejct class {} on the resource with oid {}.",
-				objectClass, resourceType.getOid());
+		LOGGER.debug("Searching objects iterative with obejct class {}, resource: {}.",
+				objectClass, ObjectTypeUtil.toShortString(resourceType));
 
 		ConnectorInstance connector = getConnectorInstance(resourceType);
 
-		Schema schema = getResourceSchema(resourceType, connector, parentResult);
+		final Schema schema = getResourceSchema(resourceType, connector, parentResult);
 
 		if (schema == null) {
 			throw new IllegalArgumentException("Can't get resource schema.");
@@ -570,20 +576,40 @@ public class ShadowCache {
 				ResourceObjectShadowType shadow;
 				LOGGER.debug("Found resource object {}", DebugUtil.prettyPrint(object));
 				try {
+					
+					// Try to find shadow that corresponds to the resource object
 					shadow = lookupShadow(object, parentResult);
+					
 					if (shadow == null) {
-						LOGGER.error(
+						LOGGER.trace(
 								"Shadow object (in repo) to the resource object {} (on the resource) not found.",
 								DebugUtil.prettyPrint(object));
+						
+						// TODO: make sure that the resource object has appropriate definition
+						//       (use objectClass and schema)
+						
+						// The resource object obviously exists on the resource,
+						// but appropriate shadow does not exist in the repository
+						// we need to create the shadow to align repo state to the reality (resource)
+						shadow = createResourceShadow(object,resourceType,parentResult);
+						
+						// And notify about the change we have discovered (if requested to do so)
+						if (discoveryHandler!=null) {
+							discoveryHandler.discovered(shadow,parentResult);
+						}
+					} else {
+						LOGGER.trace("Found shadow object in the repository {}", DebugUtil.prettyPrint(shadow));
 					}
-					LOGGER.debug("Found shadow object in the repository {}", DebugUtil.prettyPrint(shadow));
+					
 				} catch (SchemaProcessorException e) {
 					// TODO: better error handling
 					// TODO log it?
+					LOGGER.error("Schema processor error: {}",e.getMessage(),e);
 					return false;
 				} catch (SchemaException e) {
 					// TODO: better error handling
 					// TODO log it?
+					LOGGER.error("Schema error: {}",e.getMessage(),e);
 					return false;
 				}
 
@@ -591,6 +617,7 @@ public class ShadowCache {
 
 				return handler.handle(shadow);
 			}
+
 		};
 
 		try {
@@ -832,6 +859,70 @@ public class ShadowCache {
 		resourceObjectShadow.getAttributes().getAny().addAll(identifierElements);
 
 		return resourceObjectShadow;
+	}
+	
+	/**
+	 * Create shadow based on the resource object that we have got
+	 * 
+	 * This method expects that the provided resource shadow is properly associated with the schema (has a definition).
+	 * 
+	 * @param resourceObject resource object found on the resource
+	 * @return shadow object created in the repository
+	 * @throws SchemaException 
+	 */
+	private ResourceObjectShadowType createResourceShadow(ResourceObject resourceObject, ResourceType resource, OperationResult parentResult) throws SchemaException {
+		
+		ResourceObjectShadowType shadow = new ResourceObjectShadowType();
+		shadow.setObjectClass(resourceObject.getDefinition().getTypeName());
+		shadow.setName(determineShadowName(resourceObject));
+		shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
+		Attributes attributes = new Attributes();
+		shadow.setAttributes(attributes);
+		
+		Document doc = DOMUtil.getDocument();
+		
+		// Add identifiers to the shadow
+		Set<Property> identifiers = resourceObject.getIdentifiers();
+		for (Property p : identifiers) {
+			try {
+				List<Element> eList = p.serializeToDom(doc);
+				shadow.getAttributes().getAny().addAll(eList);
+			} catch (SchemaProcessorException e) {
+				throw new SchemaException("An error occured while serializing property " + p + " to DOM");
+			}
+		}
+		
+		// Store shadow in the repository
+		String oid = null;
+		try {
+		
+			oid = getRepositoryService().addObject(shadow, parentResult);
+
+		} catch (ObjectAlreadyExistsException e) {
+			// This should not happen. The OID is not supplied and it is generated by the repo
+			// If it happens, it must be a repo bug. Therefore it is safe to conver to runtime exception
+			LOGGER.error("Unexpected repository behavior: "+e.getClass().getSimpleName()+": "+e.getMessage(),e);
+			throw new IllegalStateException("Unexpected repository behavior: "+e.getClass().getSimpleName()+": "+e.getMessage());
+		}
+		shadow.setOid(oid);
+
+		// Add all attributes to the shadow
+		shadow.getAttributes().getAny().clear();
+		for (ResourceObjectAttribute attr : resourceObject.getAttributes()) {
+			try {
+				List<Element> eList = attr.serializeToDom(doc);
+				shadow.getAttributes().getAny().addAll(eList);
+			} catch (SchemaProcessorException e) {
+				throw new SchemaException("An error occured while serializing attribute " + attr + " to DOM");
+			}
+		}
+		
+		return shadow;
+	}
+
+	private String determineShadowName(ResourceObject resourceObject) {
+		// FIXME: not really correct ... but OK for now
+		return resourceObject.getDisplayName();
 	}
 
 	private Set<Operation> getAttributeChanges(ObjectModificationType objectChange,

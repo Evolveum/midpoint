@@ -590,7 +590,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		};
 
-		getShadowCache().searchObjectsIterative(objectClass, resource, shadowHandler, result);
+		getShadowCache().searchObjectsIterative(objectClass, resource, shadowHandler, null, result);
 		result.recordSuccess();
 	}
 

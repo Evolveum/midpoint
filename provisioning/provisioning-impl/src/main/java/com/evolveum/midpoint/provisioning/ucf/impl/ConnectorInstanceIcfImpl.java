@@ -678,7 +678,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ResultsHandler icfHandler = new ResultsHandler() {
 			@Override
 			public boolean handle(ConnectorObject connectorObject) {
-				// Convert ICF-specific connetor object to a generic
+				// Convert ICF-specific connector object to a generic
 				// ResourceObject
 				ResourceObject resourceObject = convertToResourceObject(connectorObject, definition);
 
@@ -693,12 +693,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		// Connector operation cannot create result for itself, so we need to
 		// create result for it
-		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".getObject");
+		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".search");
 		icfResult.addParam("objectClass", icfObjectClass);
 		icfResult.addContext("connector", connector.getClass());
 
 		try {
+			
 			connector.search(icfObjectClass, null, icfHandler, null);
+			
+			icfResult.recordSuccess();
 		} catch (Exception ex) {
 			// ICF interface does not specify exceptions or other error
 			// conditions.
