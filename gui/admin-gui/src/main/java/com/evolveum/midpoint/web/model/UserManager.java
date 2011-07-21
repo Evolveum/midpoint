@@ -17,28 +17,30 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.web.model;
 
 import java.util.List;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
-import com.evolveum.midpoint.web.model.impl.ObjectManagerImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 
 /**
  * 
- * @author semancik
+ * @author lazyman
+ * 
  */
-public abstract class UserManager extends ObjectManagerImpl<UserDto> {
+public interface UserManager extends ObjectManager<GuiUserDto> {
+	
+	static final String CLASS_NAME = UserManager.class.getSimpleName();
+	static final String OPERATION_USER_SUBMIT = CLASS_NAME + "submit";
 
-	public abstract AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException;
+	AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException;
 
-	public abstract List<UserDto> search(QueryType search, PagingType paging, OperationResult result)
+	List<UserDto> search(QueryType search, PagingType paging, OperationResult result)
 			throws WebModelException;
 }

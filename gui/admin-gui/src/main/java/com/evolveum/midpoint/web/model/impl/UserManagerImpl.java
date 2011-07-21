@@ -17,9 +17,7 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.web.model.impl;
 
 import java.util.ArrayList;
@@ -29,7 +27,6 @@ import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +36,6 @@ import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -48,14 +44,15 @@ import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
+import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
@@ -65,40 +62,45 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
 /**
  * 
- * @author katuska
+ * @author lazyman
+ * 
  */
-public class UserManagerImpl extends UserManager {
+public class UserManagerImpl extends ObjectManagerImpl2<UserType, GuiUserDto> implements UserManager {
 
+	private static final Trace LOGGER = TraceManager.getTrace(UserManagerImpl.class);
 	private static final long serialVersionUID = -3457278299468312767L;
-	private static final Trace TRACE = TraceManager.getTrace(UserManagerImpl.class);
-	private Class<?> constructUserType;
-
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog objectTypeCatalog;
-	@Autowired(required = true)
-	private transient ModelPortType model;
 
-	public UserManagerImpl(Class<?> constructUserType) {
-		this.constructUserType = constructUserType;
+	@Override
+	protected Class<? extends ObjectType> getSupportedObjectClass() {
+		return UserType.class;
 	}
 
 	@Override
-	public Set<PropertyChange> submit(UserDto changedObject) {
+	protected GuiUserDto createObject(UserType objectType) {
+		return new GuiUserDto(objectType);
+	}
+
+	@Override
+	public Collection<GuiUserDto> list(PagingType paging) {
+		return list(paging, ObjectTypes.USER);
+	}
+
+	@Override
+	public Set<PropertyChange> submit(GuiUserDto changedObject) {
 		Validate.notNull(changedObject, "User object must not be null.");
 		Set<PropertyChange> set = new HashSet<PropertyChange>();
-
 		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
 
 		try { // Call Web Service Operation
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
 					changedObject.getXmlObject());
 			if (changes != null && changes.getOid() != null && changes.getPropertyModification().size() > 0) {
-				model.modifyObject(changes, new Holder<OperationResultType>(new OperationResultType()));
+				getModel().modifyObject(changes, new OperationResult(UserManager.OPERATION_USER_SUBMIT));
 			}
 
 			if (null != changes) {
@@ -113,42 +115,13 @@ public class UserManagerImpl extends UserManager {
 							getChangeType(modification.getModificationType()), values));
 				}
 			}
-			return set;
-		} catch (FaultMessage fault) {
-			// throw new WebModelException(fault.getFaultInfo().getMessage(),
-			// "[Web Service Error] Submit user failed.");
-			throw new RuntimeException(fault.getMessage());
-			// TODO: will be fixed later
-		} catch (DiffException ex) {
-			// throw new WebModelException(ex.getMessage(),
-			// "[Diff Error] Submit user failed.");
-			throw new RuntimeException(ex.getMessage(), ex);
-			// TODO: will be fixed later
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't submit user {}", ex,
+					new Object[] { changedObject.getName() });
+			FacesUtils.addErrorMessage("Couldn't submit user", ex);
 		}
-	}
 
-	private QName createQName(Element element) {
-		String namespace = element.getNamespaceURI();
-		if (namespace == null) {
-			namespace = element.getBaseURI();
-		}
-		return new QName(namespace, element.getLocalName(), element.getPrefix());
-	}
-
-	private PropertyChange.ChangeType getChangeType(PropertyModificationTypeType type) {
-		if (type == null) {
-			return null;
-		}
-		switch (type) {
-			case add:
-				return PropertyChange.ChangeType.ADD;
-			case delete:
-				return PropertyChange.ChangeType.DELETE;
-			case replace:
-				return PropertyChange.ChangeType.REPLACE;
-			default:
-				throw new IllegalArgumentException("Unknown change type '" + type + "'.");
-		}
+		return set;
 	}
 
 	@Override
@@ -179,25 +152,9 @@ public class UserManagerImpl extends UserManager {
 	}
 
 	@Override
-	public UserDto create() {
-		try {
-			UserDto userDto = (UserDto) constructUserType.newInstance();
-			userDto.setXmlObject(new UserType());
-			return userDto;
-		} catch (Exception ex) {
-			throw new IllegalStateException("Couldn't create instance of '" + constructUserType + "'.");
-		}
-	}
-
-	@Override
-	public Collection<UserDto> list(PagingType paging) {
-		return list(paging, ObjectTypes.USER);
-	}
-
-	@Override
-	public List<UserDto> search(QueryType query, PagingType paging, OperationResult result)
+	public List<UserDto> search(QueryType search, PagingType paging, OperationResult result)
 			throws WebModelException {
-		Validate.notNull(query, "Query must not be null.");
+		Validate.notNull(search, "Query must not be null.");
 		Validate.notNull(result, "Result must not be null.");
 
 		if (paging == null) {
@@ -205,24 +162,44 @@ public class UserManagerImpl extends UserManager {
 		}
 		List<UserDto> users = new ArrayList<UserDto>();
 		try {
-			ObjectListType list = model.searchObjects(query, paging,
-					new Holder<OperationResultType>(result.createOperationResultType()));
+			ObjectListType list = getModel().searchObjectsInRepository(search, paging, result);
 			for (ObjectType object : list.getObject()) {
-				UserDto userDto = createNewUser((UserType) object);
+				if (!(object instanceof UserType)) {
+					LOGGER.debug("Skipping object {}, is't not user.", object.getName());
+					continue;
+				}
+				UserDto userDto = createObject((UserType) object);
 				users.add(userDto);
 			}
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(TRACE, "Couldn't search users", ex);
-			// TODO: handle error
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't search users", ex);
+			FacesUtils.addErrorMessage("Couldn't search users.", ex);
 		}
 
 		return users;
 	}
 
-	private UserDto createNewUser(UserType user) throws WebModelException {
-		UserDto userDto = create();
-		userDto.setXmlObject(user);
+	private QName createQName(Element element) {
+		String namespace = element.getNamespaceURI();
+		if (namespace == null) {
+			namespace = element.getBaseURI();
+		}
+		return new QName(namespace, element.getLocalName(), element.getPrefix());
+	}
 
-		return userDto;
+	private PropertyChange.ChangeType getChangeType(PropertyModificationTypeType type) {
+		if (type == null) {
+			return null;
+		}
+		switch (type) {
+			case add:
+				return PropertyChange.ChangeType.ADD;
+			case delete:
+				return PropertyChange.ChangeType.DELETE;
+			case replace:
+				return PropertyChange.ChangeType.REPLACE;
+			default:
+				throw new IllegalArgumentException("Unknown change type '" + type + "'.");
+		}
 	}
 }

@@ -96,11 +96,11 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 			TRACE.info("userSelectionListener start");
 			PropertyReferenceListType resolve = new PropertyReferenceListType();
 			resolve.getProperty().add(Utils.fillPropertyReference("Account"));
-			
+
 			user = (GuiUserDto) userManager.get(userOid, resolve);
 			TRACE.info("userSelectionListener end");
-			
-			userDetailsController.setUser(user);			
+
+			userDetailsController.setUser(user);
 		} catch (Exception ex) {
 			LoggingUtils.logException(TRACE, "Can't select user, unknown error occured", ex);
 			FacesUtils.addErrorMessage("Can't select user, unknown error occured.", ex);
@@ -155,7 +155,7 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 		if (getQuery() == null) {
 			// we're listing objects
 			// try {
-			Collection<UserDto> list = (Collection<UserDto>) userManager.list(paging);
+			Collection<GuiUserDto> list = userManager.list(paging);
 			for (UserDto userDto : list) {
 				getObjects().add((GuiUserDto) userDto);
 			}

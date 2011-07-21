@@ -48,9 +48,9 @@ import com.evolveum.midpoint.web.model.SystemConfigurationManager;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
+import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.SystemConfigurationDto;
-import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -167,7 +167,7 @@ public class ControllerUtil {
 
 	public static UserManager getUserManager(ObjectTypeCatalog catalog) {
 		Validate.notNull(catalog, "Object type catalog must not be null.");
-		ObjectManager<UserDto> objectManager = catalog.getObjectManager(UserType.class, UserDto.class);
+		ObjectManager<GuiUserDto> objectManager = catalog.getObjectManager(UserType.class, GuiUserDto.class);
 		return (UserManager) (objectManager);
 	}
 

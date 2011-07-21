@@ -69,7 +69,6 @@ import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
-import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -176,8 +175,8 @@ public class UserDetailsController implements Serializable {
 	}
 
 	private UserManager getUserManager() {
-		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
-				UserDto.class);
+		ObjectManager<GuiUserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+				GuiUserDto.class);
 		return (UserManager) (objectManager);
 	}
 
@@ -340,8 +339,8 @@ public class UserDetailsController implements Serializable {
 
 		List<AccountShadowDto> newAccounts = new ArrayList<AccountShadowDto>();
 		for (ResourceDto resource : selectedResources) {
-			ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
-					UserDto.class);
+			ObjectManager<GuiUserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+					GuiUserDto.class);
 			UserManager userManager = (UserManager) (objectManager);
 			AccountShadowDto account = null;
 			try {
