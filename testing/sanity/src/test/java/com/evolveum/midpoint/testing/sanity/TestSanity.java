@@ -216,6 +216,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 */
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
+		System.out.println("===[ test000Integrity ]========================================\n");
 		assertNotNull(resource);
 		assertNotNull(model);
 		assertNotNull(repositoryService);
@@ -239,6 +240,8 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 */
 	@Test
 	public void test001TestConnection() throws FaultMessage, JAXBException {
+		System.out.println("\n\n===[ test001TestConnection ]========================================\n");
+		
 		// GIVEN
 		OperationResultType result = new OperationResultType();
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
@@ -247,27 +250,22 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		model.testResource(RESOURCE_OPENDJ_OID, holder);
 
 		// THEN
-		displayJaxb(result, new QName("result"));
+		
+		System.out.println("testResource result:");
+		displayJaxb(result, SchemaConstants.C_RESULT);
 
 		assertSuccess(result.getPartialResults().get(0));
-	}
-
-	private void assertSuccess(OperationResultType result) {
-		assertEquals(OperationResultStatusType.SUCCESS, result.getStatus());
-		List<OperationResultType> partialResults = result.getPartialResults();
-		for (OperationResultType subResult : partialResults) {
-			assertSuccess(subResult);
-		}
 	}
 
 	/**
 	 * Attempt to add new user. It is only added to the repository, so check if
 	 * it is in the repository after the operation.
 	 */
-	@Ignore
 	@Test
 	public void test002AddUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException,
 			SchemaException {
+		System.out.println("\n\n===[ test002AddUser ]========================================\n");
+		
 		// GIVEN
 		UserType user = unmarshallJaxbFromFile(USER_JACK_FILENAME, UserType.class);
 
@@ -279,6 +277,9 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 		// THEN
 
+		System.out.println("addObject result:");
+		displayJaxb(holder.value, SchemaConstants.C_RESULT);
+		
 		assertEquals(USER_JACK_OID, oid);
 
 		OperationResult repoResult = new OperationResult("getObject");
@@ -294,10 +295,11 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	/**
 	 * Add account to user. This should result in account provisioning. Check if that happens in repo and in LDAP.
 	 */
-	@Ignore
 	@Test
 	public void test003AddAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException,
 			SchemaException, DirectoryException {
+		System.out.println("\n\n===[ test003AddAccountToUser ]========================================\n");
+		
 		// GIVEN
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(REQUEST_USER_MODIFY_ADD_ACCOUNT_FILENAME,
@@ -310,14 +312,18 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		model.modifyObject(objectChange, holder);
 
 		// THEN
+		displayJaxb("modifyObject result",holder.value, SchemaConstants.C_RESULT);
 
 		// Check if user object was modified in the repo
 
 		OperationResult repoResult = new OperationResult("getObject");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		
 		ObjectType repoObject = repositoryService.getObject(USER_JACK_OID, resolve, repoResult);
 		UserType repoUser = (UserType) repoObject;
-		displayJaxb(repoUser, new QName("user"));
+		
+		displayJaxb("User (repository)",repoUser, new QName("user"));
+		
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
 		assertEquals(1, accountRefs.size());
 		ObjectReferenceType accountRef = accountRefs.get(0);
@@ -327,9 +333,12 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// Check if shadow was created in the repo
 
 		repoResult = new OperationResult("getObject");
+		
 		repoObject = repositoryService.getObject(shadowOid, resolve, repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
-		displayJaxb(repoShadow, new QName("shadow"));
+		
+		displayJaxb("Shadow (repository)",repoShadow, new QName("shadow"));
+		
 		assertNotNull(repoShadow);
 		assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
@@ -374,7 +383,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		assertEquals(1, op.getEntriesSent());
 		SearchResultEntry response = op.getSearchEntries().get(0);
 
-		display(response);
+		display("LDAP account",response);
 		
 		assertAttribute(response, "uid", "jack");
 		assertAttribute(response, "givenName", "Jack");
@@ -388,17 +397,24 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		result = new OperationResultType();
 		holder.value = result;
 
+		// WHEN
 		ObjectType modelObject = model.getObject(shadowOid, resolve, holder);
+		
+		// THEN
+		displayJaxb("getObject result",holder.value, SchemaConstants.C_RESULT);
+		
 		AccountShadowType modelShadow = (AccountShadowType) modelObject;
-		displayJaxb(modelShadow, new QName("shadow"));
+		displayJaxb("Shadow (model)",modelShadow, new QName("shadow"));
+		
 		assertNotNull(modelShadow);
 		assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
-		assertAttribute(repoShadow, resource, "uid", "jack");
-		assertAttribute(repoShadow, resource, "givenName", "Jack");
-		assertAttribute(repoShadow, resource, "sn", "Sparrow");
-		assertAttribute(repoShadow, resource, "cn", "Jack Sparrow");
-		assertAttribute(repoShadow, resource, "l", "middle of nowhere");
+		assertAttributeNotNull(modelShadow, SchemaConstants.ICFS_UID);
+		assertAttribute(modelShadow, resource, "uid", "jack");
+		assertAttribute(modelShadow, resource, "givenName", "Jack");
+		assertAttribute(modelShadow, resource, "sn", "Sparrow");
+		assertAttribute(modelShadow, resource, "cn", "Jack Sparrow");
+		assertAttribute(modelShadow, resource, "l", "middle of nowhere");
 	}
 	
 
@@ -407,9 +423,9 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * should be also applied to the account (by schemaHandling).
 	 * @throws DirectoryException 
 	 */
-	@Ignore
 	@Test
 	public void test004modifyUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException, SchemaException, DirectoryException {
+		System.out.println("\n\n===[ test004modifyUser ]========================================\n");
 		// GIVEN
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME,
@@ -422,6 +438,8 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		model.modifyObject(objectChange, holder);
 
 		// THEN
+		System.out.println("modifyObject result:");
+		displayJaxb(holder.value, SchemaConstants.C_RESULT);
 
 		// Check if user object was modified in the repo
 
@@ -502,10 +520,11 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	/**
 	 * The user should have an account now. Let's try to delete the user.
 	 * The account should be gone as well.
+	 * @throws JAXBException 
 	 */
-	@Ignore
 	@Test
-	public void test005DeleteUser() throws SchemaException, FaultMessage, DirectoryException {
+	public void test005DeleteUser() throws SchemaException, FaultMessage, DirectoryException, JAXBException {
+		System.out.println("\n\n===[ test005DeleteUser ]========================================\n");
 		// GIVEN
 
 		OperationResultType result = new OperationResultType();
@@ -515,6 +534,8 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		model.deleteObject(USER_JACK_OID,holder);
 
 		// THEN
+		System.out.println("deleteObject result:");
+		displayJaxb(holder.value, SchemaConstants.C_RESULT);
 		
 		// User should be gone from the repository
 		OperationResult repoResult = new OperationResult("getObject");
@@ -558,9 +579,9 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * It will create a cycle task and check if the cycle executes
 	 * No changes are synchronized yet.
 	 */
-	@Ignore
 	@Test
 	public void test100SynchronizationInit() throws Exception { 
+		System.out.println("\n\n===[ test100SynchronizationInit ]========================================\n");
 		// Now it is the right time to add task definition to the repository
 		// We don't want it there any sooner, as it may interfere with the
 		// previous tests
@@ -623,6 +644,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	
 	@Test
 	public void test200ImportFromResource() throws Exception {
+		System.out.println("\n\n===[ test200ImportFromResource ]========================================\n");
 		// GIVEN
 
 		OperationResult result = new OperationResult(TestSanity.class.getName()+".test200ImportFromResource");
@@ -716,6 +738,14 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	
 	// TODO: maybe we should move them to a common utility class
 	
+	private void assertSuccess(OperationResultType result) {
+		assertEquals(OperationResultStatusType.SUCCESS, result.getStatus());
+		List<OperationResultType> partialResults = result.getPartialResults();
+		for (OperationResultType subResult : partialResults) {
+			assertSuccess(subResult);
+		}
+	}
+	
 	private void assertNotEmpty(String message, String s) {
 		assertNotNull(message,s);
 		assertFalse(message,s.isEmpty());
@@ -727,13 +757,19 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	}
 	
 	private void assertAttribute(ResourceObjectShadowType repoShadow, ResourceType resource, String name, String value) {
-		assertAttribute(repoShadow,new QName(resource.getNamespace(),name),value);
+		assertAttribute("Wrong attribute "+name+" in shadow",repoShadow,new QName(resource.getNamespace(),name),value);
 	}
 		
 	private void assertAttribute(ResourceObjectShadowType repoShadow, QName name, String value) {
 		List<String> values = getAttributeValues(repoShadow, name);
 		assertEquals(1,values.size());
 		assertEquals(value,values.get(0));
+	}
+	
+	private void assertAttribute(String message, ResourceObjectShadowType repoShadow, QName name, String value) {
+		List<String> values = getAttributeValues(repoShadow, name);
+		assertEquals(message, 1,values.size());
+		assertEquals(message, value,values.get(0));
 	}
 	
 	private void assertAttributeNotNull(ResourceObjectShadowType repoShadow, QName name) {
@@ -783,14 +819,23 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		return object;
 	}
 
+	private void displayJaxb(String title,Object o, QName qname) throws JAXBException {
+		System.out.println("\n"+title);
+		displayJaxb(o, qname);
+	}
+	
 	private void displayJaxb(Object o, QName qname) throws JAXBException {
 		Document doc = DOMUtil.getDocument();
 		Element element = JAXBUtil.jaxbToDom(o, qname, doc);
 		System.out.println(DOMUtil.serializeDOMToString(element));
 	}
 
+	private void display(String message, SearchResultEntry response) {
+		System.out.println("\n"+message);
+		display(response);
+	}
+	
 	private void display(SearchResultEntry response) {
-		// TODO Auto-generated method stub
 		System.out.println(response.toLDIFString());
 	}
 

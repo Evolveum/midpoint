@@ -419,7 +419,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations,
-			OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
+			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".addObject");
@@ -449,10 +449,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		icfResult.addContext("connector", connector);
 
 		try {
+			// CALL THE ICF FRAMEWORK
 			Uid uid = connector.create(objectClass, attributes, new OperationOptionsBuilder().build());
+			
 			ResourceObjectAttribute attribute = setUidAttribute(uid);
 			object.getAttributes().add(attribute);
 			icfResult.recordSuccess();
+			
+		// Whole exception handling in this case is a black magic.
+		// ICF does not define any exceptions and there is no "best practice" how to handle ICF errors
+		// Therefore let's just guess what might have happened. That's the best we can do.
+		} catch (IllegalArgumentException ex) {
+			// This is most likely missing attribute or similar schema thing
+			throw new SchemaException("Schema violation (most likely): "+ex.getMessage(),ex);
 		} catch (Exception ex) {
 
 			icfResult.recordFatalError(ex);

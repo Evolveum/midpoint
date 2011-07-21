@@ -28,7 +28,7 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
+	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
 	xmlns:my="http://myself.me/schemas/whatever"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
@@ -199,7 +199,7 @@
 
                 <!-- Reference to the Resoure Schema (see above) specifying
                      object class for this account type -->
-			<c:objectClass>ri:Account</c:objectClass>
+			<c:objectClass>ri:AccountObjectClass</c:objectClass>
 
                 <!-- Definition of __NAME__ attribute handling.
                      ICF will put entry DN into __NAME__ attribute.-->

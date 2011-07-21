@@ -40,6 +40,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.object.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -546,7 +547,7 @@ public class ShadowCache {
 
 	public void searchObjectsIterative(final QName objectClass, final ResourceType resourceType,
 			final ShadowHandler handler, final DiscoveryHandler discoveryHandler, final OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException {
+			CommunicationException, SchemaException {
 
 		if (resourceType == null) {
 			throw new IllegalArgumentException("Resource must not be null.");
@@ -764,29 +765,43 @@ public class ShadowCache {
 	}
 
 	private Schema getResourceSchema(ResourceType resource, ConnectorInstance connector,
-			OperationResult parentResult) throws CommunicationException {
+			OperationResult parentResult) throws CommunicationException, SchemaException {
 
-		// TEMPORARY HACK: Fetch schema from connector
+		// TODO: Need to add some form of memory caching here.
+		
+		Schema schema = null;
+		
+		// Parse schema from resource definition (if available)		
+		Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
+		if (resourceXsdSchema!=null) {
+			
+			try {
+				schema = Schema.parse(resourceXsdSchema);
+			} catch (SchemaProcessorException e) {
+				throw new SchemaException("Unable to parse resource schema: "+e.getMessage(),e);
+			}
+			
+		} else {
+			// Otherwise try to fetch schema from connector
 
-		try {
-			return connector.fetchResourceSchema(parentResult);
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
-			throw new CommunicationException("Error communicating with the connector " + connector, ex);
-		} catch (GenericFrameworkException ex) {
-			throw new GenericConnectorException("Generic error in connector " + connector + ": "
-					+ ex.getMessage(), ex);
+			try {
+				schema = connector.fetchResourceSchema(parentResult);
+			} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+				throw new CommunicationException("Error communicating with the connector " + connector, ex);
+			} catch (GenericFrameworkException ex) {
+				throw new GenericConnectorException("Generic error in connector " + connector + ": "
+						+ ex.getMessage(), ex);
+			}
+			
+			if (schema==null) {
+				throw new SchemaException("Unable to fetch schema from the resource");
+			}
+			
+			// TODO: store fetched schema in the resource for future (and offline) use
+
 		}
-
-		// Need to add some form of caching here.
-		// For now just parse it from the resource definition.
-
-		// Element schemaElement =
-		// ResourceTypeUtil.getResourceXsdSchema(resource);
-		// if (schemaElement==null) {
-		// throw new
-		// SchemaException("No schema found in definition of resource "+ObjectTypeUtil.toShortString(resource));
-		// }
-		// return Schema.parse(schemaElement);
+		
+		return schema;
 	}
 
 	private ResourceType getResource(String oid, OperationResult parentResult)
@@ -803,16 +818,23 @@ public class ShadowCache {
 	 *            object from which attributes are converted
 	 * @param schema
 	 * @return resourceObject
+	 * @throws SchemaException Object class definition was not found
 	 */
-	private ResourceObject convertFromXml(ResourceObjectShadowType resourceObjectShadow, Schema schema) {
+	private ResourceObject convertFromXml(ResourceObjectShadowType resourceObjectShadow, Schema schema) throws SchemaException {
 		QName objectClass = resourceObjectShadow.getObjectClass();
 
 		if (objectClass == null) {
 			throw new IllegalArgumentException("Object class is not defined.");
 		}
+		if (schema == null) {
+			throw new IllegalArgumentException("No schema provided");
+		}
 
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
 				.findContainerDefinitionByType(objectClass);
+		if (rod==null) {
+			throw new SchemaException("Schema definition for object class "+objectClass+" was not found");
+		}
 		ResourceObject resourceObject = rod.instantiate();
 
 		List<Element> attributes = resourceObjectShadow.getAttributes().getAny();

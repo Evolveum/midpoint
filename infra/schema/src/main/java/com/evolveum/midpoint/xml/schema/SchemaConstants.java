@@ -82,6 +82,7 @@ public abstract class SchemaConstants {
 	public static final QName C_TASK_PROGRESS = new QName(NS_C,"progress");
 	public static final QName I_RESOURCE = new QName(NS_C, "resource");
 	public static final QName I_RESOURCE_STATE = new QName(NS_C, "resourceState");
+	public static final QName C_RESULT = new QName(NS_C, "result");
 	public static final QName I_TYPE = new QName(NS_C, "type");
 	public static final QName I_SCHEMA_HANDLING = new QName(NS_C, "schemaHandling");
 	public static final QName I_USER_TYPE = new QName(NS_C, "UserType");
