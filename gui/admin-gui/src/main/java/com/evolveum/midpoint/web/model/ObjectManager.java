@@ -106,7 +106,7 @@ public interface ObjectManager<T> {
 	 *            new state of the object
 	 * @return relative changes that will be applied to the object
 	 */
-	Set<PropertyChange> submit(T changedObject) throws WebModelException;
+	Set<PropertyChange> submit(T changedObject);
 
 	/**
 	 * Deletes object from the repository.

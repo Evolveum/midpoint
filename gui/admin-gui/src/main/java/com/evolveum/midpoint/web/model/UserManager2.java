@@ -34,6 +34,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
  * 
  */
 public interface UserManager2 {
+	
+	static final String CLASS_NAME = UserManager2.class.getSimpleName();
+	static final String OPERATION_USER_SUBMIT = CLASS_NAME + "submit";
 
 	AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException;
 

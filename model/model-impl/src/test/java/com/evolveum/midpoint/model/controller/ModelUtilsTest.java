@@ -79,7 +79,7 @@ public class ModelUtilsTest {
 		assertEquals(ObjectTypes.SYSTEM_CONFIGURATION.getTypeQName(), ref.getType());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void validatePagingNull() {
 		ModelUtils.validatePaging(null);
 	}

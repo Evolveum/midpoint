@@ -37,18 +37,14 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
-import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.model.ResourceManager;
-import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
@@ -155,7 +151,7 @@ public class ResourceTypeManager extends ResourceManager {
 		Validate.notNull(objectClass, "Object class must not be null.");
 		LOGGER.debug("Launching import from resource with oid {} and object class {}.", new Object[] {
 				resourceOid, objectClass });
-		
+
 		// TODO: correct task setup
 
 		OperationResult result = new OperationResult("Launch Import On Resource");
@@ -172,15 +168,17 @@ public class ResourceTypeManager extends ResourceManager {
 			LoggingUtils.logException(LOGGER, "Couldn't launch import on resource {} and object class {}",
 					ex, resourceOid, objectClass);
 
-//			OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
-//					.getOperationResult() == null) ? holder.value : ex.getFaultInfo().getOperationResult();
-//			result = OperationResult.createOperationResult(resultType);
+			// OperationResultType resultType = (ex.getFaultInfo() != null &&
+			// ex.getFaultInfo()
+			// .getOperationResult() == null) ? holder.value :
+			// ex.getFaultInfo().getOperationResult();
+			// result = OperationResult.createOperationResult(resultType);
 			result.recordFatalError(ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't launch import on resource {} and object class {}",
 					ex, resourceOid, objectClass);
 
-//			result = OperationResult.createOperationResult(holder.value);
+			// result = OperationResult.createOperationResult(holder.value);
 			result.recordFatalError(ex);
 		}
 
@@ -199,17 +197,20 @@ public class ResourceTypeManager extends ResourceManager {
 		TaskStatusType task = null;
 		try {
 			// TODO: switch to getObject(taskOid)
-			
-//			getModel().getImportStatus(resourceOid, holder);
+
+			// getModel().getImportStatus(resourceOid, holder);
 			result = OperationResult.createOperationResult(holder.value);
 			result.recordSuccess();
-//		} catch (FaultMessage ex) {
-//			LoggingUtils.logException(LOGGER, "Couldn't get import status from resource {}", ex, resourceOid);
-//
-//			OperationResultType resultType = (ex.getFaultInfo() != null && ex.getFaultInfo()
-//					.getOperationResult() == null) ? holder.value : ex.getFaultInfo().getOperationResult();
-//			result = OperationResult.createOperationResult(resultType);
-//			result.recordFatalError(ex);
+			// } catch (FaultMessage ex) {
+			// LoggingUtils.logException(LOGGER,
+			// "Couldn't get import status from resource {}", ex, resourceOid);
+			//
+			// OperationResultType resultType = (ex.getFaultInfo() != null &&
+			// ex.getFaultInfo()
+			// .getOperationResult() == null) ? holder.value :
+			// ex.getFaultInfo().getOperationResult();
+			// result = OperationResult.createOperationResult(resultType);
+			// result.recordFatalError(ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get import status from resource {}", ex, resourceOid);
 

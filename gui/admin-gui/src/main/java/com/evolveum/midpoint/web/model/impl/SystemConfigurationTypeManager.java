@@ -25,14 +25,13 @@ import java.util.Collection;
 import java.util.Set;
 
 import com.evolveum.midpoint.web.model.SystemConfigurationManager;
-import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 
 public class SystemConfigurationTypeManager extends SystemConfigurationManager {
-	
+
 	private static final long serialVersionUID = 7510934216789096238L;
 
 	@Override
@@ -52,7 +51,7 @@ public class SystemConfigurationTypeManager extends SystemConfigurationManager {
 	}
 
 	@Override
-	public Set<PropertyChange> submit(SystemConfigurationDto changedObject) throws WebModelException {
+	public Set<PropertyChange> submit(SystemConfigurationDto changedObject) {
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 }

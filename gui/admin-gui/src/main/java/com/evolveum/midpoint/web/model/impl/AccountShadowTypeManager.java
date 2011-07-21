@@ -81,7 +81,7 @@ public class AccountShadowTypeManager extends AccountShadowManager {
 	}
 
 	@Override
-	public Set<PropertyChange> submit(AccountShadowDto changedObject) throws WebModelException {
+	public Set<PropertyChange> submit(AccountShadowDto changedObject){
 		AccountShadowDto oldObject = get(changedObject.getOid(), Utils.getResolveResourceList());
 		try {
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),
@@ -90,10 +90,10 @@ public class AccountShadowTypeManager extends AccountShadowManager {
 				getModel().modifyObject(changes, new Holder<OperationResultType>(new OperationResultType()));
 			}
 		} catch (FaultMessage ex) {
-			throw new WebModelException(ex.getMessage(),
-					"[Web Service Error] Submit account failed (Model service call failed)");
+			// throw new WebModelException(ex.getMessage(),
+			// "[Web Service Error] Submit account failed (Model service call failed)");
 		} catch (DiffException ex) {
-			throw new WebModelException(ex.getMessage(), "Submit account failed (XML Diff failed)");
+//			throw new WebModelException(ex.getMessage(), "Submit account failed (XML Diff failed)");
 		}
 
 		// TODO: convert changes to GUI changes

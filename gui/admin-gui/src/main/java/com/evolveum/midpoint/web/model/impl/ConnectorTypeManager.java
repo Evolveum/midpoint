@@ -24,7 +24,6 @@ import java.util.Collection;
 import java.util.Set;
 
 import com.evolveum.midpoint.schema.ObjectTypes;
-import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -44,7 +43,7 @@ public class ConnectorTypeManager extends ObjectManagerImpl<ConnectorDto> {
 	}
 
 	@Override
-	public Set<PropertyChange> submit(ConnectorDto changedObject) throws WebModelException {
+	public Set<PropertyChange> submit(ConnectorDto changedObject) {
 		throw new UnsupportedOperationException("Not supported for this type.");
 	}
 

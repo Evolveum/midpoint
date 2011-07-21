@@ -88,9 +88,10 @@ public class UserManagerImpl extends UserManager {
 	}
 
 	@Override
-	public Set<PropertyChange> submit(UserDto changedObject) throws WebModelException {
+	public Set<PropertyChange> submit(UserDto changedObject) {
 		Validate.notNull(changedObject, "User object must not be null.");
-
+		Set<PropertyChange> set = new HashSet<PropertyChange>();
+		
 		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
 
 		try { // Call Web Service Operation
@@ -100,10 +101,8 @@ public class UserManagerImpl extends UserManager {
 				model.modifyObject(changes, new Holder<OperationResultType>(new OperationResultType()));
 			}
 
-			Set<PropertyChange> set = null;
 			if (null != changes) {
-				// TODO: finish this
-				set = new HashSet<PropertyChange>();
+				// TODO: finish this				
 				List<PropertyModificationType> modifications = changes.getPropertyModification();
 				for (PropertyModificationType modification : modifications) {
 					Set<Object> values = new HashSet<Object>();
@@ -116,11 +115,13 @@ public class UserManagerImpl extends UserManager {
 			}
 			return set;
 		} catch (FaultMessage fault) {
-			throw new WebModelException(fault.getFaultInfo().getMessage(),
-					"[Web Service Error] Submit user failed.");
+//			throw new WebModelException(fault.getFaultInfo().getMessage(),
+//					"[Web Service Error] Submit user failed.");
 		} catch (DiffException ex) {
-			throw new WebModelException(ex.getMessage(), "[Diff Error] Submit user failed.");
+//			throw new WebModelException(ex.getMessage(), "[Diff Error] Submit user failed.");
 		}
+		
+		return set;
 	}
 
 	private QName createQName(Element element) {

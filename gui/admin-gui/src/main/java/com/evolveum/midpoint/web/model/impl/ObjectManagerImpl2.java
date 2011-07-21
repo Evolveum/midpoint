@@ -24,7 +24,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +36,8 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.model.ObjectManager;
-import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
-import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -50,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 /**
  * 
  * @author lazyman
- *
+ * 
  */
 public abstract class ObjectManagerImpl2<C extends ObjectType, T extends ObjectDto<C>> implements
 		ObjectManager<T>, Serializable {
@@ -187,9 +184,6 @@ public abstract class ObjectManagerImpl2<C extends ObjectType, T extends ObjectD
 					+ "' is not supported, supported class is '" + type + "'.");
 		}
 	}
-
-	@Override
-	public abstract Set<PropertyChange> submit(T changedObject) throws WebModelException;
 
 	protected abstract Class<? extends ObjectType> getSupportedObjectClass();
 
