@@ -55,12 +55,12 @@
 		<url>https://fisheye.evolveum.com/midpoint/</url>
 	</scm>
 	<repositories>
-        <repository>
-            <id>evolveum</id>
-            <name>repo</name>
-            <url>http://repo.evolveum.com/repo</url>
-        </repository>
-    </repositories>
+		<repository>
+			<id>evolveum</id>
+			<name>repo</name>
+			<url>http://repo.evolveum.com/repo</url>
+		</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
@@ -72,22 +72,6 @@
 			<artifactId>xsom</artifactId>
 			<version>20100725</version>
 		</dependency>
-
-        <!--https://jira.springsource.org/browse/ROO-181 -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
-            <version>${spring.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- https://jira.springsource.org/browse/SPR-6819 -->
-        <dependency>
-          <groupId>javax.persistence</groupId>
-          <artifactId>persistence-api</artifactId>
-          <version>1.0</version>
-          <optional>true</optional>
-        </dependency>
-
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -128,7 +112,7 @@
 					<verbose>${verbose.jaxb}</verbose>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>jaxws-maven-plugin</artifactId>

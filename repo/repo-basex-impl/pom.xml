@@ -26,7 +26,6 @@
 	<name>midPoint Repository - basex repository</name>
 	<groupId>com.evolveum.midpoint.repo</groupId>
 	<artifactId>repo-basex-impl</artifactId>
-	<version>1.8-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<parent>
 		<artifactId>repo</artifactId>
@@ -64,13 +63,13 @@
 	</repositories>
 	<dependencies>
 		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-api</artifactId>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>common</artifactId>
 			<version>1.8-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>util</artifactId>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-api</artifactId>
 			<version>1.8-SNAPSHOT</version>
 		</dependency>
 		<dependency>
@@ -80,7 +79,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>common</artifactId>
+			<artifactId>util</artifactId>
 			<version>1.8-SNAPSHOT</version>
 		</dependency>
 		<dependency>
@@ -107,45 +106,29 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
-        <!--https://jira.springsource.org/browse/ROO-181 -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
-            <version>${spring.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- https://jira.springsource.org/browse/SPR-6819 -->
-        <dependency>
-          <groupId>javax.persistence</groupId>
-          <artifactId>persistence-api</artifactId>
-          <version>1.0</version>
-          <optional>true</optional>
-        </dependency>
 	</dependencies>
-
-<build>
-<plugins>
-<plugin>
-    <groupId>org.codehaus.mojo</groupId>
-    <artifactId>aspectj-maven-plugin</artifactId>
-    <configuration>
-        <aspectLibraries>
-            <aspectLibrary>
-                        <groupId>com.evolveum.midpoint.infra</groupId>
-                        <artifactId>util</artifactId>
-            </aspectLibrary>
-        </aspectLibraries>
-    </configuration>
-    <executions>
-        <execution>
-            <goals>
-                <goal>compile</goal>
-            </goals>
-        </execution>
-    </executions>
-</plugin>
-
-</plugins>
-</build>
-
+	<profiles>
+		<profile>
+			<id>aspectj</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>aspectj-maven-plugin</artifactId>
+						<configuration>
+							<aspectLibraries>
+								<aspectLibrary>
+									<groupId>com.evolveum.midpoint.infra</groupId>
+									<artifactId>util</artifactId>
+								</aspectLibrary>
+							</aspectLibraries>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
