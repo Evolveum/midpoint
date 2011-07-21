@@ -196,6 +196,30 @@ public final class ResourceObject extends PropertyContainer {
 		}
 		return findAttribute(getDefinition().getDisplayNameAttribute());
 	}
+	
+	/**
+	 * Specifies which resource attribute should be used as a "technical" name
+	 * for the account. This name will appear in log files and other troubleshooting
+	 * tools. The name should be a form of unique identifier that can be used to
+	 * locate the resource object for diagnostics. It should not contain white chars and
+	 * special chars if that can be avoided and it should be reasonable short.
+                
+	 * It is different from a display name attribute. Display name is intended for a 
+	 * common user or non-technical administrator (such as role administrator). The
+	 * naming attribute is intended for technical IDM administrators and developers.
+	 * 
+	 * @return attribute that should be used as a "technical" name
+	 * 				for the account.
+	 */
+	public ResourceObjectAttribute getNamingAttribute() {
+		if (getDefinition() == null) {
+			return null;
+		}
+		if (getDefinition().getNamingAttribute()==null) {
+			return null;
+		}
+		return findAttribute(getDefinition().getNamingAttribute());
+	}
 
 	/**
 	 * Returns display name attribute of a resource object.

@@ -52,8 +52,9 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	private Schema schema;
 	private Set<ResourceObjectAttributeDefinition> idenitifiers;
 	private Set<ResourceObjectAttributeDefinition> secondaryIdenitifiers;
-	private ResourceObjectAttributeDefinition description;
-	private ResourceObjectAttributeDefinition displayName;
+	private ResourceObjectAttributeDefinition descriptionAttribute;
+	private ResourceObjectAttributeDefinition displayNameAttribute;
+	private ResourceObjectAttributeDefinition namingAttribute;
 	private boolean defaultAccountType = false;
 	private boolean accountType = false;
 	private String nativeObjectClass;
@@ -126,11 +127,33 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	 *             if there is no definition for the referenced attributed
 	 */
 	public ResourceObjectAttributeDefinition getDescriptionAttribute() {
-		return description;
+		return descriptionAttribute;
 	}
 
-	public void setDescriptionAttribute(ResourceObjectAttributeDefinition description) {
-		this.description = description;
+	public void setDescriptionAttribute(ResourceObjectAttributeDefinition descriptionAttribute) {
+		this.descriptionAttribute = descriptionAttribute;
+	}
+	
+	/**
+	 * Specifies which resource attribute should be used as a "technical" name
+	 * for the account. This name will appear in log files and other troubleshooting
+	 * tools. The name should be a form of unique identifier that can be used to
+	 * locate the resource object for diagnostics. It should not contain white chars and
+	 * special chars if that can be avoided and it should be reasonable short.
+                
+	 * It is different from a display name attribute. Display name is intended for a 
+	 * common user or non-technical administrator (such as role administrator). The
+	 * naming attribute is intended for technical IDM administrators and developers.
+	 * 
+	 * @return resource attribute definition that should be used as a "technical" name
+	 * 					for the account.
+	 */
+	public ResourceObjectAttributeDefinition getNamingAttribute() {
+		return namingAttribute;
+	}
+
+	public void setNamingAttribute(ResourceObjectAttributeDefinition namingAttribute) {
+		this.namingAttribute = namingAttribute;
 	}
 
 	/**
@@ -255,11 +278,11 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	 *             definition of the referenced attribute does not exist.
 	 */
 	public ResourceObjectAttributeDefinition getDisplayNameAttribute() {
-		return displayName;
+		return displayNameAttribute;
 	}
 
 	void setDisplayNameAttribute(ResourceObjectAttributeDefinition displayName) {
-		this.displayName = displayName;
+		this.displayNameAttribute = displayName;
 	}
 	
 	@Override

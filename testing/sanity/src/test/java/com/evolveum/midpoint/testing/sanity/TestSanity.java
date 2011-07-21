@@ -24,6 +24,7 @@ import static org.junit.Assert.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -81,6 +82,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -667,14 +669,28 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// Expected failure for now
 //		assertTrue("Task failed",taskResult.isSuccess());
 		
-		assertTrue(task.getProgress()>0);
+		assertTrue("No progress",task.getProgress()>0);
 		
 		// Check if the import created users and shadows
 		
-		ObjectListType objects = model.listObjects(ObjectTypes.USER.getObjectTypeUri(), null, resultHolder);
-		assertFalse("No users created",objects.getObject().isEmpty());
+		// Listing of shadows is not supported by the provisioning. So we need to look directly into repository
+		ObjectListType sobjects = repositoryService.listObjects(ResourceObjectShadowType.class, null, result);
+		assertFalse("No shadows created",sobjects.getObject().isEmpty());
 		
-		for (ObjectType oo : objects.getObject()) {
+		for (ObjectType oo : sobjects.getObject()) {
+			ResourceObjectShadowType shadow = (ResourceObjectShadowType)oo;
+			System.out.println(ObjectTypeUtil.dump(shadow));
+			assertNotEmpty("No OID in shadow",shadow.getOid()); // This would be really strange ;-)
+			assertNotEmpty("No name in shadow",shadow.getName());
+			assertNotNull("No objectclass in shadow",shadow.getObjectClass());
+			assertNotNull("Null attributes in shadow",shadow.getAttributes());
+			assertAttributeNotNull("No UID in shadow",shadow, SchemaConstants.ICFS_UID);
+		}
+		
+		ObjectListType uobjects = model.listObjects(ObjectTypes.USER.getObjectTypeUri(), null, resultHolder);
+		assertFalse("No users created",uobjects.getObject().isEmpty());
+		
+		for (ObjectType oo : uobjects.getObject()) {
 			UserType user = (UserType)oo;
 			System.out.println(ObjectTypeUtil.dump(user));
 		}
@@ -688,26 +704,50 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	
 	// TODO: maybe we should move them to a common utility class
 	
-	private void assertAttribute(AccountShadowType repoShadow, ResourceType resource, String name, String value) {
+	private void assertNotEmpty(String message, String s) {
+		assertNotNull(message,s);
+		assertFalse(message,s.isEmpty());
+	}
+	
+	private void assertNotEmpty(String s) {
+		assertNotNull(s);
+		assertFalse(s.isEmpty());
+	}
+	
+	private void assertAttribute(ResourceObjectShadowType repoShadow, ResourceType resource, String name, String value) {
 		assertAttribute(repoShadow,new QName(resource.getNamespace(),name),value);
 	}
 		
-	private void assertAttribute(AccountShadowType repoShadow, QName name, String value) {
-		boolean found = false;
+	private void assertAttribute(ResourceObjectShadowType repoShadow, QName name, String value) {
+		List<String> values = getAttributeValues(repoShadow, name);
+		assertEquals(1,values.size());
+		assertEquals(value,values.get(0));
+	}
+	
+	private void assertAttributeNotNull(ResourceObjectShadowType repoShadow, QName name) {
+		List<String> values = getAttributeValues(repoShadow, name);
+		assertEquals(1,values.size());
+		assertNotNull(values.get(0));
+	}
+	
+	private void assertAttributeNotNull(String message, ResourceObjectShadowType repoShadow, QName name) {
+		List<String> values = getAttributeValues(repoShadow, name);
+		assertEquals(message, 1,values.size());
+		assertNotNull(message, values.get(0));
+	}
+	
+	private List<String> getAttributeValues(ResourceObjectShadowType repoShadow, QName name) {
+		List<String> values = new ArrayList<String>();
 		List<Element> xmlAttributes = repoShadow.getAttributes().getAny();
 		for (Element element : xmlAttributes) {
 			if (element.getNamespaceURI().equals(name.getNamespaceURI())
 					&& element.getLocalName().equals(name.getLocalPart())) {
-				if (found) {
-					fail("Multiple values for "+name+" attribute in shadow attributes");
-				} else {
-					assertEquals(value,element.getTextContent());
-					found = true;
-				}
+				values.add(element.getTextContent());
 			}
 		}
+		return values;
 	}
-
+	
 	protected void assertAttribute(SearchResultEntry response, String name, String value) {
 		Assert.assertNotNull(response.getAttribute(name.toLowerCase()));
 		Assert.assertEquals(1, response.getAttribute(name.toLowerCase()).size());

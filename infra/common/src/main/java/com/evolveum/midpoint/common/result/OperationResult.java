@@ -366,15 +366,15 @@ public class OperationResult implements Serializable {
 	}
 
 	public void recordFatalError(Exception cause) {
-		recordStatus(OperationResultStatus.FATAL_ERROR, cause);
+		recordStatus(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
 	}
 
 	public void recordPartialError(Exception cause) {
-		recordStatus(OperationResultStatus.PARTIAL_ERROR, cause);
+		recordStatus(OperationResultStatus.PARTIAL_ERROR, cause.getMessage(), cause);
 	}
 
 	public void recordWarning(Exception cause) {
-		recordStatus(OperationResultStatus.WARNING, cause);
+		recordStatus(OperationResultStatus.WARNING, cause.getMessage(), cause);
 	}
 
 	public void recordStatus(OperationResultStatus status, Exception cause) {

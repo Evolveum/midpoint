@@ -198,7 +198,10 @@ public class PropertyContainer {
 	 * @return found property or null
 	 */
 	public Property findProperty(PropertyDefinition propertyDefinition) {
-		throw new IllegalStateException("not implemented yet.");
+		if (propertyDefinition==null) {
+			throw new IllegalArgumentException("No property definition");
+		}
+		return findProperty(propertyDefinition.getName());
 	}
 
 	/**

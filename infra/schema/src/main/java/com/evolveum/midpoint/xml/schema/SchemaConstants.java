@@ -98,6 +98,7 @@ public abstract class SchemaConstants {
 	public static final QName I_SCHEMA = new QName(NS_C, "schema");
 	public static final QName I_ACCOUNT = new QName(NS_C, "account");
 	public static final QName I_RESOURCE_OBJECT_SHADOW = new QName(NS_C, "resourceObjectShadow");
+	public static final QName I_RESOURCE_OBJECT_SHADOW_TYPE = new QName(NS_C, "ResourceObjectShadowType");
 	public static final QName I_OBJECT_CLASS = new QName(NS_C, "objectClass");
 	public static final QName I_OBJECT = new QName(NS_C, "object");
 	public static final QName I_ACCOUNT_REF = new QName(NS_C, "accountRef");
