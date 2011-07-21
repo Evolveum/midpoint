@@ -92,8 +92,12 @@ public class AccountShadowTypeManager extends AccountShadowManager {
 		} catch (FaultMessage ex) {
 			// throw new WebModelException(ex.getMessage(),
 			// "[Web Service Error] Submit account failed (Model service call failed)");
+			throw new RuntimeException(ex.getMessage(), ex);
+			// TODO: will be fixed later
 		} catch (DiffException ex) {
 //			throw new WebModelException(ex.getMessage(), "Submit account failed (XML Diff failed)");
+			throw new RuntimeException(ex.getMessage(), ex);
+			// TODO: will be fixed later
 		}
 
 		// TODO: convert changes to GUI changes

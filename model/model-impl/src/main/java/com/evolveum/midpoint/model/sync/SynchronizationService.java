@@ -42,6 +42,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.expr.ExpressionException;
@@ -90,15 +91,15 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	private ChangeNotificationDispatcher notificationManager;
 
 	@PostConstruct
-	public void registerForResourceObjectChangeNotifications(){
+	public void registerForResourceObjectChangeNotifications() {
 		notificationManager.registerNotificationListener(this);
 	}
-	
+
 	@PreDestroy
-	public void unregisterForResourceObjectChangeNotifications(){
+	public void unregisterForResourceObjectChangeNotifications() {
 		notificationManager.unregisterNotificationListener(this);
 	}
-	
+
 	@Override
 	public void notifyChange(ResourceObjectShadowChangeDescriptionType change, OperationResult parentResult) {
 		Validate.notNull(change, "Resource object shadow change description must not be null.");
@@ -111,6 +112,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		try {
 			ResourceType resource = change.getResource();
 			if (!isSynchronizationEnabled(resource.getSynchronization())) {
+				subResult.recordStatus(OperationResultStatus.SUCCESS, "Synchronization is not enabled.");
 				return;
 			}
 
@@ -316,7 +318,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			ResourceObjectShadowType objectShadowAfterChange, OperationResult parentResult) {
 
 		// TODO: use OperationResult
-		
+
 		SynchronizationType synchronization = resource.getSynchronization();
 		List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());
 		if (actions.isEmpty()) {
@@ -324,6 +326,45 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 					new Object[] { resource.getName() });
 			return;
 		}
+
+		if (change.getShadow() != null && change.getShadow().getResource() == null) {
+			// This should hold under interface contract, but let's be on the
+			// safe side
+			if (change.getShadow().getResourceRef() != null) {
+				if (!change.getShadow().getResourceRef().getOid().equals(resource.getOid())) {
+					String message = "OID of resource does not match OID in shadow resourceRef";
+					parentResult.recordFatalError(message);
+					throw new SystemException(message);
+				}
+			}
+			change.getShadow().setResource(resource);
+		}
+
+		try {
+			LOGGER.trace("Updating user started.");
+			String userOid = situation.getUser() == null ? null : situation.getUser().getOid();
+			for (Action action : actions) {
+				LOGGER.debug("ACTION: Executing: {}.", action.getClass());
+
+				// TODO: fix operation result type
+				userOid = action.executeChanges(userOid, change, situation.getSituation(),
+						objectShadowAfterChange, new OperationResult("Resource Object Change Service"));
+			}
+			LOGGER.trace("Updating user finished.");
+		} catch (SynchronizationException ex) {
+			LoggingUtils.logException(LOGGER,
+					"### SYNCHRONIZATION # notifyChange(..): Synchronization action failed", ex);
+			parentResult.recordFatalError("Synchronization action failed.", ex);
+			throw new SystemException("Synchronization action failed, reason: " + ex.getMessage(), ex);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "### SYNCHRONIZATION # notifyChange(..): Unexpected "
+					+ "error occured, synchronization action failed", ex);
+			parentResult.recordFatalError("Unexpected error occured, synchronization action failed.", ex);
+			throw new SystemException("Unexpected error occured, synchronization action failed, reason: "
+					+ ex.getMessage(), ex);
+		}
+
+		parentResult.recordSuccess();
 	}
 
 	private List<Action> findActionsForReaction(List<Reaction> reactions,
