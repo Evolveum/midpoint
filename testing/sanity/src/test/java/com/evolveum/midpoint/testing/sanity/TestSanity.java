@@ -216,7 +216,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 */
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-		System.out.println("===[ test000Integrity ]========================================\n");
+		displayTestTile("test000Integrity");
 		assertNotNull(resource);
 		assertNotNull(model);
 		assertNotNull(repositoryService);
@@ -240,7 +240,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 */
 	@Test
 	public void test001TestConnection() throws FaultMessage, JAXBException {
-		System.out.println("\n\n===[ test001TestConnection ]========================================\n");
+		displayTestTile("test001TestConnection");
 		
 		// GIVEN
 		OperationResultType result = new OperationResultType();
@@ -264,7 +264,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	@Test
 	public void test002AddUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException,
 			SchemaException {
-		System.out.println("\n\n===[ test002AddUser ]========================================\n");
+		displayTestTile("test002AddUser");
 		
 		// GIVEN
 		UserType user = unmarshallJaxbFromFile(USER_JACK_FILENAME, UserType.class);
@@ -298,7 +298,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	@Test
 	public void test003AddAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException,
 			SchemaException, DirectoryException {
-		System.out.println("\n\n===[ test003AddAccountToUser ]========================================\n");
+		displayTestTile("test003AddAccountToUser");
 		
 		// GIVEN
 
@@ -425,7 +425,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 */
 	@Test
 	public void test004modifyUser() throws FileNotFoundException, JAXBException, FaultMessage, ObjectNotFoundException, SchemaException, DirectoryException {
-		System.out.println("\n\n===[ test004modifyUser ]========================================\n");
+		displayTestTile("test004modifyUser");
 		// GIVEN
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME,
@@ -524,7 +524,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 */
 	@Test
 	public void test005DeleteUser() throws SchemaException, FaultMessage, DirectoryException, JAXBException {
-		System.out.println("\n\n===[ test005DeleteUser ]========================================\n");
+		displayTestTile("test005DeleteUser");
 		// GIVEN
 
 		OperationResultType result = new OperationResultType();
@@ -581,7 +581,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 */
 	@Test
 	public void test100SynchronizationInit() throws Exception { 
-		System.out.println("\n\n===[ test100SynchronizationInit ]========================================\n");
+		displayTestTile("test100SynchronizationInit");
 		// Now it is the right time to add task definition to the repository
 		// We don't want it there any sooner, as it may interfere with the
 		// previous tests
@@ -644,7 +644,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	
 	@Test
 	public void test200ImportFromResource() throws Exception {
-		System.out.println("\n\n===[ test200ImportFromResource ]========================================\n");
+		displayTestTile("test200ImportFromResource");
 		// GIVEN
 
 		OperationResult result = new OperationResult(TestSanity.class.getName()+".test200ImportFromResource");
@@ -668,13 +668,11 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		assertTrue(task.isAsynchronous());
 		assertEquals(TaskExecutionStatus.RUNNING,task.getExecutionStatus());
 		assertEquals(TaskExclusivityStatus.CLAIMED,task.getExclusivityStatus());
-				
-		System.out.println("Import task after launch:");
-		System.out.println(task.dump());
+			
+		display("Import task after launch",task);
 		
-		System.out.println("Import task in repo after launch:");
 		ObjectType o = repositoryService.getObject(task.getOid(),null, result);
-		System.out.println(ObjectTypeUtil.dump(o));
+		display("Import task in repo after launch",o);
 		
 		System.out.println("Waining for import to complete");
 		Thread.sleep(10000);
@@ -684,8 +682,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		ObjectType obj = model.getObject(task.getOid(), new PropertyReferenceListType(), resultHolder);
 		task = taskManager.createTaskInstance((TaskType)obj);
 
-		System.out.println("Import task after finish:");
-		System.out.println(task.dump());
+		display("Import task after finish",task);
 		
 		assertEquals(TaskExecutionStatus.CLOSED,task.getExecutionStatus());
 		assertEquals(TaskExclusivityStatus.RELEASED,task.getExclusivityStatus());
@@ -704,7 +701,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		
 		for (ObjectType oo : sobjects.getObject()) {
 			ResourceObjectShadowType shadow = (ResourceObjectShadowType)oo;
-			System.out.println(ObjectTypeUtil.dump(shadow));
+			display("Shadow object after import (repo)",shadow);
 			assertNotEmpty("No OID in shadow",shadow.getOid()); // This would be really strange ;-)
 			assertNotEmpty("No name in shadow",shadow.getName());
 			assertNotNull("No objectclass in shadow",shadow.getObjectClass());
@@ -717,7 +714,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		
 		for (ObjectType oo : uobjects.getObject()) {
 			UserType user = (UserType)oo;
-			System.out.println(ObjectTypeUtil.dump(user));
+			display("User after import (repo)",user);
 			assertNotEmpty("No OID in user",user.getOid()); // This would be really strange ;-)
 			assertNotEmpty("No name in user",user.getName());
 			assertNotEmpty("No fullName in user",user.getFullName());
@@ -737,6 +734,10 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	// UTILITY METHODS
 	
 	// TODO: maybe we should move them to a common utility class
+	
+	private static final String TEST_OUT_PREFIX = "\n===[ ";
+	private static final String TEST_OUT_SUFFIX = " ]==========================\n\n";
+	private static final String OBJECT_TITLE_PREFIX = "\n*** ";
 	
 	private void assertSuccess(OperationResultType result) {
 		assertEquals(OperationResultStatusType.SUCCESS, result.getStatus());
@@ -818,9 +819,13 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		repositoryService.addObject(object, result);
 		return object;
 	}
+	
+	private void displayTestTile(String title) {
+		System.out.println(TEST_OUT_PREFIX+title+TEST_OUT_SUFFIX);
+	}
 
 	private void displayJaxb(String title,Object o, QName qname) throws JAXBException {
-		System.out.println("\n"+title);
+		System.out.println(OBJECT_TITLE_PREFIX+title);
 		displayJaxb(o, qname);
 	}
 	
@@ -831,12 +836,22 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	}
 
 	private void display(String message, SearchResultEntry response) {
-		System.out.println("\n"+message);
+		System.out.println(OBJECT_TITLE_PREFIX+message);
 		display(response);
 	}
 	
 	private void display(SearchResultEntry response) {
 		System.out.println(response.toLDIFString());
+	}
+
+	private void display(String message, Task task) {
+		System.out.println(OBJECT_TITLE_PREFIX+message);
+		System.out.println(task.dump());
+	}
+	
+	private void display(String message, ObjectType o) {
+		System.out.println(OBJECT_TITLE_PREFIX+message);
+		System.out.println(ObjectTypeUtil.dump(o));
 	}
 
 

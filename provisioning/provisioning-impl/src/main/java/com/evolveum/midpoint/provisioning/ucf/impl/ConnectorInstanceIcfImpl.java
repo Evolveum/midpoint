@@ -34,6 +34,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.Token;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfException;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.Property;
@@ -56,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
+import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
@@ -84,6 +86,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import javax.naming.NameAlreadyBoundException;
 import javax.xml.namespace.QName;
 
 /**
@@ -419,7 +423,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations,
-			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException {
+			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".addObject");
@@ -462,8 +466,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} catch (IllegalArgumentException ex) {
 			// This is most likely missing attribute or similar schema thing
 			throw new SchemaException("Schema violation (most likely): "+ex.getMessage(),ex);
+		} catch (ConnectorException ex) {
+			// Now it gets to even blacker magic. Look inside to see what really happened
+			if (ex.getCause() instanceof NameAlreadyBoundException) {
+				// This is thrown by LDAP connector and may be also throw by similar connectors
+				icfResult.recordFatalError("Object already exists",ex);
+				throw new ObjectAlreadyExistsException(ex.getCause().getMessage());
+			}			
+			icfResult.recordFatalError(ex);
+			throw new GenericFrameworkException(ex);
 		} catch (Exception ex) {
-
 			icfResult.recordFatalError(ex);
 			throw new GenericFrameworkException(ex);
 		}

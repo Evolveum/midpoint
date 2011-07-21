@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
@@ -159,8 +160,9 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @throws SchemaException resource schema violation
 	 * @return created object attributes. May be null.
+	 * @throws ObjectAlreadyExistsException object already exists on the resource
 	 */
-	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
+	public Set<ResourceObjectAttribute> addObject(ResourceObject object, Set<Operation> additionalOperations, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException;
 	
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not

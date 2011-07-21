@@ -61,6 +61,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.Token;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerIcfImpl;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
@@ -150,7 +151,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 
 	private Set<ResourceObjectAttribute> addSampleResourceObject(String name,
 			String givenName, String familyName) throws CommunicationException,
-			GenericFrameworkException, SchemaException {
+			GenericFrameworkException, SchemaException, ObjectAlreadyExistsException {
 		OperationResult result = new OperationResult(this.getClass().getName()
 				+ ".testAdd");
 
