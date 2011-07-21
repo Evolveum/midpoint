@@ -32,8 +32,10 @@ import java.io.File;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -71,6 +73,11 @@ public class ControllerDeleteObjectTest {
 	private RepositoryService repository;
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
+
+	@Before
+	public void before() {
+		Mockito.reset(repository, provisioning);
+	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullOid() throws Exception {

@@ -20,8 +20,10 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -51,6 +53,11 @@ public class ControllerSearchObjectsInProvisioningTest {
 	private RepositoryService repository;
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
+
+	@Before
+	public void before() {
+		Mockito.reset(repository, provisioning);
+	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullQuery() {

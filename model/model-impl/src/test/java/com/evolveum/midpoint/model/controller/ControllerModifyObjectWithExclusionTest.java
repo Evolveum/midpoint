@@ -20,29 +20,19 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Mockito.when;
-
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
@@ -62,23 +52,28 @@ public class ControllerModifyObjectWithExclusionTest {
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
 
+	@Before
+	public void before() {
+		Mockito.reset(repository, provisioning);
+	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void nullChange() throws Exception {
 		controller.modifyObjectWithExclusion(null, null, null);
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void nullChangeOid() throws Exception {
 		controller.modifyObjectWithExclusion(new ObjectModificationType(), null, null);
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void emptyChangeOid() throws Exception {
 		ObjectModificationType change = new ObjectModificationType();
 		change.setOid("");
 		controller.modifyObjectWithExclusion(change, null, null);
 	}
-	
+
 	@Test(expected = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
 		ObjectModificationType change = new ObjectModificationType();
