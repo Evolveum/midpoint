@@ -193,6 +193,7 @@ public class ModelControllerImpl implements ModelController {
 		return oid;
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public <T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve, Class<T> clazz,
 			OperationResult result) throws ObjectNotFoundException {
@@ -213,10 +214,26 @@ public class ModelControllerImpl implements ModelController {
 			} else {
 				// TODO: END HACK
 
+				// If class parameter is ObjectType we don't know if real object
+				// is handled by provisioning or directly by repo, so we try to
+				// get object from repository and then update class parameter to
+				// real class. If needed we call provisioning to get object
+				ObjectNotFoundException objectNotFound = null;
+				if (ObjectType.class.equals(clazz) || !ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
+					try {
+						object = getObjectFromRepository(oid, resolve, subResult, clazz);
+					} catch (ObjectNotFoundException ex) {
+						objectNotFound = ex;
+					}
+				}
+				clazz = object == null ? clazz : (Class<T>) object.getClass();
+
 				if (ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
 					object = getObjectFromProvisioning(oid, resolve, subResult, clazz);
-				} else {
-					object = getObjectFromRepository(oid, resolve, subResult, clazz);
+				} else if (objectNotFound != null) {
+					// throw previously catched exception, we don't need to call
+					// repository again
+					throw objectNotFound;
 				}
 			}
 			subResult.recordSuccess();
@@ -243,11 +260,13 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(objectType, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
-		if (paging==null) {
+		if (paging == null) {
 			LOGGER.debug("Listing objects of type {} (no paging).", objectType);
 		} else {
-			LOGGER.debug("Listing objects of type {} from {} to {} ordered {} by {}.", new Object[] { objectType,
-				paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(), paging.getOrderBy() });
+			LOGGER.debug(
+					"Listing objects of type {} from {} to {} ordered {} by {}.",
+					new Object[] { objectType, paging.getOffset(), paging.getMaxSize(),
+							paging.getOrderDirection(), paging.getOrderBy() });
 		}
 
 		OperationResult subResult = new OperationResult("List Objects");
