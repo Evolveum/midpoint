@@ -111,10 +111,21 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		parentResult.addSubresult(subResult);
 		try {
 			ResourceType resource = change.getResource();
-			if (!isSynchronizationEnabled(resource.getSynchronization())) {
-				subResult.recordStatus(OperationResultStatus.SUCCESS, "Synchronization is not enabled.");
+			if (resource == null) {
+				String message = "Resource definition not found in change.";
+				LOGGER.debug(message);
+				subResult.recordFatalError(message);
 				return;
 			}
+			LOGGER.debug("Resource definition found in change.");
+
+			if (!isSynchronizationEnabled(resource.getSynchronization())) {
+				String message = "Synchronization is not enabled.";
+				LOGGER.debug(message);
+				subResult.recordStatus(OperationResultStatus.SUCCESS, message);
+				return;
+			}
+			LOGGER.debug("Synchronization is enabled.");
 
 			ResourceObjectShadowType objectShadow = change.getShadow();
 			if (objectShadow == null && (change.getObjectChange() instanceof ObjectChangeAdditionType)) {
@@ -131,6 +142,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 			ResourceObjectShadowType objectShadowAfterChange = getObjectAfterChange(objectShadow,
 					change.getObjectChange());
+			LOGGER.debug("Resource object shadow after change resolved. (Object in log on TRACE level)");
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace(JAXBUtil.silentMarshalWrap(objectShadowAfterChange));
+			}
 			SynchronizationSituation situation = checkSituation(change, objectShadowAfterChange, subResult);
 
 			notifyChange(change, situation, resource, objectShadowAfterChange, subResult);
@@ -150,6 +165,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowType getObjectAfterChange(ResourceObjectShadowType objectShadow,
 			ObjectChangeType change) {
+		LOGGER.debug("Resolving resource object shadow after change.");
 		if (change instanceof ObjectChangeAdditionType) {
 			ObjectChangeAdditionType objectAddition = (ObjectChangeAdditionType) change;
 			ObjectType object = objectAddition.getObject();
@@ -265,7 +281,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 		UserType user = null;
 		SynchronizationSituationType state = null;
-
+		LOGGER.debug("CORRELATION: Looking for list of users based on correlation rule.");
 		List<UserType> users = findUsersByCorrelationRule(objectShadowAfterChange,
 				synchronization.getCorrelation(), result);
 		if (synchronization.getConfirmation() == null) {
@@ -276,6 +292,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				LOGGER.debug("CONFIRMATION: No expression for new resource object, accepting all results of correlation");
 			}
 		} else {
+			LOGGER.debug("CONFIRMATION: Checking users from correlation with confirmation rule.");
 			users = findUserByConfirmationRule(users, objectShadowAfterChange, new ExpressionHolder(
 					synchronization.getConfirmation()), result);
 		}
@@ -318,9 +335,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	private void notifyChange(ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituation situation, ResourceType resource,
 			ResourceObjectShadowType objectShadowAfterChange, OperationResult parentResult) {
-
-		// TODO: use OperationResult
-
 		SynchronizationType synchronization = resource.getSynchronization();
 		List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation());
 		if (actions.isEmpty()) {
@@ -346,7 +360,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			LOGGER.trace("Updating user started.");
 			String userOid = situation.getUser() == null ? null : situation.getUser().getOid();
 			for (Action action : actions) {
-				LOGGER.debug("ACTION: Executing: {}.", action.getClass());
+				LOGGER.debug("ACTION: Executing: {}.", new Object[] { action.getClass() });
 
 				// TODO: fix operation result type
 				userOid = action.executeChanges(userOid, change, situation.getSituation(),

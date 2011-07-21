@@ -52,6 +52,7 @@ public class LinkAccountAction extends BaseAction {
 	public String executeChanges(String userOid, ResourceObjectShadowChangeDescriptionType change,
 			SynchronizationSituationType situation, ResourceObjectShadowType shadowAfterChange,
 			OperationResult result) throws SynchronizationException {
+		LOGGER.trace("Executing link account action.");
 		super.executeChanges(userOid, change, situation, shadowAfterChange, result);
 
 		OperationResult subResult = new OperationResult("Link Account Action");
@@ -59,14 +60,19 @@ public class LinkAccountAction extends BaseAction {
 
 		UserType user = getUser(userOid, result);
 		if (user == null) {
+			LOGGER.trace("User with oid {} doesn't exits. Try insert create action before this action.",
+					new Object[] { userOid });
+
 			String message = "User with oid '" + userOid
 					+ "' doesn't exits. Try insert create action before this action.";
 			subResult.recordFatalError(message);
 			throw new SynchronizationException(message);
 		}
-
+		LOGGER.trace("Found user {} for link account.", new Object[] { user.getName() });
 		try {
 			if (shadowAfterChange instanceof AccountShadowType) {
+				LOGGER.trace("Creating change for account shadow (accountRef).");
+				
 				ObjectReferenceType accountRef = new ObjectReferenceType();
 				accountRef.setOid(shadowAfterChange.getOid());
 				accountRef.setType(ObjectTypes.ACCOUNT.getTypeQName());
