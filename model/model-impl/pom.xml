@@ -20,41 +20,41 @@
 <!-- Portions Copyrighted 2010 Peter Prochazka               -->
 <!--                                                         -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <name>midPoint Model - impl</name>
-    <groupId>com.evolveum.midpoint.model</groupId>
-    <artifactId>model-impl</artifactId>
-    <version>1.8-SNAPSHOT</version>
-    <packaging>jar</packaging>
-    <parent>
-        <artifactId>model</artifactId>
-        <groupId>com.evolveum.midpoint</groupId>
-        <version>1.8-SNAPSHOT</version>
-    </parent>
-    <organization>
-        <name>Evolveum</name>
-        <url>http://www.evolveum.com</url>
-    </organization>
-    <licenses>
-        <license>
-            <name>CDDL v1.0</name>
-            <url>http://www.sun.com/cddl/cddl.html</url>
-            <distribution>repo</distribution>
-            <comments>A business-friendly OSS license</comments>
-        </license>
-    </licenses>
-    <issueManagement>
-        <system>Atlassian JIRA</system>
-        <url>http://jira.evolveum.com/</url>
-    </issueManagement>
-    <scm>
-        <connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
-        <developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
-        <tag>HEAD</tag>
-        <url>https://fisheye.evolveum.com/midpoint/</url>
-    </scm>
-    <dependencies>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<name>midPoint Model - impl</name>
+	<groupId>com.evolveum.midpoint.model</groupId>
+	<artifactId>model-impl</artifactId>
+	<packaging>jar</packaging>
+	<parent>
+		<artifactId>model</artifactId>
+		<groupId>com.evolveum.midpoint</groupId>
+		<version>1.8-SNAPSHOT</version>
+	</parent>
+	<organization>
+		<name>Evolveum</name>
+		<url>http://www.evolveum.com</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>CDDL v1.0</name>
+			<url>http://www.sun.com/cddl/cddl.html</url>
+			<distribution>repo</distribution>
+			<comments>A business-friendly OSS license</comments>
+		</license>
+	</licenses>
+	<issueManagement>
+		<system>Atlassian JIRA</system>
+		<url>http://jira.evolveum.com/</url>
+	</issueManagement>
+	<scm>
+		<connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
+		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://fisheye.evolveum.com/midpoint/</url>
+	</scm>
+	<dependencies>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-api</artifactId>
@@ -64,133 +64,133 @@
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
 			<version>1.8-SNAPSHOT</version>
-		</dependency>		
+		</dependency>
 		<dependency>
-            <groupId>com.evolveum.midpoint.provisioning</groupId>
-            <artifactId>provisioning-api</artifactId>
-            <version>1.8-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>schema</artifactId>
-            <version>1.8-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>common</artifactId>
-            <version>1.8-SNAPSHOT</version>
-        </dependency>                 
-        <dependency>
-        	<groupId>com.evolveum.midpoint.repo</groupId>
-        	<artifactId>task-api</artifactId>
-        	<version>1.8-SNAPSHOT</version>
-        </dependency>    
+			<groupId>com.evolveum.midpoint.provisioning</groupId>
+			<artifactId>provisioning-api</artifactId>
+			<version>1.8-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>schema</artifactId>
+			<version>1.8-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>common</artifactId>
+			<version>1.8-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>task-api</artifactId>
+			<version>1.8-SNAPSHOT</version>
+		</dependency>    
  
         <!--https://jira.springsource.org/browse/ROO-181 -->
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-tx</artifactId>
-            <version>${spring.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <!-- https://jira.springsource.org/browse/SPR-6819 -->
-        <dependency>
-          <groupId>javax.persistence</groupId>
-          <artifactId>persistence-api</artifactId>
-          <version>1.0</version>
-          <optional>true</optional>
-        </dependency>
-
-       <!-- Test -->   
 		<dependency>
-            <groupId>com.evolveum.midpoint.provisioning</groupId>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-tx</artifactId>
+			<version>${spring.version}</version>
+			<scope>provided</scope>
+		</dependency>
+        <!-- https://jira.springsource.org/browse/SPR-6819 -->
+		<dependency>
+			<groupId>javax.persistence</groupId>
+			<artifactId>persistence-api</artifactId>
+			<version>1.0</version>
+			<optional>true</optional>
+		</dependency>
+
+       <!-- Test -->
+		<dependency>
+			<groupId>com.evolveum.midpoint.provisioning</groupId>
             <!-- TODO need to switch to api -->
-            <artifactId>provisioning-impl</artifactId>
-            <version>1.8-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>  
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>common</artifactId>
-            <version>1.8-SNAPSHOT</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>   
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-basex-impl</artifactId>
-            <version>1.8-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-basex-impl</artifactId>
-            <version>1.8-SNAPSHOT</version>
-            <type>test-jar</type>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.infra</groupId>
-            <artifactId>test-util</artifactId>
-            <version>1.8-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <version>${spring.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>${mysql.connector.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-        	<groupId>com.evolveum.midpoint.infra</groupId>
-        	<artifactId>test-util</artifactId>
-        	<version>1.8-SNAPSHOT</version>
-        	<type>jar</type>
-        	<scope>test</scope>
-        </dependency>
-    </dependencies>
+			<artifactId>provisioning-impl</artifactId>
+			<version>1.8-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>common</artifactId>
+			<version>1.8-SNAPSHOT</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-basex-impl</artifactId>
+			<version>1.8-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-basex-impl</artifactId>
+			<version>1.8-SNAPSHOT</version>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>test-util</artifactId>
+			<version>1.8-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>${junit.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>${spring.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>${mysql.connector.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>test-util</artifactId>
+			<version>1.8-SNAPSHOT</version>
+			<type>jar</type>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 
-<build>
-<plugins>
-<plugin>
-    <groupId>org.codehaus.mojo</groupId>
-    <artifactId>aspectj-maven-plugin</artifactId>
-    <configuration>
-        <aspectLibraries>
-            <aspectLibrary>
-                        <groupId>com.evolveum.midpoint.infra</groupId>
-                        <artifactId>util</artifactId>
-            </aspectLibrary>
-        </aspectLibraries>
-    </configuration>
-    <executions>
-        <execution>
-            <goals>
-                <goal>compile</goal>
-            </goals>
-        </execution>
-    </executions>
-</plugin>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>aspectj-maven-plugin</artifactId>
+				<configuration>
+					<aspectLibraries>
+						<aspectLibrary>
+							<groupId>com.evolveum.midpoint.infra</groupId>
+							<artifactId>util</artifactId>
+						</aspectLibrary>
+					</aspectLibraries>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 
-</plugins>
-</build>
+		</plugins>
+	</build>
 
 </project>
