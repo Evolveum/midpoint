@@ -480,9 +480,6 @@ object.
                 per interval specified below. -->
 			<c:enabled>true</c:enabled>
 
-            <!-- Synchronization polling interval, in seconds -->
-			<c:pollingInterval>60</c:pollingInterval>
-
             <!-- Correlation expression.
                  It will be used to find appropriate user entry for an account.
               -->

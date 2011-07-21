@@ -126,6 +126,9 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = "src/test/resources/repo/sample-configuration-object.xml";
 	private static final String SAMPLE_CONFIGURATION_OBJECT_OID = "c0c010c0-d34d-b33f-f00d-999111111111";
 	
+	private static final String USER_TEMPLATE_FILENAME = "src/test/resources/repo/user-template.xml";
+	private static final String USER_TEMPLATE_OID = "c0c010c0-d34d-b33f-f00d-777111111111";
+	
 	private static final String USER_JACK_FILENAME = "src/test/resources/repo/user-jack.xml";
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	private static final String USER_JACK_LDAP_UID = "jack";
@@ -200,6 +203,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 			resource = (ResourceType) addObjectFromFile(RESOURCE_OPENDJ_FILENAME);
 			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
 			addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME);
+			addObjectFromFile(USER_TEMPLATE_FILENAME);
 			repoInitialized = true;
 		}
 	}
@@ -692,6 +696,15 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		for (ObjectType oo : uobjects.getObject()) {
 			UserType user = (UserType)oo;
 			System.out.println(ObjectTypeUtil.dump(user));
+			assertNotEmpty("No OID in user",user.getOid()); // This would be really strange ;-)
+			assertNotEmpty("No name in user",user.getName());
+			assertNotEmpty("No fullName in user",user.getFullName());
+			assertNotEmpty("No familyName in user",user.getFamilyName());
+			// givenName is not mandatory in LDAP, therefore givenName may not be present on user
+			List<ObjectReferenceType> accountRefs = user.getAccountRef();
+			assertEquals("Wrong accountRef",1,accountRefs.size());
+			ObjectReferenceType accountRef = accountRefs.get(0);
+			assertEquals("accountRef does not match",RESOURCE_OPENDJ_OID,accountRef.getOid());
 		}
 		
 	}

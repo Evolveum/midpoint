@@ -24,8 +24,9 @@
      It is used in internal midPoint tests, mostly in "integration"
      tests. -->
 
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+<resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" 
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
 	xmlns:my="http://myself.me/schemas/whatever"
@@ -431,5 +432,78 @@
 
 		</c:accountType>
 	</c:schemaHandling>
+	
+	     <!--
+            Synchronization section describes the synchronization policy, timing,
+            reactions and similar synchronization settings.
+        -->
+		<c:synchronization>
+            <!--
+                The synchronization for this resource is enabled.
+                It means that the synchronization will poll for changes once
+                per interval specified below. -->
+			<c:enabled>true</c:enabled>
+
+            <!-- Correlation expression.
+                 It will be used to find appropriate user entry for an account.
+              -->
+			<c:correlation> <!-- Correlation rule is a search query -->
+            <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType"/> is implicit in correlation rules -->
+                <!-- Following search queury will look for users that have "name"
+                     equal to the "uid" attribute of the account. Simply speaking,
+                     it will look for match in usernames in the IDM and the resource. -->
+				<c:equal>
+					<c:path>.</c:path>
+					<c:valueExpression ref="c:name">
+						declare namespace
+						i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+						declare namespace
+						dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
+						$i:account/i:attributes/dj:uid
+                        </c:valueExpression>
+				</c:equal>
+			</c:correlation>
+
+            <!-- Confirmation rule may be here, but as the search above will
+                 always return at most one match, the confirmation rule is not needed. -->
+
+            <!-- Following section describes reactions to a situations.
+                 The setting here assumes that this resource is authoritative,
+                 therefore all accounts created on the resource should be
+                 reflected as new users in IDM.
+                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+             -->
+			<c:reaction>
+				<c:situation>confirmed</c:situation>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+			</c:reaction>
+			<c:reaction>
+				<c:situation>deleted</c:situation>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+			</c:reaction>
+			<c:reaction>
+				<c:situation>missing</c:situation>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount"/>
+			</c:reaction>
+			<c:reaction>
+				<c:situation>found</c:situation>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+			</c:reaction>
+			<c:reaction>
+				<c:situation>unassigned</c:situation>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+			</c:reaction>
+			<c:reaction>
+				<c:situation>unmatched</c:situation>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+                    <!-- Reference to the User Template is here. If the user would be
+                         created as a result of this action, it will be created according
+                         to this template. -->
+					<c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+				</c:action>
+				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+			</c:reaction>
+
+		</c:synchronization>
 
 </resource>

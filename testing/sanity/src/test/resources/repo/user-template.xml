@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!--                                                         -->
+
+<c:userTemplate oid="c0c010c0-d34d-b33f-f00d-777111111111" 
+    xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+	xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+	xmlns:my="http://myself.me/schemas/whatever"
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+
+		<c:name>Default User Template</c:name>
+
+        <!-- Property construction.
+             Defines how properties of user object are set up.
+             This specific definition sets a full name as a concatenation
+             of givenName and familyName. -->
+		<c:propertyConstruction>
+			<c:property>i:fullName</c:property>
+			<c:valueConstruction default="true">
+				<c:valueExpression>
+					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+					concat($i:user/i:givenName,' ',$i:user/i:familyName)
+                </c:valueExpression>
+			</c:valueConstruction>
+		</c:propertyConstruction>
+
+        <!-- Account construction.
+             Defines what accounts should be assigned to a user when it is
+             created. It only defines resource and account type. The rest of the
+             account parameters are specified by outbound expressions in the
+             account type in the resource definition, as usual.
+             See http://wiki.evolveum.com/display/midPoint/Synchronization
+             -->
+		<c:accountConstruction>
+			<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" type="c:ResourceType"/>
+			<c:type>default</c:type>
+		</c:accountConstruction>
+
+	</c:userTemplate>
