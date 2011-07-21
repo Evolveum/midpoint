@@ -472,6 +472,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			LoggingUtils.logException(LOGGER,
 					"Couldn't search users in repository, based on filter (simplified)\n{}.", ex,
 					DebugUtil.prettyPrint(filter));
+			throw new SynchronizationException(
+					"Couldn't search users in repository, based on filter (See logs).", ex);
 		}
 
 		LOGGER.debug("CORRELATION: expression for OID {} returned {} users.",
@@ -481,7 +483,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 	private List<UserType> findUserByConfirmationRule(List<UserType> users,
 			ResourceObjectShadowType resourceObjectShadowType, ExpressionHolder expression,
-			OperationResult result) {
+			OperationResult result) throws SynchronizationException {
 		List<UserType> list = new ArrayList<UserType>();
 		for (UserType user : users) {
 			try {
@@ -492,6 +494,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				}
 			} catch (ExpressionException ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
+				throw new SynchronizationException("Couldn't confirm user " + user.getName(), ex);
 			}
 		}
 
