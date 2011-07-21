@@ -34,7 +34,7 @@ import com.evolveum.midpoint.init.InitialSetup;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserManager;
-import com.evolveum.midpoint.web.model.dto.UserDto;
+import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 
@@ -48,9 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
-		"classpath:application-context-repository.xml",
-		"classpath:application-context-provisioning.xml",
-		"classpath:application-context-test.xml"})
+		"classpath:application-context-repository.xml", "classpath:application-context-provisioning.xml",
+		"classpath:application-context-test.xml" })
 public class SpringApplicationContextTest {
 
 	@Autowired(required = true)
@@ -63,8 +62,8 @@ public class SpringApplicationContextTest {
 	@Test
 	public void initApplicationContext() {
 		assertNotNull(objectTypeCatalog.listSupportedObjectTypes());
-		ObjectManager<UserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
-				UserDto.class);
+		ObjectManager<GuiUserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+				GuiUserDto.class);
 		UserManager userManager = (UserManager) (objectManager);
 		assertNotNull(userManager);
 

@@ -36,6 +36,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
@@ -54,19 +55,14 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  * 
  * @author sleepwalker
  */
-public class UserTypeManagerMock extends UserManager {
+public class UserTypeManagerMock implements UserManager {
 
 	private static final long serialVersionUID = -6949750285264000739L;
 	@Autowired
 	AccountShadowTypeManagerMock accountManagerMock;
 	@Autowired
 	ResourceTypeManagerMock resourceManagerMock;
-	Map<String, UserDto> userTypeList = new HashMap<String, UserDto>();
-	private final Class constructUserType;
-
-	public UserTypeManagerMock(Class constructUserType) {
-		this.constructUserType = constructUserType;
-	}
+	Map<String, GuiUserDto> userTypeList = new HashMap<String, GuiUserDto>();
 
 	@Override
 	public void delete(String oid) {
@@ -74,20 +70,14 @@ public class UserTypeManagerMock extends UserManager {
 	}
 
 	@Override
-	public Collection<UserDto> list() {
+	public Collection<GuiUserDto> list() {
 		return userTypeList.values();
 	}
 
 	public UserDto get(String oid) {
-		UserDto lookupUser = null;
-		try {
-			lookupUser = (UserDto) constructUserType.newInstance();
-		} catch (InstantiationException ex) {
-			throw new RuntimeException(ex);
-		} catch (IllegalAccessException ex) {
-			throw new RuntimeException(ex);
-		}
-		for (UserDto user : userTypeList.values()) {
+		GuiUserDto lookupUser = new GuiUserDto();
+
+		for (GuiUserDto user : userTypeList.values()) {
 			if (oid.equals(user.getOid())) {
 				lookupUser = user;
 			}
@@ -96,7 +86,7 @@ public class UserTypeManagerMock extends UserManager {
 	}
 
 	@Override
-	public String add(UserDto newObject) {
+	public String add(GuiUserDto newObject) {
 		userTypeList.clear();
 		newObject.setOid(UUID.randomUUID().toString());
 		userTypeList.put(newObject.getOid(), newObject);
@@ -104,7 +94,7 @@ public class UserTypeManagerMock extends UserManager {
 	}
 
 	@Override
-	public Set<PropertyChange> submit(UserDto changedObject) {
+	public Set<PropertyChange> submit(GuiUserDto changedObject) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -114,7 +104,7 @@ public class UserTypeManagerMock extends UserManager {
 	}
 
 	@Override
-	public UserDto create() {
+	public GuiUserDto create() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -134,13 +124,13 @@ public class UserTypeManagerMock extends UserManager {
 	}
 
 	@Override
-	public UserDto get(String oid, PropertyReferenceListType resolve) {
+	public GuiUserDto get(String oid, PropertyReferenceListType resolve) {
 
 		System.out.println("user mock");
 		System.out.println("wanted " + oid);
 		System.out.println("in list " + userTypeList.get(oid).getOid());
-		UserDto userDto = null;
-		for (UserDto user : userTypeList.values()) {
+		GuiUserDto userDto = null;
+		for (GuiUserDto user : userTypeList.values()) {
 			if (user.getOid().equals(oid)) {
 				userDto = user;
 			}
@@ -185,7 +175,7 @@ public class UserTypeManagerMock extends UserManager {
 	}
 
 	@Override
-	public Collection<UserDto> list(PagingType paging) {
+	public Collection<GuiUserDto> list(PagingType paging) {
 		return userTypeList.values();
 	}
 
