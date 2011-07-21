@@ -286,6 +286,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		// TODO: check last handler status
 		
 		handlers.remove(task);
+		opResult.computeStatus("Errors during import");
 		runResult.setProgress(handler.getProgress());
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		

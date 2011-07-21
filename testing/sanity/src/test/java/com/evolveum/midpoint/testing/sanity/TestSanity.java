@@ -666,8 +666,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		
 		OperationResult taskResult = task.getResult();
 		assertNotNull("Task has no result",taskResult);
-		// Expected failure for now
-//		assertTrue("Task failed",taskResult.isSuccess());
+		assertTrue("Task failed",taskResult.isSuccess());
 		
 		assertTrue("No progress",task.getProgress()>0);
 		
