@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
@@ -92,4 +93,5 @@ public interface ModelService {
 	@Deprecated
 	TaskStatusType getImportStatus(String resourceOid, OperationResult result) throws ObjectNotFoundException;
 
+	ObjectListType searchObjectsInRepository(QueryType query, PagingType paging, OperationResult result);
 }

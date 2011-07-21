@@ -14,8 +14,6 @@ public interface ModelController extends ModelService {
 
 	ObjectListType searchObjectsInProvisioning(QueryType query, PagingType paging, OperationResult result);
 
-	ObjectListType searchObjectsInRepository(QueryType query, PagingType paging, OperationResult result);
-
 	void modifyObjectWithExclusion(ObjectModificationType change, String accountOid, OperationResult result)
 			throws ObjectNotFoundException;
 

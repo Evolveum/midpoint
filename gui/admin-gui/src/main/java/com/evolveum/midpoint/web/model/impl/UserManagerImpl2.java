@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.model.impl;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -28,27 +29,41 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
+import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserManager2;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
+import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 
 /**
  * 
@@ -57,7 +72,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public class UserManagerImpl2 extends ObjectManagerImpl2<UserType, UserDto> implements UserManager2 {
 
+	private static final Trace LOGGER = TraceManager.getTrace(UserManagerImpl2.class);
 	private static final long serialVersionUID = -3457278299468312767L;
+	@Autowired(required = true)
+	private transient ObjectTypeCatalog objectTypeCatalog;
 
 	@Override
 	protected Class<? extends ObjectType> getSupportedObjectClass() {
@@ -117,15 +135,57 @@ public class UserManagerImpl2 extends ObjectManagerImpl2<UserType, UserDto> impl
 
 	@Override
 	public AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException {
-		// TODO Auto-generated method stub
-		return null;
+		AccountShadowDto accountShadowDto = new AccountShadowDto();
+		AccountShadowType accountShadowType = new AccountShadowType();
+		accountShadowType.setAttributes(new Attributes());
+		// TODO: workaround, till we switch to staging
+		// ResourceTypeManager rtm = new
+		// ResourceTypeManager(GuiResourceDto.class);
+		ResourceTypeManager rtm = (ResourceTypeManager) objectTypeCatalog.getObjectManager(
+				ResourceType.class, ResourceDto.class);
+		ResourceDto resourceDto;
+		try {
+			resourceDto = rtm.get(resourceOid, new PropertyReferenceListType());
+		} catch (Exception ex) {
+			throw new WebModelException(ex.getMessage(), "User - add account failed.");
+		}
+		accountShadowType.setResource((ResourceType) resourceDto.getXmlObject());
+
+		accountShadowDto.setXmlObject(accountShadowType);
+		// TODO: account is set to user not here, but in method where we are
+		// going to persist it from GUI,
+		// because actual account is retrivede from form generator
+		// userDto.getAccount().add(accountShadowDto);
+
+		return accountShadowDto;
 	}
 
 	@Override
 	public List<UserDto> search(QueryType search, PagingType paging, OperationResult result)
 			throws WebModelException {
-		// TODO Auto-generated method stub
-		return null;
+		Validate.notNull(search, "Query must not be null.");
+		Validate.notNull(result, "Result must not be null.");
+
+		if (paging == null) {
+			paging = PagingTypeFactory.createListAllPaging(OrderDirectionType.ASCENDING, "name");
+		}
+		List<UserDto> users = new ArrayList<UserDto>();
+		try {
+			ObjectListType list = getModel().searchObjectsInRepository(search, paging, result);
+			for (ObjectType object : list.getObject()) {
+				if (!(object instanceof UserType)) {
+					LOGGER.debug("Skipping object {}, is't not user.", object.getName());
+					continue;
+				}
+				UserDto userDto = createObject((UserType) object);
+				users.add(userDto);
+			}
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't search users", ex);
+			// TODO: handle error
+		}
+
+		return users;
 	}
 
 	private QName createQName(Element element) {
