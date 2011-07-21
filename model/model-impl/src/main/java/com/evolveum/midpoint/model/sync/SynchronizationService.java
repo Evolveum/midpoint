@@ -249,11 +249,13 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	 * the change. But the correlation/confirmation should work on the updated
 	 * data. Therefore let's apply the changes before running
 	 * correlation/confirmation
+	 * 
+	 * @throws SynchronizationException
 	 */
 	private SynchronizationSituation checkSituationWithCorrelation(
 			ResourceObjectShadowChangeDescriptionType change,
 			ResourceObjectShadowType objectShadowAfterChange, ModificationType modification,
-			OperationResult result) {
+			OperationResult result) throws SynchronizationException {
 
 		ResourceObjectShadowType resourceShadow = change.getShadow();
 		// It is better to get resource from change. The resource object may
@@ -419,7 +421,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	}
 
 	private List<UserType> findUsersByCorrelationRule(ResourceObjectShadowType resourceShadow,
-			QueryType query, OperationResult result) {
+			QueryType query, OperationResult result) throws SynchronizationException {
 		List<UserType> users = new ArrayList<UserType>();
 
 		if (query == null) {
@@ -469,7 +471,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		List<UserType> list = new ArrayList<UserType>();
 		for (UserType user : users) {
 			try {
-				if (user != null && confirmUser(user, resourceObjectShadowType, expression, result)) {
+				boolean confirmedUser = getExpressionHandler().evaluateConfirmationExpression(user,
+						resourceObjectShadowType, expression, result);
+				if (user != null && confirmedUser) {
 					list.add(user);
 				}
 			} catch (ExpressionException ex) {
@@ -483,7 +487,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	}
 
 	private Element updateFilterWithAccountValues(ResourceObjectShadowType resourceObjectShadow,
-			Element filter, OperationResult result) {
+			Element filter, OperationResult result) throws SynchronizationException {
 		LOGGER.trace("updateFilterWithAccountValues::begin");
 		if (filter == null) {
 			return null;
@@ -520,7 +524,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 					equal.appendChild(value);
 					Element attribute = document.createElementNS(namespace, ref);
 
-					String expressionResult = expressionHandler.evaluateExpression(resourceObjectShadow,
+					String expressionResult = getExpressionHandler().evaluateExpression(resourceObjectShadow,
 							new ExpressionHolder(valueExpression), result);
 
 					// TODO: log more context
@@ -535,7 +539,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			filter = and;
 			LOGGER.trace("Transforming filter to:\n{}", DOMUtil.printDom(filter.getOwnerDocument()));
 		} catch (Exception ex) {
-			ex.printStackTrace();
+			LoggingUtils.logException(LOGGER, "Couldn't update filter.", ex);
+			throw new SynchronizationException("Couldn't update filter, reason: " + ex.getMessage(), ex);
 		}
 
 		LOGGER.trace("updateFilterWithAccountValues::end");
@@ -554,11 +559,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		return null;
 	}
 
-	private boolean confirmUser(UserType user, ResourceObjectShadowType resourceObjectShadow,
-			ExpressionHolder expression, OperationResult result) throws ExpressionException {
+	private ExpressionHandler getExpressionHandler() {
 		expressionHandler.setModel(controller);
-
-		return expressionHandler.evaluateConfirmationExpression(user, resourceObjectShadow, expression,
-				result);
+		return expressionHandler;
 	}
 }
