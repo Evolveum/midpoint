@@ -322,7 +322,7 @@ public class Test002basicUser {
 
 		se.type("importForm:editor", xmlUser);
 		se.click("importForm:uploadButton");
-		assertTrue(se.waitForText("Add object 'jack' success."));  
+		assertTrue(se.waitForText("Successfully uploaded object 'jack'."));  
 		se.click(se.findLink("topAccount"));
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
