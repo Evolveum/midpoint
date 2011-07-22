@@ -125,9 +125,16 @@ public class ImportFromResourceResultHandler implements ResultHandler {
 			return !isStopOnError();
 		}
 		
-		result.computeStatus();
-		// Everything fine ... signal to continue
-		return true;
+		// Check if we haven't been interrupted
+		if (task.canRun()) {
+			result.computeStatus();
+			// Everything OK, signal to continue
+			return true;
+		} else {
+			result.recordPartialError("Interrupted");
+			// Signal to stop
+			return false;
+		}
 	}
 
 	public long heartbeat() {

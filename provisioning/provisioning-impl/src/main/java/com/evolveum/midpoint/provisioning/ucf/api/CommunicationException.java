@@ -45,4 +45,23 @@ public class CommunicationException extends UcfException {
 	public CommunicationException(String msg) {
 		super(msg);
 	}
+
+	/**
+	 * @param cause
+	 */
+	public CommunicationException(Throwable cause) {
+		super(cause);
+		// TODO Auto-generated constructor stub
+	}
+
+	/**
+	 * @param msg
+	 * @param cause
+	 */
+	public CommunicationException(String msg, Throwable cause) {
+		super(msg, cause);
+		// TODO Auto-generated constructor stub
+	}
+	
+	
 }

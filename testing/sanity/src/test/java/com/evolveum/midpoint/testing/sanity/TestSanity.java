@@ -772,7 +772,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		assertSuccess("getObject has failed", resultHolder.value);
 		task = taskManager.createTaskInstance((TaskType)obj);
 
-		display("Import task after finish",task);
+		display("Import task after finish (fetched from model)",task);
 		
 		assertEquals(TaskExecutionStatus.CLOSED,task.getExecutionStatus());
 		assertEquals(TaskExclusivityStatus.RELEASED,task.getExclusivityStatus());
@@ -823,7 +823,8 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	@Test
 	public void test999Shutdown() throws InterruptedException {
 		taskManager.shutdown();
-		waitFor("waiting for task manager shutdown",1000);
+		waitFor("waiting for task manager shutdown",2000);
+		assertEquals("Some tasks left running after shutdown",new HashSet<Task>(),taskManager.getRunningTasks());
 	}
 	
 	// TODO: test for missing/corrupt system configuration

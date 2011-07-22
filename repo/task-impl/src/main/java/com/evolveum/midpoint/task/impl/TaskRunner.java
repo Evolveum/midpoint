@@ -57,5 +57,9 @@ public abstract class TaskRunner implements Runnable {
 		// In case that the thread was sleeping ...
 		thread.interrupt();
 	}
+
+	public Task getTask() {
+		return task;
+	}
 	
 }

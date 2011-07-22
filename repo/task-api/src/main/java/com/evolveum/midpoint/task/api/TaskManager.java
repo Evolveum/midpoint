@@ -158,4 +158,16 @@ public interface TaskManager {
 	 */
 	public void shutdown();
 	
+	/**
+	 * Returns tasks that currently run on this node.
+	 * E.g. tasks that have allocated threads.
+	 * 
+	 * It should be a different view than looking for a claimed tasks in the repository, although normally it should
+	 * return the same data. This should look at the real situation (e.g. threads) and should be used to troubleshoot
+	 * task management problems.
+	 * 
+	 * @return
+	 */
+	public Set<Task> getRunningTasks();
+	
 }

@@ -364,4 +364,13 @@ public class TaskManagerImpl implements TaskManager {
 		return thread;
 	}
 
+	@Override
+	public Set<Task> getRunningTasks() {
+		Set<Task> tasks = new HashSet<Task>();
+		for (TaskRunner runner: runners) {
+			tasks.add(runner.getTask());
+		}
+		return tasks;
+	}
+
 }

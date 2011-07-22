@@ -82,7 +82,7 @@ public class OperationResult implements Serializable {
 	private String message;
 	private String localizationMessage;
 	private List<Object> localizationArguments;
-	private Exception cause;
+	private Throwable cause;
 	private List<OperationResult> subresults;
 
 	public OperationResult(String operation) {
@@ -111,7 +111,7 @@ public class OperationResult implements Serializable {
 	}
 
 	public OperationResult(String operation, OperationResultStatus status, long token, String messageCode,
-			String message, Exception cause) {
+			String message, Throwable cause) {
 		this(operation, null, status, token, messageCode, message, null, cause, null);
 	}
 
@@ -126,7 +126,7 @@ public class OperationResult implements Serializable {
 	}
 
 	public OperationResult(String operation, Map<String, Object> params, OperationResultStatus status,
-			long token, String messageCode, String message, String localizationMessage, Exception cause,
+			long token, String messageCode, String message, String localizationMessage, Throwable cause,
 			List<OperationResult> subresults) {
 		this(operation, params, status, token, messageCode, message, localizationMessage, null, cause,
 				subresults);
@@ -134,7 +134,7 @@ public class OperationResult implements Serializable {
 
 	public OperationResult(String operation, Map<String, Object> params, OperationResultStatus status,
 			long token, String messageCode, String message, String localizationMessage,
-			List<Object> localizationArguments, Exception cause, List<OperationResult> subresults) {
+			List<Object> localizationArguments, Throwable cause, List<OperationResult> subresults) {
 		if (StringUtils.isEmpty(operation)) {
 			throw new IllegalArgumentException("Operation argument must not be null or empty.");
 		}
@@ -356,7 +356,7 @@ public class OperationResult implements Serializable {
 	 * @return Method returns operation result exception. Not required, can be
 	 *         null.
 	 */
-	public Exception getCause() {
+	public Throwable getCause() {
 		return cause;
 	}
 
@@ -365,19 +365,19 @@ public class OperationResult implements Serializable {
 		status = OperationResultStatus.SUCCESS;
 	}
 
-	public void recordFatalError(Exception cause) {
+	public void recordFatalError(Throwable cause) {
 		recordStatus(OperationResultStatus.FATAL_ERROR, cause.getMessage(), cause);
 	}
 
-	public void recordPartialError(Exception cause) {
+	public void recordPartialError(Throwable cause) {
 		recordStatus(OperationResultStatus.PARTIAL_ERROR, cause.getMessage(), cause);
 	}
 
-	public void recordWarning(Exception cause) {
+	public void recordWarning(Throwable cause) {
 		recordStatus(OperationResultStatus.WARNING, cause.getMessage(), cause);
 	}
 
-	public void recordStatus(OperationResultStatus status, Exception cause) {
+	public void recordStatus(OperationResultStatus status, Throwable cause) {
 		this.status = status;
 		this.cause = cause;
 		// No other message was given, so use message from the exception
@@ -385,19 +385,19 @@ public class OperationResult implements Serializable {
 		message = cause.getMessage();
 	}
 
-	public void recordFatalError(String message, Exception cause) {
+	public void recordFatalError(String message, Throwable cause) {
 		recordStatus(OperationResultStatus.FATAL_ERROR, message, cause);
 	}
 
-	public void recordPartialError(String message, Exception cause) {
+	public void recordPartialError(String message, Throwable cause) {
 		recordStatus(OperationResultStatus.PARTIAL_ERROR, message, cause);
 	}
 
-	public void recordWarning(String message, Exception cause) {
+	public void recordWarning(String message, Throwable cause) {
 		recordStatus(OperationResultStatus.WARNING, message, cause);
 	}
 
-	public void recordStatus(OperationResultStatus status, String message, Exception cause) {
+	public void recordStatus(OperationResultStatus status, String message, Throwable cause) {
 		this.status = status;
 		this.message = message;
 		this.cause = cause;
@@ -559,7 +559,7 @@ public class OperationResult implements Serializable {
 		result.setMessageCode(opResult.getMessageCode());
 
 		if (opResult.getCause() != null) {
-			Exception ex = opResult.getCause();
+			Throwable ex = opResult.getCause();
 			StringBuilder details = new StringBuilder();
 			details.append(ex.getClass().getName());
 			details.append(": ");

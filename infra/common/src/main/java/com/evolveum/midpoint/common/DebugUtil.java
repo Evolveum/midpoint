@@ -40,6 +40,8 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
+import com.evolveum.midpoint.aspect.LoggingAspect;
+import com.evolveum.midpoint.aspect.ObjectFormatter;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -74,7 +76,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  * 
  * @author semancik
  */
-public class DebugUtil {
+public class DebugUtil implements ObjectFormatter {
 
 	private static int SHOW_LIST_MEMBERS = 3;
 
@@ -633,4 +635,23 @@ public class DebugUtil {
 			return value.toString();
 		}
 	}
+
+	@Override
+	public String format(Object o) {
+		if (o instanceof ObjectType) {
+			return prettyPrint((ObjectType)o);
+		} if (o instanceof ObjectChangeType) {
+			return prettyPrint((ObjectChangeType)o);
+		} if (o instanceof ObjectModificationType) {
+			return prettyPrint((ObjectModificationType)o);
+		}
+		// TODO: more
+		return null;
+	}
+	
+	static {
+		ObjectFormatter f = new DebugUtil();
+		LoggingAspect.registerFormatter(f);
+	}
+
 }
