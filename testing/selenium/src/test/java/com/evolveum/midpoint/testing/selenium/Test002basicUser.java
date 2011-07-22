@@ -151,8 +151,8 @@ public class Test002basicUser {
 		se.click("createUserForm:webAccessEnabled");
 		se.click("createUserForm:createUser");
 		se.waitForText("Failed to create user");
-		assertTrue(se.isTextPresent("could not insert"));
-		assertTrue(se.isTextPresent("ConstraintViolationException"));
+		assertTrue(se.isTextPresent("Couldn't add object 'elizabeth' to model."));
+		assertTrue(se.isTextPresent("Failed to create user"));
 
 		// test missing name and password not match
 		logger.info("missing: name and not matching passsword");
@@ -322,7 +322,7 @@ public class Test002basicUser {
 
 		se.type("importForm:editor", xmlUser);
 		se.click("importForm:uploadButton");
-		assertTrue(se.waitForText("Added object: jack"));
+		assertTrue(se.waitForText("Added object: jack"));  		//FAILURE
 		
 		se.click(se.findLink("topAccount"));
 		se.waitForPageToLoad("30000");
@@ -377,7 +377,7 @@ public class Test002basicUser {
 
 		se.type("importForm:editor", xmlUser);
 		se.click("importForm:uploadButton");
-		assertTrue(se.waitForText("Failed to add object jack"));
+		assertTrue(se.waitForText("Failed to add object jack"));		//FAILURE
 		assertTrue(se.isTextPresent("already exists in store"));
 		
 		//overwrite enabled
