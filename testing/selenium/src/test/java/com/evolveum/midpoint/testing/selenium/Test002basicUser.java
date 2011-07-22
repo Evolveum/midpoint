@@ -389,7 +389,7 @@ public class Test002basicUser {
 		se.type("importForm:editor", xmlUser);
 		se.click("importForm:enableOverwrite");
 		se.click("importForm:uploadButton");
-		assertTrue(se.waitForText("Added object: jack"));
+		assertTrue(se.waitForText("Successfully uploaded object 'jack'."));
 		
 		se.click(se.findLink("topAccount"));
 		se.waitForPageToLoad("30000");
