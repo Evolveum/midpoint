@@ -55,13 +55,13 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  * 
  * @author sleepwalker
  */
-public class UserTypeManagerMock implements UserManager {
+public class UserManagerImplMock implements UserManager {
 
 	private static final long serialVersionUID = -6949750285264000739L;
 	@Autowired
-	AccountShadowTypeManagerMock accountManagerMock;
+	AccountManagerImplMock accountManagerMock;
 	@Autowired
-	ResourceTypeManagerMock resourceManagerMock;
+	ResourceManagerImplMock resourceManagerMock;
 	Map<String, GuiUserDto> userTypeList = new HashMap<String, GuiUserDto>();
 
 	@Override

@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.bean.ResourceState;
 import com.evolveum.midpoint.web.bean.ResourceStatus;
 import com.evolveum.midpoint.web.bean.Selectable;
-import com.evolveum.midpoint.web.model.AccountShadowManager;
+import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
@@ -186,11 +186,11 @@ public class ControllerUtil {
 		return manager;
 	}
 
-	public static AccountShadowManager getAccountManager(ObjectTypeCatalog catalog) {
+	public static AccountManager getAccountManager(ObjectTypeCatalog catalog) {
 		Validate.notNull(catalog, "Object type catalog must not be null.");
 		ObjectManager<AccountShadowDto> manager = catalog.getObjectManager(AccountShadowType.class,
 				AccountShadowDto.class);
-		return (AccountShadowManager) (manager);
+		return (AccountManager) (manager);
 	}
 
 	public static SystemConfigurationManager getSystemManager(ObjectTypeCatalog catalog) {

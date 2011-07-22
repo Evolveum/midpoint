@@ -48,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
  * 
  * @author katuska
  */
-public class ResourceTypeManagerMock implements ResourceManager {
+public class ResourceManagerImplMock implements ResourceManager {
 
 	private static final long serialVersionUID = -2673752961587849731L;
 

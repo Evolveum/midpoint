@@ -17,30 +17,22 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.web.model;
 
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
-import com.evolveum.midpoint.web.model.impl.ObjectManagerImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
- * @author semancik
+ * @author lazyman
+ * 
  */
-public abstract class AccountShadowManager extends ObjectManagerImpl<AccountShadowDto> {
+public interface AccountManager extends ObjectManager<AccountShadowDto> {
 
-	private static final long serialVersionUID = 3793939681394774533L;
+	String CLASS_NAME = AccountManager.class.getName();
+	String LIST_OWNER = CLASS_NAME + "listOwner";
+	String SUBMIT = CLASS_NAME + "submit";
 
-	/**
-	 * TODO
-	 * 
-	 * May return null
-	 * 
-	 * @param oid
-	 * @return
-	 */
-	public abstract UserType listOwner(String oid) throws WebModelException;
+	UserType listOwner(String oid);
 }

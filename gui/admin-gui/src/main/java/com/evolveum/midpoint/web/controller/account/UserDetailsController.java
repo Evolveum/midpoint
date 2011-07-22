@@ -58,7 +58,7 @@ import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinition;
 import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinition.Flag;
 import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinitionBuilder;
 import com.evolveum.midpoint.web.jsf.form.FormObject;
-import com.evolveum.midpoint.web.model.AccountShadowManager;
+import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
@@ -211,7 +211,7 @@ public class UserDetailsController implements Serializable {
 	public void savePerformed(ActionEvent evt) {
 		try {
 			UserManager userManager = getUserManager();
-			AccountShadowManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
+			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 
 			// new accounts are processed as modification of user in one
 			// operation
@@ -308,7 +308,7 @@ public class UserDetailsController implements Serializable {
 						+ ".", "Failed to update account attributes.", ex);
 			}
 
-			AccountShadowManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
+			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 			accountManager.submit(account);
 		}
 		TRACE.debug("Finished processing accounts with outbound schema handling");

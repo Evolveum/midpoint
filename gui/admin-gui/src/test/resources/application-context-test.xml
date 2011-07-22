@@ -47,10 +47,6 @@
 	<!-- Scans for application @Components to deploy -->
 	<context:component-scan base-package="com.evolveum.midpoint.web" />
 
-	<bean id="guiAccountShadowDtoManager" class="com.evolveum.midpoint.web.test.AccountShadowTypeManagerMock" scope="singleton">
-		<constructor-arg name="constructAccountShadowType" value="com.evolveum.midpoint.web.model.dto.GuiAccountShadowDto" />
-	</bean>
-
 	<bean id="objectTypeCatalog" class="com.evolveum.midpoint.web.model.impl.ObjectTypeCatalogImpl" scope="singleton">
 		<property name="supportedObjectManagers">
 			<map>
@@ -70,7 +66,7 @@
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType</value>
 					</key>
-					<ref bean="guiAccountShadowDtoManager" />
+					<bean id="guiAccountShadowDtoManager" class="com.evolveum.midpoint.web.test.AccountShadowTypeManagerMock" scope="singleton" />
 				</entry>
 			</map>
 		</property>

@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import com.evolveum.midpoint.web.model.AccountShadowManager;
+import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -41,17 +41,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  * @author katuska
  */
-public class AccountShadowTypeManagerMock extends AccountShadowManager {
+public class AccountManagerImplMock implements AccountManager {
 
 	private static final long serialVersionUID = -3348284676547881994L;
 
 	Map<String, AccountShadowDto> accountTypeList = new HashMap<String, AccountShadowDto>();
-
-	private final Class constructAccountShadowType;
-
-	public AccountShadowTypeManagerMock(Class constructAccountShadowType) {
-		this.constructAccountShadowType = constructAccountShadowType;
-	}
 
 	@Override
 	public UserType listOwner(String oid) {

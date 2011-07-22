@@ -82,15 +82,7 @@
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType</value>
 					</key>
-					<bean class="com.evolveum.midpoint.web.model.impl.AccountShadowTypeManager" scope="singleton">
-						<constructor-arg name="constructAccountShadowType" value="com.evolveum.midpoint.web.model.dto.GuiAccountShadowDto" />
-					</bean>
-				</entry>
-				<entry>
-					<key>
-						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType</value>
-					</key>
-					<bean class="com.evolveum.midpoint.web.model.impl.ConnectorTypeManager" scope="singleton" />
+					<bean class="com.evolveum.midpoint.web.model.impl.AccountManagerImpl" scope="singleton" />
 				</entry>
 				<entry>
 					<key>

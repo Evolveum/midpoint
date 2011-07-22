@@ -153,7 +153,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl2<ResourceType, Resour
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		LOGGER.debug("Getting import status for resource with oid {}", new Object[] { resourceOid });
 
-		OperationResult result = new OperationResult("Get Import Status");
+		OperationResult result = new OperationResult(ResourceManager.GET_IMPORT_STATUS);
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(
 				result.createOperationResultType());
 

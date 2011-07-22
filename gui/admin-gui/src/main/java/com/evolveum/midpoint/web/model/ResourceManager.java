@@ -39,12 +39,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
  * 
  */
 public interface ResourceManager extends ObjectManager<ResourceDto> {
-	
+
 	String CLASS_NAME = ResourceManager.class.getName();
 	String LIST_OBJECT_SHADOWS = CLASS_NAME + "listObjectShadows";
 	String TEST_CONNECTION = CLASS_NAME + "testConnection";
 	String IMPORT_FROM_RESOURCE = CLASS_NAME + "importFromResource";
 	String LIST_RESOURCE_OBJECTS = CLASS_NAME + "listResourceObjects";
+	String GET_IMPORT_STATUS = CLASS_NAME + "getImportStatus";
+	String LIST_CONNECTORS = CLASS_NAME + "listConnectors";
 
 	<T extends ResourceObjectShadowType> List<ResourceObjectShadowDto<T>> listObjectShadows(String oid,
 			Class<T> resourceObjectShadowType);
