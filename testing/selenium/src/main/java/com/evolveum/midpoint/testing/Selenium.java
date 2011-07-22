@@ -30,17 +30,24 @@ import java.util.Arrays;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverBackedSelenium;
 
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.logging.TraceManager;
+
 import com.google.common.base.Supplier;
 
 
 public class Selenium extends WebDriverBackedSelenium {
 	
+	private static final transient Trace logger = TraceManager.getTrace(Selenium.class);
+	
 	public Selenium(WebDriver baseDriver, String baseUrl) {
 		super(baseDriver, baseUrl);
+		logger.debug("Selenium:" + baseUrl);
 	}
 
 	public Selenium(Supplier<WebDriver> maker, String baseUrl) {
 		super(maker, baseUrl);
+		logger.debug("Selenium:" + baseUrl);
 	}
 	
 	/***
@@ -59,16 +66,17 @@ public class Selenium extends WebDriverBackedSelenium {
 	 */
 
 	public boolean waitForText(String text, int timeout) {
-		
 		for (int i = 0; i < timeout*3; i++) {
 			try {
 				Thread.sleep(333);
 			} catch (InterruptedException e) {
 			}
 			if (this.isTextPresent(text)) {
+				logger.debug("Selenium.waitForText:" + text  + " - OK");
 				return true;
 			}
 		}
+		logger.debug("Selenium.waitForText:" + text  + " - FAIL");
 		return this.isTextPresent(text);
 	}
 	
@@ -77,6 +85,7 @@ public class Selenium extends WebDriverBackedSelenium {
 	 * @param sleep - number seconds to wait
 	 */
 	public void sleep (int sleep) {
+		logger.debug("Selenium.sleep:" + sleep  + "s");
 		try {
 			Thread.sleep(1000*sleep);
 		} catch (InterruptedException e) {
@@ -91,10 +100,32 @@ public class Selenium extends WebDriverBackedSelenium {
 	public String findLink(String part) {
 		for (String s : Arrays.asList(this.getAllLinks())) {
 			if (s.contains(part)) {
+				logger.debug("Selenium.findlink:" + part + " - OK");
 				return s;
 			}
 		}
+		logger.debug("Selenium.findlink:" + part + " - FAIL" );
 		return null;
 	}
+
+	@Override
+	public void click(String locator) {
+		super.click(locator);
+		logger.debug("Selenium.click:" + locator );
+	}
+
+	@Override
+	public void type(String locator, String value) {
+		super.type(locator, value);
+		logger.debug("Selenium.type: " + locator + " -> " + value );
+	}
+	
+	@Override
+	public boolean isTextPresent(String pattern) {
+		boolean ret = super.isTextPresent(pattern);
+		logger.debug ("Selenium.isTextPresent:" + pattern + " - " + (ret ? "OK" : "FAIL") );
+		return ret;
+	}
+	
 	
 }
