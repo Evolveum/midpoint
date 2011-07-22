@@ -30,25 +30,25 @@ objectClass: groupOfUniqueNames
 objectClass: top
 cn: all-servers
 uniqueMember: cn=localhost:14444
-modifyTimestamp: 20110512074746Z
+modifyTimestamp: 20110722072252Z
 modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
 
-dn: ds-cfg-key-id=56DB099412BC0A11380FD6D8931A517B,cn=instance keys,cn=admin data
+dn: ds-cfg-key-id=5095AA8CED948D3740A0471F6153A8BF,cn=instance keys,cn=admin data
 objectClass: top
 objectClass: ds-cfg-instance-key
-ds-cfg-key-id: 56DB099412BC0A11380FD6D8931A517B
-ds-cfg-public-key-certificate;binary:: MIIB2TCCAUKgAwIBAgIETcuQoDANBgkqhkiG9w0BAQUFADAxMRswGQYDVQQKExJPcGVuRFMgQ2VydGlmaWNhdGUxEjAQBgNVBAMTCWxvY2FsaG9zdDAeFw0xMTA1MTIwNzQ3NDRaFw0zMTA1MDcwNzQ3NDRaMDExGzAZBgNVBAoTEk9wZW5EUyBDZXJ0aWZpY2F0ZTESMBAGA1UEAxMJbG9jYWxob3N0MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3r7mMMw8jhQIxq0Ivim069tN9dHJYz+rOX2kRU5nCNpnj51aEYyWHMYR5y8GpIjcg9fVlUGzNDP4W/5DhVeEPwdXXdxNn7hXqWLciTVSiLETJY04K8GJ4f71UZeQvUxU+puFXw+grNIN44Cw0nq5k7pkmUtWJnNCIJ5R5jGRgnQIDAQABMA0GCSqGSIb3DQEBBQUAA4GBAFiTJE5plRAeOGTlOBFLkdqc4hLhCZ5BLDtOpcKX1Wa0gJ3ehZ1pKzef/3llrbZDgoKDADJpBhulaZ/5wAqLSBK0g+EMpji1ly8x5/oJdMHcstA/1aJsamKjC4DXwMk7Zuo+sCFxbPVl+xZa3xlpg1saz9rdE//SmJVALdYNfWEF
+ds-cfg-key-id: 5095AA8CED948D3740A0471F6153A8BF
+ds-cfg-public-key-certificate;binary:: MIIB2TCCAUKgAwIBAgIETiklSTANBgkqhkiG9w0BAQUFADAxMRswGQYDVQQKExJPcGVuRFMgQ2VydGlmaWNhdGUxEjAQBgNVBAMTCWxvY2FsaG9zdDAeFw0xMTA3MjIwNzIyNDlaFw0zMTA3MTcwNzIyNDlaMDExGzAZBgNVBAoTEk9wZW5EUyBDZXJ0aWZpY2F0ZTESMBAGA1UEAxMJbG9jYWxob3N0MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCnBD3BbuFC/gPTYJoydtT0uCAT9A8qGDtZUU5JjFmzASIX4msCoEWSxeAmQfBR8bv8aHOGN+ha15rU4k7nhbS7PwJcG0vwOzicDCXn/5EYK48Ejfpmzocso0S8wh8hn7yTL6nwchEmFSy2V0iZs59WbGqAUswJiwvLYQ35AMQsbwIDAQABMA0GCSqGSIb3DQEBBQUAA4GBAGMhB//6Nddda+Bp7eQLjO/eLXE6WiMSe4LK6UigGFWcUDE0d/tCbJLlzLgsKo6MXaMzU+re+B77OMn86onLFSaILpqNRnx+ZDx39+eXxtbBaRkCBTTDBfm8mVeOFSWt1BANp48iJffD4DTsrMshAbmHBf8M+F5lULuAppP+ZpRG
 creatorsName: cn=Internal Client,cn=Root DNs,cn=config
-createTimestamp: 20110512074744Z
-entryUUID: 5dcbd994-640e-4c2d-9815-0dc51316ee44
+createTimestamp: 20110722072250Z
+entryUUID: f27e4dbc-5631-4a11-8c38-6bca35ede241
 
 dn: cn=Servers,cn=admin data
 objectClass: top
 objectClass: ds-cfg-branch
 cn: Servers
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20110512074745Z
-entryUUID: 0345160d-601d-4e52-9f14-085e3320dc01
+createTimestamp: 20110722072251Z
+entryUUID: 81112aea-a073-49a9-95f9-1ff9bdb2ace7
 
 dn: cn=localhost:14444,cn=Servers,cn=admin data
 objectClass: extensibleobject
@@ -58,21 +58,21 @@ memberofgroups: all-servers
 jmxsEnabled: false
 adminport: 14444
 jmxEnabled: false
-ldapsEnabled: false
+ldapsEnabled: true
 jmxport: 1689
 ldapport: 10389
 id: localhost:14444
-ds-cfg-key-id: 56DB099412BC0A11380FD6D8931A517B
+ds-cfg-key-id: 5095AA8CED948D3740A0471F6153A8BF
 ldapEnabled: true
-startTLSEnabled: false
+startTLSEnabled: true
 cn: localhost:14444
 jmxsport: -1
 hostname: localhost
 adminEnabled: true
-ldapsport: 636
-entryUUID: 22502705-3190-41ec-b1f1-0535ea0ab3e2
-createTimestamp: 20110512074745Z
+ldapsport: 10636
+entryUUID: 43db4e38-f236-48bc-ae34-f88124255b6d
+createTimestamp: 20110722072251Z
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-modifyTimestamp: 20110512074746Z
+modifyTimestamp: 20110722072252Z
 modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
 

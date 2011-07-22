@@ -204,15 +204,6 @@ ds-cfg-java-class: org.opends.server.backends.MonitorBackend
 ds-cfg-base-dn: cn=monitor
 ds-cfg-writability-mode: disabled
 
-dn: ds-cfg-backend-id=replicationChanges,cn=Backends,cn=config
-objectClass: ds-cfg-backend
-objectClass: top
-ds-cfg-backend-id: replicationChanges
-ds-cfg-enabled: true
-ds-cfg-java-class: org.opends.server.replication.server.ReplicationBackend
-ds-cfg-base-dn: dc=replicationChanges
-ds-cfg-writability-mode: enabled
-
 dn: ds-cfg-backend-id=schema,cn=Backends,cn=config
 objectClass: ds-cfg-backend
 objectClass: top
@@ -424,10 +415,12 @@ dn: cn=LDAP Connection Handler,cn=Connection Handlers,cn=config
 objectClass: ds-cfg-ldap-connection-handler
 objectClass: top
 objectClass: ds-cfg-connection-handler
+ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config
 ds-cfg-ssl-client-auth-policy: optional
+ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config
 ds-cfg-max-blocked-write-time-limit: 2 minutes
 ds-cfg-allow-tcp-reuse-address: true
-ds-cfg-allow-start-tls: false
+ds-cfg-allow-start-tls: true
 ds-cfg-send-rejection-notice: true
 ds-cfg-allow-ldap-v2: true
 cn: LDAP Connection Handler
@@ -458,7 +451,7 @@ ds-cfg-send-rejection-notice: true
 ds-cfg-allow-ldap-v2: true
 cn: LDAPS Connection Handler
 ds-cfg-use-tcp-no-delay: true
-ds-cfg-enabled: false
+ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler
 ds-cfg-keep-stats: true
 ds-cfg-max-request-size: 5 megabytes
@@ -466,7 +459,7 @@ ds-cfg-accept-backlog: 128
 ds-cfg-buffer-size: 4096 bytes
 ds-cfg-listen-address: 0.0.0.0
 ds-cfg-num-request-handlers: 2
-ds-cfg-listen-port: 636
+ds-cfg-listen-port: 10636
 ds-cfg-use-ssl: true
 ds-cfg-use-tcp-keep-alive: true
 
@@ -671,7 +664,7 @@ dn: cn=JKS,cn=Key Manager Providers,cn=config
 objectClass: ds-cfg-key-manager-provider
 objectClass: ds-cfg-file-based-key-manager-provider
 objectClass: top
-ds-cfg-enabled: false
+ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.extensions.FileBasedKeyManagerProvider
 ds-cfg-key-store-file: config/keystore
 ds-cfg-key-store-type: JKS
@@ -1858,7 +1851,7 @@ objectClass: inetOrgPerson
 objectClass: organizationalPerson
 objectClass: ds-cfg-root-dn-user
 objectClass: top
-userpassword: {SSHA512}xDgdR77rTurYnbh3vMmqO1z/6nUc+A3rvvnO+64tmiA+b1F93JHprXNllOJmKbCOWDZRtz4++ndRzQRbHkhanjcVGzYpdIpd
+userpassword: {SSHA512}oDa/5AoXCKPCTSLXPOw87/juoKlWtZ6OHHQgunFd1ddFKgzb4bkWnMFyYP+IGAXv8KjUEhg7omARjctyVCSpASvA9xcSHjvk
 givenName: Directory
 cn: Directory Manager
 ds-cfg-alternate-bind-dn: cn=Directory Manager
@@ -1953,70 +1946,6 @@ dn: cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=co
 objectClass: top
 objectClass: ds-cfg-branch
 cn: domains
-
-dn: cn=cn=admin data,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
-objectClass: ds-cfg-replication-domain
-objectClass: top
-ds-cfg-base-dn: cn=admin data
-ds-cfg-server-id: 22640
-cn: cn=admin data
-ds-cfg-replication-server: localhost:9989
-creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20110512074746Z
-entryUUID: 050ca0a1-a319-4cd2-a3fe-f3573952b7d4
-
-dn: cn=external changelog,cn=cn=admin data,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
-objectClass: top
-objectClass: ds-cfg-external-changelog-domain
-ds-cfg-enabled: false
-cn: external changelog
-
-dn: cn=cn=schema,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
-objectClass: ds-cfg-replication-domain
-objectClass: top
-ds-cfg-base-dn: cn=schema
-ds-cfg-server-id: 12802
-cn: cn=schema
-ds-cfg-replication-server: localhost:9989
-creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20110512074747Z
-entryUUID: fc3e3659-b4c4-4ecf-a60a-55a11637f2f7
-
-dn: cn=external changelog,cn=cn=schema,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
-objectClass: top
-objectClass: ds-cfg-external-changelog-domain
-ds-cfg-enabled: false
-cn: external changelog
-
-dn: cn=dc=example\,dc=com,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
-objectClass: ds-cfg-replication-domain
-objectClass: top
-ds-cfg-base-dn: dc=example,dc=com
-ds-cfg-server-id: 11754
-cn: dc=example,dc=com
-ds-cfg-replication-server: localhost:9989
-entryUUID: 661ba38f-4520-434b-b838-88c22b17bece
-createTimestamp: 20110512074746Z
-creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-ds-sync-generation-id: 48
-
-dn: cn=external changelog,cn=dc=example\,dc=com,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
-objectClass: top
-objectClass: ds-cfg-external-changelog-domain
-ds-cfg-enabled: true
-cn: external changelog
-
-dn: cn=replication server,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
-objectClass: top
-objectClass: ds-cfg-replication-server
-ds-cfg-replication-server-id: 24594
-ds-cfg-replication-port: 9989
-cn: replication server
-ds-cfg-replication-db-directory: changelogDb
-ds-cfg-replication-server: localhost:9989
-creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20110512074746Z
-entryUUID: 65f3e817-60be-45a1-bb2a-661a756f8262
 
 dn: cn=Syntaxes,cn=config
 objectClass: top
@@ -2378,7 +2307,7 @@ dn: cn=JKS,cn=Trust Manager Providers,cn=config
 objectClass: ds-cfg-file-based-trust-manager-provider
 objectClass: ds-cfg-trust-manager-provider
 objectClass: top
-ds-cfg-enabled: false
+ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.extensions.FileBasedTrustManagerProvider
 ds-cfg-trust-store-type: JKS
 ds-cfg-trust-store-file: config/truststore

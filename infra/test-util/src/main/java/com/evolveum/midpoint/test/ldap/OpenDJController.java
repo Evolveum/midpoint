@@ -236,6 +236,7 @@ public class OpenDJController {
                 EmbeddedUtils.startServer(envConfig);
 
             } catch (ConfigException ex) {
+            	System.out.println("Possible OpenDJ misconfiguration: "+ex.getMessage());
                 ex.printStackTrace();
                 throw new RuntimeException("OpenDS startup failed", ex);
             } catch (InitializationException ex) {

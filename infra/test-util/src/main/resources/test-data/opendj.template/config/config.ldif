@@ -10,7 +10,6 @@ ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,
 ds-cfg-lookthrough-limit: 5000
 ds-cfg-idle-time-limit: 0 seconds
 ds-cfg-save-config-on-successful-startup: true
-ds-cfg-reject-unauthenticated-requests: false
 ds-cfg-allowed-task: org.opends.server.tasks.AddSchemaFileTask
 ds-cfg-allowed-task: org.opends.server.tasks.BackupTask
 ds-cfg-allowed-task: org.opends.server.tasks.DisconnectClientTask
@@ -25,11 +24,12 @@ ds-cfg-allowed-task: org.opends.server.tasks.RebuildTask
 ds-cfg-allowed-task: org.opends.server.tasks.RestoreTask
 ds-cfg-allowed-task: org.opends.server.tasks.ShutdownTask
 ds-cfg-allowed-task: org.opends.server.tasks.PurgeConflictsHistoricalTask
-ds-cfg-bind-with-dn-requires-password: true
+ds-cfg-reject-unauthenticated-requests: false
 ds-cfg-size-limit: 1000
+ds-cfg-bind-with-dn-requires-password: true
 ds-cfg-entry-cache-preload: false
-ds-cfg-single-structural-objectclass-behavior: reject
 cn: config
+ds-cfg-single-structural-objectclass-behavior: reject
 ds-cfg-allow-attribute-name-exceptions: false
 ds-cfg-max-psearches: -1
 ds-cfg-etime-resolution: milliseconds
@@ -90,6 +90,7 @@ objectClass: ds-cfg-smtp-account-status-notification-handler
 objectClass: ds-cfg-account-status-notification-handler
 objectClass: top
 ds-cfg-sender-address: opends-notifications@example.com
+cn: SMTP Handler
 ds-cfg-message-subject: account-temporarily-locked:Your directory account has been locked
 ds-cfg-message-subject: account-permanently-locked:Your directory account has been locked
 ds-cfg-message-subject: account-unlocked:Your directory account has been unlocked
@@ -102,7 +103,6 @@ ds-cfg-message-subject: password-expired:Your directory password has expired
 ds-cfg-message-subject: password-expiring:Your directory password is going to expire
 ds-cfg-message-subject: password-reset:Your directory password has been reset
 ds-cfg-message-subject: password-changed:Your directory password has been changed
-cn: SMTP Handler
 ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.extensions.SMTPAccountStatusNotificationHandler
 ds-cfg-email-address-attribute-type: mail
@@ -121,8 +121,8 @@ ds-cfg-message-template-file: password-reset:config/messages/password-reset.temp
 ds-cfg-message-template-file: password-changed:config/messages/password-changed.template
 
 dn: cn=Administration Connector,cn=config
-objectClass: ds-cfg-administration-connector
 objectClass: top
+objectClass: ds-cfg-administration-connector
 ds-cfg-listen-address: 0.0.0.0
 ds-cfg-listen-port: 14444
 cn: Administration Connector
@@ -136,8 +136,8 @@ objectClass: ds-cfg-branch
 cn: Alert Handlers
 
 dn: cn=JMX Alert Handler,cn=Alert Handlers,cn=config
-objectClass: ds-cfg-alert-handler
 objectClass: top
+objectClass: ds-cfg-alert-handler
 objectClass: ds-cfg-jmx-alert-handler
 ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.extensions.JMXAlertHandler
@@ -154,8 +154,8 @@ objectClass: top
 objectClass: ds-cfg-ldif-backend
 ds-cfg-base-dn: cn=admin data
 ds-cfg-ldif-file: config/admin-backend.ldif
-ds-cfg-enabled: true
 ds-cfg-backend-id: adminRoot
+ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.backends.LDIFBackend
 ds-cfg-is-private-backend: true
 ds-cfg-writability-mode: enabled
@@ -166,8 +166,8 @@ objectClass: top
 objectClass: ds-cfg-trust-store-backend
 ds-cfg-base-dn: cn=ads-truststore
 ds-cfg-trust-store-type: JKS
-ds-cfg-enabled: true
 ds-cfg-backend-id: ads-truststore
+ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.backends.TrustStoreBackend
 ds-cfg-trust-store-file: config/ads-truststore
 ds-cfg-writability-mode: enabled
@@ -185,8 +185,8 @@ ds-cfg-backup-directory: bak
 ds-cfg-writability-mode: disabled
 
 dn: ds-cfg-backend-id=config,cn=Backends,cn=config
-objectClass: ds-cfg-config-file-handler-backend
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-config-file-handler-backend
 objectClass: top
 ds-cfg-enabled: true
 ds-cfg-backend-id: config
@@ -195,8 +195,8 @@ ds-cfg-base-dn: cn=config
 ds-cfg-writability-mode: enabled
 
 dn: ds-cfg-backend-id=monitor,cn=Backends,cn=config
-objectClass: ds-cfg-monitor-backend
 objectClass: ds-cfg-backend
+objectClass: ds-cfg-monitor-backend
 objectClass: top
 ds-cfg-enabled: true
 ds-cfg-backend-id: monitor
@@ -228,10 +228,10 @@ dn: ds-cfg-backend-id=tasks,cn=Backends,cn=config
 objectClass: ds-cfg-backend
 objectClass: top
 objectClass: ds-cfg-task-backend
-ds-cfg-task-retention-time: 24 hours
 ds-cfg-base-dn: cn=tasks
-ds-cfg-backend-id: tasks
+ds-cfg-task-retention-time: 24 hours
 ds-cfg-enabled: true
+ds-cfg-backend-id: tasks
 ds-cfg-java-class: org.opends.server.backends.task.TaskBackend
 ds-cfg-task-backing-file: config/tasks.ldif
 ds-cfg-writability-mode: enabled
@@ -245,13 +245,13 @@ ds-cfg-compact-encoding: true
 ds-cfg-db-checkpointer-bytes-interval: 20 megabytes
 ds-cfg-db-logging-level: CONFIG
 ds-cfg-db-checkpointer-wakeup-interval: 30 seconds
-ds-cfg-disk-full-threshold: 20 megabytes
 ds-cfg-db-evictor-keep-alive: 600 seconds
-ds-cfg-disk-low-threshold: 100 megabytes
+ds-cfg-disk-full-threshold: 20 megabytes
 ds-cfg-db-directory: db
+ds-cfg-disk-low-threshold: 100 megabytes
 ds-cfg-base-dn: dc=example,dc=com
-ds-cfg-backend-id: userRoot
 ds-cfg-enabled: TRUE
+ds-cfg-backend-id: userRoot
 ds-cfg-index-entry-limit: 4000
 ds-cfg-java-class: org.opends.server.backends.jeb.BackendImpl
 ds-cfg-writability-mode: enabled
@@ -269,7 +269,7 @@ ds-cfg-db-evictor-core-threads: 1
 ds-cfg-db-run-cleaner: true
 ds-cfg-db-txn-no-sync: false
 ds-cfg-db-txn-write-no-sync: true
-modifyTimestamp: 20110512121754Z
+modifyTimestamp: 20110722074115Z
 modifiersName: cn=Internal Client,cn=Root DNs,cn=config
 
 dn: cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
@@ -427,14 +427,16 @@ objectClass: ds-cfg-ldap-connection-handler
 objectClass: top
 objectClass: ds-cfg-connection-handler
 ds-cfg-ssl-client-auth-policy: optional
+ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config
+ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config
 ds-cfg-max-blocked-write-time-limit: 2 minutes
 ds-cfg-allow-tcp-reuse-address: true
-ds-cfg-allow-start-tls: false
-ds-cfg-send-rejection-notice: true
+ds-cfg-allow-start-tls: true
 ds-cfg-allow-ldap-v2: true
+ds-cfg-send-rejection-notice: true
 cn: LDAP Connection Handler
-ds-cfg-use-tcp-no-delay: true
 ds-cfg-enabled: true
+ds-cfg-use-tcp-no-delay: true
 ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler
 ds-cfg-keep-stats: true
 ds-cfg-max-request-size: 5 megabytes
@@ -450,17 +452,17 @@ dn: cn=LDAPS Connection Handler,cn=Connection Handlers,cn=config
 objectClass: ds-cfg-ldap-connection-handler
 objectClass: top
 objectClass: ds-cfg-connection-handler
-ds-cfg-ssl-client-auth-policy: optional
 ds-cfg-key-manager-provider: cn=JKS,cn=Key Manager Providers,cn=config
+ds-cfg-ssl-client-auth-policy: optional
 ds-cfg-trust-manager-provider: cn=JKS,cn=Trust Manager Providers,cn=config
 ds-cfg-max-blocked-write-time-limit: 2 minutes
 ds-cfg-allow-tcp-reuse-address: true
 ds-cfg-allow-start-tls: false
-ds-cfg-send-rejection-notice: true
 ds-cfg-allow-ldap-v2: true
+ds-cfg-send-rejection-notice: true
 cn: LDAPS Connection Handler
+ds-cfg-enabled: true
 ds-cfg-use-tcp-no-delay: true
-ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.protocols.ldap.LDAPConnectionHandler
 ds-cfg-keep-stats: true
 ds-cfg-max-request-size: 5 megabytes
@@ -468,13 +470,13 @@ ds-cfg-accept-backlog: 128
 ds-cfg-buffer-size: 4096 bytes
 ds-cfg-listen-address: 0.0.0.0
 ds-cfg-num-request-handlers: 2
-ds-cfg-listen-port: 636
+ds-cfg-listen-port: 10636
 ds-cfg-use-ssl: true
 ds-cfg-use-tcp-keep-alive: true
 
 dn: cn=LDIF Connection Handler,cn=Connection Handlers,cn=config
-objectClass: ds-cfg-ldif-connection-handler
 objectClass: top
+objectClass: ds-cfg-ldif-connection-handler
 objectClass: ds-cfg-connection-handler
 ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.protocols.LDIFConnectionHandler
@@ -496,16 +498,16 @@ cn: Entry Caches
 
 dn: cn=FIFO,cn=Entry Caches,cn=config
 objectClass: ds-cfg-fifo-entry-cache
-objectClass: ds-cfg-entry-cache
 objectClass: top
+objectClass: ds-cfg-entry-cache
 ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.extensions.FIFOEntryCache
 ds-cfg-cache-level: 1
 cn: FIFO
 
 dn: cn=File System,cn=Entry Caches,cn=config
-objectClass: ds-cfg-entry-cache
 objectClass: top
+objectClass: ds-cfg-entry-cache
 objectClass: ds-cfg-file-system-entry-cache
 ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.extensions.FileSystemEntryCache
@@ -514,8 +516,8 @@ cn: File System
 
 dn: cn=Soft Reference,cn=Entry Caches,cn=config
 objectClass: ds-cfg-soft-reference-entry-cache
-objectClass: ds-cfg-entry-cache
 objectClass: top
+objectClass: ds-cfg-entry-cache
 ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.extensions.SoftReferenceEntryCache
 ds-cfg-cache-level: 2
@@ -662,7 +664,7 @@ dn: cn=JKS,cn=Key Manager Providers,cn=config
 objectClass: ds-cfg-key-manager-provider
 objectClass: ds-cfg-file-based-key-manager-provider
 objectClass: top
-ds-cfg-enabled: false
+ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.extensions.FileBasedKeyManagerProvider
 ds-cfg-key-store-file: config/keystore
 ds-cfg-key-store-type: JKS
@@ -804,8 +806,8 @@ cn: File-Based Debug Logger
 ds-cfg-enabled: false
 ds-cfg-java-class: org.opends.server.loggers.debug.TextDebugLogPublisher
 ds-cfg-default-debug-level: error
-ds-cfg-log-file-permissions: 640
 ds-cfg-log-file: logs/debug
+ds-cfg-log-file-permissions: 640
 
 dn: cn=File-Based Error Logger,cn=Loggers,cn=config
 objectClass: ds-cfg-log-publisher
@@ -1112,8 +1114,8 @@ cn: Distinguished Name Equality Matching Rule
 
 dn: cn=Double Metaphone Approximate Matching Rule,cn=Matching Rules,cn=config
 objectClass: ds-cfg-matching-rule
-objectClass: ds-cfg-approximate-matching-rule
 objectClass: top
+objectClass: ds-cfg-approximate-matching-rule
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.schema.DoubleMetaphoneApproximateMatchingRuleFactory
 cn: Double Metaphone Approximate Matching Rule
@@ -1373,8 +1375,8 @@ cn: System Info
 
 dn: cn=Version,cn=Monitor Providers,cn=config
 objectClass: ds-cfg-monitor-provider
-objectClass: ds-cfg-version-monitor-provider
 objectClass: top
+objectClass: ds-cfg-version-monitor-provider
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.monitors.VersionMonitorProvider
 cn: Version
@@ -1412,8 +1414,8 @@ ds-cfg-skip-validation-for-administrators: false
 ds-cfg-force-change-on-add: false
 ds-cfg-state-update-failure-policy: reactive
 ds-cfg-password-history-count: 0
-ds-cfg-password-history-duration: 0 seconds
 ds-cfg-allow-multiple-password-values: false
+ds-cfg-password-history-duration: 0 seconds
 ds-cfg-lockout-failure-expiration-interval: 0 seconds
 ds-cfg-lockout-failure-count: 0
 ds-cfg-max-password-reset-age: 0 seconds
@@ -1443,8 +1445,8 @@ ds-cfg-skip-validation-for-administrators: false
 ds-cfg-force-change-on-add: false
 ds-cfg-state-update-failure-policy: ignore
 ds-cfg-password-history-count: 0
-ds-cfg-password-history-duration: 0 seconds
 ds-cfg-allow-multiple-password-values: false
+ds-cfg-password-history-duration: 0 seconds
 ds-cfg-lockout-failure-expiration-interval: 0 seconds
 ds-cfg-lockout-failure-count: 0
 ds-cfg-max-password-reset-age: 0 seconds
@@ -1562,8 +1564,8 @@ cn: Salted SHA-256
 
 dn: cn=Salted SHA-384,cn=Password Storage Schemes,cn=config
 objectClass: ds-cfg-password-storage-scheme
-objectClass: ds-cfg-salted-sha384-password-storage-scheme
 objectClass: top
+objectClass: ds-cfg-salted-sha384-password-storage-scheme
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.extensions.SaltedSHA384PasswordStorageScheme
 cn: Salted SHA-384
@@ -1593,14 +1595,14 @@ dn: cn=Attribute Value,cn=Password Validators,cn=config
 objectClass: ds-cfg-attribute-value-password-validator
 objectClass: ds-cfg-password-validator
 objectClass: top
-ds-cfg-test-reversed-password: true
 ds-cfg-enabled: true
+ds-cfg-test-reversed-password: true
 ds-cfg-java-class: org.opends.server.extensions.AttributeValuePasswordValidator
 cn: Attribute Value
 
 dn: cn=Character Set,cn=Password Validators,cn=config
-objectClass: ds-cfg-character-set-password-validator
 objectClass: ds-cfg-password-validator
+objectClass: ds-cfg-character-set-password-validator
 objectClass: top
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.extensions.CharacterSetPasswordValidator
@@ -1644,8 +1646,8 @@ ds-cfg-case-sensitive-validation: false
 
 dn: cn=Similarity-Based Password Validator,cn=Password Validators,cn=config
 objectClass: ds-cfg-password-validator
-objectClass: ds-cfg-similarity-based-password-validator
 objectClass: top
+objectClass: ds-cfg-similarity-based-password-validator
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.extensions.SimilarityBasedPasswordValidator
 ds-cfg-min-password-difference: 3
@@ -1766,11 +1768,11 @@ objectClass: ds-cfg-plugin
 objectClass: top
 ds-cfg-plugin-type: ldifImport
 ds-cfg-invoke-for-internal-operations: false
-ds-cfg-default-auth-password-storage-scheme: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
 cn: Password Policy Import
+ds-cfg-default-auth-password-storage-scheme: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
 ds-cfg-enabled: true
-ds-cfg-default-user-password-storage-scheme: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
 ds-cfg-java-class: org.opends.server.plugins.PasswordPolicyImportPlugin
+ds-cfg-default-user-password-storage-scheme: cn=Salted SHA-1,cn=Password Storage Schemes,cn=config
 
 dn: cn=Profiler,cn=Plugins,cn=config
 objectClass: ds-cfg-profiler-plugin
@@ -1845,11 +1847,11 @@ cn: Root DNs
 
 dn: cn=Directory Manager,cn=Root DNs,cn=config
 objectClass: person
-objectClass: inetOrgPerson
 objectClass: organizationalPerson
-objectClass: ds-cfg-root-dn-user
+objectClass: inetOrgPerson
 objectClass: top
-userpassword: {SSHA512}xDgdR77rTurYnbh3vMmqO1z/6nUc+A3rvvnO+64tmiA+b1F93JHprXNllOJmKbCOWDZRtz4++ndRzQRbHkhanjcVGzYpdIpd
+objectClass: ds-cfg-root-dn-user
+userpassword: {SSHA512}oDa/5AoXCKPCTSLXPOw87/juoKlWtZ6OHHQgunFd1ddFKgzb4bkWnMFyYP+IGAXv8KjUEhg7omARjctyVCSpASvA9xcSHjvk
 givenName: Directory
 cn: Directory Manager
 ds-cfg-alternate-bind-dn: cn=Directory Manager
@@ -1933,8 +1935,8 @@ objectClass: ds-cfg-branch
 cn: Synchronization Providers
 
 dn: cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
-objectClass: ds-cfg-replication-synchronization-provider
 objectClass: ds-cfg-synchronization-provider
+objectClass: ds-cfg-replication-synchronization-provider
 objectClass: top
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.replication.plugin.MultimasterReplication
@@ -1949,12 +1951,12 @@ dn: cn=cn=admin data,cn=domains,cn=Multimaster Synchronization,cn=Synchronizatio
 objectClass: ds-cfg-replication-domain
 objectClass: top
 ds-cfg-base-dn: cn=admin data
-ds-cfg-server-id: 22640
+ds-cfg-server-id: 30860
 cn: cn=admin data
-ds-cfg-replication-server: localhost:9989
+ds-cfg-replication-server: localhost:19989
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20110512074746Z
-entryUUID: 050ca0a1-a319-4cd2-a3fe-f3573952b7d4
+createTimestamp: 20110722072252Z
+entryUUID: 9db8aa1b-aad9-47f1-950a-0adf9687923c
 
 dn: cn=external changelog,cn=cn=admin data,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
@@ -1966,12 +1968,12 @@ dn: cn=cn=schema,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Pr
 objectClass: ds-cfg-replication-domain
 objectClass: top
 ds-cfg-base-dn: cn=schema
-ds-cfg-server-id: 12802
+ds-cfg-server-id: 16890
 cn: cn=schema
-ds-cfg-replication-server: localhost:9989
+ds-cfg-replication-server: localhost:19989
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20110512074747Z
-entryUUID: fc3e3659-b4c4-4ecf-a60a-55a11637f2f7
+createTimestamp: 20110722072253Z
+entryUUID: effe8f2e-2db3-47a5-9a4a-b2a6058c859f
 
 dn: cn=external changelog,cn=cn=schema,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
@@ -1983,12 +1985,12 @@ dn: cn=dc=example\,dc=com,cn=domains,cn=Multimaster Synchronization,cn=Synchroni
 objectClass: ds-cfg-replication-domain
 objectClass: top
 ds-cfg-base-dn: dc=example,dc=com
-ds-cfg-server-id: 11754
+ds-cfg-server-id: 8631
 cn: dc=example,dc=com
-ds-cfg-replication-server: localhost:9989
-entryUUID: 661ba38f-4520-434b-b838-88c22b17bece
-createTimestamp: 20110512074746Z
+ds-cfg-replication-server: localhost:19989
+entryUUID: 9ccc96eb-8688-4e7f-a688-a1a3d18d9bd2
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+createTimestamp: 20110722072253Z
 ds-sync-generation-id: 48
 
 dn: cn=external changelog,cn=dc=example\,dc=com,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
@@ -2000,14 +2002,14 @@ cn: external changelog
 dn: cn=replication server,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config
 objectClass: top
 objectClass: ds-cfg-replication-server
-ds-cfg-replication-server-id: 24594
-ds-cfg-replication-port: 9989
+ds-cfg-replication-server-id: 32548
+ds-cfg-replication-port: 19989
 cn: replication server
 ds-cfg-replication-db-directory: changelogDb
-ds-cfg-replication-server: localhost:9989
+ds-cfg-replication-server: localhost:19989
 creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
-createTimestamp: 20110512074746Z
-entryUUID: 65f3e817-60be-45a1-bb2a-661a756f8262
+createTimestamp: 20110722072252Z
+entryUUID: 253400e9-3b19-4b48-b656-72cece3e3ea6
 
 dn: cn=Syntaxes,cn=config
 objectClass: top
@@ -2091,8 +2093,8 @@ objectClass: ds-cfg-directory-string-attribute-syntax
 objectClass: ds-cfg-attribute-syntax
 objectClass: top
 ds-cfg-enabled: true
-ds-cfg-allow-zero-length-values: false
 ds-cfg-java-class: org.opends.server.schema.DirectoryStringSyntax
+ds-cfg-allow-zero-length-values: false
 cn: Directory String
 
 dn: cn=Distinguished Name,cn=Syntaxes,cn=config
@@ -2369,7 +2371,7 @@ dn: cn=JKS,cn=Trust Manager Providers,cn=config
 objectClass: ds-cfg-file-based-trust-manager-provider
 objectClass: ds-cfg-trust-manager-provider
 objectClass: top
-ds-cfg-enabled: false
+ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.extensions.FileBasedTrustManagerProvider
 ds-cfg-trust-store-type: JKS
 ds-cfg-trust-store-file: config/truststore
@@ -2483,8 +2485,8 @@ ds-cfg-attribute-type: structuralObjectClass
 
 dn: cn=subschemaSubentry,cn=Virtual Attributes,cn=config
 objectClass: ds-cfg-virtual-attribute
-objectClass: ds-cfg-subschema-subentry-virtual-attribute
 objectClass: top
+objectClass: ds-cfg-subschema-subentry-virtual-attribute
 ds-cfg-enabled: true
 ds-cfg-java-class: org.opends.server.extensions.SubschemaSubentryVirtualAttributeProvider
 ds-cfg-conflict-behavior: virtual-overrides-real
@@ -2493,27 +2495,27 @@ ds-cfg-attribute-type: subschemaSubentry
 
 dn: cn=Virtual Static member,cn=Virtual Attributes,cn=config
 objectClass: ds-cfg-virtual-attribute
-objectClass: ds-cfg-member-virtual-attribute
 objectClass: top
+objectClass: ds-cfg-member-virtual-attribute
 ds-cfg-allow-retrieving-membership: false
 ds-cfg-conflict-behavior: virtual-overrides-real
 cn: Virtual Static member
 ds-cfg-attribute-type: member
 ds-cfg-enabled: true
-ds-cfg-filter: (&(objectClass=groupOfNames)(objectClass=ds-virtual-static-group))
 ds-cfg-java-class: org.opends.server.extensions.MemberVirtualAttributeProvider
+ds-cfg-filter: (&(objectClass=groupOfNames)(objectClass=ds-virtual-static-group))
 
 dn: cn=Virtual Static uniqueMember,cn=Virtual Attributes,cn=config
 objectClass: ds-cfg-virtual-attribute
-objectClass: ds-cfg-member-virtual-attribute
 objectClass: top
+objectClass: ds-cfg-member-virtual-attribute
 ds-cfg-allow-retrieving-membership: false
 ds-cfg-conflict-behavior: virtual-overrides-real
 cn: Virtual Static uniqueMember
 ds-cfg-attribute-type: uniqueMember
 ds-cfg-enabled: true
-ds-cfg-filter: (&(objectClass=groupOfUniqueNames)(objectClass=ds-virtual-static-group))
 ds-cfg-java-class: org.opends.server.extensions.MemberVirtualAttributeProvider
+ds-cfg-filter: (&(objectClass=groupOfUniqueNames)(objectClass=ds-virtual-static-group))
 
 dn: cn=Work Queue,cn=config
 objectClass: ds-cfg-work-queue

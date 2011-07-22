@@ -1,0 +1,125 @@
+#
+# Copyright (c) 2011 Evolveum                             
+#                                                         
+# The contents of this file are subject to the terms      
+# of the Common Development and Distribution License      
+# (the License). You may not use this file except in      
+# compliance with the License.                            
+#                                                         
+# You can obtain a copy of the License at                 
+# http://www.opensource.org/licenses/cddl1 or             
+# CDDLv1.0.txt file in the source code distribution.      
+# See the License for the specific language governing     
+# permission and limitations under the License.           
+#                                                         
+# If applicable, add the following below the CDDL Header, 
+# with the fields enclosed by brackets [] replaced by     
+# your own identifying information:                       
+#                                                         
+# Portions Copyrighted 2011 [name of copyright owner]                
+#
+
+#
+# This is an import LDIF file intended to populate embedded OpenDJ isntance
+# It is used in integration and sanity tests.
+#
+# Note that Jack Sparrow and Will Turner are not there. They are used in the
+# tests.
+
+dn: dc=example,dc=com
+objectclass: top
+objectclass: domain
+dc: example
+
+dn: ou=People, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: People
+aci: (targetattr="*")(version 3.0; acl "IDM Access"; allow (all)
+  userdn="ldap:///uid=idm,ou=Administrators,dc=example,dc=com";)
+
+dn: uid=jgibbs, ou=People, dc=example,dc=com
+uid: jgibbs
+cn: Joshamee Gibbs
+sn: Gibbs
+givenname: Joshamee
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+mail: jgibbs@blackpearl.com
+telephonenumber: +1 408 555 1234
+facsimiletelephonenumber: +1 408 555 4321
+userpassword: supersecret
+
+dn: uid=hbarbossa, ou=People, dc=example,dc=com
+uid: hbarbossa
+cn: Hector Barbossa
+sn: Barbossa
+givenname: Hector
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+o: Brethren Court
+mail: captain.barbossa@example.com
+telephonenumber: +421 910 382734
+facsimiletelephonenumber: +1 408 555 1111
+roomnumber: 111
+userpassword: deadjack
+
+# Note:
+# Lord Bectett is an exception to the cn = givenName + sn rule 
+
+dn: uid=jbeckett, ou=People, dc=example,dc=com
+uid: jbeckett
+cn: Lord Cutler Beckett
+sn: Beckett
+givenname: Cutler
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+o: East India Trading Co.
+mail: bigboss@eitc.com
+telephonenumber: +421 910 382333
+facsimiletelephonenumber: +1 408 555 2222
+roomnumber: 666
+userpassword: takeovertheworld
+
+dn: ou=Groups, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: Groups
+
+dn: cn=Pirates,ou=groups,dc=example,dc=com
+objectclass: top
+objectclass: groupOfUniqueNames
+cn: Pirates
+ou: groups
+uniquemember: uid=jgibbs, ou=People, dc=example,dc=com
+uniquemember: uid=barbossa, ou=People, dc=example,dc=com
+description: Arrrrr!
+
+dn: ou=Administrators, dc=example,dc=com
+objectclass: top
+objectclass: organizationalunit
+ou: Administrators
+
+dn: uid=idm, ou=Administrators,dc=example,dc=com
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+uid: idm
+cn: IDM Administrator
+sn: IDM Administrator
+description: Special LDAP acccount used by the IDM
+  to access the LDAP data.
+ou: Administrators
+userPassword: secret
+ds-privilege-name: unindexed-search
+
