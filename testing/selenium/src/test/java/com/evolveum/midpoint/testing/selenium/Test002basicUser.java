@@ -376,8 +376,8 @@ public class Test002basicUser {
 
 		se.type("importForm:editor", xmlUser);
 		se.click("importForm:uploadButton");
-		assertTrue(se.waitForText("Add object 'jack' failed."));
-		assertTrue(se.isTextPresent("already exists in store"));
+		assertTrue(se.waitForText("Object 'jack', oid."));
+		assertTrue(se.isTextPresent("already exists"));
 		
 		//overwrite enabled
 		se.click(se.findLink("topConfiguration"));
