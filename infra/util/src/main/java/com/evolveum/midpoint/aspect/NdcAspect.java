@@ -5,8 +5,10 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.core.annotation.Order;
 
 @Aspect
+@Order(value=1)
 public class NdcAspect {
 
     @Around("entriesIntoRepository()")
@@ -69,16 +71,16 @@ public class NdcAspect {
         }
     }
     
-    @Pointcut("execution(public * com.evolveum.midpoint.repo..*(..))")
+    @Pointcut("execution(public * com.evolveum.midpoint.repo.api.RepositoryService.*(..))")
     public void entriesIntoRepository() {}
 
-    @Pointcut("execution(public * com.evolveum.midpoint.task..*(..))")
+    @Pointcut("execution(public * com.evolveum.midpoint.task.api.TaskManager.*(..))")
     public void entriesIntoTaskManager() {}
 
-    @Pointcut("execution(public * com.evolveum.midpoint.provisioning..*(..))")
+    @Pointcut("execution(public * com.evolveum.midpoint.provisioning.api.ProvisioningService.*(..))")
     public void entriesIntoProvisioning() {}
 
-    @Pointcut("execution(public * com.evolveum.midpoint.model..*(..))")
+    @Pointcut("execution(public * com.evolveum.midpoint.model.api.ModelService.*(..))")
     public void entriesIntoModel() {}
     
     @Pointcut("execution(public * com.evolveum.midpoint.web..*(..))")
