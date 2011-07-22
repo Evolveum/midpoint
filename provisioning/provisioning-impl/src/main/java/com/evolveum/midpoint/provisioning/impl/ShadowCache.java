@@ -73,6 +73,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
@@ -756,6 +757,10 @@ public class ShadowCache {
 			if (objListType.getObject().isEmpty()) {
 				AccountShadowType newAccount = (AccountShadowType) createResourceShadow(
 						change.getIdentifiers(), null);
+				ObjectReferenceType ref = new ObjectReferenceType();
+				ref.setOid(resourceType.getOid());
+				newAccount.setResourceRef(ref);
+				change.setOldShadow(newAccount);
 				try {
 					getRepositoryService().addObject(newAccount, parentResult);
 				} catch (ObjectAlreadyExistsException e) {
@@ -876,43 +881,51 @@ public class ShadowCache {
 		}
 	}
 
-	private Schema getResourceSchema(ResourceType resource, ConnectorInstance connector,
-			OperationResult parentResult) throws CommunicationException, SchemaException {
+	private Schema getResourceSchema(ResourceType resource,
+			ConnectorInstance connector, OperationResult parentResult)
+			throws CommunicationException, SchemaException {
 
 		// TODO: Need to add some form of memory caching here.
-		
+
 		Schema schema = null;
-		
-		// Parse schema from resource definition (if available)		
-		Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
-		if (resourceXsdSchema!=null) {
-			
+
+		// Parse schema from resource definition (if available)
+		Element resourceXsdSchema = ResourceTypeUtil
+				.getResourceXsdSchema(resource);
+		if (resourceXsdSchema != null) {
+
 			try {
 				schema = Schema.parse(resourceXsdSchema);
 			} catch (SchemaProcessorException e) {
-				throw new SchemaException("Unable to parse resource schema: "+e.getMessage(),e);
+				throw new SchemaException("Unable to parse resource schema: "
+						+ e.getMessage(), e);
 			}
-			
+
 		} else {
 			// Otherwise try to fetch schema from connector
 
 			try {
 				schema = connector.fetchResourceSchema(parentResult);
 			} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
-				throw new CommunicationException("Error communicating with the connector " + connector, ex);
+				throw new CommunicationException(
+						"Error communicating with the connector " + connector,
+						ex);
 			} catch (GenericFrameworkException ex) {
-				throw new GenericConnectorException("Generic error in connector " + connector + ": "
-						+ ex.getMessage(), ex);
+				throw new GenericConnectorException(
+						"Generic error in connector " + connector + ": "
+								+ ex.getMessage(), ex);
 			}
-			
-			if (schema==null) {
-				throw new SchemaException("Unable to fetch schema from the resource");
+
+			if (schema == null) {
+				throw new SchemaException(
+						"Unable to fetch schema from the resource");
 			}
-			
-			// TODO: store fetched schema in the resource for future (and offline) use
+
+			// TODO: store fetched schema in the resource for future (and
+			// offline) use
 
 		}
-		
+
 		return schema;
 	}
 
@@ -931,9 +944,12 @@ public class ShadowCache {
 	 *            object from which attributes are converted
 	 * @param schema
 	 * @return resourceObject
-	 * @throws SchemaException Object class definition was not found
+	 * @throws SchemaException
+	 *             Object class definition was not found
 	 */
-	private ResourceObject convertFromXml(ResourceObjectShadowType resourceObjectShadow, Schema schema) throws SchemaException {
+	private ResourceObject convertFromXml(
+			ResourceObjectShadowType resourceObjectShadow, Schema schema)
+			throws SchemaException {
 		QName objectClass = resourceObjectShadow.getObjectClass();
 
 		if (objectClass == null) {
@@ -945,8 +961,9 @@ public class ShadowCache {
 
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
 				.findContainerDefinitionByType(objectClass);
-		if (rod==null) {
-			throw new SchemaException("Schema definition for object class "+objectClass+" was not found");
+		if (rod == null) {
+			throw new SchemaException("Schema definition for object class "
+					+ objectClass + " was not found");
 		}
 		ResourceObject resourceObject = rod.instantiate();
 
@@ -998,7 +1015,8 @@ public class ShadowCache {
 		if (resourceObjectShadow.getAttributes() != null) {
 			resourceObjectShadow.getAttributes().getAny().clear();
 		} else {
-			resourceObjectShadow.setAttributes(new ResourceObjectShadowType.Attributes());
+			resourceObjectShadow
+					.setAttributes(new ResourceObjectShadowType.Attributes());
 		}
 		resourceObjectShadow.getAttributes().getAny()
 				.addAll(identifierElements);
@@ -1050,10 +1068,14 @@ public class ShadowCache {
 			oid = getRepositoryService().addObject(shadow, parentResult);
 
 		} catch (ObjectAlreadyExistsException e) {
-			// This should not happen. The OID is not supplied and it is generated by the repo
-			// If it happens, it must be a repo bug. Therefore it is safe to convert to runtime exception
-			LOGGER.error("Unexpected repository behavior: "+e.getClass().getSimpleName()+": "+e.getMessage(),e);
-			throw new IllegalStateException("Unexpected repository behavior: "+e.getClass().getSimpleName()+": "+e.getMessage());
+			// This should not happen. The OID is not supplied and it is
+			// generated by the repo
+			// If it happens, it must be a repo bug. Therefore it is safe to
+			// convert to runtime exception
+			LOGGER.error("Unexpected repository behavior: "
+					+ e.getClass().getSimpleName() + ": " + e.getMessage(), e);
+			throw new IllegalStateException("Unexpected repository behavior: "
+					+ e.getClass().getSimpleName() + ": " + e.getMessage());
 		}
 		shadow.setOid(oid);
 
@@ -1073,26 +1095,28 @@ public class ShadowCache {
 		return shadow;
 	}
 
-	private String determineShadowName(ResourceObject resourceObject) throws SchemaException {
-		if (resourceObject.getNamingAttribute()==null) {
+	private String determineShadowName(ResourceObject resourceObject)
+			throws SchemaException {
+		if (resourceObject.getNamingAttribute() == null) {
 			// No naming attribute defined. Try to fall back to identifiers.
 			Set<Property> identifiers = resourceObject.getIdentifiers();
 			// We can use only single identifiers (not composite)
-			if (identifiers.size()==1) {
+			if (identifiers.size() == 1) {
 				Property identifier = identifiers.iterator().next();
 				// Only single-valued identifiers
 				Set<Object> values = identifier.getValues();
-				if (values.size()==1) {
+				if (values.size() == 1) {
 					Object value = values.iterator().next();
 					// and only strings
 					if (value instanceof String) {
-						return (String)value;
+						return (String) value;
 					}
 				}
 			}
 			// Identifier is not usable as name
 			// TODO: better identification of a problem
-			throw new SchemaException("No naming attribute defined (and identifier not usable)");
+			throw new SchemaException(
+					"No naming attribute defined (and identifier not usable)");
 		}
 		// TODO: Error handling
 		return resourceObject.getNamingAttribute().getValue(String.class);

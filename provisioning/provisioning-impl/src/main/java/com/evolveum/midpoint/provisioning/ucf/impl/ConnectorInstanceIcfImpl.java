@@ -981,7 +981,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		for (ResourceObjectAttribute attr : resourceObject.getAttributes()) {
 			PropertyModificationType propertyModification = new PropertyModificationType();
-			propertyModification.setModificationType(PropertyModificationTypeType.replace);
+			propertyModification.setModificationType(PropertyModificationTypeType.add);
 			Document doc = DOMUtil.getDocument();
 			List<Element> elements;
 			try {
