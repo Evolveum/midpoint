@@ -141,25 +141,26 @@ public class RepositoryAccountTest {
 			repositoryService.addObject(accountShadow, new OperationResult("test"));
 
 			// get account object
-			retrievedObject = repositoryService.getObject(accountOid,
-					new PropertyReferenceListType(), new OperationResult("test"));
-			compareObjects(accountShadow, (AccountShadowType)retrievedObject);
+			retrievedObject = repositoryService.getObject(accountOid, new PropertyReferenceListType(),
+					new OperationResult("test"));
+			compareObjects(accountShadow, (AccountShadowType) retrievedObject);
 
 			// list account objects with simple paging
 			PagingType pagingType = PagingTypeFactory
 					.createPaging(0, 5, OrderDirectionType.ASCENDING, "name");
-			ObjectListType objects = repositoryService.listObjects(
-					ObjectTypes.ACCOUNT.getClassDefinition(), pagingType, new OperationResult("test"));
+			ObjectListType objects = repositoryService.listObjects(ObjectTypes.ACCOUNT.getClassDefinition(),
+					pagingType, new OperationResult("test"));
 			assertEquals(1, objects.getObject().size());
 			compareObjects(accountShadow, (AccountShadowType) objects.getObject().get(0));
 
 			// delete object
 			repositoryService.deleteObject(accountOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(accountOid, new PropertyReferenceListType(), new OperationResult("test"));
+				repositoryService.getObject(accountOid, new PropertyReferenceListType(), new OperationResult(
+						"test"));
 				fail("Object with oid " + accountOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
-				//ignore
+				// ignore
 			}
 		} finally {
 			try {
@@ -195,7 +196,8 @@ public class RepositoryAccountTest {
 			assertEquals(1, user.getAccountRef().size());
 			repositoryService.addObject(user, new OperationResult("test"));
 
-			UserType accountOwner = repositoryService.listAccountShadowOwner(accountRefOid, new OperationResult("test"));
+			UserType accountOwner = repositoryService.listAccountShadowOwner(accountRefOid,
+					new OperationResult("test"));
 			assertNotNull(accountOwner);
 			assertEquals(userOid, accountOwner.getOid());
 		} finally {
@@ -222,7 +224,7 @@ public class RepositoryAccountTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testListResourceObjectShadows() throws Exception {
+	public <T extends ResourceObjectShadowType> void testListResourceObjectShadows() throws Exception {
 		String userOid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		String accountRefOid = "8254880d-6584-425a-af2e-58f8ca394bbb";
 		String resourceOid = "aae7be60-df56-11df-8608-0002a5d5c51b";
@@ -240,8 +242,8 @@ public class RepositoryAccountTest {
 			assertEquals(1, user.getAccountRef().size());
 			repositoryService.addObject(user, new OperationResult("test"));
 
-			List<ResourceObjectShadowType> shadows = repositoryService.listResourceObjectShadows(
-					resourceOid, ObjectTypes.ACCOUNT.getClassDefinition(), new OperationResult("test"));
+			List<T> shadows = repositoryService.listResourceObjectShadows(resourceOid,
+					(Class<T>) ObjectTypes.ACCOUNT.getClassDefinition(), new OperationResult("test"));
 			assertNotNull(shadows);
 			assertEquals(accountRefOid, shadows.get(0).getOid());
 

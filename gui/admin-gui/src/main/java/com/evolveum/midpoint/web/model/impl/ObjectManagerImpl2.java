@@ -135,29 +135,40 @@ public abstract class ObjectManagerImpl2<C extends ObjectType, T extends ObjectD
 	}
 
 	@SuppressWarnings("unchecked")
-	protected Collection<T> list(PagingType paging, ObjectTypes type) {
+	protected <O extends ObjectType> Collection<O> list(PagingType paging, Class<O> type) {
 		Validate.notNull(paging, "Paging must not be null.");
-		Validate.notNull(type, "Object type must not be null.");
-		LOGGER.debug("Listing '" + type.getValue() + "' objects.");
+		Validate.notNull(type, "Class object must not be null.");
 
-		OperationResult result = new OperationResult("Get Connectors");
-		Collection<T> collection = new ArrayList<T>();
+		Collection<O> collection = new ArrayList<O>();
+		OperationResult result = new OperationResult("List Objects");
 		try {
-			ObjectListType list = getModel().listObjects(type.getClassDefinition(), paging, result);
-			if (list != null) {
-				for (ObjectType objectType : list.getObject()) {
-					isObjectTypeSupported(objectType);
-
-					collection.add(createObject((C) objectType));
-				}
+			ObjectListType objectList = getModel().listObjects(type, paging, result);
+			for (ObjectType objectType : objectList.getObject()) {
+				collection.add((O) objectType);
 			}
 			result.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list {} objects from model", ex, type.getValue());
-			result.recordFatalError("Couldn't list '" + type.getTypeQName() + "' objects from model.", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't list {} objects from model", ex, type);
+			result.recordFatalError("Couldn't list '" + type + "' objects from model.", ex);
 		}
 
 		printResults(LOGGER, result);
+		return collection;
+	}
+
+	@SuppressWarnings("unchecked")
+	protected Collection<T> list(PagingType paging, ObjectTypes type) {
+		Validate.notNull(paging, "Paging must not be null.");
+		Validate.notNull(type, "Object type must not be null.");
+		LOGGER.debug("Listing '" + type.getObjectTypeUri() + "' objects.");
+
+		Collection<T> collection = new ArrayList<T>();
+		Collection<ObjectType> objects = (Collection<ObjectType>) list(paging, type.getClassDefinition());
+		for (ObjectType objectType : objects) {
+			isObjectTypeSupported(objectType);
+
+			collection.add(createObject((C) objectType));
+		}
 
 		return collection;
 	}

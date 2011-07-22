@@ -58,6 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
@@ -401,12 +402,13 @@ public class ModelServiceTest {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test(expected = FaultMessage.class)
-	public void nonexistingResourceOidListResourceShadow() throws FaultMessage, ObjectNotFoundException {
+	public <T extends ResourceObjectShadowType> void nonexistingResourceOidListResourceShadow() throws FaultMessage, ObjectNotFoundException {
 		final String resourceOid = "abababab-abab-abab-abab-000000000001";
 		when(
 				repositoryService.listResourceObjectShadows(eq(resourceOid),
-						eq(ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class))).thenThrow(
+						eq((Class<T>)ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class))).thenThrow(
 				new ObjectNotFoundException("Resource with oid '" + resourceOid + "' not found."));
 
 		try {

@@ -98,7 +98,7 @@ public class ControllerListResourceObjectShadowsTest {
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void correctList() throws Exception {
+	public <T extends ResourceObjectShadowType> void correctList() throws Exception {
 
 		final String resourceOid = "abababab-abab-abab-abab-000000000001";
 		final ResourceObjectShadowListType expected = ((JAXBElement<ResourceObjectShadowListType>) JAXBUtil
@@ -107,13 +107,13 @@ public class ControllerListResourceObjectShadowsTest {
 
 		when(
 				repository.listResourceObjectShadows(eq(resourceOid),
-						eq(ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class)))
-				.thenReturn(expected.getObject());
+						eq((Class<T>)ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class)))
+				.thenReturn((List<T>)expected.getObject());
 
 		OperationResult result = new OperationResult("List Resource Object Shadows");
 		try {
-			List<ResourceObjectShadowType> returned = controller.listResourceObjectShadows(resourceOid,
-					ObjectTypes.ACCOUNT.getClassDefinition(), result);
+			List<T> returned = controller.listResourceObjectShadows(resourceOid,
+					(Class<T>)ObjectTypes.ACCOUNT.getClassDefinition(), result);
 
 			assertNotNull(expected);
 			assertNotNull(returned);
@@ -123,8 +123,8 @@ public class ControllerListResourceObjectShadowsTest {
 		}
 	}
 
-	private void testShadowListType(ResourceObjectShadowListType expected,
-			List<ResourceObjectShadowType> returnedList) {
+	private <T extends ResourceObjectShadowType> void testShadowListType(ResourceObjectShadowListType expected,
+			List<T> returnedList) {
 		List<ResourceObjectShadowType> expectedList = expected.getObject();
 
 		assertTrue(expectedList == null ? returnedList == null : returnedList != null);

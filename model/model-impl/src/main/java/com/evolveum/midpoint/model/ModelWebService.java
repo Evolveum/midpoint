@@ -216,6 +216,7 @@ public class ModelWebService implements ModelPortType {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public ResourceObjectShadowListType listResourceObjectShadows(String resourceOid,
 			String resourceObjectShadowType, Holder<OperationResultType> result) throws FaultMessage {
@@ -225,8 +226,10 @@ public class ModelWebService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service List Resource Object Shadows");
 		try {
-			List<ResourceObjectShadowType> list = model.listResourceObjectShadows(resourceOid, ObjectTypes
-					.getObjectTypeFromUri(resourceObjectShadowType).getClassDefinition(), operationResult);
+			List<ResourceObjectShadowType> list = model.listResourceObjectShadows(
+					resourceOid,
+					(Class<ResourceObjectShadowType>) ObjectTypes.getObjectTypeFromUri(
+							resourceObjectShadowType).getClassDefinition(), operationResult);
 			handleOperationResult(operationResult, result);
 
 			ResourceObjectShadowListType shadowList = new ResourceObjectShadowListType();

@@ -26,7 +26,6 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -481,9 +480,8 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
-			Class<? extends ObjectType> resourceObjectShadowType, OperationResult result)
-			throws ObjectNotFoundException {
+	public <T extends ResourceObjectShadowType> List<T> listResourceObjectShadows(String resourceOid,
+			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
@@ -492,11 +490,12 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult subResult = new OperationResult("List Resource Object Shadows");
 		result.addSubresult(subResult);
 
-		List<ResourceObjectShadowType> list = null;
+		List<T> list = null;
 		try {
 			list = repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
+			subResult.recordFatalError("Resource with oid '" + resourceOid + "' was not found.", ex);
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't list resource object shadows type "
@@ -507,7 +506,7 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		if (list == null) {
-			list = new ArrayList<ResourceObjectShadowType>();
+			list = new ArrayList<T>();
 		}
 
 		LOGGER.debug(subResult.dump());
@@ -569,13 +568,6 @@ public class ModelControllerImpl implements ModelController {
 			LOGGER.debug("Operation sub result was null (Error occured).");
 		}
 		return testResult;
-	}
-
-	@Override
-	@Deprecated
-	public void launchImportFromResource(String resourceOid, QName objectClass, OperationResult result)
-			throws ObjectNotFoundException {
-		throw new NotImplementedException("DEPRECATED");
 	}
 
 	// Note: The result is in the task. No need to pass it explicitly

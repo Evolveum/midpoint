@@ -68,24 +68,23 @@ public interface ModelService {
 
 	UserType listAccountShadowOwner(String accountOid, OperationResult result) throws ObjectNotFoundException;
 
-	List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
-			Class<? extends ObjectType> resourceObjectShadowType, OperationResult result)
-			throws ObjectNotFoundException;
+	<T extends ResourceObjectShadowType> List<T> listResourceObjectShadows(String resourceOid,
+			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException;
 
 	ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
 			OperationResult result);
 
-	// This returns OperationResult instead of taking it as in/out argument.
-	// This is different
-	// from the other methods. The testResource method is not using
-	// OperationResult to track its own
-	// execution but rather to track the execution of resource tests (that in
-	// fact happen in provisioning).
+	/**
+	 * This returns OperationResult instead of taking it as in/out argument.
+	 * This is different from the other methods. The testResource method is not
+	 * using OperationResult to track its own execution but rather to track the
+	 * execution of resource tests (that in fact happen in provisioning).
+	 * 
+	 * @param resourceOid
+	 * @return
+	 * @throws ObjectNotFoundException
+	 */
 	OperationResult testResource(String resourceOid) throws ObjectNotFoundException;
-
-	@Deprecated
-	void launchImportFromResource(String resourceOid, QName objectClass, OperationResult result)
-			throws ObjectNotFoundException;
 
 	// Note: The result is in the task. No need to pass it explicitly
 	void importFromResource(String resourceOid, QName objectClass, Task task) throws ObjectNotFoundException;

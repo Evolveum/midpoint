@@ -288,8 +288,8 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
-	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
-			Class resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException;
+	public <T extends ResourceObjectShadowType> List<T> listResourceObjectShadows(String resourceOid,
+			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException;
 	
 	/**
 	 * Claim a task.

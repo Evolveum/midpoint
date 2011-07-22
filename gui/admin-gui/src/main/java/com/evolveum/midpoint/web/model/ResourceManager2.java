@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
+import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -37,7 +38,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
  * @author lazyman
  * 
  */
-public interface ResourceManager2 {
+public interface ResourceManager2 extends ObjectManager<ResourceDto> {
+	
+	String CLASS_NAME = ResourceManager2.class.getName();
+	String LIST_OBJECT_SHADOWS = CLASS_NAME + "listObjectShadows";
+	String TEST_CONNECTION = CLASS_NAME + "testConnection";
+	String LAUNCH_IMPORT_FROM_RESOURCE = CLASS_NAME + "launchImportFromResource";
 
 	<T extends ResourceObjectShadowType> List<ResourceObjectShadowDto<T>> listObjectShadows(String oid,
 			Class<T> resourceObjectShadowType);

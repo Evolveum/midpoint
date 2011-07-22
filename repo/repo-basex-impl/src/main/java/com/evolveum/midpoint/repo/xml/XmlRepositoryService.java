@@ -413,8 +413,8 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public List<ResourceObjectShadowType> listResourceObjectShadows(String resourceOid,
-			Class resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
+	public <T extends ResourceObjectShadowType> List<T> listResourceObjectShadows(String resourceOid,
+			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".listResourceObjectShadows");
         result.addParam("resourceOid", resourceOid);
         result.addParam("resourceObjectShadowType", resourceObjectShadowType);
@@ -427,15 +427,15 @@ public class XmlRepositoryService implements RepositoryService {
 				filters, namespaces, result);
 
 		@SuppressWarnings("unchecked")
-		List<ResourceObjectShadowType> objects = (List<ResourceObjectShadowType>) CollectionUtils.collect(
+		List<T> objects = (List<T>) CollectionUtils.collect(
 				retrievedObjects.getObject(), new Transformer() {
 					@Override
 					public Object transform(final Object input) {
-						return (ResourceObjectShadowType) input;
+						return (T) input;
 					}
 				});
 
-		List<ResourceObjectShadowType> ros = new ArrayList<ResourceObjectShadowType>();
+		List<T> ros = new ArrayList<T>();
 		ros.addAll(objects);
 		return ros;
 	}
