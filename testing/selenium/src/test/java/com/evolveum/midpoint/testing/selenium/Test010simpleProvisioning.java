@@ -106,7 +106,7 @@ public class Test010simpleProvisioning {
 		se.type("admin-content:icePnlTbSet:0:j_idt78:cn_3_0", "Cpt. Jack Sparrow");
 		se.type("admin-content:icePnlTbSet:0:j_idt78:__PASSWORD___4_0", "secret");
 		se.type("admin-content:icePnlTbSet:0:j_idt78:description_5_0", "Cpt. of Black Pearl");
-		se.type("admin-content:icePnlTbSet:0:j_idt78:__NAME___6_0", "uid=jack,ou=People,dc=example,dc=com")
+		se.type("admin-content:icePnlTbSet:0:j_idt78:__NAME___6_0", "uid=jack,ou=People,dc=example,dc=com");
 		se.click("admin-content:saveButton");
 		assertTrue(se.waitForText("Save changes successfully."));
 		
