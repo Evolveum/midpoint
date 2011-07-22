@@ -125,7 +125,6 @@ public class Selenium extends WebDriverBackedSelenium {
 		boolean ret = super.isTextPresent(pattern);
 		logger.debug ("Selenium.isTextPresent :" + pattern + " - " + (ret ? "OK" : "FAIL") );
 		if (!ret && logger.isDebugEnabled()) {
-			logger.debug("getLog:\n" + this.getLog());
 			logger.debug("getHtmlSource:\n" + this.getHtmlSource());
 		}
 		return ret;
