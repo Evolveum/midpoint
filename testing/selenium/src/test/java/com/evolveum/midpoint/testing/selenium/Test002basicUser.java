@@ -47,7 +47,7 @@ public class Test002basicUser {
 	 * Do login as Admin for each test
 	 */
 	public void start() {
-
+		logger.info("--- START ------------------------------");
 		WebDriver driver = new FirefoxDriver();
 		// WebDriver driver = new ChromeDriver();
 		se = new Selenium(driver, baseUrl);
@@ -71,7 +71,7 @@ public class Test002basicUser {
 	@After
 	public void stop() {
 		se.stop();
-
+		logger.info("--- STOP ------------------------------");
 	}
 
 	// Based on MID-2 jira scenarios
