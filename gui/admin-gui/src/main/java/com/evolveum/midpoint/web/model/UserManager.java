@@ -22,7 +22,6 @@ package com.evolveum.midpoint.web.model;
 
 import java.util.List;
 
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
@@ -35,12 +34,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
  * 
  */
 public interface UserManager extends ObjectManager<GuiUserDto> {
-	
+
 	static final String CLASS_NAME = UserManager.class.getSimpleName();
 	static final String OPERATION_USER_SUBMIT = CLASS_NAME + "submit";
+	static final String OPERATION_SEARCH = CLASS_NAME + "search";
 
-	AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException;
+	AccountShadowDto addAccount(UserDto userDto, String resourceOid);
 
-	List<UserDto> search(QueryType search, PagingType paging, OperationResult result)
-			throws WebModelException;
+	List<UserDto> search(QueryType search, PagingType paging);
 }

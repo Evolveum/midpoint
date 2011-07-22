@@ -47,7 +47,6 @@ import com.evolveum.midpoint.web.bean.ResourceObjectType;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.SortableListController;
-import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
@@ -55,7 +54,6 @@ import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.ResourceItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
@@ -190,8 +188,8 @@ public class ResourceListController extends SortableListController<ResourceListI
 			return null;
 		}
 
-		ObjectManager<ConnectorDto> manager = ControllerUtil.getConnectorManager(objectTypeCatalog);
-		ConnectorDto connector = manager.get(reference.getOid(), new PropertyReferenceListType());
+		ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+		ConnectorDto connector = manager.getConnector(reference.getOid());
 
 		String type = connector.getConnectorType();
 		String version = connector.getConnectorVersion();

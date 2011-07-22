@@ -213,4 +213,12 @@ public class ResourceManagerImpl extends ObjectManagerImpl2<ResourceType, Resour
 
 		return collection;
 	}
+	
+	@Override
+	public ConnectorDto getConnector(String oid) {
+		ConnectorType connector = null;
+		//TODO: get connector
+		
+		return new ConnectorDto(connector);
+	}
 }

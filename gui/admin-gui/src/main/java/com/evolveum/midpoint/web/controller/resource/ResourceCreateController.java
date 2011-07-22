@@ -31,8 +31,8 @@ import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.WizardPage;
-import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 
 /**
@@ -65,8 +65,8 @@ public class ResourceCreateController extends WizardPage {
 			return connectors;
 		}
 
-		ObjectManager<ConnectorDto> manager = ControllerUtil.getConnectorManager(catalog);
-		connectors = manager.list();
+		ResourceManager manager = ControllerUtil.getResourceManager(catalog);
+		connectors = manager.listConnectors();
 
 		return connectors;
 	}

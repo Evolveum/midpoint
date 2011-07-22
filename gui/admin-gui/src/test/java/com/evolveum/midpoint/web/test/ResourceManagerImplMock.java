@@ -135,4 +135,9 @@ public class ResourceManagerImplMock implements ResourceManager {
 	public Collection<ConnectorDto> listConnectors() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
+	
+	@Override
+	public ConnectorDto getConnector(String oid) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }

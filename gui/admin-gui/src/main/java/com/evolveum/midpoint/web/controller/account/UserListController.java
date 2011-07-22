@@ -36,7 +36,6 @@ import org.springframework.stereotype.Controller;
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
@@ -45,7 +44,6 @@ import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.SearchableListController;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserManager;
-import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
@@ -165,15 +163,9 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 			// }
 		} else {
 			// we're searching for objects
-			OperationResult result = new OperationResult("Search");
-			try {
-				List<UserDto> users = userManager.search(getQuery(), paging, result);
-				for (UserDto userDto : users) {
-					getObjects().add((GuiUserDto) userDto);
-				}
-			} catch (WebModelException ex) {
-				LoggingUtils.logException(TRACE, "Couldn't search user with name {}", ex, searchName);
-				// TODO: error handling
+			List<UserDto> users = userManager.search(getQuery(), paging);
+			for (UserDto userDto : users) {
+				getObjects().add((GuiUserDto) userDto);
 			}
 		}
 

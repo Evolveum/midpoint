@@ -61,4 +61,6 @@ public interface ResourceManager extends ObjectManager<ResourceDto> {
 			QName objectClass, PagingType paging);
 
 	Collection<ConnectorDto> listConnectors();
+	
+	ConnectorDto getConnector(String oid);
 }

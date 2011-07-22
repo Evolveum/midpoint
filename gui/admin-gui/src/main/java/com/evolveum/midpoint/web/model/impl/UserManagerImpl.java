@@ -43,7 +43,6 @@ import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.UserManager;
-import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -54,7 +53,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
@@ -126,41 +124,38 @@ public class UserManagerImpl extends ObjectManagerImpl2<UserType, GuiUserDto> im
 	}
 
 	@Override
-	public AccountShadowDto addAccount(UserDto userDto, String resourceOid) throws WebModelException {
+	public AccountShadowDto addAccount(UserDto userDto, String resourceOid) {
 		AccountShadowDto accountShadowDto = new AccountShadowDto();
 		AccountShadowType accountShadowType = new AccountShadowType();
 		accountShadowType.setAttributes(new Attributes());
-		// TODO: workaround, till we switch to staging
-		// ResourceTypeManager rtm = new
-		// ResourceTypeManager(GuiResourceDto.class);
-		ResourceManager rtm = (ResourceManager) objectTypeCatalog.getObjectManager(ResourceType.class,
+
+		ResourceManager manager = (ResourceManager) objectTypeCatalog.getObjectManager(ResourceType.class,
 				ResourceDto.class);
-		ResourceDto resourceDto;
+		ResourceDto resourceDto = null;
 		try {
-			resourceDto = rtm.get(resourceOid, new PropertyReferenceListType());
+			resourceDto = manager.get(resourceOid, new PropertyReferenceListType());
 		} catch (Exception ex) {
-			throw new WebModelException(ex.getMessage(), "User - add account failed.");
+			FacesUtils.addErrorMessage("User add account failed, reason: " + ex.getMessage(), ex);
+			return null;
 		}
 		accountShadowType.setResource((ResourceType) resourceDto.getXmlObject());
-
 		accountShadowDto.setXmlObject(accountShadowType);
+
 		// TODO: account is set to user not here, but in method where we are
-		// going to persist it from GUI,
-		// because actual account is retrivede from form generator
-		// userDto.getAccount().add(accountShadowDto);
+		// going to persist it from GUI, because actual account is retrieved
+		// from form generator userDto.getAccount().add(accountShadowDto);
 
 		return accountShadowDto;
 	}
 
 	@Override
-	public List<UserDto> search(QueryType search, PagingType paging, OperationResult result)
-			throws WebModelException {
+	public List<UserDto> search(QueryType search, PagingType paging) {
 		Validate.notNull(search, "Query must not be null.");
-		Validate.notNull(result, "Result must not be null.");
-
 		if (paging == null) {
-			paging = PagingTypeFactory.createListAllPaging(OrderDirectionType.ASCENDING, "name");
+			paging = PagingTypeFactory.createListAllPaging();
 		}
+
+		OperationResult result = new OperationResult(OPERATION_SEARCH);
 		List<UserDto> users = new ArrayList<UserDto>();
 		try {
 			ObjectListType list = getModel().searchObjectsInRepository(search, paging, result);

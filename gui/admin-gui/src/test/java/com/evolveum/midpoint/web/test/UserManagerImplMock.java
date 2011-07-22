@@ -32,9 +32,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.UserManager;
-import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
@@ -180,8 +178,7 @@ public class UserManagerImplMock implements UserManager {
 	}
 
 	@Override
-	public List<UserDto> search(QueryType search, PagingType paging, OperationResult result)
-			throws WebModelException {
+	public List<UserDto> search(QueryType search, PagingType paging) {
 		// TODO Auto-generated method stub
 		return null;
 	}

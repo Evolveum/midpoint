@@ -342,19 +342,11 @@ public class UserDetailsController implements Serializable {
 			ObjectManager<GuiUserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
 					GuiUserDto.class);
 			UserManager userManager = (UserManager) (objectManager);
-			AccountShadowDto account = null;
-			try {
-				account = userManager.addAccount(user, resource.getOid());
-				account.setName(resource.getName() + "-" + user.getName());
-			} catch (WebModelException ex) {
-				StringBuilder message = new StringBuilder();
-				message.append("Error occured. Reason: ");
-				message.append(ex.getTitle());
-				message.append(" (");
-				message.append(ex.getMessage());
-				message.append(").");
-				FacesUtils.addErrorMessage(message.toString());
+			AccountShadowDto account = userManager.addAccount(user, resource.getOid());
+			if (account == null) {
+				continue;
 			}
+			account.setName(resource.getName() + "-" + user.getName());
 
 			newAccounts.add(account);
 		}
