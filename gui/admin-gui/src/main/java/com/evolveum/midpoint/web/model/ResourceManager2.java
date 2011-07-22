@@ -43,14 +43,15 @@ public interface ResourceManager2 extends ObjectManager<ResourceDto> {
 	String CLASS_NAME = ResourceManager2.class.getName();
 	String LIST_OBJECT_SHADOWS = CLASS_NAME + "listObjectShadows";
 	String TEST_CONNECTION = CLASS_NAME + "testConnection";
-	String LAUNCH_IMPORT_FROM_RESOURCE = CLASS_NAME + "launchImportFromResource";
+	String IMPORT_FROM_RESOURCE = CLASS_NAME + "importFromResource";
+	String LIST_RESOURCE_OBJECTS = CLASS_NAME + "listResourceObjects";
 
 	<T extends ResourceObjectShadowType> List<ResourceObjectShadowDto<T>> listObjectShadows(String oid,
 			Class<T> resourceObjectShadowType);
 
 	OperationResult testConnection(String resourceOid);
 
-	void launchImportFromResource(String resourceOid, QName objectClass);
+	void importFromResource(String resourceOid, QName objectClass);
 
 	TaskStatusType getImportStatus(String resourceOid);
 
