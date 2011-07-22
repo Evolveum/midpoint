@@ -41,6 +41,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
@@ -132,8 +133,8 @@ public class UserManagerImpl extends ObjectManagerImpl2<UserType, GuiUserDto> im
 		// TODO: workaround, till we switch to staging
 		// ResourceTypeManager rtm = new
 		// ResourceTypeManager(GuiResourceDto.class);
-		ResourceTypeManager rtm = (ResourceTypeManager) objectTypeCatalog.getObjectManager(
-				ResourceType.class, ResourceDto.class);
+		ResourceManager rtm = (ResourceManager) objectTypeCatalog.getObjectManager(ResourceType.class,
+				ResourceDto.class);
 		ResourceDto resourceDto;
 		try {
 			resourceDto = rtm.get(resourceOid, new PropertyReferenceListType());

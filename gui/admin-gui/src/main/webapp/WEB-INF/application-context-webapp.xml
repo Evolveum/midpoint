@@ -76,9 +76,7 @@
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType</value>
 					</key>
-					<bean class="com.evolveum.midpoint.web.model.impl.ResourceTypeManager" scope="singleton">
-						<constructor-arg name="constructResourceType" value="com.evolveum.midpoint.web.model.dto.GuiResourceDto" />
-					</bean>
+					<bean class="com.evolveum.midpoint.web.model.impl.ResourceManagerImpl" scope="singleton" />
 				</entry>
 				<entry>
 					<key>

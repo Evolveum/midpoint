@@ -17,7 +17,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.model.ResourceManager2;
+import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
@@ -32,11 +32,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
-public class ResourceManagerImpl2 extends ObjectManagerImpl2<ResourceType, ResourceDto> implements
-		ResourceManager2 {
+public class ResourceManagerImpl extends ObjectManagerImpl2<ResourceType, ResourceDto> implements
+		ResourceManager {
 
 	private static final long serialVersionUID = -4183063295869675058L;
-	private static final Trace LOGGER = TraceManager.getTrace(ResourceManagerImpl2.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceManagerImpl.class);
 
 	@Override
 	protected Class<? extends ObjectType> getSupportedObjectClass() {
@@ -113,7 +113,7 @@ public class ResourceManagerImpl2 extends ObjectManagerImpl2<ResourceType, Resou
 		}
 
 		if (result == null) {
-			result = new OperationResult(ResourceManager2.TEST_CONNECTION);
+			result = new OperationResult(ResourceManager.TEST_CONNECTION);
 		}
 
 		printResults(LOGGER, result);
@@ -129,7 +129,7 @@ public class ResourceManagerImpl2 extends ObjectManagerImpl2<ResourceType, Resou
 
 		// TODO: correct task setup
 
-		OperationResult result = new OperationResult(ResourceManager2.IMPORT_FROM_RESOURCE);
+		OperationResult result = new OperationResult(ResourceManager.IMPORT_FROM_RESOURCE);
 		TaskType taskType = new TaskType();
 		taskType.setResult(result.createOperationResultType());
 
@@ -195,7 +195,7 @@ public class ResourceManagerImpl2 extends ObjectManagerImpl2<ResourceType, Resou
 		LOGGER.debug("Listing resource objects from resource with oid {} and object class {}.", new Object[] {
 				resourceOid, objectClass });
 
-		OperationResult result = new OperationResult(ResourceManager2.LIST_RESOURCE_OBJECTS);
+		OperationResult result = new OperationResult(ResourceManager.LIST_RESOURCE_OBJECTS);
 		Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> collection = new ArrayList<ResourceObjectShadowDto<ResourceObjectShadowType>>();
 		try {
 			ObjectListType list = getModel().listResourceObjects(resourceOid, objectClass, paging, result);

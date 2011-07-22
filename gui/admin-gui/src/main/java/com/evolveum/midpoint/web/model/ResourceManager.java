@@ -17,9 +17,7 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.web.model;
 
 import java.util.Collection;
@@ -28,32 +26,37 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
-import com.evolveum.midpoint.web.model.impl.ObjectManagerImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 
 /**
  * 
- * @author semancik
  * @author lazyman
  * 
  */
-public abstract class ResourceManager extends ObjectManagerImpl<ResourceDto> {
+public interface ResourceManager extends ObjectManager<ResourceDto> {
+	
+	String CLASS_NAME = ResourceManager.class.getName();
+	String LIST_OBJECT_SHADOWS = CLASS_NAME + "listObjectShadows";
+	String TEST_CONNECTION = CLASS_NAME + "testConnection";
+	String IMPORT_FROM_RESOURCE = CLASS_NAME + "importFromResource";
+	String LIST_RESOURCE_OBJECTS = CLASS_NAME + "listResourceObjects";
 
-	private static final long serialVersionUID = -4183063295869675058L;
+	<T extends ResourceObjectShadowType> List<ResourceObjectShadowDto<T>> listObjectShadows(String oid,
+			Class<T> resourceObjectShadowType);
 
-	public abstract <T extends ResourceObjectShadowType> List<ResourceObjectShadowDto<T>> listObjectShadows(
-			String oid, Class<T> resourceObjectShadowType);
+	OperationResult testConnection(String resourceOid);
 
-	public abstract OperationResult testConnection(String resourceOid);
+	void importFromResource(String resourceOid, QName objectClass);
 
-	public abstract void launchImportFromResource(String resourceOid, QName objectClass);
+	TaskStatusType getImportStatus(String resourceOid);
 
-	public abstract TaskStatusType getImportStatus(String resourceOid);
+	Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> listResourceObjects(String resourceOid,
+			QName objectClass, PagingType paging);
 
-	public abstract Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> listResourceObjects(
-			String resourceOid, QName objectClass, PagingType paging);
+	Collection<ConnectorDto> listConnectors();
 }

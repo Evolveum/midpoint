@@ -34,6 +34,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.ResourceManager;
+import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
@@ -47,17 +48,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
  * 
  * @author katuska
  */
-public class ResourceTypeManagerMock extends ResourceManager {
+public class ResourceTypeManagerMock implements ResourceManager {
 
 	private static final long serialVersionUID = -2673752961587849731L;
 
 	Map<String, ResourceDto> resourceTypeList = new HashMap<String, ResourceDto>();
-
-	private final Class constructResourceType;
-
-	public ResourceTypeManagerMock(Class constructResourceType) {
-		this.constructResourceType = constructResourceType;
-	}
 
 	@Override
 	public Collection<ResourceDto> list() {
@@ -121,7 +116,7 @@ public class ResourceTypeManagerMock extends ResourceManager {
 	}
 
 	@Override
-	public void launchImportFromResource(String resourceOid, QName objectClass) {
+	public void importFromResource(String resourceOid, QName objectClass) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -133,6 +128,11 @@ public class ResourceTypeManagerMock extends ResourceManager {
 	@Override
 	public Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> listResourceObjects(
 			String resourceOid, QName objectClass, PagingType paging) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Collection<ConnectorDto> listConnectors() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }

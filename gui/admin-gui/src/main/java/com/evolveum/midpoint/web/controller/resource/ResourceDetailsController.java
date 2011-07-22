@@ -126,7 +126,7 @@ public class ResourceDetailsController implements Serializable {
 		String nextPage = null;
 		try {
 			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
-			manager.launchImportFromResource(getResource().getOid(), objectClass);
+			manager.importFromResource(getResource().getOid(), objectClass);
 
 			importController.setResource(getResource());
 			nextPage = importController.initController();
