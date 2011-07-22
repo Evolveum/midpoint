@@ -20,10 +20,13 @@
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
@@ -56,6 +59,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.schema.XPathSegment;
+import com.evolveum.midpoint.xml.schema.XPathType;
 
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
@@ -108,6 +113,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
 	private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
 
+	private static final Trace LOGGER = TraceManager
+	.getTrace(ConnectorInstanceIcfImpl.class);
+	
 	ConnectorFacade connector;
 	ResourceType resource;
 
@@ -603,19 +611,25 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 		SyncToken syncToken = new SyncToken(obj);
-
-		connector.sync(icfObjectClass, syncToken, new SyncResultsHandler() {
-
+		
+		SyncResultsHandler syncHandler = new SyncResultsHandler() {
+			
 			@Override
 			public boolean handle(SyncDelta delta) {
-				result.add(delta);
-				return true;
+				LOGGER.trace("Detected sync delta: {}", delta);
+				LOGGER.trace("Delta {}", delta.getObject().toString());
+				return result.add(delta);
+				
 			}
-		}, new OperationOptionsBuilder().build());
+		};
+		
 
+		connector.sync(icfObjectClass, syncToken, syncHandler, new OperationOptionsBuilder().build());
+		
 		List<Change> changeList = null;
 		try {
-			changeList = getChangesFromSyncDelta(result);
+			Schema schema = fetchResourceSchema(parentResult);
+			changeList = getChangesFromSyncDelta(result, schema);
 		} catch (SchemaException e) {
 			// TODO handle exception
 			e.printStackTrace();
@@ -930,19 +944,23 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return attributes;
 	}
 
-	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result) throws SchemaException {
+	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result, Schema schema) throws SchemaException {
 		List<Change> changeList = new ArrayList<Change>();
+		
 		for (SyncDelta delta : result) {
+			ObjectClass objClass = delta.getObject().getObjectClass();
+			QName objectClass = objectClassToQname(objClass.getObjectClassValue());
+			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
+			ResourceObject resourceObject = convertToResourceObject(delta.getObject(), rod);
+			
 			if (SyncDeltaType.DELETE.equals(delta.getDeltaType())) {
-				ResourceObject resourceObject = convertToResourceObject(delta.getObject(), null);
+				
 				ObjectChangeDeletionType deletionType = new ObjectChangeDeletionType();
 				deletionType.setOid(delta.getUid().getUidValue());
 				Change change = new Change(resourceObject.getIdentifiers(), deletionType,
 						getToken(delta.getToken()));
 				changeList.add(change);
 			} else {
-
-				ResourceObject resourceObject = convertToResourceObject(delta.getObject(), null);
 				ObjectChangeModificationType modificationChangeType = createModificationChange(delta,
 						resourceObject);
 
@@ -960,16 +978,26 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ObjectChangeModificationType modificationChangeType = new ObjectChangeModificationType();
 		ObjectModificationType modificationType = new ObjectModificationType();
 		modificationType.setOid(delta.getUid().getUidValue());
+		
 		for (ResourceObjectAttribute attr : resourceObject.getAttributes()) {
 			PropertyModificationType propertyModification = new PropertyModificationType();
-			propertyModification.setModificationType(PropertyModificationTypeType.add);
+			propertyModification.setModificationType(PropertyModificationTypeType.replace);
 			Document doc = DOMUtil.getDocument();
 			List<Element> elements;
 			try {
 				elements = attr.serializeToDom(doc);
+				for (Element e : elements){
+					LOGGER.debug("Atribute to modify value: {}", e.getTextContent());
+				}
 				PropertyModificationType.Value value = new PropertyModificationType.Value();
 				value.getAny().addAll(elements);
 				propertyModification.setValue(value);
+				List<XPathSegment> segments = new ArrayList<XPathSegment>();
+                XPathSegment attrSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
+                segments.add(attrSegment);
+                XPathType t = new XPathType(segments);
+                Element xpathElement = t.toElement(SchemaConstants.I_PROPERTY_CONTAINER_REFERENCE_PATH, doc);
+				propertyModification.setPath(xpathElement);
 				modificationType.getPropertyModification().add(propertyModification);
 			} catch (SchemaProcessorException ex) {
 				throw new SchemaException(
