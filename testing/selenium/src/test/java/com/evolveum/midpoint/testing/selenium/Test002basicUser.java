@@ -376,7 +376,7 @@ public class Test002basicUser {
 
 		se.type("importForm:editor", xmlUser);
 		se.click("importForm:uploadButton");
-		assertTrue(se.waitForText("Object 'jack', oid."));
+		assertTrue(se.waitForText("Object 'jack', oid"));
 		assertTrue(se.isTextPresent("already exists"));
 		
 		//overwrite enabled
