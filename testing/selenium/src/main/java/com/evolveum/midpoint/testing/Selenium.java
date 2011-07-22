@@ -72,11 +72,11 @@ public class Selenium extends WebDriverBackedSelenium {
 			} catch (InterruptedException e) {
 			}
 			if (this.isTextPresent(text)) {
-				logger.debug("Selenium.waitForText:" + text  + " - OK");
+				logger.debug("Selenium.waitForText: " + text  + " - OK");
 				return true;
 			}
 		}
-		logger.debug("Selenium.waitForText:" + text  + " - FAIL");
+		logger.debug("Selenium.waitForText: " + text  + " - FAIL");
 		return this.isTextPresent(text);
 	}
 	
@@ -85,7 +85,7 @@ public class Selenium extends WebDriverBackedSelenium {
 	 * @param sleep - number seconds to wait
 	 */
 	public void sleep (int sleep) {
-		logger.debug("Selenium.sleep:" + sleep  + "s");
+		logger.debug("Selenium.sleep: " + sleep  + "s");
 		try {
 			Thread.sleep(1000*sleep);
 		} catch (InterruptedException e) {
@@ -100,18 +100,18 @@ public class Selenium extends WebDriverBackedSelenium {
 	public String findLink(String part) {
 		for (String s : Arrays.asList(this.getAllLinks())) {
 			if (s.contains(part)) {
-				logger.debug("Selenium.findlink:" + part + " - OK");
+				logger.debug("Selenium.findlink: " + part + " - OK");
 				return s;
 			}
 		}
-		logger.debug("Selenium.findlink:" + part + " - FAIL" );
+		logger.debug("Selenium.findlink: " + part + " - FAIL" );
 		return null;
 	}
 
 	@Override
 	public void click(String locator) {
 		super.click(locator);
-		logger.debug("Selenium.click:" + locator );
+		logger.debug("Selenium.click: " + locator );
 	}
 
 	@Override
@@ -123,9 +123,8 @@ public class Selenium extends WebDriverBackedSelenium {
 	@Override
 	public boolean isTextPresent(String pattern) {
 		boolean ret = super.isTextPresent(pattern);
-		logger.debug ("Selenium.isTextPresent:" + pattern + " - " + (ret ? "OK" : "FAIL") );
+		logger.debug ("Selenium.isTextPresent :" + pattern + " - " + (ret ? "OK" : "FAIL") );
 		if (!ret && logger.isDebugEnabled()) {
-			logger.debug("getBodyText:\n" + this.getBodyText());
 			logger.debug("getLog:\n" + this.getLog());
 			logger.debug("getHtmlSource:\n" + this.getHtmlSource());
 		}
