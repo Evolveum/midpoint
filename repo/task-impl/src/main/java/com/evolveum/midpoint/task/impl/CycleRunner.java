@@ -40,9 +40,6 @@ import com.evolveum.midpoint.task.api.TaskRunResult;
  */
 public class CycleRunner extends TaskRunner {
 
-	private boolean enabled = true;
-	private long lastLoopRun = 0;
-
 	private static final transient Trace logger = TraceManager.getTrace(CycleRunner.class);
 
 	public CycleRunner(TaskHandler handler, Task task, TaskManagerImpl taskManager) {
@@ -62,7 +59,7 @@ public class CycleRunner extends TaskRunner {
 		
 		try {
 
-			while (enabled) {
+			while (task.canRun()) {
 				logger.trace("CycleRunner loop: start");
 
 				// This is NOT the result of the run itself. That can be found in the RunResult
@@ -114,7 +111,7 @@ public class CycleRunner extends TaskRunner {
 			}
 
 			// Call back task manager to clean up things
-			taskManager.finishRunnableTask(task,cycleRunnerOpResult);
+			taskManager.finishRunnableTask(this,task,cycleRunnerOpResult);
 			
 			logger.info("CycleRunner.run stopping");
 		} catch (Throwable t) {
@@ -123,14 +120,6 @@ public class CycleRunner extends TaskRunner {
 			logger.error("CycleRunner got unexpected exception: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
 		}
 
-	}
-
-	public void disable() {
-		enabled = false;
-	}
-
-	public void enable() {
-		enabled = true;
 	}
 
 }

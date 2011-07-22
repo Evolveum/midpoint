@@ -39,6 +39,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.Token;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
@@ -72,6 +73,7 @@ import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClassUtil;
+import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
 import org.identityconnectors.framework.common.objects.SyncDelta;
 import org.identityconnectors.framework.common.objects.SyncDeltaType;
@@ -93,6 +95,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.naming.NameAlreadyBoundException;
+import javax.naming.directory.SchemaViolationException;
 import javax.xml.namespace.QName;
 
 /**
@@ -468,24 +471,24 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			object.getAttributes().add(attribute);
 			icfResult.recordSuccess();
 			
-		// Whole exception handling in this case is a black magic.
-		// ICF does not define any exceptions and there is no "best practice" how to handle ICF errors
-		// Therefore let's just guess what might have happened. That's the best we can do.
-		} catch (IllegalArgumentException ex) {
-			// This is most likely missing attribute or similar schema thing
-			throw new SchemaException("Schema violation (most likely): "+ex.getMessage(),ex);
-		} catch (ConnectorException ex) {
-			// Now it gets to even blacker magic. Look inside to see what really happened
-			if (ex.getCause() instanceof NameAlreadyBoundException) {
-				// This is thrown by LDAP connector and may be also throw by similar connectors
-				icfResult.recordFatalError("Object already exists",ex);
-				throw new ObjectAlreadyExistsException(ex.getCause().getMessage());
-			}			
-			icfResult.recordFatalError(ex);
-			throw new GenericFrameworkException(ex);
 		} catch (Exception ex) {
-			icfResult.recordFatalError(ex);
-			throw new GenericFrameworkException(ex);
+			Exception midpointEx = processIcfException(ex, icfResult);
+			result.computeStatus();
+			
+			// Do some kind of acrobatics to do proper throwing of checked exception
+			if (midpointEx instanceof ObjectAlreadyExistsException) {
+				throw (ObjectAlreadyExistsException)midpointEx;
+			} else if (midpointEx instanceof CommunicationException) {
+				throw (CommunicationException)midpointEx;
+			} else if (midpointEx instanceof GenericFrameworkException) {
+				throw (GenericFrameworkException)midpointEx;
+			} else if (midpointEx instanceof SchemaException) {
+				throw (SchemaException)midpointEx;
+			} else if (midpointEx instanceof RuntimeException) {
+				throw (RuntimeException)midpointEx;
+			} else {
+				throw new SystemException("Got unexpected exception: "+ex.getClass().getName(),ex);
+			}			
 		}
 
 		result.recordSuccess();
@@ -495,7 +498,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	@Override
 	public void modifyObject(QName objectClass, Set<ResourceObjectAttribute> identifiers,
 			Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, GenericFrameworkException {
+			CommunicationException, GenericFrameworkException, SchemaException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
 				+ ".modifyObject");
@@ -536,17 +539,101 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 
 		}
-		if (addValues != null && !addValues.isEmpty()) {
-			Set<Attribute> attributes = convertFromResourceObject(addValues);
-			connector.addAttributeValues(objClass, uid, attributes, new OperationOptionsBuilder().build());
+		
+		// Needs three complete try-catch blocks because we need to create icfResult for each operation
+		// and handle the faults individually
+		OperationResult icfResult = null;
+		try {
+			if (addValues != null && !addValues.isEmpty()) {
+				Set<Attribute> attributes = convertFromResourceObject(addValues);
+				OperationOptions options = new OperationOptionsBuilder().build();
+				icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".addAttributeValues");
+				icfResult.addParam("objectClass", objectClass);
+				icfResult.addParam("uid", uid);
+				icfResult.addParam("attributes", attributes);
+				icfResult.addParam("options", options);
+				icfResult.addContext("connector", connector);
+				connector.addAttributeValues(objClass, uid, attributes, options);
+			}
+		} catch (Exception ex) {
+			Exception midpointEx = processIcfException(ex,icfResult);
+			result.computeStatus();
+			// Do some kind of acrobatics to do proper throwing of checked exception
+			if (midpointEx instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException)midpointEx;
+			} else if (midpointEx instanceof CommunicationException) {
+				throw (CommunicationException)midpointEx;
+			} else if (midpointEx instanceof GenericFrameworkException) {
+				throw (GenericFrameworkException)midpointEx;
+			} else if (midpointEx instanceof SchemaException) {
+				throw (SchemaException)midpointEx;
+			} else if (midpointEx instanceof RuntimeException) {
+				throw (RuntimeException)midpointEx;
+			} else {
+				throw new SystemException("Got unexpected exception: "+ex.getClass().getName(),ex);
+			}
 		}
-		if (updateValues != null && !updateValues.isEmpty()) {
-			Set<Attribute> attributes = convertFromResourceObject(updateValues);
-			connector.update(objClass, uid, attributes, new OperationOptionsBuilder().build());
+			
+		try {
+			if (updateValues != null && !updateValues.isEmpty()) {
+				Set<Attribute> attributes = convertFromResourceObject(updateValues);
+				OperationOptions options = new OperationOptionsBuilder().build();
+				icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".update");
+				icfResult.addParam("objectClass", objectClass);
+				icfResult.addParam("uid", uid);
+				icfResult.addParam("attributes", attributes);
+				icfResult.addParam("options", options);
+				icfResult.addContext("connector", connector);
+				connector.update(objClass, uid, attributes, options);
+			}
+		} catch (Exception ex) {
+			Exception midpointEx = processIcfException(ex,icfResult);
+			result.computeStatus();
+			// Do some kind of acrobatics to do proper throwing of checked exception
+			if (midpointEx instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException)midpointEx;
+			} else if (midpointEx instanceof CommunicationException) {
+				throw (CommunicationException)midpointEx;
+			} else if (midpointEx instanceof GenericFrameworkException) {
+				throw (GenericFrameworkException)midpointEx;
+			} else if (midpointEx instanceof SchemaException) {
+				throw (SchemaException)midpointEx;
+			} else if (midpointEx instanceof RuntimeException) {
+				throw (RuntimeException)midpointEx;
+			} else {
+				throw new SystemException("Got unexpected exception: "+ex.getClass().getName(),ex);
+			}
 		}
-		if (valuesToRemove != null && !valuesToRemove.isEmpty()) {
-			Set<Attribute> attributes = convertFromResourceObject(valuesToRemove);
-			connector.removeAttributeValues(objClass, uid, attributes, new OperationOptionsBuilder().build());
+
+		try {
+			if (valuesToRemove != null && !valuesToRemove.isEmpty()) {
+				Set<Attribute> attributes = convertFromResourceObject(valuesToRemove);
+				OperationOptions options = new OperationOptionsBuilder().build();
+				icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".update");
+				icfResult.addParam("objectClass", objectClass);
+				icfResult.addParam("uid", uid);
+				icfResult.addParam("attributes", attributes);
+				icfResult.addParam("options", options);
+				icfResult.addContext("connector", connector);
+				connector.removeAttributeValues(objClass, uid, attributes, options);
+			}
+		} catch (Exception ex) {
+			Exception midpointEx = processIcfException(ex,icfResult);
+			result.computeStatus();
+			// Do some kind of acrobatics to do proper throwing of checked exception
+			if (midpointEx instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException)midpointEx;
+			} else if (midpointEx instanceof CommunicationException) {
+				throw (CommunicationException)midpointEx;
+			} else if (midpointEx instanceof GenericFrameworkException) {
+				throw (GenericFrameworkException)midpointEx;
+			} else if (midpointEx instanceof SchemaException) {
+				throw (SchemaException)midpointEx;
+			} else if (midpointEx instanceof RuntimeException) {
+				throw (RuntimeException)midpointEx;
+			} else {
+				throw new SystemException("Got unexpected exception: "+ex.getClass().getName(),ex);
+			}
 		}
 
 	}
@@ -1026,4 +1113,42 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return property;
 	}
 
+	/**
+	 * Transform ICF exception to something more usable.
+	 * 
+	 * WARNING: This is black magic. Really. Blame ICF interface design.
+	 *  
+	 * @param ex exception from the ICF
+	 * @param parentResult OperationResult to record failure
+	 * @return reasonable midPoint exception
+	 */
+	private Exception processIcfException(Exception ex, OperationResult parentResult) {
+		// Whole exception handling in this case is a black magic.
+		// ICF does not define any exceptions and there is no "best practice" how to handle ICF errors
+		// Therefore let's just guess what might have happened. That's the best we can do.
+		if (ex instanceof IllegalArgumentException) {
+			// This is most likely missing attribute or similar schema thing
+			parentResult.recordFatalError("Schema violation",ex);
+			return new SchemaException("Schema violation (most likely): "+ex.getMessage(),ex);
+		
+		} else if (ex instanceof ConnectorException) {
+			// Now it gets to even blacker magic. Look inside to see what really happened
+			if (ex.getCause() instanceof NameAlreadyBoundException) {
+				// This is thrown by LDAP connector and may be also throw by similar connectors
+				parentResult.recordFatalError("Object already exists",ex);
+				return new ObjectAlreadyExistsException(ex.getCause().getMessage(),ex);
+			} else if (ex.getCause() instanceof SchemaViolationException) {
+				// This is thrown by LDAP connector and may be also throw by similar connectors
+				parentResult.recordFatalError("Schema violation",ex);
+				return new SchemaException(ex.getCause().getMessage(),ex);
+			} 		
+			parentResult.recordFatalError(ex);
+			return new GenericFrameworkException(ex);
+		}
+		// Fallback
+		parentResult.recordFatalError(ex);
+		return new GenericFrameworkException(ex);
+	}
+
+	
 }

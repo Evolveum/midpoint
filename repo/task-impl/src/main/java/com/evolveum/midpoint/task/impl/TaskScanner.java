@@ -31,6 +31,7 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -249,7 +250,7 @@ public class TaskScanner extends Thread {
 		Element filter = QueryUtil.createAndFilter(
 				doc,
 				// No path needed. The default is OK.
-				QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.C_TASK_TYPE)),
+				QueryUtil.createTypeFilter(doc, ObjectTypes.TASK.getObjectTypeUri()),
 				QueryUtil.createEqualFilter(doc, null, executionStatusElement),
 				QueryUtil.createEqualFilter(doc, null, exclusivityStatusElement));
 

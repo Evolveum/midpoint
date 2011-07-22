@@ -59,6 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
@@ -91,6 +92,8 @@ public class TaskImpl implements Task {
 	private TaskManagerImpl taskManager;
 	private RepositoryService repositoryService;
 	private OperationResult result;
+	private ScheduleType schedule;
+	private boolean canRun;
 
 	/**
 	 * Note: This constructor assumes that the task is transient.
@@ -110,6 +113,8 @@ public class TaskImpl implements Task {
 		objectRef = null;
 		// TODO: Is this OK?
 		result = null;
+		schedule = null;
+		canRun = true;
 	}
 
 	/**
@@ -120,6 +125,7 @@ public class TaskImpl implements Task {
 	TaskImpl(TaskManagerImpl taskManager, TaskType taskType, RepositoryService repositoryService) {
 		this.taskManager = taskManager;
 		this.repositoryService = repositoryService;
+		canRun = true;
 		initialize(taskType);
 	}
 		
@@ -154,6 +160,7 @@ public class TaskImpl implements Task {
 		} else {
 			result = null;
 		}
+		schedule = taskType.getSchedule();
 		// Parse the extension
 		extension = ExtensionProcessor.parseExtension(taskType.getExtension());
 	}
@@ -402,6 +409,10 @@ public class TaskImpl implements Task {
 		if (result!=null) {
 			taskType.setResult(result.createOperationResultType());
 		}
+		
+		if (schedule!=null) {
+			taskType.setSchedule(schedule);
+		}
 
 		if (extension!=null && !extension.isEmpty()) {
 			Extension xmlExtension;
@@ -569,6 +580,21 @@ public class TaskImpl implements Task {
 	public boolean isCycle() {
 		// TODO: binding
 		return (recurrenceStatus == TaskRecurrence.RECURRING);
+	}
+
+	@Override
+	public ScheduleType getSchedule() {
+		return schedule;
+	}
+
+	@Override
+	public void shutdown() {
+		canRun = false;
+	}
+
+	@Override
+	public boolean canRun() {
+		return canRun;
 	}
 
 }

@@ -87,7 +87,7 @@ public class SingleRunner extends TaskRunner {
 			}
 			
 			// Call back task manager to clean up things
-			taskManager.finishRunnableTask(task, runnerRunOpResult);
+			taskManager.finishRunnableTask(this,task, runnerRunOpResult);
 
 			logger.info("SingleRunner.run stopping");
 

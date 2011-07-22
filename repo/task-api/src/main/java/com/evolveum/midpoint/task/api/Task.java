@@ -33,6 +33,7 @@ import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
@@ -311,4 +312,20 @@ public interface Task {
 
 	public boolean isCycle();
 
+	public ScheduleType getSchedule();
+
+	/**
+	 * Signal the task to shut down.
+	 * It may not stop immediately, but it should stop eventually.
+	 */
+	public void shutdown();
+
+	/**
+	 * Returns true if the task can run (was not interrupted).
+	 * 
+	 * Will return false e.g. if shutdown was signaled.
+	 * 
+	 * @return true if the task can run
+	 */
+	public boolean canRun();
 }

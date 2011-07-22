@@ -44,22 +44,30 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.opends.server.core.AddOperation;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
+import org.opends.server.util.LDIFReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -73,6 +81,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -82,8 +91,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
@@ -133,10 +145,17 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	private static final String USER_JACK_LDAP_UID = "jack";
 
+	private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
+	private static final String WILL_NAME = "wturner";
+	
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
 	private static final String REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME = "src/test/resources/request/user-modify-fullname-locality.xml";
 	
 	private static final QName IMPORT_OBJECTCLASS = new QName("http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff","AccountObjectClass");
+	
+	private static final Trace LOGGER = TraceManager.getTrace(TestSanity.class);
+	
+	private static boolean checkResults = false;
 	
 	/**
 	 * Utility to control embedded OpenDJ instance (start/stop)
@@ -177,7 +196,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * @throws Exception
 	 */
 	@BeforeClass
-	public static void startLdap() throws Exception {
+	public static void init() throws Exception {
 		startACleanDJ();
 	}
 
@@ -187,7 +206,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * @throws Exception
 	 */
 	@AfterClass
-	public static void stopLdap() throws Exception {
+	public static void shutdown() throws Exception {
 		stopDJ();
 	}
 
@@ -220,6 +239,8 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		assertNotNull(resource);
 		assertNotNull(model);
 		assertNotNull(repositoryService);
+		assertTrue(repoInitialized);
+		assertNotNull(taskManager);
 
 		OperationResult result = new OperationResult(TestSanity.class.getName() + ".test000Integrity");
 		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
@@ -254,7 +275,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		System.out.println("testResource result:");
 		displayJaxb(result, SchemaConstants.C_RESULT);
 
-		assertSuccess(result.getPartialResults().get(0));
+		assertSuccess("testResource has failed",result.getPartialResults().get(0));
 	}
 
 	/**
@@ -279,12 +300,16 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 		System.out.println("addObject result:");
 		displayJaxb(holder.value, SchemaConstants.C_RESULT);
+		assertSuccess("addObject has failed",holder.value);
 		
 		assertEquals(USER_JACK_OID, oid);
 
 		OperationResult repoResult = new OperationResult("getObject");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		
 		ObjectType repoObject = repositoryService.getObject(oid, resolve, repoResult);
+		
+		assertSuccess("getObject has failed",repoResult);
 		assertEquals(USER_JACK_OID, repoObject.getOid());
 		UserType repoUser = (UserType) repoObject;
 		assertEquals(user.getFullName(), repoUser.getFullName());
@@ -313,6 +338,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 		// THEN
 		displayJaxb("modifyObject result",holder.value, SchemaConstants.C_RESULT);
+		assertSuccess("modifyObject has failed",holder.value);
 
 		// Check if user object was modified in the repo
 
@@ -335,6 +361,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		repoResult = new OperationResult("getObject");
 		
 		repoObject = repositoryService.getObject(shadowOid, resolve, repoResult);
+		assertSuccess("addObject has failed", repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
 		
 		displayJaxb("Shadow (repository)",repoShadow, new QName("shadow"));
@@ -402,6 +429,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		
 		// THEN
 		displayJaxb("getObject result",holder.value, SchemaConstants.C_RESULT);
+		assertSuccess("getObject has failed", holder.value);
 		
 		AccountShadowType modelShadow = (AccountShadowType) modelObject;
 		displayJaxb("Shadow (model)",modelShadow, new QName("shadow"));
@@ -440,6 +468,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// THEN
 		System.out.println("modifyObject result:");
 		displayJaxb(holder.value, SchemaConstants.C_RESULT);
+		assertSuccess("modifyObject has failed",holder.value);
 
 		// Check if user object was modified in the repo
 
@@ -464,6 +493,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 		repoResult = new OperationResult("getObject");
 		repoObject = repositoryService.getObject(shadowOid, resolve, repoResult);
+		assertSuccess("getObject(repo) has failed",repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
 		displayJaxb(repoShadow, new QName("shadow"));
 		assertNotNull(repoShadow);
@@ -536,6 +566,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// THEN
 		System.out.println("deleteObject result:");
 		displayJaxb(holder.value, SchemaConstants.C_RESULT);
+		assertSuccess("deleteObject has failed", holder.value);
 		
 		// User should be gone from the repository
 		OperationResult repoResult = new OperationResult("getObject");
@@ -553,7 +584,8 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 			repositoryService.getObject(shadowOid, resolve, repoResult);
 			fail("Shadow still exists in repo after delete");
 		} catch (ObjectNotFoundException e) {
-			// This is expected
+			// This is expected, but check also the result
+			assertFalse("getObject failed as expected, but the result indicates success",repoResult.isSuccess());
 		}
 		
 		// Account should be deleted from LDAP
@@ -580,8 +612,8 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * No changes are synchronized yet.
 	 */
 	@Test
-	public void test100SynchronizationInit() throws Exception { 
-		displayTestTile("test100SynchronizationInit");
+	public void test100LiveSyncInit() throws Exception { 
+		displayTestTile("test100LiveSyncInit");
 		// Now it is the right time to add task definition to the repository
 		// We don't want it there any sooner, as it may interfere with the
 		// previous tests
@@ -591,20 +623,19 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// We need to wait for a sync interval, so the task scanner has a chance to pick up this
 		// task
 		
-		System.out.println("Waining for task manager to pick up the task");
-		Thread.sleep(10000);
-		System.out.println("... done");
+		waitFor("Waining for task manager to pick up the task",10000);
 		
 		// Check task status
 		
 		OperationResult result = new OperationResult(TestSanity.class.getName()+".test100Synchronization");
 		Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
 		
+		assertSuccess("getTask has failed",result);
 		assertNotNull(task);
-		System.out.println(task.dump());
+		display("Task after pickup",task);
 		
 		ObjectType o = repositoryService.getObject(TASK_OPENDJ_SYNC_OID,null, result);
-		System.out.println(ObjectTypeUtil.dump(o));
+		display("Task after pickup in the repository", o);
 		
 		// .. it should be running
 		assertEquals(TaskExecutionStatus.RUNNING,task.getExecutionStatus());
@@ -621,7 +652,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// Test for extension. This will also roughly test extension processor and schema processor
 		PropertyContainer taskExtension = task.getExtension();
 		assertNotNull(taskExtension);
-		System.out.println(taskExtension.dump());
+		display("Task extension",taskExtension);
 		Property shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","shipState"));
 		assertEquals("capsized",shipStateProp.getValue(String.class));
 		Property deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","dead"));
@@ -638,6 +669,63 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// Failure is expected here ... for now
 //		assertTrue(taskResult.isSuccess());
 		
+	}
+
+	/**
+	 * Create LDAP object. That should be picked up by liveSync and a user should be craeted in repo.
+	 *  
+	 * @throws Exception
+	 */
+	@Test
+	public void test101LiveSyncCreate() throws Exception { 
+		displayTestTile("test101LiveSyncCreate");
+		// Sync task should be running (tested in previous test), so just create new LDAP object.
+
+		LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_WILL_FILENAME);
+		LDIFReader ldifReader = new LDIFReader(importConfig);
+		Entry entry = ldifReader.readEntry();
+		display("Entry from LDIF",entry);
+		
+		// WHEN
+		
+		AddOperation addOperation = controller.getInternalConnection().processAdd(entry);
+		
+		// THEN
+		
+		assertEquals("LDAP add operation failed",ResultCode.SUCCESS,addOperation.getResultCode()); 
+		
+		// Wait a bit to give the sync cycle time to detect the change
+		
+		System.out.println("Waining for sync cycle to detect change");
+		Thread.sleep(10000);
+		System.out.println("... done");
+		
+		// Search for the user that should be created now
+		
+		Document doc = DOMUtil.getDocument();
+		Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
+				SchemaConstants.C_NAME.getLocalPart());
+		nameElement.setTextContent(WILL_NAME);
+		Element filter = QueryUtil.createAndFilter(
+				doc,
+				// No path needed. The default is OK.
+				QueryUtil.createTypeFilter(doc, ObjectTypes.USER.getObjectTypeUri()),
+				QueryUtil.createEqualFilter(doc, null, nameElement));
+
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+		OperationResultType result = new OperationResultType();
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
+		
+		ObjectListType objects = model.searchObjects(query, null, holder);
+		
+		assertSuccess("searchObjects has failed",holder.value);
+		assertEquals("User not found (or found too many)",1,objects.getObject().size());
+		UserType user = (UserType)objects.getObject().get(0);
+		
+		assertEquals(user.getName(),WILL_NAME);
+		
+		// TODO: more checks
 	}
 	
 	// TODO: insert changes in OpenDJ, let the cycle pick them up
@@ -661,7 +749,8 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		
 		// THEN
 		
-		// Convert the returned TaskType to a more useable Task
+		assertSuccess("importFromResource has failed", taskHolder.value.getResult());
+		// Convert the returned TaskType to a more usable Task
 		Task task = taskManager.createTaskInstance(taskHolder.value);
 		assertNotNull(task);
 		assertNotNull(task.getOid());
@@ -674,12 +763,13 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		ObjectType o = repositoryService.getObject(task.getOid(),null, result);
 		display("Import task in repo after launch",o);
 		
-		System.out.println("Waining for import to complete");
-		Thread.sleep(10000);
-		System.out.println("... done");
+		assertSuccess("getObject has failed", result);
+		
+		waitFor("Waining for import to complete", 10000);
 		
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
 		ObjectType obj = model.getObject(task.getOid(), new PropertyReferenceListType(), resultHolder);
+		assertSuccess("getObject has failed", resultHolder.value);
 		task = taskManager.createTaskInstance((TaskType)obj);
 
 		display("Import task after finish",task);
@@ -697,6 +787,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		
 		// Listing of shadows is not supported by the provisioning. So we need to look directly into repository
 		ObjectListType sobjects = repositoryService.listObjects(ResourceObjectShadowType.class, null, result);
+		assertSuccess("listObjects has failed", result);
 		assertFalse("No shadows created",sobjects.getObject().isEmpty());
 		
 		for (ObjectType oo : sobjects.getObject()) {
@@ -710,6 +801,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		}
 		
 		ObjectListType uobjects = model.listObjects(ObjectTypes.USER.getObjectTypeUri(), null, resultHolder);
+		assertSuccess("listObjects has failed", resultHolder.value);
 		assertFalse("No users created",uobjects.getObject().isEmpty());
 		
 		for (ObjectType oo : uobjects.getObject()) {
@@ -728,6 +820,12 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		
 	}
 	
+	@Test
+	public void test999Shutdown() throws InterruptedException {
+		taskManager.shutdown();
+		waitFor("waiting for task manager shutdown",1000);
+	}
+	
 	// TODO: test for missing/corrupt system configuration
 	// TODO: test for missing sample config (bad reference in expression arguments)
 	
@@ -735,17 +833,36 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	
 	// TODO: maybe we should move them to a common utility class
 	
-	private static final String TEST_OUT_PREFIX = "\n===[ ";
-	private static final String TEST_OUT_SUFFIX = " ]==========================\n\n";
-	private static final String OBJECT_TITLE_PREFIX = "\n*** ";
+	private static final String TEST_OUT_PREFIX = "\n\n=====[ ";
+	private static final String TEST_OUT_SUFFIX = " ]======================================\n";
+	private static final String TEST_LOG_PREFIX = "=====[ ";
+	private static final String TEST_LOG_SUFFIX = " ]======================================";
+	private static final String OBJECT_TITLE_OUT_PREFIX = "\n*** ";
+	private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
+	private static final String LOG_MESSAGE_PREFIX = "";
 	
-	private void assertSuccess(OperationResultType result) {
-		assertEquals(OperationResultStatusType.SUCCESS, result.getStatus());
+	private void assertSuccess(String message, OperationResultType result) {
+		if (!checkResults) {
+			return;
+		}
+		assertEquals(message+": "+result.getMessage(),OperationResultStatusType.SUCCESS, result.getStatus());
 		List<OperationResultType> partialResults = result.getPartialResults();
 		for (OperationResultType subResult : partialResults) {
-			assertSuccess(subResult);
+			assertSuccess(message,subResult);
 		}
 	}
+	
+	private void assertSuccess(String message, OperationResult result) {
+		if (!checkResults) {
+			return;
+		}
+		assertTrue(message+": "+result.getMessage(),result.isSuccess());
+		List<OperationResult> partialResults = result.getSubresults();
+		for (OperationResult subResult : partialResults) {
+			assertSuccess(message,subResult);
+		}
+	}
+
 	
 	private void assertNotEmpty(String message, String s) {
 		assertNotNull(message,s);
@@ -822,10 +939,21 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	
 	private void displayTestTile(String title) {
 		System.out.println(TEST_OUT_PREFIX+title+TEST_OUT_SUFFIX);
+		LOGGER.info(TEST_LOG_PREFIX+title+TEST_LOG_SUFFIX);
 	}
 
+	private static void waitFor(String message, int interval) throws InterruptedException {
+		System.out.println(message);
+		LOGGER.debug(LOG_MESSAGE_PREFIX+message);
+		Thread.sleep(interval);
+		System.out.println("... done");
+		LOGGER.debug(LOG_MESSAGE_PREFIX+"... done "+message);
+	}
+
+	
 	private void displayJaxb(String title,Object o, QName qname) throws JAXBException {
-		System.out.println(OBJECT_TITLE_PREFIX+title);
+		System.out.println(OBJECT_TITLE_OUT_PREFIX+title);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX+title);
 		displayJaxb(o, qname);
 	}
 	
@@ -833,26 +961,46 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		Document doc = DOMUtil.getDocument();
 		Element element = JAXBUtil.jaxbToDom(o, qname, doc);
 		System.out.println(DOMUtil.serializeDOMToString(element));
+		LOGGER.debug(DOMUtil.serializeDOMToString(element));
 	}
 
 	private void display(String message, SearchResultEntry response) {
-		System.out.println(OBJECT_TITLE_PREFIX+message);
+		System.out.println(OBJECT_TITLE_OUT_PREFIX+message);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX+message);
 		display(response);
 	}
 	
 	private void display(SearchResultEntry response) {
 		System.out.println(response.toLDIFString());
+		LOGGER.debug(response.toLDIFString());
 	}
 
 	private void display(String message, Task task) {
-		System.out.println(OBJECT_TITLE_PREFIX+message);
+		System.out.println(OBJECT_TITLE_OUT_PREFIX+message);
 		System.out.println(task.dump());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX+message);
+		LOGGER.debug(task.dump());
 	}
 	
 	private void display(String message, ObjectType o) {
-		System.out.println(OBJECT_TITLE_PREFIX+message);
+		System.out.println(OBJECT_TITLE_OUT_PREFIX+message);
 		System.out.println(ObjectTypeUtil.dump(o));
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX+message);
+		LOGGER.debug(ObjectTypeUtil.dump(o));
 	}
 
+	private void display(String title, Entry entry) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX+title);
+		System.out.println(entry.toLDIFString());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX+title);
+		LOGGER.debug(entry.toLDIFString());
+	}
+	
+	private void display(String message, PropertyContainer propertyContainer) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX+message);
+		System.out.println(propertyContainer.dump());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX+message);
+		LOGGER.debug(propertyContainer.dump());
+	}
 
 }

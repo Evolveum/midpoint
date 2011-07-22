@@ -152,4 +152,10 @@ public interface TaskManager {
 	 */
 	public void registerHandler(String uri, TaskHandler handler);
 	
+	/**
+	 * Make sure all processes are stopped properly.
+	 * Will block until all processes are shut down.
+	 */
+	public void shutdown();
+	
 }

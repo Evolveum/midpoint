@@ -132,7 +132,6 @@ public class ModelWebService implements ModelPortType {
 	public ObjectListType searchObjects(QueryType query, PagingType paging, Holder<OperationResultType> result)
 			throws FaultMessage {
 		notNullArgument(query, "Query must not be null.");
-		notNullArgument(paging, "Paging  must not be null.");
 		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult("Model Service Search Objects");

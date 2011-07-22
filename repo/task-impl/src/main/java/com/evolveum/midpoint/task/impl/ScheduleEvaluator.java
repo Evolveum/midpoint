@@ -71,7 +71,8 @@ public class ScheduleEvaluator {
 
 	public static long determineSleepTime(Task task) {
 		// TODO Compute the time
-		return 15000;
+		ScheduleType schedule = task.getSchedule();
+		return schedule.getInterval().longValue() * 1000;
 	}
 	
 }

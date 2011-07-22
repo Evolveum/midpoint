@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.task.impl;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -77,6 +78,7 @@ public class TaskManagerImpl implements TaskManager {
 
 	@Autowired(required=true)
 	private RepositoryService repositoryService;
+	private Set<TaskRunner> runners = new HashSet<TaskRunner>();
 	
 	private static final transient Trace logger = TraceManager.getTrace(TaskManagerImpl.class);
 	private static final String TASK_THREAD_NAME_PREFIX = "midpoint-task-";
@@ -93,6 +95,9 @@ public class TaskManagerImpl implements TaskManager {
 	public void shutdown() {
 		logger.info("Task Manager shutdown");
 		stopScannerThread();
+		for (TaskRunner runner : runners) {
+			runner.shutdown();
+		}
 	}
 	
 	/* (non-Javadoc)
@@ -332,7 +337,10 @@ public class TaskManagerImpl implements TaskManager {
 		
 		// TODO: thread pooling, etc.
 		
+		runners.add(runner);
+		
 		Thread taskThread = allocateThread(task, runner);
+		runner.setThread(taskThread);
 		taskThread.start();		
 		
 		// TODO: heartbeat, etc.
@@ -340,10 +348,11 @@ public class TaskManagerImpl implements TaskManager {
 		
 	}
 	
-	void finishRunnableTask(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	void finishRunnableTask(TaskRunner runner, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		
 		// We have claimed the task before, therefore we need to release the task here.
-		releaseTask(task,parentResult);		
+		releaseTask(task,parentResult);
+		runners.remove(runner);
 	}
 	
 	private Thread allocateThread(Task task, Runnable target) {

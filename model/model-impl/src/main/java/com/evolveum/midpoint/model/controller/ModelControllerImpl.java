@@ -298,11 +298,14 @@ public class ModelControllerImpl implements ModelController {
 	private ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult result,
 			boolean searchInProvisioning) {
 		Validate.notNull(query, "Query must not be null.");
-		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
-		LOGGER.debug("Searching objects from {} to {} ordered {} by {} (query in TRACE).", new Object[] {
+		if (paging==null) {
+			LOGGER.debug("Searching objects with null paging (query in TRACE).");
+		} else {
+			LOGGER.debug("Searching objects from {} to {} ordered {} by {} (query in TRACE).", new Object[] {
 				paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(), paging.getOrderBy() });
+		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(query));
 		}

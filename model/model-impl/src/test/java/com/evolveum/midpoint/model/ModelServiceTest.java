@@ -304,17 +304,6 @@ public class ModelServiceTest {
 	}
 
 	@Test(expected = FaultMessage.class)
-	public void nullPagingSearch() throws FaultMessage {
-		try {
-			modelService.searchObjects(new QueryType(), null, new Holder<OperationResultType>(
-					new OperationResultType()));
-		} catch (FaultMessage ex) {
-			ModelTUtil.assertIllegalArgumentFault(ex);
-		}
-		fail("Illegal argument exception was not thrown.");
-	}
-
-	@Test(expected = FaultMessage.class)
 	public void badPagingSearch() throws FaultMessage {
 		PagingType paging = new PagingType();
 		paging.setMaxSize(-1);

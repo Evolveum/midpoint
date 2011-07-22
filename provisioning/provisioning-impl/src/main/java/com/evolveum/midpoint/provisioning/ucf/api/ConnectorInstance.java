@@ -175,8 +175,9 @@ public interface ConnectorInstance {
 	 * @param identifiers
 	 * @param changes
 	 * @throws CommunicationException
+	 * @throws SchemaException 
 	 */
-	public void modifyObject(QName objectClass, Set<ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+	public void modifyObject(QName objectClass, Set<ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
 	
 	public void deleteObject(QName objectClass, Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	

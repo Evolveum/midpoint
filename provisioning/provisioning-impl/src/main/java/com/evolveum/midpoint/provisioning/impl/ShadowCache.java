@@ -1039,7 +1039,15 @@ public class ShadowCache {
 			ResourceObject resourceObject, ResourceType resource,
 			OperationResult parentResult) throws SchemaException {
 
-		ResourceObjectShadowType shadow = new ResourceObjectShadowType();
+		ResourceObjectShadowType shadow = null;
+		
+		// Determine correct type for the shadow
+		if (resourceObject.isAccountType()) {
+			shadow = new AccountShadowType();
+		} else {
+			shadow = new ResourceObjectShadowType();
+		}
+		
 		shadow.setObjectClass(resourceObject.getDefinition().getTypeName());
 		shadow.setName(determineShadowName(resourceObject));
 		shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource));

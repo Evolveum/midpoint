@@ -32,11 +32,16 @@ public abstract class TaskRunner implements Runnable {
 	protected TaskHandler handler;
 	protected Task task;
 	protected TaskManagerImpl taskManager;
+	protected Thread thread;
 	
 	public TaskRunner(TaskHandler handler, Task task, TaskManagerImpl taskManager) {
 		this.handler = handler;
 		this.task = task;
 		this.taskManager = taskManager;
+	}
+	
+	void setThread(Thread thread) {
+		this.thread = thread;
 	}
 
 	/*
@@ -47,4 +52,10 @@ public abstract class TaskRunner implements Runnable {
 	@Override
 	public abstract void run();
 
+	public void shutdown() {
+		task.shutdown();
+		// In case that the thread was sleeping ...
+		thread.interrupt();
+	}
+	
 }
