@@ -20,15 +20,11 @@
  */
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.web.model.dto.SystemConfigurationDto;
-import com.evolveum.midpoint.web.model.impl.ObjectManagerImpl;
-
 /**
  * 
  * @author lazyman
- * 
+ *
  */
-public abstract class SystemConfigurationManager extends ObjectManagerImpl<SystemConfigurationDto> {
+public interface SystemManager {
 
-	private static final long serialVersionUID = 7510934216789096238L;
 }

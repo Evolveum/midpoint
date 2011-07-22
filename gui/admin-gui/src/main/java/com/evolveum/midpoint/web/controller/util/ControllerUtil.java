@@ -44,7 +44,7 @@ import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
-import com.evolveum.midpoint.web.model.SystemConfigurationManager;
+import com.evolveum.midpoint.web.model.SystemManager;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
@@ -183,11 +183,11 @@ public class ControllerUtil {
 		return (AccountManager) (manager);
 	}
 
-	public static SystemConfigurationManager getSystemManager(ObjectTypeCatalog catalog) {
+	public static SystemManager getSystemManager(ObjectTypeCatalog catalog) {
 		Validate.notNull(catalog, "Object type catalog must not be null.");
 		ObjectManager<SystemConfigurationDto> manager = catalog.getObjectManager(
 				SystemConfigurationType.class, SystemConfigurationDto.class);
-		return (SystemConfigurationManager) (manager);
+		return (SystemManager) (manager);
 	}
 
 	public static void updateResourceState(ResourceState state, OperationResult result) {

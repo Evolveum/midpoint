@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * @author lazyman
  * 
  */
-public class AccountManagerImpl extends ObjectManagerImpl2<AccountShadowType, AccountShadowDto> implements
+public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, AccountShadowDto> implements
 		AccountManager {
 
 	private static final long serialVersionUID = 3793939681394774533L;

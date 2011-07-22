@@ -88,7 +88,7 @@
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType</value>
 					</key>
-					<bean class="com.evolveum.midpoint.web.model.impl.SystemConfigurationTypeManager" scope="singleton" />
+					<bean class="com.evolveum.midpoint.web.model.impl.SystemManagerImpl" scope="singleton" />
 				</entry>
 			</map>
 		</property>

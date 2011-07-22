@@ -67,7 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * @author lazyman
  * 
  */
-public class UserManagerImpl extends ObjectManagerImpl2<UserType, GuiUserDto> implements UserManager {
+public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> implements UserManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(UserManagerImpl.class);
 	private static final long serialVersionUID = -3457278299468312767L;

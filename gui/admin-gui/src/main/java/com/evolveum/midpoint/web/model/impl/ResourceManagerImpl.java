@@ -27,12 +27,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
-public class ResourceManagerImpl extends ObjectManagerImpl2<ResourceType, ResourceDto> implements
+public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, ResourceDto> implements
 		ResourceManager {
 
 	private static final long serialVersionUID = -4183063295869675058L;
@@ -213,12 +214,14 @@ public class ResourceManagerImpl extends ObjectManagerImpl2<ResourceType, Resour
 
 		return collection;
 	}
-	
+
 	@Override
 	public ConnectorDto getConnector(String oid) {
-		ConnectorType connector = null;
-		//TODO: get connector
-		
+		ConnectorType connector = get(oid, new PropertyReferenceListType(), ConnectorType.class);
+		if (connector == null) {
+			return null;
+		}
+
 		return new ConnectorDto(connector);
 	}
 }
