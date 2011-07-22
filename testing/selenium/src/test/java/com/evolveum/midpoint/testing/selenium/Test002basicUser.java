@@ -322,7 +322,7 @@ public class Test002basicUser {
 
 		se.type("importForm:editor", xmlUser);
 		se.click("importForm:uploadButton");
-		assertTrue(se.waitForText("Add object 'jack' failed"));  
+		assertTrue(se.waitForText("Add object 'jack' success."));  
 		se.click(se.findLink("topAccount"));
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
@@ -376,7 +376,7 @@ public class Test002basicUser {
 
 		se.type("importForm:editor", xmlUser);
 		se.click("importForm:uploadButton");
-		assertTrue(se.waitForText("Failed to add object jack"));		//FAILURE
+		assertTrue(se.waitForText("Add object 'jack' failed."));
 		assertTrue(se.isTextPresent("already exists in store"));
 		
 		//overwrite enabled
