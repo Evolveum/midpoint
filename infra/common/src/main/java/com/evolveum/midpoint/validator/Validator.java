@@ -189,14 +189,15 @@ public class Validator {
 	}
 
 	void error(String message, ObjectType object) {
-		ValidationMessage vm = new ValidationMessage(ValidationMessage.Type.ERROR, message, object.getOid());
+		ValidationMessage vm = new ValidationMessage(ValidationMessage.Type.ERROR, message, object.getOid(),
+				object.getName());
 		errors.add(vm);
 		objectErrors.add(vm);
 	}
 
 	void error(String message, ObjectType object, String propertyName) {
 		ValidationMessage vm = new ValidationMessage(ValidationMessage.Type.ERROR, message, object.getOid(),
-				propertyName);
+				object.getName(), propertyName);
 		errors.add(vm);
 		objectErrors.add(vm);
 	}

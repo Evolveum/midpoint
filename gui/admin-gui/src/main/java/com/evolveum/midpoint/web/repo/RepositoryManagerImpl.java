@@ -33,6 +33,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -62,7 +63,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 				offset, count });
 
 		ObjectListType list = null;
-		OperationResult result = new OperationResult("List Objects");
+		OperationResult result = new OperationResult(LIST_OBJECTS);
 		try {
 			PagingType paging = PagingTypeFactory.createPaging(offset, count, OrderDirectionType.ASCENDING,
 					"name");
@@ -87,7 +88,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		Validate.notEmpty(name, "Name must not be null.");
 		LOGGER.debug("Searching objects with name {}.", new Object[] { name });
 
-		OperationResult result = new OperationResult("Search Objects");
+		OperationResult result = new OperationResult(SEARCH_OBJECTS);
 		ObjectListType list = null;
 		try {
 			QueryType query = new QueryType();
@@ -113,7 +114,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		Validate.notEmpty(oid, "Oid must not be null.");
 		LOGGER.debug("Getting object with oid {}.", new Object[] { oid });
 
-		OperationResult result = new OperationResult("Get Object");
+		OperationResult result = new OperationResult(GET_OBJECT);
 		ObjectType object = null;
 		try {
 			object = repositoryService.getObject(oid, new PropertyReferenceListType(), result);
@@ -136,7 +137,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 			LOGGER.trace(JAXBUtil.silentMarshal(object));
 		}
 
-		OperationResult result = new OperationResult("Save Object");
+		OperationResult result = new OperationResult(SAVE_OBJECT);
 		boolean saved = false;
 		try {
 			ObjectType oldObject = repositoryService.getObject(object.getOid(),
@@ -166,7 +167,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		Validate.notEmpty(oid, "Oid must not be null.");
 		LOGGER.debug("Deleting object with oid {}.", new Object[] { oid });
 
-		OperationResult result = new OperationResult("Delete Object");
+		OperationResult result = new OperationResult(DELETE_OBJECT);
 		boolean deleted = false;
 		try {
 			repositoryService.deleteObject(oid, result);
@@ -183,18 +184,21 @@ public class RepositoryManagerImpl implements RepositoryManager {
 	}
 
 	@Override
-	public String addObject(ObjectType object) {
+	public String addObject(ObjectType object) throws ObjectAlreadyExistsException {
 		Validate.notNull(object, "Object must not be null.");
 		LOGGER.debug("Adding object {} (object xml in traces).", new Object[] { object.getName() });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshal(object));
 		}
 
-		OperationResult result = new OperationResult("Add Object");
+		OperationResult result = new OperationResult(ADD_OBJECT);
 		String oid = null;
 		try {
 			oid = repositoryService.addObject(object, result);
 			result.recordSuccess();
+		} catch (ObjectAlreadyExistsException ex) {
+			result.recordFatalError("Object '" + object.getName() + "', oid '" + object.getOid()
+					+ "' already exists.", ex);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Add object {} failed", ex, object.getName());
 			result.recordFatalError("Add object '" + object.getName() + "' failed.", ex);

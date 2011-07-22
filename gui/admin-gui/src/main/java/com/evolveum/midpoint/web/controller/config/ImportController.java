@@ -162,7 +162,17 @@ public class ImportController implements Serializable {
 					FacesUtils.addWarnMessage("Couldn't delete object with oid '" + object.getOid() + "'.");
 				}
 
-				repositoryManager.addObject(object);
+				String oid = repositoryManager.addObject(object);
+				if (oid == null) {
+					continue;
+				}
+				if (oid.isEmpty()) {
+					FacesUtils.addWarnMessage("Repository returned empty string as new oid for object '"
+							+ object.getName() + "'.");
+					continue;
+				}
+
+				FacesUtils.addSuccessMessage("Successfully uploaded object '" + object.getName() + "'.");
 			} catch (Exception ex) {
 				LoggingUtils.logException(TRACE, "Couldn't import object {}", ex, object.getName());
 				FacesUtils.addErrorMessage("Couldn't import object '" + object.getName() + "'", ex);
@@ -187,8 +197,9 @@ public class ImportController implements Serializable {
 			StringBuilder builder;
 			for (ValidationMessage message : messages) {
 				builder = new StringBuilder();
-				builder.append(message.getType());
-				builder.append(": Object with oid '");
+				builder.append("Object '");
+				builder.append(message.getName());
+				builder.append("', oid '");
 				builder.append(message.getOid());
 				builder.append("' is not valid, reason: ");
 				builder.append(message.getMessage());

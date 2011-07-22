@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.repo;
 
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
@@ -29,6 +30,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
  * 
  */
 public interface RepositoryManager {
+
+	String CLASS_NAME = RepositoryManager.class.getName();
+	String LIST_OBJECTS = CLASS_NAME + "listObjects";
+	String SEARCH_OBJECTS = CLASS_NAME + "searchObjects";
+	String GET_OBJECT = CLASS_NAME + "getObject";
+	String SAVE_OBJECT = CLASS_NAME + "saveObject";
+	String DELETE_OBJECT = CLASS_NAME + "deleteObject";
+	String ADD_OBJECT = CLASS_NAME + "addObject";
 
 	ObjectListType listObjects(Class<? extends ObjectType> objectType, int offset, int count);
 
@@ -40,5 +49,5 @@ public interface RepositoryManager {
 
 	boolean deleteObject(String oid);
 
-	String addObject(ObjectType object);
+	String addObject(ObjectType object) throws ObjectAlreadyExistsException;
 }
