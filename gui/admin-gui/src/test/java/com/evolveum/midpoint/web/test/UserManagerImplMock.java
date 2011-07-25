@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -136,7 +137,7 @@ public class UserManagerImplMock implements UserManager {
 
 		if (!resolve.getProperty().isEmpty()) {
 			Collection<AccountShadowDto> accounts = accountManagerMock.list();
-			Collection<ResourceDto> resources = resourceManagerMock.list();
+			Collection<GuiResourceDto> resources = resourceManagerMock.list();
 			for (PropertyReferenceType property : resolve.getProperty()) {
 				if (Utils.getPropertyName("Account").equals(
 						(new XPathType(property.getProperty())).getXPath())) {

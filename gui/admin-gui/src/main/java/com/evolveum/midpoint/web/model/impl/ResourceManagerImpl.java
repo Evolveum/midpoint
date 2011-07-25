@@ -19,8 +19,8 @@ import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
+import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
-import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
-public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, ResourceDto> implements
+public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiResourceDto> implements
 		ResourceManager {
 
 	private static final long serialVersionUID = -4183063295869675058L;
@@ -45,17 +45,17 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, Resourc
 	}
 
 	@Override
-	protected ResourceDto createObject(ResourceType objectType) {
-		return new ResourceDto(objectType);
+	protected GuiResourceDto createObject(ResourceType objectType) {
+		return new GuiResourceDto(objectType);
 	}
 
 	@Override
-	public Set<PropertyChange> submit(ResourceDto changedObject) {
+	public Set<PropertyChange> submit(GuiResourceDto changedObject) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public Collection<ResourceDto> list(PagingType paging) {
+	public Collection<GuiResourceDto> list(PagingType paging) {
 		return list(paging, ObjectTypes.RESOURCE);
 	}
 

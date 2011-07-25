@@ -27,7 +27,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
-import com.evolveum.midpoint.web.model.dto.ResourceDto;
+import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
  * @author lazyman
  * 
  */
-public interface ResourceManager extends ObjectManager<ResourceDto> {
+public interface ResourceManager extends ObjectManager<GuiResourceDto> {
 
 	String CLASS_NAME = ResourceManager.class.getName();
 	String LIST_OBJECT_SHADOWS = CLASS_NAME + "listObjectShadows";
@@ -61,6 +61,6 @@ public interface ResourceManager extends ObjectManager<ResourceDto> {
 			QName objectClass, PagingType paging);
 
 	Collection<ConnectorDto> listConnectors();
-	
+
 	ConnectorDto getConnector(String oid);
 }

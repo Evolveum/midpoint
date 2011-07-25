@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.controller.util.SortableListController;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
+import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.ResourceItemComparator;
@@ -308,7 +309,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 	protected String listObjects() {
 		try {
 			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
-			Collection<ResourceDto> resources = manager.list();
+			Collection<GuiResourceDto> resources = manager.list();
 
 			List<ResourceListItem> list = getObjects();
 			list.clear();

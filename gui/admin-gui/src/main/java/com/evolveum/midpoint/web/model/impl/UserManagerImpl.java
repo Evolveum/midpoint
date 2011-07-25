@@ -44,6 +44,7 @@ import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
@@ -130,7 +131,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 		accountShadowType.setAttributes(new Attributes());
 
 		ResourceManager manager = (ResourceManager) objectTypeCatalog.getObjectManager(ResourceType.class,
-				ResourceDto.class);
+				GuiResourceDto.class);
 		ResourceDto resourceDto = null;
 		try {
 			resourceDto = manager.get(resourceOid, new PropertyReferenceListType());

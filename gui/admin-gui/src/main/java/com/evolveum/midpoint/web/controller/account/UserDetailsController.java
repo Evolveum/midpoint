@@ -401,7 +401,7 @@ public class UserDetailsController implements Serializable {
 
 		List<ResourceDto> resources = new ArrayList<ResourceDto>();
 		try {
-			Collection<ResourceDto> list = resManager.list();
+			Collection<GuiResourceDto> list = resManager.list();
 			if (list != null) {
 				resources.addAll(list);
 			}

@@ -35,9 +35,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
+import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
-import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -52,16 +52,16 @@ public class ResourceManagerImplMock implements ResourceManager {
 
 	private static final long serialVersionUID = -2673752961587849731L;
 
-	Map<String, ResourceDto> resourceTypeList = new HashMap<String, ResourceDto>();
+	Map<String, GuiResourceDto> resourceTypeList = new HashMap<String, GuiResourceDto>();
 
 	@Override
-	public Collection<ResourceDto> list() {
+	public Collection<GuiResourceDto> list() {
 		return resourceTypeList.values();
 	}
 
 	@Override
-	public ResourceDto get(String oid, PropertyReferenceListType resolve) {
-		for (ResourceDto resource : resourceTypeList.values()) {
+	public GuiResourceDto get(String oid, PropertyReferenceListType resolve) {
+		for (GuiResourceDto resource : resourceTypeList.values()) {
 			if (resource.getOid().equals(oid)) {
 				return resource;
 			}
@@ -70,12 +70,12 @@ public class ResourceManagerImplMock implements ResourceManager {
 	}
 
 	@Override
-	public ResourceDto create() {
+	public GuiResourceDto create() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
 	@Override
-	public String add(ResourceDto newObject) {
+	public String add(GuiResourceDto newObject) {
 		resourceTypeList.clear();
 		if (newObject.getOid() == null) {
 			newObject.setOid(UUID.randomUUID().toString());
@@ -85,7 +85,7 @@ public class ResourceManagerImplMock implements ResourceManager {
 	}
 
 	@Override
-	public Set<PropertyChange> submit(ResourceDto changedObject) {
+	public Set<PropertyChange> submit(GuiResourceDto changedObject) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -100,7 +100,7 @@ public class ResourceManagerImplMock implements ResourceManager {
 	}
 
 	@Override
-	public Collection<ResourceDto> list(PagingType paging) {
+	public Collection<GuiResourceDto> list(PagingType paging) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
@@ -135,7 +135,7 @@ public class ResourceManagerImplMock implements ResourceManager {
 	public Collection<ConnectorDto> listConnectors() {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
-	
+
 	@Override
 	public ConnectorDto getConnector(String oid) {
 		throw new UnsupportedOperationException("Not supported yet.");
