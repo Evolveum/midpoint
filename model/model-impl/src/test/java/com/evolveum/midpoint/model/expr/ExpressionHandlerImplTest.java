@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.model.expr;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -34,15 +35,21 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.ExpressionHolder;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -56,6 +63,8 @@ public class ExpressionHandlerImplTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ExpressionHandlerImplTest.class);
 	private static final File TEST_FOLDER = new File("./src/test/resources");
+	@Autowired
+	private ModelController model;
 	@Autowired
 	private ExpressionHandler expressionHandler;
 
@@ -104,5 +113,41 @@ public class ExpressionHandlerImplTest {
 		LOGGER.info(result.dump());
 
 		assertTrue(confirmed);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void testEvaluateExpression() throws Exception {
+		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER, "./expr/account.xml"))).getValue();
+		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"./expr/resource.xml"))).getValue();
+		account.setResource(resource);
+		account.setResourceRef(null);
+
+		Element valueExpression = findChildElement(
+				resource.getSynchronization().getCorrelation().getFilter(), SchemaConstants.NS_C,
+				"valueExpression");
+		ExpressionHolder expression = new ExpressionHolder(valueExpression);
+		LOGGER.debug(DebugUtil.prettyPrint(valueExpression));
+
+		OperationResult result = new OperationResult("testCorrelationRule");
+		expressionHandler.setModel(model);
+		String name = expressionHandler.evaluateExpression(account, expression, result);
+		LOGGER.info(result.dump());
+
+		assertEquals("hbarbossa", name);
+	}
+
+	private Element findChildElement(Element element, String namespace, String name) {
+		NodeList list = element.getChildNodes();
+		for (int i = 0; i < list.getLength(); i++) {
+			Node node = list.item(i);
+			if (node.getNodeType() == Node.ELEMENT_NODE && namespace.equals(node.getNamespaceURI())
+					&& name.equals(node.getLocalName())) {
+				return (Element) node;
+			}
+		}
+		return null;
 	}
 }

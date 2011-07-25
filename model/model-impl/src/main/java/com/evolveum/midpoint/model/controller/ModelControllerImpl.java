@@ -150,7 +150,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(result, "Result type must not be null.");
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(user));
-			LOGGER.trace(JAXBUtil.silentMarshal(userTemplate));
+			LOGGER.trace(JAXBUtil.silentMarshalWrap(userTemplate));
 		}
 
 		if (userTemplate == null) {
