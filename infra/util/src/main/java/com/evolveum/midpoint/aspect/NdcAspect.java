@@ -32,67 +32,43 @@ import org.aspectj.lang.annotation.Pointcut;
  */
 @Aspect
 public class NdcAspect {
-
+	
     @Around("entriesIntoRepository()")
     public Object processRepositoryNdc(ProceedingJoinPoint pjp) throws Throwable {
-        Object retValue = null;
-        try {
-        	NDC.push("repository");
-            retValue = pjp.proceed();
-            return retValue;
-        } finally {
-            NDC.pop();
-        }
+        return markSubsystem(pjp, "repository");
     }
 
     @Around("entriesIntoTaskManager()")
     public Object processTaskManagerNdc(ProceedingJoinPoint pjp) throws Throwable {
-        Object retValue = null;
-        try {
-        	NDC.push("task-manager");
-            retValue = pjp.proceed();
-            return retValue;
-        } finally {
-            NDC.pop();
-        }
+    	return markSubsystem(pjp, "task-manager");
     }
 
     @Around("entriesIntoProvisioning()")
     public Object processProvisioningNdc(ProceedingJoinPoint pjp) throws Throwable {
-        Object retValue = null;
-        try {
-        	NDC.push("provisioning");
-            retValue = pjp.proceed();
-            return retValue;
-        } finally {
-            NDC.pop();
-        }
+    	return markSubsystem(pjp, "provisioning");
     }
 
     @Around("entriesIntoModel()")
     public Object processModelNdc(ProceedingJoinPoint pjp) throws Throwable {
-        Object retValue = null;
-        try {
-        	NDC.push("model");
-            retValue = pjp.proceed();
-            return retValue;
-        } finally {
-            NDC.pop();
-        }
+    	return markSubsystem(pjp, "model");
     }
     
     @Around("entriesIntoWeb()")
     public Object processWebNdc(ProceedingJoinPoint pjp) throws Throwable {
-        Object retValue = null;
+    	return markSubsystem(pjp, "web");
+    }
+    
+	private Object markSubsystem(ProceedingJoinPoint pjp, String subsystem) throws Throwable {
+		Object retValue = null;
         try {
-        	NDC.push("web");
+        	NDC.push(subsystem);
             retValue = pjp.proceed();
             return retValue;
         } finally {
             NDC.pop();
         }
-    }
-    
+	}
+	
     @Pointcut("execution(public * com.evolveum.midpoint.repo.api.RepositoryService.*(..))")
     public void entriesIntoRepository() {}
 
