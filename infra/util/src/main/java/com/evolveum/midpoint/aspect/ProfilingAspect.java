@@ -45,8 +45,6 @@ public abstract class ProfilingAspect {
             message.append(getClassName(pjp));
             message.append(" ");
             message.append(pjp.getSignature().getName());
-//            message.append(", args: ");
-//            message.append(Arrays.toString(pjp.getArgs()));
             logger.trace(message.toString());
         }
 

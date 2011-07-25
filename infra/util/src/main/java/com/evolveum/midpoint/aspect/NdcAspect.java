@@ -40,7 +40,7 @@ public class NdcAspect {
 
     @Around("entriesIntoTaskManager()")
     public Object processTaskManagerNdc(ProceedingJoinPoint pjp) throws Throwable {
-    	return markSubsystem(pjp, "task-manager");
+    	return markSubsystem(pjp, "taskManager");
     }
 
     @Around("entriesIntoProvisioning()")
@@ -48,6 +48,11 @@ public class NdcAspect {
     	return markSubsystem(pjp, "provisioning");
     }
 
+    @Around("entriesIntoResourceObjectChangeListener()")
+    public Object processResourceObjectChangeListenerNdc(ProceedingJoinPoint pjp) throws Throwable {
+    	return markSubsystem(pjp, "resourceObjectChangeListener");
+    }
+    
     @Around("entriesIntoModel()")
     public Object processModelNdc(ProceedingJoinPoint pjp) throws Throwable {
     	return markSubsystem(pjp, "model");
@@ -78,6 +83,9 @@ public class NdcAspect {
     @Pointcut("execution(public * com.evolveum.midpoint.provisioning.api.ProvisioningService.*(..))")
     public void entriesIntoProvisioning() {}
 
+	@Pointcut("execution(public * com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener.*(..))")
+	public void entriesIntoResourceObjectChangeListener() {
+	}
     @Pointcut("execution(public * com.evolveum.midpoint.model.api.ModelService.*(..))")
     public void entriesIntoModel() {}
     

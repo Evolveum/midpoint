@@ -23,6 +23,7 @@ package com.evolveum.midpoint.aspect;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.NDC;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -50,31 +51,30 @@ public class LoggingAspect {
 	
 	@Around("repositoryService()")
 	public Object logRepoExecution(final ProceedingJoinPoint pjp) throws Throwable {
-		return logMethodExecution(pjp,"repository");
+		return logMethodExecution(pjp);
 	}
 
 	@Around("provisioningService()")
 	public Object logProvisioningExecution(final ProceedingJoinPoint pjp) throws Throwable {
-		return logMethodExecution(pjp,"provisioning");
+		return logMethodExecution(pjp);
 	}
 
 	@Around("modelService()")
 	public Object logModelExecution(final ProceedingJoinPoint pjp) throws Throwable {
-		return logMethodExecution(pjp,"model");
+		return logMethodExecution(pjp);
 	}
 	
 	@Around("resourceObjectChangeListener()")
 	public Object logResourceObjectChangeListenerExecution(final ProceedingJoinPoint pjp) throws Throwable {
-		return logMethodExecution(pjp,"resourceObjectChangeListener");
+		return logMethodExecution(pjp);
 	}
 
 	@Around("taskManager()")
 	public Object logTaskManagerExecution(final ProceedingJoinPoint pjp) throws Throwable {
-		return logMethodExecution(pjp,"taskManager");
+		return logMethodExecution(pjp);
 	}
-
 	
-	public Object logMethodExecution(final ProceedingJoinPoint pjp,String subsystem) throws Throwable {
+	private Object logMethodExecution(final ProceedingJoinPoint pjp) throws Throwable {
 		final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(pjp.getSignature()
 				.getDeclaringType().getName());
 
@@ -86,7 +86,7 @@ public class LoggingAspect {
 			final Class<CodeSignature>[] types = ((CodeSignature) pjp.getSignature()).getParameterTypes();
 			name = ((CodeSignature) pjp.getSignature()).getName();
 			final StringBuffer methodCallInfo = new StringBuffer();
-			methodCallInfo.append(LOG_MESSAGE_PREFIX + " " + LOG_MESSAGE_ENTER+" " + subsystem + " " + name + "(");
+			methodCallInfo.append(LOG_MESSAGE_PREFIX + " " + LOG_MESSAGE_ENTER+" " + NDC.peek() + " " + name + "(");
 
 			for (int i = 0; i < args.length; i++) {
 				methodCallInfo.append(formatVal(args[i]));
@@ -106,7 +106,7 @@ public class LoggingAspect {
 
 		final Object tmp = pjp.proceed();
 		if (logger.isInfoEnabled()) {
-			logger.info(LOG_MESSAGE_PREFIX + " " + LOG_MESSAGE_EXIT+" " + subsystem + " " + name + "(..): " + formatVal(tmp));
+			logger.info(LOG_MESSAGE_PREFIX + " " + LOG_MESSAGE_EXIT+" " + NDC.peek() + " " + name + "(..): " + formatVal(tmp));
 		}
 		return tmp;
 	}
