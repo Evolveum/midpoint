@@ -235,9 +235,9 @@
 							<encoding>${project.build.sourceEncoding}</encoding>
 							<source>${project.source.version}</source>
 							<complianceLevel>${project.source.version}</complianceLevel>
-							<verbose>true</verbose>
-							<showWeaveInfo>true</showWeaveInfo>
-							<outxml>true</outxml>
+							<verbose>false</verbose>
+							<showWeaveInfo>false</showWeaveInfo>
+							<outxml>false</outxml>
 						</configuration>
 						<executions>
 							<execution>
@@ -256,7 +256,7 @@
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>aspectj-maven-plugin</artifactId>
 						<configuration>
-							<verbose>true</verbose>
+							<verbose>false</verbose>
 							<privateScope>true</privateScope>
 							<complianceLevel>${project.source.version}</complianceLevel>
 						</configuration>
