@@ -33,19 +33,20 @@ import org.springframework.util.StopWatch;
  *
  */
 @Aspect
-public abstract class ProfilingAspect {
+public class ProfilingAspect {
 
-    @Around("repositoryService() || provisioningService() || modelService()")
+    private static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger("LOGGER_PROFILING");
+
+    @Around("repositoryService() || provisioningService() || modelService() || resourceObjectChangeListener() || taskManager()")
     public Object profile(final ProceedingJoinPoint pjp) throws Throwable {
-        final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(pjp.getSignature().getDeclaringType().getName());
     	
-        if (logger.isTraceEnabled()) {
+        if (LOGGER_PROFILING.isTraceEnabled()) {
             StringBuilder message = new StringBuilder();
             message.append("Entry: ");
             message.append(getClassName(pjp));
             message.append(" ");
             message.append(pjp.getSignature().getName());
-            logger.trace(message.toString());
+            LOGGER_PROFILING.trace(message.toString());
         }
 
         StopWatch sw = new StopWatch(getClass().getSimpleName());
@@ -57,7 +58,7 @@ public abstract class ProfilingAspect {
         } finally {
             sw.stop();
 
-            if (logger.isTraceEnabled()) {
+            if (LOGGER_PROFILING.isTraceEnabled()) {
                 StringBuilder message = new StringBuilder();
                 message.append("Exit: ");
                 message.append(getClassName(pjp));
@@ -65,8 +66,9 @@ public abstract class ProfilingAspect {
                 message.append(pjp.getSignature().getName());
                 message.append(", time: ");
                 message.append(sw.getTotalTimeMillis());
+                message.append(" ms");
 
-                logger.trace(message.toString());
+                LOGGER_PROFILING.trace(message.toString());
             }
         }
     }
@@ -80,12 +82,23 @@ public abstract class ProfilingAspect {
     }
 
     @Pointcut("execution(public * com.evolveum.midpoint.repo.api.RepositoryService.*(..))")
-    public void repositoryService() {}
+	public void repositoryService() {
+	}
 
-    @Pointcut("execution(public * com.evolveum.midpoint.provisioning.api.ProvisioningService.*(..))")
-    public void provisioningService() {}
-    
-    @Pointcut("execution(public * com.evolveum.midpoint.model.api.ModelService.*(..))")
-    public void modelService() {}
+	@Pointcut("execution(public * com.evolveum.midpoint.provisioning.api.ProvisioningService.*(..))")
+	public void provisioningService() {
+	}
+
+	@Pointcut("execution(public * com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener.*(..))")
+	public void resourceObjectChangeListener() {
+	}
+
+	@Pointcut("execution(public * com.evolveum.midpoint.model.api.ModelService.*(..))")
+	public void modelService() {
+	}
+
+	@Pointcut("execution(public * com.evolveum.midpoint.task.api.TaskManager.*(..))")
+	public void taskManager() {
+	}
     
 }
