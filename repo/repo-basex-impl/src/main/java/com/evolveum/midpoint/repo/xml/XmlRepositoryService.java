@@ -153,19 +153,29 @@ public class XmlRepositoryService implements RepositoryService {
 			cq.execute();
 			result.recordSuccess();
 			return oid;
+			
 		} catch (JAXBException ex) {
 			TRACE.error("Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
+			
 		} catch (BaseXException ex) {
 			if (StringUtils.contains(ex.getMessage(), OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS)) {
-				result.recordWarning("OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS");
+				result.recordWarning("Object with the same name already exists");
 				throw new ObjectAlreadyExistsException(ex);
 			} else {
 				TRACE.error("Reported error by XML Database", ex);
 				result.recordFatalError("Reported error by XML Database", ex);
 				throw new SystemException("Reported error by XML Database", ex);
 			}
+			
+		} catch (ObjectAlreadyExistsException ex) {  //Just wrap and fix result code
+			result.recordWarning("Object with the same name already exists",ex);
+			throw new SchemaException(ex);
+			
+		}catch (SchemaException ex) { //Just wrap and fix result code
+			result.recordFatalError(ex);
+			throw new SchemaException(ex);
 		}
 	}
 
