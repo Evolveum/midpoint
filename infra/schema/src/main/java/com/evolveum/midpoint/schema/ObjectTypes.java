@@ -70,7 +70,7 @@ public enum ObjectTypes {
 	TASK("schema.objectTypes.task", SchemaConstants.C_TASK_TYPE, SchemaConstants.C_TASK,
 			TaskType.class), 
 			
-	RESOURCE_OBJECT_SHADOW("schema.objectTypes.resourceObjectShadow", SchemaConstants.I_RESOURCE_OBJECT_SHADOW_TYPE, SchemaConstants.I_RESOURCE_OBJECT_SHADOW,
+	RESOURCE_OBJECT_SHADOW("schema.objectTypes.resourceObject", SchemaConstants.I_RESOURCE_OBJECT_SHADOW_TYPE, SchemaConstants.I_RESOURCE_OBJECT_SHADOW,
 			ResourceObjectShadowType.class), ;
 
 	private String localizationKey;
