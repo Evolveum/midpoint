@@ -22,6 +22,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
@@ -1051,12 +1052,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else {
 				ObjectChangeModificationType modificationChangeType = createModificationChange(delta,
 						resourceObject);
-				
+				LOGGER.trace("Got modification: {}", JAXBUtil.silentMarshalWrap(modificationChangeType));
 				Set<Property> identifiers = resourceObject.getIdentifiers();
+				//HACK: we need to have set account name for synchronization action
 				Property accountName = resourceObject.findProperty(new QName(resource.getNamespace(), "uid"));
 				identifiers.add(accountName);
 
-				Change change = new Change(resourceObject.getIdentifiers(), modificationChangeType,
+				Change change = new Change(identifiers, modificationChangeType,
 						getToken(delta.getToken()));
 				changeList.add(change);
 			}

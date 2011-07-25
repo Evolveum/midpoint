@@ -84,7 +84,7 @@ public class AddUserAction extends BaseAction {
 			}
 			subResult.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't perform Add User Action for shadow '', oid ''.", ex,
+			LoggingUtils.logException(LOGGER, "Couldn't perform Add User Action for shadow '{}', oid '{}'.", ex,
 					shadowAfterChange.getName(), shadowAfterChange.getOid());
 			subResult.recordFatalError(
 					"Couldn't perform Add User Action for shadow '" + shadowAfterChange.getName()

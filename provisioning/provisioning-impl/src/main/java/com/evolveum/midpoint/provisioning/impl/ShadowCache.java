@@ -22,6 +22,7 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import javax.xml.XMLConstants;
@@ -759,6 +760,14 @@ public class ShadowCache {
 						change.getIdentifiers(), null);
 				ObjectReferenceType ref = new ObjectReferenceType();
 				ref.setOid(resourceType.getOid());
+				//HACK: set name for new account (name is obtained from account attribute uid)
+				for (Property p : change.getIdentifiers()){
+					LOGGER.debug("property Qname: {}", p.getName());
+					if (p.getName().equals(new QName(resourceType.getNamespace(), "uid"))){
+						newAccount.setName(p.getValue(String.class));
+					}
+				}
+				
 				newAccount.setResourceRef(ref);
 				newAccount.setObjectClass(new QName(resourceType.getNamespace(), "AccountObjectClass"));
 				change.setOldShadow(newAccount);
