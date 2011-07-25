@@ -332,13 +332,14 @@ public class XmlRepositoryService implements RepositoryService {
 
 			ClientQuery cq = session.query(query.toString());
 			cq.execute();
-
 		} catch (PatchException ex) {
 			TRACE.error("Failed to modify object", ex);
 			throw new SystemException("Failed to modify object", ex);
 		} catch (BaseXException ex) {
 			TRACE.error("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
+		} finally {
+			result.computeStatus();
 		}
 	}
 
