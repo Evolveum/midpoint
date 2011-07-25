@@ -1,4 +1,4 @@
-    <c:genericObject oid="c0c010c0-d34d-b33f-f00d-999111111111" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:my="http://myself.me/schemas/whatever">
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>   
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -19,6 +19,7 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->        
+<c:genericObject oid="c0c010c0-d34d-b33f-f00d-999111111111" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:my="http://myself.me/schemas/whatever">
 <c:name>My Sample Config Object</c:name>
         <c:extension>
             <!-- This additional level of depth (the "locations" element) is needed now

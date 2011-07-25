@@ -314,7 +314,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			// We have got JAXB object here, but the code expects DOM
 			object = JAXBUtil.objectTypeToDom(objectType, null);
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Variable {} couldn't be serialized to XML, skipping", ex);
+			LoggingUtils.logException(LOGGER, "Variable {} couldn't be serialized to XML, skipping", ex, oid);
 		}
 
 		return object;

@@ -31,8 +31,10 @@ import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -63,9 +65,16 @@ public class SchemaHandlerUserDefinedVariablesTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlerUserDefinedVariablesTest.class);
 	@Autowired
+	private ModelController model;
+	@Autowired
 	private SchemaHandler schemaHandler;
 	@Autowired
 	private RepositoryService repositoryService;
+
+	@Before
+	public void before() {
+		Mockito.reset(repositoryService);
+	}
 
 	@Test
 	@SuppressWarnings("unchecked")
@@ -84,6 +93,7 @@ public class SchemaHandlerUserDefinedVariablesTest {
 
 		OperationResult result = new OperationResult(
 				"testApplyOutboundSchemaHandlingWithUserDefinedVariablesOnAccount");
+		schemaHandler.setModel(model);
 		ObjectModificationType changes = schemaHandler.processOutboundHandling(user, account, result);
 		LOGGER.info(result.dump());
 
