@@ -114,6 +114,7 @@ public class XmlRepositoryService implements RepositoryService {
 		ClientQuery cq = null;
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".addObject");
         result.addParam("object", object);
+        
 		try {
 			// FIXME: check and add have to be done in one transaction!
 			checkAndFailIfObjectAlreadyExists(object.getOid(), result);
@@ -164,7 +165,9 @@ public class XmlRepositoryService implements RepositoryService {
 				result.recordFatalError("Reported error by XML Database", ex);
 				throw new SystemException("Reported error by XML Database", ex);
 			}
-		} 
+		} finally {
+			result.computeStatus();
+		}
 	}
 
 	@Override
