@@ -833,7 +833,7 @@ public class ModelControllerImpl implements ModelController {
 			}
 		}
 		
-		// If list is empty then skip processing. 
+		// If list is empty then skip processing user have no accounts. 
 		if (accountsToBeDeleted.isEmpty()) return;
 		
 		user.getAccount().removeAll(accountsToBeDeleted);
