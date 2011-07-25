@@ -171,7 +171,7 @@ public class XmlRepositoryService implements RepositoryService {
 			
 		} catch (ObjectAlreadyExistsException ex) {  //Just wrap and fix result code
 			result.recordWarning("Object with the same name already exists",ex);
-			throw new SchemaException(ex);
+			throw new ObjectAlreadyExistsException(ex);
 			
 		}catch (SchemaException ex) { //Just wrap and fix result code
 			result.recordFatalError(ex);
