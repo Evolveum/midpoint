@@ -334,14 +334,17 @@ public class XmlRepositoryService implements RepositoryService {
 
 			ClientQuery cq = session.query(query.toString());
 			cq.execute();
+			result.computeStatus();
+			
 		} catch (PatchException ex) {
 			TRACE.error("Failed to modify object", ex);
+			result.recordFatalError("Failed to modify object", ex);
 			throw new SystemException("Failed to modify object", ex);
+			
 		} catch (BaseXException ex) {
 			TRACE.error("Reported error by XML Database", ex);
+			result.recordFatalError("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
-		} finally {
-			result.computeStatus();
 		}
 	}
 
@@ -403,15 +406,18 @@ public class XmlRepositoryService implements RepositoryService {
 		List<ObjectType> objects = retrievedObjects.getObject();
 
 		if (null == retrievedObjects || objects == null || objects.size() == 0) {
+			result.recordSuccess();
 			return null;
 		}
+		
 		if (objects.size() > 1) {
 			result.recordFatalError("Found incorrect number of objects " + objects.size());
 			throw new SystemException("Found incorrect number of objects " + objects.size());
 		}
 
 		UserType userType = (UserType) objects.get(0);
-
+		
+		result.recordSuccess();
 		return userType;
 	}
 
@@ -440,6 +446,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 		List<T> ros = new ArrayList<T>();
 		ros.addAll(objects);
+		result.recordSuccess();
 		return ros;
 	}
 
@@ -542,14 +549,17 @@ public class XmlRepositoryService implements RepositoryService {
 
 			result.recordSuccess();
 			return objectList;
+			
 		} catch (JAXBException ex) {
 			TRACE.error("Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
+			
 		} catch (BaseXException ex) {
 			TRACE.error("Reported error by XML Database", ex);
 			result.recordFatalError("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
+			
 		} finally {
 			if (null != cq) {
 				try {
@@ -709,6 +719,5 @@ public class XmlRepositoryService implements RepositoryService {
 		
 		modifyObject(modification , result);
 
-		
 	}
 }
