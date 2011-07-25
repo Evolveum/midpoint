@@ -129,7 +129,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		// ObjectModificationType changes = new ObjectModificationType();
 		// changes.setOid(user.getOid());
 
-		ResourceType resource = resolveResource(resourceObjectShadow, result);
+		ResourceType resource = resolveResource(resourceObjectShadow, subResult);
 		AccountType accountType = ModelUtils.getAccountTypeFromHandling(resourceObjectShadow, resource);
 		if (accountType == null) {
 			subResult.recordWarning("Account type in schema handling was not found for shadow type '"
@@ -169,6 +169,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			throw new SchemaHandlerException(ex.getMessage(), ex);
 		}
 
+		subResult.recordSuccess();
 		return user;
 		// return changes;
 	}
@@ -226,8 +227,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			changes.getPropertyModification().addAll(
 					processOutboundAttribute(attribute, variables, resourceObjectShadow));
 		}
-		subResult.recordSuccess();
-
+		subResult.recordSuccess();		
 		return changes;
 	}
 
