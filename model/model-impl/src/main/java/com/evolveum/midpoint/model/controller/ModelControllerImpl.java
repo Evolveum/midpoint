@@ -833,9 +833,6 @@ public class ModelControllerImpl implements ModelController {
 			}
 		}
 		
-		// If list is empty then skip processing user have no accounts. 
-		if (accountsToBeDeleted.isEmpty()) return;
-		
 		user.getAccount().removeAll(accountsToBeDeleted);
 
 		List<ObjectReferenceType> refsToBeDeleted = new ArrayList<ObjectReferenceType>();
@@ -846,6 +843,11 @@ public class ModelControllerImpl implements ModelController {
 		}
 		user.getAccountRef().removeAll(refsToBeDeleted);
 
+		// If list is empty then skip processing user have no accounts. 
+		if (accountsToBeDeleted.isEmpty() && refsToBeDeleted.isEmpty()) {
+			return;
+		}
+		
 		// TODO: save updated user, create property changes
 		ObjectModificationType change = createUserModification(accountsToBeDeleted, refsToBeDeleted);
 		change.setOid(user.getOid());
