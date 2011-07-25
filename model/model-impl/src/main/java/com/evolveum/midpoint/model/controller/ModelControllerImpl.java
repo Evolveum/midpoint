@@ -832,6 +832,10 @@ public class ModelControllerImpl implements ModelController {
 				accountsToBeDeleted.add(account);
 			}
 		}
+		
+		// If list is empty then skip processing. 
+		if (accountsToBeDeleted.isEmpty()) return;
+		
 		user.getAccount().removeAll(accountsToBeDeleted);
 
 		List<ObjectReferenceType> refsToBeDeleted = new ArrayList<ObjectReferenceType>();
