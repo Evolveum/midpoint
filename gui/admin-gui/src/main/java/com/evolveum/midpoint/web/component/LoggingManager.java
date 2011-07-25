@@ -73,6 +73,7 @@ public class LoggingManager {
 		LOGGER.info("Initializing Logging Manager.");
 		OperationResult result = new OperationResult("Init Logging Manager");
 		updateLogger(result);
+		result.computeStatus();
 		LOGGER.info(result.dump());
 	}
 
