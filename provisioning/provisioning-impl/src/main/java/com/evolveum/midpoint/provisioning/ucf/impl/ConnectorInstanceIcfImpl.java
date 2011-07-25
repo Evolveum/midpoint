@@ -1051,6 +1051,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else {
 				ObjectChangeModificationType modificationChangeType = createModificationChange(delta,
 						resourceObject);
+				
+				Set<Property> identifiers = resourceObject.getIdentifiers();
+				Property accountName = resourceObject.findProperty(new QName(resource.getNamespace(), "uid"));
+				identifiers.add(accountName);
 
 				Change change = new Change(resourceObject.getIdentifiers(), modificationChangeType,
 						getToken(delta.getToken()));

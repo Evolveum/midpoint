@@ -760,6 +760,7 @@ public class ShadowCache {
 				ObjectReferenceType ref = new ObjectReferenceType();
 				ref.setOid(resourceType.getOid());
 				newAccount.setResourceRef(ref);
+				newAccount.setObjectClass(new QName(resourceType.getNamespace(), "AccountObjectClass"));
 				change.setOldShadow(newAccount);
 				try {
 					getRepositoryService().addObject(newAccount, parentResult);
