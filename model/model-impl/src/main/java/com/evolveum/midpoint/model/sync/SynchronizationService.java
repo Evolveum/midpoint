@@ -549,6 +549,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 							new Object[] { resourceObjectShadow.getOid(), expressionResult });
 					attribute.setTextContent(expressionResult);
 					value.appendChild(attribute);
+					and.appendChild(equal);
 				} else {
 					LOGGER.warn("No valueExpression in rule for OID {}", resourceObjectShadow.getOid());
 				}
