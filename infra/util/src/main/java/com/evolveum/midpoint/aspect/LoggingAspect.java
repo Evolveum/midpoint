@@ -36,19 +36,25 @@ import org.aspectj.lang.reflect.CodeSignature;
  */
 @Aspect
 public class LoggingAspect {
-	
-	//FIXME: try to switch to spring injection. Note: infra components shouldn't depend on spring
-	//Formatters are statically initialized from class common's DebugUtil
+
+	private static final org.slf4j.Logger LOGGER_ENTRIES_PARAMS = org.slf4j.LoggerFactory
+			.getLogger("DEV_LOGGER_ENTRIES_PARAMS");
+	private static final org.slf4j.Logger LOGGER_ENTRIES = org.slf4j.LoggerFactory
+			.getLogger("DEV_LOGGER_ENTRIES");
+
+	// FIXME: try to switch to spring injection. Note: infra components
+	// shouldn't depend on spring
+	// Formatters are statically initialized from class common's DebugUtil
 	private static List<ObjectFormatter> formatters = new ArrayList<ObjectFormatter>();
-	
+
 	public static void registerFormatter(ObjectFormatter formatter) {
 		formatters.add(formatter);
 	}
-	
+
 	private static final String LOG_MESSAGE_PREFIX = "###";
 	private static final String LOG_MESSAGE_ENTER = "ENTER";
 	private static final String LOG_MESSAGE_EXIT = "EXIT";
-	
+
 	@Around("repositoryService()")
 	public Object logRepoExecution(final ProceedingJoinPoint pjp) throws Throwable {
 		return logMethodExecution(pjp);
@@ -63,7 +69,7 @@ public class LoggingAspect {
 	public Object logModelExecution(final ProceedingJoinPoint pjp) throws Throwable {
 		return logMethodExecution(pjp);
 	}
-	
+
 	@Around("resourceObjectChangeListener()")
 	public Object logResourceObjectChangeListenerExecution(final ProceedingJoinPoint pjp) throws Throwable {
 		return logMethodExecution(pjp);
@@ -73,57 +79,67 @@ public class LoggingAspect {
 	public Object logTaskManagerExecution(final ProceedingJoinPoint pjp) throws Throwable {
 		return logMethodExecution(pjp);
 	}
-	
+
 	private Object logMethodExecution(final ProceedingJoinPoint pjp) throws Throwable {
-		final org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(pjp.getSignature()
-				.getDeclaringType().getName());
 
 		String name = null;
-		if (logger.isInfoEnabled()) {
+		if (LOGGER_ENTRIES_PARAMS.isTraceEnabled() || LOGGER_ENTRIES.isInfoEnabled()) {
 			final Object[] args = pjp.getArgs();
 			final String[] names = ((CodeSignature) pjp.getSignature()).getParameterNames();
 			@SuppressWarnings("unchecked")
 			final Class<CodeSignature>[] types = ((CodeSignature) pjp.getSignature()).getParameterTypes();
 			name = ((CodeSignature) pjp.getSignature()).getName();
 			final StringBuffer methodCallInfo = new StringBuffer();
-			methodCallInfo.append(LOG_MESSAGE_PREFIX + " " + LOG_MESSAGE_ENTER+" " + NDC.peek() + " " + name + "(");
+			methodCallInfo.append(LOG_MESSAGE_PREFIX + " " + LOG_MESSAGE_ENTER + " " + NDC.peek() + " "
+					+ name + "(");
 
-			for (int i = 0; i < args.length; i++) {
-				methodCallInfo.append(formatVal(args[i]));
-				
-				if (args.length == i + 1) {
-					methodCallInfo.append(")");
-				} else {
-					methodCallInfo.append(", ");
+			if (LOGGER_ENTRIES_PARAMS.isTraceEnabled()) {
+				for (int i = 0; i < args.length; i++) {
+					methodCallInfo.append(formatVal(args[i]));
+
+					if (args.length == i + 1) {
+						methodCallInfo.append(")");
+					} else {
+						methodCallInfo.append(", ");
+					}
 				}
 			}
-			if (args.length == 0) {
+			if (LOGGER_ENTRIES.isInfoEnabled()) {
+				methodCallInfo.append("..");
+			}
+			
+			if ((args.length == 0) || LOGGER_ENTRIES.isInfoEnabled() ) {
 				methodCallInfo.append(")");
 			}
 
-			logger.info(methodCallInfo.toString());
+			LOGGER_ENTRIES_PARAMS.trace(methodCallInfo.toString());
+			LOGGER_ENTRIES.info(methodCallInfo.toString());
 		}
 
 		final Object tmp = pjp.proceed();
-		if (logger.isInfoEnabled()) {
-			logger.info(LOG_MESSAGE_PREFIX + " " + LOG_MESSAGE_EXIT+" " + NDC.peek() + " " + name + "(..): " + formatVal(tmp));
+		if (LOGGER_ENTRIES_PARAMS.isTraceEnabled()) {
+			LOGGER_ENTRIES_PARAMS.trace("{} {} {} {}(..): {}", new Object[]{LOG_MESSAGE_PREFIX, LOG_MESSAGE_EXIT, NDC.peek(), name, formatVal(tmp)});
 		}
+		if (LOGGER_ENTRIES.isInfoEnabled()) {
+			LOGGER_ENTRIES.info("{} {} {} {}(..): ..", new Object[]{LOG_MESSAGE_PREFIX, LOG_MESSAGE_EXIT, NDC.peek(), name});
+		}
+		
 		return tmp;
 	}
 
 	private String formatVal(Object value) {
-		if (value==null) {
-			return("null");
+		if (value == null) {
+			return ("null");
 		} else {
 			String out = null;
 			for (ObjectFormatter formatter : formatters) {
 				out = formatter.format(value);
-				if (out!=null) {
+				if (out != null) {
 					break;
 				}
 			}
-			if (out==null) {
-				return(value.toString());
+			if (out == null) {
+				return (value.toString());
 			} else {
 				return out;
 			}
@@ -141,7 +157,7 @@ public class LoggingAspect {
 	@Pointcut("execution(public * com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener.*(..))")
 	public void resourceObjectChangeListener() {
 	}
-	
+
 	@Pointcut("execution(public * com.evolveum.midpoint.model.api.ModelService.*(..))")
 	public void modelService() {
 	}
@@ -149,5 +165,5 @@ public class LoggingAspect {
 	@Pointcut("execution(public * com.evolveum.midpoint.task.api.TaskManager.*(..))")
 	public void taskManager() {
 	}
-	
+
 }
