@@ -28,16 +28,16 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.CodeSignature;
-import org.springframework.core.annotation.Order;
 
 /**
  * @author Igor Farinic
  * 
  */
 @Aspect
-@Order(value = 2)
 public class LoggingAspect {
 	
+	//FIXME: try to switch to spring injection. Note: infra components shouldn't depend on spring
+	//Formatters are statically initialized from class common's DebugUtil
 	private static List<ObjectFormatter> formatters = new ArrayList<ObjectFormatter>();
 	
 	public static void registerFormatter(ObjectFormatter formatter) {
@@ -123,7 +123,6 @@ public class LoggingAspect {
 				}
 			}
 			if (out==null) {
-				//methodCallInfo.append(types[i].getSimpleName() + ": " + names[i] + " = '" + args[i] + "'");
 				return(value.toString());
 			} else {
 				return out;

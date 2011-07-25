@@ -649,6 +649,7 @@ public class DebugUtil implements ObjectFormatter {
 		return null;
 	}
 	
+	//static initialization of LoggingAspect - formatters registration
 	static {
 		ObjectFormatter f = new DebugUtil();
 		LoggingAspect.registerFormatter(f);
