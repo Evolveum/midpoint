@@ -159,14 +159,13 @@ public class XmlRepositoryService implements RepositoryService {
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (BaseXException ex) {
 			if (StringUtils.contains(ex.getMessage(), OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS)) {
+				result.recordWarning("OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS");
 				throw new ObjectAlreadyExistsException(ex);
 			} else {
 				TRACE.error("Reported error by XML Database", ex);
 				result.recordFatalError("Reported error by XML Database", ex);
 				throw new SystemException("Reported error by XML Database", ex);
 			}
-		} finally {
-			result.computeStatus();
 		}
 	}
 
