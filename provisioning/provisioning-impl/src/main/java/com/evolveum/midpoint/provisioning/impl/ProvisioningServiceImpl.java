@@ -393,6 +393,23 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ObjectListType objListType = null;
 
+		if (ConnectorType.class.isAssignableFrom(objectType)) {
+			Set<ConnectorType> connectors = getShadowCache()
+					.getConnectorManager().listConnectors();
+			if (connectors == null){
+				result.recordFatalError("Can't list connectors.");
+				throw new IllegalStateException("Can't list connectors.");
+			}
+			if (connectors.isEmpty()){
+				LOGGER.debug("There are no connectors known to the system.");
+			}
+			objListType = new ObjectListType();
+			for (ConnectorType connector : connectors) {
+				objListType.getObject().add(connector);
+			}
+			return objListType;
+		}
+
 		if (ResourceObjectShadowType.class.isAssignableFrom(objectType)) {
 			// Listing of shadows is not supported because this operation does
 			// not specify resource
@@ -407,6 +424,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			objListType = getRepositoryService().listObjects(objectType,
 					paging, parentResult);
 			result.recordSuccess();
+
 		}
 
 		LOGGER.debug("**PROVISIONING: Finished listing object.");

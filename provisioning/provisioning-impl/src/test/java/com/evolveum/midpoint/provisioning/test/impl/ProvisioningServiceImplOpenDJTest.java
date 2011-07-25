@@ -65,6 +65,7 @@ import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -120,7 +121,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private ResourceType resource;
 	@Autowired
 	private ConnectorManager manager;
-	private ShadowCache shadowCache;
+//	private ShadowCache shadowCache;
 	@Autowired
 	private ProvisioningService provisioningService;
 	private Unmarshaller unmarshaller;
@@ -165,7 +166,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		// manually.
 
 		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
-		addObjectFromFile(FILENAME_ACCOUNT1);
+//		addObjectFromFile(FILENAME_ACCOUNT1);
 		addObjectFromFile(FILENAME_ACCOUNT_BAD);
 		assertNotNull(provisioningService);
 
@@ -213,6 +214,14 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 				+ ".getObjectTest");
 		try {
 
+			ObjectType objectToAdd = createObjectFromFile(FILENAME_ACCOUNT1);
+
+			System.out.println(DebugUtil.prettyPrint(objectToAdd));
+			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(objectToAdd,
+					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+
+			String addedObjectOid = provisioningService.addObject(objectToAdd, null, result);
+			assertEquals(ACCOUNT1_OID, addedObjectOid);
 			PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 			ObjectType object = provisioningService.getObject(ACCOUNT1_OID, resolve, result);
@@ -679,4 +688,19 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		}
 	}
 
+	@Test
+	public void testListConnectors(){
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".listConnectorsTest");
+		
+		ObjectListType objListType = provisioningService.listObjects(ConnectorType.class, new PagingType(), result);
+		assertNotNull(objListType);
+		
+		List<ObjectType> objects = objListType.getObject();
+		for (ObjectType objType : objects){
+			assertEquals(ConnectorType.class, objType.getClass());
+			System.out.println("connector name: "+ ((ConnectorType) objType).getName());
+			System.out.println("connector type: "+ ((ConnectorType) objType).getConnectorType());
+		}
+	}
 }
