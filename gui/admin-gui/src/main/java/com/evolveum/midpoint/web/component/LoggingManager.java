@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.web.component;
 
+import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 import javax.annotation.PostConstruct;
@@ -27,6 +29,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
+import org.apache.log4j.Appender;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
@@ -40,9 +43,11 @@ import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.logging.impl.NdcFilteringDailyRollingFileAppender;
 import com.evolveum.midpoint.logging.impl.NdcFilteringRollingFileAppender;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -101,23 +106,62 @@ public class LoggingManager {
 		updateLogger(result);
 	}
 
-	public void updateLogger(OperationResult result) {
+	public synchronized void updateLogger(OperationResult result) {
 		LoggingConfigurationType config = getConfiguration(result);
 
-		List<AppenderConfigurationType> appenders = config.getAppender();
-		List<LoggerConfigurationType> loggers = config.getLogger();
-		
+		List<AppenderConfigurationType> appendersConf = config.getAppender();
+		List<LoggerConfigurationType> loggersConf = config.getLogger();
+
 		// TODO: update logger configuration
 
-		for (LoggerConfigurationType loggerConf: loggers) {
-		
-			for (String pckg: loggerConf.getPackage()) {
-				Logger.getRootLogger().getLogger(pckg).getAllAppenders();
+		// clear appenders configurations
+		for (LoggerConfigurationType loggerConf : loggersConf) {
+			for (String pckg : loggerConf.getPackage()) {
+				Enumeration appenders = Logger.getRootLogger().getLogger(pckg).getAllAppenders();
+				if (null != appenders) {
+					while (appenders.hasMoreElements()) {
+						Appender appender = (Appender) appenders.nextElement();
+						if (appender instanceof NdcFilteringRollingFileAppender) {
+							NdcFilteringRollingFileAppender ndcAppender = (NdcFilteringRollingFileAppender) appender;
+							ndcAppender.resetLoggerConfiguration();
+						}
+						if (appender instanceof NdcFilteringDailyRollingFileAppender) {
+							NdcFilteringDailyRollingFileAppender ndcAppender = (NdcFilteringDailyRollingFileAppender) appender;
+							ndcAppender.resetLoggerConfiguration();
+						}
+
+					}
+				}
 			}
 		}
-		
-//		NdcFilteringRollingFileAppender appender = (NdcFilteringRollingFileAppender) Logger.getRootLogger()
-//				.getAppender("R");
+
+		// we have to iterate through loggersConf and set it to Log4j Appenders
+		// following ugly hack is because we can control only Log4j Appenders,
+		// but not Log4j loggers
+		for (LoggerConfigurationType loggerConf : loggersConf) {
+
+			for (String pckg : loggerConf.getPackage()) {
+				Enumeration appenders = Logger.getRootLogger().getLogger(pckg).getAllAppenders();
+				if (null != appenders) {
+					while (appenders.hasMoreElements()) {
+						Appender appender = (Appender) appenders.nextElement();
+						List<String> components = new ArrayList<String>();
+						for (LoggingComponentType lct: loggerConf.getComponent()) {
+							components.add(lct.name());
+						}
+						
+						if (appender instanceof NdcFilteringRollingFileAppender) {
+							NdcFilteringRollingFileAppender ndcAppender = (NdcFilteringRollingFileAppender) appender;
+							ndcAppender.addLoggerConfiguration(loggerConf.getPackage(), components);
+						}
+						if (appender instanceof NdcFilteringDailyRollingFileAppender) {
+							NdcFilteringDailyRollingFileAppender ndcAppender = (NdcFilteringDailyRollingFileAppender) appender;
+							ndcAppender.addLoggerConfiguration(loggerConf.getPackage(), components);
+						}
+					}
+				}
+			}
+		}
 
 	}
 
