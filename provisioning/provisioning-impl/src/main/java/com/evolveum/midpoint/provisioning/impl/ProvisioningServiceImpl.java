@@ -177,7 +177,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			LOGGER.error(
 					"**PROVISIONING: Can't get obejct with oid {}. Reason {}",
 					oid, e);
-			result.record(e);
+			result.recordFatalError("Can't get object with oid "+ oid +". Reason: " + e.getMessage(), e);
 			throw e;
 		}
 
@@ -197,19 +197,19 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				LOGGER.error(
 						"**PROVISIONING: Can't get obejct with oid {}. Reason {}",
 						oid, e);
-				result.record(e);
+				result.recordFatalError(e);
 				throw e;
 			} catch (CommunicationException e) {
 				LOGGER.error(
 						"**PROVISIONING: Can't get obejct with oid {}. Reason {}",
 						oid, e);
-				result.record(e);
+				result.recordFatalError(e);
 				throw e;
 			} catch (SchemaException e) {
 				LOGGER.error(
 						"**PROVISIONING: Can't get obejct with oid {}. Reason {}",
 						oid, e);
-				result.record(e);
+				result.recordFatalError(e);
 				throw e;
 			}
 
@@ -220,6 +220,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			return shadow;
 		} else {
+			result.recordSuccess();
 			return repositoryObject;
 		}
 
@@ -249,7 +250,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 			addedShadow = getShadowCache().addShadow(object, scripts, null,
 					parentResult);
-			LOGGER.debug("**PROVISIONING: Added shadow object {}",
+			LOGGER.trace("**PROVISIONING: Added shadow object {}",
 					JAXBUtil.silentMarshalWrap(addedShadow));
 			result.recordSuccess();
 		} catch (GenericFrameworkException ex) {
@@ -397,6 +398,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			for (ConnectorType connector : connectors) {
 				objListType.getObject().add(connector);
 			}
+			result.recordSuccess();
 			return objListType;
 		}
 
@@ -413,12 +415,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// TODO: delegate to repository
 			objListType = getRepositoryService().listObjects(objectType,
 					paging, parentResult);
-			result.recordSuccess();
+			
 
 		}
 
 		LOGGER.debug("**PROVISIONING: Finished listing object.");
-
+		result.recordSuccess();
 		return objListType;
 
 	}
