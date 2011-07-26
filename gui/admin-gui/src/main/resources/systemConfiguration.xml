@@ -13,8 +13,31 @@
             <package>com.evolveum.midpoint</package>
             <appender>Ndc File Appender</appender>
         </logger>
+        <logger>
+            <level>TRACE</level>
+            <component>model</component>
+            <component>provisioning</component>
+            <component>repository</component>
+            <component>web</component>
+            <component>taskManager</component>
+            <component>resourceObjectChangeListener</component>
+            <package>LOGGER_PROFILING</package>
+            <appender>Ndc File Appender</appender>
+        </logger>
+        <logger>
+            <level>TRACE</level>
+            <component>model</component>
+            <component>provisioning</component>
+            <component>repository</component>
+            <component>web</component>
+            <component>taskManager</component>
+            <component>resourceObjectChangeListener</component>
+            <package>DEV_LOGGER_ENTRIES_PARAMS</package>
+            <!--package>DEV_LOGGER_ENTRIES</package-->
+            <appender>Ndc File Appender</appender>
+        </logger>
         <appender xsi:type="NdcRollingFileAppenderConfigurationType" name="Ndc File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <pattern>%d{HH:mm:ss,SSS} %-5p [%c] - %m%n</pattern>
+            <pattern>%d{ISO8601} [%x] [%t] %p (%c): %m%n</pattern>
             <filePath>${catalina.base}/logs/idm.log</filePath>
             <maxFileSize>1024</maxFileSize>
         </appender>
