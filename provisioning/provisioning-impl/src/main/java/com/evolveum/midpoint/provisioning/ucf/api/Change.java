@@ -42,6 +42,11 @@ public final class Change {
         this.change = change;
         this.token = token;
     }
+    
+    public Change(ObjectChangeType change, Property token) {
+        this.change = change;
+        this.token = token;
+    }
 
     public ObjectChangeType getChange() {
         return change;

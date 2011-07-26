@@ -706,7 +706,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			@Override
 			public boolean handle(SyncDelta delta) {
 				LOGGER.trace("Detected sync delta: {}", delta);
-				LOGGER.trace("Delta {}", delta.getObject().toString());
 				return result.add(delta);
 				
 			}
@@ -1037,19 +1036,25 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		List<Change> changeList = new ArrayList<Change>();
 		
 		for (SyncDelta delta : result) {
-			ObjectClass objClass = delta.getObject().getObjectClass();
-			QName objectClass = objectClassToQname(objClass.getObjectClassValue());
-			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
-			ResourceObject resourceObject = convertToResourceObject(delta.getObject(), rod);
+			
 			
 			if (SyncDeltaType.DELETE.equals(delta.getDeltaType())) {
 				
 				ObjectChangeDeletionType deletionType = new ObjectChangeDeletionType();
 				deletionType.setOid(delta.getUid().getUidValue());
-				Change change = new Change(resourceObject.getIdentifiers(), deletionType,
-						getToken(delta.getToken()));
+				ResourceObjectAttribute uidAttribute = setUidAttribute(delta.getUid());
+				Set<Property> identifiers = new HashSet<Property>();
+				Property p = new Property(uidAttribute.getName());
+				p.setValue(uidAttribute.getValue(String.class));
+				identifiers.add(p);
+				Change change = new Change(identifiers, deletionType, getToken(delta.getToken()));
 				changeList.add(change);
+				
 			} else {
+				ObjectClass objClass = delta.getObject().getObjectClass();
+				QName objectClass = objectClassToQname(objClass.getObjectClassValue());
+				ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(objectClass);
+				ResourceObject resourceObject = convertToResourceObject(delta.getObject(), rod);
 				ObjectChangeModificationType modificationChangeType = createModificationChange(delta,
 						resourceObject);
 				LOGGER.trace("Got modification: {}", JAXBUtil.silentMarshalWrap(modificationChangeType));
@@ -1057,7 +1062,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				//HACK: we need to have set account name for synchronization action
 				Property accountName = resourceObject.findProperty(new QName(resource.getNamespace(), "uid"));
 				identifiers.add(accountName);
-
+				
 				Change change = new Change(identifiers, modificationChangeType,
 						getToken(delta.getToken()));
 				changeList.add(change);

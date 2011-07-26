@@ -72,6 +72,7 @@ import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -751,7 +752,7 @@ public class ShadowCache {
 		List<Change> changes = connector.fetchChanges(objectClass, lastToken,
 				parentResult);
 
-		for (Change change : changes) {
+		for (Change change : changes) {		
 			QueryType query = createSearchQuery(change.getIdentifiers());
 			ObjectListType objListType = getRepositoryService().searchObjects(
 					query, new PagingType(), parentResult);

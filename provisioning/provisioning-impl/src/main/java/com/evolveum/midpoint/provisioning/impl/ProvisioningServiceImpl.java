@@ -29,6 +29,7 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -55,6 +56,7 @@ import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -74,6 +76,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.schema.XPathSegment;
+import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * Implementation of provisioning service.
@@ -294,21 +298,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		// getting token form task
 		Property tokenProperty = null;
+		
 		if (task.getExtension() != null) {
-			tokenProperty = task.getExtension().findProperty(
-					TOKEN_ELEMENT_QNAME);
+			tokenProperty = task.getExtension(TOKEN_ELEMENT_QNAME);
 		}
 
 		if (tokenProperty == null) {
 			tokenProperty = getShadowCache().fetchCurrentToken(resourceType,
 					parentResult);
-			// PropertyModification modificatedToken =
-			// tokenProperty.createModification(ModificationType.REPLACE,
-			// tokenProperty.getValues());
-			// List<PropertyModification> modifications = new
-			// ArrayList<PropertyModification>();
-			// modifications.add(modificatedToken);
-			// task.modifyExtension(modifications, parentResult);
 		}
 
 		LOGGER.trace(
@@ -321,9 +318,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			LOGGER.debug("Calling shadow cache to fetch changes.");
 			changes = getShadowCache().fetchChanges(resourceType,
 					tokenProperty, result);
-			if (changes.isEmpty()) {
-				LOGGER.warn("No changes found.");
-			}
+			
 			for (Change change : changes) {
 
 				ResourceObjectShadowChangeDescriptionType shadowChangeDescription = createResourceShadowChangeDescription(
@@ -344,13 +339,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				processedChanges++;
 
 			}
-			if (changes.isEmpty()) {
+			if (changes.isEmpty()) {	
+				LOGGER.warn("No changes found.");
 				PropertyModification modificatedToken = tokenProperty
 						.createModification(ModificationType.REPLACE,
-								tokenProperty.getValues());
-
+								tokenProperty.getValues());		
 				modifications.add(modificatedToken);
-
 			}
 			task.modifyExtension(modifications, result);
 		} catch (ObjectNotFoundException e) {
