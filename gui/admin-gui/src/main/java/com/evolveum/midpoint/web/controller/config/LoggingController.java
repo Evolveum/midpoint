@@ -196,6 +196,9 @@ public class LoggingController implements Serializable {
 	}
 
 	public String initController() {
+		getAppenders().clear();
+		getLoggers().clear();
+		
 		OperationResult result = new OperationResult("Load Logging Configuration");
 		LoggingConfigurationType logging = loggingManager.getConfiguration(result);
 		if (logging == null) {
@@ -246,13 +249,17 @@ public class LoggingController implements Serializable {
 			RollingFileAppenderConfigurationType file = (RollingFileAppenderConfigurationType) appender;
 			item.setFilePath(file.getFilePath());
 			item.setMaxFileSize(file.getMaxFileSize());
+			item.setAppending(file.isAppend());			
 			item.setType(AppenderType.ROLLING_FILE);
+			
 			if (appender instanceof NdcRollingFileAppenderConfigurationType) {
 				item.setType(AppenderType.NDC_ROLLING_FILE);
 			}
 		} else if (appender instanceof DailyRollingFileAppenderConfigurationType) {
 			DailyRollingFileAppenderConfigurationType daily = (DailyRollingFileAppenderConfigurationType) appender;
-			daily.getDatePattern();// TODO: insert this to item
+			item.setDatePattern(daily.getDatePattern());
+			item.setFilePath(daily.getFilePath());
+			item.setAppending(daily.isAppend());
 
 			if (appender instanceof NdcDailyRollingFileAppenderConfigurationType) {
 				item.setType(AppenderType.NDC_DAILY_ROLLING_FILE);
@@ -279,6 +286,7 @@ public class LoggingController implements Serializable {
 
 	private AppenderConfigurationType createAppenderType(AppenderListItem item) {
 		AppenderConfigurationType appender = null;
+			
 		RollingFileAppenderConfigurationType fileAppender = null;
 		DailyRollingFileAppenderConfigurationType daily = null;
 
@@ -294,8 +302,7 @@ public class LoggingController implements Serializable {
 				}
 				fileAppender.setFilePath(item.getFilePath());
 				fileAppender.setMaxFileSize(item.getMaxFileSize());
-				// TODO: get this from somewhere
-				fileAppender.setAppend(true);
+				fileAppender.setAppend(item.isAppending());				
 
 				appender = fileAppender;
 				break;
@@ -305,8 +312,10 @@ public class LoggingController implements Serializable {
 				if (daily == null) {
 					daily = new DailyRollingFileAppenderConfigurationType();
 				}
-				// TODO: get this from somewhere
-				daily.setDatePattern("AAAAAAAAAAAAAAAA");
+				daily.setDatePattern(item.getDatePattern());
+				daily.setFilePath(item.getFilePath());
+				daily.setAppend(item.isAppending());	
+				
 				appender = daily;
 				break;
 		}

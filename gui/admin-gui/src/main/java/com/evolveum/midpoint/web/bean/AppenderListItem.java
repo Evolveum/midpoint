@@ -36,6 +36,8 @@ public class AppenderListItem extends SelectableBean {
 	private String pattern = "%d{HH:mm:ss,SSS} %-5p [%c] - %m%n";
 	private AppenderType type;
 	private String filePath;
+	private boolean appending = true;
+	private String datePattern = "'.'yyyy-MM-dd";
 	private int maxFileSize = 500;
 
 	public AppenderListItem cloneItem() {
@@ -45,8 +47,26 @@ public class AppenderListItem extends SelectableBean {
 		item.setType(getType());
 		item.setFilePath(getFilePath());
 		item.setMaxFileSize(getMaxFileSize());
+		item.setAppending(isAppending());
+		item.setDatePattern(getDatePattern());
 
 		return item;
+	}
+
+	public String getDatePattern() {
+		return datePattern;
+	}
+
+	public void setDatePattern(String datePattern) {
+		this.datePattern = datePattern;
+	}
+
+	public void setAppending(boolean appending) {
+		this.appending = appending;
+	}
+
+	public boolean isAppending() {
+		return appending;
 	}
 
 	public String getName() {
@@ -68,12 +88,16 @@ public class AppenderListItem extends SelectableBean {
 		this.pattern = pattern;
 	}
 
-	public boolean isFileType() {
-		if (AppenderType.ROLLING_FILE.equals(type)) {
-			return true;
-		}
+	public boolean isRollingFileType() {
+		return isType(AppenderType.ROLLING_FILE) || isType(AppenderType.NDC_ROLLING_FILE);
+	}
 
-		return false;
+	public boolean isDailyRollingFileType() {
+		return isType(AppenderType.DAILY_ROLLING_FILE) || isType(AppenderType.NDC_DAILY_ROLLING_FILE);
+	}
+
+	private boolean isType(AppenderType type) {
+		return type.equals(getType());
 	}
 
 	public AppenderType getType() {

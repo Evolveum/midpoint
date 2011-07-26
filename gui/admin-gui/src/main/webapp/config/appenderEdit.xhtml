@@ -27,14 +27,30 @@
 				<ice:outputLabel value="#{msg['page.config.appenderEdit.pattern']}" />
 				<ice:inputText id="pattern" value="#{appenderEdit.item.pattern}" size="60" required="true" />
 				<ice:message for="pattern" errorClass="error" />
-				
-				<ice:outputLabel value="#{msg['page.config.appenderEdit.filePath']}" rendered="#{appenderEdit.item.fileType}" />
-				<ice:inputText id="filePath" value="#{appenderEdit.item.filePath}" rendered="#{appenderEdit.item.fileType}" required="true" />
-				<ice:message for="filePath" errorClass="error" rendered="#{appenderEdit.item.fileType}" />
 
-				<ice:outputLabel value="#{msg['page.config.appenderEdit.maxFileSize']}" rendered="#{appenderEdit.item.fileType}" />
-				<ice:inputText id="maxFileSize" value="#{appenderEdit.item.maxFileSize}" rendered="#{appenderEdit.item.fileType}" required="true" />
-				<ice:message for="maxFileSize" errorClass="error" rendered="#{appenderEdit.item.fileType}" />				
+				<ice:outputLabel value="#{msg['page.config.appenderEdit.filePath']}"
+					rendered="#{appenderEdit.item.isRollingFileType}" />
+				<ice:inputText id="filePath" value="#{appenderEdit.item.filePath}"
+					rendered="#{appenderEdit.item.isRollingFileType}" required="true" />
+				<ice:message for="filePath" errorClass="error" rendered="#{appenderEdit.item.isRollingFileType}" />
+
+				<ice:outputLabel value="#{msg['page.config.appenderEdit.maxFileSize']}"
+					rendered="#{appenderEdit.item.isRollingFileType}" />
+				<ice:inputText id="maxFileSize" value="#{appenderEdit.item.maxFileSize}"
+					rendered="#{appenderEdit.item.isRollingFileType}" required="true" />
+				<ice:message for="maxFileSize" errorClass="error" rendered="#{appenderEdit.item.isRollingFileType}" />
+
+				<ice:outputLabel value="#{msg['page.config.appenderEdit.appending']}"
+					rendered="#{appenderEdit.item.isRollingFileType}" />
+				<ice:selectBooleanCheckbox id="append" value="#{appenderEdit.item.appending}"
+					rendered="#{appenderEdit.item.isRollingFileType}" required="true" />
+				<ice:message for="append" errorClass="error" rendered="#{appenderEdit.item.isRollingFileType}" />
+
+				<ice:outputLabel value="#{msg['page.config.appenderEdit.datePattern']}"
+					rendered="#{appenderEdit.item.isDailyRollingFileType}" />
+				<ice:inputText id="datePattern" value="#{appenderEdit.item.datePattern}"
+					rendered="#{appenderEdit.item.isDailyRollingFileType}" required="true" />
+				<ice:message for="datePattern" errorClass="error" rendered="#{appenderEdit.item.isDailyRollingFileType}" />
 			</h:panelGrid>
 
 			<div class="button-bar">

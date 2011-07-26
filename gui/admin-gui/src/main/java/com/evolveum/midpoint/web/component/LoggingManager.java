@@ -51,7 +51,6 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.logging.impl.NdcFilteringDailyRollingFileAppender;
 import com.evolveum.midpoint.logging.impl.NdcFilteringRollingFileAppender;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
@@ -59,6 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RollingFileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
@@ -130,7 +130,8 @@ public class LoggingManager {
 		configureLog4jNdcFiltering(loggersConf);
 	}
 
-	private void udpateLog4jLoggersFromConfiguration(List<LoggerConfigurationType> loggersConf, Map<String, Appender> appenders) {
+	private void udpateLog4jLoggersFromConfiguration(List<LoggerConfigurationType> loggersConf,
+			Map<String, Appender> appenders) {
 		for (LoggerConfigurationType loggerConf : loggersConf) {
 			for (String pckg : loggerConf.getPackage()) {
 				Logger logger = Logger.getLogger(pckg);
@@ -195,12 +196,13 @@ public class LoggingManager {
 		}
 	}
 
-	private Map<String, Appender> createLog4jAppendersFromConfiguration(List<AppenderConfigurationType> appendersConf) {
-		
+	private Map<String, Appender> createLog4jAppendersFromConfiguration(
+			List<AppenderConfigurationType> appendersConf) {
+
 		Map<String, Appender> appenders = new HashMap<String, Appender>();
-		
+
 		for (AppenderConfigurationType appenderConf : appendersConf) {
-			if (appenderConf instanceof FileAppenderConfigurationType) {
+			if (appenderConf instanceof RollingFileAppenderConfigurationType) {
 				FileAppender appender = new FileAppender();
 				appender.setName(appenderConf.getName());
 				appender.setLayout(new PatternLayout(appenderConf.getPattern()));
