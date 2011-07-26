@@ -22,7 +22,9 @@ package com.evolveum.midpoint.web.component;
 
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBException;
@@ -30,7 +32,10 @@ import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
 import org.apache.log4j.Appender;
+import org.apache.log4j.ConsoleAppender;
+import org.apache.log4j.FileAppender;
 import org.apache.log4j.Logger;
+import org.apache.log4j.PatternLayout;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
@@ -46,6 +51,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.logging.impl.NdcFilteringDailyRollingFileAppender;
 import com.evolveum.midpoint.logging.impl.NdcFilteringRollingFileAppender;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
@@ -112,44 +118,47 @@ public class LoggingManager {
 		List<AppenderConfigurationType> appendersConf = config.getAppender();
 		List<LoggerConfigurationType> loggersConf = config.getLogger();
 
-		// TODO: update logger configuration
-
 		// clear appenders configurations
+		clearLog4jAppendersConfiguration(loggersConf);
+
+		// create new appenders
+		Map<String, Appender> appenders = createLog4jAppendersFromConfiguration(appendersConf);
+
+		// set new logger configuration
+		udpateLog4jLoggersFromConfiguration(loggersConf, appenders);
+
+		configureLog4jNdcFiltering(loggersConf);
+	}
+
+	private void udpateLog4jLoggersFromConfiguration(List<LoggerConfigurationType> loggersConf, Map<String, Appender> appenders) {
 		for (LoggerConfigurationType loggerConf : loggersConf) {
 			for (String pckg : loggerConf.getPackage()) {
-				Enumeration appenders = Logger.getRootLogger().getLogger(pckg).getAllAppenders();
-				if (null != appenders) {
-					while (appenders.hasMoreElements()) {
-						Appender appender = (Appender) appenders.nextElement();
-						if (appender instanceof NdcFilteringRollingFileAppender) {
-							NdcFilteringRollingFileAppender ndcAppender = (NdcFilteringRollingFileAppender) appender;
-							ndcAppender.resetLoggerConfiguration();
-						}
-						if (appender instanceof NdcFilteringDailyRollingFileAppender) {
-							NdcFilteringDailyRollingFileAppender ndcAppender = (NdcFilteringDailyRollingFileAppender) appender;
-							ndcAppender.resetLoggerConfiguration();
-						}
-
-					}
+				Logger logger = Logger.getLogger(pckg);
+				logger.setLevel(logger.getLevel());
+				logger.removeAllAppenders();
+				for (String appenderName : loggerConf.getAppender()) {
+					logger.addAppender(appenders.get(appenderName));
 				}
 			}
 		}
+	}
 
+	private void configureLog4jNdcFiltering(List<LoggerConfigurationType> loggersConf) {
 		// we have to iterate through loggersConf and set it to Log4j Appenders
 		// following ugly hack is because we can control only Log4j Appenders,
 		// but not Log4j loggers
 		for (LoggerConfigurationType loggerConf : loggersConf) {
 
 			for (String pckg : loggerConf.getPackage()) {
-				Enumeration appenders = Logger.getRootLogger().getLogger(pckg).getAllAppenders();
+				Enumeration<Appender> appenders = Logger.getLogger(pckg).getAllAppenders();
 				if (null != appenders) {
 					while (appenders.hasMoreElements()) {
 						Appender appender = (Appender) appenders.nextElement();
 						List<String> components = new ArrayList<String>();
-						for (LoggingComponentType lct: loggerConf.getComponent()) {
+						for (LoggingComponentType lct : loggerConf.getComponent()) {
 							components.add(lct.name());
 						}
-						
+
 						if (appender instanceof NdcFilteringRollingFileAppender) {
 							NdcFilteringRollingFileAppender ndcAppender = (NdcFilteringRollingFileAppender) appender;
 							ndcAppender.addLoggerConfiguration(loggerConf.getPackage(), components);
@@ -162,7 +171,53 @@ public class LoggingManager {
 				}
 			}
 		}
+	}
 
+	private void clearLog4jAppendersConfiguration(List<LoggerConfigurationType> loggersConf) {
+		for (LoggerConfigurationType loggerConf : loggersConf) {
+			for (String pckg : loggerConf.getPackage()) {
+				Enumeration appenders = Logger.getRootLogger().getLogger(pckg).getAllAppenders();
+				if (null != appenders) {
+					while (appenders.hasMoreElements()) {
+						Appender appender = (Appender) appenders.nextElement();
+						if (appender instanceof NdcFilteringRollingFileAppender) {
+							NdcFilteringRollingFileAppender ndcAppender = (NdcFilteringRollingFileAppender) appender;
+							ndcAppender.resetLoggerConfiguration();
+						}
+						if (appender instanceof NdcFilteringDailyRollingFileAppender) {
+							NdcFilteringDailyRollingFileAppender ndcAppender = (NdcFilteringDailyRollingFileAppender) appender;
+							ndcAppender.resetLoggerConfiguration();
+						}
+
+					}
+				}
+			}
+		}
+	}
+
+	private Map<String, Appender> createLog4jAppendersFromConfiguration(List<AppenderConfigurationType> appendersConf) {
+		
+		Map<String, Appender> appenders = new HashMap<String, Appender>();
+		
+		for (AppenderConfigurationType appenderConf : appendersConf) {
+			if (appenderConf instanceof FileAppenderConfigurationType) {
+				FileAppender appender = new FileAppender();
+				appender.setName(appenderConf.getName());
+				appender.setLayout(new PatternLayout(appenderConf.getPattern()));
+				appenders.put(appender.getName(), appender);
+				continue;
+			}
+			if (appenderConf instanceof AppenderConfigurationType) {
+				// console
+				ConsoleAppender appender = new ConsoleAppender();
+				appender.setName(appenderConf.getName());
+				appender.setLayout(new PatternLayout(appenderConf.getPattern()));
+				appenders.put(appender.getName(), appender);
+				continue;
+			}
+		}
+
+		return appenders;
 	}
 
 	private LoggingConfigurationType saveConfiguration(LoggingConfigurationType logging,
@@ -171,7 +226,7 @@ public class LoggingManager {
 
 		final OperationResult saveConfigResult = new OperationResult("Save System Configuration");
 
-		OperationResultType resultTypeHolder = new OperationResultType();
+		OperationResultType resultTypeHolder = saveConfigResult.createOperationResultType();
 		try {
 			SystemConfigurationType oldSystem = getSystemConfiguration(result);
 			SystemConfigurationType newSystem = (SystemConfigurationType) JAXBUtil.clone(oldSystem);
