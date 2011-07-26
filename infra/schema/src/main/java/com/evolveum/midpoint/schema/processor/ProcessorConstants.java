@@ -68,6 +68,8 @@ final class ProcessorConstants {
 	static final QName A_ACCOUNT_TYPE = new QName(SchemaConstants.NS_RESOURCE, "accountType");
 
 	static final QName A_HELP = new QName(SchemaConstants.NS_RESOURCE, "help");
+	
+	static final QName A_ACCESS = new QName(SchemaConstants.NS_C, "access");
 
 	static final QName A_ATTRIBUTE_DISPLAY_NAME = new QName(SchemaConstants.NS_RESOURCE,
 			"attributeDisplayName");

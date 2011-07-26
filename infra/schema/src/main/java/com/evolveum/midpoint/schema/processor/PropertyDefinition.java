@@ -59,18 +59,17 @@ public class PropertyDefinition extends Definition {
 	private int minOccurs = 1;
 	private int maxOccurs = 1;
 	private Object[] allowedValues;
-	private boolean readable;
-	private boolean updateable;
+	private boolean create = true;
+	private boolean read = true;
+	private boolean update = true;
 
 	PropertyDefinition(QName name, QName defaultName, QName typeName) {
 		super(name, defaultName, typeName);
 	}
-	
 
 	public PropertyDefinition(QName name, QName typeName) {
 		super(name, null, typeName);
 	}
-	
 
 	/**
 	 * Returns allowed values for this property.
@@ -80,21 +79,23 @@ public class PropertyDefinition extends Definition {
 	public Object[] getAllowedValues() {
 		return allowedValues;
 	}
-	
+
 	/**
 	 * TODO:
+	 * 
 	 * @return
 	 */
-	public boolean isReadable() {
-		return readable;
+	public boolean canRead() {
+		return read;
 	}
-	
+
 	/**
 	 * TODO:
+	 * 
 	 * @return
 	 */
-	public boolean isUpdateable() {
-		return updateable;
+	public boolean canUpdate() {
+		return update;
 	}
 
 	/**
@@ -184,4 +185,19 @@ public class PropertyDefinition extends Definition {
 
 	// TODO: factory methods for DOM and JAXB elements
 
+	public void setRead(boolean read) {
+		this.read = read;
+	}
+
+	public void setUpdate(boolean update) {
+		this.update = update;
+	}
+
+	public void setCreate(boolean create) {
+		this.create = create;
+	}
+
+	public boolean canCreate() {
+		return create;
+	}
 }

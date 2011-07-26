@@ -21,6 +21,18 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ACCESS;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ACCOUNT_TYPE;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ATTRIBUTE_DISPLAY_NAME;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_DESCRIPTION_ATTRIBUTE;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_DISPLAY_NAME;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_HELP;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_IDENTIFIER;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_NATIVE_ATTRIBUTE_NAME;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_NATIVE_OBJECT_CLASS;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_SECONDARY_IDENTIFIER;
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -61,9 +73,6 @@ import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.XSType;
 import com.sun.xml.xsom.parser.XSOMParser;
 import com.sun.xml.xsom.util.DomAnnotationParserFactory;
-
-import static com.evolveum.midpoint.schema.processor.ProcessorConstants.*;
-import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 /**
  * @author lazyman
@@ -232,8 +241,13 @@ class DomToSchemaProcessor {
 			attribute.setHelp(help.getTextContent());
 		}
 
-		// flagList
-		// TODO: canCreate/canUpdate/canRead
+		// access
+		List<Element> accessList = getAnnotationElements(annotation, A_ACCESS);		
+		if (accessList != null && !accessList.isEmpty()) {
+			attribute.setCreate(containsAccessFlag("create", accessList));
+			attribute.setRead(containsAccessFlag("read", accessList));
+			attribute.setUpdate(containsAccessFlag("update", accessList));
+		}
 
 		// encryption, classification
 		// TODO: encryption
@@ -248,6 +262,16 @@ class DomToSchemaProcessor {
 		// ResourceAttributeDefinition.Encryption.valueOf(encryption.getTextContent()),
 		// classification);
 		// }
+	}
+
+	private boolean containsAccessFlag(String flag, List<Element> accessList) {
+		for (Element element : accessList) {
+			if (flag.equals(element.getTextContent())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private ResourceObjectAttributeDefinition getAnnotationReference(XSAnnotation annotation, QName qname,
@@ -291,18 +315,30 @@ class DomToSchemaProcessor {
 		return false;
 	}
 
-	private Element getAnnotationElement(XSAnnotation annotation, QName qname) {
+	private List<Element> getAnnotationElements(XSAnnotation annotation, QName qname) {
+		List<Element> elements = new ArrayList<Element>();
 		if (annotation == null) {
-			return null;
+			return elements;
 		}
 
 		Element xsdAnnotation = (Element) annotation.getAnnotation();
 		NodeList list = xsdAnnotation.getElementsByTagNameNS(qname.getNamespaceURI(), qname.getLocalPart());
 		if (list != null && list.getLength() > 0) {
-			return (Element) list.item(0);
+			for (int i = 0; i < list.getLength(); i++) {
+				elements.add((Element) list.item(i));
+			}
 		}
 
-		return null;
+		return elements;
+	}
+
+	private Element getAnnotationElement(XSAnnotation annotation, QName qname) {
+		List<Element> elements = getAnnotationElements(annotation, qname);
+		if (elements.isEmpty()) {
+			return null;
+		}
+
+		return elements.get(0);
 	}
 
 	private XSAnnotation selectAnnotationToUse(XSAnnotation particleAnnotation, XSAnnotation termAnnotation) {
@@ -381,17 +417,17 @@ class DomToSchemaProcessor {
 	@Deprecated
 	public static void main(String[] args) throws SchemaProcessorException, IOException {
 		File file = new File("./src/main/java/a.xsd");
-		
+
 		InputStream stream = new FileInputStream(file);
 		Schema schema = Schema.parse(parseDocument(stream));
 		Document document = Schema.parseSchema(schema);
-		String str = SchemaToDomProcessor.printDom(document).toString();		
+		String str = SchemaToDomProcessor.printDom(document).toString();
 		System.out.println(str);
 		System.out.println("---------------------------");
-		stream = new ByteArrayInputStream(str.getBytes("utf-8"));		
+		stream = new ByteArrayInputStream(str.getBytes("utf-8"));
 		schema = Schema.parse(parseDocument(stream));
 		document = Schema.parseSchema(schema);
-		str = SchemaToDomProcessor.printDom(document).toString();		
+		str = SchemaToDomProcessor.printDom(document).toString();
 		System.out.println(str);
 	}
 
