@@ -35,6 +35,8 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
@@ -71,7 +73,8 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	protected <O extends ObjectType> O get(String oid, PropertyReferenceListType resolve, Class<O> objectClass) {
+	protected <O extends ObjectType> O get(String oid, PropertyReferenceListType resolve, Class<O> objectClass)
+			throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(resolve, "Property reference list must not be null.");
 		Validate.notNull(objectClass, "Object class must not be null.");
@@ -83,9 +86,16 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		try {
 			objectType = getModel().getObject(oid, resolve, objectClass, result);
 			result.recordSuccess();
+		} catch (ObjectNotFoundException ex) {
+			result.computeStatus();
+			throw ex;
+		} catch (SystemException ex) {
+			result.computeStatus();
+			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
 			result.recordFatalError("Couldn't get object '" + oid + "' from model.", ex);
+			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
 		}
 
 		printResults(LOGGER, result);

@@ -16,6 +16,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
@@ -217,7 +218,14 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 
 	@Override
 	public ConnectorDto getConnector(String oid) {
-		ConnectorType connector = get(oid, new PropertyReferenceListType(), ConnectorType.class);
+		ConnectorType connector = null;
+		try {
+			connector = get(oid, new PropertyReferenceListType(), ConnectorType.class);
+		} catch (Exception ex) {
+			// TODO: error handling
+			throw new SystemException(ex);
+		}
+
 		if (connector == null) {
 			return null;
 		}

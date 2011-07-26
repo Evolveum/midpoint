@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -237,9 +238,10 @@ public class UserDetailsController implements Serializable {
 				TRACE.debug("Following account is marked as candidate for delete in GUI: {}",
 						DebugUtil.prettyPrint(formBean.getAccount().getXmlObject()));
 				List<AccountShadowType> accounts = ((UserType) user.getXmlObject()).getAccount();
-				for (AccountShadowType account : accounts) {
+				for (Iterator<AccountShadowType> i = accounts.iterator(); i.hasNext();) {
+					AccountShadowType account = i.next();
 					if (StringUtils.equals(oidToDelete, account.getOid())) {
-						accounts.remove(account);
+						i.remove();
 						accountManager.delete(account.getOid());
 						break;
 					}
@@ -536,12 +538,12 @@ public class UserDetailsController implements Serializable {
 			builder.addFlag(Flag.READ);
 		}
 		if (def.canUpdate()) {
-			builder.addFlag(Flag.UPDATE);			
+			builder.addFlag(Flag.UPDATE);
 		}
 		if (def.canCreate()) {
 			builder.addFlag(Flag.CREATE);
 		}
-		
+
 		builder.setMaxOccurs(def.getMaxOccurs());
 		builder.setMinOccurs(def.getMinOccurs());
 		builder.setType(AttributeType.getType(def.getTypeName()));

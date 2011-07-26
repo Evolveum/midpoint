@@ -300,11 +300,12 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(query, "Query must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
-		if (paging==null) {
+		if (paging == null) {
 			LOGGER.debug("Searching objects with null paging (query in TRACE).");
 		} else {
-			LOGGER.debug("Searching objects from {} to {} ordered {} by {} (query in TRACE).", new Object[] {
-				paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(), paging.getOrderBy() });
+			LOGGER.debug("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
+					new Object[] { paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(),
+							paging.getOrderBy() });
 		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(query));
@@ -732,7 +733,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	private void resolveObjectAttributes(ObjectType object, PropertyReferenceListType resolve,
-			OperationResult result) throws ObjectNotFoundException {
+			OperationResult result) {
 		if (object == null) {
 			return;
 		}
@@ -745,35 +746,38 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	private void resolveUserAttributes(UserType user, PropertyReferenceListType resolve,
-			OperationResult result) throws ObjectNotFoundException {
+			OperationResult result) {
 		if (!Utils.haveToResolve("Account", resolve)) {
 			return;
 		}
 
 		List<ObjectReferenceType> refToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
+			OperationResult subResult = new OperationResult("resolveUserAttributes");
+			result.addSubresult(subResult);
+
 			try {
-				AccountShadowType account = getObjectFromProvisioning(accountRef.getOid(), resolve, result,
-						AccountShadowType.class);
+				AccountShadowType account = getObjectFromProvisioning(accountRef.getOid(), resolve,
+						subResult, AccountShadowType.class);
 				user.getAccount().add(account);
 				refToBeDeleted.add(accountRef);
 
 				// resolveAccountAttributes(account, resolve, result);
-			} catch (ObjectNotFoundException ex) {
-				throw ex;
-			} catch (SystemException ex) {
-				throw ex;
+				subResult.recordSuccess();
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't resolve account with oid {}", ex,
 						accountRef.getOid());
-				throw new SystemException(ex.getMessage(), ex);
+				subResult.recordFatalError(
+						"Couldn't resolve account with oid '" + accountRef.getOid() + "'.", ex);
 			}
+
+			subResult.computeStatus();
 		}
 		user.getAccountRef().removeAll(refToBeDeleted);
 	}
 
 	private void resolveAccountAttributes(AccountShadowType account, PropertyReferenceListType resolve,
-			OperationResult result) throws ObjectNotFoundException {
+			OperationResult result) {
 		if (!Utils.haveToResolve("Resource", resolve)) {
 			return;
 		}
@@ -785,20 +789,22 @@ public class ModelControllerImpl implements ModelController {
 			return;
 		}
 
+		OperationResult subResult = new OperationResult("resolveUserAttributes");
+		result.addSubresult(subResult);
 		try {
 			ResourceType resource = getObjectFromProvisioning(account.getResourceRef().getOid(), resolve,
 					result, ResourceType.class);
 			account.setResource(resource);
 			account.setResourceRef(null);
-		} catch (ObjectNotFoundException ex) {
-			throw ex;
-		} catch (SystemException ex) {
-			throw ex;
+			subResult.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils
 					.logException(LOGGER, "Couldn't resolve resource with oid {}", ex, reference.getOid());
-			throw new SystemException(ex.getMessage(), ex);
+			subResult
+					.recordFatalError("Couldn't resolve resource with oid '" + reference.getOid() + "'.", ex);
 		}
+
+		subResult.computeStatus();
 	}
 
 	private ScriptsType getScripts(ObjectType object, OperationResult result) throws ObjectNotFoundException {
@@ -832,7 +838,7 @@ public class ModelControllerImpl implements ModelController {
 				accountsToBeDeleted.add(account);
 			}
 		}
-		
+
 		user.getAccount().removeAll(accountsToBeDeleted);
 
 		List<ObjectReferenceType> refsToBeDeleted = new ArrayList<ObjectReferenceType>();
@@ -843,11 +849,11 @@ public class ModelControllerImpl implements ModelController {
 		}
 		user.getAccountRef().removeAll(refsToBeDeleted);
 
-		// If list is empty then skip processing user have no accounts. 
+		// If list is empty then skip processing user have no accounts.
 		if (accountsToBeDeleted.isEmpty() && refsToBeDeleted.isEmpty()) {
 			return;
 		}
-		
+
 		// TODO: save updated user, create property changes
 		ObjectModificationType change = createUserModification(accountsToBeDeleted, refsToBeDeleted);
 		change.setOid(user.getOid());

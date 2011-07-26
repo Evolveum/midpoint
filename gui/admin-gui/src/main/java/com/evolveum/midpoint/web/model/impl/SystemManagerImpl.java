@@ -10,6 +10,8 @@ import org.w3c.dom.Document;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.model.SystemManager;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -33,8 +35,15 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
 
 	@Override
 	public Collection<SystemConfigurationDto> list(PagingType paging) {
-		SystemConfigurationType config = get(SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-				new PropertyReferenceListType(), SystemConfigurationType.class);
+		SystemConfigurationType config = null;
+		try {
+			config = get(SystemObjectsType.SYSTEM_CONFIGURATION.value(), new PropertyReferenceListType(),
+					SystemConfigurationType.class);
+		} catch (ObjectNotFoundException ex) {
+			// TODO: error handling
+			throw new SystemException(ex);
+		}
+
 		Collection<SystemConfigurationDto> collection = new ArrayList<SystemConfigurationDto>();
 		if (config != null) {
 			collection.add(createObject(config));
