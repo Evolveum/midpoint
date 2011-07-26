@@ -122,5 +122,14 @@
 				</plugins>
 			</reporting>
 		</profile>
+		<profile>
+			<id>sanity</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<modules>
+				<module>testing</module>
+			</modules>
+		</profile>
 	</profiles>
 </project>

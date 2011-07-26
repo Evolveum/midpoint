@@ -80,7 +80,6 @@ public class Test999deleteUsers {
 		se.click("debugListForm:listObjectsButton");
 		
 		//validate if both user are there
-		assertTrue(se.isTextPresent("jack"));
 		assertTrue(se.isTextPresent("barbossa"));
 		
 		// get hashmap and login
@@ -151,31 +150,8 @@ public class Test999deleteUsers {
 		se.waitForText("List Users");
 		assertFalse(se.isTextPresent("Elizabeth Swann"));
 		
-/* obsolete moved to delete via debug
-		//delete barbossa
-		se.click(se.findLink("topHome"));
-		se.waitForPageToLoad("30000");
-
-		se.click(se.findLink("topAccount"));
-		se.waitForPageToLoad("30000");
-
-		assertTrue(se.isTextPresent("New User"));
-
-		for (String l : se.getAllLinks()) {
-			if (!l.contains("Table") || !l.contains("name"))
-				continue;
-			logger.info("Adding:" + se.getText(l), l.replace("name", ""));
-			h.put(se.getText(l), l.replace("name", ""));
-		}
-
-		se.click(h.get("barbossa") + "deleteCheckbox");
-		se.click("admin-content:deleteUser");
-		se.waitForText("Confirm delete");
-		se.click("admin-content:deleteUserYes");
-		se.waitForText("List Users");
-		assertFalse(se.isTextPresent("barbossa")); 
-	*/	
 		//delete jack
+		logger.info("Delete jack via GUI");
 		se.click(se.findLink("topHome"));
 		se.waitForPageToLoad("30000");
 
