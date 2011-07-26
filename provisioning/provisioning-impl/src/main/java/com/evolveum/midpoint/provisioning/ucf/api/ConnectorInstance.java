@@ -210,7 +210,7 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public List<Change> fetchChanges(QName objectClass, Property lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public List<Change> fetchChanges(QName objectClass, Property lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	

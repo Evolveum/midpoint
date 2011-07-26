@@ -717,7 +717,7 @@ public class ShadowCache {
 
 	public Property fetchCurrentToken(ResourceType resourceType,
 			OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException {
+			CommunicationException, SchemaException {
 		LOGGER.debug("getting last token");
 		ConnectorInstance connector = getConnectorInstance(resourceType);
 		QName objectClass = new QName(resourceType.getNamespace(),
@@ -749,46 +749,61 @@ public class ShadowCache {
 
 		LOGGER.debug("last token: {}", DebugUtil.prettyPrint(lastToken));
 
-		List<Change> changes = connector.fetchChanges(objectClass, lastToken,
-				parentResult);
+		//get changes from the connector
+		List<Change> changes = connector.fetchChanges(objectClass, lastToken, parentResult);
 
 		for (Change change : changes) {		
+			//search objects in repository
 			QueryType query = createSearchQuery(change.getIdentifiers());
 			ObjectListType objListType = getRepositoryService().searchObjects(
 					query, new PagingType(), parentResult);
+			//if object doesn't exist, create it now
 			if (objListType.getObject().isEmpty()) {
-				AccountShadowType newAccount = (AccountShadowType) createResourceShadow(
-						change.getIdentifiers(), null);
-				ObjectReferenceType ref = new ObjectReferenceType();
-				ref.setOid(resourceType.getOid());
-				//HACK: set name for new account (name is obtained from account attribute uid)
-				for (Property p : change.getIdentifiers()){
-					LOGGER.debug("property Qname: {}", p.getName());
-					if (p.getName().equals(new QName(resourceType.getNamespace(), "uid"))){
-						newAccount.setName(p.getValue(String.class));
-					}
-				}
-				
-				newAccount.setResourceRef(ref);
-				newAccount.setObjectClass(new QName(resourceType.getNamespace(), "AccountObjectClass"));
+				AccountShadowType newAccount = createNewAccount(change, resourceType);	
 				change.setOldShadow(newAccount);
 				try {
 					getRepositoryService().addObject(newAccount, parentResult);
 				} catch (ObjectAlreadyExistsException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					parentResult.recordFatalError("Can't add account "+DebugUtil.prettyPrint(newAccount)+" to the repository. Reason: "+ e.getMessage(), e);
+					throw new IllegalStateException(e.getMessage(), e);
 				}
+			//if exist, set the old shadow to the change
 			} else {
 				for (ObjectType obj : objListType.getObject()) {
 					if (!(obj instanceof ResourceObjectShadowType)) {
+						parentResult.recordFatalError("Object type must be one of the resource object shadow.");
 						throw new IllegalStateException(
-								"Object type must be of resource object shadow.");
+								"Object type must be one of the resource object shadow.");
 					}
 					change.setOldShadow((ResourceObjectShadowType) obj);
 				}
 			}
 		}
+		parentResult.recordSuccess();
 		return changes;
+	}
+
+	private AccountShadowType createNewAccount(Change change, ResourceType resourceType) throws SchemaException {
+		AccountShadowType newAccount = null;
+		try{
+		newAccount = (AccountShadowType) createResourceShadow(
+				change.getIdentifiers(), null);
+		} catch (SchemaException ex){
+			throw new SchemaException("Can't create account shadow from identifiers: "+ change.getIdentifiers());
+		}
+		ObjectReferenceType ref = new ObjectReferenceType();
+		ref.setOid(resourceType.getOid());
+		//HACK: set name for new account (name is obtained from account attribute uid)
+		for (Property p : change.getIdentifiers()){
+			LOGGER.debug("property Qname: {}", p.getName());
+			if (p.getName().equals(new QName(resourceType.getNamespace(), "uid"))){
+				newAccount.setName(p.getValue(String.class));
+			}
+		}
+		
+		newAccount.setResourceRef(ref);
+		newAccount.setObjectClass(new QName(resourceType.getNamespace(), "AccountObjectClass"));
+		return newAccount;
 	}
 
 	// TODO: methods with native identification (Set<Attribute> identifier)

@@ -298,7 +298,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		// getting token form task
 		Property tokenProperty = null;
-		
+
 		if (task.getExtension() != null) {
 			tokenProperty = task.getExtension(TOKEN_ELEMENT_QNAME);
 		}
@@ -318,7 +318,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			LOGGER.debug("Calling shadow cache to fetch changes.");
 			changes = getShadowCache().fetchChanges(resourceType,
 					tokenProperty, result);
-			
+
 			for (Change change : changes) {
 
 				ResourceObjectShadowChangeDescriptionType shadowChangeDescription = createResourceShadowChangeDescription(
@@ -330,20 +330,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						result);
 
 				Property newToken = change.getToken();
-				// TODO: create property modification from new token
-				PropertyModification propertyModification = newToken
-						.createModification(ModificationType.REPLACE,
-								newToken.getValues());
-				modifications.add(propertyModification);
+				// create property modification from new token
 
+				PropertyModification modificatedToken = getTokenModification(newToken);
+				modifications.add(modificatedToken);
 				processedChanges++;
 
 			}
-			if (changes.isEmpty()) {	
+			if (changes.isEmpty()) {
 				LOGGER.warn("No changes found.");
-				PropertyModification modificatedToken = tokenProperty
-						.createModification(ModificationType.REPLACE,
-								tokenProperty.getValues());		
+				PropertyModification modificatedToken = getTokenModification(tokenProperty);
 				modifications.add(modificatedToken);
 			}
 			task.modifyExtension(modifications, result);
@@ -390,11 +386,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		if (ConnectorType.class.isAssignableFrom(objectType)) {
 			Set<ConnectorType> connectors = getShadowCache()
 					.getConnectorManager().listConnectors();
-			if (connectors == null){
+			if (connectors == null) {
 				result.recordFatalError("Can't list connectors.");
 				throw new IllegalStateException("Can't list connectors.");
 			}
-			if (connectors.isEmpty()){
+			if (connectors.isEmpty()) {
 				LOGGER.debug("There are no connectors known to the system.");
 			}
 			objListType = new ObjectListType();
@@ -732,5 +728,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				.qNameToUri(SchemaConstants.CHANGE_CHANNEL_SYNC));
 		return shadowChangeDescription;
 
+	}
+
+	private PropertyModification getTokenModification(Property token) {
+		PropertyModification propertyModification = token.createModification(
+				ModificationType.REPLACE, token.getValues());
+		return propertyModification;
 	}
 }
