@@ -22,19 +22,33 @@
 
 package com.evolveum.midpoint.web.jsf.form;
 
-import javax.faces.FacesException;
-import javax.faces.component.ContextCallback;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createAddImage;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createBlankComponent;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createBlankImage;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createBooleanCheckbox;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createDeleteImage;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createErrorMessage;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createFilledWithExpressionLabel;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createGrid;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createHelpImage;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createInputText;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createLabel;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createOutputText;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createRequiredLabel;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createSelectInputDate;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.createSelectOneMenu;
+import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.getInputConverter;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
-import com.icesoft.faces.component.ext.HtmlPanelGrid;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.el.ExpressionFactory;
 import javax.el.ValueExpression;
+import javax.faces.FacesException;
 import javax.faces.application.Application;
+import javax.faces.component.ContextCallback;
 import javax.faces.component.FacesComponent;
 import javax.faces.component.NamingContainer;
 import javax.faces.component.UICommand;
@@ -43,7 +57,7 @@ import javax.faces.component.UIComponentBase;
 import javax.faces.component.UIInput;
 import javax.faces.context.FacesContext;
 
-import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.*;
+import com.icesoft.faces.component.ext.HtmlPanelGrid;
 
 /**
  * 
@@ -53,7 +67,6 @@ import static com.evolveum.midpoint.web.jsf.form.AutoFormFactory.*;
 public class AutoForm extends UIComponentBase implements NamingContainer, Serializable {
 
 	private static final long serialVersionUID = 296759306259926240L;
-	private static final Trace TRACE = TraceManager.getTrace(AutoForm.class);
 	public static final String COMPONENT_TYPE = AutoForm.class.getName();
 	static final String ATTR_BEAN = "bean";
 	static final String ATTR_EDITABLE = "editable";
@@ -61,10 +74,6 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 	private static final int GRID_COLUMNS_COUNT = 5;
 	// children
 	private transient HtmlPanelGrid grid;
-
-	public AutoForm() {
-		printMessage("constructor");
-	}
 
 	@Override
 	public String getFamily() {
@@ -78,12 +87,6 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 
 	@Override
 	public List<UIComponent> getChildren() {
-		printMessage("getChildren " + getChildCount() + " " + grid.getClientId());
-		if (super.getChildCount() > 1) {
-			recursivePrint(this, 0, 2);
-			printMessage("---------------------------------------------------------------------");
-		}
-
 		if (super.getChildCount() != 1) {
 			List<UIComponent> children = super.getChildren();
 			children.clear();
@@ -96,7 +99,6 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 	@Override
 	public boolean invokeOnComponent(FacesContext context, String clientId, ContextCallback callback)
 			throws FacesException {
-		printMessage("invokeOnComponent " + clientId + ", " + callback + " " + getChildCount());
 		if (getClientId().equals(clientId)) {
 			callback.invokeContextCallback(context, this);
 			return true;
@@ -113,24 +115,14 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 	@Override
 	public void encodeChildren(FacesContext context) throws IOException {
 		if (!isRendered()) {
-			printMessage("encodeChildren: skipping rendering");
 			return;
 		}
-		printMessage("encodeChildren " + getChildCount());
 		createChildren();
 		grid.encodeAll(context);
 	}
 
 	@Override
-	public void decode(FacesContext context) {
-		printMessage("decode " + getChildCount());
-		// grid.decode(context);
-		super.decode(context);
-	}
-
-	@Override
 	public void processRestoreState(FacesContext context, Object state) {
-		printMessage("processRestoreState " + getChildCount());
 		Object[] object = (Object[]) state;
 		// grid.processRestoreState(context, object[0]);
 		// popup.processRestoreState(context, object[1]);
@@ -139,7 +131,6 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 
 	@Override
 	public void processDecodes(FacesContext context) {
-		printMessage("processDecodes " + getChildCount());
 		createChildren();
 		// grid.processDecodes(context);
 		// popup.processDecodes(context);
@@ -148,7 +139,6 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 
 	@Override
 	public Object processSaveState(FacesContext context) {
-		printMessage("processSaveState " + getChildCount());
 		Object[] state = new Object[3];
 		// state[0] = grid.processSaveState(context);
 		// state[1] = popup.processSaveState(context);
@@ -159,7 +149,6 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 
 	@Override
 	public Object saveState(FacesContext context) {
-		printMessage("saveState " + getChildCount());
 		Object values[] = new Object[3];
 		values[0] = super.saveState(context);
 		// values[1] = grid.saveState(context);
@@ -169,7 +158,6 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 
 	@Override
 	public void restoreState(FacesContext context, Object state) {
-		printMessage("restoreState " + getChildCount());
 		createChildren();
 		Object values[] = (Object[]) state;
 		super.restoreState(context, values[0]);
@@ -181,7 +169,6 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 
 	@Override
 	public void processUpdates(FacesContext context) {
-		printMessage("processUpdates " + getChildCount());
 		// grid.processUpdates(context);
 		// popup.processUpdates(context);
 		super.processUpdates(context);
@@ -189,7 +176,6 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 
 	@Override
 	public void processValidators(FacesContext context) {
-		printMessage("processUpdates " + getChildCount());
 		// grid.processValidators(context);
 		// popup.processValidators(context);
 		super.processValidators(context);
@@ -197,19 +183,16 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 
 	private FormObject getBean() {
 		if (getValueExpression(ATTR_BEAN) == null) {
-			printMessage("getBean: null");
 			return null;
 		}
 
 		FormObject object = (FormObject) getBeanExpression().getValue(getFacesContext().getELContext());
-		printMessage("getBean: " + object);
 		return object;
 	}
 
 	private ValueExpression getBeanExpression() {
 		ValueExpression indexExpr = getValueExpression(ATTR_INDEX);
 		if (indexExpr == null) {
-			printMessage("getBeanExpression");
 			return getValueExpression(ATTR_BEAN);
 		}
 
@@ -222,7 +205,6 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 		builder.append("[");
 		builder.append(indexExpr.getValue(context.getELContext()));
 		builder.append("]}");
-		printMessage("getBeanExpression " + builder.toString());
 		return factory.createValueExpression(context.getELContext(), builder.toString(), FormObject.class);
 	}
 
@@ -236,13 +218,11 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 	private void createChildren() {
 		List<FormAttribute> attributes = getBean().getAttributes();
 		if (grid == null) {
-			printMessage("creating grid");
 			Application application = getFacesContext().getApplication();
 			grid = (HtmlPanelGrid) application.createComponent(HtmlPanelGrid.COMPONENT_TYPE);
 			grid.setColumns(GRID_COLUMNS_COUNT);
 			grid.getChildren().addAll(createAttributeForm(attributes));
 		} else {
-			printMessage("not creating grid, only updating");
 			for (FormAttribute attribute : attributes) {
 				if (!attribute.isChanged()) {
 					continue;
@@ -424,39 +404,5 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 		}
 
 		return index;
-	}
-
-	@Deprecated
-	private void printMessage(String message) {
-		if (TRACE.isTraceEnabled()) {
-			TRACE.trace(this.toString() + ":\t" + message);
-		}
-	}
-
-	@Deprecated
-	private void recursivePrint(UIComponent c, int depth, int maxDepth) {
-		StringBuilder builder = new StringBuilder();
-		for (int i = 0; i < depth; i++) {
-			builder.append("  ");
-		}
-		builder.append(c.getClass().getSimpleName());
-		builder.append(", ");
-		builder.append(c.getClientId());
-		printMessage(builder.toString());
-		if (depth >= maxDepth) {
-			return;
-		}
-		List<UIComponent> children = null;
-		if (c == this) {
-			children = super.getChildren();
-		} else {
-			children = c.getChildren();
-		}
-		if (children.isEmpty()) {
-			return;
-		}
-		for (UIComponent a : children) {
-			recursivePrint(a, depth + 1, maxDepth);
-		}
 	}
 }

@@ -23,126 +23,130 @@
 package com.evolveum.midpoint.web.jsf.form;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
 import javax.xml.namespace.QName;
 
 /**
- *
+ * 
  * @author lazyman
  */
 public class FormAttributeDefinition implements Serializable {
 
 	private static final long serialVersionUID = -8758500863474942393L;
+
 	public static enum Flag {
 
-        READ, CREATE, UPDATE;
-    }
-    private String displayName;
-    private String description;
-    private QName elementName;
-    private List<Object> availableValues;
-    private boolean filledWithExpression = false;
-    private int minOccurs = 1;
-    private int maxOccurs = 1;
-    private List<Flag> flags;
-    private AttributeType type;
+		READ, CREATE, UPDATE;
+	}
 
-    public List<Flag> getFlags() {
-        if (flags == null) {
-            flags = new ArrayList<Flag>();
-        }
-        return flags;
-    }
-    
-    public boolean isFilledWithExpression() {
+	private String displayName;
+	private String description;
+	private QName elementName;
+	private List<Object> availableValues;
+	private boolean filledWithExpression = false;
+	private int minOccurs = 1;
+	private int maxOccurs = 1;
+	private Set<Flag> flags;
+	private AttributeType type;
+
+	public Set<Flag> getFlags() {
+		if (flags == null) {
+			flags = new HashSet<Flag>();
+		}
+		return flags;
+	}
+
+	public boolean isFilledWithExpression() {
 		return filledWithExpression;
 	}
 
-    public int getMinOccurs() {
-        return minOccurs;
-    }
+	public int getMinOccurs() {
+		return minOccurs;
+	}
 
-    public int getMaxOccurs() {
-        return maxOccurs;
-    }
+	public int getMaxOccurs() {
+		return maxOccurs;
+	}
 
-    public List<Object> getAvailableValues() {
-        if (availableValues == null) {
-            return null;
-        }
-        return Collections.unmodifiableList(availableValues);
-    }
+	public List<Object> getAvailableValues() {
+		if (availableValues == null) {
+			return null;
+		}
+		return Collections.unmodifiableList(availableValues);
+	}
 
-    public QName getElementName() {
-        return elementName;
-    }
+	public QName getElementName() {
+		return elementName;
+	}
 
-    public String getDescription() {
-        return description;
-    }
+	public String getDescription() {
+		return description;
+	}
 
-    public String getDisplayName() {
-        return displayName;
-    }
+	public String getDisplayName() {
+		return displayName;
+	}
 
-    public AttributeType getType() {
-        return type;
-    }
+	public AttributeType getType() {
+		return type;
+	}
 
-    public boolean canRead() {
-        return canDoByFlag(Flag.READ);
-    }
+	public boolean canRead() {
+		return canDoByFlag(Flag.READ);
+	}
 
-    public boolean canCreate() {
-        return canDoByFlag(Flag.CREATE);
-    }
+	public boolean canCreate() {
+		return canDoByFlag(Flag.CREATE);
+	}
 
-    public boolean canUpdate() {
-        return canDoByFlag(Flag.UPDATE);
-    }
+	public boolean canUpdate() {
+		return canDoByFlag(Flag.UPDATE);
+	}
 
-    private boolean canDoByFlag(Flag flag) {
-        if (getFlags().isEmpty()) {
-            return true;
-        }
-        return getFlags().contains(flag);
-    }
+	private boolean canDoByFlag(Flag flag) {
+		if (getFlags().isEmpty()) {
+			return true;
+		}
+		return getFlags().contains(flag);
+	}
 
-    void setType(AttributeType type) {
-        this.type = type;
-    }
+	void setType(AttributeType type) {
+		this.type = type;
+	}
 
-    void setAvailableValues(List<Object> availableValues) {
-        this.availableValues = availableValues;
-    }
+	void setAvailableValues(List<Object> availableValues) {
+		this.availableValues = availableValues;
+	}
 
-    void setDescription(String description) {
-        this.description = description;
-    }
+	void setDescription(String description) {
+		this.description = description;
+	}
 
-    void setDisplayName(String displayName) {
-        this.displayName = displayName;
-    }
+	void setDisplayName(String displayName) {
+		this.displayName = displayName;
+	}
 
-    void setElementName(QName elementName) {
-        this.elementName = elementName;
-    }
+	void setElementName(QName elementName) {
+		this.elementName = elementName;
+	}
 
-    void setFlags(List<Flag> flags) {
-        this.flags = flags;
-    }
+	void setFlags(Set<Flag> flags) {
+		this.flags = flags;
+	}
 
-    void setMaxOccurs(int maxOccurs) {
-        this.maxOccurs = maxOccurs;
-    }
+	void setMaxOccurs(int maxOccurs) {
+		this.maxOccurs = maxOccurs;
+	}
 
-    void setMinOccurs(int minOccurs) {
-        this.minOccurs = minOccurs;
-    }
-    
-    void setFilledWithExpression(boolean filledWithExpression) {
+	void setMinOccurs(int minOccurs) {
+		this.minOccurs = minOccurs;
+	}
+
+	void setFilledWithExpression(boolean filledWithExpression) {
 		this.filledWithExpression = filledWithExpression;
 	}
 }

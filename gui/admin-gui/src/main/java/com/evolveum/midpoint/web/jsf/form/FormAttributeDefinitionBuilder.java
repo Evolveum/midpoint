@@ -22,11 +22,13 @@
 
 package com.evolveum.midpoint.web.jsf.form;
 
-import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinition.Flag;
-
 import java.io.Serializable;
 import java.util.List;
+import java.util.Set;
+
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinition.Flag;
 
 /**
  * 
@@ -53,7 +55,7 @@ public class FormAttributeDefinitionBuilder implements Serializable {
 		definition.setElementName(elementName);
 	}
 
-	public void setFlags(List<Flag> flags) {
+	public void setFlags(Set<Flag> flags) {
 		definition.setFlags(flags);
 	}
 
