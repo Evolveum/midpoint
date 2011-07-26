@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public interface AccountManager extends ObjectManager<AccountShadowDto> {
 
-	String CLASS_NAME = AccountManager.class.getName();
+	String CLASS_NAME = AccountManager.class.getName() + ".";
 	String LIST_OWNER = CLASS_NAME + "listOwner";
 	String SUBMIT = CLASS_NAME + "submit";
 

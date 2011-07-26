@@ -69,7 +69,7 @@ public class AppenderListItem extends SelectableBean {
 	}
 
 	public boolean isFileType() {
-		if (AppenderType.FILE.equals(type)) {
+		if (AppenderType.ROLLING_FILE.equals(type)) {
 			return true;
 		}
 
@@ -115,7 +115,7 @@ public class AppenderListItem extends SelectableBean {
 	}
 
 	public String getMaxFileSizeString() {
-		if (!AppenderType.FILE.equals(type)) {
+		if (!AppenderType.ROLLING_FILE.equals(type)) {
 			return null;
 		}
 

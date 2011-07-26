@@ -6454,13 +6454,38 @@
 		<xsd:attribute name="name" type="xsd:string"/>
 	</xsd:complexType>
 
-	<xsd:complexType name="FileAppenderConfigurationType">
+	<xsd:complexType name="RollingFileAppenderConfigurationType">
 		<xsd:complexContent>
 			<xsd:extension base="tns:AppenderConfigurationType">
 				<xsd:sequence>
 					<xsd:element name="filePath" type="xsd:string"/>
+					<xsd:element name="append" type="xsd:boolean"/>
 					<xsd:element name="maxFileSize" type="xsd:int"/>
 				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="DailyRollingFileAppenderConfigurationType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:AppenderConfigurationType">
+				<xsd:sequence>
+					<xsd:element name="datePattern" type="xsd:string" />
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="NdcRollingFileAppenderConfigurationType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:RollingFileAppenderConfigurationType">
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="NdcDailyRollingFileAppenderConfigurationType">
+		<xsd:complexContent>
+			<xsd:extension base="tns:DailyRollingFileAppenderConfigurationType">
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>

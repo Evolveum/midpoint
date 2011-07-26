@@ -29,7 +29,13 @@ public enum AppenderType {
 
 	CONSOLE("monitor.png", "Console"),
 
-	FILE("page_white_edit.png", "File");
+	ROLLING_FILE("page_white_edit.png", "Rolling File"),
+
+	DAILY_ROLLING_FILE("page_white_stack.png", "Daily Rolling File"),
+
+	NDC_ROLLING_FILE("page_white_star.png", "Ndc Rolling File"),
+
+	NDC_DAILY_ROLLING_FILE("page_white_copy.png", "Ndc Daily Rolling File");
 
 	private String icon;
 	private String title;

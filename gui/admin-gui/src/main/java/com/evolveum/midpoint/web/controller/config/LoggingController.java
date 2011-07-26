@@ -41,12 +41,15 @@ import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.DailyRollingFileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.NdcDailyRollingFileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.NdcRollingFileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RollingFileAppenderConfigurationType;
 
 /**
  * 
@@ -239,11 +242,21 @@ public class LoggingController implements Serializable {
 		item.setPattern(appender.getPattern());
 		item.setType(AppenderType.CONSOLE);
 
-		if (appender instanceof FileAppenderConfigurationType) {
-			FileAppenderConfigurationType file = (FileAppenderConfigurationType) appender;
+		if (appender instanceof RollingFileAppenderConfigurationType) {
+			RollingFileAppenderConfigurationType file = (RollingFileAppenderConfigurationType) appender;
 			item.setFilePath(file.getFilePath());
 			item.setMaxFileSize(file.getMaxFileSize());
-			item.setType(AppenderType.FILE);
+			item.setType(AppenderType.ROLLING_FILE);
+			if (appender instanceof NdcRollingFileAppenderConfigurationType) {
+				item.setType(AppenderType.NDC_ROLLING_FILE);
+			}
+		} else if (appender instanceof DailyRollingFileAppenderConfigurationType) {
+			DailyRollingFileAppenderConfigurationType daily = (DailyRollingFileAppenderConfigurationType) appender;
+			daily.getDatePattern();// TODO: insert this to item
+
+			if (appender instanceof NdcDailyRollingFileAppenderConfigurationType) {
+				item.setType(AppenderType.NDC_DAILY_ROLLING_FILE);
+			}
 		}
 
 		return item;
@@ -266,16 +279,35 @@ public class LoggingController implements Serializable {
 
 	private AppenderConfigurationType createAppenderType(AppenderListItem item) {
 		AppenderConfigurationType appender = null;
+		RollingFileAppenderConfigurationType fileAppender = null;
+		DailyRollingFileAppenderConfigurationType daily = null;
+
 		switch (item.getType()) {
 			case CONSOLE:
 				appender = new AppenderConfigurationType();
 				break;
-			case FILE:
-				FileAppenderConfigurationType fileAppender = new FileAppenderConfigurationType();
+			case NDC_ROLLING_FILE:
+				fileAppender = new NdcRollingFileAppenderConfigurationType();
+			case ROLLING_FILE:
+				if (fileAppender == null) {
+					fileAppender = new RollingFileAppenderConfigurationType();
+				}
 				fileAppender.setFilePath(item.getFilePath());
 				fileAppender.setMaxFileSize(item.getMaxFileSize());
+				// TODO: get this from somewhere
+				fileAppender.setAppend(true);
 
 				appender = fileAppender;
+				break;
+			case NDC_DAILY_ROLLING_FILE:
+				daily = new NdcDailyRollingFileAppenderConfigurationType();
+			case DAILY_ROLLING_FILE:
+				if (daily == null) {
+					daily = new DailyRollingFileAppenderConfigurationType();
+				}
+				// TODO: get this from somewhere
+				daily.setDatePattern("AAAAAAAAAAAAAAAA");
+				appender = daily;
 				break;
 		}
 

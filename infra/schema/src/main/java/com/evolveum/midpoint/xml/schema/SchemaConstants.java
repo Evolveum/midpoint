@@ -57,6 +57,7 @@ public abstract class SchemaConstants {
 	public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
 	public static final String NS_ICF_RESOURCE_INSTANCE_PREFIX = "ri";
 	public static final String NS_FILTER = "http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd";
+	public static final QName LOGGING = new QName(SchemaConstants.NS_C, "logging");
 	public static final QName C_NAME = new QName(NS_C, "name");
 	public static final QName C_GENERIC_OBJECT = new QName(NS_C, "genericObject");
 	public static final QName C_ACCESS = new QName(NS_C, "access");

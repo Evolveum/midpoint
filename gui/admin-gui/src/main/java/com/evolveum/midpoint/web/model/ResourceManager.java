@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
  */
 public interface ResourceManager extends ObjectManager<GuiResourceDto> {
 
-	String CLASS_NAME = ResourceManager.class.getName();
+	String CLASS_NAME = ResourceManager.class.getName() + ".";
 	String LIST_OBJECT_SHADOWS = CLASS_NAME + "listObjectShadows";
 	String TEST_CONNECTION = CLASS_NAME + "testConnection";
 	String IMPORT_FROM_RESOURCE = CLASS_NAME + "importFromResource";

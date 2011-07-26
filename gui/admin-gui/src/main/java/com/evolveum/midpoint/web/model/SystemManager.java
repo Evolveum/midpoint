@@ -20,11 +20,17 @@
  */
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
+
 /**
  * 
  * @author lazyman
  *
  */
 public interface SystemManager {
+	
+	String CLASS_NAME = SystemManager.class.getName() + ".";
+	String UPDATE_LOGGING_CONFIGURATION = CLASS_NAME + "updateLoggingConfiguration";
 
+	boolean updateLoggingConfiguration(LoggingConfigurationType configuration);
 }
