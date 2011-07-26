@@ -114,7 +114,7 @@ public class ModelControllerImpl implements ModelController {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 		}
 
-		OperationResult subResult = new OperationResult("Add Object");
+		OperationResult subResult = new OperationResult(ADD_OBJECT);
 		result.addSubresult(subResult);
 		String oid = null;
 		try {
@@ -137,9 +137,10 @@ public class ModelControllerImpl implements ModelController {
 				throw (SystemException) ex;
 			}
 			throw new SystemException(ex.getMessage(), ex);
+		} finally {
+			LOGGER.debug(subResult.dump());
 		}
-
-		LOGGER.debug(subResult.dump());
+		
 		return oid;
 	}
 
@@ -185,9 +186,9 @@ public class ModelControllerImpl implements ModelController {
 					+ "' using template " + userTemplate.getName() + ", oid '" + userTemplate.getOid() + "'",
 					ex);
 			throw new SystemException(ex.getMessage(), ex);
+		} finally {
+			LOGGER.debug(subResult.dump());
 		}
-
-		LOGGER.debug(subResult.dump());
 
 		return oid;
 	}
@@ -243,13 +244,14 @@ public class ModelControllerImpl implements ModelController {
 			LoggingUtils.logException(LOGGER, "Couldn't get object {}", ex, oid);
 			subResult.recordFatalError("Couldn't get object with oid '" + oid + "'.", ex);
 			throw new SystemException(ex.getMessage(), ex);
+		} finally {
+			LOGGER.debug(subResult.dump());
 		}
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 		}
 
-		LOGGER.debug(subResult.dump());
 		return object;
 	}
 
@@ -284,6 +286,8 @@ public class ModelControllerImpl implements ModelController {
 			LoggingUtils.logException(LOGGER, "Couldn't list objects", ex);
 			subResult.recordFatalError("Couldn't list objects.", ex);
 			throw new SystemException(ex.getMessage(), ex);
+		} finally {
+			LOGGER.debug(subResult.dump());
 		}
 
 		if (list == null) {
@@ -291,7 +295,6 @@ public class ModelControllerImpl implements ModelController {
 			list.setCount(0);
 		}
 
-		LOGGER.debug(subResult.dump());
 		return list;
 	}
 
@@ -330,14 +333,15 @@ public class ModelControllerImpl implements ModelController {
 			}
 			LoggingUtils.logException(LOGGER, message, ex);
 			subResult.recordFatalError(message, ex);
+		} finally {
+			LOGGER.debug(subResult.dump());
 		}
 
 		if (list == null) {
 			list = new ObjectListType();
 			list.setCount(0);
 		}
-
-		LOGGER.debug(subResult.dump());
+		
 		return list;
 	}
 
@@ -393,6 +397,8 @@ public class ModelControllerImpl implements ModelController {
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update object with oid {}", ex, change.getOid());
 			subResult.recordFatalError("Couldn't update object with oid '" + change.getOid() + "'.", ex);
+		} finally {
+			LOGGER.debug(subResult.dump());
 		}
 
 		LOGGER.debug(subResult.dump());
@@ -431,9 +437,10 @@ public class ModelControllerImpl implements ModelController {
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}", ex, oid);
 			subResult.recordFatalError("Couldn't delete object with oid '" + oid + "'.", ex);
+		} finally {
+			LOGGER.debug(subResult.dump());
 		}
 
-		LOGGER.debug(subResult.dump());
 		return deleted;
 	}
 
@@ -476,10 +483,10 @@ public class ModelControllerImpl implements ModelController {
 					+ " for account with oid {}", ex, accountOid);
 			subResult.recordFatalError("Couldn't list account shadow owner for account with oid '"
 					+ accountOid + "'.", ex);
-
+		} finally {
+			LOGGER.debug(subResult.dump());
 		}
 
-		LOGGER.debug(subResult.dump());
 		return user;
 	}
 
@@ -507,13 +514,14 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordFatalError(
 					"Couldn't list resource object shadows type '" + resourceObjectShadowType
 							+ "' from repository for resource, oid '" + resourceOid + "'.", ex);
+		} finally {
+			LOGGER.debug(subResult.dump());
 		}
 
 		if (list == null) {
 			list = new ArrayList<T>();
 		}
 
-		LOGGER.debug(subResult.dump());
 		return list;
 	}
 
@@ -542,6 +550,8 @@ public class ModelControllerImpl implements ModelController {
 					+ "with oid {}", ex, objectType, resourceOid);
 			subResult.recordFatalError("Couldn't list resource objects of type '" + objectType
 					+ "' for resource, oid '" + resourceOid + "'.", ex);
+		} finally {
+			LOGGER.debug(subResult.dump());
 		}
 
 		if (list == null) {
@@ -549,7 +559,6 @@ public class ModelControllerImpl implements ModelController {
 			list.setCount(0);
 		}
 
-		LOGGER.debug(subResult.dump());
 		return list;
 	}
 
@@ -647,12 +656,13 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(clazz, "Object class must not be null.");
 		T object = null;
 
+		OperationResult subResult = result.createSubresult(GET_OBJECT);
 		try {
 			ObjectType objectType = null;
 			if (fromProvisioning) {
-				objectType = provisioning.getObject(oid, resolve, result);
+				objectType = provisioning.getObject(oid, resolve, subResult);
 			} else {
-				objectType = repository.getObject(oid, resolve, result);
+				objectType = repository.getObject(oid, resolve, subResult);
 			}
 			if (!clazz.isInstance(objectType)) {
 				throw new ObjectNotFoundException("Bad object type returned for referenced oid '" + oid
@@ -662,7 +672,7 @@ public class ModelControllerImpl implements ModelController {
 				object = (T) objectType;
 			}
 
-			resolveObjectAttributes(object, resolve, result);
+			resolveObjectAttributes(object, resolve, subResult);
 		} catch (SystemException ex) {
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
@@ -671,6 +681,8 @@ public class ModelControllerImpl implements ModelController {
 			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {}, expected type was {}.", ex,
 					oid, clazz);
 			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
+		} finally {
+			LOGGER.debug(subResult.dump());
 		}
 
 		return object;

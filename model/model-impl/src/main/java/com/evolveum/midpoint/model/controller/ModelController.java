@@ -11,8 +11,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 
 public interface ModelController extends ModelService {
-	
+
 	String CLASS_NAME = ModelController.class.getName() + ".";
+	String ADD_OBJECT = CLASS_NAME + "addObject";
+	String GET_OBJECT = CLASS_NAME + "getObject";
 
 	ObjectListType searchObjectsInProvisioning(QueryType query, PagingType paging, OperationResult result);
 

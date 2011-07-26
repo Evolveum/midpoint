@@ -96,11 +96,12 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 		Set<PropertyChange> set = new HashSet<PropertyChange>();
 		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
 
+		OperationResult result = new OperationResult(UserManager.OPERATION_USER_SUBMIT);
 		try { // Call Web Service Operation
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
 					changedObject.getXmlObject());
 			if (changes != null && changes.getOid() != null && changes.getPropertyModification().size() > 0) {
-				getModel().modifyObject(changes, new OperationResult(UserManager.OPERATION_USER_SUBMIT));
+				getModel().modifyObject(changes, result);
 			}
 
 			if (null != changes) {
@@ -115,11 +116,15 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 							getChangeType(modification.getModificationType()), values));
 				}
 			}
+			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't submit user {}", ex,
 					new Object[] { changedObject.getName() });
-			FacesUtils.addErrorMessage("Couldn't submit user", ex);
+			result.recordFatalError("Couldn't submit user '" + changedObject.getName() + "'.", ex);
 		}
+
+		result.computeStatus();
+		printResults(LOGGER, result);
 
 		return set;
 	}
