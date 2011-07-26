@@ -3,19 +3,17 @@
     <name>SystemConfiguration</name>
     <logging>
         <logger>
-            <level>all</level>
-            <category>category1</category>
-            <category>category2</category>
-            <component>util</component>
-            <component>common</component>
+            <level>TRACE</level>
             <component>model</component>
             <component>provisioning</component>
             <component>repository</component>
-            <component>gui</component>
-            <package>com.evolveum.midpoint.init</package>
-            <appender>File Appender</appender>
+            <component>web</component>
+            <component>taskManager</component>
+            <component>resourceObjectChangeListener</component>
+            <package>com.evolveum.midpoint</package>
+            <appender>Ndc File Appender</appender>
         </logger>
-        <appender xsi:type="FileAppenderConfigurationType" name="File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <appender xsi:type="NdcRollingFileAppenderConfigurationType" name="Ndc File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
             <pattern>%d{HH:mm:ss,SSS} %-5p [%c] - %m%n</pattern>
             <filePath>${catalina.base}/logs/idm.log</filePath>
             <maxFileSize>1024</maxFileSize>

@@ -6393,20 +6393,6 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="util">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="UTIL"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-			<xsd:enumeration value="common">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="COMMON"/>
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
 			<xsd:enumeration value="model">
 				<xsd:annotation>
 					<xsd:appinfo>
@@ -6428,10 +6414,24 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="gui">
+			<xsd:enumeration value="web">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="GUI"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="taskManager">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="TASKMANAGER"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="resourceObjectChangeListener">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="RESOURCEOBJECTCHANGELISTENER"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>

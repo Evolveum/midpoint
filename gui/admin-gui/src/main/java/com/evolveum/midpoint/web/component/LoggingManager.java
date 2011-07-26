@@ -33,9 +33,10 @@ import javax.xml.ws.Holder;
 import org.apache.commons.lang.Validate;
 import org.apache.log4j.Appender;
 import org.apache.log4j.ConsoleAppender;
-import org.apache.log4j.FileAppender;
+import org.apache.log4j.DailyRollingFileAppender;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
+import org.apache.log4j.RollingFileAppender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
@@ -51,9 +52,12 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.logging.impl.NdcFilteringDailyRollingFileAppender;
 import com.evolveum.midpoint.logging.impl.NdcFilteringRollingFileAppender;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.DailyRollingFileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.NdcDailyRollingFileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.NdcRollingFileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
@@ -202,10 +206,47 @@ public class LoggingManager {
 		Map<String, Appender> appenders = new HashMap<String, Appender>();
 
 		for (AppenderConfigurationType appenderConf : appendersConf) {
+			if (appenderConf instanceof NdcRollingFileAppenderConfigurationType) {
+				NdcFilteringRollingFileAppender appender = new NdcFilteringRollingFileAppender();
+				NdcRollingFileAppenderConfigurationType appenderCnf = (NdcRollingFileAppenderConfigurationType) appenderConf;
+				appender.setName(appenderCnf.getName());
+				appender.setLayout(new PatternLayout(appenderCnf.getPattern()));
+				appender.setFile(appenderCnf.getFilePath());
+				appender.setMaxFileSize(Integer.valueOf(appenderCnf.getMaxFileSize()).toString());
+				appender.setAppend(appenderCnf.isAppend());
+				appenders.put(appender.getName(), appender);
+				continue;
+			}
+			if (appenderConf instanceof NdcDailyRollingFileAppenderConfigurationType) {
+				NdcFilteringDailyRollingFileAppender appender = new NdcFilteringDailyRollingFileAppender();
+				NdcDailyRollingFileAppenderConfigurationType appenderCnf = (NdcDailyRollingFileAppenderConfigurationType) appenderConf;
+				appender.setName(appenderCnf.getName());
+				appender.setLayout(new PatternLayout(appenderCnf.getPattern()));
+				appender.setFile(appenderCnf.getFilePath());
+				appender.setDatePattern(appenderCnf.getDatePattern());
+				appender.setAppend(appenderCnf.isAppend());
+				appenders.put(appender.getName(), appender);
+				continue;
+			}
 			if (appenderConf instanceof RollingFileAppenderConfigurationType) {
-				FileAppender appender = new FileAppender();
-				appender.setName(appenderConf.getName());
-				appender.setLayout(new PatternLayout(appenderConf.getPattern()));
+				RollingFileAppender appender = new RollingFileAppender();
+				RollingFileAppenderConfigurationType appenderCnf = (RollingFileAppenderConfigurationType) appenderConf;
+				appender.setName(appenderCnf.getName());
+				appender.setLayout(new PatternLayout(appenderCnf.getPattern()));
+				appender.setFile(appenderCnf.getFilePath());
+				appender.setMaxFileSize(Integer.valueOf(appenderCnf.getMaxFileSize()).toString());
+				appender.setAppend(appenderCnf.isAppend());
+				appenders.put(appender.getName(), appender);
+				continue;
+			}
+			if (appenderConf instanceof DailyRollingFileAppenderConfigurationType) {
+				DailyRollingFileAppender appender = new DailyRollingFileAppender();
+				DailyRollingFileAppenderConfigurationType appenderCnf = (DailyRollingFileAppenderConfigurationType) appenderConf;
+				appender.setName(appenderCnf.getName());
+				appender.setLayout(new PatternLayout(appenderCnf.getPattern()));
+				appender.setFile(appenderCnf.getFilePath());
+				appender.setDatePattern(appenderCnf.getDatePattern());
+				appender.setAppend(appenderCnf.isAppend());
 				appenders.put(appender.getName(), appender);
 				continue;
 			}
@@ -294,3 +335,4 @@ public class LoggingManager {
 		return config;
 	}
 }
+
