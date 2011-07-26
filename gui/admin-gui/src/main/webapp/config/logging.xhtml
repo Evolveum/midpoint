@@ -106,7 +106,9 @@
 					<f:facet name="header">
 						<ice:outputLabel value="#{msg['page.config.logging.table.app.type']}" />
 					</f:facet>
-					<ice:graphicImage value="/resources/images/#{item.type.icon}" alt="#{item.type.title}" />
+					<ice:panelGroup style="text-align: center;">
+						<ice:graphicImage value="/resources/images/#{item.type.icon}" alt="#{item.type.title}" />
+					</ice:panelGroup>
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">

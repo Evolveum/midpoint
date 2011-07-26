@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBException;
 import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
@@ -44,13 +43,13 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.common.diff.DiffException;
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.logging.impl.NdcFilteringDailyRollingFileAppender;
 import com.evolveum.midpoint.logging.impl.NdcFilteringRollingFileAppender;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.SystemManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.DailyRollingFileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
@@ -58,7 +57,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NdcDailyRollingFileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NdcRollingFileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -81,6 +79,8 @@ public class LoggingManager {
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingManager.class);
 	@Autowired(required = true)
 	private ModelPortType model;
+	@Autowired
+	private ObjectTypeCatalog catalog;
 	private LoggingConfigurationType logging;
 
 	@PostConstruct
@@ -267,40 +267,53 @@ public class LoggingManager {
 			OperationResult result) {
 		Validate.notNull(logging, "Logging configuration can't be null.");
 
-		final OperationResult saveConfigResult = new OperationResult("Save System Configuration");
-
-		OperationResultType resultTypeHolder = saveConfigResult.createOperationResultType();
-		try {
-			SystemConfigurationType oldSystem = getSystemConfiguration(result);
-			SystemConfigurationType newSystem = (SystemConfigurationType) JAXBUtil.clone(oldSystem);
-			newSystem.setLogging(logging);
-
-			ObjectModificationType change = CalculateXmlDiff.calculateChanges(oldSystem, newSystem);
-			change.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
-			model.modifyObject(change, new Holder<OperationResultType>(resultTypeHolder));
-			saveConfigResult.recordSuccess();
-
+		// final OperationResult saveConfigResult = new
+		// OperationResult("Save System Configuration");
+		SystemManager manager = ControllerUtil.getSystemManager(catalog);
+		if (manager.updateLoggingConfiguration(logging)) {
 			return logging;
-		} catch (JAXBException ex) {
-			String message = "Couldn't clone system configuration";
-			LoggingUtils.logException(LOGGER, message, ex);
-			saveConfigResult.recordFatalError(message, ex);
-		} catch (DiffException ex) {
-			String message = "Couldn't create diff for system configuration";
-			LoggingUtils.logException(LOGGER, message, ex);
-			saveConfigResult.recordFatalError(message, ex);
-		} catch (FaultMessage ex) {
-			String message = "Couldn't get system configuration";
-			LoggingUtils.logException(LOGGER, message, ex);
-			saveConfigResult.recordFatalError(message, ex);
-		} finally {
-			OperationResult opResult = OperationResult.createOperationResult(resultTypeHolder);
-			saveConfigResult.getSubresults().addAll(opResult.getSubresults());
-
-			result.addSubresult(saveConfigResult);
 		}
 
 		return null;
+		//
+		//
+		// OperationResultType resultTypeHolder =
+		// saveConfigResult.createOperationResultType();
+		// try {
+		// SystemConfigurationType oldSystem = getSystemConfiguration(result);
+		// SystemConfigurationType newSystem = (SystemConfigurationType)
+		// JAXBUtil.clone(oldSystem);
+		// newSystem.setLogging(logging);
+		//
+		// ObjectModificationType change =
+		// CalculateXmlDiff.calculateChanges(oldSystem, newSystem);
+		// change.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+		// model.modifyObject(change, new
+		// Holder<OperationResultType>(resultTypeHolder));
+		// saveConfigResult.recordSuccess();
+		//
+		// return logging;
+		// } catch (JAXBException ex) {
+		// String message = "Couldn't clone system configuration";
+		// LoggingUtils.logException(LOGGER, message, ex);
+		// saveConfigResult.recordFatalError(message, ex);
+		// } catch (DiffException ex) {
+		// String message = "Couldn't create diff for system configuration";
+		// LoggingUtils.logException(LOGGER, message, ex);
+		// saveConfigResult.recordFatalError(message, ex);
+		// } catch (FaultMessage ex) {
+		// String message = "Couldn't get system configuration";
+		// LoggingUtils.logException(LOGGER, message, ex);
+		// saveConfigResult.recordFatalError(message, ex);
+		// } finally {
+		// OperationResult opResult =
+		// OperationResult.createOperationResult(resultTypeHolder);
+		// saveConfigResult.getSubresults().addAll(opResult.getSubresults());
+		//
+		// result.addSubresult(saveConfigResult);
+		// }
+		//
+		// return null;
 	}
 
 	private SystemConfigurationType getSystemConfiguration(OperationResult result) {
@@ -335,4 +348,3 @@ public class LoggingManager {
 		return config;
 	}
 }
-

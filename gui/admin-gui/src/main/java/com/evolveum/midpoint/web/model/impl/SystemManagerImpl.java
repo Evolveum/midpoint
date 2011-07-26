@@ -2,16 +2,14 @@ package com.evolveum.midpoint.web.model.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.w3c.dom.Document;
 
-import net.sf.saxon.s9api.QName;
-
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.model.SystemManager;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -20,10 +18,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfiguration
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.schema.XPathSegment;
+import com.evolveum.midpoint.xml.schema.XPathType;
 
 public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType, SystemConfigurationDto>
 		implements SystemManager {
@@ -59,14 +60,21 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
 
 	@Override
 	public boolean updateLoggingConfiguration(LoggingConfigurationType configuration) {
-		boolean updated =false;
+		boolean updated = false;
 		OperationResult result = new OperationResult(UPDATE_LOGGING_CONFIGURATION);
 		try {
 			String xml = JAXBUtil.marshalWrap(configuration, SchemaConstants.LOGGING);
 			Document document = DOMUtil.parseDocument(xml);
-			ObjectModificationType change = ObjectTypeUtil.createModificationReplaceProperty(
-					SystemObjectsType.SYSTEM_CONFIGURATION.value(), SchemaConstants.LOGGING,
-					document.getDocumentElement());
+
+			List<XPathSegment> segments = new ArrayList<XPathSegment>();
+			segments.add(new XPathSegment(SchemaConstants.I_SYSTEM_CONFIGURATION));
+			XPathType xpath = new XPathType(segments);
+
+			ObjectModificationType change = new ObjectModificationType();
+			change.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
+			change.getPropertyModification().add(
+					ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace,
+							xpath, document.getDocumentElement()));
 
 			getModel().modifyObject(change, result);
 			updated = true;

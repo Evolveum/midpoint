@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.web.model.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 
 /**
@@ -27,7 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfiguration
  * @author lazyman
  *
  */
-public interface SystemManager {
+public interface SystemManager extends ObjectManager<SystemConfigurationDto> {
 	
 	String CLASS_NAME = SystemManager.class.getName() + ".";
 	String UPDATE_LOGGING_CONFIGURATION = CLASS_NAME + "updateLoggingConfiguration";

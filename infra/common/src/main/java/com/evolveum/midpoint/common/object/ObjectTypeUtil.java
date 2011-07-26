@@ -146,7 +146,8 @@ public class ObjectTypeUtil {
                 throw new IllegalStateException(ex);
             }
             jaxbValue.getAny().add(e);
-
+        } else if (value instanceof Element){
+        	jaxbValue.getAny().add((Element) value);
         } else {
             throw new IllegalArgumentException("Unsupported value type " + value.getClass().getName());
         }

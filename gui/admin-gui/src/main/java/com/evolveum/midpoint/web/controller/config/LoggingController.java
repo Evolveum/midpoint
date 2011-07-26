@@ -223,6 +223,8 @@ public class LoggingController implements Serializable {
 		LoggingConfigurationType logging = createConfiguration(getLoggers(), getAppenders());
 		OperationResult result = new OperationResult("Load Logging Configuration");
 		loggingManager.updateConfiguration(logging, result);
+		
+		initController();
 	}
 
 	private LoggerListItem createLoggerListItem(int id, LoggerConfigurationType logger) {
