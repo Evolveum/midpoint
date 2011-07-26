@@ -1248,9 +1248,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Set<Object> objs = new HashSet<Object>();
 		objs.add(object);
 		PropertyDefinition propDef = new PropertyDefinition(
-				SchemaConstants.C_TOKEN, type);
+				SchemaConstants.SYNC_TOKEN, type);
 
-		Property property = new Property(SchemaConstants.C_TOKEN, propDef, objs);
+		Property property = new Property(SchemaConstants.SYNC_TOKEN, propDef, objs);
 		return property;
 	}
 

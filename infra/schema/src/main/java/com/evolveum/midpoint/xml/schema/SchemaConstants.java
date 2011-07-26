@@ -69,7 +69,7 @@ public abstract class SchemaConstants {
 	public static final QName C_FILTER_VALUE = new QName(NS_C, "value");
 	public static final QName C_FILTER_AND = new QName(NS_C, "and");
 	public static final QName C_OBJECT = new QName(NS_C, "object");
-	public static final QName C_TOKEN = new QName(NS_C, "token");
+	
 	public static final QName C_OID_ATTRIBUTE = new QName(NS_C, "oid");
 	public static final QName I_OBJECTS = new QName(NS_C, "objects");
 	public static final QName C_EXTENSION = new QName(NS_C, "extension");;
@@ -152,6 +152,7 @@ public abstract class SchemaConstants {
 	
 	public static final String NS_PROVISIONING = "http://midpoint.evolveum.com/xml/ns/public/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-1.xsd";
+	public static final QName SYNC_TOKEN = new QName(NS_PROVISIONING_LIVE_SYNC, "token");
 	// Synchronization constants
 	public static final String NS_CHANNEL = NS_PROVISIONING + "/channels-1";
 	public static final QName CHANGE_CHANNEL_SYNC = new QName(NS_CHANNEL, "synchronization");

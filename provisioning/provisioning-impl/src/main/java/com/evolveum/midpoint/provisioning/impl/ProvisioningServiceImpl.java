@@ -106,8 +106,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	private static final Trace LOGGER = TraceManager
 			.getTrace(ProvisioningServiceImpl.class);
 
-	private static final QName TOKEN_ELEMENT_QNAME = new QName(
-			SchemaConstants.NS_PROVISIONING_LIVE_SYNC, "token");
+//	private static final QName TOKEN_ELEMENT_QNAME = new QName(
+//			SchemaConstants.NS_PROVISIONING_LIVE_SYNC, "token");
 
 	public ShadowCache getShadowCache() {
 		return shadowCache;
@@ -301,7 +301,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		Property tokenProperty = null;
 
 		if (task.getExtension() != null) {
-			tokenProperty = task.getExtension(TOKEN_ELEMENT_QNAME);
+			tokenProperty = task.getExtension(SchemaConstants.SYNC_TOKEN);
 		}
 
 		if (tokenProperty == null) {

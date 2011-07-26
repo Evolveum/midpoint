@@ -106,7 +106,7 @@ public class CycleRunner extends TaskRunner {
 				}
 
 				// TODO: refresh task definition somehow
-				
+				task.refresh(cycleRunnerOpResult);
 				logger.trace("CycleRunner loop: end");
 			}
 
