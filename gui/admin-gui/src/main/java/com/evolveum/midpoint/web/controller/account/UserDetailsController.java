@@ -512,6 +512,7 @@ public class UserDetailsController implements Serializable {
 		} catch (Exception ex) {
 			throw new SchemaProcessorException("Unknown error, reason: " + ex.getMessage(), ex);
 		}
+		object.sort();
 
 		return new AccountFormBean(index, account, defaultAccountType, object, createNew);
 	}

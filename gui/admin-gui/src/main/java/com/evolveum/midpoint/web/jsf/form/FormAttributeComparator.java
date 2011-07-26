@@ -17,42 +17,36 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.web.jsf.form;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Comparator;
 
 /**
  * 
  * @author lazyman
+ *
  */
-public class FormObject implements Serializable {
+public class FormAttributeComparator implements Comparator<FormAttribute>, Serializable {
 
-	private static final long serialVersionUID = -1567990045128005309L;
-	private String displayName;
-	private List<FormAttribute> attributes;
+	private static final long serialVersionUID = -3537350724118181063L;
 
-	public List<FormAttribute> getAttributes() {
-		if (attributes == null) {
-			attributes = new ArrayList<FormAttribute>();
+	@Override
+	public int compare(FormAttribute o1, FormAttribute o2) {
+		FormAttributeDefinition def1 = o1.getDefinition();
+		FormAttributeDefinition def2 = o2.getDefinition();
+
+		if (isMandatory(def1) && !isMandatory(def2)) {
+			return -1;
+		} else if (!isMandatory(def1) && isMandatory(def2)) {
+			return 1;
 		}
-		return attributes;
+
+		return String.CASE_INSENSITIVE_ORDER.compare(def1.getDisplayName(), def2.getDisplayName());
 	}
 
-	public String getDisplayName() {
-		return displayName;
-	}
-
-	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
-	}
-
-	public void sort() {
-		Collections.sort(getAttributes(), new FormAttributeComparator());
+	private boolean isMandatory(FormAttributeDefinition def) {
+		return def.getMinOccurs() > 0;
 	}
 }
