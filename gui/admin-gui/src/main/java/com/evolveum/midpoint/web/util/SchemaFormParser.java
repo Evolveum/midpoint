@@ -95,7 +95,6 @@ public class SchemaFormParser {
 			}
 		}
 
-		// TODO: parse schema handling
 		Schema schema = Schema.parse(resource.getXmlObject().getSchema().getAny().get(0));
 		if (accountType == null) {
 			for (Definition definition : schema.getDefinitions()) {
@@ -109,7 +108,8 @@ public class SchemaFormParser {
 					break;
 				}
 			}
-		}
+		}		
+		schema.updateSchemaAccess(resource.getXmlObject().getSchemaHandling());
 
 		if (accountType == null) {
 			throw new SchemaProcessorException("Account type was not defined.");

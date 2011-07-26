@@ -21,25 +21,22 @@
 
 package com.evolveum.midpoint.schema.processor;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+
+import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AttributeDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 
 /**
  * Schema as a collection of definitions. This is a midPoint-specific view of
@@ -59,6 +56,7 @@ import org.w3c.dom.Node;
  */
 public class Schema {
 
+	private static final Trace LOGGER = TraceManager.getTrace(Schema.class);
 	private String namespace;
 	private Set<Definition> definitions;
 	static final String INDENT = "  ";
@@ -96,30 +94,6 @@ public class Schema {
 		return definitions;
 	}
 
-	// public static Schema parse(String text) throws SchemaProcessorException {
-	// if (StringUtils.isEmpty(text)) {
-	// throw new
-	// IllegalArgumentException("String argument (schema) can't be empty.");
-	// }
-	//
-	// try {
-	// return parse(new ByteArrayInputStream(text.getBytes("utf-8")));
-	// } catch (UnsupportedEncodingException ex) {
-	// throw new SchemaProcessorException("Unsupported encoding used: " +
-	// ex.getMessage());
-	// }
-	// }
-	//
-	// public static Schema parse(InputStream input) throws
-	// SchemaProcessorException {
-	// if (input == null) {
-	// throw new IllegalArgumentException("Input stream must not be null.");
-	// }
-	//
-	// DomToSchemaProcessor processor = new DomToSchemaProcessor();
-	// return processor.parseDom(input);
-	// }
-
 	public static Schema parse(Element schema) throws SchemaProcessorException {
 		if (schema == null) {
 			throw new IllegalArgumentException("Input stream must not be null.");
@@ -138,6 +112,39 @@ public class Schema {
 		return processor.parseSchema(schema);
 	}
 
+	public void updateSchemaAccess(SchemaHandlingType schemaHandling) {
+		if (schemaHandling == null) {
+			return;
+		}
+
+		List<AccountType> accounts = schemaHandling.getAccountType();
+		for (AccountType account : accounts) {
+			PropertyContainerDefinition container = findContainerDefinitionByType(account.getObjectClass());
+			if (container == null) {
+				continue;
+			}
+
+			List<AttributeDescriptionType> attributes = account.getAttribute();
+			for (AttributeDescriptionType attribute : attributes) {
+				List<AccessType> access = attribute.getAccess();
+				if (access.isEmpty()) {
+					continue;
+				}
+
+				PropertyDefinition property = container.findPropertyDefinition(attribute.getRef());
+				if (property == null) {
+					LOGGER.trace("Property {} was not found, access to attribute won't be updated.",
+							new Object[] { attribute.getRef() });
+					continue;
+				}
+
+				property.setCreate(access.contains(AccessType.create));
+				property.setRead(access.contains(AccessType.read));
+				property.setUpdate(access.contains(AccessType.update));
+			}
+		}
+	}
+
 	// TODO: Methods for searching the schema, such as findDefinitionByName(),
 	// etc.
 
@@ -151,7 +158,7 @@ public class Schema {
 	 *             if more than one definition is found
 	 */
 	public PropertyContainerDefinition findContainerDefinitionByType(QName typeName) {
-		if (typeName==null) {
+		if (typeName == null) {
 			throw new IllegalArgumentException("typeName must be supplied");
 		}
 		// TODO: check for multiple definition with the same type

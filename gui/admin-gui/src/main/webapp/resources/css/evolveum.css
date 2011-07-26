@@ -238,7 +238,6 @@ a {
 	list-style: disc;
 	margin-left: 30px;
 } */
-
 #messages li span.messages-info {
 	color: #4F8A10;
 	background-color: #DFF2BF;
@@ -264,15 +263,15 @@ a {
 
 #messages li span div.messages-details {
 	margin-top: 3px;
-	display: none;	
+	display: none;
 }
 
 span.message-detail {
-	margin: 0 10px 0 0;	
+	margin: 0 10px 0 0;
 }
 
 #messages li span div.messages-details ul.messages-details-advanced {
-	margin-top: 4px;	
+	margin-top: 4px;
 }
 
 li.messages-line-info,li.messages-line-warn,li.messages-line-error {
@@ -292,7 +291,7 @@ li.messages-line-warn {
 }
 
 li.messages-line-error {
-	background: url('../images/exclamation.png') no-repeat 0px 0px;	
+	background: url('../images/exclamation.png') no-repeat 0px 0px;
 	color: #D8000C;
 }
 
@@ -479,4 +478,9 @@ button.positive,.buttons a.positive,.buttons input.positive {
 	width: 150px;
 	padding-left: 10px;
 	vertical-align: top;
+}
+
+input[disabled],input[readonly],select[disabled],select[readonly],checkbox[disabled],checkbox[readonly],textarea[disabled],textarea[readonly]
+	{
+	background-color: #ccc;
 }

@@ -531,15 +531,16 @@ public class UserDetailsController implements Serializable {
 			builder.setDisplayName(def.getDisplayName());
 		}
 		builder.setElementName(def.getName());
-		if (!def.isReadable() || !def.isUpdateable()) {
-			if (def.isReadable()) {
-				builder.addFlag(Flag.READ);
-			}
-			if (def.isUpdateable()) {
-				builder.addFlag(Flag.UPDATE);
-				builder.addFlag(Flag.CREATE);
-			}
+		if (def.canRead()) {
+			builder.addFlag(Flag.READ);
 		}
+		if (def.canUpdate()) {
+			builder.addFlag(Flag.UPDATE);			
+		}
+		if (def.canCreate()) {
+			builder.addFlag(Flag.CREATE);
+		}
+		
 		builder.setMaxOccurs(def.getMaxOccurs());
 		builder.setMinOccurs(def.getMinOccurs());
 		builder.setType(AttributeType.getType(def.getTypeName()));
