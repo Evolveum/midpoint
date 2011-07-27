@@ -21,7 +21,9 @@ import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.any;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +53,8 @@ import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.impl.TaskImpl;
+import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
+import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
@@ -61,32 +65,40 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
-		"classpath:application-context-provisioning-test.xml", "classpath:application-context-task.xml" })
-public class SynchronizationTest {
+@ContextConfiguration(locations = {
+		"classpath:application-context-provisioning.xml",
+		"classpath:application-context-provisioning-test.xml",
+		"classpath:application-context-task.xml" })
+@Ignore
+public class SynchronizationTest extends OpenDJUnitTestAdapter {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String FILENAME_SYNC_TASK = "src/test/resources/impl/sync-task-example.xml";
-	private static final QName TOKEN_ELEMENT_QNAME = new QName(SchemaConstants.NS_PROVISIONING_LIVE_SYNC,
-			"token");
+	private static final QName TOKEN_ELEMENT_QNAME = new QName(
+			SchemaConstants.NS_PROVISIONING_LIVE_SYNC, "token");
+
+	private static final String RESOURCE_OID = "ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
+
+	protected static OpenDJUtil djUtil = new OpenDJUtil();
 
 	private JAXBContext jaxbctx;
 	private Unmarshaller unmarshaller;
 	private ResourceType resource;
 	@Autowired
 	private ConnectorManager manager;
-	@Autowired
-	private ShadowCache shadowCache;
+	// @Autowired
+	// private ShadowCache shadowCache;
 	@Autowired
 	private ProvisioningService provisioningService;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
 	@Autowired
 	private TaskManager taskManager;
-	@Autowired
-	ResourceObjectChangeListener syncServiceMock;
+
+	// @Autowired
+	// ResourceObjectChangeListener syncServiceMock;
 
 	public TaskManager getTaskManager() {
 		return taskManager;
@@ -105,8 +117,20 @@ public class SynchronizationTest {
 	}
 
 	public SynchronizationTest() throws JAXBException {
-		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
+		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage()
+				.getName());
 		unmarshaller = jaxbctx.createUnmarshaller();
+	}
+
+	@BeforeClass
+	public static void startLdap() throws Exception {
+		startACleanDJ();
+	}
+
+	@AfterClass
+	public static void stopLdap() throws Exception {
+		stopDJ();
+
 	}
 
 	@Before
@@ -114,8 +138,9 @@ public class SynchronizationTest {
 
 		assertNotNull(manager);
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".initProvisioning");
+		OperationResult result = new OperationResult(
+				ProvisioningServiceImplOpenDJTest.class.getName()
+						+ ".initProvisioning");
 		// The default repository content is using old format of resource
 		// configuration
 		// We need a sample data in the new format, so we need to set it up
@@ -128,12 +153,14 @@ public class SynchronizationTest {
 
 	@After
 	public void cleadUpRepo() throws ObjectNotFoundException {
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".cleanUpRepo");
+		OperationResult result = new OperationResult(
+				ProvisioningServiceImplOpenDJTest.class.getName()
+						+ ".cleanUpRepo");
 		repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
 	}
 
-	private ObjectType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException {
+	private ObjectType createObjectFromFile(String filePath)
+			throws FileNotFoundException, JAXBException {
 		File file = new File(filePath);
 		FileInputStream fis = new FileInputStream(file);
 		Object object = unmarshaller.unmarshal(fis);
@@ -144,8 +171,9 @@ public class SynchronizationTest {
 	private ObjectType addObjectFromFile(String filePath) throws Exception {
 		ObjectType object = createObjectFromFile(filePath);
 		System.out.println("obj: " + object.getName());
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".addObjectFromFile");
+		OperationResult result = new OperationResult(
+				ProvisioningServiceImplOpenDJTest.class.getName()
+						+ ".addObjectFromFile");
 		repositoryService.addObject(object, result);
 		return object;
 	}
@@ -153,8 +181,9 @@ public class SynchronizationTest {
 	@Test
 	public void testSynchronization() throws Exception {
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".synchronizationTest");
+		OperationResult result = new OperationResult(
+				ProvisioningServiceImplOpenDJTest.class.getName()
+						+ ".synchronizationTest");
 
 		try {
 
@@ -168,21 +197,25 @@ public class SynchronizationTest {
 
 			Task task = taskManager.getTask(SYNC_TASK_OID, result);
 
-			Property property = task.getExtension().findProperty(TOKEN_ELEMENT_QNAME);
+			Property property = task.getExtension().findProperty(
+					TOKEN_ELEMENT_QNAME);
 
 			List<Change> changes = new ArrayList<Change>();
-			Change ch = new Change(new HashSet<Property>(), new ObjectChangeAdditionType(), property);
+			Change ch = new Change(new HashSet<Property>(),
+					new ObjectChangeAdditionType(), property);
 			changes.add(ch);
 
-			when(
-					shadowCache.fetchChanges(any(ResourceType.class), any(Property.class),
-							any(OperationResult.class))).thenReturn(changes);
+			// when(
+			// shadowCache.fetchChanges(any(ResourceType.class),
+			// any(Property.class),
+			// any(OperationResult.class))).thenReturn(changes);
 
 			provisioningService.synchronize(resource.getOid(), task, result);
+			// provisioningService.synchronize(RESOURCE_OID, task, result);
+			// SynchornizationServiceMock mock = (SynchornizationServiceMock)
+			// syncServiceMock;
+			// assertEquals(true, mock.isCalled());
 
-			SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;
-			assertEquals(true, mock.isCalled());
-			
 		} finally {
 			repositoryService.deleteObject(SYNC_TASK_OID, result);
 		}
@@ -196,13 +229,13 @@ public class SynchronizationTest {
 		this.manager = manager;
 	}
 
-	public ShadowCache getShadowCache() {
-		return shadowCache;
-	}
-
-	public void setShadowCache(ShadowCache shadowCache) {
-		this.shadowCache = shadowCache;
-	}
+	// public ShadowCache getShadowCache() {
+	// return shadowCache;
+	// }
+	//
+	// public void setShadowCache(ShadowCache shadowCache) {
+	// this.shadowCache = shadowCache;
+	// }
 
 	public ProvisioningService getProvisioningService() {
 		return provisioningService;

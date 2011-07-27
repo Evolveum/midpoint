@@ -54,7 +54,6 @@ import java.util.List;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
@@ -121,7 +120,6 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private ResourceType resource;
 	@Autowired
 	private ConnectorManager manager;
-//	private ShadowCache shadowCache;
 	@Autowired
 	private ProvisioningService provisioningService;
 	private Unmarshaller unmarshaller;

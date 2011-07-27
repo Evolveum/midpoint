@@ -54,6 +54,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -228,6 +229,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 	}
 
 	@Test
+	@Ignore
 	public void testFetchObject() throws UcfException {
 		System.out.println("*** Fetch resource object");
 		// GIVEN
@@ -247,7 +249,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		QName objectClass = accountDefinition.getTypeName();
 		
 		OperationResult result = new OperationResult(this.getClass().getName()+".testFetchObject");
-		
+	
 		// WHEN
 		ResourceObject ro = cc.fetchObject(objectClass,identifiers,result);
 		

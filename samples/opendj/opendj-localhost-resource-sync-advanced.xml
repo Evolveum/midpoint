@@ -535,7 +535,7 @@ object.
                     <!-- Reference to the User Template is here. If the user would be
                          created as a result of this action, it will be created according
                          to this template. -->
-					<c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+					<c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
 				</c:action>
 				<c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
 			</c:reaction>
@@ -576,6 +576,28 @@ object.
 			<c:type>default</c:type>
 		</c:accountConstruction>
 
+	</c:userTemplate>
+	
+	<!-- User Template Object.
+          This object is used when creating a new account, to set it up as needed.
+     -->
+	<c:userTemplate oid="c0c010c0-d34d-b33f-f00d-777222222222">
+		<c:name>Default User Template2</c:name>
+
+        <!-- Property construction.
+             Defines how properties of user object are set up.
+             This specific definition sets a full name as a concatenation
+             of givenName and familyName. -->
+		<c:propertyConstruction>
+			<c:property>i:fullName</c:property>
+			<c:valueConstruction default="true">
+				<c:valueExpression>
+					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+					concat($i:user/i:givenName,' ',$i:user/i:familyName)
+                </c:valueExpression>
+			</c:valueConstruction>
+		</c:propertyConstruction>
+		
 	</c:userTemplate>
 
     <!-- Sample custom configuration object. Object of the genericObject type are

@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 public class SimpleUcfTest {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
-
+	
 	ConnectorManager manager;
 	ResourceType resource;
 

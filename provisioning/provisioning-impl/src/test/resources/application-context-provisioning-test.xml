@@ -69,8 +69,6 @@
 		factory-method="getRepositoryService" class="com.evolveum.midpoint.repo.xml.XmlRepositoryService"
 		scope="prototype" depends-on="xmlRepositoryServiceFactory"></bean>
 
-		<bean name="shadowCache"
-		class="com.evolveum.midpoint.provisioning.test.mock.MockFactory"
-		factory-method="createShadowCache" />
+	
 
 </beans>
