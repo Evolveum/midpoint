@@ -83,7 +83,8 @@ public class LinkAccountAction extends BaseAction {
 						ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.add, null,
 								SchemaConstants.I_ACCOUNT_REF, accountRef));
 
-				getModel().modifyObject(changes, subResult);
+//				getModel().modifyObject(changes, subResult);
+				getModel().modifyObjectWithExclusion(changes, accountRef.getOid(), subResult);
 			} else {
 				LOGGER.debug("Skipping link account to user, shadow in change is not AccountShadowType.");
 			}

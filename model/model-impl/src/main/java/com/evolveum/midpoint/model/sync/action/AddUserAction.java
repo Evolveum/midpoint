@@ -65,7 +65,6 @@ public class AddUserAction extends BaseAction {
 			if (user == null) {
 				user = new ObjectFactory().createUserType();
 
-				// TODO: process inbound schema handling here
 				SchemaHandler schemaHandler = new SchemaHandlerImpl();
 				schemaHandler.setModel(getModel());
 				user = schemaHandler.processInboundHandling(user, shadowAfterChange, subResult);
