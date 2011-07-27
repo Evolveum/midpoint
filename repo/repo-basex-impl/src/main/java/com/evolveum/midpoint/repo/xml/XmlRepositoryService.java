@@ -21,7 +21,6 @@
  */
 package com.evolveum.midpoint.repo.xml;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,11 +29,9 @@ import java.util.Map.Entry;
 import java.util.Random;
 import java.util.UUID;
 
-import javax.naming.spi.DirStateFactory.Result;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.crypto.dsig.keyinfo.RetrievalMethod;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
@@ -46,6 +43,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
@@ -66,9 +64,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -155,7 +150,7 @@ public class XmlRepositoryService implements RepositoryService {
 			return oid;
 			
 		} catch (JAXBException ex) {
-			TRACE.error("Failed to (un)marshal object", ex);
+			LoggingUtils.logException(TRACE, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 			
@@ -164,7 +159,7 @@ public class XmlRepositoryService implements RepositoryService {
 				result.recordWarning("Object with the same name already exists");
 				throw new ObjectAlreadyExistsException(ex);
 			} else {
-				TRACE.error("Reported error by XML Database", ex);
+				LoggingUtils.logException(TRACE,"Reported error by XML Database", ex);
 				result.recordFatalError("Reported error by XML Database", ex);
 				throw new SystemException("Reported error by XML Database", ex);
 			}
@@ -216,11 +211,11 @@ public class XmlRepositoryService implements RepositoryService {
 				}
 			}
 		} catch (JAXBException ex) {
-			TRACE.error("Failed to (un)marshal object", ex);
+			LoggingUtils.logException(TRACE, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (BaseXException ex) {
-			TRACE.error("Reported error by XML Database", ex);
+			LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
 			result.recordFatalError("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
 		} finally {
@@ -228,7 +223,7 @@ public class XmlRepositoryService implements RepositoryService {
 				try {
 					cq.close();
 				} catch (BaseXException ex) {
-					TRACE.error("Reported error by XML Database", ex);
+					LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
 					throw new SystemException("Reported error by XML Database", ex);
 				}
 			}
@@ -347,12 +342,12 @@ public class XmlRepositoryService implements RepositoryService {
 			result.computeStatus();
 			
 		} catch (PatchException ex) {
-			TRACE.error("Failed to modify object", ex);
+			LoggingUtils.logException(TRACE, "Failed to modify object", ex);
 			result.recordFatalError("Failed to modify object", ex);
 			throw new SystemException("Failed to modify object", ex);
 			
 		} catch (BaseXException ex) {
-			TRACE.error("Reported error by XML Database", ex);
+			LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
 			result.recordFatalError("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
 		}
@@ -369,7 +364,7 @@ public class XmlRepositoryService implements RepositoryService {
 		try {
 			ObjectType retrievedObject = getObject(oid, null, result);
 		} catch (SchemaException ex) {
-			TRACE.error(
+			LoggingUtils.logException(TRACE, 
 					"Schema validation problem occured while checking existence of the object before its deletion",
 					ex);
 			result.recordFatalError("Schema validation problem occured while checking existence of the object before its deletion", ex);
@@ -388,7 +383,7 @@ public class XmlRepositoryService implements RepositoryService {
 			
 			result.recordSuccess();
 		} catch (BaseXException ex) {
-			TRACE.error("Reported error by XML Database", ex);
+			LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
 			result.recordFatalError("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database");
 		}
@@ -561,12 +556,12 @@ public class XmlRepositoryService implements RepositoryService {
 			return objectList;
 			
 		} catch (JAXBException ex) {
-			TRACE.error("Failed to (un)marshal object", ex);
+			LoggingUtils.logException(TRACE, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 			
 		} catch (BaseXException ex) {
-			TRACE.error("Reported error by XML Database", ex);
+			LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
 			result.recordFatalError("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
 			
@@ -575,7 +570,7 @@ public class XmlRepositoryService implements RepositoryService {
 				try {
 					cq.close();
 				} catch (BaseXException ex) {
-					TRACE.error("Reported error by XML Database", ex);
+					LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
 					result.recordFatalError("Reported error by XML Database", ex);
 					throw new SystemException("Reported error by XML Database", ex);
 				}
