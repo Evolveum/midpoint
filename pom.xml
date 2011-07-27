@@ -61,7 +61,7 @@
 	<properties>
         <!-- Build system options -->
 		<project.source.version>1.6</project.source.version>
-		<clover.version>3.0.5</clover.version>
+		<clover.version>3.1.0</clover.version>
 	</properties>
 	<modules>
 		<module>build-system</module>
@@ -83,24 +83,6 @@
 						<groupId>com.atlassian.maven.plugins</groupId>
 						<artifactId>maven-clover2-plugin</artifactId>
 						<version>${clover.version}</version>
-                        <!--  executions>
-                            <execution>
-                                <id>clover</id>
-                                <goals>
-                                    <goal>setup</goal>
-                                    <goal>optimize</goal>
-                                    <goal>snapshot</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <phase>verify</phase>
-                                <goals>
-                                    <goal>clover</goal>
-                                    <goal>log</goal>
-                                    <goal>check</goal>
-                                </goals>
-                            </execution>
-                        </executions-->
 						<configuration>
 							<targetPercentage>0%</targetPercentage>
 							<includesTestSourceRoots>true</includesTestSourceRoots>
@@ -121,6 +103,14 @@
 					</plugin>
 				</plugins>
 			</reporting>
+			<dependencies>
+
+				<dependency>
+					<groupId>com.cenqua.clover</groupId>
+					<artifactId>clover</artifactId>
+					<version>${clover.version}</version>
+				</dependency>
+			</dependencies>
 		</profile>
 		<profile>
 			<id>sanity</id>
