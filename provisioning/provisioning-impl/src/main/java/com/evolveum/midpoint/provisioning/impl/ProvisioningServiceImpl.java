@@ -217,7 +217,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			result.recordSuccess();
 			LOGGER.debug("**PROVISIONING: Get object finished.");
-
+			
 			return shadow;
 		} else {
 			result.recordSuccess();

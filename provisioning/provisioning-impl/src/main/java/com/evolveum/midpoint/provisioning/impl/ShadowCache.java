@@ -72,6 +72,7 @@ import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -843,13 +844,17 @@ public class ShadowCache {
 				change.setOldShadow(newAccount);
 			}
 		} catch (SchemaException ex) {
-
+			parentResult.recordFatalError("Schema error: " + ex.getMessage(), ex);
+			throw new SchemaException("Schema error: "+ex.getMessage(), ex);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
-
+			parentResult.recordFatalError("Communication error: " + ex.getMessage(), ex);
+			throw new CommunicationException("Communication error: "+ex.getMessage(), ex);
 		} catch (ObjectNotFoundException ex) {
-
+			parentResult.recordFatalError("Object not found. Reason: " + ex.getMessage(), ex);
+			throw new ObjectNotFoundException("Object not found. Reason: "+ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
-
+			parentResult.recordFatalError("Generic error: " + ex.getMessage(), ex);
+			throw new GenericFrameworkException("Generic error: "+ex.getMessage(), ex);
 		}
 		parentResult.recordSuccess();
 		return changes;
@@ -877,6 +882,12 @@ public class ShadowCache {
 		if (accountList.getObject().isEmpty()) {
 			newAccount = createNewAccount(change, resource, connector,
 					parentResult);
+//			if (change.getChange() instanceof ObjectChangeAdditionType){
+//				ObjectChangeAdditionType additionChange = (ObjectChangeAdditionType) change.getChange();
+//				TODO: unchecked casting to the accoun t shadow type - it might be also group etc..
+//				newAccount = (AccountShadowType) additionChange.getObject();
+//			}
+			
 			LOGGER.debug("Create account shadow object: {}",
 					ObjectTypeUtil.toShortString(newAccount));
 
@@ -965,8 +976,16 @@ public class ShadowCache {
 
 		// set name for new account
 		ResourceObject resourceObject = fetchResourceObject(
-				change.getIdentifiers(), objectClass, connector, parentResult);
-		String accountName = determineShadowName(resourceObject);
+				change.getIdentifiers(), connector, resourceType, parentResult);
+//		String accountName = determineShadowName(resourceObject);
+		ResourceObjectAttribute accountAttribute = resourceObject.findAttribute(new QName(resourceType.getNamespace(), "uid"));
+		
+		if (accountAttribute.getValues().size() != 1){
+			parentResult.recordFatalError("Account has more than one uid values");
+			throw new IllegalArgumentException("Account has more than one uid values");
+		}
+		
+		String accountName = accountAttribute.getValue(String.class);
 		newAccount.setName(accountName);
 
 		try {
@@ -982,10 +1001,9 @@ public class ShadowCache {
 		return newAccount;
 	}
 
-	private ResourceObject fetchResourceObject(Set<Property> identifiers,
-			QName objectClass, ConnectorInstance connector,
+	private ResourceObject fetchResourceObject(Set<Property> identifiers, ConnectorInstance connector, ResourceType resource, 
 			OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, GenericFrameworkException {
+			CommunicationException, GenericFrameworkException, SchemaException {
 
 		Set<ResourceObjectAttribute> roIdentifiers = new HashSet<ResourceObjectAttribute>();
 		for (Property p : identifiers) {
@@ -995,8 +1013,9 @@ public class ShadowCache {
 		}
 
 		try {
-			ResourceObject resourceObject = connector.fetchObject(objectClass,
-					roIdentifiers, parentResult);
+			Schema schema = getResourceSchema(resource, connector, parentResult);
+			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
+			ResourceObject resourceObject = connector.fetchObject(rod, roIdentifiers, parentResult);
 			return resourceObject;
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
 			parentResult.recordFatalError("Object not found. Identifiers: "
@@ -1015,6 +1034,9 @@ public class ShadowCache {
 					+ connector + ". Reason: " + e.getMessage(), e);
 			throw new CommunicationException("Generic error in the connector "
 					+ connector + ". Reason: " + e.getMessage(), e);
+		} catch (SchemaException ex){
+			parentResult.recordFatalError("Can't get resource schema. Reason: " + ex.getMessage(), ex);
+			throw new SchemaException("Can't get resource schema. Reason: " + ex.getMessage(), ex);
 		}
 
 	}
@@ -1243,10 +1265,6 @@ public class ShadowCache {
 			Set<Property> identifiers,
 			ResourceObjectShadowType resourceObjectShadow)
 			throws SchemaException {
-
-		// if (resourceObjectShadow == null) {
-		// resourceObjectShadow = new AccountShadowType();
-		// }
 
 		List<Element> identifierElements = new ArrayList<Element>();
 		Document doc = DOMUtil.getDocument();

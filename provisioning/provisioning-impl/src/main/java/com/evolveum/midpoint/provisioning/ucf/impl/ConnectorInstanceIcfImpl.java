@@ -53,13 +53,17 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
@@ -307,6 +311,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// Get UID from the set of idetifiers
 		Uid uid = getUid(identifiers);
 		if (uid == null) {
+			result.recordFatalError("Required attribute UID not found in identification set while attempting to fetch object identified by "
+							+ identifiers
+							+ " from recource "
+							+ resource.getName()
+							+ "(OID:"
+							+ resource.getOid()
+							+ ")");
 			throw new IllegalArgumentException(
 					"Required attribute UID not found in identification set while attempting to fetch object identified by "
 							+ identifiers
@@ -320,6 +331,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ObjectClass icfObjectClass = objectClassToIcf(resourceObjectDefinition
 				.getTypeName());
 		if (icfObjectClass == null) {
+			result.recordFatalError("Unable to detemine object class from QName "
+					+ resourceObjectDefinition.getTypeName()
+					+ " while attempting to fetch object identified by "
+					+ identifiers + " from recource "
+					+ resource.getName() + "(OID:" + resource.getOid()
+					+ ")");
 			throw new IllegalArgumentException(
 					"Unable to detemine object class from QName "
 							+ resourceObjectDefinition.getTypeName()
@@ -379,6 +396,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// Get UID from the set of idetifiers
 		Uid uid = getUid(identifiers);
 		if (uid == null) {
+			result.recordFatalError("Required attribute UID not found in identification set while attempting to fetch object identified by "
+					+ identifiers
+					+ " from recource "
+					+ resource.getName()
+					+ "(OID:"
+					+ resource.getOid()
+					+ ")");
 			throw new IllegalArgumentException(
 					"Required attribute UID not found in identification set while attempting to fetch object identified by "
 							+ identifiers
@@ -391,6 +415,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 		if (icfObjectClass == null) {
+			result.recordFatalError("Unable to detemine object class from QName "
+					+ objectClass
+					+ " while attempting to fetch object identified by "
+					+ identifiers + " from recource "
+					+ resource.getName() + "(OID:" + resource.getOid()
+					+ ")");
 			throw new IllegalArgumentException(
 					"Unable to detemine object class from QName "
 							+ objectClass
@@ -824,7 +854,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		List<Change> changeList = null;
 		try {
 			Schema schema = fetchResourceSchema(subresult);
-			changeList = getChangesFromSyncDelta(result, schema);
+			changeList = getChangesFromSyncDelta(result, schema, subresult);
 		} catch (SchemaException ex) {
 			subresult.recordFatalError(ex.getMessage(), ex);
 			throw new SchemaException(ex.getMessage(), ex);
@@ -1170,7 +1200,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result,
-			Schema schema) throws SchemaException {
+			Schema schema, OperationResult parentResult) throws SchemaException {
 		List<Change> changeList = new ArrayList<Change>();
 
 		for (SyncDelta delta : result) {
@@ -1193,18 +1223,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						.findContainerDefinitionByType(objectClass);
 				ResourceObject resourceObject = convertToResourceObject(
 						delta.getObject(), rod);
+				
+//				ObjectChangeAdditionType additionalChangeType = new ObjectChangeAdditionType();
+//				additionalChangeType.setObject(createResourceShadow(resourceObject, resource, parentResult));
 				ObjectChangeModificationType modificationChangeType = createModificationChange(
 						delta, resourceObject);
 				LOGGER.trace("Got modification: {}",
 						JAXBUtil.silentMarshalWrap(modificationChangeType));
-				Set<Property> identifiers = resourceObject.getIdentifiers();
-				// HACK: we need to have set account name for synchronization
-				// action
-				Property accountName = resourceObject.findProperty(new QName(
-						resource.getNamespace(), "uid"));
-				identifiers.add(accountName);
-
-				Change change = new Change(identifiers, modificationChangeType,
+			
+				Change change = new Change(resourceObject.getIdentifiers(), modificationChangeType,
 						getToken(delta.getToken()));
 				changeList.add(change);
 			}
@@ -1213,6 +1240,51 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return changeList;
 	}
 
+	//TODO:refaktor = > move to the utility methods or resource object methods...the same method used in the shadow cache..
+	private ResourceObjectShadowType createResourceShadow(
+			ResourceObject resourceObject, ResourceType resource,
+			OperationResult parentResult) throws SchemaException {
+
+		ResourceObjectShadowType shadow = null;
+
+		// Determine correct type for the shadow
+		String accountName = null;
+		if (resourceObject.isAccountType()) {
+			shadow = new AccountShadowType();
+			ResourceObjectAttribute name = resourceObject.findAttribute(new QName(resource.getNamespace(), "uid"));
+			if (name.getValues().size() != 1){
+				throw new IllegalArgumentException("Name attribute must be just one.");
+			}
+			accountName = name.getValue(String.class);
+		} else {
+			shadow = new ResourceObjectShadowType();
+		}
+
+		
+		
+		shadow.setObjectClass(resourceObject.getDefinition().getTypeName());
+		shadow.setName(resource.getName()+"-"+accountName);
+		shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
+		Attributes attributes = new Attributes();
+		shadow.setAttributes(attributes);
+
+		Document doc = DOMUtil.getDocument();
+
+		// Add identifiers to the shadow
+		Set<Property> identifiers = resourceObject.getIdentifiers();
+		for (Property p : identifiers) {
+			try {
+				List<Element> eList = p.serializeToDom(doc);
+				shadow.getAttributes().getAny().addAll(eList);
+			} catch (SchemaProcessorException e) {
+				throw new SchemaException(
+						"An error occured while serializing property " + p
+								+ " to DOM");
+			}
+		}
+		return shadow;
+	}
+	
 	private ObjectChangeModificationType createModificationChange(
 			SyncDelta delta, ResourceObject resourceObject)
 			throws SchemaException {
