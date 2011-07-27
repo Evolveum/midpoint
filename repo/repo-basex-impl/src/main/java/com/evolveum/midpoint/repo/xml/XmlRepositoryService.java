@@ -329,7 +329,11 @@ public class XmlRepositoryService implements RepositoryService {
 			// modify the object
 			PatchXml xmlPatchTool = new PatchXml();
 			String serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
-
+			// FIXME: try to find another solution how to escape XQuery special
+			// characters in XMLs
+			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
+			serializedObject = StringUtils.replace(serializedObject, "}", "}}");
+			
 			// store modified object in repo
 			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
 			query.append(DECLARE_NAMESPACE_C).append("replace node //c:object[@oid=\"")
