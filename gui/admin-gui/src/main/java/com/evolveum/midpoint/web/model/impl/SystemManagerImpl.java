@@ -76,7 +76,6 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
 			Document document = DOMUtil.parseDocument(xml);
 
 			List<XPathSegment> segments = new ArrayList<XPathSegment>();
-			segments.add(new XPathSegment(SchemaConstants.I_SYSTEM_CONFIGURATION));
 			XPathType xpath = new XPathType(segments);
 
 			ObjectModificationType change = new ObjectModificationType();

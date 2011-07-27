@@ -3,7 +3,7 @@
     <name>SystemConfiguration</name>
     <logging>
         <logger>
-            <level>TRACE</level>
+            <level>trace</level>
             <component>model</component>
             <component>provisioning</component>
             <component>repository</component>
@@ -14,7 +14,7 @@
             <appender>Ndc File Appender</appender>
         </logger>
         <logger>
-            <level>TRACE</level>
+            <level>trace</level>
             <component>model</component>
             <component>provisioning</component>
             <component>repository</component>
@@ -25,7 +25,7 @@
             <appender>Ndc File Appender</appender>
         </logger>
         <logger>
-            <level>TRACE</level>
+            <level>trace</level>
             <component>model</component>
             <component>provisioning</component>
             <component>repository</component>

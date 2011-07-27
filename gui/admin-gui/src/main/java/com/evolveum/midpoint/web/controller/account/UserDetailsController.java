@@ -252,31 +252,35 @@ public class UserDetailsController implements Serializable {
 			TRACE.debug("Submit user modified in GUI");
 			Set<PropertyChange> userChanges = userManager.submit(user);
 			TRACE.debug("Modified user in GUI submitted ");
-			if (userChanges.isEmpty()) {
-				// account changes are processed as modification of account,
-				// every account is processed separately
-				TRACE.debug("Start processing of modified accounts");
-				for (AccountFormBean formBean : accountList) {
-					if (!formBean.isNew()) {
-						AccountShadowDto modifiedAccountShadowDto = updateAccountAttributes(formBean);
-						TRACE.debug("Found modified account in GUI: {}",
-								DebugUtil.prettyPrint(modifiedAccountShadowDto.getXmlObject()));
-						TRACE.debug("Submit account modified in GUI");
-						accountManager.submit(modifiedAccountShadowDto);
-						TRACE.debug("Modified account in GUI submitted");
+			if (userChanges != null) {
+				if (userChanges.isEmpty()) {
+					// account changes are processed as modification of account,
+					// every account is processed separately
+					TRACE.debug("Start processing of modified accounts");
+					for (AccountFormBean formBean : accountList) {
+						if (!formBean.isNew()) {
+							AccountShadowDto modifiedAccountShadowDto = updateAccountAttributes(formBean);
+							TRACE.debug("Found modified account in GUI: {}",
+									DebugUtil.prettyPrint(modifiedAccountShadowDto.getXmlObject()));
+							TRACE.debug("Submit account modified in GUI");
+							accountManager.submit(modifiedAccountShadowDto);
+							TRACE.debug("Modified account in GUI submitted");
+						}
 					}
+					TRACE.debug("Finished processing of modified accounts");
+				} else {
+					updateAccounts(accountList);
 				}
-				TRACE.debug("Finished processing of modified accounts");
+
+				// action is done in clearController
+				// accountListDeleted.clear();
+				clearController();
+
+				FacesUtils.addSuccessMessage("Changes saved successfully.");
 			} else {
-				updateAccounts(accountList);
+				clearController();
+				FacesUtils.addWarnMessage("Errors occured during save operation.");
 			}
-
-			// action is done in clearController
-			// accountListDeleted.clear();
-			clearController();
-
-			FacesUtils.addSuccessMessage("Save changes successfully.");
-
 		} catch (SchemaProcessorException ex) {
 			TRACE.error("Dynamic form generator error", ex);
 			// TODO: What action should we fire in GUI if error occurs ???

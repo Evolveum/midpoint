@@ -15,6 +15,8 @@ public interface ModelController extends ModelService {
 	String CLASS_NAME = ModelController.class.getName() + ".";
 	String ADD_OBJECT = CLASS_NAME + "addObject";
 	String GET_OBJECT = CLASS_NAME + "getObject";
+	String SEARCH_OBJECTS_IN_PROVISIONING = CLASS_NAME + "searchObjectsInProvisioning";
+	String MODIFY_OBJECT_WITH_EXCLUSION = CLASS_NAME + "modifyObjectWithExclusion";
 
 	ObjectListType searchObjectsInProvisioning(QueryType query, PagingType paging, OperationResult result);
 

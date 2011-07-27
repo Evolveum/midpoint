@@ -236,7 +236,8 @@ public class LoggingController implements Serializable {
 		}
 		for (LoggingComponentType component : logger.getComponent()) {
 			item.getComponents().add(component.value());
-		}
+		}		
+		item.getPackages().addAll(logger.getPackage());
 
 		return item;
 	}

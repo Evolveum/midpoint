@@ -138,9 +138,10 @@ public class ModelControllerImpl implements ModelController {
 			}
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
+			subResult.computeStatus();
 			LOGGER.debug(subResult.dump());
 		}
-		
+
 		return oid;
 	}
 
@@ -245,6 +246,7 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordFatalError("Couldn't get object with oid '" + oid + "'.", ex);
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
+			subResult.computeStatus();
 			LOGGER.debug(subResult.dump());
 		}
 
@@ -341,7 +343,7 @@ public class ModelControllerImpl implements ModelController {
 			list = new ObjectListType();
 			list.setCount(0);
 		}
-		
+
 		return list;
 	}
 
@@ -398,6 +400,7 @@ public class ModelControllerImpl implements ModelController {
 			LoggingUtils.logException(LOGGER, "Couldn't update object with oid {}", ex, change.getOid());
 			subResult.recordFatalError("Couldn't update object with oid '" + change.getOid() + "'.", ex);
 		} finally {
+			subResult.computeStatus();
 			LOGGER.debug(subResult.dump());
 		}
 
@@ -682,6 +685,7 @@ public class ModelControllerImpl implements ModelController {
 					oid, clazz);
 			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
 		} finally {
+			subResult.computeStatus();
 			LOGGER.debug(subResult.dump());
 		}
 
@@ -1005,9 +1009,10 @@ public class ModelControllerImpl implements ModelController {
 
 					propertyChange.getValue().getAny().clear();
 					propertyChange.getValue().getAny().add(accountRefElement);
+				} catch (SystemException ex) {
+					throw ex;
 				} catch (Exception ex) {
-					// TODO: error handling
-					ex.printStackTrace();
+					throw new SystemException("Couldn't process add account.", ex);
 				}
 			}
 		}
@@ -1055,6 +1060,8 @@ public class ModelControllerImpl implements ModelController {
 					ex.printStackTrace();
 				}
 			}
+		} else {
+			repository.modifyObject(change, result);
 		}
 	}
 

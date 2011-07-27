@@ -93,7 +93,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 	@Override
 	public Set<PropertyChange> submit(GuiUserDto changedObject) {
 		Validate.notNull(changedObject, "User object must not be null.");
-		Set<PropertyChange> set = new HashSet<PropertyChange>();
+		Set<PropertyChange> set = null;
 		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
 
 		OperationResult result = new OperationResult(UserManager.OPERATION_USER_SUBMIT);
@@ -105,6 +105,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 			}
 
 			if (null != changes) {
+				set = new HashSet<PropertyChange>();
 				// TODO: finish this
 				List<PropertyModificationType> modifications = changes.getPropertyModification();
 				for (PropertyModificationType modification : modifications) {
