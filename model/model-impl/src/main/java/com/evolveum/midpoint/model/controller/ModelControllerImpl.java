@@ -776,25 +776,21 @@ public class ModelControllerImpl implements ModelController {
 
 		List<ObjectReferenceType> refToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
-			OperationResult subResult = new OperationResult("resolveUserAttributes");
-			result.addSubresult(subResult);
-
+			OperationResult subResult = result.createSubresult("resolveUserAttributes");
 			try {
 				AccountShadowType account = getObjectFromProvisioning(accountRef.getOid(), resolve,
 						subResult, AccountShadowType.class);
 				user.getAccount().add(account);
 				refToBeDeleted.add(accountRef);
-
-				// resolveAccountAttributes(account, resolve, result);
 				subResult.recordSuccess();
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't resolve account with oid {}", ex,
 						accountRef.getOid());
 				subResult.recordFatalError(
 						"Couldn't resolve account with oid '" + accountRef.getOid() + "'.", ex);
+			} finally {
+				subResult.computeStatus();
 			}
-
-			subResult.computeStatus();
 		}
 		user.getAccountRef().removeAll(refToBeDeleted);
 	}
@@ -825,9 +821,9 @@ public class ModelControllerImpl implements ModelController {
 					.logException(LOGGER, "Couldn't resolve resource with oid {}", ex, reference.getOid());
 			subResult
 					.recordFatalError("Couldn't resolve resource with oid '" + reference.getOid() + "'.", ex);
+		} finally {
+			subResult.computeStatus();
 		}
-
-		subResult.computeStatus();
 	}
 
 	private ScriptsType getScripts(ObjectType object, OperationResult result) throws ObjectNotFoundException {
@@ -1055,15 +1051,15 @@ public class ModelControllerImpl implements ModelController {
 
 				try {
 					AccountShadowType account = getObject(accountRef.getOid(),
-							ModelUtils.createPropertyReferenceListType("Resource"), result,
+							ModelUtils.createPropertyReferenceListType("Resource"), subResult,
 							AccountShadowType.class, true);
 					schemaHandler.setModel(this);
 					ObjectModificationType accountChange = schemaHandler.processOutboundHandling(user,
-							account, result);
-					modifyObjectWithExclusion(accountChange, accountOid, result);
-					ScriptsType scripts = getScripts(account, result);
+							account, subResult);
+					modifyObjectWithExclusion(accountChange, accountOid, subResult);
+					ScriptsType scripts = getScripts(account, subResult);
 
-					provisioning.modifyObject(accountChange, scripts, result);
+					provisioning.modifyObject(accountChange, scripts, subResult);
 				} catch (Exception ex) {
 					LoggingUtils.logException(LOGGER, "Couldn't update outbound handling for account {}", ex,
 							accountRef.getOid());
