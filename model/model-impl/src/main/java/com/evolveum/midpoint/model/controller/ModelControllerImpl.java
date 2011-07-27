@@ -398,7 +398,12 @@ public class ModelControllerImpl implements ModelController {
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update object with oid {}", ex, change.getOid());
-			subResult.recordFatalError("Couldn't update object with oid '" + change.getOid() + "'.", ex);
+			String message = "Couldn't update object with oid '" + change.getOid() + "'.";
+			subResult.recordFatalError(message, ex);
+			if (ex instanceof SystemException) {
+				throw (SystemException) ex;
+			}
+			throw new SystemException(message, ex);
 		} finally {
 			subResult.computeStatus();
 			LOGGER.debug(subResult.dump());
