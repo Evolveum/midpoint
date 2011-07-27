@@ -259,6 +259,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.recordFatalError(
 					"Failed to add shadow object: " + ex.getMessage(), ex);
 			throw new CommunicationException(ex.getMessage(), ex);
+		} catch (SchemaException ex){
+			LOGGER.error("**PROVISIONING: Coldn't add object. Reason: {}", ex.getMessage(), ex);
+			result.recordFatalError("Coldn't add object. Reason: " + ex.getMessage(), ex);
+			throw new SchemaException("Coldn't add object. Reason: " + ex.getMessage(), ex);
 		}
 
 		LOGGER.debug("**PROVISIONING: Adding object finished.");
@@ -347,7 +351,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e.getMessage(), e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
+		} catch (CommunicationException e) {
 			result.recordFatalError(
 					"Error communicating with connector: " + e.getMessage(), e);
 			throw new CommunicationException(e.getMessage(), e);

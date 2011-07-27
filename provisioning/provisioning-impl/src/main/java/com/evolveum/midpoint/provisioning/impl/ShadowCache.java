@@ -816,8 +816,7 @@ public class ShadowCache {
 
 	public List<Change> fetchChanges(ResourceType resourceType,
 			Property lastToken, OperationResult parentResult)
-			throws ObjectNotFoundException,
-			com.evolveum.midpoint.provisioning.ucf.api.CommunicationException,
+			throws ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException, SchemaException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
@@ -832,54 +831,122 @@ public class ShadowCache {
 				"AccountObjectClass");
 
 		// get changes from the connector
-		List<Change> changes = connector.fetchChanges(objectClass, lastToken,
-				parentResult);
+		List<Change> changes = null;
+		try {
+			changes = connector.fetchChanges(objectClass, lastToken,
+					parentResult);
 
-		for (Change change : changes) {
-			// search objects in repository
-			QueryType query = createSearchQuery(change.getIdentifiers());
-			ObjectListType objListType = getRepositoryService().searchObjects(
-					query, new PagingType(), parentResult);
-			// if object doesn't exist, create it now
-			if (objListType.getObject().isEmpty()) {
-				AccountShadowType newAccount = createNewAccount(change,
-						resourceType, parentResult);
-				LOGGER.debug("Create account shadow object: {}",
-						ObjectTypeUtil.toShortString(newAccount));
+			for (Change change : changes) {
+				// search objects in repository
+				AccountShadowType newAccount = findOrCreateAccount(connector,
+						resourceType, change, parentResult);
 				change.setOldShadow(newAccount);
-				try {
-					getRepositoryService().addObject(newAccount, parentResult);
-				} catch (ObjectAlreadyExistsException e) {
-					parentResult.recordFatalError("Can't add account "
-							+ DebugUtil.prettyPrint(newAccount)
-							+ " to the repository. Reason: " + e.getMessage(),
-							e);
-					throw new IllegalStateException(e.getMessage(), e);
-				}
-				// if exist, set the old shadow to the change
-			} else {
-				for (ObjectType obj : objListType.getObject()) {
-					if (!(obj instanceof ResourceObjectShadowType)) {
-						parentResult
-								.recordFatalError("Object type must be one of the resource object shadow.");
-						throw new IllegalStateException(
-								"Object type must be one of the resource object shadow.");
-					}
-					change.setOldShadow((ResourceObjectShadowType) obj);
-				}
 			}
+		} catch (SchemaException ex) {
+
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+
+		} catch (ObjectNotFoundException ex) {
+
+		} catch (GenericFrameworkException ex) {
+
 		}
 		parentResult.recordSuccess();
 		return changes;
 	}
 
+	private AccountShadowType findOrCreateAccount(ConnectorInstance connector,
+			ResourceType resource, Change change, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException,
+			CommunicationException, GenericFrameworkException {
+
+		ObjectListType accountList = searchAccountByUid(
+				change.getIdentifiers(), parentResult);
+
+		if (accountList.getObject().size() > 1) {
+			parentResult
+					.recordFatalError("Found more than one account with the identifier "
+							+ change.getIdentifiers() + ".");
+			throw new IllegalArgumentException(
+					"Found more than one account with the identifier "
+							+ change.getIdentifiers() + ".");
+		}
+
+		AccountShadowType newAccount = null;
+		// if object doesn't exist, create it now
+		if (accountList.getObject().isEmpty()) {
+			newAccount = createNewAccount(change, resource, connector,
+					parentResult);
+			LOGGER.debug("Create account shadow object: {}",
+					ObjectTypeUtil.toShortString(newAccount));
+
+			// if exist, set the old shadow to the change
+		} else {
+			for (ObjectType obj : accountList.getObject()) {
+				if (!(obj instanceof ResourceObjectShadowType)) {
+					parentResult
+							.recordFatalError("Object type must be one of the resource object shadow.");
+					throw new IllegalStateException(
+							"Object type must be one of the resource object shadow.");
+				}
+				newAccount = (AccountShadowType) obj;
+			}
+		}
+
+		return newAccount;
+	}
+
+	private ObjectListType searchAccountByUid(Set<Property> identifiers,
+			OperationResult parentResult) throws SchemaException {
+		XPathSegment xpathSegment = new XPathSegment(
+				SchemaConstants.I_ATTRIBUTES);
+		Document doc = DOMUtil.getDocument();
+		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
+		xpathSegments.add(xpathSegment);
+		XPathType xpath = new XPathType(xpathSegments);
+		List<Element> values = new ArrayList<Element>();
+		try {
+			for (Property identifier : identifiers) {
+				values.addAll(identifier.serializeToDom(doc));
+			}
+		} catch (SchemaProcessorException ex) {
+			throw new SchemaException(
+					"Error serializing identifiers to dom. Reason: "
+							+ ex.getMessage(), ex);
+		}
+		Element filter = QueryUtil.createAndFilter(doc, QueryUtil
+				.createTypeFilter(doc, QNameUtil
+						.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
+				QueryUtil.createEqualFilter(doc, xpath, values));
+
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+
+		ObjectListType accountList = null;
+		try {
+			accountList = getRepositoryService().searchObjects(query,
+					new PagingType(), parentResult);
+		} catch (SchemaException ex) {
+			parentResult.recordFatalError(
+					"Failed to search account according to the identifiers: "
+							+ identifiers + ". Reason: " + ex.getMessage(), ex);
+			throw new SchemaException(
+					"Failed to search account according to the identifiers: "
+							+ identifiers + ". Reason: " + ex.getMessage(), ex);
+		}
+		return accountList;
+	}
+
 	private AccountShadowType createNewAccount(Change change,
-			ResourceType resourceType, OperationResult parentResult)
-			throws SchemaException {
+			ResourceType resourceType, ConnectorInstance connector,
+			OperationResult parentResult) throws SchemaException,
+			ObjectNotFoundException, CommunicationException,
+			GenericFrameworkException {
+
 		AccountShadowType newAccount = null;
 		try {
 			newAccount = (AccountShadowType) createResourceShadow(
-					change.getIdentifiers(), null);
+					change.getIdentifiers(), new AccountShadowType());
 		} catch (SchemaException ex) {
 			parentResult
 					.recordFatalError("Can't create account shadow from identifiers: "
@@ -890,19 +957,66 @@ public class ShadowCache {
 		}
 		ObjectReferenceType ref = new ObjectReferenceType();
 		ref.setOid(resourceType.getOid());
-		// HACK: set name for new account (name is obtained from account
-		// attribute uid)
-		for (Property p : change.getIdentifiers()) {
-			if (p.getName().equals(
-					new QName(resourceType.getNamespace(), "uid"))) {
-				newAccount.setName(p.getValue(String.class));
-			}
+		newAccount.setResourceRef(ref);
+
+		QName objectClass = new QName(resourceType.getNamespace(),
+				"AccountObjectClass");
+		newAccount.setObjectClass(objectClass);
+
+		// set name for new account
+		ResourceObject resourceObject = fetchResourceObject(
+				change.getIdentifiers(), objectClass, connector, parentResult);
+		String accountName = determineShadowName(resourceObject);
+		newAccount.setName(accountName);
+
+		try {
+			getRepositoryService().addObject(newAccount, parentResult);
+		} catch (ObjectAlreadyExistsException e) {
+			parentResult.recordFatalError(
+					"Can't add account " + DebugUtil.prettyPrint(newAccount)
+							+ " to the repository. Reason: " + e.getMessage(),
+					e);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 
-		newAccount.setResourceRef(ref);
-		newAccount.setObjectClass(new QName(resourceType.getNamespace(),
-				"AccountObjectClass"));
 		return newAccount;
+	}
+
+	private ResourceObject fetchResourceObject(Set<Property> identifiers,
+			QName objectClass, ConnectorInstance connector,
+			OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, GenericFrameworkException {
+
+		Set<ResourceObjectAttribute> roIdentifiers = new HashSet<ResourceObjectAttribute>();
+		for (Property p : identifiers) {
+			ResourceObjectAttribute roa = new ResourceObjectAttribute(
+					p.getName(), p.getDefinition(), p.getValues());
+			roIdentifiers.add(roa);
+		}
+
+		try {
+			ResourceObject resourceObject = connector.fetchObject(objectClass,
+					roIdentifiers, parentResult);
+			return resourceObject;
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
+			parentResult.recordFatalError("Object not found. Identifiers: "
+					+ roIdentifiers + ". Reason: " + e.getMessage(), e);
+			throw new ObjectNotFoundException("Object not found. Identifiers: "
+					+ roIdentifiers + ". Reason: " + e.getMessage(), e);
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
+			parentResult.recordFatalError(
+					"Error communication with the connector " + connector
+							+ ". Reason: " + e.getMessage(), e);
+			throw new CommunicationException(
+					"Error communication with the connector " + connector
+							+ ". Reason: " + e.getMessage(), e);
+		} catch (GenericFrameworkException e) {
+			parentResult.recordFatalError("Generic error in the connector "
+					+ connector + ". Reason: " + e.getMessage(), e);
+			throw new CommunicationException("Generic error in the connector "
+					+ connector + ". Reason: " + e.getMessage(), e);
+		}
+
 	}
 
 	// TODO: methods with native identification (Set<Attribute> identifier)
@@ -1130,9 +1244,9 @@ public class ShadowCache {
 			ResourceObjectShadowType resourceObjectShadow)
 			throws SchemaException {
 
-		if (resourceObjectShadow == null) {
-			resourceObjectShadow = new AccountShadowType();
-		}
+		// if (resourceObjectShadow == null) {
+		// resourceObjectShadow = new AccountShadowType();
+		// }
 
 		List<Element> identifierElements = new ArrayList<Element>();
 		Document doc = DOMUtil.getDocument();
@@ -1305,10 +1419,10 @@ public class ShadowCache {
 		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
 		xpathSegments.add(xpathSegment);
 		XPathType xpath = new XPathType(xpathSegments);
-		List<Element> values = null;
+		List<Element> values = new ArrayList<Element>();
 		try {
 			for (Property identifier : identifiers) {
-				values = identifier.serializeToDom(doc);
+				values.addAll(identifier.serializeToDom(doc));
 			}
 		} catch (SchemaProcessorException ex) {
 			throw new SchemaException(

@@ -492,9 +492,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		// setting ifc attributes from resource object attributes
-		Set<Attribute> attributes = convertFromResourceObject(object
-				.getAttributes());
-
+		Set<Attribute> attributes = null;
+		try {
+			attributes = convertFromResourceObject(object.getAttributes(),
+					result);
+		} catch (SchemaException ex) {
+			result.recordFatalError(
+					"Error while converting resource object attributes. Reason: "
+							+ ex.getMessage(), ex);
+			throw new SchemaException(
+					"Error while converting resource object attributes. Reason: "
+							+ ex.getMessage(), ex);
+		}
 		if (attributes == null) {
 			result.recordFatalError("Couldn't set attributes for icf.");
 			throw new IllegalStateException("Couldn't set attributes for icf.");
@@ -601,7 +610,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		OperationResult icfResult = null;
 		try {
 			if (addValues != null && !addValues.isEmpty()) {
-				Set<Attribute> attributes = convertFromResourceObject(addValues);
+				Set<Attribute> attributes = null;
+				try {
+					attributes = convertFromResourceObject(addValues, result);
+				} catch (SchemaException ex) {
+					result.recordFatalError(
+							"Error while converting resource object attributes. Reason: "
+									+ ex.getMessage(), ex);
+					throw new SchemaException(
+							"Error while converting resource object attributes. Reason: "
+									+ ex.getMessage(), ex);
+				}
 				OperationOptions options = new OperationOptionsBuilder()
 						.build();
 				icfResult = result.createSubresult(ConnectorFacade.class
@@ -637,7 +656,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		try {
 			if (updateValues != null && !updateValues.isEmpty()) {
-				Set<Attribute> attributes = convertFromResourceObject(updateValues);
+				Set<Attribute> attributes = null;
+				try {
+					attributes = convertFromResourceObject(updateValues, result);
+				} catch (SchemaException ex) {
+					result.recordFatalError(
+							"Error while converting resource object attributes. Reason: "
+									+ ex.getMessage(), ex);
+					throw new SchemaException(
+							"Error while converting resource object attributes. Reason: "
+									+ ex.getMessage(), ex);
+				}
 				OperationOptions options = new OperationOptionsBuilder()
 						.build();
 				icfResult = result.createSubresult(ConnectorFacade.class
@@ -672,7 +701,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		try {
 			if (valuesToRemove != null && !valuesToRemove.isEmpty()) {
-				Set<Attribute> attributes = convertFromResourceObject(valuesToRemove);
+				Set<Attribute> attributes = null;
+				try {
+					attributes = convertFromResourceObject(valuesToRemove, result);
+				} catch (SchemaException ex) {
+					result.recordFatalError(
+							"Error while converting resource object attributes. Reason: "
+									+ ex.getMessage(), ex);
+					throw new SchemaException(
+							"Error while converting resource object attributes. Reason: "
+									+ ex.getMessage(), ex);
+				}
 				OperationOptions options = new OperationOptionsBuilder()
 						.build();
 				icfResult = result.createSubresult(ConnectorFacade.class
@@ -942,7 +981,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return attrXsdName;
 	}
 
-	private String convertAttributeNameToIcf(QName attrQName) {
+	private String convertAttributeNameToIcf(QName attrQName,
+			OperationResult parentResult) throws SchemaException {
 		// Attribute QNames in the resource instance namespace are converted
 		// "as is"
 		if (attrQName.getNamespaceURI().equals(getSchemaNamespace())) {
@@ -960,7 +1000,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		// No mapping available
-		throw new IllegalArgumentException("No mapping from QName " + attrQName
+
+		throw new SchemaException("No mapping from QName " + attrQName
 				+ " to an ICF attribute name");
 	}
 
@@ -1111,12 +1152,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private Set<Attribute> convertFromResourceObject(
-			Set<ResourceObjectAttribute> resourceAttributes) {
+			Set<ResourceObjectAttribute> resourceAttributes,
+			OperationResult parentResult) throws SchemaException {
 		Set<Attribute> attributes = new HashSet<Attribute>();
 
 		for (ResourceObjectAttribute attribute : resourceAttributes) {
 
-			String attrName = convertAttributeNameToIcf(attribute.getName());
+			String attrName = convertAttributeNameToIcf(attribute.getName(),
+					parentResult);
+
 			Attribute connectorAttribute = AttributeBuilder.build(attrName,
 					attribute.getValues());
 
@@ -1192,7 +1236,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				value.getAny().addAll(elements);
 				propertyModification.setValue(value);
 				Element path = getModificationPath(doc);
-				
+
 				propertyModification.setPath(path);
 				modificationType.getPropertyModification().add(
 						propertyModification);
@@ -1214,8 +1258,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		segments.add(attrSegment);
 		XPathType t = new XPathType(segments);
 		Element xpathElement = t.toElement(
-				SchemaConstants.I_PROPERTY_CONTAINER_REFERENCE_PATH,
-				doc);
+				SchemaConstants.I_PROPERTY_CONTAINER_REFERENCE_PATH, doc);
 		return xpathElement;
 	}
 
@@ -1250,7 +1293,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		PropertyDefinition propDef = new PropertyDefinition(
 				SchemaConstants.SYNC_TOKEN, type);
 
-		Property property = new Property(SchemaConstants.SYNC_TOKEN, propDef, objs);
+		Property property = new Property(SchemaConstants.SYNC_TOKEN, propDef,
+				objs);
 		return property;
 	}
 
