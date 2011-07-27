@@ -40,20 +40,19 @@
 		<verbose.jaxb2>false</verbose.jaxb2>
 		<verbose.jaxws>false</verbose.jaxws>
         <!-- Dependencies global versions -->
-		<aspectj.version>1.6.10</aspectj.version>
+		<aspectj.version>1.6.11</aspectj.version>
 		<basex.version>6.7</basex.version>
 		<commons.io.version>2.0.1</commons.io.version>
 		<commons.lang.version>2.6</commons.lang.version>
 		<dbunit.version>2.4.7</dbunit.version>
-		<el.version>2.2</el.version>
-		<icefaces.version>2.0.1</icefaces.version>
-		<icepush.version>2.0.1</icepush.version>
-		<jaxb.version>2.2.3</jaxb.version>
-		<jsf.version>2.1.0</jsf.version>
+		<el.version>2.2.1</el.version>
+		<icefaces.version>2.0.2</icefaces.version>
+		<icepush.version>2.0.2</icepush.version>
+		<jaxb.version>2.2.4-1</jaxb.version>
+		<jsf.version>2.1.2</jsf.version>
 		<junit.version>4.8.2</junit.version>
-		<mysql.connector.version>5.1.13</mysql.connector.version>
+		<mysql.connector.version>5.1.17</mysql.connector.version>
 		<mockito.version>1.8.5</mockito.version>
-		<selenium.version>1.0.1</selenium.version>
 		<slf4j.version>1.6.1</slf4j.version>
 		<spring.version>3.0.5.RELEASE</spring.version>
 		<spring.security.version>3.0.5.RELEASE</spring.security.version>
