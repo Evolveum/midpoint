@@ -1044,7 +1044,9 @@ public class ModelControllerImpl implements ModelController {
 			// outbound for every account
 			List<ObjectReferenceType> accountRefs = user.getAccountRef();
 			for (ObjectReferenceType accountRef : accountRefs) {
+				OperationResult subResult = result.createSubresult("Outbound Handling");
 				if (StringUtils.isNotEmpty(accountOid) && accountOid.equals(accountRef.getOid())) {
+					subResult.computeStatus();
 					// preventing cycles while updating resource object shadows
 					continue;
 				}
@@ -1061,8 +1063,10 @@ public class ModelControllerImpl implements ModelController {
 
 					provisioning.modifyObject(accountChange, scripts, result);
 				} catch (Exception ex) {
-
-					ex.printStackTrace();
+					LoggingUtils.logException(LOGGER, "Couldn't update outbound handling for account {}", ex,
+							accountRef.getOid());
+				} finally {
+					subResult.computeStatus();
 				}
 			}
 		} else {
