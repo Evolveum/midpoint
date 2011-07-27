@@ -139,7 +139,7 @@ public class AppenderListItem extends SelectableBean {
 	}
 
 	public String getMaxFileSizeString() {
-		if (!AppenderType.ROLLING_FILE.equals(type)) {
+		if (!AppenderType.ROLLING_FILE.equals(type) && !AppenderType.NDC_ROLLING_FILE.equals(type)) {
 			return null;
 		}
 
