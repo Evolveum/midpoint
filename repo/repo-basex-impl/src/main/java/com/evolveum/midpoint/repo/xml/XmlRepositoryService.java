@@ -91,25 +91,28 @@ public class XmlRepositoryService implements RepositoryService {
 
 	}
 
-	//Note: client session is closed in XmlRepositoryServiceFactory, because Spring is not managing lifecycle of prototype beans
-//	public void close() {
-//		try {
-//			TRACE.error("Closing XML DB Client session");
-//			session.close();
-//		} catch (IOException ex) {
-//			TRACE.error("Reported IO while closing session to XML Database", ex);
-//			throw new SystemException("Reported IO while closing session to XML Database", ex);
-//		}
-//	}
+	// Note: client session is closed in XmlRepositoryServiceFactory, because
+	// Spring is not managing lifecycle of prototype beans
+	// public void close() {
+	// try {
+	// TRACE.error("Closing XML DB Client session");
+	// session.close();
+	// } catch (IOException ex) {
+	// TRACE.error("Reported IO while closing session to XML Database", ex);
+	// throw new
+	// SystemException("Reported IO while closing session to XML Database", ex);
+	// }
+	// }
 
 	@Override
 	public String addObject(ObjectType object, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException {
 		String oid = null;
 		ClientQuery cq = null;
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".addObject");
-        result.addParam("object", object);
-        
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+				+ ".addObject");
+		result.addParam("object", object);
+
 		try {
 			// FIXME: check and add have to be done in one transaction!
 			checkAndFailIfObjectAlreadyExists(object.getOid(), result);
@@ -128,19 +131,18 @@ public class XmlRepositoryService implements RepositoryService {
 
 			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
 			if (object instanceof ResourceObjectShadowType) {
-					query.append(DECLARE_NAMESPACE_C)
-					.append("let $x := ").append(serializedObject).append("\n")
-					.append("return insert node $x into //c:objects");
+				query.append(DECLARE_NAMESPACE_C).append("let $x := ").append(serializedObject).append("\n")
+						.append("return insert node $x into //c:objects");
 			} else {
 				ObjectTypes objType = ObjectTypes.getObjectType(object.getClass());
 				String oType = objType.getValue();
-				
-				query.append(DECLARE_NAMESPACE_C)
-				.append("if (every $object in //c:objects/c:object[").append("@xsi:type='").append(oType).append("']").append(" satisfies $object/c:name !='")
-				.append(object.getName()).append("' )")
-				.append(" then ").append(" let $x := ")
-				.append(serializedObject).append("\n").append("return insert node $x into //c:objects ")
-				.append(" else (fn:error(null,'").append(OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS).append("'))");				
+
+				query.append(DECLARE_NAMESPACE_C).append("if (every $object in //c:objects/c:object[")
+						.append("@xsi:type='").append(oType).append("']")
+						.append(" satisfies $object/c:name !='").append(object.getName()).append("' )")
+						.append(" then ").append(" let $x := ").append(serializedObject).append("\n")
+						.append("return insert node $x into //c:objects ").append(" else (fn:error(null,'")
+						.append(OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS).append("'))");
 			}
 			TRACE.trace("generated query: " + query);
 
@@ -148,27 +150,28 @@ public class XmlRepositoryService implements RepositoryService {
 			cq.execute();
 			result.recordSuccess();
 			return oid;
-			
+
 		} catch (JAXBException ex) {
 			LoggingUtils.logException(TRACE, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
-			
+
 		} catch (BaseXException ex) {
 			if (StringUtils.contains(ex.getMessage(), OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS)) {
 				result.recordWarning("Object with the same name already exists");
 				throw new ObjectAlreadyExistsException(ex);
 			} else {
-				LoggingUtils.logException(TRACE,"Reported error by XML Database", ex);
+				LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
 				result.recordFatalError("Reported error by XML Database", ex);
 				throw new SystemException("Reported error by XML Database", ex);
 			}
-			
-		} catch (ObjectAlreadyExistsException ex) {  //Just wrap and fix result code
-			result.recordWarning("Object with the same name already exists",ex);
+
+		} catch (ObjectAlreadyExistsException ex) { // Just wrap and fix result
+													// code
+			result.recordWarning("Object with the same name already exists", ex);
 			throw new ObjectAlreadyExistsException(ex);
-			
-		}catch (SchemaException ex) { //Just wrap and fix result code
+
+		} catch (SchemaException ex) { // Just wrap and fix result code
 			result.recordFatalError(ex);
 			throw new SchemaException(ex);
 		}
@@ -177,10 +180,11 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".getObject");
-        result.addParam("oid", oid);
-        result.addParam("resolve", resolve);
-        
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+				+ ".getObject");
+		result.addParam("oid", oid);
+		result.addParam("resolve", resolve);
+
 		validateOid(oid);
 
 		ObjectType object = null;
@@ -238,10 +242,11 @@ public class XmlRepositoryService implements RepositoryService {
 
 	@Override
 	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult) {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".listObjects");
-        result.addParam("objectType", objectType);
-        result.addParam("paging", paging);
-        
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+				+ ".listObjects");
+		result.addParam("objectType", objectType);
+		result.addParam("paging", paging);
+
 		if (null == objectType) {
 			TRACE.error("objectType is null");
 			throw new IllegalArgumentException("objectType is null");
@@ -263,10 +268,11 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".searchObjects");
-        result.addParam("query", query);
-        result.addParam("paging", paging);
-        
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+				+ ".searchObjects");
+		result.addParam("query", query);
+		result.addParam("paging", paging);
+
 		validateQuery(query);
 
 		NodeList children = query.getFilter().getChildNodes();
@@ -314,9 +320,10 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public void modifyObject(ObjectModificationType objectChange, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".modifyObject");
-        result.addParam("objectChange", objectChange);
-		
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+				+ ".modifyObject");
+		result.addParam("objectChange", objectChange);
+
 		validateObjectChange(objectChange);
 
 		try {
@@ -329,10 +336,13 @@ public class XmlRepositoryService implements RepositoryService {
 			// modify the object
 			PatchXml xmlPatchTool = new PatchXml();
 			String serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
-			// FIXME: try to find another solution how to escape XQuery special
-			// characters in XMLs
-			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
-			serializedObject = StringUtils.replace(serializedObject, "}", "}}");
+			if (serializedObject != null) {
+				// FIXME: try to find another solution how to escape XQuery
+				// special
+				// characters in XMLs
+				serializedObject = StringUtils.replace(serializedObject, "{", "{{");
+				serializedObject = StringUtils.replace(serializedObject, "}", "}}");
+			}
 			
 			// store modified object in repo
 			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
@@ -344,12 +354,12 @@ public class XmlRepositoryService implements RepositoryService {
 			ClientQuery cq = session.query(query.toString());
 			cq.execute();
 			result.computeStatus();
-			
+
 		} catch (PatchException ex) {
 			LoggingUtils.logException(TRACE, "Failed to modify object", ex);
 			result.recordFatalError("Failed to modify object", ex);
 			throw new SystemException("Failed to modify object", ex);
-			
+
 		} catch (BaseXException ex) {
 			LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
 			result.recordFatalError("Reported error by XML Database", ex);
@@ -359,19 +369,24 @@ public class XmlRepositoryService implements RepositoryService {
 
 	@Override
 	public void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".deleteObject");
-        result.addParam("oid", oid);
-        
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+				+ ".deleteObject");
+		result.addParam("oid", oid);
+
 		validateOid(oid);
 
-		//TODO: check has to be atomic
+		// TODO: check has to be atomic
 		try {
 			ObjectType retrievedObject = getObject(oid, null, result);
 		} catch (SchemaException ex) {
-			LoggingUtils.logException(TRACE, 
+			LoggingUtils
+					.logException(
+							TRACE,
+							"Schema validation problem occured while checking existence of the object before its deletion",
+							ex);
+			result.recordFatalError(
 					"Schema validation problem occured while checking existence of the object before its deletion",
 					ex);
-			result.recordFatalError("Schema validation problem occured while checking existence of the object before its deletion", ex);
 			throw new SystemException(
 					"Schema validation problem occured while checking existence of the object before its deletion",
 					ex);
@@ -384,7 +399,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 			ClientQuery cq = session.query(query.toString());
 			cq.execute();
-			
+
 			result.recordSuccess();
 		} catch (BaseXException ex) {
 			LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
@@ -403,8 +418,9 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public UserType listAccountShadowOwner(String accountOid, OperationResult parentResult)
 			throws ObjectNotFoundException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".listAccountShadowOwner");
-        result.addParam("accountOid", accountOid);
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+				+ ".listAccountShadowOwner");
+		result.addParam("accountOid", accountOid);
 
 		Map<String, String> filters = new HashMap<String, String>();
 		Map<String, String> namespaces = new HashMap<String, String>();
@@ -418,14 +434,14 @@ public class XmlRepositoryService implements RepositoryService {
 			result.recordSuccess();
 			return null;
 		}
-		
+
 		if (objects.size() > 1) {
 			result.recordFatalError("Found incorrect number of objects " + objects.size());
 			throw new SystemException("Found incorrect number of objects " + objects.size());
 		}
 
 		UserType userType = (UserType) objects.get(0);
-		
+
 		result.recordSuccess();
 		return userType;
 	}
@@ -433,10 +449,11 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public <T extends ResourceObjectShadowType> List<T> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".listResourceObjectShadows");
-        result.addParam("resourceOid", resourceOid);
-        result.addParam("resourceObjectShadowType", resourceObjectShadowType);
-        
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+				+ ".listResourceObjectShadows");
+		result.addParam("resourceOid", resourceOid);
+		result.addParam("resourceObjectShadowType", resourceObjectShadowType);
+
 		Map<String, String> filters = new HashMap<String, String>();
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
@@ -445,13 +462,12 @@ public class XmlRepositoryService implements RepositoryService {
 				filters, namespaces, result);
 
 		@SuppressWarnings("unchecked")
-		List<T> objects = (List<T>) CollectionUtils.collect(
-				retrievedObjects.getObject(), new Transformer() {
-					@Override
-					public Object transform(final Object input) {
-						return (T) input;
-					}
-				});
+		List<T> objects = (List<T>) CollectionUtils.collect(retrievedObjects.getObject(), new Transformer() {
+			@Override
+			public Object transform(final Object input) {
+				return (T) input;
+			}
+		});
 
 		List<T> ros = new ArrayList<T>();
 		ros.addAll(objects);
@@ -459,8 +475,8 @@ public class XmlRepositoryService implements RepositoryService {
 		return ros;
 	}
 
-	private void checkAndFailIfObjectAlreadyExists(String oid, OperationResult result) throws ObjectAlreadyExistsException,
-			SchemaException {
+	private void checkAndFailIfObjectAlreadyExists(String oid, OperationResult result)
+			throws ObjectAlreadyExistsException, SchemaException {
 		// check if object with the same oid already exists, if yes, then fail
 		if (StringUtils.isNotEmpty(oid)) {
 			try {
@@ -558,17 +574,17 @@ public class XmlRepositoryService implements RepositoryService {
 
 			result.recordSuccess();
 			return objectList;
-			
+
 		} catch (JAXBException ex) {
 			LoggingUtils.logException(TRACE, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
-			
+
 		} catch (BaseXException ex) {
 			LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
 			result.recordFatalError("Reported error by XML Database", ex);
 			throw new SystemException("Reported error by XML Database", ex);
-			
+
 		} finally {
 			if (null != cq) {
 				try {
@@ -689,44 +705,50 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException {
-		
+	public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
+			ConcurrencyException, SchemaException {
+
 		// TODO: atomicity
-		
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()+".claimTask");
+
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+				+ ".claimTask");
 		result.addParam(OperationResult.PARAM_OID, oid);
-		
+
 		// Check whether the task is claimed
-		
-		ObjectType object = getObject(oid,null,result);
+
+		ObjectType object = getObject(oid, null, result);
 		// TODO: check
 		TaskType task = (TaskType) object;
-		
-		if (task.getExclusivityStatus()!=TaskExclusivityStatusType.RELEASED) {
+
+		if (task.getExclusivityStatus() != TaskExclusivityStatusType.RELEASED) {
 			// TODO: check whether the claim is not expired yet
-			throw new ConcurrencyException("Attempt to claim already claimed task (OID:"+oid+")");
+			throw new ConcurrencyException("Attempt to claim already claimed task (OID:" + oid + ")");
 		}
-		
+
 		// Modify the status to claim the task.
 		// TODO: mark node identifier and claim expiration (later)
-		
-		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid, SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.CLAIMED.value());
-		
-		modifyObject(modification , result);
-		
+
+		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
+				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.CLAIMED.value());
+
+		modifyObject(modification, result);
+
 	}
 
 	@Override
-	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException {
 
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()+".releaseTask");
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+				+ ".releaseTask");
 		result.addParam(OperationResult.PARAM_OID, oid);
-		
+
 		// Modify the status to claim the task.
-		
-		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid, SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.RELEASED.value());
-		
-		modifyObject(modification , result);
+
+		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
+				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.RELEASED.value());
+
+		modifyObject(modification, result);
 
 	}
 }
