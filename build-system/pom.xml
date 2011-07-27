@@ -53,6 +53,7 @@
 		<junit.version>4.8.2</junit.version>
 		<mysql.connector.version>5.1.17</mysql.connector.version>
 		<mockito.version>1.8.5</mockito.version>
+		<selenium.version>1.0.1</selenium.version>
 		<slf4j.version>1.6.1</slf4j.version>
 		<spring.version>3.0.5.RELEASE</spring.version>
 		<spring.security.version>3.0.5.RELEASE</spring.security.version>
