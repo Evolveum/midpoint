@@ -32,7 +32,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.api.logging.LoggingUtils;
+import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AppenderListItem;
 import com.evolveum.midpoint.web.bean.AppenderType;
 import com.evolveum.midpoint.web.bean.LoggerListItem;
@@ -61,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.RollingFileAppenderC
 public class LoggingController implements Serializable {
 
 	public static final String PAGE_NAVIGATION_LOGGING = "/config/logging?faces-redirect=true";
+	private static final Trace LOGGER = TraceManager.getTrace(LoggingController.class);
 	private static final long serialVersionUID = -8739729766074013883L;
 	@Autowired(required = true)
 	private transient LoggingManager loggingManager;
@@ -198,7 +202,7 @@ public class LoggingController implements Serializable {
 	public String initController() {
 		getAppenders().clear();
 		getLoggers().clear();
-		
+
 		OperationResult result = new OperationResult("Load Logging Configuration");
 		LoggingConfigurationType logging = loggingManager.getConfiguration(result);
 		if (logging == null) {
@@ -222,8 +226,14 @@ public class LoggingController implements Serializable {
 	void saveConfiguration() {
 		LoggingConfigurationType logging = createConfiguration(getLoggers(), getAppenders());
 		OperationResult result = new OperationResult("Load Logging Configuration");
-		loggingManager.updateConfiguration(logging, result);
-		
+		try {
+			loggingManager.updateConfiguration(logging, result);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't update logging configuration", ex);
+		}
+		result.computeStatus("Couldn't update logging configuration.");
+		FacesUtils.addMessage(result);
+
 		initController();
 	}
 
@@ -236,7 +246,7 @@ public class LoggingController implements Serializable {
 		}
 		for (LoggingComponentType component : logger.getComponent()) {
 			item.getComponents().add(component.value());
-		}		
+		}
 		item.getPackages().addAll(logger.getPackage());
 
 		return item;
@@ -252,9 +262,9 @@ public class LoggingController implements Serializable {
 			RollingFileAppenderConfigurationType file = (RollingFileAppenderConfigurationType) appender;
 			item.setFilePath(file.getFilePath());
 			item.setMaxFileSize(file.getMaxFileSize());
-			item.setAppending(file.isAppend());			
+			item.setAppending(file.isAppend());
 			item.setType(AppenderType.ROLLING_FILE);
-			
+
 			if (appender instanceof NdcRollingFileAppenderConfigurationType) {
 				item.setType(AppenderType.NDC_ROLLING_FILE);
 			}
@@ -263,6 +273,7 @@ public class LoggingController implements Serializable {
 			item.setDatePattern(daily.getDatePattern());
 			item.setFilePath(daily.getFilePath());
 			item.setAppending(daily.isAppend());
+			item.setType(AppenderType.DAILY_ROLLING_FILE);
 
 			if (appender instanceof NdcDailyRollingFileAppenderConfigurationType) {
 				item.setType(AppenderType.NDC_DAILY_ROLLING_FILE);
@@ -289,7 +300,7 @@ public class LoggingController implements Serializable {
 
 	private AppenderConfigurationType createAppenderType(AppenderListItem item) {
 		AppenderConfigurationType appender = null;
-			
+
 		RollingFileAppenderConfigurationType fileAppender = null;
 		DailyRollingFileAppenderConfigurationType daily = null;
 
@@ -305,7 +316,7 @@ public class LoggingController implements Serializable {
 				}
 				fileAppender.setFilePath(item.getFilePath());
 				fileAppender.setMaxFileSize(item.getMaxFileSize());
-				fileAppender.setAppend(item.isAppending());				
+				fileAppender.setAppend(item.isAppending());
 
 				appender = fileAppender;
 				break;
@@ -317,8 +328,8 @@ public class LoggingController implements Serializable {
 				}
 				daily.setDatePattern(item.getDatePattern());
 				daily.setFilePath(item.getFilePath());
-				daily.setAppend(item.isAppending());	
-				
+				daily.setAppend(item.isAppending());
+
 				appender = daily;
 				break;
 		}
