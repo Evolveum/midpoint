@@ -94,6 +94,7 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 			TRACE.info("userSelectionListener start");
 			PropertyReferenceListType resolve = new PropertyReferenceListType();
 			resolve.getProperty().add(Utils.fillPropertyReference("Account"));
+			resolve.getProperty().add(Utils.fillPropertyReference("Resource"));
 
 			user = (GuiUserDto) userManager.get(userOid, resolve);
 			TRACE.info("userSelectionListener end");

@@ -512,13 +512,13 @@ public class UserDetailsController implements Serializable {
 
 				object.getAttributes().add(new FormAttribute(definition, values));
 			}
+			object.sort();
 			defaultAccountType = parser.getDefaultAccountType();
 		} catch (SchemaProcessorException ex) {
 			throw ex;
 		} catch (Exception ex) {
 			throw new SchemaProcessorException("Unknown error, reason: " + ex.getMessage(), ex);
 		}
-		object.sort();
 
 		return new AccountFormBean(index, account, defaultAccountType, object, createNew);
 	}

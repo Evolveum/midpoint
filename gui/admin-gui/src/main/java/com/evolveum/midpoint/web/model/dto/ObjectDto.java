@@ -50,10 +50,10 @@ public class ObjectDto<T extends ObjectType> implements Serializable {
 	}
 
 	public T getXmlObject() {
-		if (xmlObject != null) {
-			return xmlObject;
+		if (xmlObject == null) {
+			throw new IllegalStateException("This dto doesn't contain backing xml object type.");
 		}
-		throw new IllegalStateException();
+		return xmlObject;
 	}
 
 	/**

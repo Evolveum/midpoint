@@ -702,6 +702,8 @@ public class ModelControllerImpl implements ModelController {
 		if (object instanceof AccountShadowType) {
 			AccountShadowType account = (AccountShadowType) object;
 			processAccountCredentials(account, result);
+
+			ModelUtils.unresolveResourceObjectShadow(account);
 		}
 
 		try {
