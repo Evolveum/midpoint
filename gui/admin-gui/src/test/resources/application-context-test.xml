@@ -47,6 +47,10 @@
 	<!-- Scans for application @Components to deploy -->
 	<context:component-scan base-package="com.evolveum.midpoint.web" />
 
+	<bean id="guiUserDtoManager" class="com.evolveum.midpoint.web.test.UserManagerImplMock" scope="singleton" />
+	<bean id="guiResourceDtoManager" class="com.evolveum.midpoint.web.test.ResourceManagerImplMock" scope="singleton" />
+	<bean id="guiAccountShadowDtoManager" class="com.evolveum.midpoint.web.test.AccountManagerImplMock" scope="singleton" />
+
 	<bean id="objectTypeCatalog" class="com.evolveum.midpoint.web.model.impl.ObjectTypeCatalogImpl" scope="singleton">
 		<property name="supportedObjectManagers">
 			<map>
@@ -54,19 +58,19 @@
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.UserType</value>
 					</key>
-					<bean id="guiUserDtoManager" class="com.evolveum.midpoint.web.test.UserTypeManagerMock" scope="singleton" />
+					<ref bean="guiUserDtoManager" />
 				</entry>
 				<entry>
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType</value>
 					</key>
-					<bean id="guiResourceDtoManager" class="com.evolveum.midpoint.web.test.ResourceTypeManagerMock" scope="singleton" />
+					<ref bean="guiResourceDtoManager" />
 				</entry>
 				<entry>
 					<key>
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType</value>
 					</key>
-					<bean id="guiAccountShadowDtoManager" class="com.evolveum.midpoint.web.test.AccountShadowTypeManagerMock" scope="singleton" />
+					<ref bean="guiAccountShadowDtoManager" />
 				</entry>
 			</map>
 		</property>
