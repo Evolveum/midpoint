@@ -69,6 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
  * @author Radovan Semancik
@@ -149,7 +150,7 @@ public class TestTaskManagerContract {
 		// We need to wait for a sync interval, so the task scanner has a chance to pick up this
 		// task
 		System.out.println("Waining for task manager to pick up the task and run it");
-		Thread.sleep(10000);
+		Thread.sleep(2000);
 		System.out.println("... done");
 		
 		// Check task status
@@ -192,7 +193,7 @@ public class TestTaskManagerContract {
 		// We need to wait for a sync interval, so the task scanner has a chance to pick up this
 		// task
 		System.out.println("Waining for task manager to pick up the task");
-		Thread.sleep(10000);
+		Thread.sleep(2000);
 		System.out.println("... done");
 		
 		// Check task status
@@ -331,7 +332,11 @@ public class TestTaskManagerContract {
 		ObjectType object = unmarshallJaxbFromFile(filePath, ObjectType.class);
 		System.out.println("obj: " + object.getName());
 		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".addObjectFromFile");
-		repositoryService.addObject(object, result);
+		if (object instanceof TaskType) {
+			taskManager.addTask((TaskType)object,result);
+		} else {
+			repositoryService.addObject(object, result);
+		}
 		return object;
 	}
 
