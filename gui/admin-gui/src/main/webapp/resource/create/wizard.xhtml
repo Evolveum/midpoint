@@ -22,7 +22,8 @@
 			<ui:insert name="wizard-content">Sample body</ui:insert>
 			<div class="button-bar">
 				<idm:button value="Cancel" rendered="#{resourceWizard.actualShowCancel}" buttonType="negative"
-					img="/resources/images/delete.png" action="#{resourceWizard.cancel}" style="margin-right: 50px;" />
+					immediate="true" img="/resources/images/delete.png" action="#{resourceWizard.cancel}"
+					style="margin-right: 50px;" />
 
 				<idm:button value="Previous" rendered="#{resourceWizard.actualShowBack}" action="#{resourceWizard.back}" />
 

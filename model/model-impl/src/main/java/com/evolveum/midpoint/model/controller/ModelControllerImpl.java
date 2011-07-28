@@ -969,8 +969,8 @@ public class ModelControllerImpl implements ModelController {
 					change = newChange;
 				}
 			} catch (Exception ex) {
-				// TODO: error handling
-				ex.printStackTrace();
+				LoggingUtils.logException(LOGGER, "Couldn't process outbound handling for object {}", ex,
+						object.getName());
 			}
 		}
 

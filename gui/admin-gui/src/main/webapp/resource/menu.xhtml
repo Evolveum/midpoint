@@ -7,7 +7,10 @@
 	<idm:leftMenuContainer name="#{msg['page.template.top.resources']}">
 		<idm:leftMenuItem id="leftResourceList" name="#{msg['page.resource.index.title']}"
 			action="#{resourceList.listFirst}" />
-		<idm:leftMenuItem id="leftResourceCreate" name="#{msg['page.resource.create.title']}"
-			action="/resource/create/resourceCreate?faces-redirect=true" />
+		
+		<ui:remove>
+			<idm:leftMenuItem id="leftResourceCreate" name="#{msg['page.resource.create.title']}"
+				action="/resource/create/resourceCreate?faces-redirect=true" />
+		</ui:remove>
 	</idm:leftMenuContainer>
 </ui:composition>

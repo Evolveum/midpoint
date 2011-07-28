@@ -208,7 +208,7 @@ public class OperationResult implements Serializable {
 	public boolean isSuccess() {
 		return (status == OperationResultStatus.SUCCESS);
 	}
-	
+
 	public boolean isWarning() {
 		return status == OperationResultStatus.WARNING;
 	}
@@ -248,6 +248,10 @@ public class OperationResult implements Serializable {
 	 * Computes operation result status based on subtask status.
 	 */
 	public void computeStatus() {
+		if (getSubresults().isEmpty()) {
+			return;
+		}
+
 		OperationResultStatus newStatus = OperationResultStatus.UNKNOWN;
 		boolean allSuccess = true;
 		for (OperationResult sub : getSubresults()) {
@@ -267,6 +271,7 @@ public class OperationResult implements Serializable {
 				}
 			}
 		}
+
 		if (allSuccess && !getSubresults().isEmpty()) {
 			status = OperationResultStatus.SUCCESS;
 		} else {
