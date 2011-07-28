@@ -77,22 +77,24 @@ public class NdcAspect {
         }
 	}
 	
-    @Pointcut("execution(public * com.evolveum.midpoint.repo.api.RepositoryService.*(..))")
+    @Pointcut("execution(* com.evolveum.midpoint.repo.api.RepositoryService.*(..))")
     public void entriesIntoRepository() {}
 
-    @Pointcut("execution(public * com.evolveum.midpoint.task.api.TaskManager.*(..))")
+    @Pointcut("execution(* com.evolveum.midpoint.task.api.TaskManager.*(..))")
     public void entriesIntoTaskManager() {}
 
-    @Pointcut("execution(public * com.evolveum.midpoint.provisioning.api.ProvisioningService.*(..))")
+    @Pointcut("execution(* com.evolveum.midpoint.provisioning.api.ProvisioningService.*(..))")
     public void entriesIntoProvisioning() {}
 
-	@Pointcut("execution(public * com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener.*(..))")
 	public void entriesIntoResourceObjectChangeListener() {
 	}
-    @Pointcut("execution(public * com.evolveum.midpoint.model.api.ModelService.*(..))")
+	
+	//@Pointcut("execution(* com.evolveum.midpoint.model.api.ModelService.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.model.controller.ModelController.*(..))")
     public void entriesIntoModel() {}
     
-    @Pointcut("execution(public * com.evolveum.midpoint.web..*(..))")
+    @Pointcut("execution(* com.evolveum.midpoint.web..*(..))")
     public void entriesIntoWeb() {}
         
 }

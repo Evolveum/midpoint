@@ -35,6 +35,7 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.DailyRollingFileAppender;
 import org.apache.log4j.Level;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.RollingFileAppender;
@@ -125,8 +126,8 @@ public class LoggingManager {
 		List<AppenderConfigurationType> appendersConf = config.getAppender();
 		List<LoggerConfigurationType> loggersConf = config.getLogger();
 
-		// clear appenders configurations
-		clearLog4jAppendersConfiguration(loggersConf);
+		// cleanup log4j
+		cleanupLog4j();
 
 		// create new appenders
 		Map<String, Appender> appenders = createLog4jAppendersFromConfiguration(appendersConf);
@@ -135,6 +136,10 @@ public class LoggingManager {
 		udpateLog4jLoggersFromConfiguration(loggersConf, appenders);
 
 		configureLog4jNdcFiltering(loggersConf);
+	}
+
+	private void cleanupLog4j() {
+		LogManager.shutdown();
 	}
 
 	private void udpateLog4jLoggersFromConfiguration(List<LoggerConfigurationType> loggersConf,
@@ -175,32 +180,6 @@ public class LoggingManager {
 							NdcFilteringDailyRollingFileAppender ndcAppender = (NdcFilteringDailyRollingFileAppender) appender;
 							ndcAppender.addLoggerConfiguration(loggerConf.getPackage(), components);
 						}
-					}
-				}
-			}
-		}
-	}
-
-	private void clearLog4jAppendersConfiguration(List<LoggerConfigurationType> loggersConf) {
-		
-		//drop all root's logger appenders
-		Logger.getRootLogger().removeAllAppenders();
-		
-		for (LoggerConfigurationType loggerConf : loggersConf) {
-			for (String pckg : loggerConf.getPackage()) {
-				Enumeration appenders = Logger.getRootLogger().getLogger(pckg).getAllAppenders();
-				if (null != appenders) {
-					while (appenders.hasMoreElements()) {
-						Appender appender = (Appender) appenders.nextElement();
-						if (appender instanceof NdcFilteringRollingFileAppender) {
-							NdcFilteringRollingFileAppender ndcAppender = (NdcFilteringRollingFileAppender) appender;
-							ndcAppender.resetLoggerConfiguration();
-						}
-						if (appender instanceof NdcFilteringDailyRollingFileAppender) {
-							NdcFilteringDailyRollingFileAppender ndcAppender = (NdcFilteringDailyRollingFileAppender) appender;
-							ndcAppender.resetLoggerConfiguration();
-						}
-
 					}
 				}
 			}

@@ -146,23 +146,24 @@ public class LoggingAspect {
 		}
 	}
 
-	@Pointcut("execution(public * com.evolveum.midpoint.repo.api.RepositoryService.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.repo.api.RepositoryService.*(..))")
 	public void repositoryService() {
 	}
 
-	@Pointcut("execution(public * com.evolveum.midpoint.provisioning.api.ProvisioningService.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.provisioning.api.ProvisioningService.*(..))")
 	public void provisioningService() {
 	}
 
-	@Pointcut("execution(public * com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener.*(..))")
 	public void resourceObjectChangeListener() {
 	}
 
-	@Pointcut("execution(public * com.evolveum.midpoint.model.api.ModelService.*(..))")
+	//@Pointcut("execution(* com.evolveum.midpoint.model.api.ModelService.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.model.controller.ModelController.*(..))")
 	public void modelService() {
 	}
 
-	@Pointcut("execution(public * com.evolveum.midpoint.task.api.TaskManager.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.task.api.TaskManager.*(..))")
 	public void taskManager() {
 	}
 
