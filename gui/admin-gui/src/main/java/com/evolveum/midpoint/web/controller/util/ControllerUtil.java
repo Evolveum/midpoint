@@ -97,7 +97,6 @@ public class ControllerUtil {
 		return null;
 	}
 
-	// TODO: query looking only in user type???? wtf?
 	public static Element createQuery(String username, ObjectTypes objectType) {
 		Document document = DOMUtil.getDocument();
 		Element equal = document.createElementNS(SchemaConstants.NS_C, "c:equal");
@@ -107,20 +106,17 @@ public class ControllerUtil {
 		name.setTextContent(username);
 		value.appendChild(name);
 
-		Element root = equal;
-		if (objectType != null) {
-			Element and = document.createElementNS(SchemaConstants.NS_C, "c:and");
-			document.appendChild(and);
+		Element and = document.createElementNS(SchemaConstants.NS_C, "c:and");
+		document.appendChild(and);
 
+		if (objectType != null) {
 			Element type = document.createElementNS(SchemaConstants.NS_C, "c:type");
 			type.setAttribute("uri", objectType.getObjectTypeUri());
 			and.appendChild(type);
-
-			and.appendChild(equal);
-			root = and;
 		}
 
-		return root;
+		and.appendChild(equal);
+		return and;
 	}
 
 	private static boolean isEventAvailable(ValueChangeEvent evt) {
@@ -171,7 +167,8 @@ public class ControllerUtil {
 
 	public static ResourceManager getResourceManager(ObjectTypeCatalog catalog) {
 		Validate.notNull(catalog, "Object type catalog must not be null.");
-		ObjectManager<GuiResourceDto> manager = catalog.getObjectManager(ResourceType.class, GuiResourceDto.class);
+		ObjectManager<GuiResourceDto> manager = catalog.getObjectManager(ResourceType.class,
+				GuiResourceDto.class);
 
 		return (ResourceManager) manager;
 	}

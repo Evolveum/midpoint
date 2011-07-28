@@ -167,7 +167,6 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 
 	@SuppressWarnings("unchecked")
 	protected <O extends ObjectType> Collection<O> list(PagingType paging, Class<O> type) {
-		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(type, "Class object must not be null.");
 
 		Collection<O> collection = new ArrayList<O>();
@@ -189,7 +188,6 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 
 	@SuppressWarnings("unchecked")
 	protected Collection<T> list(PagingType paging, ObjectTypes type) {
-		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(type, "Object type must not be null.");
 		LOGGER.debug("Listing '" + type.getObjectTypeUri() + "' objects.");
 

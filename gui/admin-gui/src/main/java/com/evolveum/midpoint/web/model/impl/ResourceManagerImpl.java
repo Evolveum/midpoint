@@ -15,7 +15,6 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
-import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.model.ResourceManager;
@@ -63,8 +62,8 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 	@SuppressWarnings("unchecked")
 	@Override
 	public Collection<ConnectorDto> listConnectors() {
-		Collection<ConnectorType> connectors = (Collection<ConnectorType>) list(
-				null, ObjectTypes.CONNECTOR.getClassDefinition());
+		Collection<ConnectorType> connectors = (Collection<ConnectorType>) list(null,
+				ObjectTypes.CONNECTOR.getClassDefinition());
 
 		Collection<ConnectorDto> list = new ArrayList<ConnectorDto>();
 		for (ConnectorType connector : connectors) {
@@ -193,7 +192,6 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 			String resourceOid, QName objectClass, PagingType paging) {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object class must not be null.");
-		Validate.notNull(paging, "Paging must not be null.");
 		LOGGER.debug("Listing resource objects from resource with oid {} and object class {}.", new Object[] {
 				resourceOid, objectClass });
 
