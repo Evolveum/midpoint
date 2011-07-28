@@ -70,6 +70,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
 
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
+import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
@@ -312,12 +313,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Uid uid = getUid(identifiers);
 		if (uid == null) {
 			result.recordFatalError("Required attribute UID not found in identification set while attempting to fetch object identified by "
-							+ identifiers
-							+ " from recource "
-							+ resource.getName()
-							+ "(OID:"
-							+ resource.getOid()
-							+ ")");
+					+ identifiers
+					+ " from recource "
+					+ resource.getName()
+					+ "(OID:" + resource.getOid() + ")");
 			throw new IllegalArgumentException(
 					"Required attribute UID not found in identification set while attempting to fetch object identified by "
 							+ identifiers
@@ -334,9 +333,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			result.recordFatalError("Unable to detemine object class from QName "
 					+ resourceObjectDefinition.getTypeName()
 					+ " while attempting to fetch object identified by "
-					+ identifiers + " from recource "
-					+ resource.getName() + "(OID:" + resource.getOid()
-					+ ")");
+					+ identifiers
+					+ " from recource "
+					+ resource.getName()
+					+ "(OID:" + resource.getOid() + ")");
 			throw new IllegalArgumentException(
 					"Unable to detemine object class from QName "
 							+ resourceObjectDefinition.getTypeName()
@@ -400,9 +400,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					+ identifiers
 					+ " from recource "
 					+ resource.getName()
-					+ "(OID:"
-					+ resource.getOid()
-					+ ")");
+					+ "(OID:" + resource.getOid() + ")");
 			throw new IllegalArgumentException(
 					"Required attribute UID not found in identification set while attempting to fetch object identified by "
 							+ identifiers
@@ -418,9 +416,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			result.recordFatalError("Unable to detemine object class from QName "
 					+ objectClass
 					+ " while attempting to fetch object identified by "
-					+ identifiers + " from recource "
-					+ resource.getName() + "(OID:" + resource.getOid()
-					+ ")");
+					+ identifiers
+					+ " from recource "
+					+ resource.getName()
+					+ "(OID:" + resource.getOid() + ")");
 			throw new IllegalArgumentException(
 					"Unable to detemine object class from QName "
 							+ objectClass
@@ -662,6 +661,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.addContext("connector", connector);
 				connector
 						.addAttributeValues(objClass, uid, attributes, options);
+				icfResult.recordSuccess();
 			}
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
@@ -707,6 +707,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.addParam("options", options);
 				icfResult.addContext("connector", connector);
 				connector.update(objClass, uid, attributes, options);
+				icfResult.recordSuccess();
 			}
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
@@ -733,7 +734,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (valuesToRemove != null && !valuesToRemove.isEmpty()) {
 				Set<Attribute> attributes = null;
 				try {
-					attributes = convertFromResourceObject(valuesToRemove, result);
+					attributes = convertFromResourceObject(valuesToRemove,
+							result);
 				} catch (SchemaException ex) {
 					result.recordFatalError(
 							"Error while converting resource object attributes. Reason: "
@@ -753,6 +755,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.addContext("connector", connector);
 				connector.removeAttributeValues(objClass, uid, attributes,
 						options);
+				icfResult.recordSuccess();
 			}
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
@@ -775,6 +778,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}
 
+		result.recordSuccess();
 	}
 
 	@Override
@@ -791,7 +795,24 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ObjectClass objClass = objectClassToIcf(objectClass);
 		Uid uid = getUid(identifiers);
 
-		connector.delete(objClass, uid, new OperationOptionsBuilder().build());
+		OperationResult icfResult = result
+				.createSubresult(ConnectorFacade.class.getName() + ".delete");
+		icfResult.addParam("uid", uid);
+		icfResult.addParam("objectClass", objClass);
+		icfResult.addContext("connector", connector);
+
+		try {
+			connector.delete(objClass, uid,
+					new OperationOptionsBuilder().build());
+			icfResult.recordSuccess();
+		} catch (UnknownUidException ex) {
+			icfResult.recordFatalError("Object with the uid: " + uid
+					+ " was not found. Reason: " + ex.getMessage(), ex);
+			throw new ObjectNotFoundException("Object with the uid: " + uid
+					+ " was not found. Reason: " + ex.getMessage(), ex);
+		}
+
+		result.recordSuccess();
 	}
 
 	@Override
@@ -804,12 +825,22 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException {
 
+		OperationResult result = parentResult
+				.createSubresult(ConnectorInstance.class.getName()
+						+ ".deleteObject");
+		result.addParam("objectClass", objectClass);
+
 		ObjectClass objClass = objectClassToIcf(objectClass);
 
 		SyncToken syncToken = connector.getLatestSyncToken(objClass);
 
-		Property property = getToken(syncToken);
+		if (syncToken == null) {
+			result.recordFatalError("No token found");
+			throw new IllegalArgumentException("No token found.");
+		}
 
+		Property property = getToken(syncToken);
+		result.recordSuccess();
 		return property;
 	}
 
@@ -847,9 +878,36 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			}
 		};
-		connector.sync(icfObjectClass, syncToken, syncHandler,
-				new OperationOptionsBuilder().build());
 
+		OperationResult icfResult = subresult
+				.createSubresult(ConnectorFacade.class.getName() + ".sync");
+		icfResult.addContext("connector", connector);
+		icfResult.addParam("icfObjectClass", icfObjectClass);
+		icfResult.addParam("syncToken", syncToken);
+		icfResult.addParam("syncHandler", syncHandler);
+
+		try {
+			connector.sync(icfObjectClass, syncToken, syncHandler,
+					new OperationOptionsBuilder().build());
+			icfResult.recordSuccess();
+		} catch (Exception ex) {
+			Exception midpointEx = processIcfException(ex, icfResult);
+			subresult.computeStatus();
+			// Do some kind of acrobatics to do proper throwing of checked
+			// exception
+			if (midpointEx instanceof CommunicationException) {
+				throw (CommunicationException) midpointEx;
+			} else if (midpointEx instanceof GenericFrameworkException) {
+				throw (GenericFrameworkException) midpointEx;
+			} else if (midpointEx instanceof SchemaException) {
+				throw (SchemaException) midpointEx;
+			} else if (midpointEx instanceof RuntimeException) {
+				throw (RuntimeException) midpointEx;
+			} else {
+				throw new SystemException("Got unexpected exception: "
+						+ ex.getClass().getName(), ex);
+			}
+		}
 		// convert changes from icf to midpoint Change
 		List<Change> changeList = null;
 		try {
@@ -859,6 +917,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			subresult.recordFatalError(ex.getMessage(), ex);
 			throw new SchemaException(ex.getMessage(), ex);
 		}
+		
 		subresult.recordSuccess();
 		return changeList;
 	}
@@ -1223,16 +1282,18 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						.findContainerDefinitionByType(objectClass);
 				ResourceObject resourceObject = convertToResourceObject(
 						delta.getObject(), rod);
-				
-//				ObjectChangeAdditionType additionalChangeType = new ObjectChangeAdditionType();
-//				additionalChangeType.setObject(createResourceShadow(resourceObject, resource, parentResult));
+
+				// ObjectChangeAdditionType additionalChangeType = new
+				// ObjectChangeAdditionType();
+				// additionalChangeType.setObject(createResourceShadow(resourceObject,
+				// resource, parentResult));
 				ObjectChangeModificationType modificationChangeType = createModificationChange(
 						delta, resourceObject);
 				LOGGER.trace("Got modification: {}",
 						JAXBUtil.silentMarshalWrap(modificationChangeType));
-			
-				Change change = new Change(resourceObject.getIdentifiers(), modificationChangeType,
-						getToken(delta.getToken()));
+
+				Change change = new Change(resourceObject.getIdentifiers(),
+						modificationChangeType, getToken(delta.getToken()));
 				changeList.add(change);
 			}
 
@@ -1240,7 +1301,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return changeList;
 	}
 
-	//TODO:refaktor = > move to the utility methods or resource object methods...the same method used in the shadow cache..
+	// TODO:refaktor = > move to the utility methods or resource object
+	// methods...the same method used in the shadow cache..
 	private ResourceObjectShadowType createResourceShadow(
 			ResourceObject resourceObject, ResourceType resource,
 			OperationResult parentResult) throws SchemaException {
@@ -1251,19 +1313,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		String accountName = null;
 		if (resourceObject.isAccountType()) {
 			shadow = new AccountShadowType();
-			ResourceObjectAttribute name = resourceObject.findAttribute(new QName(resource.getNamespace(), "uid"));
-			if (name.getValues().size() != 1){
-				throw new IllegalArgumentException("Name attribute must be just one.");
+			ResourceObjectAttribute name = resourceObject
+					.findAttribute(new QName(resource.getNamespace(), "uid"));
+			if (name.getValues().size() != 1) {
+				throw new IllegalArgumentException(
+						"Name attribute must be just one.");
 			}
 			accountName = name.getValue(String.class);
 		} else {
 			shadow = new ResourceObjectShadowType();
 		}
 
-		
-		
 		shadow.setObjectClass(resourceObject.getDefinition().getTypeName());
-		shadow.setName(resource.getName()+"-"+accountName);
+		shadow.setName(resource.getName() + "-" + accountName);
 		shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
 		Attributes attributes = new Attributes();
 		shadow.setAttributes(attributes);
@@ -1284,7 +1346,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		return shadow;
 	}
-	
+
 	private ObjectChangeModificationType createModificationChange(
 			SyncDelta delta, ResourceObject resourceObject)
 			throws SchemaException {

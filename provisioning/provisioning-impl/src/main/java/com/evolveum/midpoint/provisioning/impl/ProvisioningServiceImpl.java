@@ -59,6 +59,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
@@ -537,7 +538,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					+ " from repository. Reason:  " + e.getMessage() + " " + e);
 			throw new ObjectNotFoundException(e.getMessage());
 		}
-
+	
+		//TODO:check also others shadow objects
+		if (!(objectType instanceof AccountShadowType)){
+			result.recordFatalError("Object type must be one of the resource object shadow type.");
+			throw new IllegalArgumentException("Object type must be one of the resource object shadow type.");
+		}
+		
 		try {
 			getShadowCache().deleteShadow(objectType, null, parentResult);
 			result.recordSuccess();
@@ -551,6 +558,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.recordFatalError(e.getMessage());
 			throw new SchemaException(e.getMessage(), e);
 		}
+		
+		result.recordSuccess();
 		LOGGER.debug("**PROVISIONING: Finished deleting object.");
 
 	}

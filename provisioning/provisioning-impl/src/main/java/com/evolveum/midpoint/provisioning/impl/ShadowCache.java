@@ -569,6 +569,9 @@ public class ShadowCache {
 				throw new CommunicationException(
 						"Error communitacing with the connector " + connector
 								+ ": " + ex.getMessage(), ex);
+			} catch (GenericFrameworkException ex){
+				parentResult.recordFatalError("Generic error in connector: "+ex.getMessage(), ex);
+				throw new GenericConnectorException("Generic error in connector: "+ex.getMessage(), ex);
 			}
 
 			LOGGER.debug("Detele object with oid {} form repository.",
