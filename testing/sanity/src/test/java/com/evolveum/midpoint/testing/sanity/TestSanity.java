@@ -702,7 +702,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// Wait a bit to give the sync cycle time to detect the change
 
 		System.out.println("Waining for sync cycle to detect change");
-		Thread.sleep(10000);
+		Thread.sleep(70000);
 		System.out.println("... done");
 
 		// Search for the user that should be created now

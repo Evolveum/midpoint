@@ -1,4 +1,4 @@
-dn: uid=wturner, ou=People, dc=example,dc=com
+dn: uid=wturner,ou=People,dc=example,dc=com
 uid: wturner
 cn: Will Turner
 sn: Turner
