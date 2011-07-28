@@ -25,27 +25,30 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 /**
  * @author Igor Farinic
  *
  */
 @Aspect
+@Order(value=Ordered.HIGHEST_PRECEDENCE)
 public class NdcAspect {
 	
     @Around("entriesIntoRepository()")
     public Object processRepositoryNdc(ProceedingJoinPoint pjp) throws Throwable {
-        return markSubsystem(pjp, "repository");
+        return markSubsystem(pjp, "REPOSITORY");
     }
-
+    
     @Around("entriesIntoTaskManager()")
     public Object processTaskManagerNdc(ProceedingJoinPoint pjp) throws Throwable {
-    	return markSubsystem(pjp, "taskManager");
+    	return markSubsystem(pjp, "TASKMANAGER");
     }
 
     @Around("entriesIntoProvisioning()")
     public Object processProvisioningNdc(ProceedingJoinPoint pjp) throws Throwable {
-    	return markSubsystem(pjp, "provisioning");
+    	return markSubsystem(pjp, "PROVISIONING");
     }
 
     @Around("entriesIntoResourceObjectChangeListener()")
@@ -55,12 +58,12 @@ public class NdcAspect {
     
     @Around("entriesIntoModel()")
     public Object processModelNdc(ProceedingJoinPoint pjp) throws Throwable {
-    	return markSubsystem(pjp, "model");
+    	return markSubsystem(pjp, "MODEL");
     }
     
     @Around("entriesIntoWeb()")
     public Object processWebNdc(ProceedingJoinPoint pjp) throws Throwable {
-    	return markSubsystem(pjp, "web");
+    	return markSubsystem(pjp, "WEB");
     }
     
 	private Object markSubsystem(ProceedingJoinPoint pjp, String subsystem) throws Throwable {

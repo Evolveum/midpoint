@@ -273,6 +273,8 @@ public class XmlRepositoryService implements RepositoryService {
 		result.addParam("query", query);
 		result.addParam("paging", paging);
 
+		TRACE.trace("midPoint query: {}", JAXBUtil.silentMarshalWrap(query));
+		
 		validateQuery(query);
 
 		NodeList children = query.getFilter().getChildNodes();
@@ -338,8 +340,7 @@ public class XmlRepositoryService implements RepositoryService {
 			String serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
 			if (serializedObject != null) {
 				// FIXME: try to find another solution how to escape XQuery
-				// special
-				// characters in XMLs
+				// special characters in XMLs
 				serializedObject = StringUtils.replace(serializedObject, "{", "{{");
 				serializedObject = StringUtils.replace(serializedObject, "}", "}}");
 			}

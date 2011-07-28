@@ -29,10 +29,12 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.xml.ws.Holder;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.log4j.Appender;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.DailyRollingFileAppender;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.RollingFileAppender;
@@ -40,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.util.SystemPropertyUtils;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
@@ -87,7 +90,7 @@ public class LoggingManager {
 	public void init() {
 		LOGGER.info("Initializing Logging Manager.");
 		OperationResult result = new OperationResult("Init Logging Manager");
-		updateLogger(result);
+		updateLoggers(result);
 		result.computeStatus();
 		LOGGER.info(result.dump());
 	}
@@ -113,10 +116,10 @@ public class LoggingManager {
 		}
 		this.logging = config;
 
-		updateLogger(result);
+		updateLoggers(result);
 	}
 
-	public synchronized void updateLogger(OperationResult result) {
+	private synchronized void updateLoggers(OperationResult result) {
 		LoggingConfigurationType config = getConfiguration(result);
 
 		List<AppenderConfigurationType> appendersConf = config.getAppender();
@@ -139,7 +142,7 @@ public class LoggingManager {
 		for (LoggerConfigurationType loggerConf : loggersConf) {
 			for (String pckg : loggerConf.getPackage()) {
 				Logger logger = Logger.getLogger(pckg);
-				logger.setLevel(logger.getLevel());
+				logger.setLevel(Level.toLevel(StringUtils.upperCase(loggerConf.getLevel().value())));
 				logger.removeAllAppenders();
 				for (String appenderName : loggerConf.getAppender()) {
 					logger.addAppender(appenders.get(appenderName));
@@ -179,6 +182,10 @@ public class LoggingManager {
 	}
 
 	private void clearLog4jAppendersConfiguration(List<LoggerConfigurationType> loggersConf) {
+		
+		//drop all root's logger appenders
+		Logger.getRootLogger().removeAllAppenders();
+		
 		for (LoggerConfigurationType loggerConf : loggersConf) {
 			for (String pckg : loggerConf.getPackage()) {
 				Enumeration appenders = Logger.getRootLogger().getLogger(pckg).getAllAppenders();
@@ -211,9 +218,10 @@ public class LoggingManager {
 				NdcRollingFileAppenderConfigurationType appenderCnf = (NdcRollingFileAppenderConfigurationType) appenderConf;
 				appender.setName(appenderCnf.getName());
 				appender.setLayout(new PatternLayout(appenderCnf.getPattern()));
-				appender.setFile(appenderCnf.getFilePath());
 				appender.setMaxFileSize(Integer.valueOf(appenderCnf.getMaxFileSize()).toString());
 				appender.setAppend(appenderCnf.isAppend());
+				appender.setFile(SystemPropertyUtils.resolvePlaceholders(appenderCnf.getFilePath()));
+				appender.activateOptions();
 				appenders.put(appender.getName(), appender);
 				continue;
 			}
@@ -222,9 +230,10 @@ public class LoggingManager {
 				NdcDailyRollingFileAppenderConfigurationType appenderCnf = (NdcDailyRollingFileAppenderConfigurationType) appenderConf;
 				appender.setName(appenderCnf.getName());
 				appender.setLayout(new PatternLayout(appenderCnf.getPattern()));
-				appender.setFile(appenderCnf.getFilePath());
 				appender.setDatePattern(appenderCnf.getDatePattern());
 				appender.setAppend(appenderCnf.isAppend());
+				appender.setFile(SystemPropertyUtils.resolvePlaceholders(appenderCnf.getFilePath()));
+				appender.activateOptions();
 				appenders.put(appender.getName(), appender);
 				continue;
 			}
@@ -233,9 +242,10 @@ public class LoggingManager {
 				RollingFileAppenderConfigurationType appenderCnf = (RollingFileAppenderConfigurationType) appenderConf;
 				appender.setName(appenderCnf.getName());
 				appender.setLayout(new PatternLayout(appenderCnf.getPattern()));
-				appender.setFile(appenderCnf.getFilePath());
 				appender.setMaxFileSize(Integer.valueOf(appenderCnf.getMaxFileSize()).toString());
 				appender.setAppend(appenderCnf.isAppend());
+				appender.setFile(SystemPropertyUtils.resolvePlaceholders(appenderCnf.getFilePath()));
+				appender.activateOptions();
 				appenders.put(appender.getName(), appender);
 				continue;
 			}
@@ -244,9 +254,10 @@ public class LoggingManager {
 				DailyRollingFileAppenderConfigurationType appenderCnf = (DailyRollingFileAppenderConfigurationType) appenderConf;
 				appender.setName(appenderCnf.getName());
 				appender.setLayout(new PatternLayout(appenderCnf.getPattern()));
-				appender.setFile(appenderCnf.getFilePath());
 				appender.setDatePattern(appenderCnf.getDatePattern());
 				appender.setAppend(appenderCnf.isAppend());
+				appender.setFile(SystemPropertyUtils.resolvePlaceholders(appenderCnf.getFilePath()));
+				appender.activateOptions();
 				appenders.put(appender.getName(), appender);
 				continue;
 			}
@@ -275,45 +286,7 @@ public class LoggingManager {
 		}
 
 		return null;
-		//
-		//
-		// OperationResultType resultTypeHolder =
-		// saveConfigResult.createOperationResultType();
-		// try {
-		// SystemConfigurationType oldSystem = getSystemConfiguration(result);
-		// SystemConfigurationType newSystem = (SystemConfigurationType)
-		// JAXBUtil.clone(oldSystem);
-		// newSystem.setLogging(logging);
-		//
-		// ObjectModificationType change =
-		// CalculateXmlDiff.calculateChanges(oldSystem, newSystem);
-		// change.setOid(SystemObjectsType.SYSTEM_CONFIGURATION.value());
-		// model.modifyObject(change, new
-		// Holder<OperationResultType>(resultTypeHolder));
-		// saveConfigResult.recordSuccess();
-		//
-		// return logging;
-		// } catch (JAXBException ex) {
-		// String message = "Couldn't clone system configuration";
-		// LoggingUtils.logException(LOGGER, message, ex);
-		// saveConfigResult.recordFatalError(message, ex);
-		// } catch (DiffException ex) {
-		// String message = "Couldn't create diff for system configuration";
-		// LoggingUtils.logException(LOGGER, message, ex);
-		// saveConfigResult.recordFatalError(message, ex);
-		// } catch (FaultMessage ex) {
-		// String message = "Couldn't get system configuration";
-		// LoggingUtils.logException(LOGGER, message, ex);
-		// saveConfigResult.recordFatalError(message, ex);
-		// } finally {
-		// OperationResult opResult =
-		// OperationResult.createOperationResult(resultTypeHolder);
-		// saveConfigResult.getSubresults().addAll(opResult.getSubresults());
-		//
-		// result.addSubresult(saveConfigResult);
-		// }
-		//
-		// return null;
+
 	}
 
 	private SystemConfigurationType getSystemConfiguration(OperationResult result) {
