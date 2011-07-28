@@ -64,7 +64,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 	@Override
 	public Collection<ConnectorDto> listConnectors() {
 		Collection<ConnectorType> connectors = (Collection<ConnectorType>) list(
-				PagingTypeFactory.createListAllPaging(), ObjectTypes.CONNECTOR.getClassDefinition());
+				null, ObjectTypes.CONNECTOR.getClassDefinition());
 
 		Collection<ConnectorDto> list = new ArrayList<ConnectorDto>();
 		for (ConnectorType connector : connectors) {

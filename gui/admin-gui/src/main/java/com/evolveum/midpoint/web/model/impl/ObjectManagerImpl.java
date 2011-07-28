@@ -34,7 +34,6 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.ObjectTypes;
-import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.web.model.ObjectManager;
@@ -65,7 +64,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 
 	@Override
 	public Collection<T> list() {
-		return list(PagingTypeFactory.createListAllPaging());
+		return list(null);
 	}
 
 	@Override

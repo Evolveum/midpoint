@@ -34,6 +34,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -93,7 +94,8 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		try {
 			QueryType query = new QueryType();
 			query.setFilter(ControllerUtil.createQuery(name, null));
-			list = repositoryService.searchObjects(query, PagingTypeFactory.createListAllPaging(), result);
+			LOGGER.trace(JAXBUtil.silentMarshalWrap(query));
+			list = repositoryService.searchObjects(query, null, result);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't search for object with name {}", ex, name);

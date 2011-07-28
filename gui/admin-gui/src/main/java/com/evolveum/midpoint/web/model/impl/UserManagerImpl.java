@@ -158,9 +158,6 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 	@Override
 	public List<UserDto> search(QueryType search, PagingType paging) {
 		Validate.notNull(search, "Query must not be null.");
-		if (paging == null) {
-			paging = PagingTypeFactory.createListAllPaging();
-		}
 
 		OperationResult result = new OperationResult(OPERATION_SEARCH);
 		List<UserDto> users = new ArrayList<UserDto>();
