@@ -569,9 +569,11 @@ public class ShadowCache {
 				throw new CommunicationException(
 						"Error communitacing with the connector " + connector
 								+ ": " + ex.getMessage(), ex);
-			} catch (GenericFrameworkException ex){
-				parentResult.recordFatalError("Generic error in connector: "+ex.getMessage(), ex);
-				throw new GenericConnectorException("Generic error in connector: "+ex.getMessage(), ex);
+			} catch (GenericFrameworkException ex) {
+				parentResult.recordFatalError("Generic error in connector: "
+						+ ex.getMessage(), ex);
+				throw new GenericConnectorException(
+						"Generic error in connector: " + ex.getMessage(), ex);
 			}
 
 			LOGGER.debug("Detele object with oid {} form repository.",
@@ -847,17 +849,24 @@ public class ShadowCache {
 				change.setOldShadow(newAccount);
 			}
 		} catch (SchemaException ex) {
-			parentResult.recordFatalError("Schema error: " + ex.getMessage(), ex);
-			throw new SchemaException("Schema error: "+ex.getMessage(), ex);
+			parentResult.recordFatalError("Schema error: " + ex.getMessage(),
+					ex);
+			throw new SchemaException("Schema error: " + ex.getMessage(), ex);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
-			parentResult.recordFatalError("Communication error: " + ex.getMessage(), ex);
-			throw new CommunicationException("Communication error: "+ex.getMessage(), ex);
+			parentResult.recordFatalError(
+					"Communication error: " + ex.getMessage(), ex);
+			throw new CommunicationException("Communication error: "
+					+ ex.getMessage(), ex);
 		} catch (ObjectNotFoundException ex) {
-			parentResult.recordFatalError("Object not found. Reason: " + ex.getMessage(), ex);
-			throw new ObjectNotFoundException("Object not found. Reason: "+ex.getMessage(), ex);
+			parentResult.recordFatalError(
+					"Object not found. Reason: " + ex.getMessage(), ex);
+			throw new ObjectNotFoundException("Object not found. Reason: "
+					+ ex.getMessage(), ex);
 		} catch (GenericFrameworkException ex) {
-			parentResult.recordFatalError("Generic error: " + ex.getMessage(), ex);
-			throw new GenericFrameworkException("Generic error: "+ex.getMessage(), ex);
+			parentResult.recordFatalError("Generic error: " + ex.getMessage(),
+					ex);
+			throw new GenericFrameworkException("Generic error: "
+					+ ex.getMessage(), ex);
 		}
 		parentResult.recordSuccess();
 		return changes;
@@ -883,17 +892,13 @@ public class ShadowCache {
 		AccountShadowType newAccount = null;
 		// if object doesn't exist, create it now
 		if (accountList.getObject().isEmpty()) {
-			newAccount = createNewAccount(change, resource, connector,
-					parentResult);
-//			if (change.getChange() instanceof ObjectChangeAdditionType){
-//				ObjectChangeAdditionType additionChange = (ObjectChangeAdditionType) change.getChange();
-//				TODO: unchecked casting to the accoun t shadow type - it might be also group etc..
-//				newAccount = (AccountShadowType) additionChange.getObject();
-//			}
-			
-			LOGGER.debug("Create account shadow object: {}",
-					ObjectTypeUtil.toShortString(newAccount));
 
+			if (!(change.getChange() instanceof ObjectChangeDeletionType)) {
+				newAccount = createNewAccount(change, resource, connector,
+						parentResult);
+				LOGGER.debug("Create account shadow object: {}",
+						ObjectTypeUtil.toShortString(newAccount));
+			}
 			// if exist, set the old shadow to the change
 		} else {
 			for (ObjectType obj : accountList.getObject()) {
@@ -904,6 +909,22 @@ public class ShadowCache {
 							"Object type must be one of the resource object shadow.");
 				}
 				newAccount = (AccountShadowType) obj;
+				//if the fetched chande was one of the deletion type, delete corresponding account from repo now
+				if (change.getChange() instanceof ObjectChangeDeletionType) {
+					try {
+						getRepositoryService().deleteObject(
+								newAccount.getOid(), parentResult);
+					} catch (ObjectNotFoundException ex) {
+						parentResult.recordFatalError(
+								"Object with oid " + newAccount.getOid()
+										+ " not found in repo. Reason: "
+										+ ex.getMessage(), ex);
+						throw new ObjectNotFoundException("Object with oid "
+								+ newAccount.getOid()
+								+ " not found in repo. Reason: "
+								+ ex.getMessage(), ex);
+					}
+				}
 			}
 		}
 
@@ -980,14 +1001,17 @@ public class ShadowCache {
 		// set name for new account
 		ResourceObject resourceObject = fetchResourceObject(
 				change.getIdentifiers(), connector, resourceType, parentResult);
-//		String accountName = determineShadowName(resourceObject);
-		ResourceObjectAttribute accountAttribute = resourceObject.findAttribute(new QName(resourceType.getNamespace(), "uid"));
-		
-		if (accountAttribute.getValues().size() != 1){
-			parentResult.recordFatalError("Account has more than one uid values");
-			throw new IllegalArgumentException("Account has more than one uid values");
+		// String accountName = determineShadowName(resourceObject);
+		ResourceObjectAttribute accountAttribute = resourceObject
+				.findAttribute(new QName(resourceType.getNamespace(), "uid"));
+
+		if (accountAttribute.getValues().size() != 1) {
+			parentResult
+					.recordFatalError("Account has more than one uid values");
+			throw new IllegalArgumentException(
+					"Account has more than one uid values");
 		}
-		
+
 		String accountName = accountAttribute.getValue(String.class);
 		newAccount.setName(accountName);
 
@@ -1004,7 +1028,8 @@ public class ShadowCache {
 		return newAccount;
 	}
 
-	private ResourceObject fetchResourceObject(Set<Property> identifiers, ConnectorInstance connector, ResourceType resource, 
+	private ResourceObject fetchResourceObject(Set<Property> identifiers,
+			ConnectorInstance connector, ResourceType resource,
 			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException, SchemaException {
 
@@ -1017,8 +1042,11 @@ public class ShadowCache {
 
 		try {
 			Schema schema = getResourceSchema(resource, connector, parentResult);
-			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
-			ResourceObject resourceObject = connector.fetchObject(rod, roIdentifiers, parentResult);
+			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
+					.findContainerDefinitionByType(new QName(resource
+							.getNamespace(), "AccountObjectClass"));
+			ResourceObject resourceObject = connector.fetchObject(rod,
+					roIdentifiers, parentResult);
 			return resourceObject;
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
 			parentResult.recordFatalError("Object not found. Identifiers: "
@@ -1037,9 +1065,11 @@ public class ShadowCache {
 					+ connector + ". Reason: " + e.getMessage(), e);
 			throw new CommunicationException("Generic error in the connector "
 					+ connector + ". Reason: " + e.getMessage(), e);
-		} catch (SchemaException ex){
-			parentResult.recordFatalError("Can't get resource schema. Reason: " + ex.getMessage(), ex);
-			throw new SchemaException("Can't get resource schema. Reason: " + ex.getMessage(), ex);
+		} catch (SchemaException ex) {
+			parentResult.recordFatalError("Can't get resource schema. Reason: "
+					+ ex.getMessage(), ex);
+			throw new SchemaException("Can't get resource schema. Reason: "
+					+ ex.getMessage(), ex);
 		}
 
 	}
