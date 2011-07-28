@@ -24,9 +24,11 @@ import java.util.Set;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.exception.ConcurrencyException;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
@@ -79,16 +81,96 @@ public interface TaskManager {
 	 */
 	public Task getTask(String taskOid,OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 	
-	// TODO
-	public void modifyTask(ObjectModificationType objectChange);
+	/**
+	 * Add new task.
+	 * 
+	 * The OID provided in the task may be empty. In that case the OID
+	 * will be assigned by the implementation of this method and it will be
+	 * provided as return value.
+	 * 
+	 * This operation should fail if such object already exists (if object with
+	 * the provided OID already exists).
+	 * 
+	 * The operation may fail if provided OID is in an unusable format for the
+	 * storage. Generating own OIDs and providing them to this method is not
+	 * recommended for normal operation.
+	 * 
+	 * Should be atomic. Should not allow creation of two objects with the same
+	 * OID (even if created in parallel).
+	 * 
+	 * The operation may fail if the object to be created does not conform to
+	 * the underlying schema of the storage system or the schema enforced by the
+	 * implementation.
+	 * 
+	 * @param object
+	 *            object to create
+	 * @param scripts
+	 *            scripts to execute before/after the operation
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * @return OID assigned to the created object
+	 * 
+	 * @throws ObjectAlreadyExistsException
+	 *             object with specified identifiers already exists, cannot add
+	 * @throws SchemaException
+	 *             error dealing with storage schema, e.g. schema violation
+	 * @throws IllegalArgumentException
+	 *             wrong OID format, etc.
+	 */
+	public String addTask(TaskType taskType, OperationResult parentResult)
+			throws ObjectAlreadyExistsException, SchemaException;
+
 	
 	/**
-	 * Deletes a task from the repository.
+	 * Modifies task using relative change description. Must fail if object with
+	 * provided OID does not exists. Must fail if any of the described changes
+	 * cannot be applied. Should be atomic.
 	 * 
-	 * @param taskOid OID of task to delete.
+	 * If two or more modify operations are executed in parallel, the operations
+	 * should be merged. In case that the operations are in conflict (e.g. one
+	 * operation adding a value and the other removing the same value), the
+	 * result is not deterministic.
+	 * 
+	 * The operation may fail if the modified object does not conform to the
+	 * underlying schema of the storage system or the schema enforced by the
+	 * implementation.
+	 * 
+	 * TODO: optimistic locking
+	 * 
+	 * @param objectChange
+	 *            specification of object changes
+	 * @param scripts
+	 *            scripts that should be executed before of after operation
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * 
+	 * @throws ObjectNotFoundException
+	 *             specified object does not exist
+	 * @throws SchemaException
+	 *             resulting object would violate the schema
+	 * @throws IllegalArgumentException
+	 *             wrong OID format, described change is not applicable
 	 */
-	public void deteleTask(String taskOid);
-	
+	public void modifyTask(ObjectModificationType objectChange, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException;
+
+	/**
+	 * Deletes task with provided OID. Must fail if object with specified OID
+	 * does not exists. Should be atomic.
+	 * 
+	 * @param oid
+	 *            OID of object to delete
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * 
+	 * @throws ObjectNotFoundException
+	 *             specified object does not exist
+	 * @throws IllegalArgumentException
+	 *             wrong OID format, described change is not applicable
+	 */
+	public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException;
+
+		
 	/**
 	 * Claim task exclusively for this node.
 	 * 

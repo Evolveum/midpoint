@@ -133,24 +133,6 @@ public class TaskManagerImpl implements TaskManager {
 	}
 
 	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.TaskManager#modifyTask(com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType)
-	 */
-	@Override
-	public void modifyTask(ObjectModificationType objectChange) {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.TaskManager#deteleTask(java.lang.String)
-	 */
-	@Override
-	public void deteleTask(String taskOid) {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
-	}
-
-	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.TaskManager#claimTask(com.evolveum.midpoint.task.api.Task)
 	 */
 	@Override
@@ -371,6 +353,30 @@ public class TaskManagerImpl implements TaskManager {
 			tasks.add(runner.getTask());
 		}
 		return tasks;
+	}
+
+	@Override
+	public String addTask(TaskType taskType, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
+		// TODO: result
+		String oid = repositoryService.addObject(taskType, parentResult);
+		// Wake up scanner thread. This may be a new runnable task
+		scannerThread.scan();
+		return oid;
+	}
+
+	@Override
+	public void modifyTask(ObjectModificationType objectChange, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException {
+		// TODO: result
+		repositoryService.modifyObject(objectChange, parentResult);
+		// Wake up scanner thread. This may be runnable task now
+		scannerThread.scan();
+	}
+
+	@Override
+	public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException {
+		// TODO: result
+		repositoryService.deleteObject(oid, parentResult);
 	}
 
 }

@@ -226,6 +226,16 @@ public class TaskScanner extends Thread {
 			logger.error("Task scanner: Critical error: {}: {}", new Object[] { t, t.getMessage(), t });
 		}
 	}
+	
+	/**
+	 * Make the scanner scan tasks now, if possible.
+	 * 
+	 */
+	public void scan() {
+		// Interrupt the sleep. If it is not sleeping this does nothing of
+		// significance. Otherwise it will wake up and start scanning.
+		this.interrupt();
+	}
 
 	private boolean canHandle(TaskType task) {
 		if (taskManagerImpl.getHandler(task.getHandlerUri()) != null) {

@@ -75,6 +75,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
@@ -118,7 +119,9 @@ public class ModelControllerImpl implements ModelController {
 		result.addSubresult(subResult);
 		String oid = null;
 		try {
-			if (ProvisioningTypes.isManagedByProvisioning(object)) {
+			if (object instanceof TaskType) {
+				oid = addTask((TaskType)object, subResult);
+			} else if (ProvisioningTypes.isManagedByProvisioning(object)) {
 				oid = addProvisioningObject(object, subResult);
 			} else {
 				oid = addRepositoryObject(object, subResult);
@@ -386,7 +389,9 @@ public class ModelControllerImpl implements ModelController {
 		try {
 			ObjectType object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(),
 					subResult, ObjectType.class);
-			if (ProvisioningTypes.isManagedByProvisioning(object)) {
+			if (object instanceof TaskType) {
+				modifyTaskWithExclusion(change, accountOid, subResult, object);
+			} else if (ProvisioningTypes.isManagedByProvisioning(object)) {
 				modifyProvisioningObjectWithExclusion(change, accountOid, subResult, object);
 			} else {
 				modifyRepositoryObjectWithExclusion(change, accountOid, subResult, object);
@@ -426,7 +431,9 @@ public class ModelControllerImpl implements ModelController {
 			ObjectType object = getObjectFromRepository(oid, new PropertyReferenceListType(), subResult,
 					ObjectType.class);
 
-			if (ProvisioningTypes.isManagedByProvisioning(object)) {
+			if (object instanceof TaskType) {
+				taskManager.deleteTask(oid, subResult);
+			} else if (ProvisioningTypes.isManagedByProvisioning(object)) {
 				ScriptsType scripts = getScripts(object, subResult);
 				provisioning.deleteObject(oid, scripts, subResult);
 			} else {
@@ -714,6 +721,18 @@ public class ModelControllerImpl implements ModelController {
 		} catch (ObjectAlreadyExistsException ex) {
 			throw ex;
 		} catch (Exception ex) {
+			throw new SystemException(ex.getMessage(), ex);
+		}
+	}
+	
+	private String addTask(TaskType task, OperationResult result)
+	throws ObjectAlreadyExistsException, ObjectNotFoundException {
+		try {
+			return taskManager.addTask(task,result);
+		} catch (ObjectAlreadyExistsException ex) {
+			throw ex;
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't add object {} to task manager", ex, task.getName());
 			throw new SystemException(ex.getMessage(), ex);
 		}
 	}
@@ -1072,6 +1091,14 @@ public class ModelControllerImpl implements ModelController {
 		}
 	}
 
+	
+	@SuppressWarnings("unchecked")
+	private void modifyTaskWithExclusion(ObjectModificationType change, String accountOid,
+			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException {
+			taskManager.modifyTask(change, result);
+	}
+
+	
 	private ObjectModificationType processOutboundSchemaHandling(UserType user,
 			ResourceObjectShadowType object, OperationResult result) {
 		ObjectModificationType change = null;
