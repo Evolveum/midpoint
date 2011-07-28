@@ -54,6 +54,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -650,8 +651,10 @@ public class ShadowCache {
 	public void testConnection(ResourceType resourceType,
 			OperationResult parentResult) {
 
+//		OperationResult initResult = parentResult
+//				.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_INIT_OPERATION);
 		OperationResult initResult = parentResult
-				.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_INIT_OPERATION);
+		.createSubresult(ConnectorTestOperation.CONNECTION_INITIALIZATION.toString());
 		ConnectorInstance connector;
 		try {
 

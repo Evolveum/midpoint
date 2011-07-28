@@ -48,6 +48,7 @@ import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -166,6 +167,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					.getConnector(oid);
 			LOGGER.trace("**PROVISIONING: Got connector object {}",
 					JAXBUtil.silentMarshalWrap(connectorType));
+			
+			if (connectorType == null){
+				result.recordFatalError("Connector with oid "+oid+" not found.");
+				throw new IllegalArgumentException("Connector with oid "+oid+" not found.");				
+			}
+			result.recordSuccess();
 			return connectorType;
 		}
 
@@ -584,6 +591,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		LOGGER.debug("Start testing resource with oid {} ", resourceOid);
 
+		
 		OperationResult parentResult = new OperationResult(
 				TEST_CONNECTION_OPERATION);
 		parentResult.addParam("resourceOid", resourceOid);

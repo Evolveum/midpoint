@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
+import com.evolveum.midpoint.schema.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
@@ -925,8 +926,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	@Override
 	public void test(OperationResult parentResult) {
 
+//		OperationResult connectionResult = parentResult
+//				.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_CONNECTION_OPERATION);
 		OperationResult connectionResult = parentResult
-				.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_CONNECTION_OPERATION);
+		.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.toString());
 		connectionResult.addContext(
 				OperationResult.CONTEXT_IMPLEMENTATION_CLASS,
 				ConnectorInstance.class);
