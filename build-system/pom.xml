@@ -46,10 +46,10 @@
 		<commons.lang.version>2.6</commons.lang.version>
 		<dbunit.version>2.4.7</dbunit.version>
 		<el.version>2.2</el.version>
-		<icefaces.version>2.0.2</icefaces.version>
-		<icepush.version>2.0.2</icepush.version>
-		<jaxb.version>2.2.4-1</jaxb.version>
-		<jsf.version>2.1.2</jsf.version>
+		<icefaces.version>2.0.1</icefaces.version>
+		<icepush.version>2.0.1</icepush.version>
+		<jaxb.version>2.2.3</jaxb.version>
+		<jsf.version>2.1.0</jsf.version>
 		<junit.version>4.8.2</junit.version>
 		<mysql.connector.version>5.1.17</mysql.connector.version>
 		<mockito.version>1.8.5</mockito.version>
