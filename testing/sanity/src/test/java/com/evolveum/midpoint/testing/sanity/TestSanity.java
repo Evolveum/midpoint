@@ -622,7 +622,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// to pick up this
 		// task
 
-		waitFor("Waining for task manager to pick up the task", 10000);
+		waitFor("Waining for task manager to pick up the task", 2000);
 
 		// Check task status
 
@@ -702,7 +702,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		// Wait a bit to give the sync cycle time to detect the change
 
 		System.out.println("Waining for sync cycle to detect change");
-		Thread.sleep(70000);
+		Thread.sleep(10000);
 		System.out.println("... done");
 
 		// Search for the user that should be created now
@@ -961,7 +961,11 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		ObjectType object = unmarshallJaxbFromFile(filePath, ObjectType.class);
 		System.out.println("obj: " + object.getName());
 		OperationResult result = new OperationResult(TestSanity.class.getName() + ".addObjectFromFile");
-		repositoryService.addObject(object, result);
+		if (object instanceof TaskType) {
+			taskManager.addTask((TaskType)object, result);
+		} else {
+			repositoryService.addObject(object, result);
+		}
 		return object;
 	}
 
