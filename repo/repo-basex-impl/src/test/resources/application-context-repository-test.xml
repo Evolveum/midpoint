@@ -47,7 +47,7 @@
 		<property name="databaseName" value="midPoint-test" />
 		<!-- client connection properties -->
 		<property name="host" value="localhost" />
-		<property name="port" value="1984" />
+		<property name="port" value="19840" />
 		<property name="username" value="admin" />
 		<property name="password" value="admin" />
 	</bean>
