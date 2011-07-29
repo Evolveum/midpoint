@@ -43,7 +43,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"../../../../../application-context-repository.xml", "../../../../../application-context-repository-test.xml"})
+@ContextConfiguration(locations = {"../../../../../application-context-repository.xml", "classpath:application-context-repository-test.xml"})
 public class SpringApplicationContextTest {
 
     @Autowired(required=true)

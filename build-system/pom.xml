@@ -41,7 +41,7 @@
 		<verbose.jaxws>false</verbose.jaxws>
         <!-- Dependencies global versions -->
 		<aspectj.version>1.6.11</aspectj.version>
-		<basex.version>6.7</basex.version>
+		<basex.version>6.7.1</basex.version>
 		<commons.io.version>2.0.1</commons.io.version>
 		<commons.lang.version>2.6</commons.lang.version>
 		<dbunit.version>2.4.7</dbunit.version>
@@ -201,11 +201,28 @@
 						<version>2.9</version>
 						<configuration>
 							<forkMode>once</forkMode>
-							<parallel>false</parallel>
-							<perCoreThreadCount>false</perCoreThreadCount>
-							<threadCount>1</threadCount>
+							<!--runOrder>reversealphabetical</runOrder-->
 							<redirectTestOutputToFile>true</redirectTestOutputToFile>
+							<threadCount>1</threadCount>
+							<perCoreThreadCount>false</perCoreThreadCount>
+							<reportFormat>plain</reportFormat>
+							<trimStackTrace>false</trimStackTrace>
+							<systemPropertyVariables>
+      <property>
+        <name>log4j.configuration</name>
+        <value>file:src/test/resources/log4j.properties</value>
+      </property>
+    </systemPropertyVariables>
+
 						</configuration>
+						<dependencies>
+      <dependency>
+        <groupId>org.apache.maven.surefire</groupId>
+        <artifactId>surefire-junit47</artifactId>
+        <version>2.9</version>
+      </dependency>
+    </dependencies>
+
 					</plugin>
 
 				</plugins>

@@ -68,7 +68,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
-		"../../../../../application-context-repository-test.xml" })
+		"classpath:application-context-repository-test.xml" })
 public class RepositoryResourceTest {
 
 	org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RepositoryResourceTest.class);

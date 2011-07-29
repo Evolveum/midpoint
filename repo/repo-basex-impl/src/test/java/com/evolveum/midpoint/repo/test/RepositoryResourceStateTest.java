@@ -63,7 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
-		"../../../../../application-context-repository-test.xml" })
+		"classpath:application-context-repository-test.xml" })
 public class RepositoryResourceStateTest {
 
 	@Autowired(required = true)

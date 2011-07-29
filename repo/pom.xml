@@ -54,6 +54,7 @@
 	</scm>
 	<modules>
 		<module>repo-api</module>
+		<module>repo-basex-test</module>
 		<module>repo-basex-impl</module>
 		<module>task-api</module>
 		<module>task-impl</module>

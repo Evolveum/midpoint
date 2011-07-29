@@ -89,7 +89,6 @@
        <!-- Test -->
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
-            <!-- TODO need to switch to api -->
 			<artifactId>provisioning-impl</artifactId>
 			<version>1.8-SNAPSHOT</version>
 			<scope>test</scope>
@@ -109,9 +108,8 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-basex-impl</artifactId>
+			<artifactId>repo-basex-test</artifactId>
 			<version>1.8-SNAPSHOT</version>
-			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

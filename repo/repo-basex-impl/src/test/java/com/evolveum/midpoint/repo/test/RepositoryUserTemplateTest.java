@@ -55,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
  * @author Igor Farinic
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = {"../../../../../application-context-repository.xml", "../../../../../application-context-repository-test.xml"})
+@ContextConfiguration(locations = {"../../../../../application-context-repository.xml", "classpath:application-context-repository-test.xml"})
 public class RepositoryUserTemplateTest {
 
     @Autowired(required = true)

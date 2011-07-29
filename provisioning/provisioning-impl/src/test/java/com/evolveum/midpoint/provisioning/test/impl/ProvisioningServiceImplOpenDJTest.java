@@ -92,7 +92,8 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
-		"classpath:application-context-provisioning-test.xml" })
+		"classpath:application-context-provisioning-test.xml",
+		"classpath:application-context-repository-test.xml" })
 public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 	// Let's reuse the resource definition from UCF tests ... for now

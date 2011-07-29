@@ -76,7 +76,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(locations = { "classpath:application-context-task.xml", "classpath:application-context-task-test.xml" })
+@ContextConfiguration(locations = { "classpath:application-context-task.xml", 
+			"classpath:application-context-task-test.xml",
+			"classpath:application-context-repository-test.xml" })
 public class TestTaskManagerContract {
 	
 	private static final String TASK_CYCLE_FILENAME = "src/test/resources/repo/cycle-task.xml";

@@ -78,7 +78,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>util</artifactId>
+			<artifactId>common</artifactId>
 			<version>1.8-SNAPSHOT</version>
 		</dependency>
 		<dependency>
@@ -88,14 +88,8 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>common</artifactId>
+			<artifactId>util</artifactId>
 			<version>1.8-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>test-util</artifactId>
-			<version>1.8-SNAPSHOT</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
@@ -104,15 +98,15 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-basex-impl</artifactId>
+			<artifactId>task-api</artifactId>
 			<version>1.8-SNAPSHOT</version>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>commons-pool</groupId>
 			<artifactId>commons-pool</artifactId>
 			<version>1.5.6</version>
 		</dependency>
+		<!--- TEST dependecies-->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
@@ -126,6 +120,18 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-basex-impl</artifactId>
+			<version>1.8-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-basex-test</artifactId>
+			<version>1.8-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
 			<version>1.8-SNAPSHOT</version>
@@ -133,11 +139,11 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>task-api</artifactId>
-			<version>1.8-SNAPSHOT</version>
-			<type>jar</type>
-			<scope>compile</scope>
+			<groupId>org.forgerock.opendj</groupId>
+			<artifactId>opendj</artifactId>
+			<version>2.4.2</version>
+			<scope>test</scope>
 		</dependency>
+
 	</dependencies>
 </project>

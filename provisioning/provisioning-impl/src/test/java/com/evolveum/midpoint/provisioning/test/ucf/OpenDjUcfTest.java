@@ -75,7 +75,8 @@ import org.w3c.dom.Document;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
-		"classpath:application-context-provisioning-test.xml" })
+		"classpath:application-context-provisioning-test.xml",
+		"classpath:application-context-repository-test.xml" })
 public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 	
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";

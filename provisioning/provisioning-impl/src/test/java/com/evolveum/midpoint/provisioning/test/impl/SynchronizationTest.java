@@ -68,7 +68,8 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 @ContextConfiguration(locations = {
 		"classpath:application-context-provisioning.xml",
 		"classpath:application-context-provisioning-test.xml",
-		"classpath:application-context-task.xml" })
+		"classpath:application-context-task.xml",
+		"classpath:application-context-repository-test.xml" })
 @Ignore
 public class SynchronizationTest extends OpenDJUnitTestAdapter {
 

@@ -68,7 +68,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
-		"../../../../../application-context-repository-test.xml" })
+		"classpath:application-context-repository-test.xml" })
 public class RepositorySearchTest {
 
 	@Autowired(required = true)
