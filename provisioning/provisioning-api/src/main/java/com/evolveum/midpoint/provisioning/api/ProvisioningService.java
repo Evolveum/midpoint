@@ -38,13 +38,35 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 
 /**
- * WORK IN PROGRESS
- * 
- * There be dragons. Beware the dog. Do not trespass.
- * 
- * This is supposed to replace provisioning-1.wsdl
- * 
+ * <p>Provisioning Service Interface.</p>
+ * <p>
+ * Status: public
+ * Stability: DRAFT, some changes are likely
+ * @version 0.3
  * @author Radovan Semancik
+ * </p>
+ * <p>
+ * This service retrieves information about resource objects and resources 
+ * and handles changes to resource objects. Implementations of this interface
+ * will apply the changes to accounts, groups and other similar objects to the
+ * target resources. It also provides information about connectors and similar
+ * configuration of access to the resources.
+ * </p>
+ * <p>
+ * Supported object types:
+ *   <ul>
+ *      <li>Resource</li>
+ *      <li>ResourceObjectShadow and all sub-types</li>
+ *      <li>Connector</li>
+ *   </ul>
+ * Supported extra data types:
+ *   <ul>
+ *   	<li>Resource Objects (Resource Schema)</li>
+ *   </ul>
+ * </p>
+ * <p>
+ * TODO: better documentation
+ * </p>
  */
 public interface ProvisioningService {
 	
@@ -347,7 +369,7 @@ public interface ProvisioningService {
 			throws ObjectNotFoundException;
 
 	/**
-	 * Test the resouce connection and basic resource connector functionality.
+	 * Test the resource connection and basic resource connector functionality.
 	 * 
 	 * This operation will NOT throw exception in case the resource connection
 	 * fails. It such case it will indicate the failure in the return message,
