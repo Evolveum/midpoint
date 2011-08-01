@@ -268,9 +268,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					"Failed to add shadow object: " + ex.getMessage(), ex);
 			throw new CommunicationException(ex.getMessage(), ex);
 		} catch (SchemaException ex){
-			LOGGER.error("**PROVISIONING: Coldn't add object. Reason: {}", ex.getMessage(), ex);
-			result.recordFatalError("Coldn't add object. Reason: " + ex.getMessage(), ex);
-			throw new SchemaException("Coldn't add object. Reason: " + ex.getMessage(), ex);
+			LOGGER.error("**PROVISIONING: Couldn't add object. Reason: {}", ex.getMessage(), ex);
+			result.recordFatalError("Couldn't add object. Reason: " + ex.getMessage(), ex);
+			throw new SchemaException("Couldn't add object. Reason: " + ex.getMessage(), ex);
+		} catch (ObjectAlreadyExistsException ex){
+			result.recordFatalError("Could't add object. Object already exist, " + ex.getMessage(), ex);
+			throw new ObjectAlreadyExistsException("Could't add object. Object already exist, " + ex.getMessage(), ex);
 		}
 
 		LOGGER.debug("**PROVISIONING: Adding object finished.");
