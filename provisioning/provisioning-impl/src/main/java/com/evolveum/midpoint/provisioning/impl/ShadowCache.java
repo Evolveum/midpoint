@@ -651,10 +651,11 @@ public class ShadowCache {
 	public void testConnection(ResourceType resourceType,
 			OperationResult parentResult) {
 
-//		OperationResult initResult = parentResult
-//				.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_INIT_OPERATION);
+		// OperationResult initResult = parentResult
+		// .createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_INIT_OPERATION);
 		OperationResult initResult = parentResult
-		.createSubresult(ConnectorTestOperation.CONNECTION_INITIALIZATION.toString());
+				.createSubresult(ConnectorTestOperation.CONNECTION_INITIALIZATION
+						.toString());
 		ConnectorInstance connector;
 		try {
 
@@ -912,7 +913,8 @@ public class ShadowCache {
 							"Object type must be one of the resource object shadow.");
 				}
 				newAccount = (AccountShadowType) obj;
-				//if the fetched chande was one of the deletion type, delete corresponding account from repo now
+				// if the fetched chande was one of the deletion type, delete
+				// corresponding account from repo now
 				if (change.getChange() instanceof ObjectChangeDeletionType) {
 					try {
 						getRepositoryService().deleteObject(
@@ -1004,19 +1006,8 @@ public class ShadowCache {
 		// set name for new account
 		ResourceObject resourceObject = fetchResourceObject(
 				change.getIdentifiers(), connector, resourceType, parentResult);
-		// String accountName = determineShadowName(resourceObject);
-		ResourceObjectAttribute accountAttribute = resourceObject
-				.findAttribute(new QName(resourceType.getNamespace(), "uid"));
-
-		if (accountAttribute.getValues().size() != 1) {
-			parentResult
-					.recordFatalError("Account has more than one uid values");
-			throw new IllegalArgumentException(
-					"Account has more than one uid values");
-		}
-
-		String accountName = accountAttribute.getValue(String.class);
-		newAccount.setName(accountName);
+		String accountName = determineShadowName(resourceObject);
+		newAccount.setName(resourceType.getName() + "-" + accountName);
 
 		try {
 			getRepositoryService().addObject(newAccount, parentResult);
