@@ -100,13 +100,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>common</artifactId>
-			<version>1.8-SNAPSHOT</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-basex-test</artifactId>
 			<version>1.8-SNAPSHOT</version>
