@@ -32,14 +32,24 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
- * Task Manager - a component that controls (asynchronous) task execution.
- * 
+ * <p>Task Manager Interface.</p>
+ * <p>
+ * Status: public
+ * Stability: DRAFT, work in progress
+ * @version 0.1
+ * @author Radovan Semancik
+ * </p>
+ * <p>
+ * Task manager provides controls task execution, coordination, distribution and failover between nodes, etc.
+ * TODO
+ * </p>
+ * <p>
+ * This definition specifies interface of Task Manager - a component that controls (asynchronous) task execution.
+ * </p><p>
  * The task manager can store the task for later execution, switch them to background
  * resume execution of a task from a different node, etc. Generally speaking, task
  * manager provides operation to manage tasks in the whole midPoint cluster of IDM nodes.
- * 
- * @author Radovan Semancik
- *
+ * </p>
  */
 public interface TaskManager {
 	
@@ -54,16 +64,13 @@ public interface TaskManager {
 	 * 
 	 * @return transient, running, claimed task instance
 	 */
-	// TODO: parameters
 	public Task createTaskInstance();
 	
 	/**
-	 * TODO:
-	 * 
 	 * Creates task instance from the XML task representation.
 	 * 
-	 * @param taskType
-	 * @return
+	 * @param taskType JAXB (XML) representation of the task
+	 * @return new Java representation of the task
 	 */
 	public Task createTaskInstance(TaskType taskType);
 	
@@ -224,10 +231,19 @@ public interface TaskManager {
 	 */
 	public void switchToBackground(Task task, OperationResult parentResult);
 	
-	// TODO: signature
+	/**
+	 * Lists all tasks.
+	 * 
+	 * This method is not very useful for normal operation, but may be useful for diagnostics.
+	 * 
+	 * May list persistent and also transient tasks. Depends on implementation.
+	 * 
+	 * @return list of all known tasks
+	 */
 	public Set<Task> listTasks();
 	
 	// TODO: search
+	
 	/**
 	 * Register a handler for a specified handler URI.
 	 * 
@@ -248,7 +264,7 @@ public interface TaskManager {
 	 * return the same data. This should look at the real situation (e.g. threads) and should be used to troubleshoot
 	 * task management problems.
 	 * 
-	 * @return
+	 * @return tasks that currently run on this node.
 	 */
 	public Set<Task> getRunningTasks();
 
