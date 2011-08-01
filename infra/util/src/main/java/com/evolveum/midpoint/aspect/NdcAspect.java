@@ -53,7 +53,7 @@ public class NdcAspect {
 
     @Around("entriesIntoResourceObjectChangeListener()")
     public Object processResourceObjectChangeListenerNdc(ProceedingJoinPoint pjp) throws Throwable {
-    	return markSubsystem(pjp, "resourceObjectChangeListener");
+    	return markSubsystem(pjp, "RESOURCEOBJECTCHANGELISTENER");
     }
     
     @Around("entriesIntoModel()")
@@ -90,8 +90,7 @@ public class NdcAspect {
 	public void entriesIntoResourceObjectChangeListener() {
 	}
 	
-	//@Pointcut("execution(* com.evolveum.midpoint.model.api.ModelService.*(..))")
-	@Pointcut("execution(* com.evolveum.midpoint.model.controller.ModelController.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.model.api.ModelService.*(..))")
     public void entriesIntoModel() {}
     
     @Pointcut("execution(* com.evolveum.midpoint.web..*(..))")

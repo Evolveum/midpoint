@@ -93,8 +93,7 @@ public class ProfilingAspect {
 	public void resourceObjectChangeListener() {
 	}
 
-	//@Pointcut("execution(* com.evolveum.midpoint.model.api.ModelService.*(..))")
-	@Pointcut("execution(* com.evolveum.midpoint.model.controller.ModelController.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.model.api.ModelService.*(..))")
 	public void modelService() {
 	}
 
