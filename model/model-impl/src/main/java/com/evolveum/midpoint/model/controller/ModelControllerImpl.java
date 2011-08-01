@@ -53,6 +53,7 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -89,7 +90,8 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 @Scope
 public class ModelControllerImpl implements ModelController {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ModelControllerImpl.class);
+	private static final Trace LOGGER = TraceManager
+			.getTrace(ModelControllerImpl.class);
 	@Autowired(required = true)
 	private transient ProvisioningService provisioning;
 	@Autowired(required = true)
@@ -104,13 +106,16 @@ public class ModelControllerImpl implements ModelController {
 	private transient ImportFromResourceTaskHandler importFromResourceTaskHandler;
 
 	@Override
-	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException,
-			ObjectNotFoundException {
+	public String addObject(ObjectType object, OperationResult result)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
-		Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
-		LOGGER.debug("Adding object {} with oid {} and name {}.", new Object[] {
-				object.getClass().getSimpleName(), object.getOid(), object.getName() });
+		Validate.notEmpty(object.getName(),
+				"Object name must not be null or empty.");
+		LOGGER.debug(
+				"Adding object {} with oid {} and name {}.",
+				new Object[] { object.getClass().getSimpleName(),
+						object.getOid(), object.getName() });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 		}
@@ -120,7 +125,7 @@ public class ModelControllerImpl implements ModelController {
 		String oid = null;
 		try {
 			if (object instanceof TaskType) {
-				oid = addTask((TaskType)object, subResult);
+				oid = addTask((TaskType) object, subResult);
 			} else if (ProvisioningTypes.isManagedByProvisioning(object)) {
 				oid = addProvisioningObject(object, subResult);
 			} else {
@@ -128,14 +133,18 @@ public class ModelControllerImpl implements ModelController {
 			}
 			subResult.recordSuccess();
 		} catch (ObjectAlreadyExistsException ex) {
-			subResult.recordFatalError("Object with name '" + object.getName() + "' already exists.", ex);
+			subResult.recordFatalError("Object with name '" + object.getName()
+					+ "' already exists.", ex);
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
-			subResult.recordFatalError("Couldn't add object '" + object.getName() + "'.", ex);
+			subResult.recordFatalError(
+					"Couldn't add object '" + object.getName() + "'.", ex);
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't add object", ex, object.getName());
-			subResult.recordFatalError("Couldn't add object '" + object.getName() + "'.", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't add object", ex,
+					object.getName());
+			subResult.recordFatalError(
+					"Couldn't add object '" + object.getName() + "'.", ex);
 			if (ex instanceof SystemException) {
 				throw (SystemException) ex;
 			}
@@ -149,8 +158,9 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public String addUser(UserType user, UserTemplateType userTemplate, OperationResult result)
-			throws ObjectAlreadyExistsException, ObjectNotFoundException {
+	public String addUser(UserType user, UserTemplateType userTemplate,
+			OperationResult result) throws ObjectAlreadyExistsException,
+			ObjectNotFoundException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		if (LOGGER.isTraceEnabled()) {
@@ -164,14 +174,17 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		if (userTemplate != null) {
-			LOGGER.debug("Adding user {}, oid {} using template {}, oid {}.", new Object[] { user.getName(),
-					user.getOid(), userTemplate.getName(), userTemplate.getOid() });
+			LOGGER.debug(
+					"Adding user {}, oid {} using template {}, oid {}.",
+					new Object[] { user.getName(), user.getOid(),
+							userTemplate.getName(), userTemplate.getOid() });
 		} else {
 			LOGGER.debug("Adding user {}, oid {} using no template.",
 					new Object[] { user.getName(), user.getOid() });
 		}
 
-		OperationResult subResult = new OperationResult("Add User With User Template");
+		OperationResult subResult = new OperationResult(
+				"Add User With User Template");
 		result.addSubresult(subResult);
 
 		String oid = null;
@@ -180,15 +193,20 @@ public class ModelControllerImpl implements ModelController {
 			oid = repository.addObject(user, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectAlreadyExistsException ex) {
-			subResult.recordFatalError("Couldn't add user '" + user.getName() + "', oid '" + user.getOid()
+			subResult.recordFatalError("Couldn't add user '" + user.getName()
+					+ "', oid '" + user.getOid()
 					+ "' because user already exists.", ex);
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't add user {}, oid {} using template {}, oid {}", ex,
-					user.getName(), user.getOid(), userTemplate.getName(), userTemplate.getOid());
-			subResult.recordFatalError("Couldn't add user " + user.getName() + ", oid '" + user.getOid()
-					+ "' using template " + userTemplate.getName() + ", oid '" + userTemplate.getOid() + "'",
-					ex);
+			LoggingUtils.logException(LOGGER,
+					"Couldn't add user {}, oid {} using template {}, oid {}",
+					ex, user.getName(), user.getOid(), userTemplate.getName(),
+					userTemplate.getOid());
+			subResult.recordFatalError(
+					"Couldn't add user " + user.getName() + ", oid '"
+							+ user.getOid() + "' using template "
+							+ userTemplate.getName() + ", oid '"
+							+ userTemplate.getOid() + "'", ex);
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
 			LOGGER.debug(subResult.dump());
@@ -199,7 +217,8 @@ public class ModelControllerImpl implements ModelController {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve, Class<T> clazz,
+	public <T extends ObjectType> T getObject(String oid,
+			PropertyReferenceListType resolve, Class<T> clazz,
 			OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(resolve, "Property reference list must not be null.");
@@ -214,7 +233,8 @@ public class ModelControllerImpl implements ModelController {
 			// TODO: HACK !!!!!!!!!!!!!! START till we parametrize getObject
 			// (can't get connector type from admin-gui now)
 			if (oid.startsWith("icf")) {
-				object = getObjectFromProvisioning(oid, resolve, subResult, clazz);
+				object = getObjectFromProvisioning(oid, resolve, subResult,
+						clazz);
 			} else {
 				// TODO: END HACK
 
@@ -223,9 +243,12 @@ public class ModelControllerImpl implements ModelController {
 				// get object from repository and then update class parameter to
 				// real class. If needed we call provisioning to get object
 				ObjectNotFoundException objectNotFound = null;
-				if (ObjectType.class.equals(clazz) || !ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
+				if (ObjectType.class.equals(clazz)
+						|| !ProvisioningTypes
+								.isClassManagedByProvisioning(clazz)) {
 					try {
-						object = getObjectFromRepository(oid, resolve, subResult, clazz);
+						object = getObjectFromRepository(oid, resolve,
+								subResult, clazz);
 					} catch (ObjectNotFoundException ex) {
 						objectNotFound = ex;
 					}
@@ -233,7 +256,8 @@ public class ModelControllerImpl implements ModelController {
 				clazz = object == null ? clazz : (Class<T>) object.getClass();
 
 				if (ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
-					object = getObjectFromProvisioning(oid, resolve, subResult, clazz);
+					object = getObjectFromProvisioning(oid, resolve, subResult,
+							clazz);
 				} else if (objectNotFound != null) {
 					// throw previously catched exception, we don't need to call
 					// repository again
@@ -242,11 +266,14 @@ public class ModelControllerImpl implements ModelController {
 			}
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
-			subResult.recordFatalError("Object with oid '" + oid + "' not found.", ex);
+			subResult.recordFatalError("Object with oid '" + oid
+					+ "' not found.", ex);
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object {}", ex, oid);
-			subResult.recordFatalError("Couldn't get object with oid '" + oid + "'.", ex);
+			LoggingUtils
+					.logException(LOGGER, "Couldn't get object {}", ex, oid);
+			subResult.recordFatalError("Couldn't get object with oid '" + oid
+					+ "'.", ex);
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
 			subResult.computeStatus();
@@ -261,8 +288,8 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
-			OperationResult result) {
+	public ObjectListType listObjects(Class<? extends ObjectType> objectType,
+			PagingType paging, OperationResult result) {
 		Validate.notNull(objectType, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
@@ -271,8 +298,9 @@ public class ModelControllerImpl implements ModelController {
 		} else {
 			LOGGER.debug(
 					"Listing objects of type {} from {} to {} ordered {} by {}.",
-					new Object[] { objectType, paging.getOffset(), paging.getMaxSize(),
-							paging.getOrderDirection(), paging.getOrderBy() });
+					new Object[] { objectType, paging.getOffset(),
+							paging.getMaxSize(), paging.getOrderDirection(),
+							paging.getOrderBy() });
 		}
 
 		OperationResult subResult = new OperationResult("List Objects");
@@ -303,17 +331,18 @@ public class ModelControllerImpl implements ModelController {
 		return list;
 	}
 
-	private ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult result,
-			boolean searchInProvisioning) {
+	private ObjectListType searchObjects(QueryType query, PagingType paging,
+			OperationResult result, boolean searchInProvisioning) {
 		Validate.notNull(query, "Query must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
 		if (paging == null) {
 			LOGGER.debug("Searching objects with null paging (query in TRACE).");
 		} else {
-			LOGGER.debug("Searching objects from {} to {} ordered {} by {} (query in TRACE).",
-					new Object[] { paging.getOffset(), paging.getMaxSize(), paging.getOrderDirection(),
-							paging.getOrderBy() });
+			LOGGER.debug(
+					"Searching objects from {} to {} ordered {} by {} (query in TRACE).",
+					new Object[] { paging.getOffset(), paging.getMaxSize(),
+							paging.getOrderDirection(), paging.getOrderBy() });
 		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(query));
@@ -351,29 +380,33 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public ObjectListType searchObjectsInProvisioning(QueryType query, PagingType paging,
-			OperationResult result) {
+	public ObjectListType searchObjectsInProvisioning(QueryType query,
+			PagingType paging, OperationResult result) {
 		return searchObjects(query, paging, result, true);
 	}
 
 	@Override
-	public ObjectListType searchObjectsInRepository(QueryType query, PagingType paging, OperationResult result) {
+	public ObjectListType searchObjectsInRepository(QueryType query,
+			PagingType paging, OperationResult result) {
 		return searchObjects(query, paging, result, false);
 	}
 
 	@Override
-	public void modifyObject(ObjectModificationType change, OperationResult result)
-			throws ObjectNotFoundException {
+	public void modifyObject(ObjectModificationType change,
+			OperationResult result) throws ObjectNotFoundException {
 		modifyObjectWithExclusion(change, null, result);
 	}
 
 	@Override
-	public void modifyObjectWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result) throws ObjectNotFoundException {
+	public void modifyObjectWithExclusion(ObjectModificationType change,
+			String accountOid, OperationResult result)
+			throws ObjectNotFoundException {
 		Validate.notNull(change, "Object modification must not be null.");
-		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
+		Validate.notEmpty(change.getOid(),
+				"Change oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
-		LOGGER.debug("Modifying object with oid {} with exclusion account oid {} (change in TRACE).",
+		LOGGER.debug(
+				"Modifying object with oid {} with exclusion account oid {} (change in TRACE).",
 				new Object[] { change.getOid(), accountOid });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(change));
@@ -383,27 +416,33 @@ public class ModelControllerImpl implements ModelController {
 			return;
 		}
 
-		OperationResult subResult = new OperationResult("Modify Object With Exclusion");
+		OperationResult subResult = new OperationResult(
+				"Modify Object With Exclusion");
 		result.addSubresult(subResult);
 
 		try {
-			ObjectType object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(),
-					subResult, ObjectType.class);
+			ObjectType object = getObjectFromRepository(change.getOid(),
+					new PropertyReferenceListType(), subResult,
+					ObjectType.class);
 			if (object instanceof TaskType) {
 				modifyTaskWithExclusion(change, accountOid, subResult, object);
 			} else if (ProvisioningTypes.isManagedByProvisioning(object)) {
-				modifyProvisioningObjectWithExclusion(change, accountOid, subResult, object);
+				modifyProvisioningObjectWithExclusion(change, accountOid,
+						subResult, object);
 			} else {
-				modifyRepositoryObjectWithExclusion(change, accountOid, subResult, object);
+				modifyRepositoryObjectWithExclusion(change, accountOid,
+						subResult, object);
 			}
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
-			subResult.recordFatalError("Coudln't update object with oid '" + change.getOid()
-					+ "', object was not found.", ex);
+			subResult.recordFatalError("Coudln't update object with oid '"
+					+ change.getOid() + "', object was not found.", ex);
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't update object with oid {}", ex, change.getOid());
-			String message = "Couldn't update object with oid '" + change.getOid() + "'.";
+			LoggingUtils.logException(LOGGER,
+					"Couldn't update object with oid {}", ex, change.getOid());
+			String message = "Couldn't update object with oid '"
+					+ change.getOid() + "'.";
 			subResult.recordFatalError(message, ex);
 			if (ex instanceof SystemException) {
 				throw (SystemException) ex;
@@ -418,7 +457,8 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public boolean deleteObject(String oid, OperationResult result) throws ObjectNotFoundException {
+	public boolean deleteObject(String oid, OperationResult result)
+			throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Deleting object with oid {}.", new Object[] { oid });
@@ -428,7 +468,8 @@ public class ModelControllerImpl implements ModelController {
 
 		boolean deleted = false;
 		try {
-			ObjectType object = getObjectFromRepository(oid, new PropertyReferenceListType(), subResult,
+			ObjectType object = getObjectFromRepository(oid,
+					new PropertyReferenceListType(), subResult,
 					ObjectType.class);
 
 			if (object instanceof TaskType) {
@@ -446,12 +487,16 @@ public class ModelControllerImpl implements ModelController {
 			deleted = true;
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}", ex, oid);
-			subResult.recordFatalError("Couldn't find object with oid '" + oid + "'.", ex);
+			LoggingUtils.logException(LOGGER,
+					"Couldn't delete object with oid {}", ex, oid);
+			subResult.recordFatalError("Couldn't find object with oid '" + oid
+					+ "'.", ex);
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}", ex, oid);
-			subResult.recordFatalError("Couldn't delete object with oid '" + oid + "'.", ex);
+			LoggingUtils.logException(LOGGER,
+					"Couldn't delete object with oid {}", ex, oid);
+			subResult.recordFatalError("Couldn't delete object with oid '"
+					+ oid + "'.", ex);
 		} finally {
 			LOGGER.debug(subResult.dump());
 		}
@@ -460,12 +505,15 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
-			PropertyReferenceListType properties, OperationResult result) {
+	public PropertyAvailableValuesListType getPropertyAvailableValues(
+			String oid, PropertyReferenceListType properties,
+			OperationResult result) {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
-		Validate.notNull(properties, "Property reference list must not be null.");
+		Validate.notNull(properties,
+				"Property reference list must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
-		LOGGER.debug("Getting property available values for object with oid {} (properties in TRACE).",
+		LOGGER.debug(
+				"Getting property available values for object with oid {} (properties in TRACE).",
 				new Object[] { oid });
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(DebugUtil.prettyPrint(properties));
@@ -475,13 +523,15 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public UserType listAccountShadowOwner(String accountOid, OperationResult result)
-			throws ObjectNotFoundException {
+	public UserType listAccountShadowOwner(String accountOid,
+			OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(accountOid, "Account oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
-		LOGGER.debug("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
+		LOGGER.debug("Listing account shadow owner for account with oid {}.",
+				new Object[] { accountOid });
 
-		OperationResult subResult = new OperationResult("List Account Shadow Owner");
+		OperationResult subResult = new OperationResult(
+				"List Account Shadow Owner");
 		result.addSubresult(subResult);
 
 		UserType user = null;
@@ -489,15 +539,19 @@ public class ModelControllerImpl implements ModelController {
 			user = repository.listAccountShadowOwner(accountOid, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
-			LoggingUtils.logException(LOGGER, "Account with oid {} doesn't exists", ex, accountOid);
-			subResult.recordFatalError("Account with oid '" + accountOid + "' doesn't exists", ex);
+			LoggingUtils.logException(LOGGER,
+					"Account with oid {} doesn't exists", ex, accountOid);
+			subResult.recordFatalError("Account with oid '" + accountOid
+					+ "' doesn't exists", ex);
 
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner from repository"
-					+ " for account with oid {}", ex, accountOid);
-			subResult.recordFatalError("Couldn't list account shadow owner for account with oid '"
-					+ accountOid + "'.", ex);
+			LoggingUtils.logException(LOGGER,
+					"Couldn't list account shadow owner from repository"
+							+ " for account with oid {}", ex, accountOid);
+			subResult.recordFatalError(
+					"Couldn't list account shadow owner for account with oid '"
+							+ accountOid + "'.", ex);
 		} finally {
 			LOGGER.debug(subResult.dump());
 		}
@@ -506,29 +560,39 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> List<T> listResourceObjectShadows(String resourceOid,
-			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
-		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+	public <T extends ResourceObjectShadowType> List<T> listResourceObjectShadows(
+			String resourceOid, Class<T> resourceObjectShadowType,
+			OperationResult result) throws ObjectNotFoundException {
+		Validate.notEmpty(resourceOid,
+				"Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
-		LOGGER.debug("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
-				resourceObjectShadowType, resourceOid });
+		LOGGER.debug(
+				"Listing resource object shadows \"{}\" for resource with oid {}.",
+				new Object[] { resourceObjectShadowType, resourceOid });
 
-		OperationResult subResult = new OperationResult("List Resource Object Shadows");
+		OperationResult subResult = new OperationResult(
+				"List Resource Object Shadows");
 		result.addSubresult(subResult);
 
 		List<T> list = null;
 		try {
-			list = repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, subResult);
+			list = repository.listResourceObjectShadows(resourceOid,
+					resourceObjectShadowType, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
-			subResult.recordFatalError("Resource with oid '" + resourceOid + "' was not found.", ex);
+			subResult.recordFatalError("Resource with oid '" + resourceOid
+					+ "' was not found.", ex);
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list resource object shadows type "
-					+ "{} from repository for resource, oid {}", ex, resourceObjectShadowType, resourceOid);
+			LoggingUtils.logException(LOGGER,
+					"Couldn't list resource object shadows type "
+							+ "{} from repository for resource, oid {}", ex,
+					resourceObjectShadowType, resourceOid);
 			subResult.recordFatalError(
-					"Couldn't list resource object shadows type '" + resourceObjectShadowType
-							+ "' from repository for resource, oid '" + resourceOid + "'.", ex);
+					"Couldn't list resource object shadows type '"
+							+ resourceObjectShadowType
+							+ "' from repository for resource, oid '"
+							+ resourceOid + "'.", ex);
 		} finally {
 			LOGGER.debug(subResult.dump());
 		}
@@ -541,30 +605,35 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
-			OperationResult result) {
-		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+	public ObjectListType listResourceObjects(String resourceOid,
+			QName objectType, PagingType paging, OperationResult result) {
+		Validate.notEmpty(resourceOid,
+				"Resource oid must not be null or empty.");
 		Validate.notNull(objectType, "Object type must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
 		LOGGER.debug(
 				"Listing resource objects {} from resource, oid {}, from {} to {} ordered {} by {}.",
-				new Object[] { objectType, resourceOid, paging.getOffset(), paging.getMaxSize(),
-						paging.getOrderDirection(), paging.getOrderDirection() });
+				new Object[] { objectType, resourceOid, paging.getOffset(),
+						paging.getMaxSize(), paging.getOrderDirection(),
+						paging.getOrderDirection() });
 
 		OperationResult subResult = new OperationResult("List Resource Objects");
 		result.addSubresult(subResult);
 
 		ObjectListType list = null;
 		try {
-			list = provisioning.listResourceObjects(resourceOid, objectType, paging, subResult);
+			list = provisioning.listResourceObjects(resourceOid, objectType,
+					paging, subResult);
 			subResult.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list resource objects of type {} for resource "
-					+ "with oid {}", ex, objectType, resourceOid);
-			subResult.recordFatalError("Couldn't list resource objects of type '" + objectType
-					+ "' for resource, oid '" + resourceOid + "'.", ex);
+			LoggingUtils.logException(LOGGER,
+					"Couldn't list resource objects of type {} for resource "
+							+ "with oid {}", ex, objectType, resourceOid);
+			subResult.recordFatalError(
+					"Couldn't list resource objects of type '" + objectType
+							+ "' for resource, oid '" + resourceOid + "'.", ex);
 		} finally {
 			LOGGER.debug(subResult.dump());
 		}
@@ -584,9 +653,12 @@ public class ModelControllerImpl implements ModelController {
 	// execution but rather to track the execution of resource tests (that in
 	// fact happen in provisioning).
 	@Override
-	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException {
-		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-		LOGGER.debug("Testing resource with oid {}.", new Object[] { resourceOid });
+	public OperationResult testResource(String resourceOid)
+			throws ObjectNotFoundException {
+		Validate.notEmpty(resourceOid,
+				"Resource oid must not be null or empty.");
+		LOGGER.debug("Testing resource with oid {}.",
+				new Object[] { resourceOid });
 
 		OperationResult testResult = provisioning.testResource(resourceOid);
 
@@ -600,13 +672,15 @@ public class ModelControllerImpl implements ModelController {
 
 	// Note: The result is in the task. No need to pass it explicitly
 	@Override
-	public void importFromResource(String resourceOid, QName objectClass, Task task)
-			throws ObjectNotFoundException {
-		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+	public void importFromResource(String resourceOid, QName objectClass,
+			Task task) throws ObjectNotFoundException {
+		Validate.notEmpty(resourceOid,
+				"Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object class must not be null.");
 		Validate.notNull(task, "Task must not be null.");
-		LOGGER.debug("Launching import from resource with oid {} for object class {}.", new Object[] {
-				resourceOid, objectClass });
+		LOGGER.debug(
+				"Launching import from resource with oid {} for object class {}.",
+				new Object[] { resourceOid, objectClass });
 
 		OperationResult result = task.getResult().createSubresult(
 				ModelController.class.getName() + ".importFromResource");
@@ -614,9 +688,11 @@ public class ModelControllerImpl implements ModelController {
 
 		// Fetch resource definition from the repo/provisioning
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
-		ResourceType resource = getObject(resourceOid, resolve, ResourceType.class, result);
+		ResourceType resource = getObject(resourceOid, resolve,
+				ResourceType.class, result);
 
-		importFromResourceTaskHandler.launch(resource, objectClass, task, result);
+		importFromResourceTaskHandler.launch(resource, objectClass, task,
+				result);
 
 		// The launch should switch task to asynchronous. It is in/out, so no
 		// other action is needed
@@ -624,11 +700,13 @@ public class ModelControllerImpl implements ModelController {
 
 	@Override
 	@Deprecated
-	public TaskStatusType getImportStatus(String resourceOid, OperationResult result)
-			throws ObjectNotFoundException {
-		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
+	public TaskStatusType getImportStatus(String resourceOid,
+			OperationResult result) throws ObjectNotFoundException {
+		Validate.notEmpty(resourceOid,
+				"Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
-		LOGGER.debug("Getting import status for resource with oid {}.", new Object[] { resourceOid });
+		LOGGER.debug("Getting import status for resource with oid {}.",
+				new Object[] { resourceOid });
 
 		OperationResult subResult = new OperationResult("Get Import Status");
 		result.addSubresult(subResult);
@@ -651,20 +729,24 @@ public class ModelControllerImpl implements ModelController {
 		return null;
 	}
 
-	private <T extends ObjectType> T getObjectFromRepository(String oid, PropertyReferenceListType resolve,
-			OperationResult result, Class<T> clazz) throws ObjectNotFoundException {
+	private <T extends ObjectType> T getObjectFromRepository(String oid,
+			PropertyReferenceListType resolve, OperationResult result,
+			Class<T> clazz) throws ObjectNotFoundException {
 		return getObject(oid, resolve, result, clazz, false);
 	}
 
-	private <T extends ObjectType> T getObjectFromProvisioning(String oid, PropertyReferenceListType resolve,
-			OperationResult result, Class<T> clazz) throws ObjectNotFoundException {
+	private <T extends ObjectType> T getObjectFromProvisioning(String oid,
+			PropertyReferenceListType resolve, OperationResult result,
+			Class<T> clazz) throws ObjectNotFoundException {
 		return getObject(oid, resolve, result, clazz, true);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve,
-			OperationResult result, Class<T> clazz, boolean fromProvisioning) throws ObjectNotFoundException {
+	public <T extends ObjectType> T getObject(String oid,
+			PropertyReferenceListType resolve, OperationResult result,
+			Class<T> clazz, boolean fromProvisioning)
+			throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(resolve, "Property reference list must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -680,9 +762,14 @@ public class ModelControllerImpl implements ModelController {
 				objectType = repository.getObject(oid, resolve, subResult);
 			}
 			if (!clazz.isInstance(objectType)) {
-				throw new ObjectNotFoundException("Bad object type returned for referenced oid '" + oid
-						+ "'. Expected '" + clazz + "', but was '"
-						+ (objectType == null ? "null" : objectType.getClass()) + "'.");
+				throw new ObjectNotFoundException(
+						"Bad object type returned for referenced oid '"
+								+ oid
+								+ "'. Expected '"
+								+ clazz
+								+ "', but was '"
+								+ (objectType == null ? "null" : objectType
+										.getClass()) + "'.");
 			} else {
 				object = (T) objectType;
 			}
@@ -693,9 +780,11 @@ public class ModelControllerImpl implements ModelController {
 		} catch (ObjectNotFoundException ex) {
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {}, expected type was {}.", ex,
-					oid, clazz);
-			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
+			LoggingUtils.logException(LOGGER,
+					"Couldn't get object with oid {}, expected type was {}.",
+					ex, oid, clazz);
+			throw new SystemException("Couldn't get object with oid '" + oid
+					+ "'.", ex);
 		} finally {
 			subResult.computeStatus();
 			LOGGER.debug(subResult.dump());
@@ -704,8 +793,9 @@ public class ModelControllerImpl implements ModelController {
 		return object;
 	}
 
-	private String addProvisioningObject(ObjectType object, OperationResult result)
-			throws ObjectNotFoundException, ObjectAlreadyExistsException {
+	private String addProvisioningObject(ObjectType object,
+			OperationResult result) throws ObjectNotFoundException,
+			ObjectAlreadyExistsException {
 		if (object instanceof AccountShadowType) {
 			AccountShadowType account = (AccountShadowType) object;
 			processAccountCredentials(account, result);
@@ -724,31 +814,37 @@ public class ModelControllerImpl implements ModelController {
 			throw new SystemException(ex.getMessage(), ex);
 		}
 	}
-	
+
 	private String addTask(TaskType task, OperationResult result)
-	throws ObjectAlreadyExistsException, ObjectNotFoundException {
+			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		try {
-			return taskManager.addTask(task,result);
+			return taskManager.addTask(task, result);
 		} catch (ObjectAlreadyExistsException ex) {
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't add object {} to task manager", ex, task.getName());
+			LoggingUtils.logException(LOGGER,
+					"Couldn't add object {} to task manager", ex,
+					task.getName());
 			throw new SystemException(ex.getMessage(), ex);
 		}
 	}
 
-	private SystemConfigurationType getSystemConfiguration(OperationResult result)
-			throws ObjectNotFoundException {
-		OperationResult configResult = new OperationResult("Get System Configuration");
+	private SystemConfigurationType getSystemConfiguration(
+			OperationResult result) throws ObjectNotFoundException {
+		OperationResult configResult = new OperationResult(
+				"Get System Configuration");
 		result.addSubresult(configResult);
 		SystemConfigurationType systemConfiguration = null;
 		try {
-			systemConfiguration = getObject(SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-					ModelUtils.createPropertyReferenceListType("defaultUserTemplate"), result,
-					SystemConfigurationType.class, false);
+			systemConfiguration = getObject(
+					SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+					ModelUtils
+							.createPropertyReferenceListType("defaultUserTemplate"),
+					result, SystemConfigurationType.class, false);
 			configResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
-			configResult.recordFatalError("Couldn't get system configuration.", ex);
+			configResult.recordFatalError("Couldn't get system configuration.",
+					ex);
 			throw ex;
 		}
 
@@ -760,7 +856,8 @@ public class ModelControllerImpl implements ModelController {
 		if (object instanceof UserType) {
 			// At first we get default user template from system configuration
 			SystemConfigurationType systemConfiguration = getSystemConfiguration(result);
-			UserTemplateType userTemplate = systemConfiguration.getDefaultUserTemplate();
+			UserTemplateType userTemplate = systemConfiguration
+					.getDefaultUserTemplate();
 			processUserTemplateForUser((UserType) object, userTemplate, result);
 		}
 
@@ -769,13 +866,15 @@ public class ModelControllerImpl implements ModelController {
 		} catch (ObjectAlreadyExistsException ex) {
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't add object {} to repository", ex, object.getName());
+			LoggingUtils.logException(LOGGER,
+					"Couldn't add object {} to repository", ex,
+					object.getName());
 			throw new SystemException(ex.getMessage(), ex);
 		}
 	}
 
-	private void resolveObjectAttributes(ObjectType object, PropertyReferenceListType resolve,
-			OperationResult result) {
+	private void resolveObjectAttributes(ObjectType object,
+			PropertyReferenceListType resolve, OperationResult result) {
 		if (object == null) {
 			return;
 		}
@@ -783,30 +882,35 @@ public class ModelControllerImpl implements ModelController {
 		if (object instanceof UserType) {
 			resolveUserAttributes((UserType) object, resolve, result);
 		} else if (object instanceof AccountShadowType) {
-			resolveAccountAttributes((AccountShadowType) object, resolve, result);
+			resolveAccountAttributes((AccountShadowType) object, resolve,
+					result);
 		}
 	}
 
-	private void resolveUserAttributes(UserType user, PropertyReferenceListType resolve,
-			OperationResult result) {
+	private void resolveUserAttributes(UserType user,
+			PropertyReferenceListType resolve, OperationResult result) {
 		if (!Utils.haveToResolve("Account", resolve)) {
 			return;
 		}
 
 		List<ObjectReferenceType> refToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
-			OperationResult subResult = result.createSubresult("resolveUserAttributes");
+			OperationResult subResult = result
+					.createSubresult("resolveUserAttributes");
 			try {
-				AccountShadowType account = getObjectFromProvisioning(accountRef.getOid(), resolve,
-						subResult, AccountShadowType.class);
+				AccountShadowType account = getObjectFromProvisioning(
+						accountRef.getOid(), resolve, subResult,
+						AccountShadowType.class);
 				user.getAccount().add(account);
 				refToBeDeleted.add(accountRef);
 				subResult.recordSuccess();
 			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't resolve account with oid {}", ex,
+				LoggingUtils.logException(LOGGER,
+						"Couldn't resolve account with oid {}", ex,
 						accountRef.getOid());
 				subResult.recordFatalError(
-						"Couldn't resolve account with oid '" + accountRef.getOid() + "'.", ex);
+						"Couldn't resolve account with oid '"
+								+ accountRef.getOid() + "'.", ex);
 			} finally {
 				subResult.computeStatus();
 			}
@@ -814,38 +918,43 @@ public class ModelControllerImpl implements ModelController {
 		user.getAccountRef().removeAll(refToBeDeleted);
 	}
 
-	private void resolveAccountAttributes(AccountShadowType account, PropertyReferenceListType resolve,
-			OperationResult result) {
+	private void resolveAccountAttributes(AccountShadowType account,
+			PropertyReferenceListType resolve, OperationResult result) {
 		if (!Utils.haveToResolve("Resource", resolve)) {
 			return;
 		}
 
 		ObjectReferenceType reference = account.getResourceRef();
 		if (reference == null || StringUtils.isEmpty(reference.getOid())) {
-			LOGGER.debug("Skipping resolving resource for account {}, resource reference is null or "
-					+ "doesn't contain oid.", new Object[] { account.getName() });
+			LOGGER.debug(
+					"Skipping resolving resource for account {}, resource reference is null or "
+							+ "doesn't contain oid.",
+					new Object[] { account.getName() });
 			return;
 		}
 
 		OperationResult subResult = new OperationResult("resolveUserAttributes");
 		result.addSubresult(subResult);
 		try {
-			ResourceType resource = getObjectFromProvisioning(account.getResourceRef().getOid(), resolve,
-					result, ResourceType.class);
+			ResourceType resource = getObjectFromProvisioning(account
+					.getResourceRef().getOid(), resolve, result,
+					ResourceType.class);
 			account.setResource(resource);
 			account.setResourceRef(null);
 			subResult.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils
-					.logException(LOGGER, "Couldn't resolve resource with oid {}", ex, reference.getOid());
-			subResult
-					.recordFatalError("Couldn't resolve resource with oid '" + reference.getOid() + "'.", ex);
+			LoggingUtils.logException(LOGGER,
+					"Couldn't resolve resource with oid {}", ex,
+					reference.getOid());
+			subResult.recordFatalError("Couldn't resolve resource with oid '"
+					+ reference.getOid() + "'.", ex);
 		} finally {
 			subResult.computeStatus();
 		}
 	}
 
-	private ScriptsType getScripts(ObjectType object, OperationResult result) throws ObjectNotFoundException {
+	private ScriptsType getScripts(ObjectType object, OperationResult result)
+			throws ObjectNotFoundException {
 		ScriptsType scripts = null;
 		if (object instanceof ResourceType) {
 			ResourceType resource = (ResourceType) object;
@@ -856,8 +965,9 @@ public class ModelControllerImpl implements ModelController {
 				scripts = resourceObject.getResource().getScripts();
 			} else {
 				ObjectReferenceType reference = resourceObject.getResourceRef();
-				ResourceType resObject = getObjectFromProvisioning(reference.getOid(),
-						new PropertyReferenceListType(), result, ResourceType.class);
+				ResourceType resObject = getObjectFromProvisioning(
+						reference.getOid(), new PropertyReferenceListType(),
+						result, ResourceType.class);
 				scripts = resObject.getScripts();
 			}
 		}
@@ -869,7 +979,8 @@ public class ModelControllerImpl implements ModelController {
 		return scripts;
 	}
 
-	private void deleteUserAccounts(UserType user, OperationResult result) throws ObjectNotFoundException {
+	private void deleteUserAccounts(UserType user, OperationResult result)
+			throws ObjectNotFoundException {
 		List<AccountShadowType> accountsToBeDeleted = new ArrayList<AccountShadowType>();
 		for (AccountShadowType account : user.getAccount()) {
 			if (deleteObject(account.getOid(), result)) {
@@ -893,34 +1004,41 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		// TODO: save updated user, create property changes
-		ObjectModificationType change = createUserModification(accountsToBeDeleted, refsToBeDeleted);
+		ObjectModificationType change = createUserModification(
+				accountsToBeDeleted, refsToBeDeleted);
 		change.setOid(user.getOid());
 		try {
 			repository.modifyObject(change, result);
 		} catch (ObjectNotFoundException ex) {
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't update user {} after accounts was deleted", ex,
+			LoggingUtils.logException(LOGGER,
+					"Couldn't update user {} after accounts was deleted", ex,
 					user.getName());
 			throw new SystemException(ex.getMessage(), ex);
 		}
 	}
 
-	private ObjectModificationType createUserModification(List<AccountShadowType> accountsToBeDeleted,
+	private ObjectModificationType createUserModification(
+			List<AccountShadowType> accountsToBeDeleted,
 			List<ObjectReferenceType> refsToBeDeleted) {
 		ObjectModificationType change = new ObjectModificationType();
 		for (ObjectReferenceType reference : refsToBeDeleted) {
-			PropertyModificationType propertyChangeType = ObjectTypeUtil.createPropertyModificationType(
-					PropertyModificationTypeType.delete, null, new QName(SchemaConstants.NS_C, "accountRef"),
-					reference);
+			PropertyModificationType propertyChangeType = ObjectTypeUtil
+					.createPropertyModificationType(
+							PropertyModificationTypeType.delete, null,
+							new QName(SchemaConstants.NS_C, "accountRef"),
+							reference);
 
 			change.getPropertyModification().add(propertyChangeType);
 		}
 
 		for (AccountShadowType account : accountsToBeDeleted) {
-			PropertyModificationType propertyChangeType = ObjectTypeUtil.createPropertyModificationType(
-					PropertyModificationTypeType.delete, null, new QName(SchemaConstants.NS_C, "account"),
-					account.getOid());
+			PropertyModificationType propertyChangeType = ObjectTypeUtil
+					.createPropertyModificationType(
+							PropertyModificationTypeType.delete, null,
+							new QName(SchemaConstants.NS_C, "account"),
+							account.getOid());
 
 			change.getPropertyModification().add(propertyChangeType);
 		}
@@ -928,20 +1046,22 @@ public class ModelControllerImpl implements ModelController {
 		return change;
 	}
 
-	private void processAccountCredentials(AccountShadowType account, OperationResult result)
-			throws ObjectNotFoundException {
+	private void processAccountCredentials(AccountShadowType account,
+			OperationResult result) throws ObjectNotFoundException {
 		// inserting credentials to account if needed (with generated password)
 		ResourceType resource = account.getResource();
 		if (resource == null) {
-			resource = getObjectFromProvisioning(account.getResourceRef().getOid(),
-					new PropertyReferenceListType(), result, ResourceType.class);
+			resource = getObjectFromProvisioning(account.getResourceRef()
+					.getOid(), new PropertyReferenceListType(), result,
+					ResourceType.class);
 		}
 
 		if (resource == null || resource.getSchemaHandling() == null) {
 			return;
 		}
 
-		AccountType accountType = ModelUtils.getAccountTypeFromHandling(account, resource);
+		AccountType accountType = ModelUtils.getAccountTypeFromHandling(
+				account, resource);
 		if (accountType == null || accountType.getCredentials() == null) {
 			return;
 		}
@@ -949,20 +1069,25 @@ public class ModelControllerImpl implements ModelController {
 		AccountType.Credentials credentials = accountType.getCredentials();
 		int randomPasswordLength = -1;
 		if (credentials.getRandomPasswordLength() != null) {
-			randomPasswordLength = credentials.getRandomPasswordLength().intValue();
+			randomPasswordLength = credentials.getRandomPasswordLength()
+					.intValue();
 		}
 
-		if (randomPasswordLength != -1 && ModelUtils.getPassword(account).getAny() == null) {
+		if (randomPasswordLength != -1
+				&& ModelUtils.getPassword(account).getAny() == null) {
 			ModelUtils.generatePassword(account, randomPasswordLength);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void modifyProvisioningObjectWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException,
+	private void modifyProvisioningObjectWithExclusion(
+			ObjectModificationType change, String accountOid,
+			OperationResult result, ObjectType object)
+			throws ObjectNotFoundException, SchemaException,
 			CommunicationException {
 		if (object instanceof ResourceObjectShadowType) {
-			object = getObject(object.getOid(), new PropertyReferenceListType(), result,
+			object = getObject(object.getOid(),
+					new PropertyReferenceListType(), result,
 					ResourceObjectShadowType.class, true);
 
 			UserType user = null;
@@ -972,23 +1097,31 @@ public class ModelControllerImpl implements ModelController {
 				// we didn't find shadow owner, in next step we skip outbound
 				// schema handling processing.
 			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't list account shadow owner for for {}", ex,
+				LoggingUtils.logException(LOGGER,
+						"Couldn't list account shadow owner for for {}", ex,
 						object.getName());
 			}
 
 			try {
 				PatchXml patchXml = new PatchXml();
-				String xmlPatchedObject = patchXml.applyDifferences(change, object);
-				object = ((JAXBElement<ResourceObjectShadowType>) JAXBUtil.unmarshal(xmlPatchedObject))
-						.getValue();
+				String xmlPatchedObject = patchXml.applyDifferences(change,
+						object);
+				object = ((JAXBElement<ResourceObjectShadowType>) JAXBUtil
+						.unmarshal(xmlPatchedObject)).getValue();
 
-				ObjectModificationType newChange = processOutboundSchemaHandling(user,
-						(ResourceObjectShadowType) object, result);
+				ObjectModificationType newChange = processOutboundSchemaHandling(
+						user, (ResourceObjectShadowType) object, result);
 				if (newChange != null) {
-					change = newChange;
+
+					newChange.getPropertyModification().addAll(
+							updateChange(change.getPropertyModification(),
+									newChange.getPropertyModification()));
+
 				}
+
 			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't process outbound handling for object {}", ex,
+				LoggingUtils.logException(LOGGER,
+						"Couldn't process outbound handling for object {}", ex,
 						object.getName());
 			}
 		}
@@ -999,34 +1132,78 @@ public class ModelControllerImpl implements ModelController {
 		}
 	}
 
+	private List<PropertyModificationType> updateChange(
+			List<PropertyModificationType> oldChange,
+			List<PropertyModificationType> newChange) {
+		List<PropertyModificationType> updatedChange = new ArrayList<PropertyModificationType>();
+		for (PropertyModificationType changeModification : oldChange) {
+			if (!existPropertyModification(newChange, changeModification)){
+				updatedChange.add(changeModification);
+			}
+		}
+		return updatedChange;
+	}
+	
+	
+	private boolean existPropertyModification(List<PropertyModificationType> newChange, PropertyModificationType changeModification){
+		for (PropertyModificationType newChangeModification : newChange) {
+			if (existPropertyModification(newChangeModification.getValue()
+					.getAny(), changeModification.getValue().getAny())) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean existPropertyModification(List<Element> newChangeValues,
+			List<Element> oldChangeValues) {
+		for (Element newValue : newChangeValues) {
+			for (Element oldValue : oldChangeValues) {
+				if (newValue.getLocalName().equals(oldValue.getLocalName())
+						&& newValue.getNamespaceURI().equals(
+								oldValue.getNamespaceURI())) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
 	@SuppressWarnings("unchecked")
-	private void processAddAccount(ObjectModificationType change, UserType userBeforeChange,
-			OperationResult result) {
-		for (PropertyModificationType propertyChange : change.getPropertyModification()) {
-			if (!PropertyModificationTypeType.add.equals(propertyChange.getModificationType())
-					|| propertyChange.getValue() == null || propertyChange.getValue().getAny().isEmpty()) {
+	private void processAddAccount(ObjectModificationType change,
+			UserType userBeforeChange, OperationResult result) {
+		for (PropertyModificationType propertyChange : change
+				.getPropertyModification()) {
+			if (!PropertyModificationTypeType.add.equals(propertyChange
+					.getModificationType())
+					|| propertyChange.getValue() == null
+					|| propertyChange.getValue().getAny().isEmpty()) {
 				continue;
 			}
 
 			Node node = propertyChange.getValue().getAny().get(0);
-			if ("account".equals(node.getLocalName()) && SchemaConstants.NS_C.equals(node.getNamespaceURI())) {
+			if ("account".equals(node.getLocalName())
+					&& SchemaConstants.NS_C.equals(node.getNamespaceURI())) {
 				try {
-					AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(DOMUtil
-							.serializeDOMToString(node))).getValue();
+					AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil
+							.unmarshal(DOMUtil.serializeDOMToString(node)))
+							.getValue();
 
-					ObjectModificationType accountChange = processOutboundSchemaHandling(userBeforeChange,
-							account, result);
+					ObjectModificationType accountChange = processOutboundSchemaHandling(
+							userBeforeChange, account, result);
 					if (accountChange != null) {
 						PatchXml patchXml = new PatchXml();
-						String accountXml = patchXml.applyDifferences(accountChange, account);
-						account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml))
-								.getValue();
+						String accountXml = patchXml.applyDifferences(
+								accountChange, account);
+						account = ((JAXBElement<AccountShadowType>) JAXBUtil
+								.unmarshal(accountXml)).getValue();
 					}
 
 					String newAccountOid = addObject(account, result);
-					ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid,
-							ObjectTypes.ACCOUNT);
-					Element accountRefElement = JAXBUtil.jaxbToDom(accountRef, SchemaConstants.I_ACCOUNT_REF,
+					ObjectReferenceType accountRef = ModelUtils
+							.createReference(newAccountOid, ObjectTypes.ACCOUNT);
+					Element accountRefElement = JAXBUtil.jaxbToDom(accountRef,
+							SchemaConstants.I_ACCOUNT_REF,
 							DOMUtil.getDocument());
 
 					propertyChange.getValue().getAny().clear();
@@ -1034,15 +1211,18 @@ public class ModelControllerImpl implements ModelController {
 				} catch (SystemException ex) {
 					throw ex;
 				} catch (Exception ex) {
-					throw new SystemException("Couldn't process add account.", ex);
+					throw new SystemException("Couldn't process add account.",
+							ex);
 				}
 			}
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void modifyRepositoryObjectWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException {
+	private void modifyRepositoryObjectWithExclusion(
+			ObjectModificationType change, String accountOid,
+			OperationResult result, ObjectType object)
+			throws ObjectNotFoundException, SchemaException {
 		if (object instanceof UserType) {
 			UserType user = (UserType) object;
 			// processing add account
@@ -1052,7 +1232,8 @@ public class ModelControllerImpl implements ModelController {
 			try {
 				PatchXml patchXml = new PatchXml();
 				String u = patchXml.applyDifferences(change, user);
-				user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(u)).getValue();
+				user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(u))
+						.getValue();
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
@@ -1061,27 +1242,34 @@ public class ModelControllerImpl implements ModelController {
 			// outbound for every account
 			List<ObjectReferenceType> accountRefs = user.getAccountRef();
 			for (ObjectReferenceType accountRef : accountRefs) {
-				OperationResult subResult = result.createSubresult("Outbound Handling");
-				if (StringUtils.isNotEmpty(accountOid) && accountOid.equals(accountRef.getOid())) {
+				OperationResult subResult = result
+						.createSubresult("Outbound Handling");
+				if (StringUtils.isNotEmpty(accountOid)
+						&& accountOid.equals(accountRef.getOid())) {
 					subResult.computeStatus();
 					// preventing cycles while updating resource object shadows
 					continue;
 				}
 
 				try {
-					AccountShadowType account = getObject(accountRef.getOid(),
-							ModelUtils.createPropertyReferenceListType("Resource"), subResult,
-							AccountShadowType.class, true);
+					AccountShadowType account = getObject(
+							accountRef.getOid(),
+							ModelUtils
+									.createPropertyReferenceListType("Resource"),
+							subResult, AccountShadowType.class, true);
 					schemaHandler.setModel(this);
-					ObjectModificationType accountChange = schemaHandler.processOutboundHandling(user,
-							account, subResult);
-					modifyObjectWithExclusion(accountChange, accountOid, subResult);
+					ObjectModificationType accountChange = schemaHandler
+							.processOutboundHandling(user, account, subResult);
+					modifyObjectWithExclusion(accountChange, accountOid,
+							subResult);
 					ScriptsType scripts = getScripts(account, subResult);
 
-					provisioning.modifyObject(accountChange, scripts, subResult);
+					provisioning
+							.modifyObject(accountChange, scripts, subResult);
 				} catch (Exception ex) {
-					LoggingUtils.logException(LOGGER, "Couldn't update outbound handling for account {}", ex,
-							accountRef.getOid());
+					LoggingUtils.logException(LOGGER,
+							"Couldn't update outbound handling for account {}",
+							ex, accountRef.getOid());
 				} finally {
 					subResult.computeStatus();
 				}
@@ -1091,28 +1279,29 @@ public class ModelControllerImpl implements ModelController {
 		}
 	}
 
-	
 	@SuppressWarnings("unchecked")
-	private void modifyTaskWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException {
-			taskManager.modifyTask(change, result);
+	private void modifyTaskWithExclusion(ObjectModificationType change,
+			String accountOid, OperationResult result, ObjectType object)
+			throws ObjectNotFoundException, SchemaException {
+		taskManager.modifyTask(change, result);
 	}
 
-	
 	private ObjectModificationType processOutboundSchemaHandling(UserType user,
 			ResourceObjectShadowType object, OperationResult result) {
 		ObjectModificationType change = null;
 		if (user != null) {
 			try {
 				schemaHandler.setModel(this);
-				change = schemaHandler.processOutboundHandling(user, (ResourceObjectShadowType) object,
-						result);
+				change = schemaHandler.processOutboundHandling(user,
+						(ResourceObjectShadowType) object, result);
 			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't process outbound schema handling for {}", ex,
+				LoggingUtils.logException(LOGGER,
+						"Couldn't process outbound schema handling for {}", ex,
 						object.getName());
 			}
 		} else {
-			LOGGER.debug("Skipping outbound schema handling processing for {} (no user defined).",
+			LOGGER.debug(
+					"Skipping outbound schema handling processing for {} (no user defined).",
 					new Object[] { object.getName() });
 		}
 
@@ -1120,8 +1309,8 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void processUserTemplateForUser(UserType user, UserTemplateType userTemplate,
-			OperationResult result) {
+	private void processUserTemplateForUser(UserType user,
+			UserTemplateType userTemplate, OperationResult result) {
 		OperationResult subResult = new OperationResult("Process User Template");
 		result.addSubresult(subResult);
 
@@ -1130,16 +1319,20 @@ public class ModelControllerImpl implements ModelController {
 			return;
 		}
 
-		List<AccountConstructionType> accountConstructions = userTemplate.getAccountConstruction();
+		List<AccountConstructionType> accountConstructions = userTemplate
+				.getAccountConstruction();
 		for (AccountConstructionType construction : accountConstructions) {
-			OperationResult addObject = new OperationResult("Link Object To User");
+			OperationResult addObject = new OperationResult(
+					"Link Object To User");
 			try {
 				ObjectReferenceType resourceRef = construction.getResourceRef();
-				ResourceType resource = getObject(resourceRef.getOid(), new PropertyReferenceListType(),
-						result, ResourceType.class, true);
+				ResourceType resource = getObject(resourceRef.getOid(),
+						new PropertyReferenceListType(), result,
+						ResourceType.class, true);
 
-				AccountType accountType = ModelUtils.getAccountTypeFromHandling(construction.getType(),
-						resource);
+				AccountType accountType = ModelUtils
+						.getAccountTypeFromHandling(construction.getType(),
+								resource);
 
 				AccountShadowType account = new AccountShadowType();
 				account.setAttributes(new ResourceObjectShadowType.Attributes());
@@ -1147,23 +1340,31 @@ public class ModelControllerImpl implements ModelController {
 				account.setName(resource.getName() + "-" + user.getName());
 				account.setResourceRef(resourceRef);
 
-				ObjectModificationType changes = processOutboundSchemaHandling(user, account, result);
+				ObjectModificationType changes = processOutboundSchemaHandling(
+						user, account, result);
 				if (changes != null) {
 					PatchXml patchXml = new PatchXml();
-					String accountXml = patchXml.applyDifferences(changes, account);
-					account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml)).getValue();
+					String accountXml = patchXml.applyDifferences(changes,
+							account);
+					account = ((JAXBElement<AccountShadowType>) JAXBUtil
+							.unmarshal(accountXml)).getValue();
 				}
 
 				String accountOid = addObject(account, result);
-				user.getAccountRef().add(ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT));
+				user.getAccountRef().add(
+						ModelUtils.createReference(accountOid,
+								ObjectTypes.ACCOUNT));
 
 				addObject.recordSuccess();
 			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't process account construction {} for user {}", ex,
-						construction.getType(), user.getName());
-				addObject.recordFatalError("Something went terribly wrong.", ex);
-				subResult.recordWarning("Couldn't process account construction '" + construction.getType()
-						+ "'.", ex);
+				LoggingUtils.logException(LOGGER,
+						"Couldn't process account construction {} for user {}",
+						ex, construction.getType(), user.getName());
+				addObject
+						.recordFatalError("Something went terribly wrong.", ex);
+				subResult.recordWarning(
+						"Couldn't process account construction '"
+								+ construction.getType() + "'.", ex);
 			}
 		}
 
