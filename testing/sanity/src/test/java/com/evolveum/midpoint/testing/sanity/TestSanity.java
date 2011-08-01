@@ -609,6 +609,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * Test initialization of synchronization. It will create a cycle task and
 	 * check if the cycle executes No changes are synchronized yet.
 	 */
+	@Ignore
 	@Test
 	public void test100LiveSyncInit() throws Exception {
 		displayTestTile("test100LiveSyncInit");
@@ -680,6 +681,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	 * 
 	 * @throws Exception
 	 */
+	@Ignore
 	@Test
 	public void test101LiveSyncCreate() throws Exception {
 		displayTestTile("test101LiveSyncCreate");
@@ -842,6 +844,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		}
 	}
 
+	@Ignore
 	@Test
 	public void test999Shutdown() throws InterruptedException {
 		taskManager.shutdown();
