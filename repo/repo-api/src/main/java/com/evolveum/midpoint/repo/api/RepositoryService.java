@@ -38,11 +38,84 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
- * The new repository service definition.
- * 
- * WORK IN PROGRESS
- * 
+ * <p>Identity Repository Interface.</p>
+ * <p>
+ * Status: public
+ * Stability: draft
+ * @version 0.3
  * @author Radovan Semancik
+ * </p><p>
+ * This service provides repository for objects that are commonly found
+ * in identity management deployments. It is used for storage and retrieval
+ * of objects. It also supports modifications (relative changes), searching
+ * and basic coordination.
+ * </p><p>
+ * Supported object types:
+ * <ul>
+ *         <li>All object types from Common Schema</li>
+ *         <li>All object types from Identity Schema</li>
+ *         <li>All object types from IDM Model Schema</li>
+ * </ul>
+ * </p><p>
+ * Identity repository may add some kind of basic logic in addition to a
+ * pure storage of data. E.g. it may check referential consistency,
+ * validate schema, etc.
+ * </p><p>
+ * The implementation may store the objects and properties in any suitable
+ * way and it is not required to check any schema beyond the basic common schema
+ * structures. However, the implementation MAY be able to check additional
+ * schema definitions, e.g. to check for mandatory and allowed properties
+ * and property types. This may be either explicit (e.g. implementation checking
+ * against provided XML schema) or implicit, conforming to the constraints of
+ * the underlying storage (e.g. LDAP schema enforced by underlying directory server).
+ * One way or another, the implementation may fail to store the objects that violate
+ * the schema. The method how the schemas are "loaded" to the implementation is not
+ * defined by this interface. This interface even cannot "reveal" the schema to its
+ * users (at least not now). Therefore clients of this interface must be prepared to
+ * handle schema violation errors.
+ * </p><p>
+ * The implementation is not required to index the data or provide any other
+ * optimizations. This depends on the specific implementation, its configuration
+ * and the underlying storage system. Qualitative constraints (such as performance)
+ * are NOT defined by this interface definition.
+ * </p>
+ * <h1>Naming Conventions</h1>
+ * <p>
+ * operations should be named as &lt;operation&gt;&lt;objectType&gt; e.g. addUser,
+ * modifyAccount, searchObjects. The operations that returns single object
+ * instance or works on single object should be named in singular (e.g. addUser).
+ * The operation that return multiple instances should be named in plural (e.g. listObjects).
+ * Operations names should be unified as well:
+ * <ul>
+ *        <li>add, modify, delete - writing to repository, single object, need OID</li>
+ *        <li>get - retrieving single object by OID</li>
+ *        <li>list - returning all objects, no or fixed search criteria</li>
+ *        <li>search - returning subset of objects with flexible search criteria</li>
+ * </ul>
+ * </p>
+ * <h1>Notes</h1>
+ * <p>
+ * The definition of this interface is somehow "fuzzy" at places. E.g.
+ * allowing schema-aware implementation but not mandating it, recommending
+ * to remove duplicates, but tolerating them, etc. The reason for this is
+ * to have better fit to the underlying storage mechanisms and therefore
+ * more efficient and simpler implementation. It may complicate the clients
+ * if the code needs to be generic and fit each and every implementation of
+ * this interface. However, such code will be quite rare. Most of the custom code
+ * will be developed to work on a specific storage (e.g. Oracle DB or LDAP)
+ * and therefore can be made slightly implementation-specific. Changing the
+ * storage in a running IDM system is extremely unlikely.
+ * </p>
+ * <h1>TODO</h1>
+ * <p>
+ * <ul>
+ *  <li>TODO: Atomicity, consistency</li>
+ *  <li>TODO: security constraints</li>
+ *  <li>TODO: inherently thread-safe</li>
+ *  <li>TODO: note about distributed storage systems and weak/eventual consistency</li>
+ *  <li>TODO: task coordination</li>
+ * </ul>
+ * </p> 
  */
 public interface RepositoryService {
 
@@ -114,7 +187,8 @@ public interface RepositoryService {
 	 * This can be considered as a simplified search operation.
 	 * 
 	 * Returns empty list if object type is correct but there are no objects of
-	 * that type.
+	 * that type. The ordering of the results is not significant and may be arbitrary
+	 * unless sorting in the paging is used.
 	 * 
 	 * Should fail if object type is wrong.
 	 * 
@@ -135,7 +209,8 @@ public interface RepositoryService {
 	 * Returns a list of objects that match search criteria.
 	 * 
 	 * Returns empty list if object type is correct but there are no objects of
-	 * that type.
+	 * that type. The ordering of the results is not significant and may be arbitrary
+	 * unless sorting in the paging is used.
 	 * 
 	 * Should fail if object type is wrong. Should fail if unknown property is
 	 * specified in the query.
@@ -191,7 +266,7 @@ public interface RepositoryService {
 			throws ObjectNotFoundException, SchemaException;
 
 	/**
-	 * Deleted object with provided OID. Must fail if object with specified OID
+	 * Deletes object with specified OID. Must fail if object with specified OID
 	 * does not exists. Should be atomic.
 	 * 
 	 * @param oid
