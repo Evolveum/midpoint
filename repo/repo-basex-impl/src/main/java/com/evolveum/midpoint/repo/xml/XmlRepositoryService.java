@@ -114,9 +114,6 @@ public class XmlRepositoryService implements RepositoryService {
 		result.addParam("object", object);
 
 		try {
-			// FIXME: check and add have to be done in one transaction!
-			checkAndFailIfObjectAlreadyExists(object.getOid(), result);
-
 			// generate new oid, if necessary
 			oid = (null != object.getOid() ? object.getOid() : UUID.randomUUID().toString());
 			object.setOid(oid);
@@ -165,15 +162,6 @@ public class XmlRepositoryService implements RepositoryService {
 				result.recordFatalError("Reported error by XML Database", ex);
 				throw new SystemException("Reported error by XML Database", ex);
 			}
-
-		} catch (ObjectAlreadyExistsException ex) { // Just wrap and fix result
-													// code
-			result.recordWarning("Object with the same name already exists", ex);
-			throw new ObjectAlreadyExistsException(ex);
-
-		} catch (SchemaException ex) { // Just wrap and fix result code
-			result.recordFatalError(ex);
-			throw new SchemaException(ex);
 		}
 	}
 
@@ -474,21 +462,6 @@ public class XmlRepositoryService implements RepositoryService {
 		ros.addAll(objects);
 		result.recordSuccess();
 		return ros;
-	}
-
-	private void checkAndFailIfObjectAlreadyExists(String oid, OperationResult result)
-			throws ObjectAlreadyExistsException, SchemaException {
-		// check if object with the same oid already exists, if yes, then fail
-		if (StringUtils.isNotEmpty(oid)) {
-			try {
-				ObjectType retrievedObject = getObject(oid, null, result);
-				if (null != retrievedObject) {
-					throw new ObjectAlreadyExistsException("Object with oid " + oid + " already exists");
-				}
-			} catch (ObjectNotFoundException e) {
-				// ignore
-			}
-		}
 	}
 
 	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters,

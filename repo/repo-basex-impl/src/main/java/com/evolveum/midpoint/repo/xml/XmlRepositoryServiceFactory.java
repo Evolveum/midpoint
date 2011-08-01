@@ -61,7 +61,7 @@ public class XmlRepositoryServiceFactory {
 		if (runServer) {
 			// start BaseX server, it registers its own shutdown hook, therefore
 			// no cleanup is required
-			TRACE.trace("Starting BaseX Server");
+			TRACE.trace("Starting BaseX Server on {}:{}", host, port);
 
 			// args ordering is important!
 			if (embedded) {
