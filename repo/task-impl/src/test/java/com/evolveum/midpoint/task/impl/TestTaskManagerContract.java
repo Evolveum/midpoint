@@ -144,6 +144,7 @@ public class TestTaskManagerContract {
 	}
 	
 
+	@Ignore
 	@Test
 	public void test002Single() throws Exception {
 		// Add single task. This will get picked by task scanner and executed
@@ -187,6 +188,7 @@ public class TestTaskManagerContract {
 		assertTrue(taskResult.isSuccess());
 	}
 
+	@Ignore
 	@Test
 	public void test003Cycle() throws Exception {
 		// Add cycle task. This will get picked by task scanner and executed
@@ -230,6 +232,7 @@ public class TestTaskManagerContract {
 		assertTrue(taskResult.isSuccess());
 	}
 	
+	@Ignore
 	@Test
 	public void test004Extension() throws Exception {
 		
