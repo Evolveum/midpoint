@@ -40,7 +40,7 @@
 		<verbose.jaxb2>false</verbose.jaxb2>
 		<verbose.jaxws>false</verbose.jaxws>
         <!-- Dependencies global versions -->
-		<aspectj.version>1.6.11</aspectj.version>
+		<aspectj.version>1.6.10</aspectj.version>
 		<basex.version>6.7.1</basex.version>
 		<commons.io.version>2.0.1</commons.io.version>
 		<commons.lang.version>2.6</commons.lang.version>
