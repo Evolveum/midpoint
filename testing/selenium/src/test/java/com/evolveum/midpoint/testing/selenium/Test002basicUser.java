@@ -492,6 +492,65 @@ public class Test002basicUser {
 		assertTrue(se.isTextPresent("Queen Anne"));
 		
 	}
+	/***
+	 * modify user via GUI
+	 * 
+	 * 	1.	login as admin
+	 * 	2.	click to Accounts
+	 * 	3. 	select and click user jack
+	 * 	4.	click to edit button
+	 * 	5.	change full name
+	 * 	6.	change locality
+	 * 	7.	click to save changes
+	 * 	8. 	check if user fullname is changed
+	 * 	9.	click to user
+	 * 	10.	check if locality is changed
+	 */
+	
+	@Test
+	public void test051modifyUserSpecialChars() {
+		//modify jack (demote)
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
+		// get hashmap and login
+		HashMap<String, String> h = new HashMap<String, String>();
+		for (String l : se.getAllLinks()) {
+			if (!l.contains("Table") || !l.contains("name"))
+				continue;
+			h.put(se.getText(l), l.replace("name", ""));
+		}
+	
+		se.click(h.get("jack")+"name");
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
+		assertTrue(se.isTextPresent("Queen Anne's Revenge"));
+		se.click("admin-content:editButton");
+		se.waitForText("Save changes",30);
+		
+		for (String s: se.getAllFields() ) {
+			if (s.contains("localityText")) {
+				se.type(s, "áčďéěíľĺňôóŕřšťúýžÁČĎÉĚÍĽĹŇÓŔŘŠŤÚÝŽõöüĐŐőŮůŰű");
+			}
+		}
+		
+		se.click("admin-content:saveButton");
+		se.waitForPageToLoad("30000");
+		se.waitForText("Changes saved successfully"); 
+		assertTrue(se.isTextPresent("Changes saved successfully"));
+		
+		for (String l : se.getAllLinks()) {
+			if (!l.contains("Table") || !l.contains("name"))
+				continue;
+			h.put(se.getText(l), l.replace("name", ""));
+		}
+		se.click(h.get("jack")+"name");
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
+		assertTrue(se.isTextPresent("áčďéěíľĺňôóŕřšťúýžÁČĎÉĚÍĽĹŇÓŔŘŠŤÚÝŽõöüĐŐőŮůŰű"));	
+	}
+	
 	
 	//TODO
 	
