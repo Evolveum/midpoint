@@ -477,8 +477,8 @@ public class Test002basicUser {
 		
 		se.click("admin-content:saveButton");
 		se.waitForPageToLoad("30000");
-		se.waitForText("Save changes successfully"); 
-		assertTrue(se.isTextPresent("Save changes successfully"));
+		se.waitForText("Changes saved successfully"); 
+		assertTrue(se.isTextPresent("Changes saved successfully"));
 		assertTrue(se.isTextPresent("SR. Jack Sparrow"));
 		
 		for (String l : se.getAllLinks()) {
