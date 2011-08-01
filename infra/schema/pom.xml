@@ -130,9 +130,6 @@
 					<wsdlFiles>
 						<wsdlFile>private/model/modelWrapper.wsdl</wsdlFile>
 						<wsdlFile>private/model/passwordWrapper.wsdl</wsdlFile>
-						<wsdlFile>private/repository/repositoryWrapper.wsdl</wsdlFile>
-						<wsdlFile>private/provisioning/provisioningWrapper.wsdl</wsdlFile>
-						<wsdlFile>private/provisioning/resourceObjectChangeListenerWrapper.wsdl</wsdlFile>
 					</wsdlFiles>
 				</configuration>
 				<dependencies>

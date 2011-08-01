@@ -68,7 +68,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.provisioning.resource_object_change_listener_1.FaultMessage;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathType;
 
@@ -562,27 +561,6 @@ public class DebugUtil implements ObjectFormatter {
 			return resourceRef.getOid();
 		}
 		return ("ERROR:noResource");
-	}
-
-	public static Object prettyPrint(FaultMessage fault) {
-		if (fault == null) {
-			return "resource-object-change-listener-1.FaultMessage=null";
-		}
-		StringBuilder sb = new StringBuilder("resource-object-change-listener-1.FaultMessage(FaultInfo(");
-		FaultType faultInfo = fault.getFaultInfo();
-		if (faultInfo != null) {
-			sb.append("\"");
-			sb.append(faultInfo.getMessage());
-			sb.append("\"");
-		} else {
-			sb.append("null");
-		}
-		sb.append("),");
-		sb.append("\"");
-		sb.append(fault.getMessage());
-		sb.append("\")");
-
-		return sb.toString();
 	}
 
 	public static String toReadableString(ResourceObjectShadowType shadow) {
