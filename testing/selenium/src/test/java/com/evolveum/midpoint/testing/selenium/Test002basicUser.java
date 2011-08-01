@@ -42,7 +42,7 @@ public class Test002basicUser {
 
 	private static final transient Trace logger = TraceManager.getTrace(Test002basicUser.class);
 
-	@Before
+	@BeforeClass
 	/***
 	 * Do login as Admin for each test
 	 */
@@ -68,7 +68,7 @@ public class Test002basicUser {
 	/*
 	 * close browser
 	 */
-	@After
+	@AfterClass
 	public void stop() {
 		se.stop();
 		logger.info("--- STOP ------------------------------");
@@ -91,7 +91,7 @@ public class Test002basicUser {
 	 */
 	
 	@Test
-	public void test01addUser() {
+	public void test010addUserMinimal() {
 
 		se.click(se.findLink("topAccount"));
 		se.waitForPageToLoad("30000");
@@ -120,7 +120,10 @@ public class Test002basicUser {
 		se.click(se.findLink("leftCreate"));
 		se.waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
-
+	}
+		
+	@Test
+	public void test011addUserAllFilled() {
 		logger.info("All fields filled");
 		se.type("createUserForm:name", "elizabeth");
 		se.type("createUserForm:givenName", "Elizabeth");
@@ -138,7 +141,11 @@ public class Test002basicUser {
 		se.click(se.findLink("leftCreate"));
 		se.waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
-
+		
+	}
+	
+	@Test
+	public void test012addUserSecondInsert() {
 		logger.info("try to insert twice");
 		se.type("createUserForm:name", "elizabeth");
 		se.type("createUserForm:givenName", "Elizabeth");
@@ -154,6 +161,10 @@ public class Test002basicUser {
 		assertTrue(se.isTextPresent("Couldn't add object 'elizabeth' to model."));
 		assertTrue(se.isTextPresent("Failed to create user"));
 
+	}
+	
+	@Test
+	public void test013addUserWrongFilling() {
 		// test missing name and password not match
 		logger.info("missing: name and not matching passsword");
 		se.type("createUserForm:name", "");
@@ -240,7 +251,7 @@ public class Test002basicUser {
 	 *  
 	 */
 	@Test
-	public void test02searchUser() throws InterruptedException {
+	public void test020searchUser() throws InterruptedException {
 		logger.info("searchTest()");
 
 		se.click(se.findLink("topAccount"));
@@ -293,7 +304,7 @@ public class Test002basicUser {
 	 */
 	
 	@Test
-	public void test03importUser() {
+	public void test030importUser() {
 		se.click(se.findLink("topConfiguration"));
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/config/index.iface", se.getLocation());
@@ -345,7 +356,7 @@ public class Test002basicUser {
 	 * 		7. check if user full name is changed
 	 */
 	@Test
-	public void test04importModifyUser() {
+	public void test040importModifyUser() {
 		
 		// failing import allready exists
 		se.click(se.findLink("topConfiguration"));
@@ -414,7 +425,7 @@ public class Test002basicUser {
 	 */
 	
 	@Test
-	public void test05modifyUser() {
+	public void test050modifyUser() {
 		//modify jack (demote)
 		se.click(se.findLink("topAccount"));
 		se.waitForPageToLoad("30000");
@@ -465,7 +476,7 @@ public class Test002basicUser {
 	//TODO
 	
 	@Test
-	public void test06modifyUserViaDebug() {
+	public void test060modifyUserViaDebug() {
 		// failing import allready exists
 		se.click(se.findLink("topConfiguration"));
 		se.waitForPageToLoad("30000");
