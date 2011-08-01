@@ -117,13 +117,20 @@ public class Test002basicUser {
 		se.waitForText("User created successfully");
 		assertTrue(se.isTextPresent("Hector Barbossa"));
 
-		se.click(se.findLink("leftCreate"));
-		se.waitForText("Web access enabled");
-		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
+		
 	}
 		
 	@Test
 	public void test011addUserAllFilled() {
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
+		
+		se.click(se.findLink("leftCreate"));
+		se.waitForText("Web access enabled");
+		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
+		
 		logger.info("All fields filled");
 		se.type("createUserForm:name", "elizabeth");
 		se.type("createUserForm:givenName", "Elizabeth");
@@ -137,15 +144,19 @@ public class Test002basicUser {
 		se.click("createUserForm:createUser");
 		se.waitForText("User created successfully");
 		assertTrue(se.isTextPresent("Elizabeth Swann"));
+	}
+	
+	@Test
+	public void test012addUserSecondInsert() {
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
 
 		se.click(se.findLink("leftCreate"));
 		se.waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
 		
-	}
-	
-	@Test
-	public void test012addUserSecondInsert() {
 		logger.info("try to insert twice");
 		se.type("createUserForm:name", "elizabeth");
 		se.type("createUserForm:givenName", "Elizabeth");
@@ -165,6 +176,15 @@ public class Test002basicUser {
 	
 	@Test
 	public void test013addUserWrongFilling() {
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
+
+		se.click(se.findLink("leftCreate"));
+		se.waitForText("Web access enabled");
+		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
+
 		// test missing name and password not match
 		logger.info("missing: name and not matching passsword");
 		se.type("createUserForm:name", "");
