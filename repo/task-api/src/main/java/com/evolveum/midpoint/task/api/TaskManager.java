@@ -251,5 +251,33 @@ public interface TaskManager {
 	 * @return
 	 */
 	public Set<Task> getRunningTasks();
+
+	/**
+	 * Deactivate service threads (temporarily).
+	 * 
+	 * This will suspend all background activity such as scanning threads, heartbeats and similar mechanisms.
+	 * 
+	 * Note: The threads are normally activated after task manager implementation starts. This methods should not be used
+	 * in a normal case.
+	 *  
+	 *  WARNING: this feature is intended for development-time diagnostics and should not be used on production environments.
+	 *  Suspending the threads may affect correct behavior of the system (such as timeouts on heartbeats). Use this feature
+	 *  only if you really know what you are doing.
+	 */
+	public void deactivateServiceThreads();
+	
+	/**
+	 * Re-activate the service threads after they have been deactivated.
+	 */
+	public void reactivateServiceThreads();
+		
+	/**
+	 * Returns true if the service threads are running.
+	 * 
+	 * This method returns true in a normal case. It returns false is the threads were temporarily suspended.  
+	 * 
+	 * @return true if the service threads are running.
+	 */
+	public boolean getServiceThreadsActivationState();
 	
 }

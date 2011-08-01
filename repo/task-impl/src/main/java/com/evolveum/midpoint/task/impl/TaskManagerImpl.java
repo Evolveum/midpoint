@@ -73,12 +73,16 @@ public class TaskManagerImpl implements TaskManager {
 	private long JOIN_TIMEOUT = 5000;
 	
 	private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
-
+	private Set<TaskRunner> runners = new HashSet<TaskRunner>();
 	private TaskScanner scannerThread;
+	/**
+	 * True if the service threads are running.
+	 * Is is true in a normal case. It is false is the threads were temporarily suspended.
+	 */
+	private boolean threadsRunning = true;
 
 	@Autowired(required=true)
 	private RepositoryService repositoryService;
-	private Set<TaskRunner> runners = new HashSet<TaskRunner>();
 	
 	private static final transient Trace logger = TraceManager.getTrace(TaskManagerImpl.class);
 	private static final String TASK_THREAD_NAME_PREFIX = "midpoint-task-";
@@ -377,6 +381,29 @@ public class TaskManagerImpl implements TaskManager {
 	public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException {
 		// TODO: result
 		repositoryService.deleteObject(oid, parentResult);
+	}
+
+	@Override
+	public void deactivateServiceThreads() {
+		logger.warn("DEACTIVATING Task Manager service threads (RISK OF SYSTEM MALFUNCTION)");
+		stopScannerThread();
+		for (TaskRunner runner : runners) {
+			runner.shutdown();
+		}
+		threadsRunning=true;
+	}
+
+	@Override
+	public void reactivateServiceThreads() {
+		logger.info("Reactivating Task Manager service threads");
+		startScannerThread();
+		// The scanner should find the runnable threads and reactivate runners
+		threadsRunning=false;
+	}
+
+	@Override
+	public boolean getServiceThreadsActivationState() {
+		return threadsRunning;
 	}
 
 }
