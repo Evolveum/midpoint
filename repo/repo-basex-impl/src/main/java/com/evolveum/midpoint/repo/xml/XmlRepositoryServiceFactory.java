@@ -66,10 +66,10 @@ public class XmlRepositoryServiceFactory {
 			// args ordering is important!
 			if (embedded) {
 				// set debug mode and run it in the same process
-				server = new BaseXServer("-d", "-D", "-s");
+				server = new BaseXServer("-p"+port, "-d", "-D", "-s");
 			} else {
 				// set debug mode and run it as a Daemon process
-				server = new BaseXServer("-d", "-s");
+				server = new BaseXServer("-p"+port, "-d", "-s");
 			}
 			TRACE.trace("BaseX Server started");
 		}
