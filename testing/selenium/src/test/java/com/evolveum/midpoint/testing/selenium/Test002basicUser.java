@@ -37,7 +37,7 @@ import static org.junit.Assert.*;
 
 public class Test002basicUser {
 
-	Selenium se;
+	static Selenium se;
 	static String baseUrl = "http://localhost:8080/idm";
 
 	private static final transient Trace logger = TraceManager.getTrace(Test002basicUser.class);
@@ -46,7 +46,7 @@ public class Test002basicUser {
 	/***
 	 * Do login as Admin for each test
 	 */
-	public void start() {
+	static public void start() {
 		logger.info("--- START ------------------------------");
 		WebDriver driver = new FirefoxDriver();
 		// WebDriver driver = new ChromeDriver();
@@ -69,7 +69,7 @@ public class Test002basicUser {
 	 * close browser
 	 */
 	@AfterClass
-	public void stop() {
+	static public void stop() {
 		se.stop();
 		logger.info("--- STOP ------------------------------");
 	}
