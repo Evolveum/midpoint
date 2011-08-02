@@ -1116,7 +1116,7 @@ public class ModelControllerImpl implements ModelController {
 					newChange.getPropertyModification().addAll(
 							updateChange(change.getPropertyModification(),
 									newChange.getPropertyModification()));
-
+					change = newChange;
 				}
 
 			} catch (Exception ex) {
