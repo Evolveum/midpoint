@@ -80,7 +80,7 @@ public class Test004UserPassword {
 		se.click(h.get("elizabeth")+"name");
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
-		assertTrue(se.isTextPresent("Black Pearl"));
+		assertTrue(se.isTextPresent("Empress"));
 		se.click("admin-content:editButton");
 		se.waitForText("Save changes",30);
 		
