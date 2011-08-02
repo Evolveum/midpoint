@@ -98,8 +98,8 @@ public class Test004UserPassword {
 		se.click("j_idt25"); 	//TODO refactor to logoutlink
 		se.waitForText("User Login");
 		
-		se.type("loginForm:userName", "jack");
-		se.type("loginForm:password", "drinkRum");
+		se.type("loginForm:userName", "elizabeth");
+		se.type("loginForm:password", "qwe123.Q");
 		se.click("loginForm:loginButton");
 		se.waitForPageToLoad("10000");
 		assertEquals(baseUrl+"/index.iface", se.getLocation());
