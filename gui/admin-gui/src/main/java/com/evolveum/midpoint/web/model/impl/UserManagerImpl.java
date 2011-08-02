@@ -94,7 +94,10 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 	public Set<PropertyChange> submit(GuiUserDto changedObject) {
 		Validate.notNull(changedObject, "User object must not be null.");
 		Set<PropertyChange> set = null;
-		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
+		//do not resolve resource and accounts for user
+		//because if account or resource was deleted, it will throw ObjectNotFoundEx
+//		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
+		UserDto oldUser = get(changedObject.getOid(), new PropertyReferenceListType());
 
 		OperationResult result = new OperationResult(UserManager.OPERATION_USER_SUBMIT);
 		try { // Call Web Service Operation

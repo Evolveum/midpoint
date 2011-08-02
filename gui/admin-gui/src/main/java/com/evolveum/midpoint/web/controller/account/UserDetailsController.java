@@ -228,6 +228,8 @@ public class UserDetailsController implements Serializable {
 					((UserType) user.getXmlObject()).getAccount().add(newAccountShadowType);
 				}
 			}
+		
+			
 			TRACE.debug("Finished processing of new accounts");
 
 			// delete accounts are also processed as modification of user in one
@@ -243,6 +245,7 @@ public class UserDetailsController implements Serializable {
 					if (StringUtils.equals(oidToDelete, account.getOid())) {
 						i.remove();
 						accountManager.delete(account.getOid());
+						
 						break;
 					}
 				}
@@ -252,6 +255,7 @@ public class UserDetailsController implements Serializable {
 			TRACE.debug("Submit user modified in GUI");
 			Set<PropertyChange> userChanges = userManager.submit(user);
 			TRACE.debug("Modified user in GUI submitted ");
+			
 			if (userChanges != null) {
 				if (userChanges.isEmpty()) {
 					// account changes are processed as modification of account,
