@@ -390,7 +390,7 @@ public class TaskManagerImpl implements TaskManager {
 		for (TaskRunner runner : runners) {
 			runner.shutdown();
 		}
-		threadsRunning=true;
+		threadsRunning=false;
 	}
 
 	@Override
@@ -398,7 +398,7 @@ public class TaskManagerImpl implements TaskManager {
 		logger.info("Reactivating Task Manager service threads");
 		startScannerThread();
 		// The scanner should find the runnable threads and reactivate runners
-		threadsRunning=false;
+		threadsRunning=true;
 	}
 
 	@Override
