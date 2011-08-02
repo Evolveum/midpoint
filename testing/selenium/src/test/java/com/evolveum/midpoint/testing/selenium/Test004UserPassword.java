@@ -48,8 +48,8 @@ public class Test004UserPassword {
 	
 	@Test
 	public void test011positiveUserLoginTest() {	
-		se.type("loginForm:userName", "jack");
-		se.type("loginForm:password", "deadmentellnotales");
+		se.type("loginForm:userName", "elizabeth");
+		se.type("loginForm:password", "qwe123.Q");
 		se.click("loginForm:loginButton");
 		se.waitForPageToLoad("10000");
 		assertEquals(baseUrl+"/index.iface", se.getLocation());
@@ -77,7 +77,7 @@ public class Test004UserPassword {
 			h.put(se.getText(l), l.replace("name", ""));
 		}
 	
-		se.click(h.get("jack")+"name");
+		se.click(h.get("elizabeth")+"name");
 		se.waitForPageToLoad("30000");
 		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
 		assertTrue(se.isTextPresent("Black Pearl"));
@@ -99,7 +99,7 @@ public class Test004UserPassword {
 		se.waitForText("User Login");
 		
 		se.type("loginForm:userName", "elizabeth");
-		se.type("loginForm:password", "qwe123.Q");
+		se.type("loginForm:password", "drunkRum");
 		se.click("loginForm:loginButton");
 		se.waitForPageToLoad("10000");
 		assertEquals(baseUrl+"/index.iface", se.getLocation());
