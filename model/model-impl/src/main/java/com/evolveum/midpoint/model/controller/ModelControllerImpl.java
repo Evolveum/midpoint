@@ -1093,12 +1093,13 @@ public class ModelControllerImpl implements ModelController {
 			UserType user = null;
 			try {
 				user = listAccountShadowOwner(object.getOid(), result);
+				LOGGER.debug("Found owner {} for account shadow {}", ObjectTypeUtil.toShortString(user), ObjectTypeUtil.toShortString(object));
 			} catch (ObjectNotFoundException ex) {
 				// we didn't find shadow owner, in next step we skip outbound
 				// schema handling processing.
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER,
-						"Couldn't list account shadow owner for for {}", ex,
+						"Couldn't list account shadow owner for {}", ex,
 						object.getName());
 			}
 
