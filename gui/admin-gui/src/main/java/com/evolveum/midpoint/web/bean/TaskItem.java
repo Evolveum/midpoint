@@ -12,7 +12,7 @@ public class TaskItem {
 	private Long lastRunFinishTimestamp;
 
 	public TaskItem(Task task){
-		this.handlerUri = task.getHanderUri();
+		this.handlerUri = task.getHandlerUri();
 		this.objectRef = task.getObjectRef().getOid();
 		this.oid = task.getOid();
 		this.name = task.getName();
