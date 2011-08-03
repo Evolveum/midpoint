@@ -112,7 +112,7 @@ public class Selenium extends WebDriverBackedSelenium {
 	@Override
 	public void click(String locator) {
 		super.click(locator);
-		logger.debug("Selenium.click: " + locator );
+		logger.debug("Selenium.click: " + locator  + " / " + super.getLocation());
 	}
 
 	@Override
@@ -133,10 +133,10 @@ public class Selenium extends WebDriverBackedSelenium {
 	
 	@Override
 	public void waitForPageToLoad(String timeout) {
-		logger.debug("Selenium.waitForPageToLoad: Start waiting for " + timeout + " ms");
+		logger.debug("Selenium.waitForPageToLoad: Start waiting for " + timeout + " ms " + super.getLocation());
 		long start = System.currentTimeMillis();
 		super.waitForPageToLoad(timeout);
-		logger.debug("Selenium.waitForPageToLoad: Page loaded after " + (System.currentTimeMillis() - start) + "ms");
+		logger.debug("Selenium.waitForPageToLoad: Page( " + super.getLocation() + " ) loaded after " + (System.currentTimeMillis() - start) + "ms");
 	}
 	
 	public void waitForPageToLoad() {
