@@ -603,7 +603,7 @@ public class TestSanity extends AbstractIntegrationTest {
 						return false;
 					};
 				},
-				10000);
+				20000);
 
 		// Check task status
 
@@ -692,7 +692,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Wait a bit to give the sync cycle time to detect the change
 
-		waitFor("Waining for sync cycle to detect change",
+		waitFor("Waiting for sync cycle to detect change",
 				new Checker() {
 					@Override
 					public boolean check() throws Exception {
@@ -712,7 +712,7 @@ public class TestSanity extends AbstractIntegrationTest {
 						}
 					}
 				},
-				10000);
+				30000);
 
 		// Search for the user that should be created now
 
@@ -780,7 +780,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertSuccess("getObject has failed", result);
 
 		final String taskOid = task.getOid();
-		waitFor("Waining for import to complete",
+		waitFor("Waiting for import to complete",
 				new Checker() {
 					@Override
 					public boolean check() throws Exception {
@@ -791,7 +791,7 @@ public class TestSanity extends AbstractIntegrationTest {
 						return(task.getExecutionStatus() == TaskExecutionStatus.CLOSED);
 					}
 				},
-				10000);
+				20000);
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
 		ObjectType obj = model.getObject(task.getOid(), new PropertyReferenceListType(), resultHolder);
@@ -873,7 +873,7 @@ public class TestSanity extends AbstractIntegrationTest {
 						return taskManager.getRunningTasks().isEmpty();
 					}
 				},
-				5000);
+				10000);
 		assertEquals("Some tasks left running after shutdown", new HashSet<Task>(),
 				taskManager.getRunningTasks());
 	}
