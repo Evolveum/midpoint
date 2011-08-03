@@ -95,7 +95,9 @@ public class Test004UserPassword {
 		se.waitForText("Changes saved successfully"); 
 		assertTrue(se.isTextPresent("Changes saved successfully"));
 		
-		se.click("logoutUserLink"); 
+		se.click("logoutUserLink");
+		//Forcelogout
+		se.open(baseUrl + "//j_spring_security_logout");
 		se.waitForPageToLoad();
 		se.waitForText("User Login");
 		se.waitForText("Username");
@@ -106,7 +108,6 @@ public class Test004UserPassword {
 		se.click("loginForm:loginButton");
 		se.waitForPageToLoad();
 		assertEquals(baseUrl+"/index.iface", se.getLocation());
-		
 	}
 	
 	@Test

@@ -126,7 +126,7 @@ public class Selenium extends WebDriverBackedSelenium {
 		boolean ret = super.isTextPresent(pattern);
 		logger.debug ("Selenium.isTextPresent :" + pattern + " - " + (ret ? "OK" : "FAIL") );
 		if (!ret && logger.isDebugEnabled()) {
-			logger.debug("getHtmlSource:\n" + this.getHtmlSource());
+			logger.trace("getHtmlSource:\n" + this.getHtmlSource());
 		}
 		return ret;
 	}
@@ -142,4 +142,12 @@ public class Selenium extends WebDriverBackedSelenium {
 	public void waitForPageToLoad() {
 		waitForPageToLoad("30000");
 	}
+	
+	@Override
+	public void open(String url){
+		logger.debug("Selenium.open: " + url);
+		super.open(url);
+	}
+	
+	
 }
