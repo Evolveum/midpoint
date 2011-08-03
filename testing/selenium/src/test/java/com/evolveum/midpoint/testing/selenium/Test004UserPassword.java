@@ -94,32 +94,30 @@ public class Test004UserPassword {
 		se.waitForPageToLoad();
 		se.waitForText("Changes saved successfully"); 
 		assertTrue(se.isTextPresent("Changes saved successfully"));
-		
 		se.click("logoutUserLink");
-		//Forcelogout
-		se.open(baseUrl + "//j_spring_security_logout");
-		se.waitForPageToLoad();
-		se.waitForText("User Login");
-		se.waitForText("Username");
-		se.waitForText("Password");
-		
+	}
+	
+	@Test
+	public void test021userChangedPasswordValidation() {
 		se.type("loginForm:userName", "elizabeth");
-		se.type("loginForm:password", "drunkRum");
+		se.type("loginForm:password", "drinkRum");
 		se.click("loginForm:loginButton");
 		se.waitForPageToLoad();
 		assertEquals(baseUrl+"/index.iface", se.getLocation());
 	}
 	
 	@Test
-	public void test020userChangeOwnPassword() {
+	public void test022userChangeOwnPassword() {
+		assertTrue(true);
 	}
 	
 	@Test
 	public void test030adminResetUserPassword() {
-		//TODO
+		assertTrue(true);
 	}
 	
 	@Test
 	public void test040adminChangeOwnPassword() {
+		assertTrue(true);
 	}
 }
