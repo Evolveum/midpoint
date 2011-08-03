@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">#{msg['page.server.index.title']}</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<ice:form>
+			<ice:panelGroup>
+				<ice:panelGrid columns="2" cellpadding="7" cellspacing="7">
+					<f:facet name="header">
+						<h3>Task</h3>
+					</f:facet>
+					<ice:outputLabel value="Task oid: " />
+					<ice:outputText value="#{taskDetails.task.oid}" />
+
+					<ice:outputLabel value="Task name: " />
+					<ice:outputText value="#{taskDetails.task.name}" />
+
+					<ice:outputLabel value="Handler uri: " />
+					<ice:outputText value="#{taskDetails.task.handlerUri}" />
+
+					<ice:outputLabel value="Object ref: " />
+					<ice:outputText value="#{taskDetails.task.objectRef}" />
+
+				</ice:panelGrid>
+
+			</ice:panelGroup>
+		</ice:form>
+	</ui:define>
+</ui:composition>
