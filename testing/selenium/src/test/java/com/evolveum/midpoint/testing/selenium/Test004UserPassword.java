@@ -6,9 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverBackedSelenium;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -63,8 +61,7 @@ public class Test004UserPassword {
 		se.waitForPageToLoad();
 		assertEquals(baseUrl+"/index.iface", se.getLocation());
 		
-		
-		//modify jack (demote)
+		//modify elizabeth (demote)
 		se.click(se.findLink("topAccount"));
 		se.waitForPageToLoad();
 		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
@@ -95,26 +92,142 @@ public class Test004UserPassword {
 	}
 	
 	@Test
-	public void test021userChangedPasswordValidation() {
+	public void test021adminChangedPasswordValidation() {
 		se.type("loginForm:userName", "elizabeth");
 		se.type("loginForm:password", "drinkRum");
 		se.click("loginForm:loginButton");
 		se.waitForPageToLoad();
 		assertEquals(baseUrl+"/index.iface", se.getLocation());
+		
+		
 	}
 	
 	@Test
-	public void test022userChangeOwnPassword() {
-		assertTrue(true);
-	}
+	public void test030userChangeOwnPassword() {
+		se.type("loginForm:userName", "elizabeth");
+		se.type("loginForm:password", "drinkRum");
+		se.click("loginForm:loginButton");
+		se.waitForPageToLoad();
+		assertEquals(baseUrl+"/index.iface", se.getLocation());
+		
+		//modify elizabeth (demote)
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad();
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
+		// get hashmap and login
+		HashMap<String, String> h = new HashMap<String, String>();
+		for (String l : se.getAllLinks()) {
+			if (!l.contains("Table") || !l.contains("name"))
+				continue;
+			h.put(se.getText(l), l.replace("name", ""));
+		}
 	
+		se.click(h.get("elizabeth")+"name");
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
+		assertTrue(se.isTextPresent("Empress"));
+		se.click("admin-content:editButton");
+		se.waitForText("Save changes",30);
+		se.sleep(5);
+		se.type("admin-content:icePnlTbSet:0:password1", "qwe123.Q");
+		se.type("admin-content:icePnlTbSet:0:password2", "qwe123.Q");
+		
+		se.click("admin-content:saveButton");
+		se.waitForPageToLoad();
+		se.waitForText("Changes saved successfully"); 
+		assertTrue(se.isTextPresent("Changes saved successfully"));
+		se.click("logoutUserLink");
+	}
+
 	@Test
-	public void test030adminResetUserPassword() {
-		assertTrue(true);
+	public void test031userChangedPasswordValidation() {
+		se.type("loginForm:userName", "elizabeth");
+		se.type("loginForm:password", "qwe123.Q");
+		se.click("loginForm:loginButton");
+		se.waitForPageToLoad();
+		assertEquals(baseUrl+"/index.iface", se.getLocation());		
 	}
 	
 	@Test
 	public void test040adminChangeOwnPassword() {
-		assertTrue(true);
+		se.type("loginForm:userName", "administrator");
+		se.type("loginForm:password", "secret");
+		se.click("loginForm:loginButton");
+		se.waitForPageToLoad();
+		assertEquals(baseUrl+"/index.iface", se.getLocation());
+		
+		//modify elizabeth (demote)
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad();
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
+		// get hashmap and login
+		HashMap<String, String> h = new HashMap<String, String>();
+		for (String l : se.getAllLinks()) {
+			if (!l.contains("Table") || !l.contains("name"))
+				continue;
+			h.put(se.getText(l), l.replace("name", ""));
+		}
+	
+		se.click(h.get("administrator")+"name");
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
+		assertTrue(se.isTextPresent("administrator@example.com"));
+		se.click("admin-content:editButton");
+		se.waitForText("Save changes",30);
+		se.sleep(5);
+		se.type("admin-content:icePnlTbSet:0:password1", "noBodyLivesForever");
+		se.type("admin-content:icePnlTbSet:0:password2", "noBodyLivesForever");
+		
+		se.click("admin-content:saveButton");
+		se.waitForPageToLoad();
+		se.waitForText("Changes saved successfully"); 
+		assertTrue(se.isTextPresent("Changes saved successfully"));
+		se.click("logoutUserLink");
+	}
+	
+	@Test
+	public void test041adminChangeOwnPasswordBack() {
+		se.type("loginForm:userName", "administrator");
+		se.type("loginForm:password", "noBodyLivesForever");
+		se.click("loginForm:loginButton");
+		se.waitForPageToLoad();
+		assertEquals(baseUrl+"/index.iface", se.getLocation());
+		
+		//modify elizabeth (demote)
+		se.click(se.findLink("topAccount"));
+		se.waitForPageToLoad();
+		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
+		assertTrue(se.isTextPresent("New User"));
+		// get hashmap and login
+		HashMap<String, String> h = new HashMap<String, String>();
+		for (String l : se.getAllLinks()) {
+			if (!l.contains("Table") || !l.contains("name"))
+				continue;
+			h.put(se.getText(l), l.replace("name", ""));
+		}
+	
+		se.click(h.get("administrator")+"name");
+		se.waitForPageToLoad("30000");
+		assertEquals(baseUrl + "/account/userDetails.iface", se.getLocation());
+		assertTrue(se.isTextPresent("administrator@example.com"));
+		se.click("admin-content:editButton");
+		se.waitForText("Save changes",30);
+		se.sleep(5);
+		se.type("admin-content:icePnlTbSet:0:password1", "secret");
+		se.type("admin-content:icePnlTbSet:0:password2", "secret");
+		
+		se.click("admin-content:saveButton");
+		se.waitForPageToLoad();
+		se.waitForText("Changes saved successfully"); 
+		assertTrue(se.isTextPresent("Changes saved successfully"));
+		se.click("logoutUserLink");
+	}
+	
+	@Ignore
+	@Test
+	public void test050adminResetUserPassword() {
+		//TOD after implementation
 	}
 }
