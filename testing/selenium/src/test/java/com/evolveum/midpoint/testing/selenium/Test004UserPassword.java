@@ -83,12 +83,9 @@ public class Test004UserPassword {
 		assertTrue(se.isTextPresent("Empress"));
 		se.click("admin-content:editButton");
 		se.waitForText("Save changes",30);
-		
-		for (String s: se.getAllFields() ) {
-			if (s.contains("password")) {
-				se.type(s, "drinkRum");
-			}
-		}
+		se.sleep(5);
+		se.type("admin-content:icePnlTbSet:0:password1", "drinkRum");
+		se.type("admin-content:icePnlTbSet:0:password2", "drinkRum");
 		
 		se.click("admin-content:saveButton");
 		se.waitForPageToLoad();
