@@ -32,13 +32,13 @@
 						</ui:repeat>
 					</ice:form> </span>
 				<f:verbatim styleClass="delimiter" rendered="#{security.isUserLoggedIn}">|</f:verbatim>
-				<span> <ice:outputLink rendered="#{security.isUserLoggedIn}"
+				<span> <ice:outputLink id="logoutUserLink" rendered="#{security.isUserLoggedIn}"
 						value="#{facesContext.externalContext.requestContextPath}/j_spring_security_logout">
 						<span>#{msg['page.template.logout']}</span>
 					</ice:outputLink> </span>
 
 				<f:verbatim styleClass="delimiter" rendered="#{security.isUserLoggedIn}">|</f:verbatim>
-				<ice:outputLink value="#{facesContext.externalContext.requestContextPath}/help/index.iface"
+				<ice:outputLink id="topHelpLink" value="#{facesContext.externalContext.requestContextPath}/help/index.iface"
 					rendered="#{security.isUserLoggedIn}">
 					<span>#{msg['page.template.help']}</span>
 				</ice:outputLink>
