@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+
+
+<!--
+
+This file is an example of Resource definition. It defines an LDAP resource
+using an Identity Connector Framework LDAP connector. It contains configuration
+for use with stock OpenDJ and OpenDS servers.
+
+This resource definition contains only the very basic definitions for midPoint to work.
+
+-->
+
+<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+	xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+	xmlns:my="http://myself.me/schemas/whatever"
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+
+	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+    
+    	<!-- Resource name. It will be displayed in GUI.  -->
+		<c:name>Localhost OpenDJ</c:name>
+     
+     	<!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->
+		<c:connectorRef oid="icf1-org.identityconnectors.ldap-1.0.5754openidm-org.identityconnectors.ldap.LdapConnector"/>
+
+        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
+		<c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:namespace>
+
+        <!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+		<c:configuration
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5754openidm-org.identityconnectors.ldap.LdapConnector"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf/configuration-1.xsd">
+
+            <!-- Configuration specific for the LDAP connector -->
+			<icfcldap:configurationProperties>
+				<icfcldap:port>1389</icfcldap:port>
+				<icfcldap:host>localhost</icfcldap:host>
+				<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
+				<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
+				<icfcldap:credentials>secret</icfcldap:credentials>
+				<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
+				<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+			</icfcldap:configurationProperties>
+		
+		</c:configuration>
+
+        <!-- Resource schema definition.
+             It defines all the object classes that are available to midPoint
+             (accounts, groups, ...).
+
+             This should be direct mapping of ICF schema (and therefore also
+             LDAP schema). This is not supposed to be customized during deployment
+             unless the underlying LDAP schema is non-standard (also see below).
+
+             This should be generated from the resource by the connector, but
+             this is not in midPoint yet. Therefore it needs to be provided manually for now. -->
+		<c:schema>
+
+			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+				xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+				xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+				elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"/>
+				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
+				<xsd:complexType name="AccountObjectClass">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<r:identifier xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" ref="vr0:uid"/>
+							<r:accountType xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" default="true"/>
+						</xsd:appinfo>
+					</xsd:annotation>
+					<xsd:complexContent>
+						<xsd:extension xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" base="r:ResourceObjectClass">
+							<xsd:sequence>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="x500UniqueIdentifier" type="xsd:base64Binary"/>
+								<xsd:element minOccurs="0" ref="vr0:password"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPassword" type="xsd:base64Binary"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="userSMIMECertificate" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="l" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" name="sn" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="internationaliSDNNumber" type="xsd:string"/>
+								<xsd:element minOccurs="0" name="employeeNumber" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="facsimileTelephoneNumber" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="telexNumber" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="registeredAddress" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string"/>
+								<xsd:element ref="vr0:uid"/>
+								<xsd:element ref="vr0:name"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="teletexTerminalIdentifier" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="st" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string"/>
+								<xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="roomNumber" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="secretary" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="audio" type="xsd:base64Binary"/>
+								<xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="homePostalAddress" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="postOfficeBox" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="userCertificate" type="xsd:base64Binary"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="mail" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="departmentNumber" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="carLicense" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="jpegPhoto" type="xsd:base64Binary"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="manager" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="mobile" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="physicalDeliveryOfficeName" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="pager" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalCode" type="xsd:string"/>
+								<xsd:element minOccurs="0" name="displayName" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalAddress" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="homePhone" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string"/>
+							</xsd:sequence>
+						</xsd:extension>
+					</xsd:complexContent>
+				</xsd:complexType>
+				<xsd:complexType name="GroupObjectClass">
+					<xsd:annotation>
+						<xsd:appinfo>
+							<r:identifier xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" ref="vr0:uid"/>
+						</xsd:appinfo>
+					</xsd:annotation>
+					<xsd:complexContent>
+						<xsd:extension xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" base="r:ResourceObjectClass">
+							<xsd:sequence>
+								<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string"/>
+								<xsd:element ref="vr0:name"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string"/>
+								<xsd:element ref="vr0:uid"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string"/>
+								<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string"/>
+							</xsd:sequence>
+						</xsd:extension>
+					</xsd:complexContent>
+				</xsd:complexType>
+			</xsd:schema>
+		</c:schema>
+
+        <!-- Resource Schema Handling definition.
+             This part defines how the schema defined above will be used by
+             midPoint. It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+        -->
+
+	</c:resource>
+
+</c:objects>
