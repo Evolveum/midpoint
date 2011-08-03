@@ -202,6 +202,18 @@ public class Property {
 		return (T) o;
 	}
 	
+	public Object getValue() {
+		if (values.size() > 1) {
+			throw new IllegalStateException("Attempt to get single value from property " + name
+					+ " with multiple values");
+		}
+		Object o = values.iterator().next();
+		if (o == null) {
+			return null;
+		}
+		return o;
+	}
+	
 	/**
 	 * Means as a short-hand for setting just a value for single-valued
 	 * attributes.

@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.testing.sanity;
 
 import static org.junit.Assert.*;
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -68,6 +69,8 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -78,6 +81,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -125,7 +130,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-provisioning.xml", "classpath:application-context-sanity-test.xml",
 		"classpath:application-context-task.xml" })
-public class TestSanity extends OpenDJUnitTestAdapter {
+public class TestSanity extends AbstractIntegrationTest {
 
 	private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
 	private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
@@ -158,20 +163,12 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestSanity.class);
 
-	private static boolean checkResults = false;
-
-	/**
-	 * Utility to control embedded OpenDJ instance (start/stop)
-	 */
-	protected static OpenDJUtil djUtil;
 
 	/**
 	 * Unmarshalled resource definition to reach the embedded OpenDJ instance.
 	 * Used for convenience - the tests method may find it handy.
 	 */
 	private static ResourceType resource;
-	private static JAXBContext jaxbctx;
-	private static Unmarshaller unmarshaller;
 	private static String shadowOid;
 
 	/**
@@ -180,54 +177,17 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	@Autowired(required = true)
 	private ModelPortType model;
 
-	@Autowired(required = true)
-	private RepositoryService repositoryService;
-	private static boolean repoInitialized = false;
-
-	@Autowired(required = true)
-	private TaskManager taskManager;
-
 	public TestSanity() throws JAXBException {
-		djUtil = new OpenDJUtil();
-		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-		unmarshaller = jaxbctx.createUnmarshaller();
+		super();
 	}
 
-	/**
-	 * Initialize embedded OpenDJ instance
-	 * 
-	 * @throws Exception
-	 */
-	@BeforeClass
-	public static void init() throws Exception {
-		startACleanDJ();
-	}
-
-	/**
-	 * Shutdown embedded OpenDJ instance
-	 * 
-	 * @throws Exception
-	 */
-	@AfterClass
-	public static void shutdown() throws Exception {
-		stopDJ();
-	}
-
-	// We need this complicated init as we want to initialize repo only once.
-	// JUnit will
-	// create new class instance for every test, so @Before and @PostInit will
-	// not work
-	// directly. We also need to init the repo after spring autowire is done, so
-	// @BeforeClass won't work either.
-	@Before
+	// This will get called from the superclass to init the repository
+	// It will be called only once
 	public void initRepository() throws Exception {
-		if (!repoInitialized) {
 			resource = (ResourceType) addObjectFromFile(RESOURCE_OPENDJ_FILENAME);
 			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
 			addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME);
 			addObjectFromFile(USER_TEMPLATE_FILENAME);
-			repoInitialized = true;
-		}
 	}
 
 	/**
@@ -618,15 +578,23 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 		addObjectFromFile(TASK_OPENDJ_SYNC_FILENAME);
 
+		final OperationResult result = new OperationResult(TestSanity.class.getName() + ".test100Synchronization");
+		
 		// We need to wait for a sync interval, so the task scanner has a chance
 		// to pick up this
 		// task
-
-		waitFor("Waining for task manager to pick up the task", 2000);
+		
+		waitFor("Waining for task manager to pick up the task",
+				new Checker() {
+					public boolean check() throws ObjectNotFoundException, SchemaException {						
+						Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+						return (TaskExclusivityStatus.CLAIMED == task.getExclusivityStatus());
+					};
+				},
+				10000);
 
 		// Check task status
 
-		OperationResult result = new OperationResult(TestSanity.class.getName() + ".test100Synchronization");
 		Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
 
 		assertSuccess("getTask has failed", result);
@@ -690,6 +658,12 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 		LDIFReader ldifReader = new LDIFReader(importConfig);
 		Entry entry = ldifReader.readEntry();
 		display("Entry from LDIF", entry);
+		
+		final OperationResult result = new OperationResult(TestSanity.class.getName() + ".test101LiveSyncCreate");
+		final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+		assertNotNull(syncCycle);
+		
+		final Object tokenBefore = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN).getValue();
 
 		// WHEN
 
@@ -701,9 +675,20 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 		// Wait a bit to give the sync cycle time to detect the change
 
-		System.out.println("Waining for sync cycle to detect change");
-		Thread.sleep(10000);
-		System.out.println("... done");
+		waitFor("Waining for sync cycle to detect change",
+				new Checker() {
+					@Override
+					public boolean check() throws Exception {
+						syncCycle.refresh(result);
+						Object tokenNow = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN).getValue();
+						if (tokenBefore==null) {
+							return(tokenNow!=null);
+						} else {
+							return(!tokenBefore.equals(tokenNow));
+						}
+					}
+				},
+				10000);
 
 		// Search for the user that should be created now
 
@@ -718,8 +703,8 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 		QueryType query = new QueryType();
 		query.setFilter(filter);
-		OperationResultType result = new OperationResultType();
-		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
+		OperationResultType resultType = new OperationResultType();
+		Holder<OperationResultType> holder = new Holder<OperationResultType>(resultType);
 
 		ObjectListType objects = model.searchObjects(query, null, holder);
 
@@ -744,7 +729,7 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 		Task inTask = taskManager.createTaskInstance();
 		TaskType taskType = inTask.getTaskTypeObject();
-		OperationResultType resultType = new OperationResultType();
+		final OperationResultType resultType = new OperationResultType();
 		resultType.setOperation(TestSanity.class.getName() + ".test200ImportFromResource");
 		taskType.setResult(resultType);
 		Holder<TaskType> taskHolder = new Holder<TaskType>(taskType);
@@ -770,7 +755,19 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 
 		assertSuccess("getObject has failed", result);
 
-		waitFor("Waining for import to complete", 10000);
+		final String taskOid = task.getOid();
+		waitFor("Waining for import to complete",
+				new Checker() {
+					@Override
+					public boolean check() throws Exception {
+						Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
+						ObjectType obj = model.getObject(taskOid, new PropertyReferenceListType(), resultHolder);
+						assertSuccess("getObject has failed", resultHolder.value);
+						Task task = taskManager.createTaskInstance((TaskType) obj);
+						return(task.getExecutionStatus() == TaskExecutionStatus.CLOSED);
+					}
+				},
+				10000);
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
 		ObjectType obj = model.getObject(task.getOid(), new PropertyReferenceListType(), resultHolder);
@@ -843,9 +840,16 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	}
 
 	@Test
-	public void test999Shutdown() throws InterruptedException {
+	public void test999Shutdown() throws Exception {
 		taskManager.shutdown();
-		waitFor("waiting for task manager shutdown", 2000);
+		waitFor("waiting for task manager shutdown",
+				new Checker() {
+					@Override
+					public boolean check() throws Exception {
+						return taskManager.getRunningTasks().isEmpty();
+					}
+				},
+				5000);
 		assertEquals("Some tasks left running after shutdown", new HashSet<Task>(),
 				taskManager.getRunningTasks());
 	}
@@ -853,185 +857,5 @@ public class TestSanity extends OpenDJUnitTestAdapter {
 	// TODO: test for missing/corrupt system configuration
 	// TODO: test for missing sample config (bad reference in expression
 	// arguments)
-
-	// UTILITY METHODS
-
-	// TODO: maybe we should move them to a common utility class
-
-	private static final String TEST_OUT_PREFIX = "\n\n=====[ ";
-	private static final String TEST_OUT_SUFFIX = " ]======================================\n";
-	private static final String TEST_LOG_PREFIX = "=====[ ";
-	private static final String TEST_LOG_SUFFIX = " ]======================================";
-	private static final String OBJECT_TITLE_OUT_PREFIX = "\n*** ";
-	private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
-	private static final String LOG_MESSAGE_PREFIX = "";
-
-	private void assertSuccess(String message, OperationResultType result) {
-		if (!checkResults) {
-			return;
-		}
-		assertEquals(message + ": " + result.getMessage(), OperationResultStatusType.SUCCESS,
-				result.getStatus());
-		List<OperationResultType> partialResults = result.getPartialResults();
-		for (OperationResultType subResult : partialResults) {
-			assertSuccess(message, subResult);
-		}
-	}
-
-	private void assertSuccess(String message, OperationResult result) {
-		if (!checkResults) {
-			return;
-		}
-		assertTrue(message + ": " + result.getMessage(), result.isSuccess());
-		List<OperationResult> partialResults = result.getSubresults();
-		for (OperationResult subResult : partialResults) {
-			assertSuccess(message, subResult);
-		}
-	}
-
-	private void assertNotEmpty(String message, String s) {
-		assertNotNull(message, s);
-		assertFalse(message, s.isEmpty());
-	}
-
-	private void assertNotEmpty(String s) {
-		assertNotNull(s);
-		assertFalse(s.isEmpty());
-	}
-
-	private void assertAttribute(ResourceObjectShadowType repoShadow, ResourceType resource, String name,
-			String value) {
-		assertAttribute("Wrong attribute " + name + " in shadow", repoShadow,
-				new QName(resource.getNamespace(), name), value);
-	}
-
-	private void assertAttribute(ResourceObjectShadowType repoShadow, QName name, String value) {
-		List<String> values = getAttributeValues(repoShadow, name);
-		assertEquals(1, values.size());
-		assertEquals(value, values.get(0));
-	}
-
-	private void assertAttribute(String message, ResourceObjectShadowType repoShadow, QName name, String value) {
-		List<String> values = getAttributeValues(repoShadow, name);
-		assertEquals(message, 1, values.size());
-		assertEquals(message, value, values.get(0));
-	}
-
-	private void assertAttributeNotNull(ResourceObjectShadowType repoShadow, QName name) {
-		List<String> values = getAttributeValues(repoShadow, name);
-		assertEquals(1, values.size());
-		assertNotNull(values.get(0));
-	}
-
-	private void assertAttributeNotNull(String message, ResourceObjectShadowType repoShadow, QName name) {
-		List<String> values = getAttributeValues(repoShadow, name);
-		assertEquals(message, 1, values.size());
-		assertNotNull(message, values.get(0));
-	}
-
-	private List<String> getAttributeValues(ResourceObjectShadowType repoShadow, QName name) {
-		List<String> values = new ArrayList<String>();
-		List<Element> xmlAttributes = repoShadow.getAttributes().getAny();
-		for (Element element : xmlAttributes) {
-			if (element.getNamespaceURI().equals(name.getNamespaceURI())
-					&& element.getLocalName().equals(name.getLocalPart())) {
-				values.add(element.getTextContent());
-			}
-		}
-		return values;
-	}
-
-	protected void assertAttribute(SearchResultEntry response, String name, String value) {
-		Assert.assertNotNull(response.getAttribute(name.toLowerCase()));
-		Assert.assertEquals(1, response.getAttribute(name.toLowerCase()).size());
-		Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
-		Assert.assertEquals(value, attribute.iterator().next().getValue().toString());
-	}
-
-	private <T> T unmarshallJaxbFromFile(String filePath, Class<T> clazz) throws FileNotFoundException,
-			JAXBException {
-		File file = new File(filePath);
-		FileInputStream fis = new FileInputStream(file);
-		Object object = unmarshaller.unmarshal(fis);
-		T objectType = ((JAXBElement<T>) object).getValue();
-		return objectType;
-	}
-
-	private ObjectType addObjectFromFile(String filePath) throws Exception {
-		ObjectType object = unmarshallJaxbFromFile(filePath, ObjectType.class);
-		System.out.println("obj: " + object.getName());
-		OperationResult result = new OperationResult(TestSanity.class.getName() + ".addObjectFromFile");
-		if (object instanceof TaskType) {
-			taskManager.addTask((TaskType)object, result);
-		} else {
-			repositoryService.addObject(object, result);
-		}
-		return object;
-	}
-
-	private void displayTestTile(String title) {
-		System.out.println(TEST_OUT_PREFIX + title + TEST_OUT_SUFFIX);
-		LOGGER.info(TEST_LOG_PREFIX + title + TEST_LOG_SUFFIX);
-	}
-
-	private static void waitFor(String message, int interval) throws InterruptedException {
-		System.out.println(message);
-		LOGGER.debug(LOG_MESSAGE_PREFIX + message);
-		Thread.sleep(interval);
-		System.out.println("... done");
-		LOGGER.debug(LOG_MESSAGE_PREFIX + "... done " + message);
-	}
-
-	private void displayJaxb(String title, Object o, QName qname) throws JAXBException {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		displayJaxb(o, qname);
-	}
-
-	private void displayJaxb(Object o, QName qname) throws JAXBException {
-		Document doc = DOMUtil.getDocument();
-		Element element = JAXBUtil.jaxbToDom(o, qname, doc);
-		System.out.println(DOMUtil.serializeDOMToString(element));
-		LOGGER.debug(DOMUtil.serializeDOMToString(element));
-	}
-
-	private void display(String message, SearchResultEntry response) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		display(response);
-	}
-
-	private void display(SearchResultEntry response) {
-		System.out.println(response.toLDIFString());
-		LOGGER.debug(response.toLDIFString());
-	}
-
-	private void display(String message, Task task) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		System.out.println(task.dump());
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		LOGGER.debug(task.dump());
-	}
-
-	private void display(String message, ObjectType o) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		System.out.println(ObjectTypeUtil.dump(o));
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		LOGGER.debug(ObjectTypeUtil.dump(o));
-	}
-
-	private void display(String title, Entry entry) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(entry.toLDIFString());
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		LOGGER.debug(entry.toLDIFString());
-	}
-
-	private void display(String message, PropertyContainer propertyContainer) {
-		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		System.out.println(propertyContainer.dump());
-		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		LOGGER.debug(propertyContainer.dump());
-	}
 
 }
