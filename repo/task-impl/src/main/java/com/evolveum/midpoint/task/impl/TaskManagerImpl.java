@@ -250,7 +250,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		if (scannerThread == null) {
 			scannerThread = new TaskScanner();
 			scannerThread.setName(THREAD_NAME);
-			scannerThread.setRepositoryService(repositoryService);
+			//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
+			RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
+			scannerThread.setRepositoryService(repoService);
 			scannerThread.setTaskManagerImpl(this);
 		}
 		if (scannerThread.isAlive()) {
