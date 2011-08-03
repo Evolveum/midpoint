@@ -95,11 +95,11 @@ public class Test004UserPassword {
 		se.waitForText("Changes saved successfully"); 
 		assertTrue(se.isTextPresent("Changes saved successfully"));
 		
-		se.click("j_idt25"); 	//TODO refactor to logoutlink
+		se.click("logoutUserLink"); 
 		se.waitForPageToLoad();
-		
-		assertEquals(baseUrl+"/login.iface", se.getLocation());
 		se.waitForText("User Login");
+		se.waitForText("Username");
+		se.waitForText("Password");
 		
 		se.type("loginForm:userName", "elizabeth");
 		se.type("loginForm:password", "drunkRum");
