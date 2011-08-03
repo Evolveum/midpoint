@@ -138,7 +138,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		ObjectType object = repositoryService.getObject(taskOid, resolve, result);
 		TaskType taskType = (TaskType) object;
-		return new TaskImpl(this,taskType,repositoryService);
+		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
+		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");	
+		return new TaskImpl(this,taskType,repoService);
 	}
 
 	/* (non-Javadoc)
@@ -291,7 +293,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	 * @param task XML TaskType object
 	 */
 	public void processRunnableTaskType(TaskType taskType) {
-		Task task = new TaskImpl(this,taskType,repositoryService);
+		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
+		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
+		Task task = new TaskImpl(this,taskType,repoService);
 		processRunnableTask(task);
 	}
 
