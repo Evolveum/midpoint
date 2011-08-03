@@ -114,7 +114,7 @@ public interface Task {
 	 * 
 	 * @return handler URI
 	 */
-	public String getHanderUri();
+	public String getHandlerUri();
 	
 	/**
 	 * Sets handler URI.
@@ -123,7 +123,7 @@ public interface Task {
 	 * 
 	 * @param handlerUri new handler URI
 	 */
-	public void setHanderUri(String handlerUri);
+	public void setHandlerUri(String handlerUri);
 	
 	/**
 	 * Returns true if the task is asynchronous.

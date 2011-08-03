@@ -20,20 +20,11 @@
  */
 package com.evolveum.midpoint.task.impl;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
-import java.util.Locale;
-import java.util.TimeZone;
 
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.NotImplementedException;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -52,7 +43,6 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.task.api.TaskRunResult;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -279,12 +269,12 @@ public class TaskImpl implements Task {
 	}
 
 	@Override
-	public String getHanderUri() {
+	public String getHandlerUri() {
 		return handlerUri;
 	}
 
 	@Override
-	public void setHanderUri(String handlerUri) {
+	public void setHandlerUri(String handlerUri) {
 		this.handlerUri = handlerUri;
 	}
 

@@ -133,7 +133,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		// TODO
 		
 		// Set handler URI so we will be called back
-		task.setHanderUri(HANDLER_URI);
+		task.setHandlerUri(HANDLER_URI);
 		
 		// Readable task name
 		task.setName("Import from resource "+resource.getName());

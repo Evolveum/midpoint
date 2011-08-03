@@ -23,18 +23,18 @@ package com.evolveum.midpoint.task.impl;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
-import org.apache.commons.lang.NotImplementedException;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -46,13 +46,9 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
-import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskRecurrenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
@@ -67,7 +63,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
  *
  */
 @Service(value = "taskManager")
-public class TaskManagerImpl implements TaskManager {
+public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	
 	private static final String THREAD_NAME = "midpoint-task-scanner";
 	private long JOIN_TIMEOUT = 5000;
@@ -81,6 +77,8 @@ public class TaskManagerImpl implements TaskManager {
 	 */
 	private boolean threadsRunning = true;
 
+	private BeanFactory beanFactory;	
+	
 	@Autowired(required=true)
 	private RepositoryService repositoryService;
 	
@@ -88,6 +86,11 @@ public class TaskManagerImpl implements TaskManager {
 	private static final String TASK_THREAD_NAME_PREFIX = "midpoint-task-";
 	
 	private static long threadCounter = 0;
+	
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+		 this.beanFactory = beanFactory;
+	}
 	
 	@PostConstruct
 	public void init() {
@@ -114,7 +117,9 @@ public class TaskManagerImpl implements TaskManager {
 	
 	@Override
 	public Task createTaskInstance(TaskType taskType) {
-		return new TaskImpl(this,taskType,repositoryService);
+		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
+		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
+		return new TaskImpl(this,taskType,repoService);
 	}
 
 	/* (non-Javadoc)
@@ -293,11 +298,11 @@ public class TaskManagerImpl implements TaskManager {
 		// We assume that all tasks are singles or cycles now.
 		// TODO: support more task types
 
-		TaskHandler handler = getHandler(task.getHanderUri());
+		TaskHandler handler = getHandler(task.getHandlerUri());
 		
 		if (handler==null) {
-			logger.error("No handler for URI {}, task {}",task.getHanderUri(),task);
-			throw new IllegalStateException("No handler for URI "+task.getHanderUri());
+			logger.error("No handler for URI {}, task {}",task.getHandlerUri(),task);
+			throw new IllegalStateException("No handler for URI "+task.getHandlerUri());
 		}
 		
 		TaskRunner runner = null;

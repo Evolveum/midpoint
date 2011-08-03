@@ -142,9 +142,7 @@ public class TestTaskManagerContract {
 //		assertTrue(object instanceof ResourceType);
 //		assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
 	}
-	
 
-	@Ignore
 	@Test
 	public void test002Single() throws Exception {
 		// Add single task. This will get picked by task scanner and executed
@@ -152,26 +150,26 @@ public class TestTaskManagerContract {
 		
 		// We need to wait for a sync interval, so the task scanner has a chance to pick up this
 		// task
-		System.out.println("Waining for task manager to pick up the task and run it");
+		System.out.println("Waiting for task manager to pick up the task and run it");
 		Thread.sleep(2000);
 		System.out.println("... done");
 		
 		// Check task status
 		
-		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test004Single");
+		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test002Single");
 		Task task = taskManager.getTask(TASK_SINGLE_OID, result);
 		
 		assertNotNull(task);
 		System.out.println(task.dump());
 		
-		ObjectType o = repositoryService.getObject(TASK_SINGLE_OID,null, result);
+		ObjectType o = repositoryService.getObject(TASK_SINGLE_OID, null, result);
 		System.out.println(ObjectTypeUtil.dump(o));
 		
 		// .. it should be closed
-		assertEquals(TaskExecutionStatus.CLOSED,task.getExecutionStatus());
+		assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
 		
 		// .. and released
-		assertEquals(TaskExclusivityStatus.RELEASED,task.getExclusivityStatus());
+		assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 		
 		// .. and last run should not be zero
 		assertNotNull(task.getLastRunStartTimestamp());
@@ -188,7 +186,6 @@ public class TestTaskManagerContract {
 		assertTrue(taskResult.isSuccess());
 	}
 
-	@Ignore
 	@Test
 	public void test003Cycle() throws Exception {
 		// Add cycle task. This will get picked by task scanner and executed
@@ -196,13 +193,13 @@ public class TestTaskManagerContract {
 		
 		// We need to wait for a sync interval, so the task scanner has a chance to pick up this
 		// task
-		System.out.println("Waining for task manager to pick up the task");
+		System.out.println("Waiting for task manager to pick up the task");
 		Thread.sleep(2000);
 		System.out.println("... done");
 		
 		// Check task status
 		
-		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test002Cycle");
+		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test003Cycle");
 		Task task = taskManager.getTask(TASK_CYCLE_OID, result);
 		
 		assertNotNull(task);
@@ -232,11 +229,10 @@ public class TestTaskManagerContract {
 		assertTrue(taskResult.isSuccess());
 	}
 	
-	@Ignore
 	@Test
 	public void test004Extension() throws Exception {
 		
-		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test003Extension");
+		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test004Extension");
 		Task task = taskManager.getTask(TASK_CYCLE_OID, result);
 		assertNotNull(task);
 		
