@@ -29,6 +29,7 @@ import java.util.Arrays;
 
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverBackedSelenium;
+import org.openqa.selenium.internal.seleniumemulation.WaitForPageToLoad;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
@@ -130,4 +131,15 @@ public class Selenium extends WebDriverBackedSelenium {
 		return ret;
 	}
 	
+	@Override
+	public void waitForPageToLoad(String timeout) {
+		logger.debug("Selenium.waitForPageToLoad: Start waiting for " + timeout + " ms");
+		long start = System.currentTimeMillis();
+		super.waitForPageToLoad(timeout);
+		logger.debug("Selenium.waitForPageToLoad: Page loaded after " + (System.currentTimeMillis() - start) + "ms");
+	}
+	
+	public void waitForPageToLoad() {
+		waitForPageToLoad("30000");
+	}
 }

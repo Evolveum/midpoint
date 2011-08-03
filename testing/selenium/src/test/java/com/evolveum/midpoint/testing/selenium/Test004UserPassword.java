@@ -29,7 +29,7 @@ public class Test004UserPassword {
 		WebDriver driver = new FirefoxDriver();
 		se = new Selenium(driver, baseUrl);
 		se.open("/");
-		se.waitForPageToLoad("10000");
+		se.waitForPageToLoad();
 	}
 
 	@After
@@ -42,7 +42,7 @@ public class Test004UserPassword {
 		se.type("loginForm:userName", "administrator");
 		se.type("loginForm:password", "secret");
 		se.click("loginForm:loginButton");
-		se.waitForPageToLoad("10000");
+		se.waitForPageToLoad();
 		assertEquals(baseUrl+"/index.iface", se.getLocation());
 	}
 	
@@ -51,7 +51,7 @@ public class Test004UserPassword {
 		se.type("loginForm:userName", "elizabeth");
 		se.type("loginForm:password", "qwe123.Q");
 		se.click("loginForm:loginButton");
-		se.waitForPageToLoad("10000");
+		se.waitForPageToLoad();
 		assertEquals(baseUrl+"/index.iface", se.getLocation());
 	}
 	
@@ -60,13 +60,13 @@ public class Test004UserPassword {
 		se.type("loginForm:userName", "administrator");
 		se.type("loginForm:password", "secret");
 		se.click("loginForm:loginButton");
-		se.waitForPageToLoad("10000");
+		se.waitForPageToLoad();
 		assertEquals(baseUrl+"/index.iface", se.getLocation());
 		
 		
 		//modify jack (demote)
 		se.click(se.findLink("topAccount"));
-		se.waitForPageToLoad("30000");
+		se.waitForPageToLoad();
 		assertEquals(baseUrl + "/account/index.iface", se.getLocation());
 		assertTrue(se.isTextPresent("New User"));
 		// get hashmap and login
@@ -91,12 +91,12 @@ public class Test004UserPassword {
 		}
 		
 		se.click("admin-content:saveButton");
-		se.waitForPageToLoad("30000");
+		se.waitForPageToLoad();
 		se.waitForText("Changes saved successfully"); 
 		assertTrue(se.isTextPresent("Changes saved successfully"));
 		
 		se.click("j_idt25"); 	//TODO refactor to logoutlink
-		se.waitForPageToLoad("10000");
+		se.waitForPageToLoad();
 		
 		assertEquals(baseUrl+"/login.iface", se.getLocation());
 		se.waitForText("User Login");
@@ -104,8 +104,9 @@ public class Test004UserPassword {
 		se.type("loginForm:userName", "elizabeth");
 		se.type("loginForm:password", "drunkRum");
 		se.click("loginForm:loginButton");
-		se.waitForPageToLoad("10000");
+		se.waitForPageToLoad();
 		assertEquals(baseUrl+"/index.iface", se.getLocation());
+		
 	}
 	
 	@Test
