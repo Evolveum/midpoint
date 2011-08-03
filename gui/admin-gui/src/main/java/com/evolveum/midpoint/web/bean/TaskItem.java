@@ -1,17 +1,6 @@
 package com.evolveum.midpoint.web.bean;
 
-import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
-import com.evolveum.midpoint.task.api.TaskRecurrence;
-import com.evolveum.midpoint.task.impl.TaskManagerImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 
 public class TaskItem {
 
