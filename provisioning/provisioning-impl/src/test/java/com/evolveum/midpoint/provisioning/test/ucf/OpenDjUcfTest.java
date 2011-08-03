@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
+import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
@@ -230,19 +231,40 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 	}
 
 	@Test
-	@Ignore
-	public void testFetchObject() throws UcfException {
+	public void testFetchObject() throws Exception {
 		System.out.println("*** Fetch resource object");
 		// GIVEN
 		
 		// Account type is hardcoded now
 		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(resource.getNamespace(),"AccountObjectClass"));
 		// Determine identifier from the schema
+		ResourceObject resourceObject = accountDefinition.instantiate();
+		
+		ResourceObjectAttributeDefinition road = accountDefinition.findAttributeDefinition(new QName(resource.getNamespace(), "sn"));
+		ResourceObjectAttribute roa = road.instantiate();
+		roa.setValue("Teell");
+		resourceObject.getAttributes().add(roa);
+		
+		road = accountDefinition.findAttributeDefinition(new QName(resource.getNamespace(), "cn"));
+		roa = road.instantiate();
+		roa.setValue("Teell William");
+		resourceObject.getAttributes().add(roa);
+		
+		road = accountDefinition.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+		roa = road.instantiate();
+		roa.setValue("uid=Teell,ou=People,dc=example,dc=com");
+		resourceObject.getAttributes().add(roa);
+		
+		OperationResult addResult = new OperationResult(this.getClass().getName()+".testFetchObject");
+		Set<ResourceObjectAttribute> attrs = cc.addObject(resourceObject, null, addResult);
+		resourceObject = accountDefinition.instantiate();
+		resourceObject.getAttributes().addAll(attrs);
+		
+		
 		Set<ResourceObjectAttributeDefinition> identifierDefinition = accountDefinition.getIdentifiers();
 		Set<ResourceObjectAttribute> identifiers = new HashSet<ResourceObjectAttribute>();
-		for (ResourceObjectAttributeDefinition definition : identifierDefinition) {
-			ResourceObjectAttribute identifier = definition.instantiate();
-			identifier.setValue("dd2b96ec-43f5-3953-ae21-807cedac45ab");
+		for (Property property : resourceObject.getIdentifiers()) {
+			ResourceObjectAttribute identifier = new ResourceObjectAttribute(property.getName(), property.getDefinition(), property.getValues());
 			System.out.println("Fetch: Identifier "+identifier);
 			identifiers.add(identifier);
 		}
@@ -252,7 +274,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(this.getClass().getName()+".testFetchObject");
 	
 		// WHEN
-		ResourceObject ro = cc.fetchObject(objectClass,identifiers,result);
+		ResourceObject ro = cc.fetchObject(objectClass, identifiers, result);
 		
 		// THEN
 		
