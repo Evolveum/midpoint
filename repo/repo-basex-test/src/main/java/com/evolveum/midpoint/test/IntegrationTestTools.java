@@ -177,9 +177,9 @@ public class IntegrationTestTools {
 			Thread.sleep(WAIT_FOR_LOOP_SLEEP_MILIS);
 		}
 		// we have timeout
-		System.out.println("Timeout while waiting for "+message);
-		logger.error(LOG_MESSAGE_PREFIX + "Timeout while waiting for " + message);
-		throw new RuntimeException("Timeout while waiting for "+message);
+		System.out.println("Timeout while "+message);
+		logger.error(LOG_MESSAGE_PREFIX + "Timeout while " + message);
+		throw new RuntimeException("Timeout while "+message);
 	}
 
 	public static void displayJaxb(String title, Object o, QName qname) throws JAXBException {

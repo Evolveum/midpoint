@@ -584,10 +584,11 @@ public class TestSanity extends AbstractIntegrationTest {
 		// to pick up this
 		// task
 		
-		waitFor("Waining for task manager to pick up the task",
+		waitFor("Waiting for task manager to pick up the task",
 				new Checker() {
 					public boolean check() throws ObjectNotFoundException, SchemaException {						
 						Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+						display("Task while waiting for task manager to pick up the task",task);
 						return (TaskExclusivityStatus.CLAIMED == task.getExclusivityStatus());
 					};
 				},
@@ -663,7 +664,13 @@ public class TestSanity extends AbstractIntegrationTest {
 		final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
 		assertNotNull(syncCycle);
 		
-		final Object tokenBefore = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN).getValue();
+		final Object tokenBefore;
+		Property tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
+		if (tokenProperty==null) {
+			tokenBefore=null;
+		} else {
+			tokenBefore=tokenProperty.getValue();
+		}
 
 		// WHEN
 
@@ -680,7 +687,14 @@ public class TestSanity extends AbstractIntegrationTest {
 					@Override
 					public boolean check() throws Exception {
 						syncCycle.refresh(result);
-						Object tokenNow = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN).getValue();
+						display("SyncCycle while waiting for sync cycle to detect change",syncCycle);
+						Object tokenNow = null;
+						Property propertyNow = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
+						if (propertyNow==null) {
+							tokenNow=null;
+						} else {
+							tokenNow=propertyNow.getValue();
+						}
 						if (tokenBefore==null) {
 							return(tokenNow!=null);
 						} else {
