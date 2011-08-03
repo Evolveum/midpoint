@@ -199,7 +199,6 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * @throws SchemaException
 	 * @throws ObjectNotFoundException
 	 */
-	@Ignore
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test000Integrity");
@@ -226,7 +225,6 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * @throws FaultMessage
 	 * @throws JAXBException
 	 */
-	@Ignore
 	@Test
 	public void test001TestConnection() throws FaultMessage, JAXBException {
 		displayTestTile("test001TestConnection");
@@ -250,7 +248,6 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * Attempt to add new user. It is only added to the repository, so check if
 	 * it is in the repository after the operation.
 	 */
-	@Ignore
 	@Test
 	public void test002AddUser() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException {
@@ -290,7 +287,6 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * Add account to user. This should result in account provisioning. Check if
 	 * that happens in repo and in LDAP.
 	 */
-	@Ignore
 	@Test
 	public void test003AddAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException {
@@ -417,7 +413,6 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * 
 	 * @throws DirectoryException
 	 */
-	@Ignore
 	@Test
 	public void test004modifyUser() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException {
@@ -519,7 +514,6 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * 
 	 * @throws JAXBException
 	 */
-	@Ignore
 	@Test
 	public void test005DeleteUser() throws SchemaException, FaultMessage, DirectoryException, JAXBException {
 		displayTestTile("test005DeleteUser");
@@ -742,7 +736,7 @@ public class TestSanity extends AbstractIntegrationTest {
 	}
 
 	// TODO: insert changes in OpenDJ, let the cycle pick them up
-	@Ignore
+	
 	@Test
 	public void test200ImportFromResource() throws Exception {
 		displayTestTile("test200ImportFromResource");
