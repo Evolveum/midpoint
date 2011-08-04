@@ -16,7 +16,11 @@ import com.evolveum.midpoint.web.bean.ResourceListItem;
 import com.evolveum.midpoint.web.bean.TaskItem;
 import com.evolveum.midpoint.web.controller.resource.ResourceDetailsController;
 import com.evolveum.midpoint.web.controller.util.ListController;
+import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 
 @Controller("taskList")
@@ -28,6 +32,9 @@ public class TaskListController extends ListController<TaskItem>{
 	@Autowired(required = true)
 	private transient TaskDetailsController taskDetails;
 	private TaskItem selectedTask;
+	@Autowired(required = true)
+	private transient RepositoryManager repositoryManager;
+	private boolean listAll=false;
 
 //	private Set<TaskItem> runningTasks;
 	private boolean activated;
@@ -41,13 +48,25 @@ public class TaskListController extends ListController<TaskItem>{
 
 	@Override
 	protected String listObjects() {
+		ObjectListType taskTypeList =  repositoryManager.listObjects(TaskType.class, getOffset(), getRowsCount());
+		List<TaskItem> runningTasks = getObjects();
+		runningTasks.clear();
+		for (ObjectType taskType : taskTypeList.getObject()){
+			runningTasks.add(new TaskItem((TaskType) taskType));
+		}
+		listAll = false;
+		return PAGE_NAVIGATION;		
+	}
+	
+	
+	public String listRunningTasks(){
 		Set<Task> tasks = taskManager.getRunningTasks();
 		List<TaskItem> runningTasks = getObjects();
 		runningTasks.clear();
 		for (Task task : tasks){
 			runningTasks.add(new TaskItem(task));
-		}
-		
+		}	
+		listAll = true;
 		return PAGE_NAVIGATION;		
 	}
 	
@@ -154,6 +173,14 @@ public class TaskListController extends ListController<TaskItem>{
 
 	public void setSelectedTask(TaskItem selectedTask) {
 		this.selectedTask = selectedTask;
+	}
+
+	public boolean isListAll() {
+		return listAll;
+	}
+
+	public void setListAll(boolean listAll) {
+		this.listAll = listAll;
 	}
 
 	

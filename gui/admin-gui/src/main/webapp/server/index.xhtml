@@ -45,15 +45,19 @@
 					id="reactivateServiceThreads" immediate="true"
 					rendered="#{not taskList.activated}"
 					action="#{taskList.reactivate}" />
+				<idm:button value="List running tasks"
+					img="/resources/images/drive_burn.png" id="runningTasks"
+					immediate="true" rendered="#{not taskList.listAll}" action="#{taskList.listRunningTasks}" />
+				<idm:button value="List all tasks"
+					img="/resources/images/drive_burn.png" id="allTasks"
+					immediate="true" rendered="#{taskList.listAll}" action="#{taskList.listFirst}" />
 
 
 			</div>
-			<ice:dataTable id="taskTable" rows="50"
-				value="#{taskList.objects}" var="item"
-				columnClasses="iceDatTblCol1"
-				rowClasses="iceDatTblRow1 iceDatTblRow2" 
-				columnWidths="250px, 230px, 220px" 
-				resizable="false">
+			<ice:dataTable id="taskTable" rows="50" value="#{taskList.objects}"
+				var="item" columnClasses="iceDatTblCol1"
+				rowClasses="iceDatTblRow1 iceDatTblRow2"
+				columnWidths="250px, 230px, 220px" resizable="false">
 
 				<ice:column>
 					<f:facet name="header">

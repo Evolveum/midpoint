@@ -4,9 +4,11 @@ import java.io.Serializable;
 import java.math.BigInteger;
 
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
@@ -41,19 +43,37 @@ public class TaskItem implements Serializable {
 		this.name = task.getName();
 		this.lastRunStartTimestamp = task.getLastRunStartTimestamp();
 		this.lastRunFinishTimestamp = task.getLastRunFinishTimestamp();
-		setTaskItemExecutionStatus(task);
+		setTaskItemExecutionStatus(task.getExecutionStatus());
 	}
 
-	public void setTaskItemExecutionStatus(Task task) {
-		if (task.getExecutionStatus().equals(TaskExecutionStatus.RUNNING)) {
+	public TaskItem(TaskType task) {
+		this.handlerUri = task.getHandlerUri();
+		this.objectRef = task.getObjectRef().getOid();
+		this.oid = task.getOid();
+		this.name = task.getName();
+		if (task.getLastRunStartTimestamp() != null) {
+			this.lastRunStartTimestamp = new Long(
+					XsdTypeConverter.toMillis(task.getLastRunStartTimestamp()));
+		}
+		if (task.getLastRunFinishTimestamp() != null) {
+			this.lastRunFinishTimestamp = new Long(
+					XsdTypeConverter.toMillis(task.getLastRunFinishTimestamp()));
+		}
+		setTaskItemExecutionStatus(TaskExecutionStatus.fromTaskType(task
+				.getExecutionStatus()));
+	}
+
+	public void setTaskItemExecutionStatus(
+			TaskExecutionStatus taskExecusionStatus) {
+		if (taskExecusionStatus.equals(TaskExecutionStatus.RUNNING)) {
 			executionStatus = TaskItemExecutionStatus.RUNNING;
 			return;
 		}
-		if (task.getExecutionStatus().equals(TaskExecutionStatus.WAITING)) {
+		if (taskExecusionStatus.equals(TaskExecutionStatus.WAITING)) {
 			executionStatus = TaskItemExecutionStatus.WAITING;
 			return;
 		}
-		if (task.getExecutionStatus().equals(TaskExecutionStatus.CLOSED)) {
+		if (taskExecusionStatus.equals(TaskExecutionStatus.CLOSED)) {
 			executionStatus = TaskItemExecutionStatus.CLOSED;
 			return;
 		}
@@ -113,7 +133,7 @@ public class TaskItem implements Serializable {
 		ScheduleType schedule = new ScheduleType();
 		schedule.setInterval(BigInteger.valueOf(getScheduleInterval()));
 		taskType.setSchedule(schedule);
-		
+
 		return taskType;
 
 	}
