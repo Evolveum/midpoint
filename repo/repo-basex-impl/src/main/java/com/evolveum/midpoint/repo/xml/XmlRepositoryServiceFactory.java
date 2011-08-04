@@ -66,7 +66,7 @@ public class XmlRepositoryServiceFactory {
 
 			// args ordering is important!
 			if (embedded) {
-				this.testFreePort();
+				this.checkPort();
 				// set debug mode and run it in the same process
 				server = new BaseXServer("-p" + port, "-d", "-D", "-s");
 			} else {
@@ -243,21 +243,21 @@ public class XmlRepositoryServiceFactory {
 		this.shutdown = shutdown;
 	}
 
-	private void testFreePort() throws RepositoryServiceFactoryException {
+	private void checkPort() throws RepositoryServiceFactoryException {
 		ServerSocket ss = null;
 		try {
 			ss = new ServerSocket(this.getPort());
 			ss.setReuseAddress(true);
 		} catch (IOException e) {
-			throw new RepositoryServiceFactoryException("Basex port (" + this.getPort()
-					+ ") allready in use.", e);
+			throw new RepositoryServiceFactoryException("BaseX port (" + this.getPort()
+					+ ") already in use.", e);
 		} finally {
 			try {
 				if (ss != null) {
 					ss.close();
 				}
 			} catch (IOException e) {
-				// SKIP DO NOTHING
+				TRACE.error("Reported IO error, while closing ServerSocket used to test availability of port for BaseX Server", e);
 			}
 		}
 	}

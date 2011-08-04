@@ -42,6 +42,6 @@
 	<context:annotation-config />
 	<!-- <context:spring-configured/> -->
 	<context:component-scan base-package="com.evolveum.midpoint.provisioning" />
-        <context:spring-configured />
+    <context:spring-configured />
 
 </beans>
