@@ -1,15 +1,22 @@
 package com.evolveum.midpoint.web.bean;
 
+import java.io.Serializable;
+
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 
-public class TaskItem {
+public class TaskItem implements Serializable{
 
+	
+	private static final long serialVersionUID = -8488920538885537525L;
 	private String handlerUri;
 	private String objectRef;
 	private String oid;
 	private String name;
 	private Long lastRunStartTimestamp;
 	private Long lastRunFinishTimestamp;
+	private TaskItemExecutionStatus executionStatus;
+	
 
 	public TaskItem(Task task){
 		this.handlerUri = task.getHandlerUri();
@@ -18,8 +25,28 @@ public class TaskItem {
 		this.name = task.getName();
 		this.lastRunStartTimestamp = task.getLastRunStartTimestamp();
 		this.lastRunFinishTimestamp = task.getLastRunFinishTimestamp();
+		setTaskItemExecutionStatus(task);
+	}
+	
+	public void setTaskItemExecutionStatus(Task task){
+		if (task.getExecutionStatus().equals(TaskExecutionStatus.RUNNING)){
+			executionStatus = TaskItemExecutionStatus.RUNNING;
+			return;
+		}
+		if (task.getExecutionStatus().equals(TaskExecutionStatus.WAITING)){
+			executionStatus = TaskItemExecutionStatus.WAITING;
+			return;
+		}
+		if (task.getExecutionStatus().equals(TaskExecutionStatus.CLOSED)){
+			executionStatus = TaskItemExecutionStatus.CLOSED;
+			return;
+		}
 	}
 
+	public TaskItemExecutionStatus getExecutionStatus(){
+		return executionStatus;
+	}
+	
 	public String getHandlerUri() {
 		return handlerUri;
 	}

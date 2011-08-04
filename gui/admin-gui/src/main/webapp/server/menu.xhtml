@@ -5,6 +5,7 @@
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
 	<idm:leftMenuContainer name="#{msg['page.template.top.servertasks']}">
-		<idm:leftMenuItem id="leftAvailableRoles" name="#{msg['page.server.index.title']}" action="/server/index" />
+		<idm:leftMenuItem id="leftRunnableTasks" name="#{msg['page.server.index.title']}" action="#{taskList.listFirst}" />
+		<idm:leftMenuItem id="leftAddTask" name="#{msg['page.server.index.title']}" action="#{taskAdd.addTask}" />
 	</idm:leftMenuContainer>
 </ui:composition>

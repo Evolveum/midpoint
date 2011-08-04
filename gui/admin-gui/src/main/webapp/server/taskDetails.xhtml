@@ -33,9 +33,29 @@
 					<ice:outputLabel value="Object ref: " />
 					<ice:outputText value="#{taskDetails.task.objectRef}" />
 
+
+					<ice:outputLabel
+						value="Execusion status" />
+					<ice:graphicImage
+						value="/resources/images/#{taskDetails.task.executionStatus.icon}"
+						alt="#{taskDetails.task.executionStatus.title}" />
+
+
+
 				</ice:panelGrid>
 
 			</ice:panelGroup>
+			<div class="button-bar">
+
+				<idm:button value="Create task instance"
+					img="/resources/images/drive_burn.png" id="createTaskInstance"
+					immediate="true" action="#{taskDetails.createInstance}" />
+				<idm:button value="Delete task"
+					img="/resources/images/drive_burn.png" id="deleteTask"
+					immediate="true" action="#{taskList.deleteTask}" />
+
+
+			</div>
 		</ice:form>
 	</ui:define>
 </ui:composition>

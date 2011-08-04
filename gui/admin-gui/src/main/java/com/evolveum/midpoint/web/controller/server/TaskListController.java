@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.bean.ResourceListItem;
@@ -25,6 +27,7 @@ public class TaskListController extends ListController<TaskItem>{
 	private transient TaskManager taskManager;
 	@Autowired(required = true)
 	private transient TaskDetailsController taskDetails;
+	private TaskItem selectedTask;
 
 //	private Set<TaskItem> runningTasks;
 	private boolean activated;
@@ -79,15 +82,40 @@ public class TaskListController extends ListController<TaskItem>{
 		return null;
 	}
 
-	
-	
-	public String showTaskDetails(){
-		TaskItem taskItem = getSelectedTaskItem();
-		if (taskItem == null) {
+	public String deleteTask() {
+
+		
+		if (selectedTask.getOid() == null) {
+			FacesUtils.addErrorMessage("No task to delete defined");
+			throw new IllegalArgumentException("No task to delete defined.");
+		}
+
+		OperationResult result = new OperationResult(
+				TaskDetailsController.class.getName() + ".deleteTask");
+		result.addParam("taskOid", selectedTask.getOid());
+
+		try {
+			taskManager.deleteTask(selectedTask.getOid(), result);
+			getObjects().remove(selectedTask);
+			FacesUtils.addSuccessMessage("Task deleted sucessfully");
+		} catch (ObjectNotFoundException ex) {
+			FacesUtils.addErrorMessage("Task with oid " + selectedTask.getOid()
+					+ " not found. Reason: " + ex.getMessage(), ex);
+			result.recordFatalError("Task with oid " + selectedTask.getOid()
+					+ " not found. Reason: " + ex.getMessage(), ex);
 			return null;
 		}
 
-		taskDetails.setTask(taskItem);
+		return PAGE_NAVIGATION;
+	}
+	
+	public String showTaskDetails(){
+		selectedTask = getSelectedTaskItem();
+		if (selectedTask == null) {
+			return null;
+		}
+
+		taskDetails.setTask(selectedTask);
 
 //		template.setSelectedLeftId(ResourceDetailsController.NAVIGATION_LEFT);
 		return TaskDetailsController.PAGE_NAVIGATION;
@@ -118,6 +146,14 @@ public class TaskListController extends ListController<TaskItem>{
 
 	public void setActivated(boolean activated) {
 		this.activated = activated;
+	}
+
+	public TaskItem getSelectedTask() {
+		return selectedTask;
+	}
+
+	public void setSelectedTask(TaskItem selectedTask) {
+		this.selectedTask = selectedTask;
 	}
 
 	
