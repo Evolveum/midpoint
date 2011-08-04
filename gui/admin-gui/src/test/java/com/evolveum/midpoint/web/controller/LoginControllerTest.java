@@ -41,7 +41,8 @@ import static junit.framework.Assert.*;
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
-		"classpath:application-context-test.xml" })
+		"classpath:application-context-test.xml",
+		"classpath:application-context-repository-test.xml" })
 public class LoginControllerTest {
 
 	@Autowired(required = true)

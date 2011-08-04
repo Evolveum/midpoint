@@ -44,7 +44,8 @@ import com.evolveum.midpoint.web.model.UserManager;
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
-		"classpath:application-context-test.xml" })
+		"classpath:application-context-test.xml",
+		"classpath:application-context-repository-test.xml" })
 public class UserManagerImplTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(UserManagerImplTest.class);

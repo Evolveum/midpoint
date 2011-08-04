@@ -208,6 +208,12 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>repo-basex-test</artifactId>
+			<version>1.8-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
 			<version>${mockito.version}</version>
@@ -219,6 +225,7 @@
 			<version>${selenium.version}</version>
 			<scope>test</scope>
 		</dependency>
+		
 
         <!-- Dependencies to connectors, just to add to good place in WAR -->
 		<dependency>

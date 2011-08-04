@@ -25,7 +25,8 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
-		"classpath:application-context-test.xml" })
+		"classpath:application-context-test.xml",
+		"classpath:application-context-repository-test.xml" })
 public class MidPointAuthenticationProviderTest {
 
 	@Autowired(required = true)
