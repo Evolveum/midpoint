@@ -129,8 +129,11 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-provisioning.xml", "classpath:application-context-sanity-test.xml",
-		"classpath:application-context-task.xml" })
+		"classpath:application-context-provisioning.xml",
+		"classpath:application-context-sanity-test.xml",
+		"classpath:application-context-task.xml" ,
+		"classpath:application-context-repository-test.xml"})
+
 public class TestSanity extends AbstractIntegrationTest {
 
 	private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
