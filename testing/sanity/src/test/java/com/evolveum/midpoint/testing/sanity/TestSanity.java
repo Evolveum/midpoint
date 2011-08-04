@@ -788,7 +788,7 @@ public class TestSanity extends AbstractIntegrationTest {
 						return(task.getExecutionStatus() == TaskExecutionStatus.CLOSED);
 					}
 				},
-				20000);
+				30000);
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
 		ObjectType obj = model.getObject(task.getOid(), new PropertyReferenceListType(), resultHolder);
@@ -798,6 +798,13 @@ public class TestSanity extends AbstractIntegrationTest {
 		display("Import task after finish (fetched from model)", task);
 
 		assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
+
+		//Ugly fix to wait until state change success fully on slowmachines.
+		try {
+			Thread.sleep(1000);
+ 		} catch (Exception e) {
+		}
+
 		assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
 		OperationResult taskResult = task.getResult();
