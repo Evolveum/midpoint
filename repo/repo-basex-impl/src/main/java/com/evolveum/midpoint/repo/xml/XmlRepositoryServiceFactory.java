@@ -22,6 +22,7 @@
 package com.evolveum.midpoint.repo.xml;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +45,7 @@ public class XmlRepositoryServiceFactory {
 	private boolean dropDatabase = false;
 	private boolean runServer = true;
 	private boolean embedded = true;
-	//shutdown = true for standalone run, shutdown = false for test run
+	// shutdown = true for standalone run, shutdown = false for test run
 	private boolean shutdown = false;
 	private String initialDataPath;
 	private String host;
@@ -65,11 +66,12 @@ public class XmlRepositoryServiceFactory {
 
 			// args ordering is important!
 			if (embedded) {
+				this.testFreePort();
 				// set debug mode and run it in the same process
-				server = new BaseXServer("-p"+port, "-d", "-D", "-s");
+				server = new BaseXServer("-p" + port, "-d", "-D", "-s");
 			} else {
 				// set debug mode and run it as a Daemon process
-				server = new BaseXServer("-p"+port, "-d", "-s");
+				server = new BaseXServer("-p" + port, "-d", "-s");
 			}
 			TRACE.trace("BaseX Server started");
 		}
@@ -241,4 +243,22 @@ public class XmlRepositoryServiceFactory {
 		this.shutdown = shutdown;
 	}
 
+	private void testFreePort() throws RepositoryServiceFactoryException {
+		ServerSocket ss = null;
+		try {
+			ss = new ServerSocket(this.getPort());
+			ss.setReuseAddress(true);
+		} catch (IOException e) {
+			throw new RepositoryServiceFactoryException("Basex port (" + this.getPort()
+					+ ") allready in use.", e);
+		} finally {
+			try {
+				if (ss != null) {
+					ss.close();
+				}
+			} catch (IOException e) {
+				// SKIP DO NOTHING
+			}
+		}
+	}
 }
