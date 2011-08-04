@@ -75,9 +75,6 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
  * @author lazyman
  * 
  */
-@Component
-@Scope
-@DependsOn(value = "initialSetup")
 public class LoggingManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingManager.class);
@@ -87,7 +84,6 @@ public class LoggingManager {
 	private ObjectTypeCatalog catalog;
 	private LoggingConfigurationType logging;
 
-	@PostConstruct
 	public void init() {
 		LOGGER.info("Initializing Logging Manager.");
 		OperationResult result = new OperationResult("Init Logging Manager");

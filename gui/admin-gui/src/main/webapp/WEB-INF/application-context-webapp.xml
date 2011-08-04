@@ -93,4 +93,7 @@
 			</map>
 		</property>
 	</bean>
+	
+	<bean name="loggingManager" class="com.evolveum.midpoint.web.component.LoggingManager" depends-on="initialSetup" init-method="init"/>
+	
 </beans>
