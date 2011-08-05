@@ -20,7 +20,7 @@ public class TaskDetailsController implements Serializable {
 	public static final String PAGE_NAVIGATION = "/server/taskDetails?faces-redirect=true";
 
 	@Autowired(required = true)
-	private TaskManager taskManager;
+	private transient TaskManager taskManager;
 
 	public TaskDetailsController() {
 
