@@ -20,8 +20,7 @@
 <!-- Portions Copyrighted 2010 Peter Prochazka               -->
 <!--                                                         -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<name>midPoint User Interface - admin web gui</name>
 	<groupId>com.evolveum.midpoint.gui</groupId>
@@ -30,7 +29,7 @@
 	<parent>
 		<artifactId>gui</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>1.8-SNAPSHOT</version>
+		<version>1.8</version>
 	</parent>
 	<!--  small hack to move connectors to good place  -->
 	<build>
@@ -82,10 +81,10 @@
 		<url>http://jira.evolveum.com/</url>
 	</issueManagement>
 	<scm>
-		<connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
-		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
+		<connection>scm:svn:http://svn.evolveum.com/midpoint/tags/project-1.8</connection>
+		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/tags/project-1.8</developerConnection>
 		<tag>HEAD</tag>
-		<url>https://fisheye.evolveum.com/midpoint/</url>
+		<url>https://fisheye.evolveum.com/midpoint/tags/project-1.8</url>
 	</scm>
 	<repositories>
 		<repository>
@@ -98,29 +97,29 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
-			<version>1.8-SNAPSHOT</version>
+			<version>1.8</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-api</artifactId>
-			<version>1.8-SNAPSHOT</version>
+			<version>1.8</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-basex-impl</artifactId>
-			<version>1.8-SNAPSHOT</version>
+			<version>1.8</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-impl</artifactId>
-			<version>1.8-SNAPSHOT</version>
+			<version>1.8</version>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>provisioning-impl</artifactId>
-			<version>1.8-SNAPSHOT</version>
+			<version>1.8</version>
             <!-- TODO change scope after moving schema processing api to provisioning api -->
 			<scope>runtime</scope>
 		</dependency>
@@ -210,7 +209,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-basex-test</artifactId>
-			<version>1.8-SNAPSHOT</version>
+			<version>1.8</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
