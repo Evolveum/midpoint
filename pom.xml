@@ -43,13 +43,12 @@
 	</licenses>
 	<issueManagement>
 		<system>Atlassian JIRA</system>
-		<url>http://jira.evolveum.com/</url>
+		<url>https://jira.evolveum.com/browse/MID</url>
 	</issueManagement>
 	<scm>
-		<connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
-		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
-		<tag>HEAD</tag>
-		<url>https://fisheye.evolveum.com/browse/MidPoint/trunk/midpoint/</url>
+		<connection>scm:svn:https://svn.evolveum.com/midpoint/trunk/</connection>
+		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/trunk/</developerConnection>
+		<url>http://fisheye.evolveum.com/browse/MidPoint/trunk</url>
 	</scm>
 	<repositories>
 		<repository>
@@ -59,7 +58,7 @@
 		</repository>
 	</repositories>
 	<properties>
-        <!-- Build system options -->
+        <!-- Build system options - more options in build-system/pom.xml -->
 		<project.source.version>1.6</project.source.version>
 		<clover.version>3.1.0</clover.version>
 	</properties>
