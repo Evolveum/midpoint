@@ -29,7 +29,7 @@
 	<parent>
 		<artifactId>repo</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>1.8</version>
+		<version>1.9-SNAPSHOT</version>
 	</parent>
 	<organization>
 		<name>evolveum</name>
@@ -48,10 +48,9 @@
 		<url>http://jira.evolveum.com/</url>
 	</issueManagement>
 	<scm>
-		<connection>scm:svn:http://svn.evolveum.com/midpoint/tags/project-1.8</connection>
-		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/tags/project-1.8</developerConnection>
-		<tag>HEAD</tag>
-		<url>https://fisheye.evolveum.com/midpoint/tags/project-1.8</url>
+		<connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
+		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
+		<url>https://fisheye.evolveum.com/midpoint/</url>
 	</scm>
     <!-- Special repository for scannotation -->
 	<build>
@@ -78,27 +77,27 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>common</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>schema</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-pool</groupId>
@@ -121,13 +120,13 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-basex-impl</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-basex-test</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

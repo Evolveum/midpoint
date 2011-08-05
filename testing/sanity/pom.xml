@@ -25,11 +25,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.evolveum.midpoint.testing</groupId>
 	<artifactId>sanity</artifactId>
-	<version>1.8</version>
+	<version>1.9-SNAPSHOT</version>
 	<parent>
 		<artifactId>parent</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>1.8</version>
+		<version>1.9-SNAPSHOT</version>
 	</parent>
 	<organization>
 		<name>Evolveum</name>
@@ -62,37 +62,37 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>util</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>common</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-impl</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.provisioning</groupId>
 			<artifactId>provisioning-impl</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-impl</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-basex-test</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 
 		<!-- TEST dependency -->
@@ -111,7 +111,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>test-util</artifactId>
-			<version>1.8</version>
+			<version>1.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

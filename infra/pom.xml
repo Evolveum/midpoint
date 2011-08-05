@@ -28,7 +28,7 @@
 	<parent>
 		<artifactId>parent</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
-		<version>1.8</version>
+		<version>1.9-SNAPSHOT</version>
 	</parent>
 	<organization>
 		<name>Evolveum</name>
@@ -47,10 +47,9 @@
 		<url>http://jira.evolveum.com/</url>
 	</issueManagement>
 	<scm>
-		<connection>scm:svn:http://svn.evolveum.com/midpoint/tags/project-1.8</connection>
-		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/tags/project-1.8</developerConnection>
-		<tag>HEAD</tag>
-		<url>https://fisheye.evolveum.com/midpoint/tags/project-1.8</url>
+		<connection>scm:svn:http://svn.evolveum.com/midpoint/</connection>
+		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
+		<url>https://fisheye.evolveum.com/midpoint/</url>
 	</scm>
 	<modules>
 		<module>util</module>

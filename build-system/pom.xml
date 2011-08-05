@@ -30,7 +30,7 @@
 	<parent>
 		<groupId>com.evolveum.midpoint</groupId>
 		<artifactId>project</artifactId>
-		<version>1.8</version>
+		<version>1.9-SNAPSHOT</version>
 	</parent>
 	<properties>
         <!-- Build system options -->
@@ -75,10 +75,9 @@
 		<url>http://jira.evolveum.com/</url>
 	</issueManagement>
 	<scm>
-		<connection>scm:svn:http://svn.evolveum.com/midpoint/tags/project-1.8</connection>
-		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/tags/project-1.8/build-system</developerConnection>
-		<tag>HEAD</tag>
-		<url>https://fisheye.evolveum.com/browse/MidPoint/trunk/browse/MidPoint/tags/project-1.8/build-system</url>
+		<connection>scm:svn:http://svn.evolveum.com/midpoint/trunk/build-system</connection>
+		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/trunk/build-system</developerConnection>
+		<url>https://fisheye.evolveum.com/browse/MidPoint/trunk/browse/MidPoint/trunk/build-system</url>
 	</scm>
 	<profiles>
 		<profile>
