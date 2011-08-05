@@ -106,7 +106,7 @@
 			<artifactId>commons-pool</artifactId>
 			<version>1.5.6</version>
 		</dependency>
-		<!--- TEST dependecies-->
+		<!-- TEST dependecies -->
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-test</artifactId>
