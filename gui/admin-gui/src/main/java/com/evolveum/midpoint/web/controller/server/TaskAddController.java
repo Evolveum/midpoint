@@ -50,7 +50,16 @@ public class TaskAddController implements Serializable {
 	@Autowired(required = true)
 	private TaskItemController itemController;
 
+	
 
+
+	public TaskItemController getItemController() {
+		return itemController;
+	}
+
+	public void setItemController(TaskItemController itemController) {
+		this.itemController = itemController;
+	}
 
 	public String initializeTask() {
 		task = new TaskItem();

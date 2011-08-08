@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.controller.server;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -22,8 +23,10 @@ import com.evolveum.midpoint.web.util.FacesUtils;
 
 @Controller("itemController")
 @Scope("session")
-public class TaskItemController {
+public class TaskItemController implements Serializable{
 	
+	private static final long serialVersionUID = -320314540772984007L;
+
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog objectTypeCatalog;
 
