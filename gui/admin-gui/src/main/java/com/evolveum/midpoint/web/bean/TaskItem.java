@@ -1,14 +1,22 @@
 package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
+import java.util.TimeZone;
 
-import com.evolveum.midpoint.common.object.ObjectTypeUtil;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
@@ -24,8 +32,8 @@ public class TaskItem implements Serializable {
 	private String objectRef;
 	private String oid;
 	private String name;
-	private Long lastRunStartTimestamp;
-	private Long lastRunFinishTimestamp;
+	private String lastRunStartTimestamp;
+	private String lastRunFinishTimestamp;
 	private TaskItemExecutionStatus executionStatus;
 	private TaskItemExclusivityStatus exclusivityStatus;
 	private TaskItemRecurrenceStatus recurrenceStatus;
@@ -41,9 +49,22 @@ public class TaskItem implements Serializable {
 		this.objectRef = task.getObjectRef().getOid();
 		this.oid = task.getOid();
 		this.name = task.getName();
-		this.lastRunStartTimestamp = task.getLastRunStartTimestamp();
-		this.lastRunFinishTimestamp = task.getLastRunFinishTimestamp();
-		setTaskItemExecutionStatus(task.getExecutionStatus());
+		Calendar calendar = GregorianCalendar.getInstance();
+		if (task.getLastRunStartTimestamp() != null) {
+			calendar.setTimeInMillis(task.getLastRunStartTimestamp());
+			this.lastRunStartTimestamp = calendar.toString();
+		}
+		if (task.getLastRunFinishTimestamp() != null) {
+			calendar.setTimeInMillis(task.getLastRunFinishTimestamp());
+			this.lastRunFinishTimestamp = calendar.toString();
+		}
+		this.executionStatus = TaskItemExecutionStatus.fromTask(task
+				.getExecutionStatus());
+		this.exclusivityStatus = TaskItemExclusivityStatus.fromTask(task
+				.getExclusivityStatus());
+		this.scheduleInterval = task.getSchedule().getInterval().longValue();
+		
+		// recurrenceStatus = TaskItemRecurrenceStatus.fromTask(task.get)
 	}
 
 	public TaskItem(TaskType task) {
@@ -52,15 +73,18 @@ public class TaskItem implements Serializable {
 		this.oid = task.getOid();
 		this.name = task.getName();
 		if (task.getLastRunStartTimestamp() != null) {
-			this.lastRunStartTimestamp = new Long(
-					XsdTypeConverter.toMillis(task.getLastRunStartTimestamp()));
+			this.lastRunStartTimestamp =task.getLastRunStartTimestamp().toString();
 		}
 		if (task.getLastRunFinishTimestamp() != null) {
-			this.lastRunFinishTimestamp = new Long(
-					XsdTypeConverter.toMillis(task.getLastRunFinishTimestamp()));
+			this.lastRunFinishTimestamp = task.getLastRunFinishTimestamp().toString();
 		}
-		setTaskItemExecutionStatus(TaskExecutionStatus.fromTaskType(task
-				.getExecutionStatus()));
+		this.executionStatus = TaskItemExecutionStatus
+				.fromTask(TaskExecutionStatus.fromTaskType(task
+						.getExecutionStatus()));
+		this.exclusivityStatus = TaskItemExclusivityStatus
+				.fromTask(TaskExclusivityStatus.fromTaskType(task
+						.getExclusivityStatus()));
+		this.scheduleInterval = task.getSchedule().getInterval().longValue();
 	}
 
 	public void setTaskItemExecutionStatus(
@@ -187,19 +211,19 @@ public class TaskItem implements Serializable {
 		this.name = name;
 	}
 
-	public Long getLastRunStartTimestamp() {
+	public String getLastRunStartTimestamp() {
 		return lastRunStartTimestamp;
 	}
 
-	public void setLastRunStartTimestamp(Long lastRunStartTimestamp) {
+	public void setLastRunStartTimestamp(String lastRunStartTimestamp) {
 		this.lastRunStartTimestamp = lastRunStartTimestamp;
 	}
 
-	public Long getLastRunFinishTimestamp() {
+	public String getLastRunFinishTimestamp() {
 		return lastRunFinishTimestamp;
 	}
 
-	public void setLastRunFinishTimestamp(Long lastRunFinishTimestamp) {
+	public void setLastRunFinishTimestamp(String lastRunFinishTimestamp) {
 		this.lastRunFinishTimestamp = lastRunFinishTimestamp;
 	}
 
@@ -234,7 +258,5 @@ public class TaskItem implements Serializable {
 	public void setExclusivityStatus(TaskItemExclusivityStatus exclusivityStatus) {
 		this.exclusivityStatus = exclusivityStatus;
 	}
-	
-	
 
 }

@@ -33,13 +33,21 @@
 					<ice:outputLabel value="Object ref: " />
 					<ice:outputText value="#{taskDetails.task.objectRef}" />
 
+					<ice:outputLabel value="Last run start timestamp: " />
+					<ice:outputText value="#{taskDetails.task.lastRunStartTimestamp}" />
+					
+					<ice:outputLabel value="Last run finish timestamp: " />
+					<ice:outputText value="#{taskDetails.task.lastRunFinishTimestamp}" />
 
-					<ice:outputLabel
-						value="Execusion status" />
-					<ice:graphicImage
-						value="/resources/images/#{taskDetails.task.executionStatus.icon}"
-						alt="#{taskDetails.task.executionStatus.title}" />
-				
+					<ice:outputLabel value="Execusion status" />
+					<ice:outputText value="#{taskDetails.task.executionStatus}" />
+
+					<ice:outputLabel value="Exclusivity status" />
+					<ice:outputText value="#{taskDetails.task.exclusivityStatus}" />
+
+					<ice:outputLabel value="Schedule interval" />
+					<ice:outputText value="#{taskDetails.task.scheduleInterval}" />
+
 				</ice:panelGrid>
 
 			</ice:panelGroup>

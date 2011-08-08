@@ -1,8 +1,9 @@
 package com.evolveum.midpoint.web.bean;
 
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+
 public enum TaskItemExecutionStatus {
 
-	
 	RUNNING("runn.png", "Running"),
 
 	WAITING("hourglass.png", "Waiting"),
@@ -12,7 +13,6 @@ public enum TaskItemExecutionStatus {
 	private String icon;
 	private String title;
 
-	
 	private TaskItemExecutionStatus(String icon, String title) {
 		this.icon = icon;
 		this.title = title;
@@ -24,5 +24,20 @@ public enum TaskItemExecutionStatus {
 
 	public String getTitle() {
 		return title;
+	}
+
+	public static TaskItemExecutionStatus fromTask(TaskExecutionStatus executionStatus) {
+		if (executionStatus.equals(TaskExecutionStatus.CLOSED)) {
+			return CLOSED;
+		}
+		if (executionStatus.equals(TaskExecutionStatus.RUNNING)) {
+			return RUNNING;
+		}
+		if (executionStatus.equals(TaskExecutionStatus.WAITING)) {
+			return WAITING;
+		}
+
+		return null;
+
 	}
 }

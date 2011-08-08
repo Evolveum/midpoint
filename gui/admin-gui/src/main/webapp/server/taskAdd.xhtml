@@ -60,15 +60,17 @@
 						value="#{taskAdd.executionStatus}" />
 				</ice:selectOneListbox>
 				<ice:message for="handlerUri" errorClass="error" />
-				
-				<ice:outputText value="Recurrence status" />
-				<ice:selectOneListbox id="recurrenceStatus"
-					value="#{taskAdd.task.recurrenceStatus}"
-					style="min-width: 157px; width: auto;">
-					<f:selectItems id="recurrenceStatusSelected"
-						value="#{taskAdd.recurrenceStatus}" />
-				</ice:selectOneListbox>
-				<ice:message for="handlerUri" errorClass="error" />
+
+				<ui:remove>
+					<ice:outputText value="Recurrence status" />
+					<ice:selectOneListbox id="recurrenceStatus"
+						value="#{taskAdd.task.recurrenceStatus}"
+						style="min-width: 157px; width: auto;">
+						<f:selectItems id="recurrenceStatusSelected"
+							value="#{taskAdd.recurrenceStatus}" />
+					</ice:selectOneListbox>
+					<ice:message for="handlerUri" errorClass="error" />
+				</ui:remove>
 
 				<ice:outputLabel value="Schedule interval: ">
 					<span style="color: red;">*</span>
@@ -78,6 +80,7 @@
 					requiredMessage="#{msg['page.jsf.field.required']}" />
 				<ice:message for="scheduleInterval" errorClass="error" />
 				<ice:message for="handlerUri" errorClass="error" />
+
 
 			</ice:panelGrid>
 			<div class="button-bar">

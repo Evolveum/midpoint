@@ -47,10 +47,10 @@
 					action="#{taskList.reactivate}" />
 				<idm:button value="List running tasks"
 					img="/resources/images/drive_burn.png" id="runningTasks"
-					immediate="true" rendered="#{not taskList.listAll}" action="#{taskList.listRunningTasks}" />
+					immediate="true" action="#{taskList.listRunningTasks}" />
 				<idm:button value="List all tasks"
 					img="/resources/images/drive_burn.png" id="allTasks"
-					immediate="true" rendered="#{taskList.listAll}" action="#{taskList.listFirst}" />
+					immediate="true" action="#{taskList.listFirst}" />
 
 
 			</div>
