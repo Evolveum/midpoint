@@ -47,12 +47,12 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * It will actually setup the "create" change notification for all objects and invoke
  * a ResourceObjectChangeListener interface.
  * 
- * @see ImportFromResourceTaskHandler
+ * @see ImportAccountsFromResourceTaskHandler
  * 
  * @author Radovan Semancik
  * 
  */
-public class ImportFromResourceResultHandler implements ResultHandler {
+public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 
 	private ResourceObjectChangeListener objectChangeListener;
 	private Task task;
@@ -60,9 +60,9 @@ public class ImportFromResourceResultHandler implements ResultHandler {
 	private long progress;
 	private boolean stopOnError;
 
-	private static final Trace logger = TraceManager.getTrace(ImportFromResourceResultHandler.class);
+	private static final Trace logger = TraceManager.getTrace(ImportAccountsFromResourceResultHandler.class);
 
-	public ImportFromResourceResultHandler(ResourceType resource, Task task,
+	public ImportAccountsFromResourceResultHandler(ResourceType resource, Task task,
 			ResourceObjectChangeListener objectChangeListener) {
 		super();
 		this.objectChangeListener = objectChangeListener;
@@ -86,7 +86,7 @@ public class ImportFromResourceResultHandler implements ResultHandler {
 		progress++;
 
 		OperationResult result = parentResult
-				.createSubresult(ImportFromResourceResultHandler.class.getName() + ".handle");
+				.createSubresult(ImportAccountsFromResourceResultHandler.class.getName() + ".handle");
 		result.addParam("object", object);
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 

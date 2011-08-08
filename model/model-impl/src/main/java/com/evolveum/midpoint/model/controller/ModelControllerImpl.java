@@ -20,12 +20,15 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +46,7 @@ import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.importer.ImportFromResourceTaskHandler;
+import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -103,7 +106,7 @@ public class ModelControllerImpl implements ModelController {
 	private transient TaskManager taskManager;
 
 	@Autowired(required = true)
-	private transient ImportFromResourceTaskHandler importFromResourceTaskHandler;
+	private transient ImportAccountsFromResourceTaskHandler importAccountsFromResourceTaskHandler;
 
 	@Override
 	public String addObject(ObjectType object, OperationResult result)
@@ -672,7 +675,7 @@ public class ModelControllerImpl implements ModelController {
 
 	// Note: The result is in the task. No need to pass it explicitly
 	@Override
-	public void importFromResource(String resourceOid, QName objectClass,
+	public void importAccountsFromResource(String resourceOid, QName objectClass,
 			Task task) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid,
 				"Resource oid must not be null or empty.");
@@ -691,42 +694,18 @@ public class ModelControllerImpl implements ModelController {
 		ResourceType resource = getObject(resourceOid, resolve,
 				ResourceType.class, result);
 
-		importFromResourceTaskHandler.launch(resource, objectClass, task,
+		importAccountsFromResourceTaskHandler.launch(resource, objectClass, task,
 				result);
 
 		// The launch should switch task to asynchronous. It is in/out, so no
 		// other action is needed
 	}
+	
 
 	@Override
-	@Deprecated
-	public TaskStatusType getImportStatus(String resourceOid,
-			OperationResult result) throws ObjectNotFoundException {
-		Validate.notEmpty(resourceOid,
-				"Resource oid must not be null or empty.");
-		Validate.notNull(result, "Result type must not be null.");
-		LOGGER.debug("Getting import status for resource with oid {}.",
-				new Object[] { resourceOid });
-
-		OperationResult subResult = new OperationResult("Get Import Status");
-		result.addSubresult(subResult);
-
-		// TODO: WORK THIS OUT!!!!!!!!!!!!!!!
-		// TaskStatusType status = null;
-		// try {
-		// status = provisioning.getImportStatus(resourceOid, subResult);
-		// subResult.recordSuccess();
-		// } catch (ObjectNotFoundException ex) {
-		// throw ex;
-		// } catch (Exception ex) {
-		// LoggingUtils.logException(LOGGER,
-		// "Couldn't get import status for resource {}", ex, resourceOid);
-		// subResult.recordFatalError("Couldn't get import status for resource '"
-		// + resourceOid + "'.", ex);
-		// }
-
-		LOGGER.debug(subResult.dump());
-		return null;
+	public void importObjectsFromFile(File input, Task task) {
+		// TODO Auto-generated method stub
+		throw new NotImplementedException();
 	}
 
 	private <T extends ObjectType> T getObjectFromRepository(String oid,
@@ -1373,4 +1352,5 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordSuccess();
 		}
 	}
+
 }

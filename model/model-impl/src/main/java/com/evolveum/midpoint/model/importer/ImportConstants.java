@@ -18,18 +18,31 @@
  * "Portions Copyrighted 2011 [name of copyright owner]"
  * 
  */
-package com.evolveum.midpoint.common.result;
+package com.evolveum.midpoint.model.importer;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author Radovan Semancik
  *
  */
-public class OperationConstants {
+public class ImportConstants {
+	
+	/**
+	 * Prefix for all import-related URIs.
+	 */
+	public static final String IMPORT_URI_PREFIX = "http://midpoint.evolveum.com/model/import";
+	
+	/**
+	 * Schema URI for import extensions.
+	 */
+	public static final String IMPORT_EXTENSION_SCHEMA = IMPORT_URI_PREFIX + "/extension-1.xsd";
 
-	public static final String PREFIX = "com.evolveum.midpoint.common.operation";
+	/**
+	 * Extension property that specifies object class to import.
+	 */
+	public static final QName OBJECTCLASS_PROPERTY_NAME = new QName(ImportConstants.IMPORT_EXTENSION_SCHEMA,"objectclass");
+
+	public static final QName FILENAME_PROPERTY_NAME = new QName(ImportConstants.IMPORT_EXTENSION_SCHEMA,"filename");
 	
-	public static final String LIVE_SYNC = PREFIX + ".liveSync";
-	
-	public static final String IMPORT_ACCOUNTS_FROM_RESOURCE = PREFIX + ".import.accountsFromResource";
-	public static final String IMPORT_OBJECTS_FROM_FILE = PREFIX + ".import.objectsFromFile";
 }

@@ -136,7 +136,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 
 		Task task = null;
 		try {
-			getModel().importFromResource(resourceOid, objectClass, task);
+			getModel().importAccountsFromResource(resourceOid, objectClass, task);
 
 			result = OperationResult.createOperationResult(taskType.getResult());
 			result.recordSuccess();

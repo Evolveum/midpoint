@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.model.api;
 
+import java.io.File;
+import java.io.InputStream;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -87,10 +89,9 @@ public interface ModelService {
 	OperationResult testResource(String resourceOid) throws ObjectNotFoundException;
 
 	// Note: The result is in the task. No need to pass it explicitly
-	void importFromResource(String resourceOid, QName objectClass, Task task) throws ObjectNotFoundException;
-
-	@Deprecated
-	TaskStatusType getImportStatus(String resourceOid, OperationResult result) throws ObjectNotFoundException;
+	void importAccountsFromResource(String resourceOid, QName objectClass, Task task) throws ObjectNotFoundException;
+	
+	void importObjectsFromFile(File input, Task task);
 
 	ObjectListType searchObjectsInRepository(QueryType query, PagingType paging, OperationResult result);
 }

@@ -342,7 +342,7 @@ public class ModelWebService implements ModelPortType {
 				ModelPortType.class.getName() + ".importFromResource");
 
 		try {
-			model.importFromResource(resourceOid, objectClass, task);
+			model.importAccountsFromResource(resourceOid, objectClass, task);
 			handleTaskResult(task, taskHolder);
 
 			return new EmptyType();

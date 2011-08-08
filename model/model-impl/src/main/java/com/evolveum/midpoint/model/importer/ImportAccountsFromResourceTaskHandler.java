@@ -83,12 +83,9 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  *
  */
 @Component
-public class ImportFromResourceTaskHandler implements TaskHandler {
+public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 	
-	public static final String IMPORT_URI_PREFIX = "http://midpoint.evolveum.com/model/import";
-	public static final String HANDLER_URI = IMPORT_URI_PREFIX + "/handler-1";
-	public static final String IMPORT_EXTENSION_SCHEMA = IMPORT_URI_PREFIX + "/extension-1.xsd";
-	public static final QName OBJECTCLASS_PROPERTY_NAME = new QName(IMPORT_EXTENSION_SCHEMA,"objectclass");
+	public static final String HANDLER_URI = ImportConstants.IMPORT_URI_PREFIX + "/handler-accounts-resource-1";
 
 	@Autowired(required=true)
 	private ProvisioningService provisioning;
@@ -99,15 +96,15 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 	@Autowired(required=true)
 	private ChangeNotificationDispatcher changeNotificationDispatcher;
 	
-	private Map<Task,ImportFromResourceResultHandler> handlers;
+	private Map<Task,ImportAccountsFromResourceResultHandler> handlers;
 	private PropertyDefinition objectclassPropertyDefinition;
 	
-	private static final Trace logger = TraceManager.getTrace(ImportFromResourceTaskHandler.class);
+	private static final Trace logger = TraceManager.getTrace(ImportAccountsFromResourceTaskHandler.class);
 	
-	public ImportFromResourceTaskHandler() {
+	public ImportAccountsFromResourceTaskHandler() {
 		super();
-		handlers = new HashMap<Task, ImportFromResourceResultHandler>();
-		objectclassPropertyDefinition = new PropertyDefinition(OBJECTCLASS_PROPERTY_NAME, SchemaConstants.XSD_QNAME);
+		handlers = new HashMap<Task, ImportAccountsFromResourceResultHandler>();
+		objectclassPropertyDefinition = new PropertyDefinition(ImportConstants.OBJECTCLASS_PROPERTY_NAME, SchemaConstants.XSD_QNAME);
 	}
 
 	@PostConstruct
@@ -127,7 +124,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 				
 		logger.debug("Launching import from resource {}",ObjectTypeUtil.toShortString(resource));
 		
-		OperationResult result = parentResult.createSubresult(ImportFromResourceTaskHandler.class.getName()+".launch");
+		OperationResult result = parentResult.createSubresult(ImportAccountsFromResourceTaskHandler.class.getName()+".launch");
 		result.addParam("resource", resource);
 		result.addParam("objectclass",objectclass);
 		// TODO
@@ -178,7 +175,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		
 		// This is an operation result for the entire import task. Therefore use the constant for
 		// operation name.
-		OperationResult opResult = task.getResult().createSubresult(OperationConstants.IMPORT_FROM_RESOURCE);
+		OperationResult opResult = task.getResult().createSubresult(OperationConstants.IMPORT_ACCOUNTS_FROM_RESOURCE);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
 		runResult.setProgress(0);
@@ -225,7 +222,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		}
 		
 		// Determine object class to import
-		Property objectclassProperty = task.getExtension(OBJECTCLASS_PROPERTY_NAME);
+		Property objectclassProperty = task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
 		if (objectclassProperty == null) {
 			logger.error("Import: No objectclass specified");
 			opResult.recordFatalError("No objectclass specified");
@@ -242,7 +239,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
 		}
 		
 		// Instantiate result handler. This will be called with every search result in the following iterative search
-		ImportFromResourceResultHandler handler = new ImportFromResourceResultHandler(resource,task,changeNotificationDispatcher);
+		ImportAccountsFromResourceResultHandler handler = new ImportAccountsFromResourceResultHandler(resource,task,changeNotificationDispatcher);
 		
 		// TODO: error checking - already running
 		handlers.put(task, handler);
@@ -314,7 +311,7 @@ public class ImportFromResourceTaskHandler implements TaskHandler {
         return query;
 	}
 	
-	private ImportFromResourceResultHandler getHandler(Task task) {
+	private ImportAccountsFromResourceResultHandler getHandler(Task task) {
 		return handlers.get(task);
 	}
 
