@@ -227,4 +227,14 @@ public class TaskItem implements Serializable {
 		this.binding = binding;
 	}
 
+	public void setExecutionStatus(TaskItemExecutionStatus executionStatus) {
+		this.executionStatus = executionStatus;
+	}
+
+	public void setExclusivityStatus(TaskItemExclusivityStatus exclusivityStatus) {
+		this.exclusivityStatus = exclusivityStatus;
+	}
+	
+	
+
 }

@@ -20,29 +20,64 @@
 				<ice:outputLabel value="Name: ">
 					<span style="color: red;">*</span>
 				</ice:outputLabel>
-				<ice:inputText id="name" value="#{taskAdd.task.name}" required="true"
-					requiredMessage="#{msg['page.jsf.field.required']}" />
+				<ice:inputText id="name" value="#{taskAdd.task.name}"
+					required="true" requiredMessage="#{msg['page.jsf.field.required']}" />
 				<ice:message for="name" errorClass="error" />
 
 				<ice:outputLabel value="Handler uri: ">
 					<span style="color: red;">*</span>
 				</ice:outputLabel>
-				<ice:inputText id="handlerUri" value="#{taskAdd.task.handlerUri}" required="true"
-					requiredMessage="#{msg['page.jsf.field.required']}" />
+				<ice:inputText id="handlerUri" value="#{taskAdd.task.handlerUri}"
+					required="true" requiredMessage="#{msg['page.jsf.field.required']}"
+					disabled="true" style="min-width: 300px; width: auto" />
 				<ice:message for="handlerUri" errorClass="error" />
 
 				<ice:outputLabel value="Object ref: ">
 					<span style="color: red;">*</span>
 				</ice:outputLabel>
-				<ice:inputText id="objectRef" value="#{taskAdd.task.objectRef}" required="true"
-					requiredMessage="#{msg['page.jsf.field.required']}" />
-				<ice:message for="objectRef" errorClass="error" />
+				<ice:selectOneMenu id="objectRef"
+					value="#{taskAdd.selectedResurceRef}"
+					style="min-width: 157px; width: auto;">
+					<f:selectItems id="objectRefSelected"
+						value="#{taskAdd.resourceRefList}" />
+				</ice:selectOneMenu>
+				<ice:message for="handlerUri" errorClass="error" />
+
+				<ice:outputText value="Exclusivity status" />
+				<ice:selectOneListbox id="exclusivityStatus"
+					value="#{taskAdd.task.exclusivityStatus}"
+					style="min-width: 157px; width: auto;">
+					<f:selectItems id="exclusivityStatusSelected"
+						value="#{taskAdd.exclusivityStatus}" />
+				</ice:selectOneListbox>
+				<ice:message for="handlerUri" errorClass="error" />
+
+				<ice:outputText value="Exclusivity status" />
+				<ice:selectOneListbox id="executionStatus"
+					value="#{taskAdd.task.executionStatus}"
+					style="min-width: 157px; width: auto;">
+					<f:selectItems id="executionStatusSelected"
+						value="#{taskAdd.executionStatus}" />
+				</ice:selectOneListbox>
+				<ice:message for="handlerUri" errorClass="error" />
+				
+				<ice:outputText value="Recurrence status" />
+				<ice:selectOneListbox id="recurrenceStatus"
+					value="#{taskAdd.task.recurrenceStatus}"
+					style="min-width: 157px; width: auto;">
+					<f:selectItems id="recurrenceStatusSelected"
+						value="#{taskAdd.recurrenceStatus}" />
+				</ice:selectOneListbox>
+				<ice:message for="handlerUri" errorClass="error" />
+
 				<ice:outputLabel value="Schedule interval: ">
 					<span style="color: red;">*</span>
 				</ice:outputLabel>
-				<ice:inputText id="scheduleInterval" value="#{taskAdd.task.scheduleInterval}" required="true"
+				<ice:inputText id="scheduleInterval"
+					value="#{taskAdd.task.scheduleInterval}" required="true"
 					requiredMessage="#{msg['page.jsf.field.required']}" />
 				<ice:message for="scheduleInterval" errorClass="error" />
+				<ice:message for="handlerUri" errorClass="error" />
 
 			</ice:panelGrid>
 			<div class="button-bar">
@@ -51,7 +86,8 @@
 					id="addTask" action="#{taskAdd.addTask}" />
 				<idm:button value="Import task"
 					img="/resources/images/drive_burn.png" id="importTask"
-					immediate="true" action="/config/import" actionListener="#{taskAdd.importTask}"/>
+					immediate="true" action="/config/import"
+					actionListener="#{taskAdd.importTask}" />
 
 
 			</div>

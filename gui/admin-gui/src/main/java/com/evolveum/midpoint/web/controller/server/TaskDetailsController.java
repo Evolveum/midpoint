@@ -40,8 +40,10 @@ public class TaskDetailsController implements Serializable {
 
 	public void createInstance() {
 
-		// taskManager.createTaskInstance(taskType);
+		 taskManager.createTaskInstance(task.toTaskType());
+		 FacesUtils.addSuccessMessage("Task instance created sucessfully");
 	}
+
 
 	public TaskManager getTaskManager() {
 		return taskManager;

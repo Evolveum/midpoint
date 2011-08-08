@@ -40,6 +40,7 @@ public class TaskListController extends ListController<TaskItem>{
 	private boolean activated;
 
 	public static final String PAGE_NAVIGATION = "/server/index?faces-redirect=true";
+	public static final String PAGE_LEFT_NAVIGATION = "leftRunnableTasks";
 	private static final String PARAM_TASK_OID = "taskOid";
 	
 	public TaskListController() {
