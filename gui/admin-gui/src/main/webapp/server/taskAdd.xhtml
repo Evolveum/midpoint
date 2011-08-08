@@ -36,10 +36,10 @@
 					<span style="color: red;">*</span>
 				</ice:outputLabel>
 				<ice:selectOneMenu id="objectRef"
-					value="#{taskAdd.selectedResurceRef}"
+					value="#{taskAdd.itemController.selectedResurceRef}"
 					style="min-width: 157px; width: auto;">
 					<f:selectItems id="objectRefSelected"
-						value="#{taskAdd.resourceRefList}" />
+						value="#{taskAdd.itemController.resourceRefList}" />
 				</ice:selectOneMenu>
 				<ice:message for="handlerUri" errorClass="error" />
 
@@ -48,29 +48,19 @@
 					value="#{taskAdd.task.exclusivityStatus}"
 					style="min-width: 157px; width: auto;">
 					<f:selectItems id="exclusivityStatusSelected"
-						value="#{taskAdd.exclusivityStatus}" />
+						value="#{taskAdd.itemController.exclusivityStatus}" />
 				</ice:selectOneListbox>
 				<ice:message for="handlerUri" errorClass="error" />
 
-				<ice:outputText value="Exclusivity status" />
+				<ice:outputText value="Execution status" />
 				<ice:selectOneListbox id="executionStatus"
 					value="#{taskAdd.task.executionStatus}"
 					style="min-width: 157px; width: auto;">
 					<f:selectItems id="executionStatusSelected"
-						value="#{taskAdd.executionStatus}" />
+						value="#{taskAdd.itemController.executionStatus}" />
 				</ice:selectOneListbox>
 				<ice:message for="handlerUri" errorClass="error" />
 
-				<ui:remove>
-					<ice:outputText value="Recurrence status" />
-					<ice:selectOneListbox id="recurrenceStatus"
-						value="#{taskAdd.task.recurrenceStatus}"
-						style="min-width: 157px; width: auto;">
-						<f:selectItems id="recurrenceStatusSelected"
-							value="#{taskAdd.recurrenceStatus}" />
-					</ice:selectOneListbox>
-					<ice:message for="handlerUri" errorClass="error" />
-				</ui:remove>
 
 				<ice:outputLabel value="Schedule interval: ">
 					<span style="color: red;">*</span>
