@@ -246,6 +246,7 @@ public class UserDetailsController implements Serializable {
 			// operation
 			// deleted account are removed from the current user
 			TRACE.debug("Start processing of deleted accounts");
+			List<AccountShadowType> accountsToDelete = new ArrayList<AccountShadowType>();
 			for (AccountFormBean formBean : accountListDeleted) {
 				String oidToDelete = formBean.getAccount().getOid();
 				TRACE.debug(
@@ -259,6 +260,7 @@ public class UserDetailsController implements Serializable {
 					AccountShadowType account = i.next();
 					if (StringUtils.equals(oidToDelete, account.getOid())) {
 						i.remove();
+						accountsToDelete.add(account);
 						break;
 					}
 				}
@@ -271,22 +273,8 @@ public class UserDetailsController implements Serializable {
 
 			//now we need to delete accounts from repository and also from external systems..
 			TRACE.debug("Start processing of deleted accounts");
-			for (AccountFormBean formBean : accountListDeleted) {
-				String oidToDelete = formBean.getAccount().getOid();
-				TRACE.debug(
-						"Following account is marked as candidate for delete in GUI: {}",
-						DebugUtil.prettyPrint(formBean.getAccount()
-								.getXmlObject()));
-				List<AccountShadowType> accounts = ((UserType) user
-						.getXmlObject()).getAccount();
-				for (Iterator<AccountShadowType> i = accounts.iterator(); i
-						.hasNext();) {
-					AccountShadowType account = i.next();
-					if (StringUtils.equals(oidToDelete, account.getOid())) {
-						accountManager.delete(account.getOid());
-						break;
-					}
-				}
+			for (AccountShadowType account : accountsToDelete){
+				accountManager.delete(account.getOid());
 			}
 			TRACE.debug("Finished processing of deleted accounts");
 
