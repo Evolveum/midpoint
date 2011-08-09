@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!--                                                         -->
+
+<!-- Import test file with references between objects -->
+
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+	
+	<!-- should be "connector" instead of "object". But !@#@#!!!! Metro JAXB ignores it. -->
+	<object xsi:type="ConnectorType">
+	   <name>ICF org.identityconnectors.ldap.LdapConnector</name>
+	   <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
+	   <connectorVersion>1.0.5531</connectorVersion>
+	   <namespace>http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector</namespace>
+	</object>
+
+	<resource>
+		<name>Sample Resource</name>
+		<connectorRef type="ConnectorType">
+			<query>
+		      <and>
+		        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+		          <equal>
+		            <value>
+		                <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
+		            </value>
+		          </equal>
+		          <equal>
+		            <value>
+		                <connectorVersion>1.0.5531</connectorVersion>
+		            </value>
+		          </equal>
+		      </and>
+		    </query>
+		</connectorRef>
+		<namespace>http://foo.bar.com/</namespace>
+	</resource>
+
+	<user>
+        <name>jack</name>
+        <extension>
+            <piracy:ship>Black Pearl</piracy:ship>
+        </extension>
+        <fullName>Cpt. Jack Sparrow</fullName>
+        <givenName>Jack</givenName>
+        <familyName>Sparrow</familyName>
+        <honorificPrefix>Cpt.</honorificPrefix>
+    </user>
+
+</objects>

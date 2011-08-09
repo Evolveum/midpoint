@@ -546,17 +546,29 @@
 				Reference to an object. It contains OID of the
 				object that it
 				refers to.
-
-				Question/idea: do we need
-				to put
-				target type
-				there as well?
-				E.g. for use in "resolve" XPaths?
-				What about type
-				hierarchy?
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:attribute name="oid" type="xsd:string"/>
+		<xsd:sequence>
+			<xsd:element ref="tns:filter" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Filter that can be used to dynamically lookup the reference OID e.g. during imports.
+						It must not be used for normal operations and references with the filter must not
+						be stored in the repository.  
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="oid" type="xsd:string" use="optional">
+			<xsd:annotation>
+				<xsd:documentation>
+					Target of the reference.
+					
+					Optional only during imports. The objects stored in the repository must have the OID
+					value filled in.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
 		<xsd:attribute name="type" type="xsd:QName" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -4462,6 +4474,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
+	<xsd:element name="connector" type="tns:ConnectorType"/>
 
 	<xsd:complexType name="ConnectorHostType">
 		<xsd:annotation>
@@ -4514,6 +4527,8 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
+	
+	<xsd:element name="connectorHost" type="tns:ConnectorHostType"/>
 
 
 	<xsd:complexType name="ResourceObjectShadowType">

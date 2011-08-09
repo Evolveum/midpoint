@@ -21,9 +21,14 @@
 package com.evolveum.midpoint.model.importer;
 
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationConstants;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
@@ -35,7 +40,10 @@ import com.evolveum.midpoint.validator.ObjectHandler;
 import com.evolveum.midpoint.validator.ValidationMessage;
 import com.evolveum.midpoint.validator.ValidationMessage.Type;
 import com.evolveum.midpoint.validator.Validator;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 
 /**
  * Extension of validator used to import objects to the repository.
@@ -59,16 +67,18 @@ public class ObjectImporter {
 				@Override
 				public void handleObject(ObjectType object, List<ValidationMessage> objectErrors) {
 	
+					logger.debug("Starting import of object {}",ObjectTypeUtil.toShortString(object));
+					
 					OperationResult result = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
 					// TODO: params, context
 					
-					boolean shouldContinue = applyValidationMessages(objectErrors, object,result);
+					applyValidationMessages(objectErrors, object,result);
 					
-					if (shouldContinue) {
+					if (result.isAcceptable()) {
 						
-						shouldContinue = resolveReferences(object,repository,result);
+						resolveReferences(object,repository,result);
 					
-						if (shouldContinue) {
+						if (result.isAcceptable()) {
 							try {
 					
 								repository.addObject(object, result);
@@ -94,26 +104,109 @@ public class ObjectImporter {
 				
 			});
 		
+		validator.setVerbose(true);
+		
 		List<ValidationMessage> messages = validator.validate(input);
+		
+		for (ValidationMessage message: messages) {
+			if (message.getType() == Type.ERROR) {
+				logger.error("Import: {}",message);
+			} else {
+				logger.warn("Import: {}",message);
+			}
+		}
+		
+		applyValidationMessages(messages, null, parentResult);
 	}
 
-	protected static boolean resolveReferences(ObjectType object, RepositoryService repository, OperationResult result) {
-		// TODO Auto-generated method stub
-		return true;
+	protected static void resolveReferences(ObjectType object, RepositoryService repository, OperationResult result) {
+		// We need to look up all object references. Probably the only efficient way to do it is to use reflection.
+		Class type = object.getClass();
+		Method[] methods = type.getMethods();
+		for(int i=0;i<=methods.length;i++) {
+			Method method = methods[i];
+			Class returnType = method.getReturnType();
+			if (ObjectReferenceType.class.isAssignableFrom(returnType)) {
+				// we have a method that returns ObjectReferenceType, try to resolve it.
+				if (method.getName().startsWith("get")) {
+					String suffix = method.getName().substring(3);
+					String propName = suffix.substring(0, 1).toLowerCase()+suffix.substring(1);
+					try {
+						Object returnVal = method.invoke(object);
+						ObjectReferenceType ref = (ObjectReferenceType) returnVal;
+						resolveRef(ref, propName, repository, result);
+						if (!result.isAcceptable()) {
+							return;
+						}
+					} catch (IllegalArgumentException e) {
+						// Should not happen, getters have no arguments
+						result.recordFatalError("Cannot invoke getter "+method.getName()+" due to IllegalArgumentException",e);
+						return;
+					} catch (IllegalAccessException e) {
+						// Should not happen, getters have no arguments
+						result.recordFatalError("Cannot invoke getter "+method.getName()+" due to IllegalAccessException",e);
+						return;
+					} catch (InvocationTargetException e) {
+						// Should not happen, getters have no arguments
+						result.recordFatalError("Cannot invoke getter "+method.getName()+" due to InvocationTargetException",e);
+						return;
+					}
+				}
+			}
+		}
 	}
 
-	protected static boolean applyValidationMessages(List<ValidationMessage> objectErrors, ObjectType object, OperationResult result) {
-		boolean shouldContinue = true;
+	private static void resolveRef(ObjectReferenceType ref, String propName, RepositoryService repository, OperationResult result) {
+		Element filter = ref.getFilter();
+		if (ref.getOid()!=null && !ref.getOid().isEmpty()) {
+			// We have OID
+			if (filter!=null) {
+				// We have both filter and OID. We will choose OID, but let's at least log a warning
+				result.appendDetail("Both OID and filter for property "+propName);
+				result.recordPartialError("Both OID and filter for property "+propName);
+				ref.setFilter(null);
+			}
+			// Nothing to resolve
+			return;
+		}
+		if (filter==null) {
+			// No OID and no filter. We are lost.
+			result.recordFatalError("Neither OID nor filter for property "+propName+": cannot resolve reference");
+			return;
+		}
+		// No OID and we have filter. Let's do resolving
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+		ObjectListType objects = null;
+		try {
+			objects = repository.searchObjects(query, null, result);
+		} catch (SchemaException e) {
+			// This is unexpected, but may happen. Record fatal error
+			result.recordFatalError("Repository schema error during resolution of reference "+propName,e);
+			return;
+		}
+		if (objects.getObject().isEmpty()) {
+			result.recordFatalError("Repository reference "+propName+" cannot be resolved: filter matches no object");
+			return;
+		}
+		if (objects.getObject().size()>1) {
+			result.recordFatalError("Repository reference "+propName+" cannot be resolved: filter matches "+objects.getObject().size()+" objects");
+			return;
+		}
+		// Bingo. We have exactly one object.
+		String oid = objects.getObject().get(0).getOid();
+		ref.setOid(oid);
+	}
+
+	protected static void applyValidationMessages(List<ValidationMessage> objectErrors, ObjectType object, OperationResult result) {
 		for (ValidationMessage message: objectErrors) {
 			if (message.getType() == Type.ERROR) {
 				result.recordFatalError(message.toString());
 				result.appendDetail(message.toString());
-				shouldContinue = false;
 			} else {
 				result.recordPartialError(message.toString());
 				result.appendDetail(message.toString());
 			}
 		}
-		return shouldContinue;
 	}
 }

@@ -37,6 +37,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
@@ -102,6 +103,9 @@ public class SimpleUcfTest {
 			assertNotNull(connector.getName());
 			System.out.println("CONNECTOR OID=" + connector.getOid() + ", name=" + connector.getName()
 					+ ", version=" + connector.getConnectorVersion());
+			System.out.println("--");
+			System.out.println(ObjectTypeUtil.dump(connector));
+			System.out.println("--");
 		}
 
 	}
