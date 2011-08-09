@@ -61,25 +61,25 @@
 					<ice:outputLabel value="Execusion status" />
 					<ice:outputText value="#{taskDetails.task.executionStatus}"
 						rendered="#{not taskDetails.editMode}" />
-						<ice:panelGrid rendered="#{taskDetails.editMode}">
-					<ice:selectOneListbox id="executionStatus" partialSubmit="true"
-						value="#{taskDetails.task.executionStatus}"	
-						style="min-width: 157px; width: auto;">
-						<f:selectItems id="executionStatusSelected"
-							value="#{taskDetails.itemController.executionStatus}" />
-					</ice:selectOneListbox>
+					<ice:panelGrid rendered="#{taskDetails.editMode}">
+						<ice:selectOneListbox id="executionStatus" partialSubmit="true"
+							value="#{taskDetails.task.executionStatus}"
+							style="min-width: 157px; width: auto;">
+							<f:selectItems id="executionStatusSelected"
+								value="#{taskDetails.itemController.executionStatus}" />
+						</ice:selectOneListbox>
 					</ice:panelGrid>
 
 					<ice:outputLabel value="Exclusivity status" />
 					<ice:outputText value="#{taskDetails.task.exclusivityStatus}"
 						rendered="#{not taskDetails.editMode}" />
-						<ice:panelGrid rendered="#{taskDetails.editMode}">
-					<ice:selectOneListbox id="exclusivityStatus" partialSubmit="true"
-						value="#{taskDetails.task.exclusivityStatus}"
-						style="min-width: 157px; width: auto;">
-						<f:selectItems id="exclusivityStatusSelected"
-							value="#{taskDetails.itemController.exclusivityStatus}" />
-					</ice:selectOneListbox>
+					<ice:panelGrid rendered="#{taskDetails.editMode}">
+						<ice:selectOneListbox id="exclusivityStatus" partialSubmit="true"
+							value="#{taskDetails.task.exclusivityStatus}"
+							style="min-width: 157px; width: auto;">
+							<f:selectItems id="exclusivityStatusSelected"
+								value="#{taskDetails.itemController.exclusivityStatus}" />
+						</ice:selectOneListbox>
 					</ice:panelGrid>
 
 					<ice:outputLabel value="Schedule interval" />
@@ -102,6 +102,15 @@
 					img="/resources/images/drive_burn.png" id="deleteTask"
 					rendered="#{not taskDetails.editMode}" immediate="true"
 					action="#{taskList.deleteTask}" />
+				<idm:button value="Release task"
+					img="/resources/images/drive_burn.png" id="releaseTask"
+					rendered="#{not taskDetails.editMode}" immediate="true"
+					action="#{taskList.listFirst}" actionListener="#{taskDetails.releaseTask}"/>
+					
+				<idm:button value="Claim task"
+					img="/resources/images/drive_burn.png" id="claimTask"
+					rendered="#{not taskDetails.editMode}" immediate="true"
+					action="#{taskList.listFirst}" actionListener="#{taskDetails.claimTask}" />
 				<idm:button value="Save changes"
 					img="/resources/images/drive_burn.png" id="saveChanges"
 					rendered="#{taskDetails.editMode}" immediate="true"

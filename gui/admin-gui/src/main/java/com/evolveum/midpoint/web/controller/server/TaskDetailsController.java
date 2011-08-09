@@ -2,6 +2,8 @@ package com.evolveum.midpoint.web.controller.server;
 
 import java.io.Serializable;
 
+import javax.faces.event.ActionEvent;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
@@ -9,9 +11,11 @@ import org.springframework.stereotype.Controller;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.bean.TaskItem;
 import com.evolveum.midpoint.web.bean.TaskItemExclusivityStatus;
@@ -102,7 +106,50 @@ public class TaskDetailsController implements Serializable {
 			return;
 		}
 		editMode = false;
+	}
 
+	public void releaseTask(ActionEvent evt) {
+
+		//TODO: check on input values
+		//TODO: error handling
+		OperationResult result = new OperationResult(
+				TaskDetailsController.class.getName() + ".releaseTask");
+		try {
+			Task taskToRelease = taskManager.getTask(task.getOid(), result);
+			
+			taskManager.releaseTask(taskToRelease, result);
+			FacesUtils.addSuccessMessage("Task released sucessfully");
+		} catch (SchemaException ex) {
+			FacesUtils.addErrorMessage(
+					"Failed to release task. Reason: " + ex.getMessage(), ex);
+			return;
+		} catch (ObjectNotFoundException ex) {
+			FacesUtils.addErrorMessage(
+					"Failed to release task. Reason: " + ex.getMessage(), ex);
+			return;
+		}
+	}
+	
+	public void claimTask(ActionEvent evt){
+		OperationResult result = new OperationResult(
+				TaskDetailsController.class.getName() + ".claimTask");
+		try{
+		Task taskToClaim = taskManager.getTask(task.getOid(), result);
+		taskManager.claimTask(taskToClaim, result);
+		FacesUtils.addSuccessMessage("Task claimed successfully.");
+		} catch (ObjectNotFoundException ex){
+			FacesUtils.addErrorMessage(
+					"Failed to claim task. Reason: " + ex.getMessage(), ex);
+			return;
+		} catch (SchemaException ex){
+			FacesUtils.addErrorMessage(
+					"Failed to claim task. Reason: " + ex.getMessage(), ex);
+			return;
+		} catch (ConcurrencyException ex){
+			FacesUtils.addErrorMessage(
+					"Failed to claim task. Reason: " + ex.getMessage(), ex);
+			return;
+		}
 	}
 
 	public boolean isEditMode() {
