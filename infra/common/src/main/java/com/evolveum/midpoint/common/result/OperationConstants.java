@@ -32,5 +32,6 @@ public class OperationConstants {
 	
 	public static final String IMPORT_ACCOUNTS_FROM_RESOURCE = PREFIX + ".import.accountsFromResource";
 	public static final String IMPORT_OBJECTS_FROM_FILE = PREFIX + ".import.objectsFromFile";
+	public static final String IMPORT_OBJECTS_FROM_STREAM = PREFIX + ".import.objectsFromStream";
 	public static final String IMPORT_OBJECT = PREFIX + ".import.object";
 }

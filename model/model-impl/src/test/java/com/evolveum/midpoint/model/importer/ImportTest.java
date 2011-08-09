@@ -85,6 +85,7 @@ public class ImportTest {
 	
 	@Test
 	public void test001GoodImport() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
+		displayTestTile("test001GoodImport");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportTest.class.getName()+"test001GoodImport");
@@ -132,6 +133,7 @@ public class ImportTest {
 	// Import the same thing again. Watch how it burns :-)
 	@Test
 	public void test002DupicateImport() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
+		displayTestTile("test002DupicateImport");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportTest.class.getName()+"test002DupicateImport");
@@ -144,6 +146,12 @@ public class ImportTest {
 		result.computeStatus();
 		display("Result after dupicate import",result);
 		assertFalse("Unexpected success",result.isSuccess());
+		
+		// All three users should fail. First two because of OID conflict, guybrush because of name conflict
+		// (nobody else could have such a stupid name)
+		for (OperationResult subresult : result.getSubresults().get(0).getSubresults()) {
+			assertFalse("Unexpected success in subresult",subresult.isSuccess());
+		}
 		        
 	}
 
