@@ -18,10 +18,12 @@
 		<ice:form>
 			<div class="button-bar">
 
-				<idm:button value="Edit task" img="/resources/images/drive_burn.png"
+				<idm:button value="Edit task" img="/resources/images/application_edit.png"
 					id="editTask" immediate="true"
 					action="#{taskDetails.editPerformed}"
 					rendered="#{not taskDetails.editMode}" />
+					<idm:button action="/server/index" rendered="#{not taskDetails.editMode}"
+					value="#{msg['page.account.detail.button.back']}" img="/resources/images/door_in.png" />
 
 			</div>
 			<ice:panelGroup>
@@ -127,26 +129,30 @@
 			<div class="button-bar">
 
 				<idm:button value="Create task instance"
-					img="/resources/images/drive_burn.png" id="createTaskInstance"
+					img="/resources/images/application_double.png" id="createTaskInstance"
 					rendered="#{not taskDetails.editMode}" immediate="true"
 					action="#{taskDetails.createInstance}" />
 				<idm:button value="Delete task"
-					img="/resources/images/drive_burn.png" id="deleteTask"
+					img="/resources/images/application_delete.png" id="deleteTask"
 					rendered="#{not taskDetails.editMode}" immediate="true"
 					action="#{taskList.deleteTask}" />
 				<idm:button value="Release task"
-					img="/resources/images/drive_burn.png" id="releaseTask"
+					img="/resources/images/application_get.png" id="releaseTask"
 					rendered="#{not taskDetails.editMode}" immediate="true"
 					action="#{taskList.listFirst}" actionListener="#{taskDetails.releaseTask}"/>
 					
 				<idm:button value="Claim task"
-					img="/resources/images/drive_burn.png" id="claimTask"
+					img="/resources/images/application_put.png" id="claimTask"
 					rendered="#{not taskDetails.editMode}" immediate="true"
 					action="#{taskList.listFirst}" actionListener="#{taskDetails.claimTask}" />
+					
 				<idm:button value="Save changes"
-					img="/resources/images/drive_burn.png" id="saveChanges"
+					img="/resources/images/application.png" id="saveChanges"
 					rendered="#{taskDetails.editMode}" immediate="true"
 					action="#{taskDetails.savePerformed}" />
+					
+					<idm:button action="#{taskDetails.backPerformed}" rendered="#{taskDetails.editMode}" 
+					value="#{msg['page.account.detail.button.back']}" img="/resources/images/door_in.png" />
 
 			</div>
 		</ice:form>

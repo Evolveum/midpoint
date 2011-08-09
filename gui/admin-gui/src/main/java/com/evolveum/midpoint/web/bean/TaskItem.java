@@ -108,7 +108,9 @@ public class TaskItem implements Serializable {
 				.fromTask(TaskExclusivityStatus.fromTaskType(task
 						.getExclusivityStatus()));
 		this.scheduleInterval = task.getSchedule().getInterval().longValue();
-		this.progress = task.getProgress().intValue();
+		if (task.getProgress() != null) {
+			this.progress = task.getProgress().longValue();
+		}
 		if (task.getResult() != null) {
 			this.result = OperationResult.createOperationResult(task
 					.getResult());
@@ -156,7 +158,9 @@ public class TaskItem implements Serializable {
 				// TODO: error handling
 			}
 		}
-		taskType.setProgress(BigInteger.valueOf(getProgress()));
+	
+			taskType.setProgress(BigInteger.valueOf(getProgress()));
+	
 		return taskType;
 
 	}

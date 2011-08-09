@@ -64,6 +64,12 @@ public class TaskDetailsController implements Serializable {
 		this.itemController = itemController;
 	}
 
+	public String backPerformed(){
+		editMode = false;
+		task = null;
+		return TaskListController.PAGE_NAVIGATION;
+	}
+	
 	public void editPerformed() {
 		itemController.setResourceRefList(itemController.createResourceList());
 		itemController.setExclusivityStatus(TaskItemExclusivityStatus.values());

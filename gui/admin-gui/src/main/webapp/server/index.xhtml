@@ -37,19 +37,19 @@
 			<div class="button-bar">
 
 				<idm:button value="Deactivate"
-					img="/resources/images/drive_burn.png"
+					img="/resources/images/link_break.png"
 					id="deactivateServiceThreads" immediate="true"
 					rendered="#{taskList.activated}" action="#{taskList.deactivate}" />
 				<idm:button value="Reactivate"
-					img="/resources/images/drive_burn.png"
+					img="/resources/images/link_go.png"
 					id="reactivateServiceThreads" immediate="true"
 					rendered="#{not taskList.activated}"
 					action="#{taskList.reactivate}" />
 				<idm:button value="List running tasks"
-					img="/resources/images/drive_burn.png" id="runningTasks"
+					img="/resources/images/application_view_list.png" id="runningTasks"
 					immediate="true" action="#{taskList.listRunningTasks}" />
 				<idm:button value="List all tasks"
-					img="/resources/images/drive_burn.png" id="allTasks"
+					img="/resources/images/application_view_list.png" id="allTasks"
 					immediate="true" action="#{taskList.listFirst}" />
 
 
