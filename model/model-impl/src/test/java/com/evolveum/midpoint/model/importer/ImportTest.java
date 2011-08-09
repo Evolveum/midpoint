@@ -21,9 +21,7 @@
 package com.evolveum.midpoint.model.importer;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -86,10 +84,10 @@ public class ImportTest {
 	}
 	
 	@Test
-	public void test001ForegroundImport() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
+	public void test001GoodImport() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
-		OperationResult result = new OperationResult(ImportTest.class.getName()+"test001ForegroundImport");
+		OperationResult result = new OperationResult(ImportTest.class.getName()+"test001GoodImport");
 		FileInputStream stream = new FileInputStream(IMPORT_FILE_NAME);
 		
 		// WHEN
@@ -97,7 +95,7 @@ public class ImportTest {
 		
 		// THEN
 		result.computeStatus();
-		display("Result after import",result);
+		display("Result after good import",result);
 		assertSuccess("Import has failed (result)", result);
 		
 		// Check import with fixed OID
@@ -106,7 +104,7 @@ public class ImportTest {
 		assertNotNull(jack);
 		assertEquals("Jack",jack.getGivenName());
 		assertEquals("Sparrow",jack.getFamilyName());
-		assertEquals("Jack Sparrow",jack.getFullName());
+		assertEquals("Cpt. Jack Sparrow",jack.getFullName());
 		
 		// Check import with generated OID
 		Document doc = DOMUtil.getDocument();
@@ -130,5 +128,23 @@ public class ImportTest {
 		assertEquals("Guybrush Threepwood",guybrush.getFullName());
         
 	}
-	
+
+	// Import the same thing again. Watch how it burns :-)
+	@Test
+	public void test002DupicateImport() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
+		// GIVEN
+		Task task = taskManager.createTaskInstance();
+		OperationResult result = new OperationResult(ImportTest.class.getName()+"test002DupicateImport");
+		FileInputStream stream = new FileInputStream(IMPORT_FILE_NAME);
+		
+		// WHEN
+		modelService.importObjectsFromStream(stream, task, result);
+		
+		// THEN
+		result.computeStatus();
+		display("Result after dupicate import",result);
+		assertFalse("Unexpected success",result.isSuccess());
+		        
+	}
+
 }
