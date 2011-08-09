@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.validator.ObjectHandler;
 import com.evolveum.midpoint.validator.ValidationMessage;
 import com.evolveum.midpoint.validator.ValidationMessage.Type;
@@ -123,7 +125,7 @@ public class ObjectImporter {
 		// We need to look up all object references. Probably the only efficient way to do it is to use reflection.
 		Class type = object.getClass();
 		Method[] methods = type.getMethods();
-		for(int i=0;i<=methods.length;i++) {
+		for(int i=0;i<methods.length;i++) {
 			Method method = methods[i];
 			Class returnType = method.getReturnType();
 			if (ObjectReferenceType.class.isAssignableFrom(returnType)) {
@@ -131,11 +133,13 @@ public class ObjectImporter {
 				if (method.getName().startsWith("get")) {
 					String suffix = method.getName().substring(3);
 					String propName = suffix.substring(0, 1).toLowerCase()+suffix.substring(1);
+					logger.debug("Found reference property {}, method {}",propName,method.getName());
 					try {
 						Object returnVal = method.invoke(object);
 						ObjectReferenceType ref = (ObjectReferenceType) returnVal;
 						resolveRef(ref, propName, repository, result);
 						if (!result.isAcceptable()) {
+							logger.error("Error resolving reference {}: {}",propName,result.getMessage());
 							return;
 						}
 					} catch (IllegalArgumentException e) {
@@ -151,12 +155,17 @@ public class ObjectImporter {
 						result.recordFatalError("Cannot invoke getter "+method.getName()+" due to InvocationTargetException",e);
 						return;
 					}
+					logger.debug("Reference {} processed",propName);
 				}
 			}
 		}
 	}
 
 	private static void resolveRef(ObjectReferenceType ref, String propName, RepositoryService repository, OperationResult result) {
+		if (ref==null) {
+			// Nothing to do
+			return;
+		}
 		Element filter = ref.getFilter();
 		if (ref.getOid()!=null && !ref.getOid().isEmpty()) {
 			// We have OID
@@ -174,12 +183,21 @@ public class ObjectImporter {
 			result.recordFatalError("Neither OID nor filter for property "+propName+": cannot resolve reference");
 			return;
 		}
-		// No OID and we have filter. Let's do resolving
+		// No OID and we have filter. Let's check the filter a bit
+		logger.debug("Resolving using filter {}",DOMUtil.serializeDOMToString(filter));
+		NodeList childNodes = filter.getChildNodes();
+		if(childNodes.getLength()==0) {
+			result.recordFatalError("OID not specified and filter is empty for property "+propName);
+			return;
+		}
+		// Let's do resolving
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 		ObjectListType objects = null;
 		try {
+		
 			objects = repository.searchObjects(query, null, result);
+		
 		} catch (SchemaException e) {
 			// This is unexpected, but may happen. Record fatal error
 			result.recordFatalError("Repository schema error during resolution of reference "+propName,e);
