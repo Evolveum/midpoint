@@ -47,11 +47,10 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -339,6 +338,34 @@ public class RepositorySearchTest {
 			}
 		}
 
+	}
+	
+	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void searchConnectorByType() throws Exception {
+		String userOid = "c0c010c0-d34d-b33f-f00d-111111111111";
+		try {
+			ConnectorType connector = ((JAXBElement<ConnectorType>) JAXBUtil.unmarshal(new File(
+					"src/test/resources/connector.xml"))).getValue();
+			repositoryService.addObject(connector, new OperationResult("test"));
+
+			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
+					"src/test/resources/query-connector-by-type.xml"))).getValue();
+			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
+			assertNotNull(objectList);
+			assertNotNull(objectList.getObject());
+			assertEquals(1, objectList.getObject().size());
+
+			ConnectorType foundConnector = (ConnectorType) objectList.getObject().get(0);
+			assertEquals("ICF org.identityconnectors.ldap.LdapConnector", foundConnector.getName());
+		} finally {
+			// to be sure try to delete the object as part of cleanup
+			try {
+				repositoryService.deleteObject(userOid, new OperationResult("test"));
+			} catch (Exception ex) {
+				// ignore exceptions during cleanup
+			}
+		}
 	}
 
 }

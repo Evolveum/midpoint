@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object xsi:type="ConnectorType" oid="ceef9896-2c11-4eb1-b69a-b16c246cc2a5"
+	xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/model/password-1.wsdl"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<name>ICF org.identityconnectors.ldap.LdapConnector</name>
+	<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
+	<connectorVersion>1.0.5531</connectorVersion>
+	<namespace>http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector</namespace>
+</object>
+
