@@ -48,7 +48,7 @@ public class TaskAddController implements Serializable {
 	@Autowired(required = true)
 	private transient TaskListController taskList;
 	@Autowired(required = true)
-	private TaskItemController itemController;
+	private transient TaskItemController itemController;
 
 	
 

@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.controller.server;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -20,12 +21,12 @@ import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
-
 
 @Controller("taskList")
 @Scope("session")
-public class TaskListController extends ListController<TaskItem>{
+public class TaskListController extends ListController<TaskItem> {
 
 	@Autowired(required = true)
 	private transient TaskManager taskManager;
@@ -34,43 +35,44 @@ public class TaskListController extends ListController<TaskItem>{
 	private TaskItem selectedTask;
 	@Autowired(required = true)
 	private transient RepositoryManager repositoryManager;
-	private boolean listAll=false;
+	private boolean listAll = false;
 
-//	private Set<TaskItem> runningTasks;
+	// private Set<TaskItem> runningTasks;
 	private boolean activated;
 
 	public static final String PAGE_NAVIGATION = "/server/index?faces-redirect=true";
 	public static final String PAGE_LEFT_NAVIGATION = "leftRunnableTasks";
 	private static final String PARAM_TASK_OID = "taskOid";
-	
+
 	public TaskListController() {
 		super();
 	}
 
 	@Override
 	protected String listObjects() {
-		ObjectListType taskTypeList =  repositoryManager.listObjects(TaskType.class, getOffset(), getRowsCount());
+		ObjectListType taskTypeList = repositoryManager.listObjects(
+				TaskType.class, getOffset(), getRowsCount());
 		List<TaskItem> runningTasks = getObjects();
 		runningTasks.clear();
-		for (ObjectType taskType : taskTypeList.getObject()){
+		for (ObjectType taskType : taskTypeList.getObject()) {
 			runningTasks.add(new TaskItem((TaskType) taskType));
 		}
+
 		listAll = false;
-		return PAGE_NAVIGATION;		
+		return PAGE_NAVIGATION;
 	}
-	
-	
-	public String listRunningTasks(){
+
+	public String listRunningTasks() {
 		Set<Task> tasks = taskManager.getRunningTasks();
 		List<TaskItem> runningTasks = getObjects();
 		runningTasks.clear();
-		for (Task task : tasks){
+		for (Task task : tasks) {
 			runningTasks.add(new TaskItem(task));
-		}	
+		}
 		listAll = true;
-		return PAGE_NAVIGATION;		
+		return PAGE_NAVIGATION;
 	}
-	
+
 	private TaskItem getSelectedTaskItem() {
 		String taskOid = FacesUtils.getRequestParameter(PARAM_TASK_OID);
 		if (StringUtils.isEmpty(taskOid)) {
@@ -80,12 +82,14 @@ public class TaskListController extends ListController<TaskItem>{
 
 		TaskItem taskItem = getTaskItem(taskOid);
 		if (StringUtils.isEmpty(taskOid)) {
-			FacesUtils.addErrorMessage("Task for oid '" + taskOid + "' not found.");
+			FacesUtils.addErrorMessage("Task for oid '" + taskOid
+					+ "' not found.");
 			return null;
 		}
 
 		if (taskDetails == null) {
-			FacesUtils.addErrorMessage("Task details controller was not autowired.");
+			FacesUtils
+					.addErrorMessage("Task details controller was not autowired.");
 			return null;
 		}
 
@@ -104,7 +108,6 @@ public class TaskListController extends ListController<TaskItem>{
 
 	public String deleteTask() {
 
-		
 		if (selectedTask.getOid() == null) {
 			FacesUtils.addErrorMessage("No task to delete defined");
 			throw new IllegalArgumentException("No task to delete defined.");
@@ -128,19 +131,41 @@ public class TaskListController extends ListController<TaskItem>{
 
 		return PAGE_NAVIGATION;
 	}
-	
-	public String showTaskDetails(){
+
+	public String showTaskDetails() {
 		selectedTask = getSelectedTaskItem();
 		if (selectedTask == null) {
 			return null;
 		}
 
 		taskDetails.setTask(selectedTask);
-
-//		template.setSelectedLeftId(ResourceDetailsController.NAVIGATION_LEFT);
+		List<OperationResultType> opResultList = new ArrayList<OperationResultType>();
+		if (selectedTask.getResult() != null) {
+			
+			OperationResultType opResultType = selectedTask.getResult()
+					.createOperationResultType();
+			opResultList.add(opResultType);
+			long token = 1220000000000000000L;
+			getResult(opResultType, opResultList, token);
+			taskDetails.setResults(opResultList);
+		} else{
+			taskDetails.setResults(opResultList);
+		}
+		// template.setSelectedLeftId(ResourceDetailsController.NAVIGATION_LEFT);
 		return TaskDetailsController.PAGE_NAVIGATION;
 	}
-	
+
+	public void getResult(OperationResultType opResult,
+			List<OperationResultType> opResultList, long token) {
+
+		for (OperationResultType result : opResult.getPartialResults()) {
+			result.setToken(result.getToken() + token);
+			opResultList.add(result);
+			token += 1110000000000000000L;
+			getResult(result, opResultList, token);
+		}
+
+	}
 
 	public TaskManager getTaskManager() {
 		return taskManager;
@@ -183,7 +208,5 @@ public class TaskListController extends ListController<TaskItem>{
 	public void setListAll(boolean listAll) {
 		this.listAll = listAll;
 	}
-
-	
 
 }

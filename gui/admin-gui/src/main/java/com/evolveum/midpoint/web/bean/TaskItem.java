@@ -6,6 +6,7 @@ import java.math.BigInteger;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -13,11 +14,21 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.ExtensionProcessor;
+import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskBindingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
@@ -39,6 +50,9 @@ public class TaskItem implements Serializable {
 	private TaskItemRecurrenceStatus recurrenceStatus;
 	private Long scheduleInterval;
 	private String binding;
+	private long progress;
+	private OperationResult result;
+	private PropertyContainer extension;
 
 	public TaskItem() {
 
@@ -63,7 +77,14 @@ public class TaskItem implements Serializable {
 		this.exclusivityStatus = TaskItemExclusivityStatus.fromTask(task
 				.getExclusivityStatus());
 		this.scheduleInterval = task.getSchedule().getInterval().longValue();
-		
+
+		this.progress = task.getProgress();
+		if (task.getResult() != null) {
+			this.result = task.getResult();
+		}
+		if (task.getExtension() != null) {
+			this.extension = task.getExtension();
+		}
 		// recurrenceStatus = TaskItemRecurrenceStatus.fromTask(task.get)
 	}
 
@@ -73,10 +94,12 @@ public class TaskItem implements Serializable {
 		this.oid = task.getOid();
 		this.name = task.getName();
 		if (task.getLastRunStartTimestamp() != null) {
-			this.lastRunStartTimestamp =task.getLastRunStartTimestamp().toString();
+			this.lastRunStartTimestamp = task.getLastRunStartTimestamp()
+					.toString();
 		}
 		if (task.getLastRunFinishTimestamp() != null) {
-			this.lastRunFinishTimestamp = task.getLastRunFinishTimestamp().toString();
+			this.lastRunFinishTimestamp = task.getLastRunFinishTimestamp()
+					.toString();
 		}
 		this.executionStatus = TaskItemExecutionStatus
 				.fromTask(TaskExecutionStatus.fromTaskType(task
@@ -85,58 +108,15 @@ public class TaskItem implements Serializable {
 				.fromTask(TaskExclusivityStatus.fromTaskType(task
 						.getExclusivityStatus()));
 		this.scheduleInterval = task.getSchedule().getInterval().longValue();
-	}
-
-	public void setTaskItemExecutionStatus(
-			TaskExecutionStatus taskExecusionStatus) {
-		if (taskExecusionStatus.equals(TaskExecutionStatus.RUNNING)) {
-			executionStatus = TaskItemExecutionStatus.RUNNING;
-			return;
+		this.progress = task.getProgress().intValue();
+		if (task.getResult() != null) {
+			this.result = OperationResult.createOperationResult(task
+					.getResult());
 		}
-		if (taskExecusionStatus.equals(TaskExecutionStatus.WAITING)) {
-			executionStatus = TaskItemExecutionStatus.WAITING;
-			return;
+		if (task.getExtension() != null) {
+			this.extension = ExtensionProcessor.parseExtension(task
+					.getExtension());
 		}
-		if (taskExecusionStatus.equals(TaskExecutionStatus.CLOSED)) {
-			executionStatus = TaskItemExecutionStatus.CLOSED;
-			return;
-		}
-	}
-
-	private TaskExclusivityStatusType getTaskTypeExclusivityStatusType() {
-		if (getExclusivityStatus() == null
-				|| getExclusivityStatus().equals(
-						TaskItemExclusivityStatus.RELEASED)) {
-			return TaskExclusivityStatusType.RELEASED;
-		} else {
-			return TaskExclusivityStatusType.CLAIMED;
-		}
-
-	}
-
-	private TaskExecutionStatusType getTaskTypeExecutionStatusType() {
-		if (getExecutionStatus() == null
-				|| getExecutionStatus().equals(TaskItemExecutionStatus.RUNNING)) {
-			return TaskExecutionStatusType.RUNNING;
-		} else {
-			if (getExecutionStatus().equals(TaskItemExecutionStatus.WAITING)) {
-				return TaskExecutionStatusType.WAITING;
-			} else {
-				return TaskExecutionStatusType.CLOSED;
-			}
-		}
-
-	}
-
-	private TaskRecurrenceType getTaskTypeRecurrenceType() {
-		if (getRecurrenceStatus() == null
-				|| getRecurrenceStatus().equals(TaskRecurrenceType.RECURRING)) {
-			return TaskRecurrenceType.RECURRING;
-		} else {
-			return TaskRecurrenceType.SINGLE;
-
-		}
-
 	}
 
 	public TaskType toTaskType() {
@@ -150,14 +130,33 @@ public class TaskItem implements Serializable {
 		taskType.setObjectRef(ort);
 		taskType.setHandlerUri(getHandlerUri());
 		taskType.setName(getName());
-		taskType.setExclusivityStatus(getTaskTypeExclusivityStatusType());
-		taskType.setExecutionStatus(getTaskTypeExecutionStatusType());
-		taskType.setRecurrence(getTaskTypeRecurrenceType());
+		taskType.setExclusivityStatus(TaskItemExclusivityStatus.toTask(
+				getExclusivityStatus()).toTaskType());
+		taskType.setExecutionStatus(TaskItemExecutionStatus.toTask(
+				getExecutionStatus()).toTaskType());
+
+		taskType.setRecurrence(TaskItemRecurrenceStatus.toTask(
+				getRecurrenceStatus()).toTaskType());
+
 		taskType.setBinding(TaskBindingType.TIGHT);
 		ScheduleType schedule = new ScheduleType();
 		schedule.setInterval(BigInteger.valueOf(getScheduleInterval()));
 		taskType.setSchedule(schedule);
-
+		if (getResult() != null) {
+			taskType.setResult(getResult().createOperationResultType());
+		}
+		if (getExtension() != null) {
+			try {
+				Extension extension = new Extension();
+				List<Element> extensionProperties = getExtension()
+						.serializePropertiesToDom(DOMUtil.getDocument());
+				extension.getAny().addAll(extensionProperties);
+				taskType.setExtension(extension);
+			} catch (SchemaProcessorException ex) {
+				// TODO: error handling
+			}
+		}
+		taskType.setProgress(BigInteger.valueOf(getProgress()));
 		return taskType;
 
 	}
@@ -257,6 +256,30 @@ public class TaskItem implements Serializable {
 
 	public void setExclusivityStatus(TaskItemExclusivityStatus exclusivityStatus) {
 		this.exclusivityStatus = exclusivityStatus;
+	}
+
+	public long getProgress() {
+		return progress;
+	}
+
+	public void setProgress(long progress) {
+		this.progress = progress;
+	}
+
+	public OperationResult getResult() {
+		return result;
+	}
+
+	public void setResult(OperationResult result) {
+		this.result = result;
+	}
+
+	public PropertyContainer getExtension() {
+		return extension;
+	}
+
+	public void setExtension(PropertyContainer extension) {
+		this.extension = extension;
 	}
 
 }

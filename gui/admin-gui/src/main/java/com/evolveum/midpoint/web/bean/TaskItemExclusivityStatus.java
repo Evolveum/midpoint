@@ -29,6 +29,16 @@ public enum TaskItemExclusivityStatus {
 		return null;
 	}
 	
+	public static TaskExclusivityStatus toTask(
+			TaskItemExclusivityStatus exclusivityStatus) {
+		if (exclusivityStatus.equals(TaskItemExclusivityStatus.CLAIMED)) {
+			return TaskExclusivityStatus.CLAIMED;
+		} 
+		if (exclusivityStatus.equals(TaskItemExclusivityStatus.RELEASED)){
+			return TaskExclusivityStatus.RELEASED;
+		}
+		return null;
+	}
 	
 
 }

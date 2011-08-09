@@ -88,8 +88,40 @@
 					<ice:inputText id="scheduleInterval"
 						rendered="#{taskDetails.editMode}"
 						value="#{taskDetails.task.scheduleInterval}" />
+					</ice:panelGrid>	
+						<ice:dataTable id="resultTable" value="#{taskDetails.results}" var="item">
+						<ice:column>
+					<f:facet name="header">
+							<ice:outputText id="token" value="Token" />
+					
+					</f:facet>
+					<ice:outputText value="#{item.token}" />
+				</ice:column>
+						<ice:column>
+					<f:facet name="header">
+							<ice:outputText id="operation" value="Operation" />
+					
+					</f:facet>
+					<ice:outputText value="#{item.operation}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+							<ice:outputText id="status" value="Status" />
+					
+					</f:facet>
+					<ice:outputText value="#{item.status}" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+							<ice:outputText id="message" value="Message" />
+					
+					</f:facet>
+					<ice:outputText value="#{item.message}" />
+				</ice:column>
+						</ice:dataTable>
+						
 
-				</ice:panelGrid>
+				
 
 			</ice:panelGroup>
 			<div class="button-bar">

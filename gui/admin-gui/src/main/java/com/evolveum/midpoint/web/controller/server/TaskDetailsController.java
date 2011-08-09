@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.controller.server;
 import java.io.Serializable;
 
 import javax.faces.event.ActionEvent;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.web.bean.TaskItemExecutionStatus;
 import com.evolveum.midpoint.web.bean.TaskItemRecurrenceStatus;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 @Controller("taskDetails")
@@ -35,9 +37,10 @@ public class TaskDetailsController implements Serializable {
 	@Autowired(required = true)
 	private transient TaskManager taskManager;
 	@Autowired(required = true)
-	private TaskItemController itemController;
+	private transient TaskItemController itemController;
 
 	private boolean editMode = false;
+	private List<OperationResultType> results;
 
 	public TaskDetailsController() {
 
@@ -131,8 +134,10 @@ public class TaskDetailsController implements Serializable {
 	}
 	
 	public void claimTask(ActionEvent evt){
+		
 		OperationResult result = new OperationResult(
 				TaskDetailsController.class.getName() + ".claimTask");
+		
 		try{
 		Task taskToClaim = taskManager.getTask(task.getOid(), result);
 		taskManager.claimTask(taskToClaim, result);
@@ -173,5 +178,15 @@ public class TaskDetailsController implements Serializable {
 	public void setTaskManager(TaskManager taskManager) {
 		this.taskManager = taskManager;
 	}
+
+	public List<OperationResultType> getResults() {
+		return results;
+	}
+
+	public void setResults(List<OperationResultType> results) {
+		this.results = results;
+	}
+	
+	
 
 }

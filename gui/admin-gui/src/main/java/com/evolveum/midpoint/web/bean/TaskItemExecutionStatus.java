@@ -40,4 +40,19 @@ public enum TaskItemExecutionStatus {
 		return null;
 
 	}
+	
+	public static TaskExecutionStatus toTask(TaskItemExecutionStatus executionStatus) {
+		if (executionStatus.equals(TaskItemExecutionStatus.CLOSED)) {
+			return TaskExecutionStatus.CLOSED;
+		}
+		if (executionStatus.equals(TaskItemExecutionStatus.RUNNING)) {
+			return TaskExecutionStatus.RUNNING;
+		}
+		if (executionStatus.equals(TaskItemExecutionStatus.WAITING)) {
+			return TaskExecutionStatus.WAITING;
+		}
+
+		return null;
+
+	}
 }
