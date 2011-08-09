@@ -37,16 +37,14 @@
 	<resource>
 		<name>Sample Resource</name>
 		<connectorRef type="ConnectorType">
-			<filter>
-		      <and>
-		        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
-		        <equal>
-		          <value>
-		              <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-		          </value>
-		        </equal>
-		      </and>
-		    </filter>
+	      <and>
+	        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+	        <equal>
+	          <value>
+	              <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
+	          </value>
+	        </equal>
+	      </and>
 		</connectorRef>
 		<namespace>http://foo.bar.com/</namespace>
 	</resource>
