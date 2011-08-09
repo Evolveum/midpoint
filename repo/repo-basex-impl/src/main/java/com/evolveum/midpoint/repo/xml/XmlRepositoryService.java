@@ -486,7 +486,7 @@ public class XmlRepositoryService implements RepositoryService {
 			query.append("for $x in //c:object ");
 			if (objectType != null
 					|| (null != paging && null != paging.getOffset() && null != paging.getMaxSize())
-					|| filters != null) {
+					|| (filters != null && !filters.isEmpty()) ) {
 				query.append("where ");
 			}
 			if (objectType != null) {
