@@ -227,6 +227,22 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			LOGGER.debug("**PROVISIONING: Get object finished.");
 			
 			return shadow;
+		} else if (repositoryObject instanceof ResourceObjectShadowType) {
+			// Make sure that the object is complete, e.g. there is a (fresh) schema
+			try {
+				ResourceType completeResource = getShadowCache().completeResource((ResourceType)repositoryObject,null,result);
+				result.computeStatus();
+				return completeResource;
+			} catch (ObjectNotFoundException ex) {
+				result.recordFatalError("Resource object not found",ex);
+				throw ex;
+			} catch (SchemaException ex) {
+				result.recordFatalError("Schema violation",ex);
+				throw ex;				
+			} catch (CommunicationException ex) {
+				result.recordFatalError("Error communicating with resource",ex);
+				throw ex;
+			}
 		} else {
 			result.recordSuccess();
 			return repositoryObject;

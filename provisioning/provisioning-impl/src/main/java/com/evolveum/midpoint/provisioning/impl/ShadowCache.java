@@ -86,9 +86,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
+import com.sun.xml.bind.v2.schemagen.xmlschema.SchemaTop;
 
 /**
  * This class manages the "cache" of ResourceObjectShadows in the repository.
@@ -654,8 +656,7 @@ public class ShadowCache {
 		// OperationResult initResult = parentResult
 		// .createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_INIT_OPERATION);
 		OperationResult initResult = parentResult
-				.createSubresult(ConnectorTestOperation.CONNECTION_INITIALIZATION
-						.toString());
+				.createSubresult(ConnectorTestOperation.CONNECTION_INITIALIZATION.getOperation());
 		ConnectorInstance connector;
 		try {
 
@@ -670,7 +671,46 @@ public class ShadowCache {
 		}
 		LOGGER.debug("Testing connection to the resource with oid {}",
 				resourceType.getOid());
+		
+		// delegate the main part of the test to the connector
 		connector.test(parentResult);
+		
+		OperationResult schemaResult = parentResult
+		.createSubresult(ConnectorTestOperation.CONNECTOR_SCHEMA.getOperation());
+		
+		Schema schema = null;
+		try {
+			schema = connector.fetchResourceSchema(schemaResult);
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
+			schemaResult.recordFatalError("Communication error: "+e.getMessage(),e);
+			return;
+		} catch (GenericFrameworkException e) {
+			schemaResult.recordFatalError("Generic error: "+e.getMessage(),e);
+			return;
+		}
+		
+		if (schema==null || schema.isEmpty()) {
+			schemaResult.recordFatalError("Empty schema returned");
+			return;
+		}
+		
+		try {
+			completeResource(resourceType, schema, schemaResult);
+		} catch (ObjectNotFoundException e) {
+			schemaResult.recordFatalError("Object not found (unexpected error, probably a bug): "+e.getMessage(),e);
+			return;
+		} catch (SchemaException e) {
+			schemaResult.recordFatalError("Schema processing error (probably connector bug): "+e.getMessage(),e);
+			return;
+		} catch (CommunicationException e) {
+			schemaResult.recordFatalError("Communication error: "+e.getMessage(),e);
+			return;
+		}
+		
+		schemaResult.recordSuccess();
+		
+		// TODO: connector sanity (e.g. at least one account type, identifiers in schema, etc.)
+		
 	}
 
 	public void searchObjectsIterative(final QName objectClass,
@@ -1482,5 +1522,73 @@ public class ShadowCache {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 		return query;
+	}
+
+	/**
+	 * Make sure that the resource is complete.
+	 * 
+	 * It will check if the resource has a sufficiently fresh schema, etc.
+	 * 
+	 * Returned resource may be the same or may be a different instance, but it
+	 * is guaranteed that it will be "fresher" and will correspond to the repository
+	 * state (assuming that the provided resource also corresponded to the repository state).
+	 * 
+	 * Note: This is not really the best place for this method. Need to figure out correct place later.
+	 * 
+	 * @param resource Resource to check
+	 * @param resourceSchema schema that was freshly pre-fetched (or null)
+	 * @param result completed resource
+	 * @return
+	 * @throws ObjectNotFoundException connector instance was not found  
+	 * @throws SchemaException 
+	 * @throws CommunicationException cannot fetch resource schema
+	 */
+	public ResourceType completeResource(ResourceType resource, Schema resourceSchema, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
+		// Check presence of a schema
+		
+		XmlSchemaType xmlSchemaType = resource.getSchema();
+		if (xmlSchemaType==null) {
+			xmlSchemaType = new XmlSchemaType();
+			resource.setSchema(xmlSchemaType);
+		}
+		Element xsdElement = findXsdElement(xmlSchemaType);
+		
+		if (xsdElement==null) {
+			// There is no schema, we need to pull it from the resource
+			
+			if (resourceSchema==null) {
+				ConnectorInstance connector = getConnectorInstance(resource, result);
+				try {
+					resourceSchema = connector.fetchResourceSchema(result);
+				} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+					throw new CommunicationException("Cannot fetch resource schema: "+ex.getMessage(),ex);
+				} catch (GenericFrameworkException ex) {
+					throw new GenericConnectorException("Generic error in connector "
+							+ connector + ": " + ex.getMessage(), ex);
+				}
+			}
+			Document xsdDoc = null;
+			try {
+				xsdDoc = resourceSchema.serializeToXsd();
+			} catch (SchemaProcessorException e) {
+				throw new SchemaException("Error processing resource schema for "+ObjectTypeUtil.toShortString(resource)+": "+e.getMessage(),e);
+			}
+			xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
+			xmlSchemaType.getAny().add(xsdElement);
+			ObjectModificationType objectModificationType = ObjectTypeUtil.createModificationReplaceProperty(resource.getOid(), SchemaConstants.I_SCHEMA, xmlSchemaType);
+			repositoryService.modifyObject(objectModificationType, result);
+		}
+		
+		return resource;
+	}
+
+	private Element findXsdElement(XmlSchemaType xmlSchemaType) {
+		List<Element> schemaElements = xmlSchemaType.getAny();
+		for (Element e : schemaElements) {
+			if (QNameUtil.compareQName(SchemaConstants.XSD_SCHEMA_ELEMENT, e)) {
+				return e;
+			}
+		}
+		return null;
 	}
 }

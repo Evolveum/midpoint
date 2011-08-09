@@ -19,11 +19,13 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -73,6 +75,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
@@ -170,24 +173,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		assertNotNull(provisioningService);
 
 	}
-
-	private ObjectType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException {
-		File file = new File(filePath);
-		FileInputStream fis = new FileInputStream(file);
-		Object object = unmarshaller.unmarshal(fis);
-		ObjectType objectType = ((JAXBElement<ObjectType>) object).getValue();
-		return objectType;
-	}
-
-	private ObjectType addObjectFromFile(String filePath) throws Exception {
-		ObjectType object = createObjectFromFile(filePath);
-		System.out.println("obj: " + object.getName());
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".addObjectFromFile");
-		repositoryService.addObject(object, result);
-		return object;
-	}
-
+	
 	@After
 	public void shutdownUcf() throws Exception {
 
@@ -206,9 +192,38 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		} catch (Exception e) {
 		}
 	}
+	
+	/**
+	 * This should be the very first executed test.
+	 */
+	@Test
+	public void test000Connection() throws Exception {
+		displayTestTile("test000Connection");
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+"test000Connection");
+		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
+		ResourceType resourceBefore = (ResourceType)object;
+		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
+		assertTrue("Found schema before test connection. Bad test setup?",xmlSchemaTypeBefore.getAny().isEmpty());
+		
+		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID);
+		
+		display("Test connection result",operationResult);
+		assertSuccess("Test connection failed",operationResult);
+
+		object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
+		ResourceType resourceAfter = (ResourceType)object;
+		XmlSchemaType xmlSchemaTypeAfter = resourceAfter.getSchema();
+		assertNotNull("No schema after test connection",xmlSchemaTypeAfter);
+		assertFalse("No schema after test connection",xmlSchemaTypeAfter.getAny().isEmpty());
+
+		display("Generated schema",xmlSchemaTypeBefore.getAny());
+	}
 
 	@Test
 	public void testGetObject() throws Exception {
+		displayTestTile("testGetObject");
+		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".getObjectTest");
 		try {
@@ -256,6 +271,8 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	 */
 	@Test
 	public void testGetObjectNotFoundRepo() throws Exception {
+		displayTestTile("testGetObjectNotFoundRepo");
+		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".getObjectTest");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
@@ -302,6 +319,8 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	 */
 	@Test
 	public void testGetObjectNotFoundResource() throws Exception {
+		displayTestTile("testGetObjectNotFoundResource");
+		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".getObjectTest");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
@@ -344,6 +363,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 	@Test
 	public void testAddObject() throws Exception {
+		displayTestTile("testAddObject");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".addObjectTest");
@@ -390,6 +410,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	
 	@Test
 	public void testAddObjectNull() throws Exception {
+		displayTestTile("testAddObjectNull");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".addObjectTest");
@@ -423,6 +444,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	
 	@Test
 	public void testDeleteObject() throws Exception {
+		displayTestTile("testDeleteObject");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".addObjectTest");
@@ -480,7 +502,8 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 	@Test
 	public void testModifyObject() throws Exception {
-
+		displayTestTile("testModifyObject");
+		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".addObjectTest");
 
@@ -537,6 +560,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 	@Test
 	public void testListObjects() throws Exception {
+		displayTestTile("testListObjects");
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".addObjectTest");
 
@@ -573,17 +597,8 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	}
 
 	@Test
-	public void testConnection() throws Exception {
-
-		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID);
-			System.out.println("OperationResult");
-			// TODO: check return values
-			assertEquals(true, operationResult.isSuccess());
-	
-	}
-
-	@Test
-	public void testSearchObjectsIterative() throws Exception {
+	public void test200SearchObjectsIterative() throws Exception {
+		displayTestTile("test200SearchObjectsIterative");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".searchObjectsIterativeTest");
@@ -642,6 +657,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 	@Test
 	public void testSearchObjects() throws Exception {
+		displayTestTile("testSearchObjects");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".searchObjectsTest");
@@ -689,6 +705,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 	@Test
 	public void testListConnectors(){
+		displayTestTile("testListConnectors");
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".listConnectorsTest");
 		
@@ -702,4 +719,22 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			System.out.println("connector type: "+ ((ConnectorType) objType).getConnectorType());
 		}
 	}
+	
+	private ObjectType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException {
+		File file = new File(filePath);
+		FileInputStream fis = new FileInputStream(file);
+		Object object = unmarshaller.unmarshal(fis);
+		ObjectType objectType = ((JAXBElement<ObjectType>) object).getValue();
+		return objectType;
+	}
+
+	private ObjectType addObjectFromFile(String filePath) throws Exception {
+		ObjectType object = createObjectFromFile(filePath);
+		System.out.println("obj: " + object.getName());
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".addObjectFromFile");
+		repositoryService.addObject(object, result);
+		return object;
+	}
+
 }

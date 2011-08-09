@@ -459,7 +459,7 @@ class SchemaToDomProcessor {
 		cont1.setHelp("help");
 		schema.getDefinitions().add(cont1);
 
-		Document document = Schema.parseSchema(schema);
+		Document document = Schema.serializeToXsd(schema);
 		System.out.println(printDom(document));
 	}
 

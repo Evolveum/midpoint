@@ -216,7 +216,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		
 		System.out.println(schema.debugDump());
 		
-		Document xsdSchema = Schema.parseSchema(schema);
+		Document xsdSchema = Schema.serializeToXsd(schema);
 		
 		System.out.println("-------------------------------------------------------------------------------------");
 		System.out.println(DOMUtil.printDom(xsdSchema));

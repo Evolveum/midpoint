@@ -929,7 +929,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 //		OperationResult connectionResult = parentResult
 //				.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_CONNECTION_OPERATION);
 		OperationResult connectionResult = parentResult
-		.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.toString());
+		.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
 		connectionResult.addContext(
 				OperationResult.CONTEXT_IMPLEMENTATION_CLASS,
 				ConnectorInstance.class);

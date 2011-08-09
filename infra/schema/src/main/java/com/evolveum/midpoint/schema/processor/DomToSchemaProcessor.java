@@ -420,13 +420,13 @@ class DomToSchemaProcessor {
 
 		InputStream stream = new FileInputStream(file);
 		Schema schema = Schema.parse(parseDocument(stream));
-		Document document = Schema.parseSchema(schema);
+		Document document = Schema.serializeToXsd(schema);
 		String str = SchemaToDomProcessor.printDom(document).toString();
 		System.out.println(str);
 		System.out.println("---------------------------");
 		stream = new ByteArrayInputStream(str.getBytes("utf-8"));
 		schema = Schema.parse(parseDocument(stream));
-		document = Schema.parseSchema(schema);
+		document = Schema.serializeToXsd(schema);
 		str = SchemaToDomProcessor.printDom(document).toString();
 		System.out.println(str);
 	}

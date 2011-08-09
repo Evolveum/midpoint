@@ -27,15 +27,26 @@ package com.evolveum.midpoint.schema;
  */
 public enum ConnectorTestOperation {
 
-	CONFIGURATION_VALIDATION,
+	CONFIGURATION_VALIDATION(ConnectorTestOperation.class.getName()+".configurationValidation"),
 	
-	CONNECTION_INITIALIZATION,
+	CONNECTION_INITIALIZATION(ConnectorTestOperation.class.getName()+".connectionInitialization"),
 	
-	CONNECTOR_CONNECTION,
+	CONNECTOR_CONNECTION(ConnectorTestOperation.class.getName()+".connectorConnection"),
 	
-	CONNECTOR_SANITY,
+	CONNECTOR_SANITY(ConnectorTestOperation.class.getName()+".connectorSanity"),
 	
-	CONNECTOR_SCHEMA,
+	CONNECTOR_SCHEMA(ConnectorTestOperation.class.getName()+".connectorSchema"),
 	
-	EXTRA_TEST;
+	EXTRA_TEST(ConnectorTestOperation.class.getName()+".extraTest");
+	
+	String operation;
+
+	private ConnectorTestOperation(String operation) {
+		this.operation = operation;
+	}
+	
+	public String getOperation() {
+		return operation;
+	}
+	
 }

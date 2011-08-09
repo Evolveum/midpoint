@@ -241,4 +241,13 @@ public class IntegrationTestTools {
 		logger.debug(result.dump());
 	}
 
+	public static void display(String title, List<Element> elements) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		logger.debug(OBJECT_TITLE_LOG_PREFIX + title);
+		for(Element e : elements) {
+			String s = DOMUtil.serializeDOMToString(e);
+			System.out.println(s);
+			logger.debug(s);
+		}
+	}
 }

@@ -119,11 +119,4 @@ public class SimpleUcfTest {
 		assertNotNull(cc);
 	}
 
-	@Test
-	public void testParseResourceSchema() throws SchemaProcessorException {
-		Element schemaElement = ResourceTypeUtil.getResourceXsdSchema(resource);
-		Schema schema = Schema.parse(schemaElement);
-		assertNotNull(schema);
-	}
-
 }

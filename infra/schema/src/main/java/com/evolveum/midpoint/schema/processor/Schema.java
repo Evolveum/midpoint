@@ -102,8 +102,12 @@ public class Schema {
 		DomToSchemaProcessor processor = new DomToSchemaProcessor();
 		return processor.parseDom(schema);
 	}
+	
+	public Document serializeToXsd() throws SchemaProcessorException {
+		return serializeToXsd(this);
+	}
 
-	public static Document parseSchema(Schema schema) throws SchemaProcessorException {
+	public static Document serializeToXsd(Schema schema) throws SchemaProcessorException {
 		if (schema == null) {
 			throw new IllegalArgumentException("Schema can't be null.");
 		}
@@ -180,5 +184,9 @@ public class Schema {
 			sb.append(def.debugDump(1));
 		}
 		return sb.toString();
+	}
+
+	public boolean isEmpty() {
+		return definitions.isEmpty();
 	}
 }
