@@ -67,6 +67,7 @@ public class OperationResult implements Serializable {
 	public static final String CONTEXT_OID = "oid";
 	public static final String PARAM_OID = "oid";
 	public static final String PARAM_TASK = "task";
+	public static final String PARAM_OBJECT = "object";
 	private static long TOKEN_COUNT = 1000000000000000000L;
 	private String operation;
 	private OperationResultStatus status;

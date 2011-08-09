@@ -36,6 +36,7 @@ import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.validator.ObjectHandler;
@@ -65,13 +66,19 @@ public class ObjectImporter {
 		Validator validator = new Validator(
 
 			new ObjectHandler() {
+				
+				long progress = 0;
 	
 				@Override
 				public void handleObject(ObjectType object, List<ValidationMessage> objectErrors) {
 	
+					progress++;
+					
 					logger.debug("Starting import of object {}",ObjectTypeUtil.toShortString(object));
 					
 					OperationResult result = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
+					result.addParam(OperationResult.PARAM_OBJECT, object);
+					result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 					// TODO: params, context
 					
 					applyValidationMessages(objectErrors, object,result);
@@ -201,6 +208,10 @@ public class ObjectImporter {
 		} catch (SchemaException e) {
 			// This is unexpected, but may happen. Record fatal error
 			result.recordFatalError("Repository schema error during resolution of reference "+propName,e);
+			return;
+		} catch (SystemException e) {
+			// We don't want this to tear down entire import.
+			result.recordFatalError("Repository system error during resolution of reference "+propName,e);
 			return;
 		}
 		if (objects.getObject().isEmpty()) {

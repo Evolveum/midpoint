@@ -41,7 +41,6 @@
 		      <and>
 		        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
 		        <equal>
-		          <path>.</path>
 		          <value>
 		              <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
 		          </value>
