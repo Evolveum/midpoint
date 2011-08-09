@@ -84,6 +84,11 @@ public class OperationResult implements Serializable {
 	private List<Object> localizationArguments;
 	private Throwable cause;
 	private List<OperationResult> subresults;
+	private List<String> details;
+	private boolean summarizeErrors;
+	private boolean summarizePartialErrors;
+	private boolean summarizeSuccesses;
+	private OperationResult summarizeTo;
 
 	public OperationResult(String operation) {
 		this(operation, null, OperationResultStatus.UNKNOWN, 0, null, null, null, null, null);
@@ -151,6 +156,7 @@ public class OperationResult implements Serializable {
 		this.localizationArguments = localizationArguments;
 		this.cause = cause;
 		this.subresults = subresults;
+		this.details = new ArrayList<String>();
 	}
 
 	public OperationResult createSubresult(String operation) {
@@ -456,6 +462,11 @@ public class OperationResult implements Serializable {
 		}
 		return false;
 	}
+	
+	public void appendDetail(String detailLine) {
+		// May be switched to a more structured method later
+		details.add(detailLine);
+	}
 
 	@Override
 	public String toString() {
@@ -517,6 +528,15 @@ public class OperationResult implements Serializable {
 			sb.append("\n");
 		}
 
+		for (String line : details) {
+			for (int i = 0; i < indent + 2; i++) {
+				sb.append(INDENT_STRING);
+			}
+			sb.append("[d]");
+			sb.append(line);
+			sb.append("\n");
+		}
+		
 		for (OperationResult sub : getSubresults()) {
 			sub.dumpIndent(sb, indent + 1);
 		}
@@ -563,18 +583,31 @@ public class OperationResult implements Serializable {
 		result.setMessage(opResult.getMessage());
 		result.setMessageCode(opResult.getMessageCode());
 
-		if (opResult.getCause() != null) {
-			Throwable ex = opResult.getCause();
-			StringBuilder details = new StringBuilder();
-			details.append(ex.getClass().getName());
-			details.append(": ");
-			details.append(ex.getMessage());
-			details.append("\n");
-			StackTraceElement[] stackTrace = ex.getStackTrace();
-			for (int i = 0; i < stackTrace.length; i++) {
-				details.append(stackTrace[i].toString());
-				details.append("\n");
+		if (opResult.getCause() != null || !opResult.details.isEmpty()) {
+			StringBuilder detailsb = new StringBuilder();
+			
+			// Record text messages in details (if present)
+			if (opResult.details.isEmpty()) {
+				for (String line : opResult.details) {
+					detailsb.append(line);
+					detailsb.append("\n");
+				}
 			}
+			
+			// Record stack trace in details if a cause is present
+			if (opResult.getCause() != null) {
+				Throwable ex = opResult.getCause();
+				detailsb.append(ex.getClass().getName());
+				detailsb.append(": ");
+				detailsb.append(ex.getMessage());
+				detailsb.append("\n");
+				StackTraceElement[] stackTrace = ex.getStackTrace();
+				for (int i = 0; i < stackTrace.length; i++) {
+					detailsb.append(stackTrace[i].toString());
+					detailsb.append("\n");
+				}
+			}
+			
 			result.setDetails(details.toString());
 		}
 
@@ -609,4 +642,5 @@ public class OperationResult implements Serializable {
 
 		return result;
 	}
+	
 }

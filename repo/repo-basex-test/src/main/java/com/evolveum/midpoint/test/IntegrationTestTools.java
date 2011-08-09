@@ -233,5 +233,12 @@ public class IntegrationTestTools {
 		logger.debug(OBJECT_TITLE_LOG_PREFIX + message);
 		logger.debug(propertyContainer.dump());
 	}
+	
+	public static void display(String title, OperationResult result) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(result.dump());
+		logger.debug(OBJECT_TITLE_LOG_PREFIX + title);
+		logger.debug(result.dump());
+	}
 
 }

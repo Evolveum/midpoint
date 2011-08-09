@@ -47,6 +47,7 @@ import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
+import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
@@ -703,9 +704,14 @@ public class ModelControllerImpl implements ModelController {
 	
 
 	@Override
-	public void importObjectsFromFile(File input, Task task) {
+	public void importObjectsFromFile(File input, Task task, OperationResult parentResult) {
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();
+	}
+	
+	@Override
+	public void importObjectsFromStream(InputStream input, Task task, OperationResult parentResult) {
+		ObjectImporter.importObjects(input, task, parentResult, repository);
 	}
 
 	private <T extends ObjectType> T getObjectFromRepository(String oid,

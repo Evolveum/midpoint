@@ -91,7 +91,30 @@ public interface ModelService {
 	// Note: The result is in the task. No need to pass it explicitly
 	void importAccountsFromResource(String resourceOid, QName objectClass, Task task) throws ObjectNotFoundException;
 	
-	void importObjectsFromFile(File input, Task task);
+	/**
+	 * Import objects from file.
+	 * 
+	 * Invocation of this method may be switched to background.
+	 * 
+	 * The results will be provided in the task.
+	 * 
+	 * @param input
+	 * @param task
+	 */
+	void importObjectsFromFile(File input, Task task, OperationResult parentResult);
 
+	/**
+	 * Import objects from stream.
+	 * 
+	 * Invocation of this method will happen in foreground, as the stream
+	 * cannot be serialized.
+	 * 
+	 * The results will be provided in the task.
+	 * 
+	 * @param input
+	 * @param task
+	 */
+	void importObjectsFromStream(InputStream input, Task task, OperationResult parentResult);
+	
 	ObjectListType searchObjectsInRepository(QueryType query, PagingType paging, OperationResult result);
 }
