@@ -193,7 +193,7 @@ public class LoggingManager {
 				NdcRollingFileAppenderConfigurationType appenderCnf = (NdcRollingFileAppenderConfigurationType) appenderConf;
 				appender.setName(appenderCnf.getName());
 				appender.setLayout(new PatternLayout(appenderCnf.getPattern()));
-				appender.setMaxFileSize(Integer.valueOf(appenderCnf.getMaxFileSize()).toString());
+				appender.setMaxFileSize(Integer.valueOf(appenderCnf.getMaxFileSize()).toString() + "KB");
 				appender.setAppend(appenderCnf.isAppend());
 				appender.setFile(SystemPropertyUtils.resolvePlaceholders(appenderCnf.getFilePath()));
 				appender.activateOptions();
@@ -217,7 +217,7 @@ public class LoggingManager {
 				RollingFileAppenderConfigurationType appenderCnf = (RollingFileAppenderConfigurationType) appenderConf;
 				appender.setName(appenderCnf.getName());
 				appender.setLayout(new PatternLayout(appenderCnf.getPattern()));
-				appender.setMaxFileSize(Integer.valueOf(appenderCnf.getMaxFileSize()).toString());
+				appender.setMaxFileSize(Integer.valueOf(appenderCnf.getMaxFileSize()).toString() + "KB");
 				appender.setAppend(appenderCnf.isAppend());
 				appender.setFile(SystemPropertyUtils.resolvePlaceholders(appenderCnf.getFilePath()));
 				appender.activateOptions();
