@@ -56,7 +56,6 @@ public class HtmlLeftMenu extends HtmlForm {
 		ValueExpression selectedExpr = getValueExpression(ATTR_SELECTED);
 		String selectedId = selectedExpr == null ? null : (String) selectedExpr.getValue(context
 				.getELContext());
-		TRACE.debug("encodeChildren: " + selectedId);
 		
 		Iterator<UIComponent> children = getFacetsAndChildren();
 		while (children.hasNext()) {
@@ -67,7 +66,6 @@ public class HtmlLeftMenu extends HtmlForm {
 			}
 			Iterator<UIComponent> containerChildren = container.getFacetsAndChildren();
 			container.encodeBegin(context);
-			TRACE.debug("container");
 			while (containerChildren.hasNext()) {
 				UIComponent item = containerChildren.next();
 				if (!(item instanceof HtmlLeftMenuItem)) {
@@ -84,12 +82,9 @@ public class HtmlLeftMenu extends HtmlForm {
 				} else {
 					left.setStyleClass("");
 				}
-				TRACE.debug("item: " + left.getStyleClass());
 				left.encodeAll(context);
 			}
 			container.encodeEnd(context);
-		}
-		
-		TRACE.debug("encodeChildren::end");
+		}		
 	}
 }

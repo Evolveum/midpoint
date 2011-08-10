@@ -73,7 +73,6 @@ public class HtmlTopMenu extends HtmlForm {
 		ValueExpression selectedExpr = getValueExpression(ATTR_SELECTED);
 		String selectedId = selectedExpr == null ? null : (String) selectedExpr.getValue(context
 				.getELContext());
-		TRACE.debug("encodeChildren: " + selectedId);
 		
 		HtmlTopMenuItem last = null;
 		HtmlTopMenuItem selected = null;
@@ -113,10 +112,7 @@ public class HtmlTopMenu extends HtmlForm {
 				styles.append(STYLE_SELECTED);
 			}			
 			item.setStyleClass(styles.toString());
-			TRACE.debug("item: " + item.getStyleClass());
 			item.encodeAll(context);			
 		}
-		
-		TRACE.debug("encodeChildren::end");
 	}
 }
