@@ -156,9 +156,10 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writer.startElement("div", null);
 		writer.writeAttribute("class", "messages-details", null);
 		writer.writeAttribute("id", divId, null);
-		writeMessageDetail(result.getToken(), writer);
-		writeMessageDetail(result.getMessageCode(), writer);
+		writeMessageDetailBold(FacesUtils.translateKey(result.getOperation()), writer);
+		writeMessageDetailNormal(result.getMessageCode(), writer);
 		writeOperationResult(result, context);
+
 		writer.endElement("div");
 
 		writer.endElement("span");
@@ -191,9 +192,10 @@ public class MidPointFacesMessages extends HtmlMessages {
 
 		writer.startElement("li", null);
 		writer.writeAttribute("class", getOperationResultStatusClass(result.getStatus()), null);
-		writeMessageDetail(result.getToken(), writer);
-		writeMessageDetail(result.getMessageCode(), writer);
-		writeMessageDetail(getSummary(result), writer);
+		writeMessageDetailBold(FacesUtils.translateKey(result.getOperation()), writer);
+		writeMessageDetailNormal(result.getMessageCode(), writer);
+		writeMessageDetailNormal(getSummary(result), writer);
+		writeMessageDetailNormal("(" + result.getToken() + ")", writer);
 
 		if (!result.getSubresults().isEmpty()) {
 			for (OperationResult subResult : result.getSubresults()) {
@@ -205,13 +207,21 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writer.endElement("ul");
 	}
 
-	private void writeMessageDetail(Object detail, ResponseWriter writer) throws IOException {
+	private void writeMessageDetailNormal(Object detail, ResponseWriter writer) throws IOException {
+		writeMessageDetail(detail, writer, "message-detail");
+	}
+
+	private void writeMessageDetailBold(Object detail, ResponseWriter writer) throws IOException {
+		writeMessageDetail(detail, writer, "message-detail-bold");
+	}
+
+	private void writeMessageDetail(Object detail, ResponseWriter writer, String style) throws IOException {
 		if (detail == null) {
 			return;
 		}
 
 		writer.startElement("span", null);
-		writer.writeAttribute("class", "message-detail", null);
+		writer.writeAttribute("class", style, null);
 		writer.writeText(detail, null);
 		writer.endElement("span");
 	}

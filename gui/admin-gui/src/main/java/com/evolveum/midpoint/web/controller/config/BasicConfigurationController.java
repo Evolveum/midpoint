@@ -61,21 +61,21 @@ public class BasicConfigurationController implements Serializable {
 	}
 
 	public String action() {
-		OperationResult result1 = new OperationResult("Top operation");
+		OperationResult result1 = new OperationResult("Small operation");
 		result1.recordSuccess();
 		FacesUtils.addMessage(result1);
 		
 		FacesUtils.addSuccessMessage("Standard success message.");
 
-		OperationResult result2 = new OperationResult("Top operation");
+		OperationResult result2 = new OperationResult("Middle operation");
 		result2.recordWarning("Some warning happened.");
 		result2.getSubresults().add(result1);
 		FacesUtils.addMessage(result2);
 		
 		FacesUtils.addWarnMessage("Standard warning message.");
 
-		OperationResult result3 = new OperationResult("Top operation");
-		result3.recordFatalError("Error happened.");
+		OperationResult result3 = new OperationResult("Top operation " + BasicConfigurationController.class.getName() + ".action");
+		result3.recordFatalError("Error happened. Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.");
 		result3.getSubresults().add(result2);
 		FacesUtils.addMessage(result3);
 		

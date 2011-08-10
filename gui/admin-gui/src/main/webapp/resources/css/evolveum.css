@@ -266,8 +266,12 @@ a {
 	display: none;
 }
 
-span.message-detail {
+span.message-detail, span.message-detail-bold{
 	margin: 0 10px 0 0;
+}
+
+span.message-detail-bold {
+	font-weight: bold;
 }
 
 #messages li span div.messages-details ul.messages-details-advanced {
