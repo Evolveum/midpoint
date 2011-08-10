@@ -210,7 +210,7 @@ public class ControllerUtil {
 		OperationResult resultFound = null;
 		for (OperationResult result : results) {
 			try {
-				if (operation.equals(ConnectorTestOperation.valueOf(result.getOperation()))) {
+				if (operation.getOperation().equals(result.getOperation())) {
 					resultFound = result;
 					break;
 				}
