@@ -47,7 +47,6 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
-import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
@@ -86,8 +85,7 @@ public class UserDetailsController implements Serializable {
 
 	public static final String PAGE_NAVIGATION = "/account/userDetails?faces-redirect=true";
 	private static final long serialVersionUID = -4537350724118181063L;
-	private static final Trace TRACE = TraceManager
-			.getTrace(UserDetailsController.class);
+	private static final Trace TRACE = TraceManager.getTrace(UserDetailsController.class);
 	private static final String TAB_USER = "0";
 	@Autowired(required = true)
 	private transient TemplateController template;
@@ -169,21 +167,17 @@ public class UserDetailsController implements Serializable {
 			if (this.user != null) {
 				accountList = createFormBeanList(this.user.getAccount(), false);
 				getAvailableResourceList().clear();
-				availableResourceList = createResourceList(this.user
-						.getAccount());
+				availableResourceList = createResourceList(this.user.getAccount());
 			}
 		} catch (Exception ex) {
-			LoggingUtils.logException(TRACE,
-					"Couldn't create account list for user {}", ex,
-					user.getName());
-			FacesUtils.addErrorMessage(
-					"Couldn't create account list for user.", ex);
+			LoggingUtils.logException(TRACE, "Couldn't create account list for user {}", ex, user.getName());
+			FacesUtils.addErrorMessage("Couldn't create account list for user.", ex);
 		}
 	}
 
 	private UserManager getUserManager() {
-		ObjectManager<GuiUserDto> objectManager = objectTypeCatalog
-				.getObjectManager(UserType.class, GuiUserDto.class);
+		ObjectManager<GuiUserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+				GuiUserDto.class);
 		return (UserManager) (objectManager);
 	}
 
@@ -218,8 +212,7 @@ public class UserDetailsController implements Serializable {
 	public void savePerformed(ActionEvent evt) {
 		try {
 			UserManager userManager = getUserManager();
-			AccountManager accountManager = ControllerUtil
-					.getAccountManager(objectTypeCatalog);
+			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 
 			// new accounts are processed as modification of user in one
 			// operation
@@ -231,10 +224,8 @@ public class UserDetailsController implements Serializable {
 					// to userManager.submit(user);
 					AccountShadowType newAccountShadowType = (AccountShadowType) updateAccountAttributes(
 							formBean).getXmlObject();
-					TRACE.debug("Found new account in GUI: {}",
-							DebugUtil.prettyPrint(newAccountShadowType));
-					((UserType) user.getXmlObject()).getAccount().add(
-							newAccountShadowType);
+					TRACE.debug("Found new account in GUI: {}", DebugUtil.prettyPrint(newAccountShadowType));
+					((UserType) user.getXmlObject()).getAccount().add(newAccountShadowType);
 					// ((UserType)
 					// user.getXmlObject()).getAccountRef().add(ObjectTypeUtil.createObjectRef(newAccountShadowType));
 				}
@@ -249,14 +240,10 @@ public class UserDetailsController implements Serializable {
 			List<AccountShadowType> accountsToDelete = new ArrayList<AccountShadowType>();
 			for (AccountFormBean formBean : accountListDeleted) {
 				String oidToDelete = formBean.getAccount().getOid();
-				TRACE.debug(
-						"Following account is marked as candidate for delete in GUI: {}",
-						DebugUtil.prettyPrint(formBean.getAccount()
-								.getXmlObject()));
-				List<AccountShadowType> accounts = ((UserType) user
-						.getXmlObject()).getAccount();
-				for (Iterator<AccountShadowType> i = accounts.iterator(); i
-						.hasNext();) {
+				TRACE.debug("Following account is marked as candidate for delete in GUI: {}",
+						DebugUtil.prettyPrint(formBean.getAccount().getXmlObject()));
+				List<AccountShadowType> accounts = ((UserType) user.getXmlObject()).getAccount();
+				for (Iterator<AccountShadowType> i = accounts.iterator(); i.hasNext();) {
 					AccountShadowType account = i.next();
 					if (StringUtils.equals(oidToDelete, account.getOid())) {
 						i.remove();
@@ -271,14 +258,14 @@ public class UserDetailsController implements Serializable {
 			Set<PropertyChange> userChanges = userManager.submit(user);
 			TRACE.debug("Modified user in GUI submitted ");
 
-			//now we need to delete accounts from repository and also from external systems..
+			// now we need to delete accounts from repository and also from
+			// external systems..
 			TRACE.debug("Start processing of deleted accounts");
-			for (AccountShadowType account : accountsToDelete){
+			for (AccountShadowType account : accountsToDelete) {
 				accountManager.delete(account.getOid());
 			}
 			TRACE.debug("Finished processing of deleted accounts");
 
-			
 			if (userChanges != null) {
 				if (userChanges.isEmpty()) {
 					// account changes are processed as modification of account,
@@ -287,11 +274,8 @@ public class UserDetailsController implements Serializable {
 					for (AccountFormBean formBean : accountList) {
 						if (!formBean.isNew()) {
 							AccountShadowDto modifiedAccountShadowDto = updateAccountAttributes(formBean);
-							TRACE.debug(
-									"Found modified account in GUI: {}",
-									DebugUtil
-											.prettyPrint(modifiedAccountShadowDto
-													.getXmlObject()));
+							TRACE.debug("Found modified account in GUI: {}",
+									DebugUtil.prettyPrint(modifiedAccountShadowDto.getXmlObject()));
 							TRACE.debug("Submit account modified in GUI");
 							accountManager.submit(modifiedAccountShadowDto);
 							TRACE.debug("Modified account in GUI submitted");
@@ -309,33 +293,27 @@ public class UserDetailsController implements Serializable {
 				FacesUtils.addSuccessMessage("Changes saved successfully.");
 			} else {
 				clearController();
-				FacesUtils
-						.addWarnMessage("Errors occured during save operation.");
+				FacesUtils.addWarnMessage("Errors occured during save operation.");
 			}
 		} catch (SchemaProcessorException ex) {
 			TRACE.error("Dynamic form generator error", ex);
 			// TODO: What action should we fire in GUI if error occurs ???
 			String loginFailedMessage = FacesUtils.translateKey("save.failed");
-			FacesUtils
-					.addErrorMessage(loginFailedMessage + " " + ex.toString());
+			FacesUtils.addErrorMessage(loginFailedMessage + " " + ex.toString());
 
 			return;
 		} catch (Exception ex) {
 			// should not be here, it's only because bad error handling
-			TRACE.error(
-					"Unknown error occured during save operation, reason: {}.",
-					ex.getMessage());
+			TRACE.error("Unknown error occured during save operation, reason: {}.", ex.getMessage());
 			TRACE.trace("Unknown error occured during save operation.", ex);
-			FacesUtils
-					.addErrorMessage("Unknown error occured during save operation, reason: "
-							+ ex.getMessage());
+			FacesUtils.addErrorMessage("Unknown error occured during save operation, reason: "
+					+ ex.getMessage());
 		}
 
 		return;
 	}
 
-	private void updateAccounts(List<AccountFormBean> accountBeans)
-			throws WebModelException {
+	private void updateAccounts(List<AccountFormBean> accountBeans) throws WebModelException {
 		TRACE.debug("Start processing accounts with outbound schema handling");
 		for (AccountFormBean bean : accountBeans) {
 			if (bean.isNew()) {
@@ -346,14 +324,11 @@ public class UserDetailsController implements Serializable {
 			try {
 				account = updateAccountAttributes(bean);
 			} catch (SchemaProcessorException ex) {
-				throw new WebModelException(
-						"Failed to update account attributes, reason: "
-								+ ex.getMessage() + ".",
-						"Failed to update account attributes.", ex);
+				throw new WebModelException("Failed to update account attributes, reason: " + ex.getMessage()
+						+ ".", "Failed to update account attributes.", ex);
 			}
 
-			AccountManager accountManager = ControllerUtil
-					.getAccountManager(objectTypeCatalog);
+			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 			accountManager.submit(account);
 		}
 		TRACE.debug("Finished processing accounts with outbound schema handling");
@@ -384,11 +359,10 @@ public class UserDetailsController implements Serializable {
 
 		List<AccountShadowDto> newAccounts = new ArrayList<AccountShadowDto>();
 		for (ResourceDto resource : selectedResources) {
-			ObjectManager<GuiUserDto> objectManager = objectTypeCatalog
-					.getObjectManager(UserType.class, GuiUserDto.class);
+			ObjectManager<GuiUserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+					GuiUserDto.class);
 			UserManager userManager = (UserManager) (objectManager);
-			AccountShadowDto account = userManager.addAccount(user,
-					resource.getOid());
+			AccountShadowDto account = userManager.addAccount(user, resource.getOid());
 			if (account == null) {
 				continue;
 			}
@@ -409,8 +383,7 @@ public class UserDetailsController implements Serializable {
 	}
 
 	public void removeResourcePerformed(ActionEvent evt) {
-		Integer formBeanId = (Integer) evt.getComponent().getAttributes()
-				.get("beanId");
+		Integer formBeanId = (Integer) evt.getComponent().getAttributes().get("beanId");
 		if (formBeanId == null) {
 			return;
 		}
@@ -431,12 +404,10 @@ public class UserDetailsController implements Serializable {
 		accountListDeleted.add(formBean);
 	}
 
-	private List<SelectItem> createResourceList(
-			List<AccountShadowDto> existingAccounts) {
+	private List<SelectItem> createResourceList(List<AccountShadowDto> existingAccounts) {
 		List<SelectItem> list = new ArrayList<SelectItem>();
 
-		List<ResourceDto> resources = listAvailableResources(listResources(),
-				existingAccounts);
+		List<ResourceDto> resources = listAvailableResources(listResources(), existingAccounts);
 		for (ResourceDto resourceDto : resources) {
 			SelectItem si = new SelectItem((GuiResourceDto) resourceDto);
 			list.add(si);
@@ -446,8 +417,7 @@ public class UserDetailsController implements Serializable {
 	}
 
 	private List<ResourceDto> listResources() {
-		ResourceManager resManager = ControllerUtil
-				.getResourceManager(objectTypeCatalog);
+		ResourceManager resManager = ControllerUtil.getResourceManager(objectTypeCatalog);
 
 		List<ResourceDto> resources = new ArrayList<ResourceDto>();
 		try {
@@ -463,8 +433,8 @@ public class UserDetailsController implements Serializable {
 		return resources;
 	}
 
-	private List<ResourceDto> listAvailableResources(
-			List<ResourceDto> resources, List<AccountShadowDto> accounts) {
+	private List<ResourceDto> listAvailableResources(List<ResourceDto> resources,
+			List<AccountShadowDto> accounts) {
 		if (resources == null) {
 			return null;
 		}
@@ -478,8 +448,7 @@ public class UserDetailsController implements Serializable {
 		List<ResourceDto> toDelete = new ArrayList<ResourceDto>();
 		for (int i = 0; i < list.size(); i++) {
 			for (AccountShadowDto accountDto : accounts) {
-				if (list.get(i).getOid()
-						.equals(accountDto.getResource().getOid())) {
+				if (list.get(i).getOid().equals(accountDto.getResource().getOid())) {
 					toDelete.add(list.get(i));
 				}
 			}
@@ -509,8 +478,7 @@ public class UserDetailsController implements Serializable {
 		return maxId;
 	}
 
-	private List<AccountFormBean> createFormBeanList(
-			List<AccountShadowDto> accounts, boolean createNew) {
+	private List<AccountFormBean> createFormBeanList(List<AccountShadowDto> accounts, boolean createNew) {
 		int maxId = getFormBeanNextId();
 
 		List<AccountFormBean> list = new ArrayList<AccountFormBean>();
@@ -520,16 +488,13 @@ public class UserDetailsController implements Serializable {
 					if (createNew) {
 						list.add(generateForm(account, maxId++, createNew));
 					} else {
-						list.add(generateForm(account,
-								account.getObjectClass(), maxId++, createNew));
+						list.add(generateForm(account, account.getObjectClass(), maxId++, createNew));
 					}
 				} catch (SchemaProcessorException ex) {
-					LoggingUtils.logException(TRACE,
-							"Can't parse schema for account {}", ex,
+					LoggingUtils.logException(TRACE, "Can't parse schema for account {}", ex,
 							new Object[] { account.getName() });
-					FacesUtils.addErrorMessage(
-							"Can't parse schema for account '"
-									+ account.getName() + "'.", ex);
+					FacesUtils.addErrorMessage("Can't parse schema for account '" + account.getName() + "'.",
+							ex);
 				}
 			}
 		}
@@ -537,14 +502,13 @@ public class UserDetailsController implements Serializable {
 		return list;
 	}
 
-	private AccountFormBean generateForm(AccountShadowDto account, int index,
-			boolean createNew) throws SchemaProcessorException {
+	private AccountFormBean generateForm(AccountShadowDto account, int index, boolean createNew)
+			throws SchemaProcessorException {
 		return generateForm(account, null, index, createNew);
 	}
 
-	private AccountFormBean generateForm(AccountShadowDto account,
-			QName accountType, int index, boolean createNew)
-			throws SchemaProcessorException {
+	private AccountFormBean generateForm(AccountShadowDto account, QName accountType, int index,
+			boolean createNew) throws SchemaProcessorException {
 		if (account == null) {
 			throw new IllegalArgumentException("Account object can't be null.");
 		}
@@ -553,32 +517,27 @@ public class UserDetailsController implements Serializable {
 		QName defaultAccountType = null;
 		try {
 			SchemaFormParser parser = new SchemaFormParser();
-			List<ResourceObjectAttributeDefinition> list = parser
-					.parseSchemaForAccount(account, accountType);
+			List<ResourceObjectAttributeDefinition> list = parser.parseSchemaForAccount(account, accountType);
 			object.setDisplayName(parser.getDisplayName());
 			Map<QName, List<Object>> formValues = parser.getAttributeValueMap();
 			for (ResourceObjectAttributeDefinition attribute : list) {
 				FormAttributeDefinition definition = createDefinition(attribute);
 				List<Object> values = formValues.get(attribute.getName());
 
-				object.getAttributes().add(
-						new FormAttribute(definition, values));
+				object.getAttributes().add(new FormAttribute(definition, values));
 			}
 			object.sort();
 			defaultAccountType = parser.getDefaultAccountType();
 		} catch (SchemaProcessorException ex) {
 			throw ex;
 		} catch (Exception ex) {
-			throw new SchemaProcessorException("Unknown error, reason: "
-					+ ex.getMessage(), ex);
+			throw new SchemaProcessorException("Unknown error, reason: " + ex.getMessage(), ex);
 		}
 
-		return new AccountFormBean(index, account, defaultAccountType, object,
-				createNew);
+		return new AccountFormBean(index, account, defaultAccountType, object, createNew);
 	}
 
-	private FormAttributeDefinition createDefinition(
-			ResourceObjectAttributeDefinition def) {
+	private FormAttributeDefinition createDefinition(ResourceObjectAttributeDefinition def) {
 		FormAttributeDefinitionBuilder builder = new FormAttributeDefinitionBuilder();
 		if (def.getAllowedValues() != null) {
 			List<Object> availableValues = new ArrayList<Object>();
@@ -612,8 +571,7 @@ public class UserDetailsController implements Serializable {
 		return builder.build();
 	}
 
-	private AccountShadowDto updateAccountAttributes(AccountFormBean bean)
-			throws SchemaProcessorException {
+	private AccountShadowDto updateAccountAttributes(AccountFormBean bean) throws SchemaProcessorException {
 		TRACE.trace("updateAccountAttributes::begin");
 		AccountShadowDto account = bean.getAccount();
 		TRACE.trace("Account " + account);
@@ -635,13 +593,11 @@ public class UserDetailsController implements Serializable {
 				}
 
 				FormAttributeDefinition definition = attribute.getDefinition();
-				String namespace = definition.getElementName()
-						.getNamespaceURI();
+				String namespace = definition.getElementName().getNamespaceURI();
 				String name = definition.getElementName().getLocalPart();
 
 				for (Object object : attribute.getValues()) {
-					TRACE.trace("Creating element: {" + namespace + "}" + name
-							+ ": " + object.toString());
+					TRACE.trace("Creating element: {" + namespace + "}" + name + ": " + object.toString());
 
 					Element element = doc.createElementNS(namespace, name);
 					element.setPrefix(buildElementName(namespace, prefixMap));
@@ -654,9 +610,8 @@ public class UserDetailsController implements Serializable {
 				account.setObjectClass(bean.getDefaultAccountType());
 			}
 		} catch (Exception ex) {
-			throw new SchemaProcessorException(
-					"Unknown error: Can't update account attributes: "
-							+ ex.getMessage(), ex);
+			throw new SchemaProcessorException("Unknown error: Can't update account attributes: "
+					+ ex.getMessage(), ex);
 		}
 		account.setAttributes(attrList);
 
@@ -664,8 +619,7 @@ public class UserDetailsController implements Serializable {
 		return account;
 	}
 
-	private String buildElementName(String namespace,
-			Map<String, String> prefixMap) {
+	private String buildElementName(String namespace, Map<String, String> prefixMap) {
 		String prefix = prefixMap.get(namespace);
 		if (prefix == null) {
 			prefix = "af" + prefixMap.size();

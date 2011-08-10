@@ -36,7 +36,6 @@ import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 
 /**
@@ -78,7 +77,6 @@ public class ResourceImportController implements Serializable {
 		String nextPage = null;
 		try {
 			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
-			OperationResultType resultType = new OperationResultType();
 			TaskStatusType statusType = manager.getImportStatus(getResource().getOid());
 			if (statusType != null) {
 				this.status = new TaskStatus(statusType);

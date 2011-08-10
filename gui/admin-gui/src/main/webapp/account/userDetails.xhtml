@@ -17,8 +17,7 @@
 			<ice:panelTabSet id="icePnlTbSet" style="width: 100%;" selectedIndex="#{userDetails.selectedTab}">
 				<ice:panelTab id="userTab" label="#{msg['page.account.detail.tab.user.title']}"
 					title="#{msg['page.account.detail.tab.user.description']}">
-					<ice:panelGrid columns="2" cellpadding="7" cellspacing="7"
-						id="userDetailsGrid">
+					<ice:panelGrid columns="2" cellpadding="7" cellspacing="7" id="userDetailsGrid">
 
 						<ice:outputText value="#{msg['page.account.detail.tab.user.oid']}" />
 						<ice:outputText id="oid" value="#{userDetails.user.oid}" />
@@ -72,26 +71,26 @@
 							<ice:message for="password2" errorClass="error" />
 						</ice:panelGroup>
 
-						<ice:outputLabel value="#{msg['page.account.detail.tab.user.enabled']}"
-							rendered="#{userDetails.editMode}" />
-						<ice:panelGroup rendered="#{userDetails.editMode}">
+						<ice:outputLabel value="#{msg['page.account.detail.tab.user.enabled']}" />
+						<ice:panelGroup>
 							<ice:selectBooleanCheckbox id="enabled" value="#{userDetails.user.enabled}" required="true"
-								requiredMessage="#{msg['field.required']}" />
+								requiredMessage="#{msg['field.required']}" readonly="#{not userDetails.editMode}"
+								disabled="#{not userDetails.editMode}" />
 							<ice:message for="enabled" errorClass="error" />
 						</ice:panelGroup>
 
-						<ice:outputLabel value="#{msg['page.account.detail.tab.user.webAccessEnabled']}"
-							rendered="#{userDetails.editMode}" />
-						<ice:panelGroup rendered="#{userDetails.editMode}">
+						<ice:outputLabel value="#{msg['page.account.detail.tab.user.webAccessEnabled']}" />
+						<ice:panelGroup>
 							<ice:selectBooleanCheckbox id="webAccessEnabled" value="#{userDetails.user.webAccessEnabled}"
-								required="true" requiredMessage="#{msg['field.required']}" />
+								required="true" requiredMessage="#{msg['field.required']}" readonly="#{not userDetails.editMode}"
+								disabled="#{not userDetails.editMode}" />
 							<ice:message for="webAccessEnabled" errorClass="error" />
 						</ice:panelGroup>
+
 					</ice:panelGrid>
 				</ice:panelTab>
 				<ice:panelTab id="accountsTab" rendered="true" label="#{msg['page.account.detail.tab.accounts.title']}"
-					icon="resources/images/drive.png"
-					title="#{msg['page.account.detail.tab.accounts.description']}">
+					icon="resources/images/drive.png" title="#{msg['page.account.detail.tab.accounts.description']}">
 					<ice:outputText style="margin-bottom: 10px; display: block;"
 						value="#{msg['page.account.detail.tab.accounts.text']}" />
 					<div>
@@ -138,21 +137,19 @@
 
 				<ui:remove>
 					<ice:panelTab rendered="true" label="#{msg['page.account.detail.tab.roles.title']}"
-						icon="resources/images/folder_key.png"
-						title="#{msg['page.account.detail.tab.roles.description']}">
+						icon="resources/images/folder_key.png" title="#{msg['page.account.detail.tab.roles.description']}">
 
 					</ice:panelTab>
 				</ui:remove>
 			</ice:panelTabSet>
 
 			<div class="button-bar">
-				<idm:button action="#{userDetails.backPerformed}"
-					value="#{msg['page.account.detail.button.back']}" img="/resources/images/door_in.png" />
+				<idm:button action="#{userDetails.backPerformed}" value="#{msg['page.account.detail.button.back']}"
+					img="/resources/images/door_in.png" />
 
 				<idm:button actionListener="#{userDetails.startEditMode}"
-					value="#{msg['page.account.detail.button.edit']}" id="editButton"
-					img="/resources/images/user_edit.png" rendered="#{!userDetails.editMode}" immediate="true"
-					action="/account/userDetails" />
+					value="#{msg['page.account.detail.button.edit']}" id="editButton" img="/resources/images/user_edit.png"
+					rendered="#{!userDetails.editMode}" immediate="true" action="/account/userDetails" />
 
 				<idm:button action="#{userList.fillTableList}" actionListener="#{userDetails.savePerformed}"
 					id="saveButton" buttonType="positive" value="#{msg['page.account.detail.button.save']}"

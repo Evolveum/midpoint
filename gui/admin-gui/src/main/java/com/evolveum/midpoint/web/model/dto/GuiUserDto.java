@@ -44,7 +44,6 @@ public class GuiUserDto extends UserDto implements Selectable {
 	private static final long serialVersionUID = -8265669830268114388L;
 	private static final Trace TRACE = TraceManager.getTrace(GuiUserDto.class);
 	private boolean selected;
-	private boolean enabled = false;
 	private String password1;
 	private String password2;
 
@@ -64,6 +63,8 @@ public class GuiUserDto extends UserDto implements Selectable {
 		this.setEmail(user.getEmail());
 		this.getAccount().addAll(user.getAccount());
 		this.getAccountRef().addAll(user.getAccountRef());
+		this.setEnabled(user.isEnabled());
+		this.setWebAccessEnabled(user.isWebAccessEnabled());
 	}
 
 	public GuiUserDto() {
@@ -118,15 +119,13 @@ public class GuiUserDto extends UserDto implements Selectable {
 		UserType user = (UserType) this.getXmlObject();
 		ActivationType activation = user.getActivation();
 		if (activation != null) {
-			enabled = activation.isEnabled();
+			return activation.isEnabled() == null ? false : activation.isEnabled();
 		}
 
-		return enabled;
+		return false;
 	}
 
 	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-
 		UserType user = (UserType) this.getXmlObject();
 		ActivationType activation = user.getActivation();
 		if (activation == null) {
