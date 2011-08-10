@@ -54,7 +54,7 @@ import com.evolveum.midpoint.common.object.ObjectResolver;
 import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.util.ClasspathUrlFinder;
@@ -72,7 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  * @author Radovan Semancik
  */
 @Component
-public class ConnectorManagerIcfImpl implements ConnectorManager {
+public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 	// This ususally refers to WEB-INF/lib/icf-connectors
 	private static final String BUNDLE_PATH = "../../lib/icf-connectors";
@@ -80,11 +80,11 @@ public class ConnectorManagerIcfImpl implements ConnectorManager {
 	private static final String BUNDLE_SUFFIX = ".jar";
 	private static final String CONFIGURATION_PROPERTIES_XML_ELEMENT_NAME = "configurationProperties";
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns/resource/icf/";
-	private static final Trace log = TraceManager.getTrace(ConnectorManagerIcfImpl.class);
+	private static final Trace log = TraceManager.getTrace(ConnectorFactoryIcfImpl.class);
 	private ConnectorInfoManager localConnectorInfoManager;
 	private Map<String, ConnectorInfo> connectors;
 
-	public ConnectorManagerIcfImpl() {
+	public ConnectorFactoryIcfImpl() {
 	}
 
 	/**

@@ -53,12 +53,12 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.Token;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerIcfImpl;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
@@ -91,7 +91,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 	private JAXBContext jaxbctx;
 	ResourceType resource;
 	ResourceType badResource;
-	private ConnectorManager manager;
+	private ConnectorFactory manager;
 	private ConnectorInstance cc;
 	Schema schema;
 
@@ -126,7 +126,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		object = u.unmarshal(fis);
 		badResource = (ResourceType) ((JAXBElement) object).getValue();
 
-		ConnectorManagerIcfImpl managerImpl = new ConnectorManagerIcfImpl();
+		ConnectorFactoryIcfImpl managerImpl = new ConnectorFactoryIcfImpl();
 		managerImpl.initialize();
 		manager = managerImpl;
 

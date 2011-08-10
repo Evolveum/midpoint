@@ -56,7 +56,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -123,7 +123,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private JAXBContext jaxbctx;
 	private ResourceType resource;
 	@Autowired
-	private ConnectorManager manager;
+	private ConnectorFactory manager;
 	@Autowired
 	private ProvisioningService provisioningService;
 	private Unmarshaller unmarshaller;

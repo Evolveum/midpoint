@@ -40,8 +40,8 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerIcfImpl;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -57,7 +57,7 @@ public class SimpleUcfTest {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	
-	ConnectorManager manager;
+	ConnectorFactory manager;
 	ResourceType resource;
 
 	public SimpleUcfTest() {
@@ -65,7 +65,7 @@ public class SimpleUcfTest {
 
 	@Before
 	public void setUp() throws FileNotFoundException, JAXBException {
-		ConnectorManagerIcfImpl managerImpl = new ConnectorManagerIcfImpl();
+		ConnectorFactoryIcfImpl managerImpl = new ConnectorFactoryIcfImpl();
 		managerImpl.initialize();
 		manager = managerImpl;
 

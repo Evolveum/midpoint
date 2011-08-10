@@ -30,8 +30,8 @@ import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorManagerIcfImpl;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfException;
@@ -91,7 +91,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 	private JAXBContext jaxbctx;
 	ResourceType resource;
 	ResourceType badResource;
-	private ConnectorManager manager;
+	private ConnectorFactory manager;
 	private ConnectorInstance cc;
 	Schema schema;
 	
@@ -125,7 +125,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		object = u.unmarshal(fis);
 		badResource = (ResourceType) ((JAXBElement) object).getValue();
 		
-		ConnectorManagerIcfImpl managerImpl = new ConnectorManagerIcfImpl();
+		ConnectorFactoryIcfImpl managerImpl = new ConnectorFactoryIcfImpl();
 		managerImpl.initialize();
 		manager = managerImpl;
 

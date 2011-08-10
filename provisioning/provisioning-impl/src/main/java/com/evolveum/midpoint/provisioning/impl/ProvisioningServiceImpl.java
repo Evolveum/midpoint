@@ -139,7 +139,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
 	}
-
+	
 	@Override
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve,
 			OperationResult parentResult) throws ObjectNotFoundException,
@@ -163,7 +163,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		// HACK: connector objects are not stored in the repo..
 		if (oid.startsWith("icf1")) {
-			ConnectorType connectorType = shadowCache.getConnectorManager()
+			ConnectorType connectorType = shadowCache.getConnectorFactory()
 					.getConnector(oid);
 			LOGGER.trace("**PROVISIONING: Got connector object {}",
 					JAXBUtil.silentMarshalWrap(connectorType));
@@ -417,7 +417,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		if (ConnectorType.class.isAssignableFrom(objectType)) {
 			Set<ConnectorType> connectors = getShadowCache()
-					.getConnectorManager().listConnectors();
+					.getConnectorFactory().listConnectors();
 			if (connectors == null) {
 				result.recordFatalError("Can't list connectors.");
 				throw new IllegalStateException("Can't list connectors.");

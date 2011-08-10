@@ -45,7 +45,7 @@ import java.util.Set;
  * @author Radovan Semancik
  *
  */
-public interface ConnectorManager {
+public interface ConnectorFactory {
 
 	/**
 	 * Creates new instance of the connector.

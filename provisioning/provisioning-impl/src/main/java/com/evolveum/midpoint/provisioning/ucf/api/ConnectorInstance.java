@@ -51,7 +51,7 @@ import javax.xml.namespace.QName;
  * information. Therefore the methods do not follow get/set java convention
  * as the data are not regular javabean properties.
  * 
- * @see ConnectorManager
+ * @see ConnectorFactory
  *  
  *  TODO: rich operation result
  * 

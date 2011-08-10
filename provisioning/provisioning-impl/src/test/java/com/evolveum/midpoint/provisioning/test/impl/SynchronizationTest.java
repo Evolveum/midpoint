@@ -41,7 +41,7 @@ import com.evolveum.midpoint.provisioning.impl.ShadowCache;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -88,7 +88,7 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 	private Unmarshaller unmarshaller;
 	private ResourceType resource;
 	@Autowired
-	private ConnectorManager manager;
+	private ConnectorFactory manager;
 	// @Autowired
 	// private ShadowCache shadowCache;
 	@Autowired
@@ -222,11 +222,11 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 		}
 	}
 
-	public ConnectorManager getManager() {
+	public ConnectorFactory getManager() {
 		return manager;
 	}
 
-	public void setManager(ConnectorManager manager) {
+	public void setManager(ConnectorFactory manager) {
 		this.manager = manager;
 	}
 

@@ -50,7 +50,7 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorManager;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -131,7 +131,7 @@ public class ShadowCache {
 	@Autowired
 	private RepositoryService repositoryService;
 	@Autowired
-	private ConnectorManager connectorManager;
+	private ConnectorFactory connectorFactory;
 
 	private static final Trace LOGGER = TraceManager
 			.getTrace(ShadowCache.class);
@@ -161,8 +161,8 @@ public class ShadowCache {
 		this.repositoryService = repositoryService;
 	}
 
-	public ConnectorManager getConnectorManager() {
-		return connectorManager;
+	public ConnectorFactory getConnectorFactory() {
+		return connectorFactory;
 	}
 
 	/**
@@ -170,10 +170,10 @@ public class ShadowCache {
 	 * 
 	 * Expected to be injected.
 	 * 
-	 * @param connectorManager
+	 * @param connectorFactory
 	 */
-	public void setConnectorManager(ConnectorManager connectorManager) {
-		this.connectorManager = connectorManager;
+	public void setConnectorFactory(ConnectorFactory connectorFactory) {
+		this.connectorFactory = connectorFactory;
 	}
 
 	/**
@@ -1288,7 +1288,7 @@ public class ShadowCache {
 			OperationResult result) throws ObjectNotFoundException {
 		// TODO: Add caching later
 		try {
-			return getConnectorManager().createConnectorInstance(resource);
+			return getConnectorFactory().createConnectorInstance(resource);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
 			result.recordFatalError(e.getMessage(), e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
