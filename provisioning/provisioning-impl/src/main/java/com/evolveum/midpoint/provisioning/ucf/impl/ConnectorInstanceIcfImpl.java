@@ -62,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletion
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -556,7 +557,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			checkAndExecuteAdditionalOperation(additionalOperations,
 					ScriptOrderType.BEFORE);
-						// CALL THE ICF FRAMEWORK
+			// CALL THE ICF FRAMEWORK
 			Uid uid = connector.create(objectClass, attributes,
 					new OperationOptionsBuilder().build());
 
@@ -592,8 +593,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return object.getAttributes();
 	}
 
-	
-
 	@Override
 	public void modifyObject(QName objectClass,
 			Set<ResourceObjectAttribute> identifiers, Set<Operation> changes,
@@ -613,6 +612,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Set<ResourceObjectAttribute> addValues = new HashSet<ResourceObjectAttribute>();
 		Set<ResourceObjectAttribute> updateValues = new HashSet<ResourceObjectAttribute>();
 		Set<ResourceObjectAttribute> valuesToRemove = new HashSet<ResourceObjectAttribute>();
+
+		Set<Operation> additionalOperations = new HashSet<Operation>();
 
 		for (Operation operation : changes) {
 			if (operation instanceof AttributeModificationOperation) {
@@ -645,11 +646,20 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				}
 			}
 
+			if (operation instanceof ExecuteScriptOperation) {
+				ExecuteScriptOperation scriptOperation = (ExecuteScriptOperation) operation;
+				additionalOperations.add(scriptOperation);
+			}
+
 		}
 
 		// Needs three complete try-catch blocks because we need to create
 		// icfResult for each operation
 		// and handle the faults individually
+
+		checkAndExecuteAdditionalOperation(additionalOperations,
+				ScriptOrderType.BEFORE);
+
 		OperationResult icfResult = null;
 		try {
 			if (addValues != null && !addValues.isEmpty()) {
@@ -673,8 +683,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.addParam("attributes", attributes);
 				icfResult.addParam("options", options);
 				icfResult.addContext("connector", connector);
+
 				connector
 						.addAttributeValues(objClass, uid, attributes, options);
+
 				icfResult.recordSuccess();
 			}
 		} catch (Exception ex) {
@@ -791,7 +803,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						+ ex.getClass().getName(), ex);
 			}
 		}
-
+		checkAndExecuteAdditionalOperation(additionalOperations,
+				ScriptOrderType.AFTER);
 		result.recordSuccess();
 	}
 
@@ -1526,18 +1539,20 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					parentResult);
 		}
 	}
-	
+
 	/**
-	 * check additional operation order, according to the order are scrip executed before or after operation..
+	 * check additional operation order, according to the order are scrip
+	 * executed before or after operation..
+	 * 
 	 * @param additionalOperations
 	 * @param order
 	 */
-	private void checkAndExecuteAdditionalOperation(Set<Operation> additionalOperations,
-			ScriptOrderType order) {
+	private void checkAndExecuteAdditionalOperation(
+			Set<Operation> additionalOperations, ScriptOrderType order) {
 		for (Operation op : additionalOperations) {
 			if (op instanceof ExecuteScriptOperation) {
 				ExecuteScriptOperation executeOp = (ExecuteScriptOperation) op;
-				//execute operation in the right order..
+				// execute operation in the right order..
 				if (order.equals(executeOp.getScriptOrder())) {
 					executeOperation(executeOp);
 				}
@@ -1548,22 +1563,26 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	private void executeOperation(ExecuteScriptOperation executeOp) {
 
-		//convert execute script operation to the script context required from the connector
+		// convert execute script operation to the script context required from
+		// the connector
 		ScriptContext scriptContext = convertToScriptContext(executeOp);
-		//check if the script should be executed on the connector or the resoruce...
+		// check if the script should be executed on the connector or the
+		// resoruce...
 		if (executeOp.isConnectorHost()) {
 			connector.runScriptOnConnector(scriptContext,
 					new OperationOptionsBuilder().build());
 		}
-		if (executeOp.isResourceHost()){
-			connector.runScriptOnResource(scriptContext, new OperationOptionsBuilder().build());
+		if (executeOp.isResourceHost()) {
+			connector.runScriptOnResource(scriptContext,
+					new OperationOptionsBuilder().build());
 		}
 
 	}
 
 	private ScriptContext convertToScriptContext(
 			ExecuteScriptOperation executeOp) {
-		//creating csript arguments map form the execute script operation arguments
+		// creating csript arguments map form the execute script operation
+		// arguments
 		Map<String, Object> scriptArguments = new HashMap<String, Object>();
 		for (ExecuteScriptArgument argument : executeOp.getArgument()) {
 			scriptArguments.put(argument.getArgumentName(),

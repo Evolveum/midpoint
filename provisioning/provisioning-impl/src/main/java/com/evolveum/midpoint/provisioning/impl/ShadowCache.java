@@ -673,7 +673,10 @@ public class ShadowCache {
 			Set<ResourceObjectAttribute> identifiers = rod
 					.parseIdentifiers(accountType.getAttributes().getAny());
 
+			Set<Operation> executeScriptOperation = createExecuteScriptOperation(OperationTypeType.MODIFY, scripts);
 			Set<Operation> changes = getAttributeChanges(objectChange, rod);
+			changes.addAll(executeScriptOperation);
+			
 			LOGGER.debug("Applying change: {}",
 					JAXBUtil.silentMarshalWrap(objectChange));
 			try {
