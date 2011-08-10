@@ -182,6 +182,7 @@ public class ModelControllerImpl implements ModelController {
 
 		String oid = null;
 		try {
+			processAddAccountFromUser(user, subResult);
 			processUserTemplateForUser(user, userTemplate, subResult);
 			oid = repository.addObject(user, subResult);
 			subResult.recordSuccess();
@@ -630,7 +631,8 @@ public class ModelControllerImpl implements ModelController {
 
 	@Override
 	public void importObjectsFromFile(File input, Task task, OperationResult parentResult) {
-		OperationResult result = parentResult.createSubresult(OperationConstants.IMPORT_OBJECTS_FROM_FILE);
+		// OperationResult result =
+		// parentResult.createSubresult(OperationConstants.IMPORT_OBJECTS_FROM_FILE);
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();
 	}
@@ -750,10 +752,12 @@ public class ModelControllerImpl implements ModelController {
 	private String addRepositoryObject(ObjectType object, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		if (object instanceof UserType) {
+			UserType user = (UserType) object;
+			processAddAccountFromUser(user, result);
 			// At first we get default user template from system configuration
 			SystemConfigurationType systemConfiguration = getSystemConfiguration(result);
 			UserTemplateType userTemplate = systemConfiguration.getDefaultUserTemplate();
-			processUserTemplateForUser((UserType) object, userTemplate, result);
+			processUserTemplateForUser(user, userTemplate, result);
 		}
 
 		try {
@@ -1033,7 +1037,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void processAddAccount(ObjectModificationType change, UserType userBeforeChange,
+	private void processAddAccountFromChanges(ObjectModificationType change, UserType userBeforeChange,
 			OperationResult result) {
 		for (PropertyModificationType propertyChange : change.getPropertyModification()) {
 			if (!PropertyModificationTypeType.add.equals(propertyChange.getModificationType())
@@ -1073,13 +1077,35 @@ public class ModelControllerImpl implements ModelController {
 		}
 	}
 
+	private void processAddAccountFromUser(UserType user, OperationResult result) {
+		List<AccountShadowType> accountsToDelete = new ArrayList<AccountShadowType>();
+		for (AccountShadowType account : user.getAccount()) {
+			try {
+				if (account.getActivation() == null) {
+					account.setActivation(user.getActivation());
+				}
+				
+				String newAccountOid = addObject(account, result);
+				ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid,
+						ObjectTypes.ACCOUNT);
+				user.getAccountRef().add(accountRef);
+				accountsToDelete.add(account);
+			} catch (SystemException ex) {
+				throw ex;
+			} catch (Exception ex) {
+				throw new SystemException("Couldn't process add account.", ex);
+			}
+		}
+		user.getAccount().removeAll(accountsToDelete);
+	}
+
 	@SuppressWarnings("unchecked")
 	private void modifyRepositoryObjectWithExclusion(ObjectModificationType change, String accountOid,
 			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException {
 		if (object instanceof UserType) {
 			UserType user = (UserType) object;
 			// processing add account
-			processAddAccount(change, user, result);
+			processAddAccountFromChanges(change, user, result);
 
 			repository.modifyObject(change, result);
 			try {
@@ -1116,8 +1142,8 @@ public class ModelControllerImpl implements ModelController {
 						schemaHandler.setModel(this);
 						accountChange = schemaHandler.processOutboundHandling(user, account, subResult);
 					} catch (SchemaHandlerException ex) {
-						LoggingUtils.logException(LOGGER, "Couldn't update outbound handling for account {}", ex,
-								accountRef.getOid());
+						LoggingUtils.logException(LOGGER, "Couldn't update outbound handling for account {}",
+								ex, accountRef.getOid());
 					}
 
 					if (accountChange == null) {
@@ -1139,8 +1165,7 @@ public class ModelControllerImpl implements ModelController {
 					// provisioning.modifyObject(accountChange, scripts,
 					// subResult);
 				} catch (Exception ex) {
-					LoggingUtils.logException(LOGGER, "Couldn't update account {}", ex,
-							accountRef.getOid());
+					LoggingUtils.logException(LOGGER, "Couldn't update account {}", ex, accountRef.getOid());
 				} finally {
 					subResult.computeStatus();
 				}
@@ -1166,7 +1191,6 @@ public class ModelControllerImpl implements ModelController {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void modifyTaskWithExclusion(ObjectModificationType change, String accountOid,
 			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException {
 		taskManager.modifyTask(change, result);
@@ -1220,7 +1244,7 @@ public class ModelControllerImpl implements ModelController {
 				account.setName(resource.getName() + "-" + user.getName());
 				account.setResourceRef(resourceRef);
 				account.setActivation(user.getActivation());
-				
+
 				ObjectModificationType changes = processOutboundSchemaHandling(user, account, result);
 				if (changes != null) {
 					PatchXml patchXml = new PatchXml();
