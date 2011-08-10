@@ -1595,7 +1595,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 	
-	<xsd:element name="task" type="tns:TaskType"/>
+	<xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object"/>
 	
 	<xsd:simpleType name="TaskExecutionStatusType">
 		<xsd:annotation>
@@ -2645,7 +2645,7 @@
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element ref="tns:configuration"/>
-					<xsd:element ref="tns:schema">
+					<xsd:element ref="tns:schema" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
 								Schema for resource objects.
@@ -4474,7 +4474,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="connector" type="tns:ConnectorType"/>
+	<xsd:element name="connector" type="tns:ConnectorType" substitutionGroup="c:object"/>
 
 	<xsd:complexType name="ConnectorHostType">
 		<xsd:annotation>
@@ -4528,7 +4528,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 	
-	<xsd:element name="connectorHost" type="tns:ConnectorHostType"/>
+	<xsd:element name="connectorHost" type="tns:ConnectorHostType" substitutionGroup="c:object"/>
 
 
 	<xsd:complexType name="ResourceObjectShadowType">

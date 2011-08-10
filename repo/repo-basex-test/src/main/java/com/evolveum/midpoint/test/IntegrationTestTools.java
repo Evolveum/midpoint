@@ -109,6 +109,18 @@ public class IntegrationTestTools {
 		assertFalse(s.isEmpty());
 	}
 
+	public static void assertNotEmpty(String message, QName qname) {
+		assertNotNull(message, qname);
+		assertNotEmpty(message,qname.getNamespaceURI());
+		assertNotEmpty(message,qname.getLocalPart());
+	}
+
+	public static void assertNotEmpty(QName qname) {
+		assertNotNull(qname);
+		assertNotEmpty(qname.getNamespaceURI());
+		assertNotEmpty(qname.getLocalPart());
+	}
+
 	public static void assertAttribute(ResourceObjectShadowType repoShadow, ResourceType resource, String name,
 			String value) {
 		assertAttribute("Wrong attribute " + name + " in shadow", repoShadow,

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
+import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
@@ -51,6 +52,8 @@ import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import java.util.HashSet;
 import javax.xml.namespace.QName;
+
+import org.eclipse.core.resources.ResourceAttributes;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -60,6 +63,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static org.junit.Assert.*;
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -222,11 +226,22 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		System.out.println(DOMUtil.printDom(xsdSchema));
 		System.out.println("-------------------------------------------------------------------------------------");
 		
-		PropertyContainerDefinition accountDefinition = schema.findContainerDefinitionByType(new QName(resource.getNamespace(),"AccountObjectClass"));
+		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(resource.getNamespace(),"AccountObjectClass"));
 		assertNotNull(accountDefinition);
+		
+		assertFalse("No identifiers for account object class ",accountDefinition.getIdentifiers().isEmpty());
 		
 		PropertyDefinition uidDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.ICFS_UID);
 		assertNotNull(uidDefinition);
+		
+		for (Definition def : schema.getDefinitions()) {
+			ResourceObjectDefinition rdef = (ResourceObjectDefinition)def;
+			assertNotEmpty("No type name in object class",rdef.getTypeName());
+			assertNotEmpty("No native object class for "+rdef.getTypeName(),rdef.getNativeObjectClass());
+			
+			// This is maybe not that important, but just for a sake of completeness
+			assertNotEmpty("No name for "+rdef.getTypeName(),rdef.getName());
+		}
 		
 	}
 

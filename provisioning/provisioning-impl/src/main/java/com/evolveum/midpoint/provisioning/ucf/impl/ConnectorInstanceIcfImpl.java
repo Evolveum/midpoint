@@ -247,8 +247,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Uid is a primary identifier of every object (this is the ICF way)
 			roDefinition.getIdentifiers().add(uidDefinition);
 
-			// TODO: may need also other annotations
-
 			// Let's iterate over all attributes in this object class ...
 			Set<AttributeInfo> attributeInfoSet = objectClassInfo
 					.getAttributeInfo();
@@ -291,6 +289,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						roaDefinition.setMaxOccurs(-1);
 					}
 				}
+
+				// Add schema annotations
+				roDefinition.setNativeObjectClass(objectClassInfo.getType());
+				roDefinition.setDisplayNameAttribute(SchemaConstants.ICFS_NAME);
+				roDefinition.setNamingAttribute(SchemaConstants.ICFS_NAME);
+				// TODO: may need also other annotations
 
 				// TODO: process also other flags
 

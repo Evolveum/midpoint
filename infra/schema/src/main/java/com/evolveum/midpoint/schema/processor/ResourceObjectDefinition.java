@@ -156,6 +156,10 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		this.namingAttribute = namingAttribute;
 	}
 
+	public void setNamingAttribute(QName namingAttribute) {
+		setNamingAttribute(findAttributeDefinition(namingAttribute));
+	}
+
 	/**
 	 * Returns the native object class string for the resource object.
 	 * 
@@ -179,7 +183,7 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		return nativeObjectClass;
 	}
 
-	void setNativeObjectClass(String nativeObjectClass) {
+	public void setNativeObjectClass(String nativeObjectClass) {
 		this.nativeObjectClass = nativeObjectClass;
 	}
 
@@ -281,10 +285,21 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		return displayNameAttribute;
 	}
 
-	void setDisplayNameAttribute(ResourceObjectAttributeDefinition displayName) {
+	public void setDisplayNameAttribute(ResourceObjectAttributeDefinition displayName) {
 		this.displayNameAttribute = displayName;
 	}
-	
+
+	/**
+	 * TODO
+	 * 
+	 * Convenience method. It will internally look up the correct definition.
+	 * 
+	 * @param displayName
+	 */
+	public void setDisplayNameAttribute(QName displayName) {
+		setDisplayNameAttribute(findAttributeDefinition(displayName));
+	}
+
 	@Override
 	public ResourceObject instantiate() {
 		return new ResourceObject(getNameOrDefaultName(), this);
