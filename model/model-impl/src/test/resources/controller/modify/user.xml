@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<object xsi:type="UserType" oid="f65963e3-9d47-4b18-aaf3-bfc98bdfaf0b" version="1.0"
+	xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/model/password-1.wsdl" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<name>a</name>
+	<fullName>a</fullName>
+	<givenName>a</givenName>
+	<familyName>a</familyName>
+	<eMailAddress>a</eMailAddress>
+	<locality>a</locality>
+	<credentials>
+		<password>
+			<c:base64 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" />
+		</password>
+		<allowedIdmGuiAccess>true</allowedIdmGuiAccess>
+	</credentials>
+	<activation>
+		<enabled>true</enabled>
+	</activation>
+	<accountRef oid="358bba7d-1176-45cf-8f32-b92125ea6fb1" type="AccountShadowType" />
+</object>

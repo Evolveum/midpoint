@@ -20,19 +20,46 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.io.File;
+import java.util.List;
+
+import javax.xml.bind.JAXBElement;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.xml.schema.XPathSegment;
+import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * 
@@ -44,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
 public class ControllerModifyObjectWithExclusionTest {
 
+	private static final File TEST_FOLDER = new File("./src/test/resources/controller/modify");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerModifyObjectWithExclusionTest.class);
 	@Autowired(required = true)
 	private ModelController controller;
@@ -79,5 +107,83 @@ public class ControllerModifyObjectWithExclusionTest {
 		ObjectModificationType change = new ObjectModificationType();
 		change.setOid("1");
 		controller.modifyObjectWithExclusion(change, null, null);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void disableUser() throws Exception {
+		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "user.xml")))
+				.getValue();
+		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER, "account.xml"))).getValue();
+		GenericObjectType object = ((JAXBElement<GenericObjectType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"../../generic-object-my-config.xml"))).getValue();
+
+		ObjectModificationType change = ((JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER, "change.xml"))).getValue();
+
+		when(
+				repository.getObject(eq(user.getOid()), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(user);
+		when(
+				repository.getObject(eq(object.getOid()), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(object);
+		when(
+				repository.getObject(eq(account.getOid()), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(account);
+		when(
+				provisioning.getObject(eq(account.getOid()), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(account);
+		when(
+				provisioning.getObject(eq(account.getResource().getOid()),
+						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+				account.getResource());
+
+		doAnswer(new Answer<Void>() {
+			@Override
+			public Void answer(InvocationOnMock invocation) throws Throwable {
+				ObjectModificationType modification = (ObjectModificationType) invocation.getArguments()[0];
+				assertEquals("358bba7d-1176-45cf-8f32-b92125ea6fb1", modification.getOid());
+				assertEquals(8, modification.getPropertyModification().size());
+				assertActivation(modification);
+
+				return null;
+			}
+		}).when(provisioning).modifyObject(any(ObjectModificationType.class), any(ScriptsType.class),
+				any(OperationResult.class));
+
+		OperationResult result = new OperationResult("disableUser");
+		try {
+			controller.modifyObject(change, result);
+		} finally {
+			LOGGER.debug(result.dump());
+		}
+
+		verify(provisioning).modifyObject(any(ObjectModificationType.class), any(ScriptsType.class),
+				any(OperationResult.class));
+	}
+
+	private void assertActivation(ObjectModificationType modification) {
+		boolean foundActivation = false;
+		for (PropertyModificationType property : modification.getPropertyModification()) {
+			XPathType xpath = new XPathType(property.getPath());
+			List<XPathSegment> segments = xpath.toSegments();
+			if (segments == null || segments.isEmpty() || segments.size() > 1) {
+				continue;
+			}
+
+			if (!SchemaConstants.ACTIVATION.equals(segments.get(0).getQName())) {
+				continue;
+			}
+
+			Element element = property.getValue().getAny().get(0);
+			assertEquals("false", element.getTextContent());
+			foundActivation = true;
+			break;
+		}
+
+		if (!foundActivation) {
+			fail("Activation property modification was not found.");
+		}
 	}
 }
