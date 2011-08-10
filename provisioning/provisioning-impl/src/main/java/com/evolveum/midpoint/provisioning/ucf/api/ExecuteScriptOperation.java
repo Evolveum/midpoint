@@ -19,10 +19,84 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptOrderType;
+
 /**
- *
+ * 
  * @author Radovan Semancik
  */
 public class ExecuteScriptOperation extends Operation {
+
+
+	private List<ExecuteScriptArgument> argument;
+
+	private boolean connectorHost;
+	private boolean resourceHost;
+
+	private String textCode;
+	private String language;
+
+	private ScriptOrderType scriptOrder;
+	
+	public ExecuteScriptOperation() {
+
+	}
+	
+	
+
+	public List<ExecuteScriptArgument> getArgument() {
+		if (argument == null){
+			argument = new ArrayList<ExecuteScriptArgument>();
+		}
+		return argument;
+	}
+
+	public boolean isConnectorHost() {
+		return connectorHost;
+	}
+
+	public void setConnectorHost(boolean connectorHost) {
+		this.connectorHost = connectorHost;
+	}
+
+	public boolean isResourceHost() {
+		return resourceHost;
+	}
+
+	public void setResourceHost(boolean resourceHost) {
+		this.resourceHost = resourceHost;
+	}
+
+	public String getTextCode() {
+		return textCode;
+	}
+
+	public void setTextCode(String textCode) {
+		this.textCode = textCode;
+	}
+
+	public String getLanguage() {
+		return language;
+	}
+
+	public void setLanguage(String language) {
+		this.language = language;
+	}
+
+
+
+	public ScriptOrderType getScriptOrder() {
+		return scriptOrder;
+	}
+
+
+
+	public void setScriptOrder(ScriptOrderType scriptOrder) {
+		this.scriptOrder = scriptOrder;
+	}
+
 	
 }

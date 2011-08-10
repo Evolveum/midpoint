@@ -33,6 +33,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
+import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
@@ -65,6 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptOrderType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
@@ -82,6 +85,7 @@ import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClassUtil;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
+import org.identityconnectors.framework.common.objects.ScriptContext;
 import org.identityconnectors.framework.common.objects.SyncDelta;
 import org.identityconnectors.framework.common.objects.SyncDeltaType;
 import org.identityconnectors.framework.common.objects.SyncResultsHandler;
@@ -98,8 +102,10 @@ import org.w3c.dom.Element;
 import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.naming.NameAlreadyBoundException;
@@ -547,10 +553,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		icfResult.addContext("connector", connector);
 
 		try {
-			// CALL THE ICF FRAMEWORK
+
+			checkAndExecuteAdditionalOperation(additionalOperations,
+					ScriptOrderType.BEFORE);
+						// CALL THE ICF FRAMEWORK
 			Uid uid = connector.create(objectClass, attributes,
 					new OperationOptionsBuilder().build());
 
+			checkAndExecuteAdditionalOperation(additionalOperations,
+					ScriptOrderType.AFTER);
 			ResourceObjectAttribute attribute = setUidAttribute(uid);
 			object.getAttributes().add(attribute);
 			icfResult.recordSuccess();
@@ -580,6 +591,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		result.recordSuccess();
 		return object.getAttributes();
 	}
+
+	
 
 	@Override
 	public void modifyObject(QName objectClass,
@@ -918,7 +931,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			subresult.recordFatalError(ex.getMessage(), ex);
 			throw new SchemaException(ex.getMessage(), ex);
 		}
-		
+
 		subresult.recordSuccess();
 		return changeList;
 	}
@@ -926,10 +939,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	@Override
 	public void test(OperationResult parentResult) {
 
-//		OperationResult connectionResult = parentResult
-//				.createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_CONNECTION_OPERATION);
+		// OperationResult connectionResult = parentResult
+		// .createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_CONNECTION_OPERATION);
 		OperationResult connectionResult = parentResult
-		.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION.getOperation());
+				.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION
+						.getOperation());
 		connectionResult.addContext(
 				OperationResult.CONTEXT_IMPLEMENTATION_CLASS,
 				ConnectorInstance.class);
@@ -1511,6 +1525,54 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return lookForKnownCause(ex.getCause(), originalException,
 					parentResult);
 		}
+	}
+	
+	/**
+	 * check additional operation order, according to the order are scrip executed before or after operation..
+	 * @param additionalOperations
+	 * @param order
+	 */
+	private void checkAndExecuteAdditionalOperation(Set<Operation> additionalOperations,
+			ScriptOrderType order) {
+		for (Operation op : additionalOperations) {
+			if (op instanceof ExecuteScriptOperation) {
+				ExecuteScriptOperation executeOp = (ExecuteScriptOperation) op;
+				//execute operation in the right order..
+				if (order.equals(executeOp.getScriptOrder())) {
+					executeOperation(executeOp);
+				}
+			}
+		}
+
+	}
+
+	private void executeOperation(ExecuteScriptOperation executeOp) {
+
+		//convert execute script operation to the script context required from the connector
+		ScriptContext scriptContext = convertToScriptContext(executeOp);
+		//check if the script should be executed on the connector or the resoruce...
+		if (executeOp.isConnectorHost()) {
+			connector.runScriptOnConnector(scriptContext,
+					new OperationOptionsBuilder().build());
+		}
+		if (executeOp.isResourceHost()){
+			connector.runScriptOnResource(scriptContext, new OperationOptionsBuilder().build());
+		}
+
+	}
+
+	private ScriptContext convertToScriptContext(
+			ExecuteScriptOperation executeOp) {
+		//creating csript arguments map form the execute script operation arguments
+		Map<String, Object> scriptArguments = new HashMap<String, Object>();
+		for (ExecuteScriptArgument argument : executeOp.getArgument()) {
+			scriptArguments.put(argument.getArgumentName(),
+					argument.getArgumentValue());
+		}
+		ScriptContext scriptContext = new ScriptContext(
+				executeOp.getLanguage(), executeOp.getTextCode(),
+				scriptArguments);
+		return scriptContext;
 	}
 
 }
