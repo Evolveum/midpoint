@@ -39,6 +39,7 @@ import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
@@ -104,6 +105,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	private RepositoryService repositoryService;
 	@Autowired
 	private ChangeNotificationDispatcher changeNotificationDispatcher;
+	@Autowired
+	private ConnectorTypeManager connectorTypeManager;
 
 	private static final Trace LOGGER = TraceManager
 			.getTrace(ProvisioningServiceImpl.class);
@@ -776,5 +779,23 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		PropertyModification propertyModification = token.createModification(
 				ModificationType.REPLACE, token.getValues());
 		return propertyModification;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ProvisioningService#initialize()
+	 */
+	@Override
+	public void initialize(OperationResult parentResult) {
+		
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()+".initialize");
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		// Discover local connectors
+		Set<ConnectorType> discoverLocalConnectors = connectorTypeManager.discoverLocalConnectors(result);
+		for (ConnectorType connector : discoverLocalConnectors) {
+			LOGGER.info("Discovered local connector {}"+ObjectTypeUtil.toShortString(connector));
+		}
+		
+		result.computeStatus();
 	}
 }

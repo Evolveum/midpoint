@@ -4359,22 +4359,29 @@
 				exists. E.g. a
 				connector framework may create a derived type and return that instead of this type.
 
-				Note: The ConnectorType
-				does not describe
+				The values of "framework", "connectorType" and "connectorVersion" (if present) together form a unique 
+				identification of the connector. That means that two ConnectorType objects that have these values same
+				represent the same connector. Only one such instance of ConnectorType should exist in the repository.
+
+				Note: The ConnectorType does not describe
 				only Identity Connector Framework (ICF) connectors, it is much more generic.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="tns:ExtensibleObjectType">
 				<xsd:sequence>
-					<xsd:element name="connectorType" type="xsd:string" minOccurs="0">
+					<xsd:element name="framework" type="xsd:anyURI">
 						<xsd:annotation>
 							<xsd:documentation>
-								Type of the connector, such as "LDAP" or "DB Table". Used only for
-								display purposes and for searching
-								during imports. Therefore it may
-								be any (sensible) string, but it should be reasonably stable to avoid
-								broken imports.
+								Identification of the framework or mechanism
+								that implements this connector.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="connectorType" type="xsd:string">
+						<xsd:annotation>
+							<xsd:documentation>
+								Type of the connector, as seen by the framework.  
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -4392,22 +4399,15 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="framework" type="xsd:anyURI" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								Identification of the framework or mechanism
-								that implements this connector. Used only for
-								display and
-								similar
-								purposes.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
 					<xsd:element name="targetSystemType" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
 								Identification of the kind of target system
-								that the connector can connect to.
+								that the connector can connect to, such as "LDAP" or "DB Table". Used only for
+								display purposes and for searching
+								during imports. Therefore it may
+								be any (sensible) string, but it should be reasonably stable to avoid
+								broken imports.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>

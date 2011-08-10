@@ -47,6 +47,7 @@ import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationConstants;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -1268,6 +1269,23 @@ public class ModelControllerImpl implements ModelController {
 		if (subResult.isUnknown()) {
 			subResult.recordSuccess();
 		}
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.api.ModelService#initialize(com.evolveum.midpoint.common.result.OperationResult)
+	 */
+	@Override
+	public void initialize(OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(ModelService.class.getName()+".initialize");
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelControllerImpl.class);
+		
+		// TODO: initialize repository
+		// TODO: initialize task manager
+		
+		// Initialize provisioning
+		provisioning.initialize(result);
+		
+		result.computeStatus();
 	}
 
 }

@@ -99,6 +99,8 @@ public abstract class SchemaConstants {
 	public static final QName I_RESOURCE_TYPE = new QName(NS_C, "ResourceType");
 	public static final QName I_CONNECTOR_TYPE = new QName(NS_C, "ConnectorType");
 	public static final QName I_CONNECTOR = new QName(NS_C, "connector");
+	public static final QName C_CONNECTOR_FRAMEWORK = new QName(NS_C, "framework");
+	public static final QName C_CONNECTOR_CONNECTOR_TYPE = new QName(NS_C, "connectorType");
 	public static final QName I_SCHEMA = new QName(NS_C, "schema");
 	public static final QName I_ACCOUNT = new QName(NS_C, "account");
 	public static final QName I_RESOURCE_OBJECT_SHADOW = new QName(NS_C, "resourceObjectShadow");

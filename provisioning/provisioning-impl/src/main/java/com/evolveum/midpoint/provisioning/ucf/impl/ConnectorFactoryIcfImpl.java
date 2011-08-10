@@ -74,13 +74,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 @Component
 public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
-	// This ususally refers to WEB-INF/lib/icf-connectors
+	// This usually refers to WEB-INF/lib/icf-connectors
 	private static final String BUNDLE_PATH = "../../lib/icf-connectors";
 	private static final String BUNDLE_PREFIX = "org.identityconnectors";
 	private static final String BUNDLE_SUFFIX = ".jar";
 	private static final String CONFIGURATION_PROPERTIES_XML_ELEMENT_NAME = "configurationProperties";
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns/resource/icf/";
 	private static final Trace log = TraceManager.getTrace(ConnectorFactoryIcfImpl.class);
+	private static final String ICF_FRAMEWORK_URI = ICF_CONFIGURATION_NAMESPACE_PREFIX + "icf-1";
 	private ConnectorInfoManager localConnectorInfoManager;
 	private Map<String, ConnectorInfo> connectors;
 
@@ -178,6 +179,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		connectorType.setOid(oid);
 		ConnectorKey key = cinfo.getConnectorKey();
 		connectorType.setName("ICF " + key.getConnectorName());
+		connectorType.setFramework(ICF_FRAMEWORK_URI);
 		connectorType.setConnectorType(key.getConnectorName());
 		connectorType.setNamespace(ICF_CONFIGURATION_NAMESPACE_PREFIX + oid);
 		connectorType.setConnectorVersion(key.getBundleVersion());

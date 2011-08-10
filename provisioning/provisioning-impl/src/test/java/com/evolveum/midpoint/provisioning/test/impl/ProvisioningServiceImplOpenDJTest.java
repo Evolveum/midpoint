@@ -53,9 +53,11 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
@@ -126,7 +128,10 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private ConnectorFactory manager;
 	@Autowired
 	private ProvisioningService provisioningService;
+	@Autowired
+	private ConnectorTypeManager connectorTypeManager;
 	private Unmarshaller unmarshaller;
+	private static boolean provisioningInitialized = false;
 
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
@@ -162,16 +167,17 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".initProvisioning");
-		// The default repository content is using old format of resource
-		// configuration
-		// We need a sample data in the new format, so we need to set it up
-		// manually.
-
+		if (!provisioningInitialized) {
+			provisioningService.initialize(result);
+			result.computeStatus();
+			display("Provisioning initialization",result);
+			assertSuccess("Provisioning initialization failed", result);
+			provisioningInitialized=true;
+		}
+		
 		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
 //		addObjectFromFile(FILENAME_ACCOUNT1);
 		addObjectFromFile(FILENAME_ACCOUNT_BAD);
-		assertNotNull(provisioningService);
-
 	}
 	
 	@After
@@ -194,17 +200,55 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	}
 	
 	/**
-	 * This should be the very first executed test.
+	 * Check whether the connectors were discovered correctly and were added to the repository.
+	 * 
+	 */
+	@Test
+	public void test001Connectors() {
+		displayTestTile("test001Connectors");
+		
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test001Connectors");
+		
+		ObjectListType objects = repositoryService.listObjects(ConnectorType.class, null, result);
+		
+		assertFalse("No connector found",objects.getObject().isEmpty());
+		
+		for (ObjectType o : objects.getObject()) {
+			display("Found connector",o);
+			assertTrue(o instanceof ConnectorType);
+		}
+	}
+	
+	/**
+	 * Running discovery for a second time should return nothing - as nothing new was installed in the
+	 * meantime.
+	 */
+	@Test
+	public void test002ConnectorRediscovery() {
+		displayTestTile("test002ConnectorRediscovery");
+		
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test002ConnectorRediscovery");
+		
+		Set<ConnectorType> discoverLocalConnectors = connectorTypeManager.discoverLocalConnectors(result);
+		result.computeStatus();
+		assertSuccess("discoverLocalConnectors failed", result);
+		assertTrue("Rediscovered something",discoverLocalConnectors.isEmpty());
+	}
+	
+	/**
+	 * This should be the very first test that works with the resource.
 	 * 
 	 * The original repository object does not have resource schema. The schema should be generated from
 	 * the resource on the first use. This is the test that executes testResource and checks whether the
-	 * schema was generated. Therefore it must be the very first test to be executed.
+	 * schema was generated.
 	 */
 	@Test
-	public void test000Connection() throws Exception {
-		displayTestTile("test000Connection");
+	public void test003Connection() throws Exception {
+		displayTestTile("test003Connection");
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+"test000Connection");
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test003Connection");
 		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
 		ResourceType resourceBefore = (ResourceType)object;
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();

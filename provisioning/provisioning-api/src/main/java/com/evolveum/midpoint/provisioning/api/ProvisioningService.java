@@ -392,4 +392,12 @@ public interface ProvisioningService {
 
 	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
 			OperationResult parentResult);
+	
+	/**
+	 * Initialize provisioning system.
+	 * 
+	 * The implementation may execute resource-intensive tasks in this method. All the dependencies should be already
+	 * constructed, properly wired and initialized. Also logging and other infrastructure should be already set up.
+	 */
+	public void initialize(OperationResult parentResult);
 }
