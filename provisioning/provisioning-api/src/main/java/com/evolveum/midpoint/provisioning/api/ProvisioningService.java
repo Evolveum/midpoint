@@ -394,10 +394,10 @@ public interface ProvisioningService {
 			OperationResult parentResult);
 	
 	/**
-	 * Initialize provisioning system.
+	 * Finish initialization of provisioning system.
 	 * 
 	 * The implementation may execute resource-intensive tasks in this method. All the dependencies should be already
 	 * constructed, properly wired and initialized. Also logging and other infrastructure should be already set up.
 	 */
-	public void initialize(OperationResult parentResult);
+	public void postInit(OperationResult parentResult);
 }

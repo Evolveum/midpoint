@@ -168,7 +168,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".initProvisioning");
 		if (!provisioningInitialized) {
-			provisioningService.initialize(result);
+			provisioningService.postInit(result);
 			result.computeStatus();
 			display("Provisioning initialization",result);
 			assertSuccess("Provisioning initialization failed", result);

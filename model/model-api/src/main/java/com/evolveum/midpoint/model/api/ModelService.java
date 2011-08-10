@@ -117,12 +117,12 @@ public interface ModelService {
 	void importObjectsFromStream(InputStream input, Task task, OperationResult parentResult);
 	
 	/**
-	 * Initialize the model and lower system components (provisioning, repository, etc).
+	 * Finish initialization of the model and lower system components (provisioning, repository, etc).
 	 * 
 	 * The implementation may execute resource-intensive tasks in this method. All the dependencies should be already
 	 * constructed, properly wired and initialized. Also logging and other infrastructure should be already set up.
 	 */
-	public void initialize(OperationResult parentResult);
+	public void postInit(OperationResult parentResult);
 	
 	ObjectListType searchObjectsInRepository(QueryType query, PagingType paging, OperationResult result);
 }

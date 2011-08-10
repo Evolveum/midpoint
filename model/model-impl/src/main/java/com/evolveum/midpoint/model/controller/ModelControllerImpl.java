@@ -1275,7 +1275,7 @@ public class ModelControllerImpl implements ModelController {
 	 * @see com.evolveum.midpoint.model.api.ModelService#initialize(com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
-	public void initialize(OperationResult parentResult) {
+	public void postInit(OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(ModelService.class.getName()+".initialize");
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelControllerImpl.class);
 		
@@ -1283,7 +1283,7 @@ public class ModelControllerImpl implements ModelController {
 		// TODO: initialize task manager
 		
 		// Initialize provisioning
-		provisioning.initialize(result);
+		provisioning.postInit(result);
 		
 		result.computeStatus();
 	}

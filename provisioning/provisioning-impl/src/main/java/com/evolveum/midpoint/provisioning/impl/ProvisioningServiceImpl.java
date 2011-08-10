@@ -785,7 +785,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	 * @see com.evolveum.midpoint.provisioning.api.ProvisioningService#initialize()
 	 */
 	@Override
-	public void initialize(OperationResult parentResult) {
+	public void postInit(OperationResult parentResult) {
 		
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()+".initialize");
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
