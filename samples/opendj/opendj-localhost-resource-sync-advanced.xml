@@ -33,7 +33,8 @@ object.
 
 -->
 
-<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
@@ -625,5 +626,20 @@ object.
              However, this is not used in the current business logic. Can be anything. -->
 		<c:objectType>http://myself.me/schemas/objects#SampleConfigType</c:objectType>
 	</c:genericObject>
+	
+	<!-- Definition of a live sychnronization task. It will poll changelog and pull in changes -->
+	<task oid="91919191-76e0-59e2-86d6-3d4f02d3ffff">
+		<!-- Resource printable name -->
+		<name>Synchronization: Embedded Test OpenDJ</name>
+		<executionStatus>running</executionStatus>
+		<exclusivityStatus>released</exclusivityStatus>
+		<handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
+		<objectRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
+		<recurrence>recurring</recurrence>
+		<binding>tight</binding>
+		<schedule>
+			<interval>5</interval>
+		</schedule>
+	</task>
 
 </c:objects>
