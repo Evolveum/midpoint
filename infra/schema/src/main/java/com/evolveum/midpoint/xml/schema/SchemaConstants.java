@@ -70,6 +70,8 @@ public abstract class SchemaConstants {
 	public static final QName C_FILTER_AND = new QName(NS_C, "and");
 	public static final QName C_OBJECT = new QName(NS_C, "object");
 	
+	public static final QName ACTIVATION = new QName(NS_C, "activation");
+	
 	public static final QName C_OID_ATTRIBUTE = new QName(NS_C, "oid");
 	public static final QName I_OBJECTS = new QName(NS_C, "objects");
 	public static final QName C_EXTENSION = new QName(NS_C, "extension");;

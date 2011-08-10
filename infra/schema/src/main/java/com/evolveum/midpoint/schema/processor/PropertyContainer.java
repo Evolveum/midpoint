@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -33,7 +34,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 
 /**
  * Property container groups properties into logical blocks. The reason for
@@ -55,8 +55,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
  * @author Radovan Semancik
  * 
  */
-public class PropertyContainer {
+public class PropertyContainer implements Serializable {
 
+	private static final long serialVersionUID = 5206821250098051028L;
 	private QName name;
 	private Set<Property> properties = new HashSet<Property>();
 	private PropertyContainerDefinition definition;

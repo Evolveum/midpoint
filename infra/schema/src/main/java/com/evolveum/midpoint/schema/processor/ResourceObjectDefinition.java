@@ -49,6 +49,7 @@ import org.w3c.dom.Element;
  */
 public class ResourceObjectDefinition extends PropertyContainerDefinition {
 
+	private static final long serialVersionUID = 3943909626639924429L;
 	private Schema schema;
 	private Set<ResourceObjectAttributeDefinition> idenitifiers;
 	private Set<ResourceObjectAttributeDefinition> secondaryIdenitifiers;

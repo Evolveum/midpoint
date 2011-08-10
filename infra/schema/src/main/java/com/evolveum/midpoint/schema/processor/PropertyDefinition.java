@@ -55,6 +55,7 @@ import javax.xml.namespace.QName;
  */
 public class PropertyDefinition extends Definition {
 
+	private static final long serialVersionUID = 7259761997904371009L;
 	private QName valueType;
 	private int minOccurs = 1;
 	private int maxOccurs = 1;

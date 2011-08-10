@@ -21,6 +21,8 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.Serializable;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -47,8 +49,9 @@ import org.apache.commons.lang.StringUtils;
  * @author Radovan Semancik
  * 
  */
-public abstract class Definition {
+public abstract class Definition implements Serializable {
 
+	private static final long serialVersionUID = -2643332934312107274L;
 	private QName name;
 	private QName defaultName;
 	private QName typeName;

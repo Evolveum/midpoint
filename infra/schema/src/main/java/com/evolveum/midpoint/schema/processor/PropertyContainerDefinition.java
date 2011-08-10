@@ -59,6 +59,7 @@ import org.w3c.dom.Element;
  */
 public class PropertyContainerDefinition extends Definition {
 
+	private static final long serialVersionUID = -5068923696147960699L;
 	private Set<PropertyDefinition> propertyDefinitions;
 
 	PropertyContainerDefinition(QName name, QName defaultName, QName typeName) {

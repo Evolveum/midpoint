@@ -45,6 +45,7 @@ import javax.xml.namespace.QName;
  */
 public class ObjectReferenceDefinition extends PropertyDefinition {
 
+	private static final long serialVersionUID = 2427488779612517600L;
 	private Set<QName> targetTypeNames;
 
 	ObjectReferenceDefinition(QName name, QName defaultName, QName typeName) {

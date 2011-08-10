@@ -41,6 +41,8 @@ import javax.xml.namespace.QName;
  */
 public class ObjectDefinition extends PropertyContainerDefinition {
 
+	private static final long serialVersionUID = -8298581031956931008L;
+
 	ObjectDefinition(QName name, QName defaultName, QName typeName) {
 		super(name, defaultName, typeName);
 	}
