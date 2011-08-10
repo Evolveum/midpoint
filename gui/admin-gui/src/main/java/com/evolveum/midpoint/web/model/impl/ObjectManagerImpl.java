@@ -95,6 +95,8 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
 			result.recordFatalError("Couldn't get object '" + oid + "' from model.", ex);
 			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
+		} finally{
+			result.computeStatus();
 		}
 
 		printResults(LOGGER, result);
@@ -104,7 +106,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public T get(String oid, PropertyReferenceListType resolve) {
+	public T get(String oid, PropertyReferenceListType resolve){
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		LOGGER.debug("Get object with oid {}.", new Object[] { oid });
 		OperationResult result = new OperationResult("Get Object");
@@ -113,12 +115,13 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		try {
 			ObjectType objectType = get(oid, resolve, getSupportedObjectClass());
 			isObjectTypeSupported(objectType);
-
 			object = createObject((C) objectType);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object {} from model", ex, oid);
 			result.recordFatalError("Couldn't get object '" + oid + "' from model.", ex);
+		} finally{
+			result.computeStatus();
 		}
 
 		printResults(LOGGER, result);
