@@ -195,6 +195,10 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	
 	/**
 	 * This should be the very first executed test.
+	 * 
+	 * The original repository object does not have resource schema. The schema should be generated from
+	 * the resource on the first use. This is the test that executes testResource and checks whether the
+	 * schema was generated. Therefore it must be the very first test to be executed.
 	 */
 	@Test
 	public void test000Connection() throws Exception {

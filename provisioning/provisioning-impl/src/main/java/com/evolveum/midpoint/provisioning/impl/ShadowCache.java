@@ -653,8 +653,8 @@ public class ShadowCache {
 	public void testConnection(ResourceType resourceType,
 			OperationResult parentResult) {
 
-		// OperationResult initResult = parentResult
-		// .createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_INIT_OPERATION);
+		// === test INITIALIZATION ===
+		
 		OperationResult initResult = parentResult
 				.createSubresult(ConnectorTestOperation.CONNECTION_INITIALIZATION.getOperation());
 		ConnectorInstance connector;
@@ -672,14 +672,20 @@ public class ShadowCache {
 		LOGGER.debug("Testing connection to the resource with oid {}",
 				resourceType.getOid());
 		
+		// === test CONNECTION ===
+		
 		// delegate the main part of the test to the connector
 		connector.test(parentResult);
+		
+		// === test SCHEMA ===
 		
 		OperationResult schemaResult = parentResult
 		.createSubresult(ConnectorTestOperation.CONNECTOR_SCHEMA.getOperation());
 		
 		Schema schema = null;
 		try {
+			// Try to fetch schema from the connector. The UCF will convert it to Schema Processor
+			// format, so it is already structured
 			schema = connector.fetchResourceSchema(schemaResult);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
 			schemaResult.recordFatalError("Communication error: "+e.getMessage(),e);
@@ -694,6 +700,9 @@ public class ShadowCache {
 			return;
 		}
 		
+		// Invoke completeResource(). This will store the fetched schema to the ResourceType
+		// if there is no <schema> definition already. Therefore the testResource() can be used to
+		// generate the resource schema - until we have full schema caching capability. 
 		try {
 			completeResource(resourceType, schema, schemaResult);
 		} catch (ObjectNotFoundException e) {
@@ -1533,6 +1542,9 @@ public class ShadowCache {
 	 * is guaranteed that it will be "fresher" and will correspond to the repository
 	 * state (assuming that the provided resource also corresponded to the repository state).
 	 * 
+	 * The connector schema that was fetched before can be supplied to this method. This is just an
+	 * optimization. It comes handy e.g. in test connection case.
+	 * 
 	 * Note: This is not really the best place for this method. Need to figure out correct place later.
 	 * 
 	 * @param resource Resource to check
@@ -1544,8 +1556,8 @@ public class ShadowCache {
 	 * @throws CommunicationException cannot fetch resource schema
 	 */
 	public ResourceType completeResource(ResourceType resource, Schema resourceSchema, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
-		// Check presence of a schema
 		
+		// Check presence of a schema
 		XmlSchemaType xmlSchemaType = resource.getSchema();
 		if (xmlSchemaType==null) {
 			xmlSchemaType = new XmlSchemaType();
@@ -1556,10 +1568,14 @@ public class ShadowCache {
 		if (xsdElement==null) {
 			// There is no schema, we need to pull it from the resource
 			
-			if (resourceSchema==null) {
+			if (resourceSchema==null) { 		// unless it has been already pulled 
+				LOGGER.trace("Fetching resource schema for "+ObjectTypeUtil.toShortString(resource));
 				ConnectorInstance connector = getConnectorInstance(resource, result);
 				try {
+					// Fetch schema from connector, UCF will convert it to Schema Processor format and add all
+					// necessary annotations
 					resourceSchema = connector.fetchResourceSchema(result);
+					
 				} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 					throw new CommunicationException("Cannot fetch resource schema: "+ex.getMessage(),ex);
 				} catch (GenericFrameworkException ex) {
@@ -1567,12 +1583,17 @@ public class ShadowCache {
 							+ connector + ": " + ex.getMessage(), ex);
 				}
 			}
+			LOGGER.debug("Generated resource schema for "+ObjectTypeUtil.toShortString(resource)+": "+resourceSchema.getDefinitions().size()+" definitions");
 			Document xsdDoc = null;
 			try {
+				// Convert to XSD
+				LOGGER.trace("Generating XSD resource schema for "+ObjectTypeUtil.toShortString(resource));
 				xsdDoc = resourceSchema.serializeToXsd();
 			} catch (SchemaProcessorException e) {
 				throw new SchemaException("Error processing resource schema for "+ObjectTypeUtil.toShortString(resource)+": "+e.getMessage(),e);
 			}
+			// Store into repository (modify ResourceType)
+			LOGGER.info("Storing generated schema in resource "+ObjectTypeUtil.toShortString(resource));
 			xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
 			xmlSchemaType.getAny().add(xsdElement);
 			ObjectModificationType objectModificationType = ObjectTypeUtil.createModificationReplaceProperty(resource.getOid(), SchemaConstants.I_SCHEMA, xmlSchemaType);
