@@ -91,6 +91,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptArgumentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptOrderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
@@ -473,12 +474,13 @@ public class ShadowCache {
 			// resourceObject
 
 			try {
-
-				Set<Operation> scriptOperations = createExecuteScriptOperation(
-						OperationTypeType.ADD, scripts);
-
-				resourceAttributes = connector.addObject(resourceObject, scriptOperations,
-						parentResult);
+				Set<Operation> scriptOperations = null;
+				if (scripts != null) {
+					scriptOperations = createExecuteScriptOperation(
+							OperationTypeType.ADD, scripts);
+				}
+				resourceAttributes = connector.addObject(resourceObject,
+						scriptOperations, parentResult);
 
 				LOGGER.debug("Added object: {}",
 						DebugUtil.prettyPrint(resourceAttributes));
@@ -532,8 +534,8 @@ public class ShadowCache {
 
 	}
 
-	private Set<Operation> createExecuteScriptOperation(
-			OperationTypeType type, ScriptsType scripts) {
+	private Set<Operation> createExecuteScriptOperation(OperationTypeType type,
+			ScriptsType scripts) {
 		Set<Operation> scriptOperations = new HashSet<Operation>();
 		for (ScriptType script : scripts.getScript()) {
 			if (type.equals(script.getOperation())) {
@@ -549,7 +551,7 @@ public class ShadowCache {
 
 				scriptOperation.setLanguage(script.getLanguage());
 				scriptOperation.setTextCode(script.getCode());
-				
+
 				scriptOperation.setScriptOrder(script.getOrder());
 
 				if (script.getHost().equals(ScriptHostType.CONNECTOR)) {
@@ -562,14 +564,15 @@ public class ShadowCache {
 				}
 
 				scriptOperations.add(scriptOperation);
-			} 
+			}
 		}
 		return scriptOperations;
 	}
 
-	public void deleteShadow(ObjectType objectType, ResourceType resource,
-			OperationResult parentResult) throws CommunicationException,
-			GenericFrameworkException, ObjectNotFoundException, SchemaException {
+	public void deleteShadow(ObjectType objectType, ScriptsType scripts,
+			ResourceType resource, OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException,
+			ObjectNotFoundException, SchemaException {
 
 		Validate.notNull(objectType, "Object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -600,10 +603,14 @@ public class ShadowCache {
 			LOGGER.debug("Getting object identifiers");
 			Set<ResourceObjectAttribute> identifiers = rod
 					.parseIdentifiers(accountShadow.getAttributes().getAny());
-
+			Set<Operation> executeScriptOperations = null;
+			if (scripts != null) {
+				executeScriptOperations = createExecuteScriptOperation(
+						OperationTypeType.DELETE, scripts);
+			}
 			try {
 				connector.deleteObject(accountShadow.getObjectClass(),
-						identifiers, parentResult);
+						executeScriptOperations, identifiers, parentResult);
 			} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
 				parentResult.recordFatalError("Can't delete object "
 						+ ObjectTypeUtil.toShortString(accountShadow)
@@ -673,10 +680,15 @@ public class ShadowCache {
 			Set<ResourceObjectAttribute> identifiers = rod
 					.parseIdentifiers(accountType.getAttributes().getAny());
 
-			Set<Operation> executeScriptOperation = createExecuteScriptOperation(OperationTypeType.MODIFY, scripts);
+			Set<Operation> executeScriptOperation = null;
+			if (scripts != null) {
+				executeScriptOperation = createExecuteScriptOperation(
+						OperationTypeType.MODIFY, scripts);
+			}
 			Set<Operation> changes = getAttributeChanges(objectChange, rod);
-			changes.addAll(executeScriptOperation);
-			
+			if (executeScriptOperation != null) {
+				changes.addAll(executeScriptOperation);
+			}
 			LOGGER.debug("Applying change: {}",
 					JAXBUtil.silentMarshalWrap(objectChange));
 			try {
@@ -704,7 +716,7 @@ public class ShadowCache {
 			OperationResult parentResult) {
 
 		// === test INITIALIZATION ===
-		
+
 		OperationResult initResult = parentResult
 				.createSubresult(ConnectorTestOperation.CONNECTION_INITIALIZATION
 						.getOperation());
@@ -724,19 +736,20 @@ public class ShadowCache {
 				resourceType.getOid());
 
 		// === test CONNECTION ===
-		
+
 		// delegate the main part of the test to the connector
 		connector.test(parentResult);
 
 		// === test SCHEMA ===
-		
+
 		OperationResult schemaResult = parentResult
 				.createSubresult(ConnectorTestOperation.CONNECTOR_SCHEMA
 						.getOperation());
 
 		Schema schema = null;
 		try {
-			// Try to fetch schema from the connector. The UCF will convert it to Schema Processor
+			// Try to fetch schema from the connector. The UCF will convert it
+			// to Schema Processor
 			// format, so it is already structured
 			schema = connector.fetchResourceSchema(schemaResult);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
@@ -754,9 +767,12 @@ public class ShadowCache {
 			return;
 		}
 
-		// Invoke completeResource(). This will store the fetched schema to the ResourceType
-		// if there is no <schema> definition already. Therefore the testResource() can be used to
-		// generate the resource schema - until we have full schema caching capability. 
+		// Invoke completeResource(). This will store the fetched schema to the
+		// ResourceType
+		// if there is no <schema> definition already. Therefore the
+		// testResource() can be used to
+		// generate the resource schema - until we have full schema caching
+		// capability.
 		try {
 			completeResource(resourceType, schema, schemaResult);
 		} catch (ObjectNotFoundException e) {
@@ -1603,10 +1619,12 @@ public class ShadowCache {
 	 * repository state (assuming that the provided resource also corresponded
 	 * to the repository state).
 	 * 
-	 * The connector schema that was fetched before can be supplied to this method. This is just an
-	 * optimization. It comes handy e.g. in test connection case.
+	 * The connector schema that was fetched before can be supplied to this
+	 * method. This is just an optimization. It comes handy e.g. in test
+	 * connection case.
 	 * 
-	 * Note: This is not really the best place for this method. Need to figure out correct place later.
+	 * Note: This is not really the best place for this method. Need to figure
+	 * out correct place later.
 	 * 
 	 * @param resource
 	 *            Resource to check
@@ -1625,7 +1643,7 @@ public class ShadowCache {
 			Schema resourceSchema, OperationResult result)
 			throws ObjectNotFoundException, SchemaException,
 			CommunicationException {
-		
+
 		// Check presence of a schema
 		XmlSchemaType xmlSchemaType = resource.getSchema();
 		if (xmlSchemaType == null) {
@@ -1636,15 +1654,18 @@ public class ShadowCache {
 
 		if (xsdElement == null) {
 			// There is no schema, we need to pull it from the resource
-			
-			if (resourceSchema==null) { 		// unless it has been already pulled 
-				LOGGER.trace("Fetching resource schema for "+ObjectTypeUtil.toShortString(resource));
-				ConnectorInstance connector = getConnectorInstance(resource, result);
+
+			if (resourceSchema == null) { // unless it has been already pulled
+				LOGGER.trace("Fetching resource schema for "
+						+ ObjectTypeUtil.toShortString(resource));
+				ConnectorInstance connector = getConnectorInstance(resource,
+						result);
 				try {
-					// Fetch schema from connector, UCF will convert it to Schema Processor format and add all
+					// Fetch schema from connector, UCF will convert it to
+					// Schema Processor format and add all
 					// necessary annotations
 					resourceSchema = connector.fetchResourceSchema(result);
-					
+
 				} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 					throw new CommunicationException(
 							"Cannot fetch resource schema: " + ex.getMessage(),
@@ -1655,11 +1676,14 @@ public class ShadowCache {
 									+ ex.getMessage(), ex);
 				}
 			}
-			LOGGER.debug("Generated resource schema for "+ObjectTypeUtil.toShortString(resource)+": "+resourceSchema.getDefinitions().size()+" definitions");
+			LOGGER.debug("Generated resource schema for "
+					+ ObjectTypeUtil.toShortString(resource) + ": "
+					+ resourceSchema.getDefinitions().size() + " definitions");
 			Document xsdDoc = null;
 			try {
 				// Convert to XSD
-				LOGGER.trace("Generating XSD resource schema for "+ObjectTypeUtil.toShortString(resource));
+				LOGGER.trace("Generating XSD resource schema for "
+						+ ObjectTypeUtil.toShortString(resource));
 				xsdDoc = resourceSchema.serializeToXsd();
 			} catch (SchemaProcessorException e) {
 				throw new SchemaException(
@@ -1668,7 +1692,8 @@ public class ShadowCache {
 								+ e.getMessage(), e);
 			}
 			// Store into repository (modify ResourceType)
-			LOGGER.info("Storing generated schema in resource "+ObjectTypeUtil.toShortString(resource));
+			LOGGER.info("Storing generated schema in resource "
+					+ ObjectTypeUtil.toShortString(resource));
 			xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
 			xmlSchemaType.getAny().add(xsdElement);
 			ObjectModificationType objectModificationType = ObjectTypeUtil

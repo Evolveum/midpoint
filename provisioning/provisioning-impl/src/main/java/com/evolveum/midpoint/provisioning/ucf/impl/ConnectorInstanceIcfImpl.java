@@ -512,6 +512,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throws CommunicationException, GenericFrameworkException,
 			SchemaException, ObjectAlreadyExistsException {
 
+		
 		OperationResult result = parentResult
 				.createSubresult(ConnectorInstance.class.getName()
 						+ ".addObject");
@@ -555,6 +556,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		try {
 
+			
 			checkAndExecuteAdditionalOperation(additionalOperations,
 					ScriptOrderType.BEFORE);
 			// CALL THE ICF FRAMEWORK
@@ -809,7 +811,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void deleteObject(QName objectClass,
+	public void deleteObject(QName objectClass, Set<Operation> additionalOperations, 
 			Set<ResourceObjectAttribute> identifiers,
 			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException {
@@ -829,8 +831,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		icfResult.addContext("connector", connector);
 
 		try {
+			
+			checkAndExecuteAdditionalOperation(additionalOperations, ScriptOrderType.BEFORE);
+			
 			connector.delete(objClass, uid,
 					new OperationOptionsBuilder().build());
+			
+			checkAndExecuteAdditionalOperation(additionalOperations, ScriptOrderType.AFTER);
 			icfResult.recordSuccess();
 		} catch (UnknownUidException ex) {
 			icfResult.recordFatalError("Object with the uid: " + uid
@@ -1549,6 +1556,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 */
 	private void checkAndExecuteAdditionalOperation(
 			Set<Operation> additionalOperations, ScriptOrderType order) {
+		
+		if (additionalOperations == null){
+			//TODO: add warning to the result
+			return;
+		}
+		
 		for (Operation op : additionalOperations) {
 			if (op instanceof ExecuteScriptOperation) {
 				ExecuteScriptOperation executeOp = (ExecuteScriptOperation) op;

@@ -234,7 +234,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		QName objectClass = new QName(resource.getNamespace(),
 				"AccountObjectClass");
 
-		cc.deleteObject(objectClass, identifiers, result);
+		cc.deleteObject(objectClass, null, identifiers, result);
 
 		ResourceObject resObj = null;
 		try {

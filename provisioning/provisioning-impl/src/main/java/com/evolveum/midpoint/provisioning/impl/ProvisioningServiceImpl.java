@@ -572,7 +572,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		
 		try {
-			getShadowCache().deleteShadow(objectType, null, parentResult);
+			getShadowCache().deleteShadow(objectType, scripts, null, parentResult);
 			result.recordSuccess();
 		} catch (CommunicationException e) {
 			result.recordFatalError(e.getMessage());
