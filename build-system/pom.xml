@@ -20,7 +20,8 @@
 <!-- Portions Copyrighted 2011 Peter Prochazka               -->
 <!--                                                         -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>parent</artifactId>
 	<packaging>pom</packaging>
@@ -221,44 +222,34 @@
 						</dependencies>
 
 					</plugin>
-<plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>findbugs-maven-plugin</artifactId>
-          <version>2.3.2</version>
-          <configuration>
-          <effort>Max</effort>
-          <threshold>Low</threshold>
-          <xmlOutput>true</xmlOutput>
-          <htmlOutput>true</htmlOutput>
-         <onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>check</goal>
-            </goals>
-          </execution>
-        </executions>
-
-        </plugin>
-
-
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>findbugs-maven-plugin</artifactId>
+						<version>2.3.2</version>
+						<configuration>
+							<effort>Max</effort>
+							<threshold>Low</threshold>
+							<xmlOutput>true</xmlOutput>
+							<htmlOutput>true</htmlOutput>
+							<onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
+						</configuration>
+					</plugin>
 				</plugins>
 			</build>
 			<reporting>
 				<plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
-        <version>2.3.2</version>
-          <configuration>
-          <effort>Max</effort>
-          <threshold>Low</threshold>
-          <xmlOutput>true</xmlOutput>
-          <htmlOutput>true</htmlOutput>
-         <onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
-        </configuration>
-      </plugin>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>findbugs-maven-plugin</artifactId>
+						<version>2.3.2</version>
+						<configuration>
+							<effort>Max</effort>
+							<threshold>Low</threshold>
+							<xmlOutput>true</xmlOutput>
+							<htmlOutput>true</htmlOutput>
+							<onlyAnalyze>com.evolveum.midpoint.*</onlyAnalyze>
+						</configuration>
+					</plugin>
                     <!--plugin> <groupId>org.apache.maven.plugins</groupId> 
                         <artifactId>maven-checkstyle-plugin</artifactId>
                         <version>2.4</version> <configuration> <configLocation>http://svn/coding-rules/CheckStyle-rules.xml</configLocation>
