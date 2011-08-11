@@ -12,20 +12,22 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<h3>Some settings</h3>
-		<ice:form>
-			<idm:button action="#{basicConfiguration.action}" value="Show messages" />
-		</ice:form>
-		<h3>Some other settings</h3>
-		<ice:panelGrid columns="2" cellpadding="5" cellspacing="5">
-			<ice:outputLabel value="Enable maintenance" />
-			<ice:selectBooleanCheckbox id="enableMaintenance"></ice:selectBooleanCheckbox>
+		<ui:remove>
+			<h3>Some settings</h3>
+			<ice:form>
+				<idm:button action="#{basicConfiguration.action}" value="Show messages" />
+			</ice:form>
+			<h3>Some other settings</h3>
+			<ice:panelGrid columns="2" cellpadding="5" cellspacing="5">
+				<ice:outputLabel value="Enable maintenance" />
+				<ice:selectBooleanCheckbox id="enableMaintenance"></ice:selectBooleanCheckbox>
 
-			<ice:outputLabel value="Allow access from localhost" />
-			<ice:selectBooleanCheckbox id="allowAccessFromLocalhost" />
+				<ice:outputLabel value="Allow access from localhost" />
+				<ice:selectBooleanCheckbox id="allowAccessFromLocalhost" />
 
-			<ice:outputLabel value="Allowed IP addresses" />
-			<ice:inputTextarea id="textareaIpAddresses" cols="20" rows="3" value="" />
-		</ice:panelGrid>		
+				<ice:outputLabel value="Allowed IP addresses" />
+				<ice:inputTextarea id="textareaIpAddresses" cols="20" rows="3" value="" />
+			</ice:panelGrid>
+		</ui:remove>
 	</ui:define>
 </ui:composition>

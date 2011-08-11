@@ -59,7 +59,7 @@ public class InitialDataImport {
 	public void init() {
 		TRACE.info("Starting initial object import.");
 
-		OperationResult mainResult = new OperationResult("Initialisation");
+		OperationResult mainResult = new OperationResult("Initial Objects Import");
 		for (String file : FILES_FOR_IMPORT) {
 			OperationResult result = mainResult.createSubresult("Import Object");
 
@@ -97,7 +97,7 @@ public class InitialDataImport {
 				if (stream != null) {
 					IOUtils.closeQuietly(stream);
 				}
-				result.computeStatus();
+				result.computeStatus("Couldn't import objects.");
 			}
 		}
 		mainResult.recordSuccess();

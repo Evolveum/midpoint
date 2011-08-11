@@ -20,8 +20,11 @@
  */
 package com.evolveum.midpoint.model.importer;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
-import static org.junit.Assert.*;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,32 +49,30 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
-
 /**
  * @author Radovan Semancik
- *
+ * 
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository-test.xml", "classpath:application-context-provisioning.xml", "classpath:application-context-task.xml" })
+		"classpath:application-context-repository-test.xml",
+		"classpath:application-context-provisioning.xml", "classpath:application-context-task.xml" })
 public class ImportRefTest {
 
 	private static final File IMPORT_FILE_NAME = new File("src/test/resources/importer/import-ref.xml");
-	
+
 	@Autowired(required = true)
 	ModelService modelService;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
 	@Autowired(required = true)
 	private TaskManager taskManager;
-	
+
 	/**
 	 * Test integrity of the test setup.
 	 * 
@@ -83,7 +84,7 @@ public class ImportRefTest {
 		assertNotNull(repositoryService);
 
 	}
-	
+
 	// Temporarily disabled due to strange spring/junit race condition
 	@Ignore
 	@Test
@@ -91,38 +92,36 @@ public class ImportRefTest {
 		displayTestTile("test001GoodRefImport");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
-		OperationResult result = new OperationResult(ImportRefTest.class.getName()+"test001GoodRefImport");
+		OperationResult result = new OperationResult(ImportRefTest.class.getName() + "test001GoodRefImport");
 		FileInputStream stream = new FileInputStream(IMPORT_FILE_NAME);
-		
+
 		// WHEN
 		modelService.importObjectsFromStream(stream, task, result);
-		
+
 		// THEN
-		result.computeStatus();
-		display("Result after good import",result);
+		result.computeStatus("Failed import.");
+		display("Result after good import", result);
 		assertSuccess("Import has failed (result)", result);
-				
+
 		// Check import of user
 		Document doc = DOMUtil.getDocument();
-        Element filter =
-                QueryUtil.createAndFilter(doc,
-	                QueryUtil.createTypeFilter(doc, ObjectTypes.USER.getObjectTypeUri()),
-	                QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME,"jack")
-                );
-		
+		Element filter = QueryUtil.createAndFilter(doc,
+				QueryUtil.createTypeFilter(doc, ObjectTypes.USER.getObjectTypeUri()),
+				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "jack"));
+
 		QueryType query = new QueryType();
-        query.setFilter(filter);
-       
-        ObjectListType objects = repositoryService.searchObjects(query, null, result);
-        
-        assertNotNull(objects);
-        assertEquals("Search retuned unexpected results",1,objects.getObject().size());
-        UserType jack = (UserType)objects.getObject().get(0);
-        assertNotNull(jack);
-		assertEquals("Jack",jack.getGivenName());
-		assertEquals("Sparrow",jack.getFamilyName());
-		assertEquals("Cpt. Jack Sparrow",jack.getFullName());
-        
+		query.setFilter(filter);
+
+		ObjectListType objects = repositoryService.searchObjects(query, null, result);
+
+		assertNotNull(objects);
+		assertEquals("Search retuned unexpected results", 1, objects.getObject().size());
+		UserType jack = (UserType) objects.getObject().get(0);
+		assertNotNull(jack);
+		assertEquals("Jack", jack.getGivenName());
+		assertEquals("Sparrow", jack.getFamilyName());
+		assertEquals("Cpt. Jack Sparrow", jack.getFullName());
+
 	}
 
 }

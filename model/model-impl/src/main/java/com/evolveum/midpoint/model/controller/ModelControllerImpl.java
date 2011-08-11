@@ -149,7 +149,7 @@ public class ModelControllerImpl implements ModelController {
 			}
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
-			subResult.computeStatus();
+			subResult.computeStatus("Couldn't add object '" + object.getName() + "'.");
 			LOGGER.debug(subResult.dump());
 		}
 
@@ -258,7 +258,7 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordFatalError("Couldn't get object with oid '" + oid + "'.", ex);
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
-			subResult.computeStatus();
+			subResult.computeStatus("Couldn't get object with oid '" + oid + "'.");
 			LOGGER.debug(subResult.dump());
 		}
 
@@ -419,7 +419,7 @@ public class ModelControllerImpl implements ModelController {
 			}
 			throw new SystemException(message, ex);
 		} finally {
-			subResult.computeStatus();
+			subResult.computeStatus("Couldn't update object with oid '" + change.getOid() + "'.");
 			LOGGER.debug(subResult.dump());
 		}
 
@@ -644,7 +644,7 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult result = parentResult.createSubresult(OperationConstants.IMPORT_OBJECTS_FROM_STREAM);
 		// TODO: set summarization
 		ObjectImporter.importObjects(input, task, result, repository);
-		result.computeStatus();
+		result.computeStatus("Couldn't import object from input stream.");
 	}
 
 	private <T extends ObjectType> T getObjectFromRepository(String oid, PropertyReferenceListType resolve,
@@ -693,7 +693,7 @@ public class ModelControllerImpl implements ModelController {
 					oid, clazz);
 			throw new SystemException("Couldn't get object with oid '" + oid + "'.", ex);
 		} finally {
-			subResult.computeStatus();
+			subResult.computeStatus("Couldn't get object with oid '" + oid + "'.");
 			LOGGER.debug(subResult.dump());
 		}
 
@@ -806,7 +806,7 @@ public class ModelControllerImpl implements ModelController {
 				subResult.recordFatalError(
 						"Couldn't resolve account with oid '" + accountRef.getOid() + "'.", ex);
 			} finally {
-				subResult.computeStatus();
+				subResult.computeStatus("Couldn't resolve account with oid '" + accountRef.getOid() + "'.");
 			}
 		}
 		user.getAccountRef().removeAll(refToBeDeleted);
@@ -839,7 +839,7 @@ public class ModelControllerImpl implements ModelController {
 			subResult
 					.recordFatalError("Couldn't resolve resource with oid '" + reference.getOid() + "'.", ex);
 		} finally {
-			subResult.computeStatus();
+			subResult.computeStatus("Couldn't resolve resource with oid '" + reference.getOid() + "'.");
 		}
 	}
 
@@ -1129,7 +1129,7 @@ public class ModelControllerImpl implements ModelController {
 			for (ObjectReferenceType accountRef : accountRefs) {
 				OperationResult subResult = result.createSubresult("Update Accounts");
 				if (StringUtils.isNotEmpty(accountOid) && accountOid.equals(accountRef.getOid())) {
-					subResult.computeStatus();
+					subResult.computeStatus("Account excluded during modification, skipped.");
 					// preventing cycles while updating resource object shadows
 					continue;
 				}
@@ -1169,7 +1169,7 @@ public class ModelControllerImpl implements ModelController {
 				} catch (Exception ex) {
 					LoggingUtils.logException(LOGGER, "Couldn't update account {}", ex, accountRef.getOid());
 				} finally {
-					subResult.computeStatus();
+					subResult.computeStatus("Couldn't update account '" + accountRef.getOid() + "'.");
 				}
 			}
 		} else {
@@ -1228,7 +1228,7 @@ public class ModelControllerImpl implements ModelController {
 
 		processUserTemplateProperty(user, userTemplate, subResult);
 		processUserTemplateAccount(user, userTemplate, subResult);
-		subResult.computeStatus();
+		subResult.computeStatus("Couldn't finish process user template.");
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1267,7 +1267,8 @@ public class ModelControllerImpl implements ModelController {
 				result.recordWarning("Couldn't process account construction '" + construction.getType()
 						+ "'.", ex);
 			} finally {
-				subResult.computeStatus();
+				subResult.computeStatus("Couldn't process account construction '" + construction.getType()
+						+ "'.");
 			}
 		}
 	}
@@ -1277,15 +1278,16 @@ public class ModelControllerImpl implements ModelController {
 		for (PropertyConstructionType construction : userTemplate.getPropertyConstruction()) {
 			OperationResult subResult = result.createSubresult("User Property Construction");
 			try {
-				//TODO: process user template property construction
-				construction.
+				// TODO: process user template property construction
+
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't process property construction {} for user {}",
 						ex, construction.getProperty().getTextContent(), user.getName());
 				subResult.recordWarning("Couldn't process property construction '"
 						+ construction.getProperty().getTextContent() + "'.", ex);
 			} finally {
-				subResult.computeStatus();
+				subResult.computeStatus("Couldn't process property construction '"
+						+ construction.getProperty().getTextContent() + "'.");
 			}
 		}
 	}
@@ -1308,7 +1310,6 @@ public class ModelControllerImpl implements ModelController {
 		// Initialize provisioning
 		provisioning.postInit(result);
 
-		result.computeStatus();
+		result.computeStatus("Error occured during post initialization process.");
 	}
-
 }

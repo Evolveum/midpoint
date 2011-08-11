@@ -253,7 +253,10 @@ public class OperationResult implements Serializable {
 
 	/**
 	 * Computes operation result status based on subtask status.
+	 * 
+	 * @deprecated this method will be marked as private
 	 */
+	@Deprecated
 	public void computeStatus() {
 		if (getSubresults().isEmpty()) {
 			return;
@@ -463,7 +466,7 @@ public class OperationResult implements Serializable {
 		}
 		return false;
 	}
-	
+
 	public void appendDetail(String detailLine) {
 		// May be switched to a more structured method later
 		details.add(detailLine);
@@ -537,7 +540,7 @@ public class OperationResult implements Serializable {
 			sb.append(line);
 			sb.append("\n");
 		}
-		
+
 		for (OperationResult sub : getSubresults()) {
 			sub.dumpIndent(sb, indent + 1);
 		}
@@ -586,7 +589,7 @@ public class OperationResult implements Serializable {
 
 		if (opResult.getCause() != null || !opResult.details.isEmpty()) {
 			StringBuilder detailsb = new StringBuilder();
-			
+
 			// Record text messages in details (if present)
 			if (opResult.details.isEmpty()) {
 				for (String line : opResult.details) {
@@ -594,7 +597,7 @@ public class OperationResult implements Serializable {
 					detailsb.append("\n");
 				}
 			}
-			
+
 			// Record stack trace in details if a cause is present
 			if (opResult.getCause() != null) {
 				Throwable ex = opResult.getCause();
@@ -608,7 +611,7 @@ public class OperationResult implements Serializable {
 					detailsb.append("\n");
 				}
 			}
-			
+
 			result.setDetails(details.toString());
 		}
 
@@ -643,5 +646,5 @@ public class OperationResult implements Serializable {
 
 		return result;
 	}
-	
+
 }

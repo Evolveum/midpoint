@@ -39,7 +39,6 @@ import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
-import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.UserManager;
@@ -124,7 +123,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 			result.recordFatalError("Couldn't submit user '" + changedObject.getName() + "'.", ex);
 		}
 
-		result.computeStatus();
+		result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
 		printResults(LOGGER, result);
 
 		return set;

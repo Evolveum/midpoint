@@ -20,13 +20,10 @@
  */
 package com.evolveum.midpoint.model.importer;
 
-import org.apache.commons.lang.NotImplementedException;
-
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.task.api.Task;
@@ -41,11 +38,11 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 /**
  * Iterative search result handler for "import from resource" task.
  * 
- * This class is called back from the searchObjectsIterative() operation of
- * the provisioning service. It does most of the work of the "import" operation
+ * This class is called back from the searchObjectsIterative() operation of the
+ * provisioning service. It does most of the work of the "import" operation
  * 
- * It will actually setup the "create" change notification for all objects and invoke
- * a ResourceObjectChangeListener interface.
+ * It will actually setup the "create" change notification for all objects and
+ * invoke a ResourceObjectChangeListener interface.
  * 
  * @see ImportAccountsFromResourceTaskHandler
  * 
@@ -73,9 +70,9 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 	}
 
 	/*
-	 * This methods will be called for each search result. It means it will be called for
-	 * each account on a resource. We will pretend that the account was created and invoke
-	 * notification interface.
+	 * This methods will be called for each search result. It means it will be
+	 * called for each account on a resource. We will pretend that the account
+	 * was created and invoke notification interface.
 	 * 
 	 * @see
 	 * com.evolveum.midpoint.provisioning.api.ResultHandler#handle(com.evolveum
@@ -85,8 +82,8 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 	public boolean handle(ObjectType object, OperationResult parentResult) {
 		progress++;
 
-		OperationResult result = parentResult
-				.createSubresult(ImportAccountsFromResourceResultHandler.class.getName() + ".handle");
+		OperationResult result = parentResult.createSubresult(ImportAccountsFromResourceResultHandler.class
+				.getName() + ".handle");
 		result.addParam("object", object);
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 
@@ -114,20 +111,20 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 
 		logger.debug("Going to call notification with new object: " + DebugUtil.prettyPrint(newShadow));
 		try {
-			
+
 			// Invoke the change notification
 			objectChangeListener.notifyChange(change, result);
-			
+
 		} catch (Exception ex) {
 			logger.error("Change notication listener failed for import of object {}: {}: ", new Object[] {
 					newShadow, ex.getClass().getSimpleName(), ex.getMessage(), ex });
 			result.recordPartialError("failed to import", ex);
 			return !isStopOnError();
 		}
-		
+
 		// Check if we haven't been interrupted
 		if (task.canRun()) {
-			result.computeStatus();
+			result.computeStatus("Failed to import.");
 			// Everything OK, signal to continue
 			return true;
 		} else {

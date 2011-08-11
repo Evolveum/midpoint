@@ -26,7 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
 import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.StringUtils;
@@ -40,9 +39,6 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.RollingFileAppender;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 import org.springframework.util.SystemPropertyUtils;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
@@ -88,7 +84,7 @@ public class LoggingManager {
 		LOGGER.info("Initializing Logging Manager.");
 		OperationResult result = new OperationResult("Init Logging Manager");
 		updateLoggers(result);
-		result.computeStatus();
+		result.computeStatus("Logging manager initialization finished with errors/warnings.");
 		LOGGER.info(result.dump());
 	}
 
