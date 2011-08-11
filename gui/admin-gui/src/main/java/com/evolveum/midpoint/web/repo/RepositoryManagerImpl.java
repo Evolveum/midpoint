@@ -136,7 +136,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		Validate.notNull(object, "Object must not be null.");
 		LOGGER.debug("Saving object {} (object xml in traces).", new Object[] { object.getName() });
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(JAXBUtil.silentMarshal(object));
+			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 		}
 
 		OperationResult result = new OperationResult(SAVE_OBJECT);
@@ -190,7 +190,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		Validate.notNull(object, "Object must not be null.");
 		LOGGER.debug("Adding object {} (object xml in traces).", new Object[] { object.getName() });
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace(JAXBUtil.silentMarshal(object));
+			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 		}
 
 		OperationResult result = new OperationResult(ADD_OBJECT);
