@@ -169,6 +169,10 @@ public class XsdTypeConverter {
 	}
 	
 	public static void toXsdElement(Object val, Element element, boolean recordType) {
+		if (val == null){
+			//if no value is specified, do not create element
+			return;
+		}
 		Class type = val.getClass();
 		if (type.equals(String.class)) {
 			element.setTextContent((String)val);

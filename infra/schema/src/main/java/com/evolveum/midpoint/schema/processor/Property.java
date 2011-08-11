@@ -24,7 +24,6 @@ package com.evolveum.midpoint.schema.processor;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -33,7 +32,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 
 /**
@@ -311,9 +309,6 @@ public class Property {
 		List<Element> elements = new ArrayList<Element>();
 		
 		//check if the property has value..if not, return empty elemnts list..
-		if (getValue() == null){
-			return elements;
-		}
 		
 		if (propDef==null) {
 			propDef = getDefinition();
@@ -323,6 +318,9 @@ public class Property {
 		if (alternateValues!=null) {
 			serializeValues = alternateValues;
 		}
+		
+		
+		
 		for (Object val : serializeValues) {
 			Element element = doc.createElementNS(getName().getNamespaceURI(), getName().getLocalPart());
 			// If we have a definition then try to use it. The conversion may be more realiable
@@ -331,8 +329,10 @@ public class Property {
 			if (propDef!=null) {
 				xsdType = propDef.getTypeName();
 			}
-			XsdTypeConverter.toXsdElement(val,xsdType,element,recordType);
-			elements.add(element);
+			
+				XsdTypeConverter.toXsdElement(val,xsdType,element,recordType);
+				elements.add(element);
+			
 		}			
 		return elements;
 	}
