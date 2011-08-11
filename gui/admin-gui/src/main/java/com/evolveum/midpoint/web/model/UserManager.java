@@ -36,8 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 public interface UserManager extends ObjectManager<GuiUserDto> {
 
 	String CLASS_NAME = UserManager.class.getSimpleName() + ".";
-	String OPERATION_USER_SUBMIT = CLASS_NAME + "submit";
-	String OPERATION_SEARCH = CLASS_NAME + "search";
+	String SUBMIT = CLASS_NAME + "submit";
+	String SEARCH = CLASS_NAME + "search";
 
 	AccountShadowDto addAccount(UserDto userDto, String resourceOid);
 

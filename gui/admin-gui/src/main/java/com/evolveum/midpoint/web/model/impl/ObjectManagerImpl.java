@@ -79,7 +79,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		Validate.notNull(objectClass, "Object class must not be null.");
 
 		LOGGER.debug("Get object with oid {}.", new Object[] { oid });
-		OperationResult result = new OperationResult("Get Object");
+		OperationResult result = new OperationResult(GET);
 
 		O objectType = null;
 		try {
@@ -107,7 +107,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 	public T get(String oid, PropertyReferenceListType resolve) {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		LOGGER.debug("Get object with oid {}.", new Object[] { oid });
-		OperationResult result = new OperationResult("Get Object");
+		OperationResult result = new OperationResult(GET);
 
 		T object = null;
 		try {
@@ -132,7 +132,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		LOGGER.debug("Deleting object '" + oid + "'.");
 
-		OperationResult result = new OperationResult("Delete Object");
+		OperationResult result = new OperationResult(DELETE);
 		try {
 			getModel().deleteObject(oid, result);
 			result.recordSuccess();
@@ -152,7 +152,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		Validate.notNull(object.getXmlObject(), "Xml object type in object must not be null.");
 		LOGGER.debug("Adding object '" + object.getName() + "'.");
 
-		OperationResult result = new OperationResult("Add Object");
+		OperationResult result = new OperationResult(ADD);
 		String oid = null;
 		try {
 			oid = getModel().addObject(object.getXmlObject(), result);
@@ -174,7 +174,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		Validate.notNull(type, "Class object must not be null.");
 
 		Collection<O> collection = new ArrayList<O>();
-		OperationResult result = new OperationResult("List Objects");
+		OperationResult result = new OperationResult(LIST);
 		try {
 			ObjectListType objectList = getModel().listObjects(type, paging, result);
 			for (ObjectType objectType : objectList.getObject()) {

@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -47,6 +46,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
  * @author semancik
  */
 public interface ObjectManager<T> {
+
+	String CLASS_NAME = ObjectManager.class.getName() + ".";
+	String LIST = CLASS_NAME + "list";
+	String GET = CLASS_NAME + "get";
+	String CREATE = CLASS_NAME + "create";
+	String ADD = CLASS_NAME + "add";
+	String SUBMIT = CLASS_NAME + "submit";
+	String DELETE = CLASS_NAME + "delete";
+	String GET_PROPERTY_AVAILABLE_VALUES = CLASS_NAME + "getPropertyAvailableValues";
 
 	/**
 	 * List objects according to paging parameters.

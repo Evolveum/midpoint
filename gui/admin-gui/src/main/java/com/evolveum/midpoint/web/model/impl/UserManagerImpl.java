@@ -95,7 +95,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 		Set<PropertyChange> set = null;
 		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
 
-		OperationResult result = new OperationResult(UserManager.OPERATION_USER_SUBMIT);
+		OperationResult result = new OperationResult(UserManager.SUBMIT);
 		try { // Call Web Service Operation
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
 					changedObject.getXmlObject());
@@ -158,7 +158,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 	public List<UserDto> search(QueryType search, PagingType paging) {
 		Validate.notNull(search, "Query must not be null.");
 
-		OperationResult result = new OperationResult(OPERATION_SEARCH);
+		OperationResult result = new OperationResult(SEARCH);
 		List<UserDto> users = new ArrayList<UserDto>();
 		try {
 			ObjectListType list = getModel().searchObjectsInRepository(search, paging, result);
