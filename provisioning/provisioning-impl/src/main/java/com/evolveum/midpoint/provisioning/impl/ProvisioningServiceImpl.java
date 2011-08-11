@@ -190,6 +190,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					oid, e);
 			result.recordFatalError("Can't get object with oid "+ oid +". Reason: " + e.getMessage(), e);
 			throw e;
+		} catch (SchemaException ex){
+			LOGGER.error(
+					"**PROVISIONING: Can't get obejct with oid {}. Reason {}",
+					oid, ex);
+			result.recordFatalError("Can't get object with oid "+ oid +". Reason: " + ex.getMessage(), ex);
+			throw ex;
 		}
 
 		if (repositoryObject instanceof ResourceObjectShadowType) {
@@ -275,6 +281,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		String addedShadow = null;
 
 		try {
+			//calling shadow cache to add object
 			addedShadow = getShadowCache().addShadow(object, scripts, null,
 					parentResult);
 			LOGGER.trace("**PROVISIONING: Added shadow object {}",
@@ -320,6 +327,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		ObjectType resourceObjectType = getObject(resourceOid,
 				new PropertyReferenceListType(), result);
 
+		//try if the object with the specified oid is resource
 		if (!(resourceObjectType instanceof ResourceType)) {
 			result.recordFatalError("Object to synchronize must be type of resource.");
 			throw new IllegalArgumentException(
@@ -338,6 +346,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			tokenProperty = task.getExtension(SchemaConstants.SYNC_TOKEN);
 		}
 
+		//if the token is not specified in the task, get the latest token
 		if (tokenProperty == null) {
 			tokenProperty = getShadowCache().fetchCurrentToken(resourceType,
 					parentResult);
@@ -348,12 +357,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				DebugUtil.prettyPrint(tokenProperty));
 
 		List<PropertyModification> modifications = new ArrayList<PropertyModification>();
-		List<Change> changes = null;// new ArrayList<Change>();
+		List<Change> changes = null;
 		try {
 			LOGGER.debug("Calling shadow cache to fetch changes.");
 			changes = getShadowCache().fetchChanges(resourceType,
 					tokenProperty, result);
 
+			//for each change from the connector create change description
 			for (Change change : changes) {
 
 				ResourceObjectShadowChangeDescriptionType shadowChangeDescription = createResourceShadowChangeDescription(
@@ -363,15 +373,16 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 						DebugUtil.prettyPrint(shadowChangeDescription));
 				notifyResourceObjectChangeListeners(shadowChangeDescription,
 						result);
-
+				//get updated token from change, 
+				//create property modification from new token
+				// and replace old token with the new one
 				Property newToken = change.getToken();
-				// create property modification from new token
-
 				PropertyModification modificatedToken = getTokenModification(newToken);
 				modifications.add(modificatedToken);
 				processedChanges++;
 
 			}
+			//also if no changes was detected, update token
 			if (changes.isEmpty()) {
 				LOGGER.warn("No changes found.");
 				PropertyModification modificatedToken = getTokenModification(tokenProperty);
@@ -506,6 +517,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					"Object change or object change oid cannot be null");
 		}
 
+		//getting object to modify
 		ObjectType objectType = getRepositoryService().getObject(
 				objectChange.getOid(), new PropertyReferenceListType(),
 				parentResult);
@@ -516,6 +528,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				JAXBUtil.silentMarshalWrap(objectType));
 
 		try {
+			//calling shadow cache to modify object
 			getShadowCache().modifyShadow(objectType, null, objectChange,
 					scripts, parentResult);
 			result.recordSuccess();

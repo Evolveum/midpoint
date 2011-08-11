@@ -475,10 +475,10 @@ public class ShadowCache {
 
 			try {
 				Set<Operation> scriptOperations = null;
-				if (scripts != null) {
-					scriptOperations = createExecuteScriptOperation(
-							OperationTypeType.ADD, scripts);
-				}
+
+				scriptOperations = createExecuteScriptOperation(
+						OperationTypeType.ADD, scripts, parentResult);
+
 				resourceAttributes = connector.addObject(resourceObject,
 						scriptOperations, parentResult);
 
@@ -535,7 +535,11 @@ public class ShadowCache {
 	}
 
 	private Set<Operation> createExecuteScriptOperation(OperationTypeType type,
-			ScriptsType scripts) {
+			ScriptsType scripts, OperationResult result) {
+		if (scripts == null) {
+			result.recordWarning("Skiping creating script operation to execute. Scripts was not defined.");
+			return null;
+		}
 		Set<Operation> scriptOperations = new HashSet<Operation>();
 		for (ScriptType script : scripts.getScript()) {
 			if (type.equals(script.getOperation())) {
@@ -604,10 +608,10 @@ public class ShadowCache {
 			Set<ResourceObjectAttribute> identifiers = rod
 					.parseIdentifiers(accountShadow.getAttributes().getAny());
 			Set<Operation> executeScriptOperations = null;
-			if (scripts != null) {
-				executeScriptOperations = createExecuteScriptOperation(
-						OperationTypeType.DELETE, scripts);
-			}
+
+			executeScriptOperations = createExecuteScriptOperation(
+					OperationTypeType.DELETE, scripts, parentResult);
+
 			try {
 				connector.deleteObject(accountShadow.getObjectClass(),
 						executeScriptOperations, identifiers, parentResult);
@@ -681,10 +685,10 @@ public class ShadowCache {
 					.parseIdentifiers(accountType.getAttributes().getAny());
 
 			Set<Operation> executeScriptOperation = null;
-			if (scripts != null) {
-				executeScriptOperation = createExecuteScriptOperation(
-						OperationTypeType.MODIFY, scripts);
-			}
+
+			executeScriptOperation = createExecuteScriptOperation(
+					OperationTypeType.MODIFY, scripts, parentResult);
+
 			Set<Operation> changes = getAttributeChanges(objectChange, rod);
 			if (executeScriptOperation != null) {
 				changes.addAll(executeScriptOperation);
