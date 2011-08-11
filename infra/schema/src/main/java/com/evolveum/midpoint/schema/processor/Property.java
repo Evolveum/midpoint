@@ -33,6 +33,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.xml.schema.XPathType;
+
 
 /**
  * Property is a specific characteristic of an object. It may be considered
@@ -254,7 +256,8 @@ public class Property {
 	}
 	
 	public PropertyModification createModification(PropertyModification.ModificationType modificationType, Set<Object> modifyValues) {
-		return new PropertyModification(this,modificationType,modifyValues);
+
+		return new PropertyModification(this,modificationType, modifyValues);
 	}
 
 	public PropertyModification createModification(PropertyModification.ModificationType modificationType, Object modifyValue) {
@@ -303,8 +306,15 @@ public class Property {
 	 */
 	List<Element> serializeToDom(Document doc,PropertyDefinition propDef, Set<Object> alternateValues, boolean recordType) throws SchemaProcessorException {
 		
+		
 		// Try to locate definition
 		List<Element> elements = new ArrayList<Element>();
+		
+		//check if the property has value..if not, return empty elemnts list..
+		if (getValue() == null){
+			return elements;
+		}
+		
 		if (propDef==null) {
 			propDef = getDefinition();
 		}
