@@ -33,8 +33,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+
 import org.junit.Test;
 import org.w3c.dom.Element;
 import static org.junit.Assert.*;
@@ -64,7 +63,8 @@ public class ExpressionHolderTest {
 
         Object object = u.unmarshal(fis);
 
-        ValueConstructionType valueConstruction = (ValueConstructionType) ((JAXBElement) object).getValue();
+        @SuppressWarnings("rawtypes")
+		ValueConstructionType valueConstruction = (ValueConstructionType) ((JAXBElement) object).getValue();
 
         Element element = valueConstruction.getValueExpression();
 
@@ -97,7 +97,8 @@ public class ExpressionHolderTest {
 
         Object object = u.unmarshal(fis);
 
-        ValueConstructionType valueConstruction = (ValueConstructionType) ((JAXBElement) object).getValue();
+		@SuppressWarnings("rawtypes")
+		ValueConstructionType valueConstruction = (ValueConstructionType) ((JAXBElement) object).getValue();
 
         Element element = valueConstruction.getValueExpression();
 
