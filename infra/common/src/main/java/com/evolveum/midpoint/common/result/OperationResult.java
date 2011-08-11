@@ -245,9 +245,30 @@ public class OperationResult implements Serializable {
 	 *            error message
 	 */
 	public void computeStatus(String errorMessage) {
+		computeStatus(errorMessage, null);
+	}
+
+	public void computeStatus(String errorMessage, String warnMessage) {
+		Validate.notEmpty(errorMessage, "Error message must not be null.");
+
 		computeStatus();
-		if (!OperationResultStatus.SUCCESS.equals(status) && message == null) {
-			message = errorMessage;
+		switch (status) {
+			case FATAL_ERROR:
+			case PARTIAL_ERROR:
+				if (message == null) {
+					message = errorMessage;
+				}
+				break;
+			case UNKNOWN:
+			case WARNING:
+				if (message == null) {
+					if (StringUtils.isNotEmpty(warnMessage)) {
+						message = warnMessage;
+					} else {
+						message = errorMessage;
+					}
+				}
+				break;
 		}
 	}
 

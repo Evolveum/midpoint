@@ -154,7 +154,8 @@ public class ModelControllerImpl implements ModelController {
 			}
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
-			subResult.computeStatus("Couldn't add object '" + object.getName() + "'.");
+			subResult.computeStatus("Error occured during add object '" + object.getName() + "'.",
+					"Warning occured during add object '" + object.getName() + "'.");
 			LOGGER.debug(subResult.dump());
 		}
 
