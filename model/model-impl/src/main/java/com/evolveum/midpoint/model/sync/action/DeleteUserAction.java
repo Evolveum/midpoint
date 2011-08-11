@@ -58,7 +58,9 @@ public class DeleteUserAction extends BaseAction {
 		}
 
 		try {
-			getModel().deleteObject(userOid, result);
+			if (getModel().deleteObject(userOid, result)) {
+				userOid = null;
+			}
 			subResult.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete user {}", ex, userOid);
@@ -67,6 +69,6 @@ public class DeleteUserAction extends BaseAction {
 					+ ex.getMessage(), ex);
 		}
 
-		return null;
+		return userOid;
 	}
 }
