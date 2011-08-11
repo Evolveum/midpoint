@@ -38,7 +38,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableVal
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -89,8 +88,9 @@ public interface ModelService {
 	OperationResult testResource(String resourceOid) throws ObjectNotFoundException;
 
 	// Note: The result is in the task. No need to pass it explicitly
-	void importAccountsFromResource(String resourceOid, QName objectClass, Task task) throws ObjectNotFoundException;
-	
+	void importAccountsFromResource(String resourceOid, QName objectClass, Task task)
+			throws ObjectNotFoundException;
+
 	/**
 	 * Import objects from file.
 	 * 
@@ -106,8 +106,8 @@ public interface ModelService {
 	/**
 	 * Import objects from stream.
 	 * 
-	 * Invocation of this method will happen in foreground, as the stream
-	 * cannot be serialized.
+	 * Invocation of this method will happen in foreground, as the stream cannot
+	 * be serialized.
 	 * 
 	 * The results will be provided in the task.
 	 * 
@@ -115,14 +115,17 @@ public interface ModelService {
 	 * @param task
 	 */
 	void importObjectsFromStream(InputStream input, Task task, OperationResult parentResult);
-	
+
 	/**
-	 * Finish initialization of the model and lower system components (provisioning, repository, etc).
+	 * Finish initialization of the model and lower system components
+	 * (provisioning, repository, etc).
 	 * 
-	 * The implementation may execute resource-intensive tasks in this method. All the dependencies should be already
-	 * constructed, properly wired and initialized. Also logging and other infrastructure should be already set up.
+	 * The implementation may execute resource-intensive tasks in this method.
+	 * All the dependencies should be already constructed, properly wired and
+	 * initialized. Also logging and other infrastructure should be already set
+	 * up.
 	 */
 	public void postInit(OperationResult parentResult);
-	
+
 	ObjectListType searchObjectsInRepository(QueryType query, PagingType paging, OperationResult result);
 }

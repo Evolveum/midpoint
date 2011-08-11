@@ -29,4 +29,8 @@
 	<bean id="initialSetup" class="com.evolveum.midpoint.init.InitialSetup" init-method="init" scope="singleton">
 		<property name="model" ref="modelController" />
 	</bean>
+	
+	<bean name="modelInitialSetup" class="com.evolveum.midpoint.init.ModelInitialSetup" depends-on="loggingManager" init-method="init">
+		<property name="model" ref="modelController" />
+	</bean>
 </beans>
