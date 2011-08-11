@@ -12,9 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 
 public interface ModelController extends ModelService {
 
-	String CLASS_NAME = ModelController.class.getName() + ".";
-	String ADD_OBJECT = CLASS_NAME + "addObject";
-	String GET_OBJECT = CLASS_NAME + "getObject";
+	String CLASS_NAME = ModelController.class.getName() + ".";	
 	String SEARCH_OBJECTS_IN_PROVISIONING = CLASS_NAME + "searchObjectsInProvisioning";
 	String MODIFY_OBJECT_WITH_EXCLUSION = CLASS_NAME + "modifyObjectWithExclusion";
 

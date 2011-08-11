@@ -106,10 +106,11 @@ public class ControllerAddObjectTest {
 				"add-user-without-name.xml"))).getValue();
 
 		OperationResult result = new OperationResult("Test Operation");
-		controller.addObject(expectedUser, result);
-		LOGGER.debug(result.dump());
-
-		fail("add must fail");
+		try {
+			controller.addObject(expectedUser, result);
+		} finally {
+			LOGGER.debug(result.dump());
+		}
 	}
 
 	/**
@@ -118,8 +119,7 @@ public class ControllerAddObjectTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void addUserCorrect() throws Exception {
-		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER,
-				"system-configuration.xml"));
+		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER, "system-configuration.xml"));
 
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"add-user-correct.xml"))).getValue();
@@ -155,8 +155,7 @@ public class ControllerAddObjectTest {
 	@Test(expected = ObjectAlreadyExistsException.class)
 	@SuppressWarnings("unchecked")
 	public void addUserWithExistingOid() throws Exception {
-		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER,
-				"system-configuration.xml"));
+		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER, "system-configuration.xml"));
 
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"add-user-with-oid.xml"))).getValue();

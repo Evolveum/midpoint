@@ -123,8 +123,8 @@ public class ModelControllerImpl implements ModelController {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(object));
 		}
 
-		OperationResult subResult = new OperationResult(ADD_OBJECT);
-		result.addSubresult(subResult);
+		OperationResult subResult = result.createSubresult(ADD_OBJECT);
+		addResultParams(subResult, new String[] { "object" }, object);
 		String oid = null;
 		try {
 			if (object instanceof TaskType) {
@@ -179,8 +179,8 @@ public class ModelControllerImpl implements ModelController {
 					new Object[] { user.getName(), user.getOid() });
 		}
 
-		OperationResult subResult = new OperationResult("Add User With User Template");
-		result.addSubresult(subResult);
+		OperationResult subResult = result.createSubresult("Add User With User Template");	//ADD_USER
+		addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
 
 		String oid = null;
 		try {
@@ -216,8 +216,8 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(clazz, "Class must not be null.");
 		LOGGER.debug("Getting object with oid {}.", new Object[] { oid });
 
-		OperationResult subResult = new OperationResult("Get Object");
-		result.addSubresult(subResult);
+		OperationResult subResult = result.createSubresult("Get Object");
+		addResultParams(subResult, new String[] { "oid", "resolve", "class" }, oid, resolve, clazz);
 		T object = null;
 		try {
 			// TODO: HACK !!!!!!!!!!!!!! START till we parametrize getObject
@@ -284,8 +284,8 @@ public class ModelControllerImpl implements ModelController {
 							paging.getOrderDirection(), paging.getOrderBy() });
 		}
 
-		OperationResult subResult = new OperationResult("List Objects");
-		result.addSubresult(subResult);
+		OperationResult subResult = result.createSubresult("List Objects");
+		addResultParams(subResult, new String[] { "objectType", "paging" }, objectType, paging);
 		ObjectListType list = null;
 		try {
 			if (ProvisioningTypes.isObjectTypeManagedByProvisioning(objectType)) {
@@ -328,8 +328,9 @@ public class ModelControllerImpl implements ModelController {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(query));
 		}
 
-		OperationResult subResult = new OperationResult("Search Objects");
-		result.addSubresult(subResult);
+		OperationResult subResult = result.createSubresult("Search Objects");
+		addResultParams(subResult, new String[] { "query", "paging", "searchInProvisioning" }, query, paging,
+				searchInProvisioning);
 		ObjectListType list = null;
 		try {
 			if (searchInProvisioning) {
@@ -392,8 +393,8 @@ public class ModelControllerImpl implements ModelController {
 			return;
 		}
 
-		OperationResult subResult = new OperationResult("Modify Object With Exclusion");
-		result.addSubresult(subResult);
+		OperationResult subResult = result.createSubresult("Modify Object With Exclusion");
+		addResultParams(subResult, new String[] { "change", "accountOid" }, change, accountOid);
 
 		try {
 			ObjectType object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(),
@@ -432,8 +433,8 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Deleting object with oid {}.", new Object[] { oid });
 
-		OperationResult subResult = new OperationResult("Delete Object");
-		result.addSubresult(subResult);
+		OperationResult subResult = result.createSubresult("Delete Object");
+		addResultParams(subResult, new String[] { "oid" }, oid);
 
 		boolean deleted = false;
 		try {
@@ -490,8 +491,8 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
 
-		OperationResult subResult = new OperationResult("List Account Shadow Owner");
-		result.addSubresult(subResult);
+		OperationResult subResult = result.createSubresult("List Account Shadow Owner");
+		addResultParams(subResult, new String[] { "accountOid" }, accountOid);
 
 		UserType user = null;
 		try {
@@ -522,8 +523,9 @@ public class ModelControllerImpl implements ModelController {
 		LOGGER.debug("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
 				resourceObjectShadowType, resourceOid });
 
-		OperationResult subResult = new OperationResult("List Resource Object Shadows");
-		result.addSubresult(subResult);
+		OperationResult subResult = result.createSubresult("List Resource Object Shadows");
+		addResultParams(subResult, new String[] { "resourceOid", "resourceObjectShadowType" }, resourceOid,
+				resourceObjectShadowType);
 
 		List<T> list = null;
 		try {
@@ -562,8 +564,9 @@ public class ModelControllerImpl implements ModelController {
 				new Object[] { objectType, resourceOid, paging.getOffset(), paging.getMaxSize(),
 						paging.getOrderDirection(), paging.getOrderDirection() });
 
-		OperationResult subResult = new OperationResult("List Resource Objects");
-		result.addSubresult(subResult);
+		OperationResult subResult = result.createSubresult("List Resource Objects");
+		addResultParams(subResult, new String[] { "resourceOid", "objectType", "paging" }, resourceOid,
+				objectType, paging);
 
 		ObjectListType list = null;
 		try {
@@ -619,6 +622,8 @@ public class ModelControllerImpl implements ModelController {
 
 		OperationResult result = task.getResult().createSubresult(
 				ModelController.class.getName() + ".importFromResource");
+		addResultParams(result, new String[] { "resourceOid", "objectClass", "task" }, resourceOid,
+				objectClass, task);
 		// TODO: add params and context to the result
 
 		// Fetch resource definition from the repo/provisioning
@@ -668,6 +673,8 @@ public class ModelControllerImpl implements ModelController {
 		T object = null;
 
 		OperationResult subResult = result.createSubresult(GET_OBJECT);
+		addResultParams(subResult, new String[] { "oid", "resolve", "class", "fromProvisioning" }, oid,
+				resolve, clazz, fromProvisioning);
 		try {
 			ObjectType objectType = null;
 			if (fromProvisioning) {
@@ -735,8 +742,7 @@ public class ModelControllerImpl implements ModelController {
 
 	private SystemConfigurationType getSystemConfiguration(OperationResult result)
 			throws ObjectNotFoundException {
-		OperationResult configResult = new OperationResult("Get System Configuration");
-		result.addSubresult(configResult);
+		OperationResult configResult = result.createSubresult("Get System Configuration");
 		SystemConfigurationType systemConfiguration = null;
 		try {
 			systemConfiguration = getObject(SystemObjectsType.SYSTEM_CONFIGURATION.value(),
@@ -794,6 +800,7 @@ public class ModelControllerImpl implements ModelController {
 		List<ObjectReferenceType> refToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
 			OperationResult subResult = result.createSubresult("resolveUserAttributes");
+			addResultParams(subResult, new String[] { "user", "accountRef" }, user, accountRef);
 			try {
 				AccountShadowType account = getObjectFromProvisioning(accountRef.getOid(), resolve,
 						subResult, AccountShadowType.class);
@@ -825,8 +832,8 @@ public class ModelControllerImpl implements ModelController {
 			return;
 		}
 
-		OperationResult subResult = new OperationResult("resolveUserAttributes");
-		result.addSubresult(subResult);
+		OperationResult subResult = result.createSubresult("resolveUserAttributes");
+		addResultParams(subResult, new String[] { "account", "resolve" }, account, resolve);
 		try {
 			ResourceType resource = getObjectFromProvisioning(account.getResourceRef().getOid(), resolve,
 					result, ResourceType.class);
@@ -1128,6 +1135,8 @@ public class ModelControllerImpl implements ModelController {
 			List<ObjectReferenceType> accountRefs = user.getAccountRef();
 			for (ObjectReferenceType accountRef : accountRefs) {
 				OperationResult subResult = result.createSubresult("Update Accounts");
+				addResultParams(subResult, new String[] { "change", "accountOid", "object", "accountRef" },
+						change, accountOid, object, accountRef);
 				if (StringUtils.isNotEmpty(accountOid) && accountOid.equals(accountRef.getOid())) {
 					subResult.computeStatus("Account excluded during modification, skipped.");
 					// preventing cycles while updating resource object shadows
@@ -1221,6 +1230,7 @@ public class ModelControllerImpl implements ModelController {
 	private void processUserTemplateForUser(UserType user, UserTemplateType userTemplate,
 			OperationResult result) {
 		OperationResult subResult = result.createSubresult("Process User Template");
+		addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
 		if (userTemplate == null) {
 			subResult.recordWarning("No user template defined, skipping.");
 			return;
@@ -1236,6 +1246,7 @@ public class ModelControllerImpl implements ModelController {
 			OperationResult result) {
 		for (AccountConstructionType construction : userTemplate.getAccountConstruction()) {
 			OperationResult subResult = result.createSubresult("Link Object To User");
+			addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
 			try {
 				ObjectReferenceType resourceRef = construction.getResourceRef();
 				ResourceType resource = getObject(resourceRef.getOid(), new PropertyReferenceListType(),
@@ -1277,6 +1288,7 @@ public class ModelControllerImpl implements ModelController {
 			OperationResult result) {
 		for (PropertyConstructionType construction : userTemplate.getPropertyConstruction()) {
 			OperationResult subResult = result.createSubresult("User Property Construction");
+			addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
 			try {
 				// TODO: process user template property construction
 
@@ -1311,5 +1323,16 @@ public class ModelControllerImpl implements ModelController {
 		provisioning.postInit(result);
 
 		result.computeStatus("Error occured during post initialization process.");
+	}
+
+	private void addResultParams(OperationResult result, String[] names, Object... objects) {
+		if (names.length != objects.length) {
+			throw new IllegalArgumentException("Bad result parameters size, names '" + names.length
+					+ "', objects '" + objects.length + "'.");
+		}
+
+		for (int i = 0; i < names.length; i++) {
+			result.addParam(names[i], objects[i]);
+		}
 	}
 }

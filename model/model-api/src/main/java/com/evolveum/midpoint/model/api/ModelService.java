@@ -48,6 +48,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public interface ModelService {
 
+	String CLASS_NAME = ModelService.class.getName() + ".";
+	String ADD_OBJECT = CLASS_NAME + "addObject";
+	String ADD_USER = CLASS_NAME + "addUser";
+	String GET_OBJECT = CLASS_NAME + "getObject";
+
 	<T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve, Class<T> clazz,
 			OperationResult result) throws ObjectNotFoundException;
 
