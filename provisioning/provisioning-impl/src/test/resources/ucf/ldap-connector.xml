@@ -31,5 +31,5 @@
 	<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
 	<connectorVersion>1.0.5531</connectorVersion>
 	<connectorBundle>org.identityconnectors.ldap</connectorBundle>
-	<namespace>http://midpoint.evolveum.com/xml/ns/connector/icf-1/bundle/org.identityconnectors.ldap/1.0.5531/org.identityconnectors.ldap.LdapConnector</namespace>
+	<namespace>http://midpoint.evolveum.com/xml/ns/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector</namespace>
 </connector>

@@ -102,7 +102,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
 		for (ConnectorInfo connectorInfo : connectorInfos) {
 			ConnectorKey key = connectorInfo.getConnectorKey();
-			String mapKey = keyToString(key);
+			String mapKey = keyToNamespaceSuffix(key);
 			connectors.put(mapKey, connectorInfo);
 		}
 	}
@@ -153,7 +153,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	private ConnectorType convertToConnectorType(ConnectorInfo cinfo) {
 		ConnectorType connectorType = new ConnectorType();
 		ConnectorKey key = cinfo.getConnectorKey();
-		String stringID = keyToString(key);
+		String stringID = keyToNamespaceSuffix(key);
 		connectorType.setName("ICF " + key.getConnectorName());
 		connectorType.setFramework(ICF_FRAMEWORK_URI);
 		connectorType.setConnectorType(key.getConnectorName());
@@ -168,12 +168,13 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	 * 
 	 * The string may be used as an OID.
 	 */
-	private String keyToString(ConnectorKey key) {
+	private String keyToNamespaceSuffix(ConnectorKey key) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(key.getBundleName());
 		sb.append(CONNECTOR_IDENTIFIER_SEPARATOR);
-		sb.append(key.getBundleVersion());
-		sb.append(CONNECTOR_IDENTIFIER_SEPARATOR);
+		// Don't include version. It is lesser evil.
+//		sb.append(key.getBundleVersion());
+//		sb.append(CONNECTOR_IDENTIFIER_SEPARATOR);
 		sb.append(key.getConnectorName());
 		return sb.toString();
 	}
