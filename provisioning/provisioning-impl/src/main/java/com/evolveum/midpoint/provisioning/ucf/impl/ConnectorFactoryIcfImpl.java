@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
 
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.APIConfiguration;
@@ -75,7 +76,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 @Component
 public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
-	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/connector/icf-1";
+	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
+	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/configuration-1.xsd";
+	// Note! This is also specified in SchemaConstants (MID-356)
+	public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-1.xsd";
+	public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
+	public static final String NS_ICF_RESOURCE_INSTANCE_PREFIX = "ri";
+	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
+	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
+	public static final QName ICFS_PASSWORD = new QName(NS_ICF_SCHEMA, "password");
+	public static final QName ICFS_ACCOUNT = new QName(NS_ICF_SCHEMA, "account");
 	
 	// This usually refers to WEB-INF/lib/icf-connectors
 	private static final String BUNDLE_PATH = "../../lib/icf-connectors";

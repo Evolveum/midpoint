@@ -22,8 +22,7 @@
 <c:object xsi:type="c:ResourceType" oid="10000000-0000-0000-0000-000000000003" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
        xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/10000000-0000-0000-0000-000000000003"
-       xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
+       xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/10000000-0000-0000-0000-000000000003">
     <c:name>Localhost OpenDJ</c:name>
     <c:type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</c:type>
     <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/10000000-0000-0000-0000-000000000003</c:namespace>
@@ -64,8 +63,8 @@
                     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
                     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
                     xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/10000000-0000-0000-0000-000000000003"
-                    xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
-            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
+                    xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
 
@@ -73,8 +72,8 @@
             <xsd:complexType name="Account">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <r:identifier ref="ids:__UID__"/>
-                        <r:secondaryIdentifier ref="ids:__NAME__"/>
+                        <r:identifier ref="ids:uid"/>
+                        <r:secondaryIdentifier ref="ids:name"/>
                         <r:displayName ref="ri:description"/>
                         <r:descriptionAttribute ref="ri:description"/>
                         <r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
@@ -84,7 +83,7 @@
                 <xsd:complexContent>
                     <xsd:extension base="r:ResourceObjectClass">
                         <xsd:sequence>
-                            <xsd:element ref="ids:__NAME__">
+                            <xsd:element ref="ids:name">
                                 <xsd:annotation>
                                     <xsd:appinfo>
                                         <r:nativeAttributeName>__NAME__</r:nativeAttributeName>
@@ -100,7 +99,7 @@
                                     </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
-                            <xsd:element ref="ids:__PASSWORD__">
+                            <xsd:element ref="ids:password">
                                 <xsd:annotation>
                                     <xsd:appinfo>
                                         <r:attributeFlag>PASSWORD</r:attributeFlag>
@@ -148,8 +147,8 @@
             <xsd:complexType name="Group">
                 <xsd:annotation>
                     <xsd:appinfo>
-                        <r:identifier ref="ids:__UID__"/>
-                        <r:secondaryIdentifier ref="ids:__NAME__"/>
+                        <r:identifier ref="ids:uid"/>
+                        <r:secondaryIdentifier ref="ids:name"/>
                         <r:displayName ref="ri:description"/>
                         <r:descriptionAttribute ref="ri:description"/>
                         <r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
@@ -159,7 +158,7 @@
                 <xsd:complexContent>
                     <xsd:extension base="r:ResourceObjectClass">
                         <xsd:sequence>
-                            <xsd:element ref="ids:__NAME__">
+                            <xsd:element ref="ids:name">
                                 <xsd:annotation>
                                     <xsd:appinfo>
                                         <r:nativeAttributeName>__NAME__</r:nativeAttributeName>
@@ -174,7 +173,7 @@
                                     </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
-                            <xsd:element ref="ids:__UID__">
+                            <xsd:element ref="ids:uid">
                                 <xsd:annotation>
                                     <xsd:appinfo>
                                         <r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
@@ -192,7 +191,7 @@
         <c:accountType default="true">
             <c:name>Default Account</c:name>
             <i:objectClass>ri:Account</i:objectClass>
-            <i:attribute ref="ids:__NAME__">
+            <i:attribute ref="ids:name">
                 <c:name>Distinguished Name</c:name>
                 <c:access>create</c:access>
                 <c:access>read</c:access>
@@ -203,7 +202,7 @@
                         </i:valueExpression>
                 </i:outbound>                    
             </i:attribute>
-            <i:attribute ref="ids:__UID__">
+            <i:attribute ref="ids:uid">
                 <c:name>Entry UUID</c:name>
                 <c:access>read</c:access>
             </i:attribute>

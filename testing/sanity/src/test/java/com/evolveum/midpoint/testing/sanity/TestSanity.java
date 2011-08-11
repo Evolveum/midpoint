@@ -73,6 +73,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.controller.ModelControllerImpl;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -164,7 +165,7 @@ public class TestSanity extends AbstractIntegrationTest {
 	private static final String REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME = "src/test/resources/request/user-modify-fullname-locality.xml";
 
 	private static final QName IMPORT_OBJECTCLASS = new QName(
-			"http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
+			"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
 			"AccountObjectClass");
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestSanity.class);
@@ -225,7 +226,6 @@ public class TestSanity extends AbstractIntegrationTest {
 		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
 		assertTrue(object instanceof ResourceType);
 		assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
-		resource = (ResourceType)object;
 
 		// TODO: test if OpenDJ is running
 	}
@@ -238,9 +238,11 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * 
 	 * @throws FaultMessage
 	 * @throws JAXBException
+	 * @throws SchemaException 
+	 * @throws ObjectNotFoundException 
 	 */
 	@Test
-	public void test001TestConnection() throws FaultMessage, JAXBException {
+	public void test001TestConnection() throws FaultMessage, JAXBException, ObjectNotFoundException, SchemaException {
 		displayTestTile("test001TestConnection");
 
 		// GIVEN
@@ -256,6 +258,15 @@ public class TestSanity extends AbstractIntegrationTest {
 		displayJaxb(result, SchemaConstants.C_RESULT);
 
 		assertSuccess("testResource has failed", result.getPartialResults().get(0));
+		
+		OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnection");
+		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, opResult);
+		assertTrue(object instanceof ResourceType);
+		assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
+		resource = (ResourceType)object;
+		display("Initialized resource",resource);
+		assertNotNull("Resource schema was not generated",resource.getSchema());
+		assertFalse("Resource schema was not generated",resource.getSchema().getAny().isEmpty());
 	}
 
 	/**
@@ -356,8 +367,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		boolean hasOthers = false;
 		List<Element> xmlAttributes = repoShadow.getAttributes().getAny();
 		for (Element element : xmlAttributes) {
-			if (element.getNamespaceURI().equals(SchemaConstants.ICFS_UID.getNamespaceURI())
-					&& element.getLocalName().equals(SchemaConstants.ICFS_UID.getLocalPart())) {
+			if (element.getNamespaceURI().equals(ConnectorFactoryIcfImpl.ICFS_UID.getNamespaceURI())
+					&& element.getLocalName().equals(ConnectorFactoryIcfImpl.ICFS_UID.getLocalPart())) {
 				if (uid != null) {
 					fail("Multiple values for ICF UID in shadow attributes");
 				} else {
@@ -413,7 +424,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertNotNull(modelShadow);
 		assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
-		assertAttributeNotNull(modelShadow, SchemaConstants.ICFS_UID);
+		assertAttributeNotNull(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID);
 		assertAttribute(modelShadow, resource, "uid", "jack");
 		assertAttribute(modelShadow, resource, "givenName", "Jack");
 		assertAttribute(modelShadow, resource, "sn", "Sparrow");
@@ -482,8 +493,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		boolean hasOthers = false;
 		List<Element> xmlAttributes = repoShadow.getAttributes().getAny();
 		for (Element element : xmlAttributes) {
-			if (element.getNamespaceURI().equals(SchemaConstants.ICFS_UID.getNamespaceURI())
-					&& element.getLocalName().equals(SchemaConstants.ICFS_UID.getLocalPart())) {
+			if (element.getNamespaceURI().equals(ConnectorFactoryIcfImpl.ICFS_UID.getNamespaceURI())
+					&& element.getLocalName().equals(ConnectorFactoryIcfImpl.ICFS_UID.getLocalPart())) {
 				if (uid != null) {
 					fail("Multiple values for ICF UID in shadow attributes");
 				} else {
@@ -842,7 +853,7 @@ public class TestSanity extends AbstractIntegrationTest {
 			assertNotEmpty("No name in shadow", shadow.getName());
 			assertNotNull("No objectclass in shadow", shadow.getObjectClass());
 			assertNotNull("Null attributes in shadow", shadow.getAttributes());
-			assertAttributeNotNull("No UID in shadow", shadow, SchemaConstants.ICFS_UID);
+			assertAttributeNotNull("No UID in shadow", shadow, ConnectorFactoryIcfImpl.ICFS_UID);
 		}
 		ObjectListType uobjects = modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), null, resultHolder);
 		assertSuccess("listObjects has failed", resultHolder.value);

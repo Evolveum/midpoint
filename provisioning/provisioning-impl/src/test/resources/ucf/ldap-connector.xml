@@ -27,9 +27,9 @@
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>ICF org.identityconnectors.ldap.LdapConnector</name>
-	<framework>http://midpoint.evolveum.com/xml/ns/connector/icf-1</framework>
+	<framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
 	<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
 	<connectorVersion>1.0.5531</connectorVersion>
 	<connectorBundle>org.identityconnectors.ldap</connectorBundle>
-	<namespace>http://midpoint.evolveum.com/xml/ns/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector</namespace>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector</namespace>
 </connector>

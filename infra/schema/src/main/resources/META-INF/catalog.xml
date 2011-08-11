@@ -29,9 +29,8 @@
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/provisioning/provisioning-1.wsdl" uri="../xml/ns/public/provisioning/provisioning-1.wsdl"/>
 
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" uri="../xml/ns/public/resource/resource-schema-1.xsd"/>
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" uri="../xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" uri="../xml/ns/public/resource/idconnector/configuration-1.xsd"/>
-    <public publicId="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" uri="../xml/ns/public/resource/icf/schema-1.xsd" />
+    
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" uri="../xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
 
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd"/>
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../xml/ns/experimental/ldap-resource-1.xsd"/>

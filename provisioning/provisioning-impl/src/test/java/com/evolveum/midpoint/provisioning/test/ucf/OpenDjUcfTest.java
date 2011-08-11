@@ -244,7 +244,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		
 		assertFalse("No identifiers for account object class ",accountDefinition.getIdentifiers().isEmpty());
 		
-		PropertyDefinition uidDefinition = accountDefinition.findPropertyDefinition(SchemaConstants.ICFS_UID);
+		PropertyDefinition uidDefinition = accountDefinition.findPropertyDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
 		assertNotNull(uidDefinition);
 		
 		for (Definition def : schema.getDefinitions()) {
@@ -278,7 +278,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		roa.setValue("Teell William");
 		resourceObject.getAttributes().add(roa);
 		
-		road = accountDefinition.findAttributeDefinition(SchemaConstants.ICFS_NAME);
+		road = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		roa = road.instantiate();
 		roa.setValue("uid=Teell,ou=People,dc=example,dc=com");
 		resourceObject.getAttributes().add(roa);

@@ -31,30 +31,39 @@ This resource definition contains only the very basic definitions for midPoint t
 
 -->
 
-<c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+<objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-	xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+	xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 	xmlns:my="http://myself.me/schemas/whatever"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
 
-	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
     
     	<!-- Resource name. It will be displayed in GUI.  -->
-		<c:name>Localhost OpenDJ</c:name>
+		<name>Localhost OpenDJ</name>
      
      	<!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->
-		<c:connectorRef oid="icf1-org.identityconnectors.ldap-1.0.5754openidm-org.identityconnectors.ldap.LdapConnector"/>
+		<connectorRef type="ConnectorType">
+			<and>
+		        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+		        <equal>
+		          <value>
+		              <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
+		          </value>
+		        </equal>
+		      </and>
+		</connectorRef>
 
         <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-		<c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:namespace>
+		<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
 
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
-		<c:configuration
-			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5754openidm-org.identityconnectors.ldap.LdapConnector"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf/configuration-1.xsd">
+		<configuration
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
 
             <!-- Configuration specific for the LDAP connector -->
 			<icfcldap:configurationProperties>
@@ -68,7 +77,7 @@ This resource definition contains only the very basic definitions for midPoint t
 				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
 			</icfcldap:configurationProperties>
 		
-		</c:configuration>
+		</configuration>
 
         <!-- Resource schema definition.
              It defines all the object classes that are available to midPoint
@@ -92,11 +101,11 @@ This resource definition contains only the very basic definitions for midPoint t
              This is the part where most of the customization takes place.
              
              There is no <schemaHandling> here. That means that the default setting
-             from the genrated schema will be used. It means that nothing will be 
+             from the generated schema will be used. It means that nothing will be 
              automatically synchronized, but accounts can be created and modified manually
              from the midPoint GUI.
         -->
 
-	</c:resource>
+	</resource>
 
-</c:objects>
+</objects>

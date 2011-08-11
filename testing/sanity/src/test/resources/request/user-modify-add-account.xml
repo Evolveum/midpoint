@@ -21,13 +21,14 @@
 
 <!-- Object modification description that is changing user "jack" by adding a new account -->
 
-<objectModification xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<objectModification xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd'>
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
 	<propertyModification modificationType="add">
 		<value>
-			<account xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
-				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"> 
+			<account xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"> 
 				<!-- No OID for account. The OID will be generated once the account shadow is added to the repository. -->
 				<name>jack</name>
 				<resourceRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>

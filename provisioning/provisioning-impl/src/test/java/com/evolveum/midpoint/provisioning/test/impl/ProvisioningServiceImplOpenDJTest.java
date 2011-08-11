@@ -120,7 +120,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private static final String FILENAME_ACCOUNT_SEARCH = "src/test/resources/impl/account-search.xml";
 	private static final String ACCOUNT_SEARCH_OID = "c0c010c0-d34d-b44f-f11d-333222777777";
 	private static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
-	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
 	protected static OpenDJUtil djUtil = new OpenDJUtil();
 	private JAXBContext jaxbctx;

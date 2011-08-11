@@ -17,7 +17,6 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
 
 <!-- Resource definition for an embedded OpenDJ instance.
@@ -27,8 +26,8 @@
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff" 
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
-	xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 	xmlns:my="http://myself.me/schemas/whatever"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
@@ -50,12 +49,12 @@
 	</connectorRef>
 	
 	<!-- Connector namespace -->
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
 	
 	<!-- Resource configuration section -->
 	<configuration
-		xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
-	    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/connector/icf-1/configuration-1.xsd">
+		xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
 					   
 		<!-- Configuration specific for the LDAP connector -->
 		<icfcldap:configurationProperties>
@@ -113,7 +112,7 @@
 
                 <!-- Definition of __NAME__ attribute handling.
                      ICF will put entry DN into __NAME__ attribute.-->
-			<c:attribute ref="ids:name">
+			<c:attribute ref="icfs:name">
 
                     <!-- Readable name for the attribute. This will be used in GUI -->
 				<c:name>Distinguished Name</c:name>
@@ -154,7 +153,7 @@
                      other directory servers and it also dependes on connector
                      configuration. Please see connector documentation for
                      more details.-->
-			<c:attribute ref="ids:uid">
+			<c:attribute ref="icfs:uid">
 
                     <!-- Readable name for the attribute. This will be used in GUI -->
 				<c:name>Entry UUID</c:name>

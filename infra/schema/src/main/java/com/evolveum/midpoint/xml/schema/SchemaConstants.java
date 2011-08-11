@@ -51,11 +51,6 @@ public abstract class SchemaConstants {
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 	public static final String NS_C_PREFIX = "c";
 	public static final String NS_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd";
-	public static final String NS_ICF_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd";
-	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd";
-	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd";
-	public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
-	public static final String NS_ICF_RESOURCE_INSTANCE_PREFIX = "ri";
 	public static final String NS_FILTER = "http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd";
 	public static final QName LOGGING = new QName(SchemaConstants.NS_C, "logging");
 	public static final QName C_NAME = new QName(NS_C, "name");
@@ -133,10 +128,10 @@ public abstract class SchemaConstants {
 	public static final QName I_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
 
 	public static final QName R_PROTECTED_STRING_TYPE = new QName(NS_RESOURCE, "ProtectedStringType");
-	public static final QName ICFS_NAME = new QName(NS_ICF_SCHEMA, "name");
-	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
-	public static final QName ICFS_PASSWORD = new QName(NS_ICF_SCHEMA, "password");
-	public static final QName ICFS_ACCOUNT = new QName(NS_ICF_SCHEMA, "account");
+	
+	// This constant should not be here. It is used by schema processor to supply correct import. But the dependency should
+	// be inverted, eventually (MID-356)
+	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd";
 
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
 	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",

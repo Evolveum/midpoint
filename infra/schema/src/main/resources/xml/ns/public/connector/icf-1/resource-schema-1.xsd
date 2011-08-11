@@ -20,13 +20,13 @@
  * Portions Copyrighted 2011 ForgeRock Inc.
  * -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
-    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
     elementFormDefault="qualified">
 
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-                schemaLocation="../resource-schema-1.xsd"/>
+                schemaLocation="../../resource/resource-schema-1.xsd"/>
 
     <xsd:annotation>
         <xsd:documentation>

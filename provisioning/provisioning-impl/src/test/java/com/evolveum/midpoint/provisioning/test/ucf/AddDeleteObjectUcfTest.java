@@ -87,7 +87,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/ucf/opendj-resource-bad.xml";
 	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
 
-	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
 	protected static OpenDJUtil djUtil = new OpenDJUtil();
 	private JAXBContext jaxbctx;
@@ -173,7 +173,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		resourceObject.getProperties();
 
 		PropertyDefinition propertyDefinition = accountDefinition
-				.findPropertyDefinition(SchemaConstants.ICFS_NAME);
+				.findPropertyDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		Property property = propertyDefinition.instantiate();
 		property.setValue("uid=" + name + ",ou=people,dc=example,dc=com");
 		resourceObject.getProperties().add(property);
@@ -214,7 +214,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 				"jack", "Jack", "Sparow");
 	
 		for (ResourceObjectAttribute resourceAttribute : resourceAttributes) {
-			if (SchemaConstants.ICFS_UID.equals(resourceAttribute.getName())) {
+			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(resourceAttribute.getName())) {
 				String uid = resourceAttribute.getValue(String.class);
 				System.out.println("uuuuid:" + uid);
 				assertNotNull(uid);
@@ -235,7 +235,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 
 		String uid = null;
 		for (ResourceObjectAttribute resourceAttribute : identifiers) {
-			if (SchemaConstants.ICFS_UID.equals(resourceAttribute.getName())) {
+			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(resourceAttribute.getName())) {
 				uid = resourceAttribute.getValue(String.class);
 				System.out.println("uuuuid:" + uid);
 				assertNotNull(uid);

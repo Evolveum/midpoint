@@ -334,8 +334,9 @@ class SchemaToDomProcessor {
 		if (!prefixMap.containsKey(SchemaConstants.NS_RESOURCE)) {
 			prefixMap.put(SchemaConstants.NS_RESOURCE, "r");
 		}
-		if (!prefixMap.containsKey(SchemaConstants.NS_ICF_RESOURCE)) {
-			prefixMap.put(SchemaConstants.NS_ICF_RESOURCE, "ids");
+		// TODO: This is wrong. The dependency should be inverted (MID-356)
+		if (!prefixMap.containsKey(SchemaConstants.NS_ICF_SCHEMA)) {
+			prefixMap.put(SchemaConstants.NS_ICF_SCHEMA, "icfs");
 		}
 
 		prefixMap.put(schema.getNamespace(), "tns");
@@ -359,10 +360,14 @@ class SchemaToDomProcessor {
 			index++;
 		}
 
-		if (!alreadyImportedNamespaces.contains(namespace) || SchemaConstants.NS_C.equals(namespace)) {
-			document.getDocumentElement().appendChild(createImport(document, namespace));
-			alreadyImportedNamespaces.add(namespace);
+		addImportIfNotYetAdded(document, namespace, alreadyImportedNamespaces);
+
+		if (definition instanceof ResourceObjectDefinition) {
+			// We need to add the "r" namespace. This is not in the definitions but it in supertype definition
+			// therefore it will not be discovered
+			addImportIfNotYetAdded(document, SchemaConstants.NS_RESOURCE, alreadyImportedNamespaces);
 		}
+		
 		if (definition instanceof PropertyContainerDefinition) {
 			PropertyContainerDefinition container = (PropertyContainerDefinition) definition;
 			Set<PropertyDefinition> definitions = container.getDefinitions();
@@ -372,6 +377,13 @@ class SchemaToDomProcessor {
 		}
 
 		return index;
+	}
+	
+	private void addImportIfNotYetAdded(Document document, String namespace, Set<String> alreadyImportedNamespaces) {
+		if (!alreadyImportedNamespaces.contains(namespace) || SchemaConstants.NS_C.equals(namespace)) {
+			document.getDocumentElement().appendChild(createImport(document, namespace));
+			alreadyImportedNamespaces.add(namespace);
+		}
 	}
 
 	private Element createImport(Document document, String namespace) {

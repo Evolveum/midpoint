@@ -279,12 +279,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// TODO: this may need to be moved to a separate method
 			QName objectElementName;
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-				objectElementName = new QName(getSchemaNamespace(), "account", SchemaConstants.NS_ICF_SCHEMA_PREFIX);
+				objectElementName = new QName(getSchemaNamespace(), "account", ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
 			} else if (ObjectClass.GROUP_NAME.equals(objectClassInfo.getType())) {
-				objectElementName = new QName(getSchemaNamespace(), "group", SchemaConstants.NS_ICF_SCHEMA_PREFIX);
+				objectElementName = new QName(getSchemaNamespace(), "group", ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
 			} else {
 				objectElementName = new QName(getSchemaNamespace(), objectClassInfo.getType(),
-						SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
+						ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 			}
 
 			// ResourceObjectDefinition is a midPpoint way how to represent an
@@ -305,8 +305,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			// Every object has UID in ICF, therefore add it right now
 			ResourceObjectAttributeDefinition uidDefinition = new ResourceObjectAttributeDefinition(
-					roDefinition, SchemaConstants.ICFS_UID,
-					SchemaConstants.ICFS_UID, SchemaConstants.XSD_STRING);
+					roDefinition, ConnectorFactoryIcfImpl.ICFS_UID,
+					ConnectorFactoryIcfImpl.ICFS_UID, SchemaConstants.XSD_STRING);
 			// Make it mandatory
 			uidDefinition.setMinOccurs(1);
 			uidDefinition.setMaxOccurs(1);
@@ -342,9 +342,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						roDefinition, attrXsdName, attrXsdName, attrXsdType);
 				roDefinition.getDefinitions().add(roaDefinition);
 				
-				// Set a better display name for __NAME__. The "name" is s vry overloaded term, so let's try to make things
+				// Set a better display name for __NAME__. The "name" is s very overloaded term, so let's try to make things
 				// a bit clearer
-				if (attrXsdName.equals(SchemaConstants.ICFS_NAME)) {
+				if (attrXsdName.equals(ConnectorFactoryIcfImpl.ICFS_NAME)) {
 					roaDefinition.setAttributeDisplayName("ICF NAME");
 				}
 
@@ -366,8 +366,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				// Add schema annotations
 				roDefinition.setNativeObjectClass(objectClassInfo.getType());
-				roDefinition.setDisplayNameAttribute(SchemaConstants.ICFS_NAME);
-				roDefinition.setNamingAttribute(SchemaConstants.ICFS_NAME);
+				roDefinition.setDisplayNameAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
+				roDefinition.setNamingAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
 				// TODO: may need also other annotations
 
 				// TODO: process also other flags
@@ -1156,19 +1156,19 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	private QName convertAttributeNameToQName(String icfAttrName) {
 		QName attrXsdName = new QName(getSchemaNamespace(), icfAttrName,
-				SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
+				ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 		// Handle special cases
 		if (Name.NAME.equals(icfAttrName)) {
 			// this is ICF __NAME__ attribute. It will look ugly in XML and may
 			// even cause problems.
 			// so convert to something more friendly such as icfs:name
-			attrXsdName = SchemaConstants.ICFS_NAME;
+			attrXsdName = ConnectorFactoryIcfImpl.ICFS_NAME;
 		}
 		if (PASSWORD_ATTRIBUTE_NAME.equals(icfAttrName)) {
 			// Temporary hack. Password should go into credentials, not
 			// attributes
 			// TODO: fix this
-			attrXsdName = SchemaConstants.ICFS_PASSWORD;
+			attrXsdName = ConnectorFactoryIcfImpl.ICFS_PASSWORD;
 		}
 		return attrXsdName;
 	}
@@ -1183,11 +1183,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		// Other namespace are special cases
 
-		if (SchemaConstants.ICFS_NAME.equals(attrQName)) {
+		if (ConnectorFactoryIcfImpl.ICFS_NAME.equals(attrQName)) {
 			return Name.NAME;
 		}
 
-		if (SchemaConstants.ICFS_PASSWORD.equals(attrQName)) {
+		if (ConnectorFactoryIcfImpl.ICFS_PASSWORD.equals(attrQName)) {
 			return PASSWORD_ATTRIBUTE_NAME;
 		}
 
@@ -1209,14 +1209,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (ObjectClass.ACCOUNT_NAME.equals(icfObjectClassString)) {
 			return new QName(getSchemaNamespace(),
 					ACCOUNT_OBJECTCLASS_LOCALNAME,
-					SchemaConstants.NS_ICF_SCHEMA_PREFIX);
+					ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
 		} else if (ObjectClass.GROUP_NAME.equals(icfObjectClassString)) {
 			return new QName(getSchemaNamespace(), GROUP_OBJECTCLASS_LOCALNAME,
-					SchemaConstants.NS_ICF_SCHEMA_PREFIX);
+					ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
 		} else {
 			return new QName(getSchemaNamespace(), CUSTOM_OBJECTCLASS_PREFIX
 					+ icfObjectClassString + CUSTOM_OBJECTCLASS_SUFFIX,
-					SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
+					ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 		}
 	}
 
@@ -1265,7 +1265,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 */
 	private Uid getUid(Set<ResourceObjectAttribute> identifiers) {
 		for (ResourceObjectAttribute attr : identifiers) {
-			if (attr.getName().equals(SchemaConstants.ICFS_UID)) {
+			if (attr.getName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
 				return new Uid(attr.getValue(String.class));
 			}
 		}
@@ -1274,7 +1274,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	private ResourceObjectAttribute setUidAttribute(Uid uid) {
 		ResourceObjectAttribute uidRoa = new ResourceObjectAttribute(
-				SchemaConstants.ICFS_UID);
+				ConnectorFactoryIcfImpl.ICFS_UID);
 		uidRoa.setValue(uid.getUidValue());
 		return uidRoa;
 	}

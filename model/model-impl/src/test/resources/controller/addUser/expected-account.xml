@@ -23,7 +23,8 @@
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
 	xmlns:ldap="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" xmlns:unix="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/10000000-0000-0000-0000-000000000003"
-	xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:ics="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xsi:type="c:AccountShadowType"
 	xsi:schemaLocation='http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../ns/public/common/common-1.xsd
@@ -35,7 +36,7 @@
 	<c:resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType" />
 	<c:objectClass>ri:Account</c:objectClass>
 	<c:attributes>
-		<ics:__NAME__>uid=bond,ou=people,dc=example,dc=com</ics:__NAME__>
+		<ics:name>uid=bond,ou=people,dc=example,dc=com</ics:name>
 		<ri:cn>James Bond</ri:cn>
 		<ri:sn>Bond</ri:sn>
 		<ri:givenName>James</ri:givenName>

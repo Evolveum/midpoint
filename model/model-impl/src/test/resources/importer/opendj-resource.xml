@@ -34,15 +34,15 @@
 	<!-- Resource printable name -->
 	<name>Embedded Test OpenDJ</name>
 	
-	<!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->
-	<connectorRef oid="icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector"/>
+	<!-- Reference to the ICF LDAP connector. -->
+	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>
 	
 	<!-- Connector namespace -->
-	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
 	
 	<!-- Resource configuration section -->
-	<configuration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf/configuration-1.xsd">
+	<configuration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
 					   
 		<!-- Configuration specific for the LDAP connector -->
 		<icfcldap:configurationProperties>
@@ -84,16 +84,15 @@
 	</configuration>
 	<c:schema>
 		<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-            xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
-            xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+            xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+            xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
             elementFormDefault="qualified"
-            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff">
    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
-   <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
-   <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"/>
-   <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
+   <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"/>
+   <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"/>
    <xsd:complexType name="AccountObjectClass">
       <xsd:annotation>
          <xsd:appinfo>

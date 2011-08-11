@@ -73,7 +73,7 @@ public class SchemaHandlerXPathCustomFunctionTest {
 		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, account,
 				AccountShadowType.class);
 
-		assertEquals("__NAME__", appliedAccountShadow.getAttributes().getAny().get(0).getLocalName());
+		assertEquals("name", appliedAccountShadow.getAttributes().getAny().get(0).getLocalName());
 		assertEquals("Bond", appliedAccountShadow.getAttributes().getAny().get(0).getTextContent());
 	}
 }
