@@ -20,7 +20,8 @@
 <!-- Portions Copyrighted 2010 Peter Prochazka               -->
 <!--                                                         -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<name>midPoint Infrastructure - schema</name>
 	<groupId>com.evolveum.midpoint.infra</groupId>
@@ -31,6 +32,9 @@
 		<groupId>com.evolveum.midpoint</groupId>
 		<version>1.9-SNAPSHOT</version>
 	</parent>
+	<properties>
+		<cxf.version>2.4.0</cxf.version>
+	</properties>
 	<organization>
 		<name>Evolveum</name>
 		<url>http://www.evolveum.com</url>
@@ -59,6 +63,13 @@
 			<url>http://repo.evolveum.com/repo</url>
 		</repository>
 	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>evolveum</id>
+			<name>repo</name>
+			<url>http://repo.evolveum.com/repo</url>
+		</pluginRepository>
+	</pluginRepositories>
 	<dependencies>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
@@ -71,11 +82,6 @@
 			<version>20100725</version>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.8.2</version>
-		</dependency>
-		<dependency>
 			<groupId>xml-resolver</groupId>
 			<artifactId>xml-resolver</artifactId>
 			<version>${xml.resolver.version}</version>
@@ -85,101 +91,175 @@
 			<artifactId>commons-lang</artifactId>
 			<version>${commons.lang.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-core</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-frontend-simple</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-frontend-jaxws</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-databinding-aegis</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-local</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-http</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-http-jetty</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-transports-jms</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-management</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-common-utilities</artifactId>
+			<version>${cxf.version}</version>
+		</dependency>
+		<!--  TESTING SCOPE  -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.2</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<plugins>
-			<!-- to generate sources from XSD -->
+			
 			<plugin>
-				<groupId>org.jvnet.jaxb2.maven2</groupId>
-				<artifactId>maven-jaxb2-plugin</artifactId>
+				<groupId>org.apache.cxf</groupId>
+				<artifactId>cxf-codegen-plugin</artifactId>
+				<version>${cxf.version}</version>
 				<executions>
 					<execution>
+						<id>generate-sources</id>
+						<phase>generate-sources</phase>
+						<configuration>
+							<sourceRoot>${project.build.directory}/generated/cxf</sourceRoot>
+							<wsdlRoot>${basedir}/src/main/resources/xml</wsdlRoot>
+							<wsdlOptions>
+								<wsdlOption>
+									<wsdl>src/main/resources/xml/ns/private/model/modelWrapper.wsdl</wsdl>
+									<extraargs>
+										<extraarg>-impl</extraarg>
+										<extraarg>-verbose</extraarg>
+										<extraarg>-xjc-Xts</extraarg>
+									</extraargs>
+								</wsdlOption>
+								<wsdlOption>
+									<wsdl>src/main/resources/xml/ns/private/model/passwordWrapper.wsdl</wsdl>
+									<extraargs>
+										<extraarg>-impl</extraarg>
+										<extraarg>-verbose</extraarg>
+										<extraarg>-xjc-Xts</extraarg>
+									</extraargs>
+								</wsdlOption>
+							</wsdlOptions>
+						</configuration>
 						<goals>
-							<goal>generate</goal>
+							<goal>wsdl2java</goal>
 						</goals>
 					</execution>
 				</executions>
-				<configuration>
-					<schemaIncludes>
-						<include>xml/ns/public/resource/idconnector/configuration-1.xsd</include>
-						<include>xml/ns/public/resource/idconnector/resource-schema-1.xsd</include>
-						<include>xml/ns/public/resource/resource-schema-1.xsd</include>
-					</schemaIncludes>
-					<extension>true</extension>
-					<strict>true</strict>
-					<verbose>${verbose.jaxb}</verbose>
-				</configuration>
-			</plugin>
-
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>jaxws-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<goals>
-							<goal>wsimport</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<verbose>${verbose.jaxws}</verbose>
-					<sourceDestDir>${project.build.directory}/generated-sources/jaxws</sourceDestDir>
-					<wsdlDirectory>src/main/resources/xml/ns/</wsdlDirectory>
-					<wsdlFiles>
-						<wsdlFile>private/model/modelWrapper.wsdl</wsdlFile>
-						<wsdlFile>private/model/passwordWrapper.wsdl</wsdlFile>
-					</wsdlFiles>
-				</configuration>
 				<dependencies>
-					<!-- <dependency>
-						<groupId>com.sun.xml.ws</groupId>
-						<artifactId>jaxws-tools</artifactId>
-						<version>2.2.3</version>
-					</dependency> -->
+					<dependency>
+						<groupId>org.apache.cxf.xjcplugins</groupId>
+						<artifactId>cxf-xjc-ts</artifactId>
+						<version>${cxf.version}</version>
+					</dependency>
 				</dependencies>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.cxf</groupId>
+				<artifactId>cxf-xjc-plugin</artifactId>
+				<version>${cxf.version}</version>
+				<configuration>
+					<extensions>
+						<extension>org.apache.cxf.xjcplugins:cxf-xjc-dv:2.3.0</extension>
+					</extensions>
+				</configuration>
+				<executions>
+					<execution>
+						<id>generate-sources</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>xsdtojava</goal>
+						</goals>
+						<configuration>
+							<sourceRoot>${project.build.directory}/generated/cxf</sourceRoot>
+							<xsdOptions>
+								<xsdOption>
+									<xsd>src/main/resources/xml/ns/public/common/common-1.xsd</xsd>
+									<extensionArgs>
+										<extensionArg>-Xts</extensionArg>
+									</extensionArgs>
+									<extension>true</extension>
+								</xsdOption>
+								<xsdOption>
+									<xsd>src/main/resources/xml/ns/public/resource/resource-schema-1.xsd</xsd>
+									<extensionArgs>
+										<extensionArg>-Xts</extensionArg>
+									</extensionArgs>
+									<extension>true</extension>
+								</xsdOption>
+								<xsdOption>
+									<xsd>src/main/resources/xml/ns/public/resource/idconnector/resource-schema-1.xsd</xsd>
+									<extensionArgs>
+										<extensionArg>-Xts</extensionArg>
+									</extensionArgs>
+									<extension>true</extension>
+								</xsdOption>
+								<xsdOption>
+									<xsd>src/main/resources/xml/ns/public/resource/idconnector/configuration-1.xsd</xsd>
+									<extensionArgs>
+										<extensionArg>-Xts</extensionArg>
+									</extensionArgs>
+									<extension>true</extension>
+								</xsdOption>
+								<xsdOption>
+									<xsd>src/main/resources/xml/ns/public/resource/icf/schema-1.xsd</xsd>
+									<extensionArgs>
+										<!--extensionArg>-Xdv</extensionArg-->
+										<extensionArg>-Xts</extensionArg>
+									</extensionArgs>
+									<extension>true</extension>
+								</xsdOption>
+							</xsdOptions>
+							<extensions>
+								<!--extension>org.apache.cxf.xjcplugins:cxf-xjc-dv:${cxf.version}</extension-->
+								<extension>org.apache.cxf.xjcplugins:cxf-xjc-ts:${cxf.version}</extension>
+							</extensions>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
-		<pluginManagement>
-			<plugins>
-        		<!--TODO TEXT. This plugin's configuration is used in m2e only.-->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.jvnet.jaxb2.maven2</groupId>
-										<artifactId>maven-jaxb2-plugin</artifactId>
-										<versionRange>[0.7.5,)</versionRange>
-										<goals>
-											<goal>generate</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore />
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>org.codehaus.mojo</groupId>
-										<artifactId>jaxws-maven-plugin</artifactId>
-										<versionRange>[1.10,)</versionRange>
-										<goals>
-											<goal>wsimport</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore />
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 	</build>
 </project>
+

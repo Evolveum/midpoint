@@ -25,7 +25,7 @@ package com.evolveum.midpoint.web.test;
 import org.mockito.Mockito;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 
 /**
  * 

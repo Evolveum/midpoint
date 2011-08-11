@@ -56,8 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
+import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
@@ -198,7 +198,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 				modelService.modifyObject(modification, new Holder<OperationResultType>(
 						new OperationResultType()));
 			}
-		} catch (com.evolveum.midpoint.xml.ns._public.model.model_1.FaultMessage ex) {
+		} catch (com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage ex) {
 			StringBuilder message = new StringBuilder();
 			message.append("Can't save user, reason: ");
 			if (ex.getFaultInfo() != null) {
