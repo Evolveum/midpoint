@@ -95,6 +95,13 @@ import com.evolveum.midpoint.xml.schema.XPathType;
 @Scope
 public class ModelControllerImpl implements ModelController {
 
+	public static final String CLASS_NAME = ModelControllerImpl.class.getName() + ".";
+	public static final String GET_SYSTEM_CONFIGURATION = CLASS_NAME + "getSystemConfiguration";
+	public static final String RESOLVE_USER_ATTRIBUTES = CLASS_NAME + "resolveUserAttributes";
+	public static final String RESOLVE_ACCOUNT_ATTRIBUTES = CLASS_NAME + "resolveAccountAttributes";
+	public static final String CREATE_ACCOUNT = CLASS_NAME + "createAccount";
+	public static final String UPDATE_ACCOUNT = CLASS_NAME + "updateAccount";
+	public static final String PROCESS_USER_TEMPLATE = CLASS_NAME + "processUserTemplate";
 	private static final Trace LOGGER = TraceManager.getTrace(ModelControllerImpl.class);
 	@Autowired(required = true)
 	private transient ProvisioningService provisioning;
@@ -137,11 +144,11 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordFatalError("Object with name '" + object.getName() + "' already exists.", ex);
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
-			subResult.recordFatalError("Couldn't add object '" + object.getName() + "'.", ex);
+			subResult.recordFatalError(ex);
 			throw ex;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't add object", ex, object.getName());
-			subResult.recordFatalError("Couldn't add object '" + object.getName() + "'.", ex);
+			subResult.recordFatalError(ex);
 			if (ex instanceof SystemException) {
 				throw (SystemException) ex;
 			}
@@ -638,7 +645,7 @@ public class ModelControllerImpl implements ModelController {
 	@Override
 	public void importObjectsFromFile(File input, Task task, OperationResult parentResult) {
 		// OperationResult result =
-		// parentResult.createSubresult(OperationConstants.IMPORT_OBJECTS_FROM_FILE);
+		// parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
 		// TODO Auto-generated method stub
 		throw new NotImplementedException();
 	}
@@ -741,8 +748,7 @@ public class ModelControllerImpl implements ModelController {
 
 	private SystemConfigurationType getSystemConfiguration(OperationResult result)
 			throws ObjectNotFoundException {
-		// TODO: operation name
-		OperationResult configResult = result.createSubresult("Get System Configuration");
+		OperationResult configResult = result.createSubresult(GET_SYSTEM_CONFIGURATION);
 		SystemConfigurationType systemConfiguration = null;
 		try {
 			systemConfiguration = getObject(SystemObjectsType.SYSTEM_CONFIGURATION.value(),
@@ -799,8 +805,7 @@ public class ModelControllerImpl implements ModelController {
 
 		List<ObjectReferenceType> refToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
-			// TODO: operation name
-			OperationResult subResult = result.createSubresult("resolveUserAttributes");
+			OperationResult subResult = result.createSubresult(RESOLVE_USER_ATTRIBUTES);
 			addResultParams(subResult, new String[] { "user", "accountRef" }, user, accountRef);
 			try {
 				AccountShadowType account = getObjectFromProvisioning(accountRef.getOid(), resolve,
@@ -832,8 +837,7 @@ public class ModelControllerImpl implements ModelController {
 					+ "doesn't contain oid.", new Object[] { account.getName() });
 			return;
 		}
-		// TODO: operation name
-		OperationResult subResult = result.createSubresult("resolveUserAttributes");
+		OperationResult subResult = result.createSubresult(RESOLVE_ACCOUNT_ATTRIBUTES);
 		addResultParams(subResult, new String[] { "account", "resolve" }, account, resolve);
 		try {
 			ResourceType resource = getObjectFromProvisioning(account.getResourceRef().getOid(), resolve,
@@ -1135,8 +1139,7 @@ public class ModelControllerImpl implements ModelController {
 			// outbound for every account, or enable/disable account if needed
 			List<ObjectReferenceType> accountRefs = user.getAccountRef();
 			for (ObjectReferenceType accountRef : accountRefs) {
-				// TODO: operation name
-				OperationResult subResult = result.createSubresult("Update Accounts");
+				OperationResult subResult = result.createSubresult(UPDATE_ACCOUNT);
 				addResultParams(subResult, new String[] { "change", "accountOid", "object", "accountRef" },
 						change, accountOid, object, accountRef);
 				if (StringUtils.isNotEmpty(accountOid) && accountOid.equals(accountRef.getOid())) {
@@ -1231,7 +1234,7 @@ public class ModelControllerImpl implements ModelController {
 
 	private void processUserTemplateForUser(UserType user, UserTemplateType userTemplate,
 			OperationResult result) {
-		OperationResult subResult = result.createSubresult("Process User Template");
+		OperationResult subResult = result.createSubresult(PROCESS_USER_TEMPLATE);
 		addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
 		if (userTemplate == null) {
 			subResult.recordWarning("No user template defined, skipping.");
@@ -1247,8 +1250,7 @@ public class ModelControllerImpl implements ModelController {
 	private void processUserTemplateAccount(UserType user, UserTemplateType userTemplate,
 			OperationResult result) {
 		for (AccountConstructionType construction : userTemplate.getAccountConstruction()) {
-			// TODO: operation name
-			OperationResult subResult = result.createSubresult("Link Object To User");
+			OperationResult subResult = result.createSubresult(CREATE_ACCOUNT);
 			addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
 			try {
 				ObjectReferenceType resourceRef = construction.getResourceRef();
