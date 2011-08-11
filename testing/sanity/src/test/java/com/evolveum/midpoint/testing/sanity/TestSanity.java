@@ -69,6 +69,8 @@ import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.controller.ModelControllerImpl;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -179,7 +181,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * The instance of ModelService. This is the interface that we will test.
 	 */
 	@Autowired(required = true)
-	private ModelPortType model;
+	private ModelPortType modelWeb;
+	@Autowired(required = true)
+	private ModelService modelService;
 
 	public TestSanity() throws JAXBException {
 		super();
@@ -189,8 +193,14 @@ public class TestSanity extends AbstractIntegrationTest {
 
 	// This will get called from the superclass to init the repository
 	// It will be called only once
-	public void initRepository() throws Exception {
-			resource = (ResourceType) addObjectFromFile(RESOURCE_OPENDJ_FILENAME);
+	public void initSystem() throws Exception {
+			OperationResult result = new OperationResult("initSystem");
+			// This should discover the connectors
+			modelService.postInit(result);
+			// Need to import instead of add, so the (dynamic) connector reference will be resolved
+			// correctly
+			importObjectFromFile(RESOURCE_OPENDJ_FILENAME,result);
+			
 			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
 			addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME);
 			addObjectFromFile(USER_TEMPLATE_FILENAME);
@@ -205,16 +215,17 @@ public class TestSanity extends AbstractIntegrationTest {
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test000Integrity");
-		assertNotNull(resource);
-		assertNotNull(model);
+		assertNotNull(modelWeb);
+		assertNotNull(modelService);
 		assertNotNull(repositoryService);
-		assertTrue(repoInitialized);
+		assertTrue(systemInitialized);
 		assertNotNull(taskManager);
 
 		OperationResult result = new OperationResult(TestSanity.class.getName() + ".test000Integrity");
 		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
 		assertTrue(object instanceof ResourceType);
 		assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
+		resource = (ResourceType)object;
 
 		// TODO: test if OpenDJ is running
 	}
@@ -237,7 +248,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
 
 		// WHEN
-		model.testResource(RESOURCE_OPENDJ_OID, holder);
+		modelWeb.testResource(RESOURCE_OPENDJ_OID, holder);
 
 		// THEN
 
@@ -263,7 +274,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
 
 		// WHEN
-		String oid = model.addObject(user, holder);
+		String oid = modelWeb.addObject(user, holder);
 
 		// THEN
 
@@ -304,7 +315,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
 
 		// WHEN
-		model.modifyObject(objectChange, holder);
+		modelWeb.modifyObject(objectChange, holder);
 
 		// THEN
 		displayJaxb("modifyObject result", holder.value, SchemaConstants.C_RESULT);
@@ -390,7 +401,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		holder.value = result;
 
 		// WHEN
-		ObjectType modelObject = model.getObject(shadowOid, resolve, holder);
+		ObjectType modelObject = modelWeb.getObject(shadowOid, resolve, holder);
 
 		// THEN
 		displayJaxb("getObject result", holder.value, SchemaConstants.C_RESULT);
@@ -429,7 +440,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
 
 		// WHEN
-		model.modifyObject(objectChange, holder);
+		modelWeb.modifyObject(objectChange, holder);
 
 		// THEN
 		System.out.println("modifyObject result:");
@@ -526,7 +537,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
 
 		// WHEN
-		model.deleteObject(USER_JACK_OID, holder);
+		modelWeb.deleteObject(USER_JACK_OID, holder);
 
 		// THEN
 		System.out.println("deleteObject result:");
@@ -727,7 +738,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		OperationResultType resultType = new OperationResultType();
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(resultType);
 
-		ObjectListType objects = model.searchObjects(query, null, holder);
+		ObjectListType objects = modelWeb.searchObjects(query, null, holder);
 
 		assertSuccess("searchObjects has failed", holder.value);
 		assertEquals("User not found (or found too many)", 1, objects.getObject().size());
@@ -756,7 +767,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		Holder<TaskType> taskHolder = new Holder<TaskType>(taskType);
 
 		// WHEN
-		model.importFromResource(RESOURCE_OPENDJ_OID, IMPORT_OBJECTCLASS, taskHolder);
+		modelWeb.importFromResource(RESOURCE_OPENDJ_OID, IMPORT_OBJECTCLASS, taskHolder);
 
 		// THEN
 
@@ -782,7 +793,7 @@ public class TestSanity extends AbstractIntegrationTest {
 					@Override
 					public boolean check() throws Exception {
 						Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-						ObjectType obj = model.getObject(taskOid, new PropertyReferenceListType(), resultHolder);
+						ObjectType obj = modelWeb.getObject(taskOid, new PropertyReferenceListType(), resultHolder);
 						assertSuccess("getObject has failed", resultHolder.value);
 						Task task = taskManager.createTaskInstance((TaskType) obj);
 						return(task.getExecutionStatus() == TaskExecutionStatus.CLOSED);
@@ -791,7 +802,7 @@ public class TestSanity extends AbstractIntegrationTest {
 				30000);
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-		ObjectType obj = model.getObject(task.getOid(), new PropertyReferenceListType(), resultHolder);
+		ObjectType obj = modelWeb.getObject(task.getOid(), new PropertyReferenceListType(), resultHolder);
 		assertSuccess("getObject has failed", resultHolder.value);
 		task = taskManager.createTaskInstance((TaskType) obj);
 
@@ -833,7 +844,7 @@ public class TestSanity extends AbstractIntegrationTest {
 			assertNotNull("Null attributes in shadow", shadow.getAttributes());
 			assertAttributeNotNull("No UID in shadow", shadow, SchemaConstants.ICFS_UID);
 		}
-		ObjectListType uobjects = model.listObjects(ObjectTypes.USER.getObjectTypeUri(), null, resultHolder);
+		ObjectListType uobjects = modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), null, resultHolder);
 		assertSuccess("listObjects has failed", resultHolder.value);
 		assertFalse("No users created", uobjects.getObject().isEmpty());
 
@@ -886,4 +897,15 @@ public class TestSanity extends AbstractIntegrationTest {
 	// TODO: test for missing sample config (bad reference in expression
 	// arguments)
 
+	/**
+	 * @param resourceOpendjFilename
+	 * @return
+	 * @throws FileNotFoundException 
+	 */
+	private void importObjectFromFile(String filename,OperationResult result) throws FileNotFoundException {
+		Task task = taskManager.createTaskInstance();
+		FileInputStream stream = new FileInputStream(filename);
+		modelService.importObjectsFromStream(stream, task, result);
+	}
+	
 }

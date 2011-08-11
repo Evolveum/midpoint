@@ -21,6 +21,7 @@ package com.evolveum.midpoint.provisioning.test.ucf;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,9 +40,13 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.object.ResourceTypeUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -56,9 +61,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 public class SimpleUcfTest {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
+	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
 	
 	ConnectorFactory manager;
 	ResourceType resource;
+	ConnectorType connectorType;
 
 	public SimpleUcfTest() {
 	}
@@ -71,15 +78,16 @@ public class SimpleUcfTest {
 
 		File file = new File(FILENAME_RESOURCE_OPENDJ);
 		FileInputStream fis = new FileInputStream(file);
-
 		Unmarshaller u = null;
-
 		JAXBContext jc = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
 		u = jc.createUnmarshaller();
-
 		Object object = u.unmarshal(fis);
-
 		resource = (ResourceType) ((JAXBElement) object).getValue();
+
+		file = new File(FILENAME_CONNECTOR_LDAP);
+		fis = new FileInputStream(file);
+		object = u.unmarshal(fis);
+		connectorType = (ConnectorType) ((JAXBElement) object).getValue();
 
 	}
 
@@ -99,7 +107,6 @@ public class SimpleUcfTest {
 		assertFalse(listConnectors.isEmpty());
 
 		for (ConnectorType connector : listConnectors) {
-			assertNotNull(connector.getOid());
 			assertNotNull(connector.getName());
 			System.out.println("CONNECTOR OID=" + connector.getOid() + ", name=" + connector.getName()
 					+ ", version=" + connector.getConnectorVersion());
@@ -112,11 +119,15 @@ public class SimpleUcfTest {
 
 	@Test
 	public void testCreateConfiguredConnector() throws FileNotFoundException, JAXBException,
-			com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException {
+			com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException {
 
-		ConnectorInstance cc = manager.createConnectorInstance(resource);
-
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType,resource.getNamespace());
 		assertNotNull(cc);
+		OperationResult result = new OperationResult(SimpleUcfTest.class.getName()+".testCreateConfiguredConnector");
+		cc.configure(resource.getConfiguration(),result);
+		result.computeStatus("test failed");
+		assertSuccess("Connector configuration failed",result);
+		// TODO: assert something
 	}
 
 }

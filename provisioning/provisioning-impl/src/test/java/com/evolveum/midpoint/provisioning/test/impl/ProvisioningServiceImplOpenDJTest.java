@@ -102,6 +102,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 	// Let's reuse the resource definition from UCF tests ... for now
+	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String FILENAME_ACCOUNT1 = "src/test/resources/impl/account1.xml";
@@ -167,9 +168,13 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".initProvisioning");
+		
 		if (!provisioningInitialized) {
+			// Adding this before "postInit" will give us fixed OID of the ConnectorType object
+			addObjectFromFile(FILENAME_CONNECTOR_LDAP);
+			
 			provisioningService.postInit(result);
-			result.computeStatus();
+			result.computeStatus("Test failed");
 			display("Provisioning initialization",result);
 			assertSuccess("Provisioning initialization failed", result);
 			provisioningInitialized=true;
@@ -232,7 +237,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 				+ ".test002ConnectorRediscovery");
 		
 		Set<ConnectorType> discoverLocalConnectors = connectorTypeManager.discoverLocalConnectors(result);
-		result.computeStatus();
+		result.computeStatus("test failed");
 		assertSuccess("discoverLocalConnectors failed", result);
 		assertTrue("Rediscovered something",discoverLocalConnectors.isEmpty());
 	}

@@ -73,6 +73,7 @@ import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -84,6 +85,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/ucf/opendj-resource-bad.xml";
+	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
 
 	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
@@ -93,6 +95,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 	ResourceType badResource;
 	private ConnectorFactory manager;
 	private ConnectorInstance cc;
+	ConnectorType connectorType;
 	Schema schema;
 
 	public AddDeleteObjectUcfTest() throws JAXBException {
@@ -116,23 +119,31 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		File file = new File(FILENAME_RESOURCE_OPENDJ);
 		FileInputStream fis = new FileInputStream(file);
 
-		Unmarshaller u = jaxbctx.createUnmarshaller();
-		Object object = u.unmarshal(fis);
+		// Resource
+        Unmarshaller u = jaxbctx.createUnmarshaller();
+        Object object = u.unmarshal(fis);		
 		resource = (ResourceType) ((JAXBElement) object).getValue();
-
-		// Second copy for negative test cases
+		
+		// Resource: Second copy for negative test cases
 		file = new File(FILENAME_RESOURCE_OPENDJ_BAD);
-		fis = new FileInputStream(file);
+        fis = new FileInputStream(file);
 		object = u.unmarshal(fis);
 		badResource = (ResourceType) ((JAXBElement) object).getValue();
+
+		// Connector
+		file = new File(FILENAME_CONNECTOR_LDAP);
+        fis = new FileInputStream(file);
+		object = u.unmarshal(fis);
+		connectorType = (ConnectorType) ((JAXBElement) object).getValue();
 
 		ConnectorFactoryIcfImpl managerImpl = new ConnectorFactoryIcfImpl();
 		managerImpl.initialize();
 		manager = managerImpl;
 
-		cc = manager.createConnectorInstance(resource);
-
+		cc = manager.createConnectorInstance(connectorType,resource.getNamespace());
 		assertNotNull(cc);
+		cc.configure(resource.getConfiguration(), new OperationResult("initUcf"));
+		// TODO: assert something
 
 		OperationResult result = new OperationResult(this.getClass().getName()
 				+ ".initUcf");

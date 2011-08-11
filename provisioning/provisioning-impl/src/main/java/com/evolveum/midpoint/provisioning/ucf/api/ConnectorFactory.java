@@ -48,11 +48,7 @@ import java.util.Set;
 public interface ConnectorFactory {
 
 	/**
-	 * Creates new instance of the connector.
-	 * 
-	 * Returned connector instance will be configured to the state that it can
-	 * immediately access the resource. The resource definition is provided as
-	 * a parameter to this method.
+	 * Creates new unconfigured instance of the connector.
 	 * 
 	 * This factory is NOT required to cache or pool the connector instances.
 	 * Call to this method may create new connector instance each time it is
@@ -61,16 +57,14 @@ public interface ConnectorFactory {
 	 * May return null if the resource definition cannot be handled by this factory
 	 * instance. E.g. it does not have configuration or the configuration is meant for
 	 * a different factory.
-	 * TODO: Better errror handling
-	 * TODO throw misconfiguration exception if the configuration is obviously meant for
-	 * this connector but it cannot be applied.
+	 * TODO: Better error handling
 	 * 
 	 * @param resource resource definition
 	 * @return configured and initialized connector instance
 	 * @throws ObjectNotFoundException is the specified connector was not found
 	 */
-	public ConnectorInstance createConnectorInstance(ResourceType resource) throws ObjectNotFoundException;
-
+	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace) throws ObjectNotFoundException;
+	
 	/**
 	 * Returns a list of all known connectors.
 	 * 
@@ -86,15 +80,4 @@ public interface ConnectorFactory {
 	 */
 	public Set<ConnectorType> listConnectors();
 
-	/**
-	 * Returns a specific connector by OID.
-	 * 
- 	 * Returned connector objects are "virtual". They may not be stored in the
-	 * persistent repository and they may disappear if the connector disappears
-	 * from the system. The returned connector objects are immutable.
-	 * 
-	 * @param oid
-	 * @return 
-	 */
-	public ConnectorType getConnector(String oid);
 }

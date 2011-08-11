@@ -29,7 +29,7 @@ public enum ConnectorTestOperation {
 
 	CONFIGURATION_VALIDATION(ConnectorTestOperation.class.getName() + ".configurationValidation"),
 
-	CONNECTION_INITIALIZATION(ConnectorTestOperation.class.getName() + ".connectionInitialization"),
+	CONNECTOR_INITIALIZATION(ConnectorTestOperation.class.getName() + ".connectorInitialization"),
 
 	CONNECTOR_CONNECTION(ConnectorTestOperation.class.getName() + ".connectorConnection"),
 

@@ -57,6 +57,8 @@ import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
@@ -79,7 +81,12 @@ import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeInfo;
 import org.identityconnectors.framework.common.objects.AttributeInfo.Flags;
+import org.identityconnectors.framework.api.APIConfiguration;
+import org.identityconnectors.framework.api.ConfigurationProperties;
+import org.identityconnectors.framework.api.ConfigurationProperty;
 import org.identityconnectors.framework.api.ConnectorFacade;
+import org.identityconnectors.framework.api.ConnectorFacadeFactory;
+import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
 import org.identityconnectors.framework.common.objects.Name;
@@ -99,7 +106,10 @@ import org.identityconnectors.common.security.GuardedString;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import java.lang.reflect.Array;
 import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -130,21 +140,76 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private static final String GROUP_OBJECTCLASS_LOCALNAME = "GroupObjectClass";
 	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
 	private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
+	private static final String CONFIGURATION_PROPERTIES_XML_ELEMENT_NAME = "configurationProperties";
 
 	private static final Trace LOGGER = TraceManager
 			.getTrace(ConnectorInstanceIcfImpl.class);
 
-	ConnectorFacade connector;
-	ResourceType resource;
+	ConnectorInfo cinfo;
+	ConnectorType connectorType;
+	ConnectorFacade icfConnectorFacade;
+	String schemaNamespace;
 
-	public ConnectorInstanceIcfImpl(ConnectorFacade connector,
-			ResourceType resource) {
-		this.connector = connector;
-		this.resource = resource;
+	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType, String schemaNamespace) {
+		this.cinfo = connectorInfo;
+		this.connectorType = connectorType;
+		this.schemaNamespace = schemaNamespace;
 	}
+	
+	public String getSchemaNamespace() {
+		return schemaNamespace;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance#configure(com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration)
+	 */
+	@Override
+	public void configure(Configuration configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException {
+	
+		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()+".configure");
+		result.addParam("configuration", configuration);
+		
+		try {
+			// Get default configuration for the connector. This is important, as
+			// it contains types of connector configuration properties.
+			// So we do not need to know the connector configuration schema
+			// here. We are in fact looking at the data that the schema is
+			// generated from.
+			APIConfiguration apiConfig = cinfo.createDefaultAPIConfiguration();
+		
+			// Transform XML configuration from the resource to the ICF connector
+			// configuration
+			try {
+				transformConnectorConfiguration(apiConfig, configuration);
+			} catch (SchemaException e) {
+				result.recordFatalError(e.getMessage(),e);
+				throw e;
+			}
+		
+			// Create new connector instance using the transformed configuration
+			icfConnectorFacade = ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
+			
+			result.recordSuccess();
+		} catch (Exception ex) {
+			Exception midpointEx = processIcfException(ex, result);
+			result.computeStatus("Removing attribute values failed");
+			// Do some kind of acrobatics to do proper throwing of checked
+			// exception
+			if (midpointEx instanceof CommunicationException) {
+				throw (CommunicationException) midpointEx;
+			} else if (midpointEx instanceof GenericFrameworkException) {
+				throw (GenericFrameworkException) midpointEx;
+			} else if (midpointEx instanceof SchemaException) {
+				throw (SchemaException) midpointEx;
+			} else if (midpointEx instanceof RuntimeException) {
+				throw (RuntimeException) midpointEx;
+			} else {
+				throw new SystemException("Got unexpected exception: "
+						+ ex.getClass().getName(), ex);
+			}
+			
+		}
 
-	private String getSchemaNamespace() {
-		return resource.getNamespace();
 	}
 
 	/**
@@ -163,26 +228,31 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		OperationResult result = parentResult
 				.createSubresult(ConnectorInstance.class.getName()
 						+ ".fetchResourceSchema");
-		result.addContext("resource", resource);
+		result.addContext("connector", connectorType);
+		
+		if (icfConnectorFacade==null) {
+			result.recordFatalError("Attempt to use unconfigured connector");
+			throw new IllegalStateException("Attempt to use unconfigured connector "+ObjectTypeUtil.toShortString(connectorType));
+		}
 
 		// Connector operation cannot create result for itself, so we need to
 		// create result for it
 		OperationResult icfResult = result
 				.createSubresult(ConnectorFacade.class.getName() + ".schema");
-		icfResult.addContext("connector", connector.getClass());
+		icfResult.addContext("connector", icfConnectorFacade.getClass());
 
 		org.identityconnectors.framework.common.objects.Schema icfSchema = null;
 		try {
 
 			// Fetch the schema from the connector (which actually gets that
 			// from the resource).
-			icfSchema = connector.schema();
+			icfSchema = icfConnectorFacade.schema();
 
 			icfResult.recordSuccess();
 		} catch (Exception ex) {
 			// ICF interface does not specify exceptions or other error
 			// conditions.
-			// Therefore this kind of heavy artilery is necessary.
+			// Therefore this kind of heavy artillery is necessary.
 			// TODO maybe we can try to catch at least some specific exceptions
 			icfResult.recordFatalError(ex);
 			result.recordFatalError("ICF invocation failed");
@@ -209,14 +279,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// TODO: this may need to be moved to a separate method
 			QName objectElementName;
 			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-				objectElementName = new QName(getSchemaNamespace(), "account",
-						SchemaConstants.NS_ICF_SCHEMA_PREFIX);
+				objectElementName = new QName(getSchemaNamespace(), "account", SchemaConstants.NS_ICF_SCHEMA_PREFIX);
 			} else if (ObjectClass.GROUP_NAME.equals(objectClassInfo.getType())) {
-				objectElementName = new QName(getSchemaNamespace(), "group",
-						SchemaConstants.NS_ICF_SCHEMA_PREFIX);
+				objectElementName = new QName(getSchemaNamespace(), "group", SchemaConstants.NS_ICF_SCHEMA_PREFIX);
 			} else {
-				objectElementName = new QName(getSchemaNamespace(),
-						objectClassInfo.getType(),
+				objectElementName = new QName(getSchemaNamespace(), objectClassInfo.getType(),
 						SchemaConstants.NS_ICF_RESOURCE_INSTANCE_PREFIX);
 			}
 
@@ -243,6 +310,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Make it mandatory
 			uidDefinition.setMinOccurs(1);
 			uidDefinition.setMaxOccurs(1);
+			uidDefinition.setAttributeDisplayName("ICF UID");
 			roDefinition.getDefinitions().add(uidDefinition);
 			// Uid is a primary identifier of every object (this is the ICF way)
 			roDefinition.getIdentifiers().add(uidDefinition);
@@ -273,8 +341,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				ResourceObjectAttributeDefinition roaDefinition = new ResourceObjectAttributeDefinition(
 						roDefinition, attrXsdName, attrXsdName, attrXsdType);
 				roDefinition.getDefinitions().add(roaDefinition);
+				
+				// Set a better display name for __NAME__. The "name" is s vry overloaded term, so let's try to make things
+				// a bit clearer
+				if (attrXsdName.equals(SchemaConstants.ICFS_NAME)) {
+					roaDefinition.setAttributeDisplayName("ICF NAME");
+				}
 
-				// Now we are gooing to process flas such as optional and
+				// Now we are going to process flags such as optional and
 				// multi-valued
 				Set<Flags> flagsSet = attributeInfo.getFlags();
 				// System.out.println(flagsSet);
@@ -319,24 +393,23 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						+ ".fetchObject");
 		result.addParam("resourceObjectDefinition", resourceObjectDefinition);
 		result.addParam("identifiers", identifiers);
-		result.addContext("resource", resource);
+		result.addContext("connector", connectorType);
+		
+		if (icfConnectorFacade==null) {
+			result.recordFatalError("Attempt to use unconfigured connector");
+			throw new IllegalStateException("Attempt to use unconfigured connector "+ObjectTypeUtil.toShortString(connectorType));
+		}
 
-		// Get UID from the set of idetifiers
+		// Get UID from the set of identifiers
 		Uid uid = getUid(identifiers);
 		if (uid == null) {
 			result.recordFatalError("Required attribute UID not found in identification set while attempting to fetch object identified by "
 					+ identifiers
-					+ " from recource "
-					+ resource.getName()
-					+ "(OID:" + resource.getOid() + ")");
+					+ " from " + ObjectTypeUtil.toShortString(connectorType));
 			throw new IllegalArgumentException(
 					"Required attribute UID not found in identification set while attempting to fetch object identified by "
 							+ identifiers
-							+ " from recource "
-							+ resource.getName()
-							+ "(OID:"
-							+ resource.getOid()
-							+ ")");
+							+ " from " + ObjectTypeUtil.toShortString(connectorType));
 		}
 
 		ObjectClass icfObjectClass = objectClassToIcf(resourceObjectDefinition
@@ -346,16 +419,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					+ resourceObjectDefinition.getTypeName()
 					+ " while attempting to fetch object identified by "
 					+ identifiers
-					+ " from recource "
-					+ resource.getName()
-					+ "(OID:" + resource.getOid() + ")");
+					+ " from " + ObjectTypeUtil.toShortString(connectorType));
 			throw new IllegalArgumentException(
 					"Unable to detemine object class from QName "
 							+ resourceObjectDefinition.getTypeName()
 							+ " while attempting to fetch object identified by "
-							+ identifiers + " from recource "
-							+ resource.getName() + "(OID:" + resource.getOid()
-							+ ")");
+							+ identifiers + " from " + ObjectTypeUtil.toShortString(connectorType));
 		}
 
 		ConnectorObject co = null;
@@ -379,8 +448,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (co == null) {
 			result.recordFatalError("Object not found");
 			throw new ObjectNotFoundException("Object identified by "
-					+ identifiers + " was not found on resource "
-					+ ObjectTypeUtil.toShortString(resource));
+					+ identifiers + " was not found by "
+					+ ObjectTypeUtil.toShortString(connectorType));
 		}
 
 		ResourceObject ro = convertToResourceObject(co,
@@ -403,24 +472,23 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						+ ".fetchObject");
 		result.addParam("objectClass", objectClass);
 		result.addParam("identifiers", identifiers);
-		result.addContext("resource", resource);
+		result.addContext("connector", connectorType);
+		
+		if (icfConnectorFacade==null) {
+			result.recordFatalError("Attempt to use unconfigured connector");
+			throw new IllegalStateException("Attempt to use unconfigured connector "+ObjectTypeUtil.toShortString(connectorType));
+		}
 
-		// Get UID from the set of idetifiers
+		// Get UID from the set of identifiers
 		Uid uid = getUid(identifiers);
 		if (uid == null) {
 			result.recordFatalError("Required attribute UID not found in identification set while attempting to fetch object identified by "
 					+ identifiers
-					+ " from recource "
-					+ resource.getName()
-					+ "(OID:" + resource.getOid() + ")");
+					+ " from " + ObjectTypeUtil.toShortString(connectorType));
 			throw new IllegalArgumentException(
 					"Required attribute UID not found in identification set while attempting to fetch object identified by "
 							+ identifiers
-							+ " from recource "
-							+ resource.getName()
-							+ "(OID:"
-							+ resource.getOid()
-							+ ")");
+							+ " from " + ObjectTypeUtil.toShortString(connectorType));
 		}
 
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
@@ -429,16 +497,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					+ objectClass
 					+ " while attempting to fetch object identified by "
 					+ identifiers
-					+ " from recource "
-					+ resource.getName()
-					+ "(OID:" + resource.getOid() + ")");
+					+ " from " + ObjectTypeUtil.toShortString(connectorType));
 			throw new IllegalArgumentException(
 					"Unable to detemine object class from QName "
 							+ objectClass
 							+ " while attempting to fetch object identified by "
-							+ identifiers + " from recource "
-							+ resource.getName() + "(OID:" + resource.getOid()
-							+ ")");
+							+ identifiers + " from " + ObjectTypeUtil.toShortString(connectorType));
 		}
 
 		ConnectorObject co = null;
@@ -462,8 +526,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (co == null) {
 			result.recordFatalError("Object not found");
 			throw new ObjectNotFoundException("Object identified by "
-					+ identifiers + " was not found on resource "
-					+ ObjectTypeUtil.toShortString(resource));
+					+ identifiers + " was not found by "
+					+ ObjectTypeUtil.toShortString(connectorType));
 		}
 
 		ResourceObject ro = convertToResourceObject(co, null);
@@ -487,13 +551,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		icfResult.addParam("objectClass", icfObjectClass);
 		icfResult.addParam("uid", uid.getUidValue());
 		icfResult.addParam("options", null);
-		icfResult.addContext("connector", connector.getClass());
+		icfResult.addContext("connector", icfConnectorFacade.getClass());
 
 		ConnectorObject co = null;
 		try {
 
 			// Invoke the ICF connector
-			co = connector.getObject(icfObjectClass, uid, null);
+			co = icfConnectorFacade.getObject(icfObjectClass, uid, null);
 
 			icfResult.recordSuccess();
 			icfResult.setReturnValue(co);
@@ -556,7 +620,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		icfResult.addParam("objectClass", objectClass);
 		icfResult.addParam("attributes", attributes);
 		icfResult.addParam("options", null);
-		icfResult.addContext("connector", connector);
+		icfResult.addContext("connector", icfConnectorFacade);
 
 		try {
 
@@ -564,7 +628,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			checkAndExecuteAdditionalOperation(additionalOperations,
 					ScriptOrderType.BEFORE);
 			// CALL THE ICF FRAMEWORK
-			Uid uid = connector.create(objectClass, attributes,
+			Uid uid = icfConnectorFacade.create(objectClass, attributes,
 					new OperationOptionsBuilder().build());
 
 			checkAndExecuteAdditionalOperation(additionalOperations,
@@ -688,16 +752,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.addParam("uid", uid);
 				icfResult.addParam("attributes", attributes);
 				icfResult.addParam("options", options);
-				icfResult.addContext("connector", connector);
+				icfResult.addContext("connector", icfConnectorFacade);
 
-				connector
+				icfConnectorFacade
 						.addAttributeValues(objClass, uid, attributes, options);
 
 				icfResult.recordSuccess();
 			}
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
-			result.computeStatus();
+			result.computeStatus("Adding attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
 			if (midpointEx instanceof ObjectNotFoundException) {
@@ -737,13 +801,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.addParam("uid", uid);
 				icfResult.addParam("attributes", attributes);
 				icfResult.addParam("options", options);
-				icfResult.addContext("connector", connector);
-				connector.update(objClass, uid, attributes, options);
+				icfResult.addContext("connector", icfConnectorFacade);
+				icfConnectorFacade.update(objClass, uid, attributes, options);
 				icfResult.recordSuccess();
 			}
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
-			result.computeStatus();
+			result.computeStatus("Update failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
 			if (midpointEx instanceof ObjectNotFoundException) {
@@ -784,14 +848,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.addParam("uid", uid);
 				icfResult.addParam("attributes", attributes);
 				icfResult.addParam("options", options);
-				icfResult.addContext("connector", connector);
-				connector.removeAttributeValues(objClass, uid, attributes,
+				icfResult.addContext("connector", icfConnectorFacade);
+				icfConnectorFacade.removeAttributeValues(objClass, uid, attributes,
 						options);
 				icfResult.recordSuccess();
 			}
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
-			result.computeStatus();
+			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
 			if (midpointEx instanceof ObjectNotFoundException) {
@@ -832,13 +896,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				.createSubresult(ConnectorFacade.class.getName() + ".delete");
 		icfResult.addParam("uid", uid);
 		icfResult.addParam("objectClass", objClass);
-		icfResult.addContext("connector", connector);
+		icfResult.addContext("connector", icfConnectorFacade);
 
 		try {
 			
 			checkAndExecuteAdditionalOperation(additionalOperations, ScriptOrderType.BEFORE);
 			
-			connector.delete(objClass, uid,
+			icfConnectorFacade.delete(objClass, uid,
 					new OperationOptionsBuilder().build());
 			
 			checkAndExecuteAdditionalOperation(additionalOperations, ScriptOrderType.AFTER);
@@ -870,7 +934,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		ObjectClass objClass = objectClassToIcf(objectClass);
 
-		SyncToken syncToken = connector.getLatestSyncToken(objClass);
+		SyncToken syncToken = icfConnectorFacade.getLatestSyncToken(objClass);
 
 		if (syncToken == null) {
 			result.recordFatalError("No token found");
@@ -919,13 +983,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		OperationResult icfResult = subresult
 				.createSubresult(ConnectorFacade.class.getName() + ".sync");
-		icfResult.addContext("connector", connector);
+		icfResult.addContext("connector", icfConnectorFacade);
 		icfResult.addParam("icfObjectClass", icfObjectClass);
 		icfResult.addParam("syncToken", syncToken);
 		icfResult.addParam("syncHandler", syncHandler);
 
 		try {
-			connector.sync(icfObjectClass, syncToken, syncHandler,
+			icfConnectorFacade.sync(icfObjectClass, syncToken, syncHandler,
 					new OperationOptionsBuilder().build());
 			icfResult.recordSuccess();
 		} catch (Exception ex) {
@@ -971,10 +1035,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		connectionResult.addContext(
 				OperationResult.CONTEXT_IMPLEMENTATION_CLASS,
 				ConnectorInstance.class);
-		connectionResult.addContext("resource", resource);
+		connectionResult.addContext("connector", connectorType);
 
 		try {
-			connector.test();
+			icfConnectorFacade.test();
 			connectionResult.recordSuccess();
 		} catch (ConnectorSecurityException ex) {
 			// Looks like this happens for a wide variety of cases. It has inner
@@ -1029,16 +1093,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		final OperationResult result = parentResult
 				.createSubresult(ConnectorInstance.class.getName() + ".search");
 		result.addParam("objectClass", objectClass);
-		result.addContext("resource", resource);
+		result.addContext("connector", connectorType);
 
 		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
 		if (objectClass == null) {
 			IllegalArgumentException ex = new IllegalArgumentException(
 					"Unable to detemine object class from QName "
 							+ objectClass
-							+ " while attempting to searcg objects in recource "
-							+ resource.getName() + "(OID:" + resource.getOid()
-							+ ")");
+							+ " while attempting to searcg objects by " + ObjectTypeUtil.toShortString(connectorType));
 			result.recordFatalError("Unable to detemine object class", ex);
 			throw ex;
 		}
@@ -1067,17 +1129,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		OperationResult icfResult = result
 				.createSubresult(ConnectorFacade.class.getName() + ".search");
 		icfResult.addParam("objectClass", icfObjectClass);
-		icfResult.addContext("connector", connector.getClass());
+		icfResult.addContext("connector", icfConnectorFacade.getClass());
 
 		try {
 
-			connector.search(icfObjectClass, null, icfHandler, null);
+			icfConnectorFacade.search(icfObjectClass, null, icfHandler, null);
 
 			icfResult.recordSuccess();
 		} catch (Exception ex) {
 			// ICF interface does not specify exceptions or other error
 			// conditions.
-			// Therefore this kind of heavy artilery is necessary.
+			// Therefore this kind of heavy artillery is necessary.
 			// TODO maybe we can try to catch at least some specific exceptions
 			icfResult.recordFatalError(ex);
 			result.recordFatalError("ICF invocation failed");
@@ -1170,9 +1232,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (!getSchemaNamespace().equals(qnameObjectClass.getNamespaceURI())) {
 			throw new IllegalArgumentException("ObjectClass QName "
 					+ qnameObjectClass
-					+ " is not in the appropriate namespace for resource "
-					+ resource.getName() + "(OID:" + resource.getOid()
-					+ "), expected: " + getSchemaNamespace());
+					+ " is not in the appropriate namespace for " + ObjectTypeUtil.toShortString(connectorType)
+					+ ", expected: " + getSchemaNamespace());
 		}
 		String lname = qnameObjectClass.getLocalPart();
 		if (ACCOUNT_OBJECTCLASS_LOCALNAME.equals(lname)) {
@@ -1188,9 +1249,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		} else {
 			throw new IllegalArgumentException(
 					"Cannot recognize objectclass QName " + qnameObjectClass
-							+ " for resource " + resource.getName() + "(OID:"
-							+ resource.getOid() + "), expected: "
-							+ getSchemaNamespace());
+							+ " for " + ObjectTypeUtil.toShortString(connectorType)
+							+ ", expected: " + getSchemaNamespace());
 		}
 	}
 
@@ -1586,11 +1646,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// check if the script should be executed on the connector or the
 		// resoruce...
 		if (executeOp.isConnectorHost()) {
-			connector.runScriptOnConnector(scriptContext,
+			icfConnectorFacade.runScriptOnConnector(scriptContext,
 					new OperationOptionsBuilder().build());
 		}
 		if (executeOp.isResourceHost()) {
-			connector.runScriptOnResource(scriptContext,
+			icfConnectorFacade.runScriptOnResource(scriptContext,
 					new OperationOptionsBuilder().build());
 		}
 
@@ -1598,7 +1658,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	private ScriptContext convertToScriptContext(
 			ExecuteScriptOperation executeOp) {
-		// creating csript arguments map form the execute script operation
+		// creating script arguments map form the execute script operation
 		// arguments
 		Map<String, Object> scriptArguments = new HashMap<String, Object>();
 		for (ExecuteScriptArgument argument : executeOp.getArgument()) {
@@ -1609,6 +1669,115 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				executeOp.getLanguage(), executeOp.getTextCode(),
 				scriptArguments);
 		return scriptContext;
+	}
+	
+	/**
+	 * Transforms midPoint XML configuration of the connector to the ICF
+	 * configuration.
+	 * 
+	 * The "configuration" part of the XML resource definition will be used.
+	 * 
+	 * The provided ICF APIConfiguration will be modified, some values may be
+	 * overwritten.
+	 * 
+	 * @param apiConfig ICF connector configuration
+	 * @param resource  midPoint XML configuration
+	 * @throws SchemaException 
+	 */
+	private void transformConnectorConfiguration(APIConfiguration apiConfig, Configuration configuration) throws SchemaException {
+
+		ConfigurationProperties configProps = apiConfig.getConfigurationProperties();
+
+		// The namespace of all the configuration properties specific to the
+		// connector instance will have a connector instance namespace. This
+		// namespace can be found in the resource definition.
+		String connectorConfNs = connectorType.getNamespace();
+		
+		int numConfingProperties = 0;
+		
+		// Iterate over all the elements of XML resource definition that are in
+		// the "configuration" part.
+		List<Element> xmlConfig = configuration.getAny();
+		for (Element e : xmlConfig) {
+			
+			// Process the "configurationProperties" part of configuration
+			if (e.getNamespaceURI() != null && e.getNamespaceURI().equals(connectorConfNs)
+					&& e.getLocalName() != null && e.getLocalName().equals(CONFIGURATION_PROPERTIES_XML_ELEMENT_NAME)) {
+				
+				// Iterate over all the XML elements there. Each element is
+				// a configuration property.
+				NodeList configurationNodelist = e.getChildNodes();
+				for (int i = 0; i < configurationNodelist.getLength(); i++) {
+					Node node = configurationNodelist.item(i);
+					// We care only about elements, ignoring comments and text
+					if (node.getNodeType() == Node.ELEMENT_NODE) {
+						Element configElement = (Element) node;
+
+						// All the elements must be in a connector instance namespace.
+						if (configElement.getNamespaceURI() == null || !configElement.getNamespaceURI().equals(connectorConfNs)) {
+							LOGGER.warn("Found element with a wrong namespace ({}) in connector OID={}", configElement.getNamespaceURI(), connectorType.getOid());
+						} else {
+
+							numConfingProperties++;
+							
+							// Local name of the element is the same as the name of ICF configuration property
+							String propertyName = configElement.getLocalName();
+							ConfigurationProperty property = configProps.getProperty(propertyName);
+							
+							// Check (java) type of ICF configuration property, behave accordingly
+							Class type = property.getType();
+							if (type.isArray()) {
+								// Special handling for array values. If the type
+								// of the property is array, the XML element may appear
+								// several times.
+								List<Object> values = new ArrayList<Object>();
+								// Convert the first value
+								Object value = convertToJava(configElement, type.getComponentType());
+								values.add(value);
+								// Loop over until the elements have the same local name
+								while (i + 1 < configurationNodelist.getLength()
+										&& configurationNodelist.item(i + 1).getNodeType() == Node.ELEMENT_NODE
+										&& ((Element) (configurationNodelist.item(i + 1))).getLocalName().equals(propertyName)) {
+									i++;
+									configElement = (Element) configurationNodelist.item(i);
+									// Convert all the remaining values
+									Object avalue = convertToJava(configElement, type.getComponentType());
+									values.add(avalue);
+								}
+								
+								// Convert array to a list with appropriate type
+								Object valuesArrary = Array.newInstance(type.getComponentType(), values.size());
+								for (int j = 0; j < values.size(); ++j) {
+									Object avalue = values.get(j);
+									Array.set(valuesArrary, j, avalue);
+								}
+								property.setValue(valuesArrary);
+
+							} else {
+								// Single-valued property are easy to convert
+								Object value = convertToJava(configElement, type);
+								property.setValue(value);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// TODO: pools, etc.
+
+		if (numConfingProperties==0) {
+			throw new SchemaException("No configuration properties found. Wrong namespace? (expected: "+connectorConfNs+")");
+		}
+	}
+
+	private Object convertToJava(Element configElement, Class type) {
+		if (type.equals(GuardedString.class)) {
+			// Guarded string is a special ICF beast
+			return new GuardedString(configElement.getTextContent().toCharArray());
+		} else {
+			return XsdTypeConverter.toJavaValue(configElement, type);
+		}
 	}
 
 }

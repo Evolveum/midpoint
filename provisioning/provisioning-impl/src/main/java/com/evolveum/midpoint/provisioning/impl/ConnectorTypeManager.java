@@ -33,10 +33,14 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -44,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
@@ -64,6 +69,41 @@ public class ConnectorTypeManager {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
 
+	public ConnectorInstance getConfiguredConnectorInstance(ResourceType resource, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
+		ConnectorType connectorType = getConnectorType(resource, result);
+		// TODO: Add caching later
+		ConnectorInstance connector = null;
+		try {
+			connector = connectorFactory.createConnectorInstance(connectorType,resource.getNamespace());
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
+			result.recordFatalError(e.getMessage(), e);
+			throw new ObjectNotFoundException(e.getMessage(), e);
+		}
+		try {
+			connector.configure(resource.getConfiguration(),result);
+		} catch (GenericFrameworkException e) {
+			// Not expected. Transform to system exception
+			result.recordFatalError("Generic provisioning framework error",e);
+			throw new SystemException("Generic provisioning framework error: "+e.getMessage(),e);
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
+			throw new CommunicationException(e.getMessage(),e);
+		}
+		
+		return connector;
+	}
+	
+	public ConnectorType getConnectorType(ResourceType resource, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		if (resource.getConnector()!=null) {
+			return resource.getConnector();
+		}
+		if (resource.getConnectorRef()==null || resource.getConnectorRef().getOid()==null) {
+			result.recordFatalError("Connector reference missing in the resource "+ObjectTypeUtil.toShortString(resource));
+			throw new ObjectNotFoundException("Connector reference missing in the resource "+ObjectTypeUtil.toShortString(resource));
+		}
+		String connOid = resource.getConnectorRef().getOid();
+		ObjectType object = repositoryService.getObject(connOid, null, result);
+		return (ConnectorType)object;
+	}
 	
 	/**
 	 * Lists local connectors and makes sure that appropriate ConnectorType objects for them exist in repository.
@@ -170,7 +210,7 @@ public class ConnectorTypeManager {
 	}
 
 	/**
-	 * @param connector
+	 * @param icfConnectorFacade
 	 * @param foundConnector
 	 * @return
 	 */
@@ -194,5 +234,6 @@ public class ConnectorTypeManager {
 		// Obviously they don't match
 		return false;
 	}
+
 	
 }

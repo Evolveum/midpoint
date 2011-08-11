@@ -197,7 +197,7 @@ public class ControllerUtil {
 				subResults));
 		state.setConfValidation(getStatusFromResultType(ConnectorTestOperation.CONFIGURATION_VALIDATION,
 				subResults));
-		state.setConInitialization(getStatusFromResultType(ConnectorTestOperation.CONNECTION_INITIALIZATION,
+		state.setConInitialization(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_INITIALIZATION,
 				subResults));
 		state.setConSanity(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_SANITY, subResults));
 		state.setConSchema(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_SCHEMA, subResults));

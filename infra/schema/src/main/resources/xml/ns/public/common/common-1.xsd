@@ -4399,6 +4399,15 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="connectorBundle" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Name of a package that the connector comes in. It may be a name of the JAR file, ICF bundle
+								name, URL or any other designation of the packaging.
+								This is optional, it may not be provided.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:element name="targetSystemType" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -4443,7 +4452,7 @@
 						</xsd:annotation>
 					</xsd:element>
 
-					<xsd:element ref="tns:schema">
+					<xsd:element ref="tns:schema" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
 								Connector configuration schema.

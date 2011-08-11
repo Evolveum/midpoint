@@ -164,21 +164,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ObjectType repositoryObject = null;
 
-		// HACK: connector objects are not stored in the repo..
-		if (oid.startsWith("icf1")) {
-			ConnectorType connectorType = shadowCache.getConnectorFactory()
-					.getConnector(oid);
-			LOGGER.trace("**PROVISIONING: Got connector object {}",
-					JAXBUtil.silentMarshalWrap(connectorType));
-			
-			if (connectorType == null){
-				result.recordFatalError("Connector with oid "+oid+" not found.");
-				throw new IllegalArgumentException("Connector with oid "+oid+" not found.");				
-			}
-			result.recordSuccess();
-			return connectorType;
-		}
-
 		try {
 			repositoryObject = getRepositoryService().getObject(oid, resolve,
 					result);
@@ -197,7 +182,8 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.recordFatalError("Can't get object with oid "+ oid +". Reason: " + ex.getMessage(), ex);
 			throw ex;
 		}
-
+		
+			
 		if (repositoryObject instanceof ResourceObjectShadowType) {
 			// ResourceObjectShadowType shadow =
 			// (ResourceObjectShadowType)object;
@@ -234,9 +220,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			result.recordSuccess();
 			LOGGER.debug("**PROVISIONING: Get object finished.");
-			
 			return shadow;
-		} else if (repositoryObject instanceof ResourceObjectShadowType) {
+			
+		} else if (repositoryObject instanceof ResourceType) {
 			// Make sure that the object is complete, e.g. there is a (fresh) schema
 			try {
 				ResourceType completeResource = getShadowCache().completeResource((ResourceType)repositoryObject,null,result);
@@ -429,23 +415,25 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ObjectListType objListType = null;
 
-		if (ConnectorType.class.isAssignableFrom(objectType)) {
-			Set<ConnectorType> connectors = getShadowCache()
-					.getConnectorFactory().listConnectors();
-			if (connectors == null) {
-				result.recordFatalError("Can't list connectors.");
-				throw new IllegalStateException("Can't list connectors.");
-			}
-			if (connectors.isEmpty()) {
-				LOGGER.debug("There are no connectors known to the system.");
-			}
-			objListType = new ObjectListType();
-			for (ConnectorType connector : connectors) {
-				objListType.getObject().add(connector);
-			}
-			result.recordSuccess();
-			return objListType;
-		}
+		// TODO: should listing connectors trigger rediscovery?
+		
+//		if (ConnectorType.class.isAssignableFrom(objectType)) {
+//			Set<ConnectorType> connectors = getShadowCache()
+//					.getConnectorFactory().listConnectors();
+//			if (connectors == null) {
+//				result.recordFatalError("Can't list connectors.");
+//				throw new IllegalStateException("Can't list connectors.");
+//			}
+//			if (connectors.isEmpty()) {
+//				LOGGER.debug("There are no connectors known to the system.");
+//			}
+//			objListType = new ObjectListType();
+//			for (ConnectorType connector : connectors) {
+//				objListType.getObject().add(connector);
+//			}
+//			result.recordSuccess();
+//			return objListType;
+//		}
 
 		if (ResourceObjectShadowType.class.isAssignableFrom(objectType)) {
 			// Listing of shadows is not supported because this operation does

@@ -282,6 +282,7 @@ public class TestTaskManagerContract {
 		assertEquals(Integer.valueOf(43),deadProp.getValue(Integer.class));
 		
 		dateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","sinkTimestamp"));
+		assertNotNull("sinkTimestamp is null",dateProp);
 		assertEquals(GregorianCalendar.class,dateProp.getValues().iterator().next().getClass());
 		GregorianCalendar fetchedDate = dateProp.getValue(GregorianCalendar.class);
 		assertTrue(fetchedDate.compareTo(sinkDate)==0);

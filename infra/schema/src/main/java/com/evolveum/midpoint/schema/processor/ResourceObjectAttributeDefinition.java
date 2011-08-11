@@ -45,6 +45,7 @@ public class ResourceObjectAttributeDefinition extends PropertyDefinition {
 
 	private ResourceObjectDefinition objectDefinition;
 	private String nativeAttributeName;
+	private String attributeDisplayName;
 
 	public ResourceObjectAttributeDefinition(QName name, QName defaultName, QName typeName) {
 		this(null, name, defaultName, typeName);
@@ -134,4 +135,17 @@ public class ResourceObjectAttributeDefinition extends PropertyDefinition {
 		return objectDefinition.getName();
 	}
 
+	/**
+	 * @return the attributeDisplayName
+	 */
+	public String getAttributeDisplayName() {
+		return attributeDisplayName;
+	}
+
+	/**
+	 * @param attributeDisplayName the attributeDisplayName to set
+	 */
+	public void setAttributeDisplayName(String attributeDisplayName) {
+		this.attributeDisplayName = attributeDisplayName;
+	}
 }

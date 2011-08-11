@@ -36,16 +36,26 @@
 	<!-- Resource printable name -->
 	<name>Embedded Test OpenDJ</name>
 	
-	<!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->
-	<connectorRef oid="icf1-org.identityconnectors.ldap-1.0.5754openidm-org.identityconnectors.ldap.LdapConnector"/>
+	<!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
+	     OID during import. -->
+	<connectorRef type="ConnectorType">
+		<and>
+	        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+	        <equal>
+	          <value>
+	              <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
+	          </value>
+	        </equal>
+	      </and>
+	</connectorRef>
 	
 	<!-- Connector namespace -->
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff</namespace>
 	
 	<!-- Resource configuration section -->
 	<configuration
-		xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5754openidm-org.identityconnectors.ldap.LdapConnector"
-		xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf/configuration-1.xsd">
+		xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/connector/icf-1/bundle/org.identityconnectors.ldap/1.0.5754openidm/org.identityconnectors.ldap.LdapConnector"
+	    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/connector/icf-1/configuration-1.xsd">
 					   
 		<!-- Configuration specific for the LDAP connector -->
 		<icfcldap:configurationProperties>

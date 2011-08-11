@@ -64,7 +64,7 @@ public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
 	
 	@Autowired(required = true)
 	protected RepositoryService repositoryService;
-	protected static boolean repoInitialized = false;
+	protected static boolean systemInitialized = false;
 
 	@Autowired(required = true)
 	protected TaskManager taskManager;
@@ -102,14 +102,14 @@ public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
 	// directly. We also need to init the repo after spring autowire is done, so
 	// @BeforeClass won't work either.
 	@Before
-	public void initRepositoryConditional() throws Exception {
-		if (!repoInitialized) {
-			initRepository();
-			repoInitialized = true;
+	public void initSystemConditional() throws Exception {
+		if (!systemInitialized) {
+			initSystem();
+			systemInitialized = true;
 		}
 	}
 	
-	abstract public void initRepository() throws Exception;
+	abstract public void initSystem() throws Exception;
 	
 	protected ObjectType addObjectFromFile(String filePath) throws Exception {
 		ObjectType object = unmarshallJaxbFromFile(filePath, ObjectType.class);

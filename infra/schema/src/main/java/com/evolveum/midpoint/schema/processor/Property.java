@@ -195,6 +195,9 @@ public class Property {
 			throw new IllegalStateException("Attempt to get single value from property " + name
 					+ " with multiple values");
 		}
+		if (values.isEmpty()) {
+			return null;
+		}
 		Object o = values.iterator().next();
 		if (o == null) {
 			return null;
@@ -207,10 +210,10 @@ public class Property {
 			throw new IllegalStateException("Attempt to get single value from property " + name
 					+ " with multiple values");
 		}
-		Object o = values.iterator().next();
-		if (o == null) {
+		if (values.isEmpty()) {
 			return null;
 		}
+		Object o = values.iterator().next();
 		return o;
 	}
 	

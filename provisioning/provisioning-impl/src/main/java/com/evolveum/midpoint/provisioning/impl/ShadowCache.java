@@ -130,8 +130,10 @@ public class ShadowCache {
 
 	@Autowired
 	private RepositoryService repositoryService;
+//	@Autowired
+//	private ConnectorFactory connectorFactory;
 	@Autowired
-	private ConnectorFactory connectorFactory;
+	private ConnectorTypeManager connectorTypeManager; 
 
 	private static final Trace LOGGER = TraceManager
 			.getTrace(ShadowCache.class);
@@ -161,20 +163,20 @@ public class ShadowCache {
 		this.repositoryService = repositoryService;
 	}
 
-	public ConnectorFactory getConnectorFactory() {
-		return connectorFactory;
-	}
-
-	/**
-	 * Set the value of connector manager.
-	 * 
-	 * Expected to be injected.
-	 * 
-	 * @param connectorFactory
-	 */
-	public void setConnectorFactory(ConnectorFactory connectorFactory) {
-		this.connectorFactory = connectorFactory;
-	}
+//	public ConnectorFactory getConnectorFactory() {
+//		return connectorFactory;
+//	}
+//
+//	/**
+//	 * Set the value of connector manager.
+//	 * 
+//	 * Expected to be injected.
+//	 * 
+//	 * @param connectorFactory
+//	 */
+//	public void setConnectorFactory(ConnectorFactory connectorFactory) {
+//		this.connectorFactory = connectorFactory;
+//	}
 
 	/**
 	 * Gets the shadow with specified OID
@@ -333,6 +335,18 @@ public class ShadowCache {
 
 		parentResult.recordSuccess();
 		return repositoryShadow;
+	}
+
+	/**
+	 * @param resource
+	 * @param parentResult
+	 * @return
+	 * @throws SchemaException 
+	 * @throws ObjectNotFoundException 
+	 * @throws CommunicationException 
+	 */
+	private ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException {
+		return connectorTypeManager.getConfiguredConnectorInstance(resource, parentResult);
 	}
 
 	/**
@@ -722,12 +736,12 @@ public class ShadowCache {
 		// === test INITIALIZATION ===
 
 		OperationResult initResult = parentResult
-				.createSubresult(ConnectorTestOperation.CONNECTION_INITIALIZATION
+				.createSubresult(ConnectorTestOperation.CONNECTOR_INITIALIZATION
 						.getOperation());
 		ConnectorInstance connector;
 		try {
 
-			connector = getConnectorInstance(resourceType, parentResult);
+			connector = getConnectorInstance(resourceType, initResult);
 			initResult.recordSuccess();
 		} catch (ObjectNotFoundException e) {
 			// The connector was not found. The resource definition is either
@@ -735,10 +749,42 @@ public class ShadowCache {
 			// installed.
 			initResult.recordFatalError("The connector was not found", e);
 			return;
+		} catch (SchemaException e) {
+			initResult.recordFatalError("Schema error while dealing with the connector definition", e);
+			return;
+		} catch (RuntimeException e) {
+			initResult.recordFatalError("Unexpected runtime error",e);
+			return;
+		} catch (CommunicationException e) {
+			initResult.recordFatalError("Communication error",e);
+			return;
 		}
 		LOGGER.debug("Testing connection to the resource with oid {}",
 				resourceType.getOid());
+		
+		// === test CONFIGURATION ===
+		
+		OperationResult configResult = parentResult
+		.createSubresult(ConnectorTestOperation.CONFIGURATION_VALIDATION
+				.getOperation());
 
+		try {
+			connector.configure(resourceType.getConfiguration(),configResult);
+			configResult.recordSuccess();
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
+			configResult.recordFatalError("Communication error",e);
+			return;
+		} catch (GenericFrameworkException e) {
+			configResult.recordFatalError("Generic error",e);
+			return;
+		} catch (SchemaException e) {
+			configResult.recordFatalError("Schema error",e);
+			return;
+		} catch (RuntimeException e) {
+			configResult.recordFatalError("Unexpected runtime error",e);
+			return;
+		}
+		
 		// === test CONNECTION ===
 
 		// delegate the main part of the test to the connector
@@ -1287,17 +1333,6 @@ public class ShadowCache {
 	}
 
 	// UTILITY METHODS
-
-	private ConnectorInstance getConnectorInstance(ResourceType resource,
-			OperationResult result) throws ObjectNotFoundException {
-		// TODO: Add caching later
-		try {
-			return getConnectorFactory().createConnectorInstance(resource);
-		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
-			result.recordFatalError(e.getMessage(), e);
-			throw new ObjectNotFoundException(e.getMessage(), e);
-		}
-	}
 
 	private Schema getResourceSchema(ResourceType resource,
 			ConnectorInstance connector, OperationResult parentResult)
