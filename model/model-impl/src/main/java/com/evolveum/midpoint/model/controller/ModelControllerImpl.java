@@ -70,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -1085,7 +1086,7 @@ public class ModelControllerImpl implements ModelController {
 				if (account.getActivation() == null) {
 					account.setActivation(user.getActivation());
 				}
-				
+
 				String newAccountOid = addObject(account, result);
 				ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid,
 						ObjectTypes.ACCOUNT);
@@ -1217,24 +1218,28 @@ public class ModelControllerImpl implements ModelController {
 		return change;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void processUserTemplateForUser(UserType user, UserTemplateType userTemplate,
 			OperationResult result) {
-		OperationResult subResult = new OperationResult("Process User Template");
-		result.addSubresult(subResult);
-
+		OperationResult subResult = result.createSubresult("Process User Template");
 		if (userTemplate == null) {
 			subResult.recordWarning("No user template defined, skipping.");
 			return;
 		}
 
-		List<AccountConstructionType> accountConstructions = userTemplate.getAccountConstruction();
-		for (AccountConstructionType construction : accountConstructions) {
-			OperationResult addObject = new OperationResult("Link Object To User");
+		processUserTemplateProperty(user, userTemplate, subResult);
+		processUserTemplateAccount(user, userTemplate, subResult);
+		subResult.computeStatus();
+	}
+
+	@SuppressWarnings("unchecked")
+	private void processUserTemplateAccount(UserType user, UserTemplateType userTemplate,
+			OperationResult result) {
+		for (AccountConstructionType construction : userTemplate.getAccountConstruction()) {
+			OperationResult subResult = result.createSubresult("Link Object To User");
 			try {
 				ObjectReferenceType resourceRef = construction.getResourceRef();
 				ResourceType resource = getObject(resourceRef.getOid(), new PropertyReferenceListType(),
-						result, ResourceType.class, true);
+						subResult, ResourceType.class, true);
 
 				AccountType accountType = ModelUtils.getAccountTypeFromHandling(construction.getType(),
 						resource);
@@ -1246,45 +1251,63 @@ public class ModelControllerImpl implements ModelController {
 				account.setResourceRef(resourceRef);
 				account.setActivation(user.getActivation());
 
-				ObjectModificationType changes = processOutboundSchemaHandling(user, account, result);
+				ObjectModificationType changes = processOutboundSchemaHandling(user, account, subResult);
 				if (changes != null) {
 					PatchXml patchXml = new PatchXml();
 					String accountXml = patchXml.applyDifferences(changes, account);
 					account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml)).getValue();
 				}
 
-				String accountOid = addObject(account, result);
+				String accountOid = addObject(account, subResult);
 				user.getAccountRef().add(ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT));
-
-				addObject.recordSuccess();
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't process account construction {} for user {}", ex,
 						construction.getType(), user.getName());
-				addObject.recordFatalError("Something went terribly wrong.", ex);
-				subResult.recordWarning("Couldn't process account construction '" + construction.getType()
+				subResult.recordFatalError("Something went terribly wrong.", ex);
+				result.recordWarning("Couldn't process account construction '" + construction.getType()
 						+ "'.", ex);
+			} finally {
+				subResult.computeStatus();
 			}
-		}
-
-		if (subResult.isUnknown()) {
-			subResult.recordSuccess();
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.api.ModelService#initialize(com.evolveum.midpoint.common.result.OperationResult)
+	private void processUserTemplateProperty(UserType user, UserTemplateType userTemplate,
+			OperationResult result) {
+		for (PropertyConstructionType construction : userTemplate.getPropertyConstruction()) {
+			OperationResult subResult = result.createSubresult("User Property Construction");
+			try {
+				//TODO: process user template property construction
+				construction.
+			} catch (Exception ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't process property construction {} for user {}",
+						ex, construction.getProperty().getTextContent(), user.getName());
+				subResult.recordWarning("Couldn't process property construction '"
+						+ construction.getProperty().getTextContent() + "'.", ex);
+			} finally {
+				subResult.computeStatus();
+			}
+		}
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.evolveum.midpoint.model.api.ModelService#initialize(com.evolveum.
+	 * midpoint.common.result.OperationResult)
 	 */
 	@Override
 	public void postInit(OperationResult parentResult) {
-		OperationResult result = parentResult.createSubresult(ModelService.class.getName()+".initialize");
+		OperationResult result = parentResult.createSubresult(ModelService.class.getName() + ".initialize");
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelControllerImpl.class);
-		
+
 		// TODO: initialize repository
 		// TODO: initialize task manager
-		
+
 		// Initialize provisioning
 		provisioning.postInit(result);
-		
+
 		result.computeStatus();
 	}
 

@@ -71,8 +71,13 @@ public abstract class FacesUtils {
 		if (key == null) {
 			throw new IllegalArgumentException("Key can't be null");
 		}
-		Application application = FacesContext.getCurrentInstance().getApplication();
-
+		FacesContext context = FacesContext.getCurrentInstance();
+		if (context == null) {
+			TRACE.warn("Faces context is null. Key {} will not be translated.", key);
+			return key;
+		}
+		
+		Application application = context.getApplication();
 		String translation = null;
 		if (ProjectStage.Development.equals(application.getProjectStage())) {
 			translation = "???" + key + "???";
@@ -80,7 +85,7 @@ public abstract class FacesUtils {
 			translation = key;
 		}
 
-		try {
+		try {			
 			ResourceBundle bundle = ResourceBundle.getBundle(application.getMessageBundle(), FacesContext
 					.getCurrentInstance().getViewRoot().getLocale());
 
