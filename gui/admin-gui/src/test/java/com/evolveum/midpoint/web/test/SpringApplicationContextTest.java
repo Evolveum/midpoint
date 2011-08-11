@@ -30,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.evolveum.midpoint.init.InitialSetup;
+import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
@@ -63,7 +63,7 @@ public class SpringApplicationContextTest {
 	@Autowired(required = true)
 	private ModelPortType modelService;
 	@Autowired(required = true)
-	private InitialSetup initialSetup;
+	private InitialDataImport initialSetup;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
 	

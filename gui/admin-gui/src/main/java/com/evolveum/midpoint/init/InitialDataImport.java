@@ -42,9 +42,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
  * @author lazyman
  *
  */
-public class InitialSetup {
+public class InitialDataImport {
 
-	private static final Trace TRACE = TraceManager.getTrace(InitialSetup.class);
+	private static final Trace TRACE = TraceManager.getTrace(InitialDataImport.class);
 
 	private final String[] FILES_FOR_IMPORT = new String[] { "systemConfiguration.xml", "admin.xml" };
 
@@ -106,6 +106,6 @@ public class InitialSetup {
 	}
 
 	private InputStream getResource(String name) {
-		return InitialSetup.class.getClassLoader().getResourceAsStream(name);
+		return InitialDataImport.class.getClassLoader().getResourceAsStream(name);
 	}
 }
