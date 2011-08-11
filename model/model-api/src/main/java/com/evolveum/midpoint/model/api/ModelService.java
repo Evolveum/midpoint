@@ -52,6 +52,19 @@ public interface ModelService {
 	String ADD_OBJECT = CLASS_NAME + "addObject";
 	String ADD_USER = CLASS_NAME + "addUser";
 	String GET_OBJECT = CLASS_NAME + "getObject";
+	String GET_PROPERTY_AVAILABLE_VALUES = CLASS_NAME + "getPropertyAvailableValues";
+	String LIST_OBJECTS = CLASS_NAME + "listObjects";
+	String MODIFY_OBJECT = CLASS_NAME + "modifyObject";
+	String DELETE_OBJECT = CLASS_NAME + "deleteObject";
+	String LIST_ACCOUNT_SHADOW_OWNER = CLASS_NAME + "listAccountShadowOwner";
+	String LIST_RESOURCE_OBJECT_SHADOWS = CLASS_NAME + "listResourceObjectShadows";
+	String LIST_RESOURCE_OBJECTS = CLASS_NAME + "listResourceObjects";
+	String TEST_RESOURCE = CLASS_NAME + "testResource";
+	String IMPORT_ACCOUNTS_FROM_RESOURCE = CLASS_NAME + "importAccountsFromResource";
+	String IMPORT_OBJECTS_FROM_FILE = CLASS_NAME + "importObjectsFromFile";
+	String IMPORT_OBJECTS_FROM_STREAM = CLASS_NAME + "importObjectsFromStream";
+	String POST_INIT = CLASS_NAME + "postInit";
+	String SEARCH_OBJECTS_IN_REPOSITORY = CLASS_NAME + "searchObjectsInRepository";
 
 	<T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve, Class<T> clazz,
 			OperationResult result) throws ObjectNotFoundException;
@@ -130,7 +143,7 @@ public interface ModelService {
 	 * initialized. Also logging and other infrastructure should be already set
 	 * up.
 	 */
-	public void postInit(OperationResult parentResult);
+	void postInit(OperationResult parentResult);
 
 	ObjectListType searchObjectsInRepository(QueryType query, PagingType paging, OperationResult result);
 }

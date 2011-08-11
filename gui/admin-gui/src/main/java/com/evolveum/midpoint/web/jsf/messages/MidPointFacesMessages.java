@@ -86,7 +86,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 
 	private String getSummaryMessage(String message) {
 		if (StringUtils.isEmpty(message)) {
-			return FacesUtils.translateKey("No message.");
+			return FacesUtils.translateKey("operation.noMessage");
 		}
 
 		return message;
@@ -156,7 +156,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writer.startElement("div", null);
 		writer.writeAttribute("class", "messages-details", null);
 		writer.writeAttribute("id", divId, null);
-		writeMessageDetailBold(FacesUtils.translateKey(result.getOperation()), writer);
+		writeMessageDetailBold(FacesUtils.translateKey("operation." + result.getOperation()), writer);
 		writeMessageDetailNormal(result.getMessageCode(), writer);
 		writeOperationResult(result, context);
 
@@ -192,7 +192,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 
 		writer.startElement("li", null);
 		writer.writeAttribute("class", getOperationResultStatusClass(result.getStatus()), null);
-		writeMessageDetailBold(FacesUtils.translateKey(result.getOperation()), writer);
+		writeMessageDetailBold(FacesUtils.translateKey("operation." + result.getOperation()), writer);
 		writeMessageDetailNormal(result.getMessageCode(), writer);
 		writeMessageDetailNormal(getSummary(result), writer);
 		writeMessageDetailNormal("(" + result.getToken() + ")", writer);

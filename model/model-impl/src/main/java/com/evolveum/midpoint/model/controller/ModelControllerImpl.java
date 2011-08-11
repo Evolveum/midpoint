@@ -44,10 +44,8 @@ import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
-import com.evolveum.midpoint.common.result.OperationConstants;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -179,7 +177,7 @@ public class ModelControllerImpl implements ModelController {
 					new Object[] { user.getName(), user.getOid() });
 		}
 
-		OperationResult subResult = result.createSubresult("Add User With User Template");	//ADD_USER
+		OperationResult subResult = result.createSubresult(ADD_USER);
 		addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
 
 		String oid = null;
@@ -216,7 +214,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(clazz, "Class must not be null.");
 		LOGGER.debug("Getting object with oid {}.", new Object[] { oid });
 
-		OperationResult subResult = result.createSubresult("Get Object");
+		OperationResult subResult = result.createSubresult(GET_OBJECT);
 		addResultParams(subResult, new String[] { "oid", "resolve", "class" }, oid, resolve, clazz);
 		T object = null;
 		try {
@@ -284,7 +282,7 @@ public class ModelControllerImpl implements ModelController {
 							paging.getOrderDirection(), paging.getOrderBy() });
 		}
 
-		OperationResult subResult = result.createSubresult("List Objects");
+		OperationResult subResult = result.createSubresult(LIST_OBJECTS);
 		addResultParams(subResult, new String[] { "objectType", "paging" }, objectType, paging);
 		ObjectListType list = null;
 		try {
@@ -328,7 +326,9 @@ public class ModelControllerImpl implements ModelController {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(query));
 		}
 
-		OperationResult subResult = result.createSubresult("Search Objects");
+		String operationName = searchInProvisioning ? SEARCH_OBJECTS_IN_PROVISIONING
+				: SEARCH_OBJECTS_IN_REPOSITORY;
+		OperationResult subResult = result.createSubresult(operationName);
 		addResultParams(subResult, new String[] { "query", "paging", "searchInProvisioning" }, query, paging,
 				searchInProvisioning);
 		ObjectListType list = null;
@@ -393,7 +393,7 @@ public class ModelControllerImpl implements ModelController {
 			return;
 		}
 
-		OperationResult subResult = result.createSubresult("Modify Object With Exclusion");
+		OperationResult subResult = result.createSubresult(MODIFY_OBJECT_WITH_EXCLUSION);
 		addResultParams(subResult, new String[] { "change", "accountOid" }, change, accountOid);
 
 		try {
@@ -433,7 +433,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Deleting object with oid {}.", new Object[] { oid });
 
-		OperationResult subResult = result.createSubresult("Delete Object");
+		OperationResult subResult = result.createSubresult(DELETE_OBJECT);
 		addResultParams(subResult, new String[] { "oid" }, oid);
 
 		boolean deleted = false;
@@ -491,7 +491,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
 
-		OperationResult subResult = result.createSubresult("List Account Shadow Owner");
+		OperationResult subResult = result.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
 		addResultParams(subResult, new String[] { "accountOid" }, accountOid);
 
 		UserType user = null;
@@ -523,7 +523,7 @@ public class ModelControllerImpl implements ModelController {
 		LOGGER.debug("Listing resource object shadows \"{}\" for resource with oid {}.", new Object[] {
 				resourceObjectShadowType, resourceOid });
 
-		OperationResult subResult = result.createSubresult("List Resource Object Shadows");
+		OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
 		addResultParams(subResult, new String[] { "resourceOid", "resourceObjectShadowType" }, resourceOid,
 				resourceObjectShadowType);
 
@@ -564,7 +564,7 @@ public class ModelControllerImpl implements ModelController {
 				new Object[] { objectType, resourceOid, paging.getOffset(), paging.getMaxSize(),
 						paging.getOrderDirection(), paging.getOrderDirection() });
 
-		OperationResult subResult = result.createSubresult("List Resource Objects");
+		OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECTS);
 		addResultParams(subResult, new String[] { "resourceOid", "objectType", "paging" }, resourceOid,
 				objectType, paging);
 
@@ -620,8 +620,7 @@ public class ModelControllerImpl implements ModelController {
 		LOGGER.debug("Launching import from resource with oid {} for object class {}.", new Object[] {
 				resourceOid, objectClass });
 
-		OperationResult result = task.getResult().createSubresult(
-				ModelController.class.getName() + ".importFromResource");
+		OperationResult result = task.getResult().createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
 		addResultParams(result, new String[] { "resourceOid", "objectClass", "task" }, resourceOid,
 				objectClass, task);
 		// TODO: add params and context to the result
@@ -646,7 +645,7 @@ public class ModelControllerImpl implements ModelController {
 
 	@Override
 	public void importObjectsFromStream(InputStream input, Task task, OperationResult parentResult) {
-		OperationResult result = parentResult.createSubresult(OperationConstants.IMPORT_OBJECTS_FROM_STREAM);
+		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
 		// TODO: set summarization
 		ObjectImporter.importObjects(input, task, result, repository);
 		result.computeStatus("Couldn't import object from input stream.");
@@ -742,6 +741,7 @@ public class ModelControllerImpl implements ModelController {
 
 	private SystemConfigurationType getSystemConfiguration(OperationResult result)
 			throws ObjectNotFoundException {
+		// TODO: operation name
 		OperationResult configResult = result.createSubresult("Get System Configuration");
 		SystemConfigurationType systemConfiguration = null;
 		try {
@@ -799,6 +799,7 @@ public class ModelControllerImpl implements ModelController {
 
 		List<ObjectReferenceType> refToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
+			// TODO: operation name
 			OperationResult subResult = result.createSubresult("resolveUserAttributes");
 			addResultParams(subResult, new String[] { "user", "accountRef" }, user, accountRef);
 			try {
@@ -831,7 +832,7 @@ public class ModelControllerImpl implements ModelController {
 					+ "doesn't contain oid.", new Object[] { account.getName() });
 			return;
 		}
-
+		// TODO: operation name
 		OperationResult subResult = result.createSubresult("resolveUserAttributes");
 		addResultParams(subResult, new String[] { "account", "resolve" }, account, resolve);
 		try {
@@ -1134,6 +1135,7 @@ public class ModelControllerImpl implements ModelController {
 			// outbound for every account, or enable/disable account if needed
 			List<ObjectReferenceType> accountRefs = user.getAccountRef();
 			for (ObjectReferenceType accountRef : accountRefs) {
+				// TODO: operation name
 				OperationResult subResult = result.createSubresult("Update Accounts");
 				addResultParams(subResult, new String[] { "change", "accountOid", "object", "accountRef" },
 						change, accountOid, object, accountRef);
@@ -1245,6 +1247,7 @@ public class ModelControllerImpl implements ModelController {
 	private void processUserTemplateAccount(UserType user, UserTemplateType userTemplate,
 			OperationResult result) {
 		for (AccountConstructionType construction : userTemplate.getAccountConstruction()) {
+			// TODO: operation name
 			OperationResult subResult = result.createSubresult("Link Object To User");
 			addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
 			try {
@@ -1313,7 +1316,7 @@ public class ModelControllerImpl implements ModelController {
 	 */
 	@Override
 	public void postInit(OperationResult parentResult) {
-		OperationResult result = parentResult.createSubresult(ModelService.class.getName() + ".initialize");
+		OperationResult result = parentResult.createSubresult(POST_INIT);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ModelControllerImpl.class);
 
 		// TODO: initialize repository

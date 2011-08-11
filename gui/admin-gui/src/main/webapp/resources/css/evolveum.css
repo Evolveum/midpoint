@@ -272,6 +272,7 @@ span.message-detail, span.message-detail-bold{
 
 span.message-detail-bold {
 	font-weight: bold;
+	text-transform: capitalize;
 }
 
 #messages li span div.messages-details ul.messages-details-advanced {

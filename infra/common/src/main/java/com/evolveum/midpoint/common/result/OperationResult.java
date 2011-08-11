@@ -246,7 +246,7 @@ public class OperationResult implements Serializable {
 	 */
 	public void computeStatus(String errorMessage) {
 		computeStatus();
-		if (status == OperationResultStatus.FATAL_ERROR && message == null) {
+		if (!OperationResultStatus.SUCCESS.equals(status) && message == null) {
 			message = errorMessage;
 		}
 	}
