@@ -63,7 +63,7 @@ public class SpringApplicationContextTest {
 	@Autowired(required = true)
 	private ModelPortType modelService;
 	@Autowired(required = true)
-	private InitialDataImport initialSetup;
+	private InitialDataImport initialDataImport;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
 	
@@ -76,7 +76,7 @@ public class SpringApplicationContextTest {
 		assertNotNull(userManager);
 
 		assertNotNull(modelService);
-		assertNotNull(initialSetup);
+		assertNotNull(initialDataImport);
 		assertNotNull(repositoryService);
 	}
 }
