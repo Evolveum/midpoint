@@ -75,26 +75,6 @@ public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
 		unmarshaller = jaxbctx.createUnmarshaller();
 	}
 	
-	/**
-	 * Initialize embedded OpenDJ instance
-	 * 
-	 * @throws Exception
-	 */
-	@BeforeClass
-	public static void init() throws Exception {
-		startACleanDJ();
-	}
-
-	/**
-	 * Shutdown embedded OpenDJ instance
-	 * 
-	 * @throws Exception
-	 */
-	@AfterClass
-	public static void shutdown() throws Exception {
-		stopDJ();
-	}
-
 	// We need this complicated init as we want to initialize repo only once.
 	// JUnit will
 	// create new class instance for every test, so @Before and @PostInit will

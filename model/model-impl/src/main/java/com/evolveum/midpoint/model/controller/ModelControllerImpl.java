@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -62,6 +64,8 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -217,7 +221,6 @@ public class ModelControllerImpl implements ModelController {
 	public <T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve, Class<T> clazz,
 			OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
-		Validate.notNull(resolve, "Property reference list must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		Validate.notNull(clazz, "Class must not be null.");
 		LOGGER.debug("Getting object with oid {}.", new Object[] { oid });
@@ -674,7 +677,6 @@ public class ModelControllerImpl implements ModelController {
 	public <T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve,
 			OperationResult result, Class<T> clazz, boolean fromProvisioning) throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
-		Validate.notNull(resolve, "Property reference list must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 		Validate.notNull(clazz, "Object class must not be null.");
 		T object = null;
@@ -712,6 +714,17 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		return object;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.api.ModelService#discoverConnectors(com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType, com.evolveum.midpoint.common.result.OperationResult)
+	 */
+	@Override
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(ModelService.class.getName()+".discoverConnectors");
+		Set<ConnectorType> discoverConnectors = provisioning.discoverConnectors(hostType, result);
+		result.computeStatus("Connector discovery failed");
+		return discoverConnectors;
 	}
 
 	private String addProvisioningObject(ObjectType object, OperationResult result)
@@ -1341,4 +1354,5 @@ public class ModelControllerImpl implements ModelController {
 			result.addParam(names[i], objects[i]);
 		}
 	}
+
 }

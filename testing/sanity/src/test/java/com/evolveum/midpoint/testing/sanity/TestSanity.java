@@ -195,16 +195,36 @@ public class TestSanity extends AbstractIntegrationTest {
 	// This will get called from the superclass to init the repository
 	// It will be called only once
 	public void initSystem() throws Exception {
-			OperationResult result = new OperationResult("initSystem");
-			// This should discover the connectors
-			modelService.postInit(result);
-			// Need to import instead of add, so the (dynamic) connector reference will be resolved
-			// correctly
-			importObjectFromFile(RESOURCE_OPENDJ_FILENAME,result);
+		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
+		
+		OperationResult result = new OperationResult("initSystem");
+		// This should discover the connectors
+		modelService.postInit(result);
+		
+		// Need to import instead of add, so the (dynamic) connector reference will be resolved
+		// correctly
+		importObjectFromFile(RESOURCE_OPENDJ_FILENAME,result);
 			
-			addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
-			addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME);
-			addObjectFromFile(USER_TEMPLATE_FILENAME);
+		addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME);
+		addObjectFromFile(USER_TEMPLATE_FILENAME);
+	}
+	
+	/**
+	 * Initialize embedded OpenDJ instance
+	 * Note: this is not in the abstract superclass so individual tests may avoid starting OpenDJ.
+	 */
+	@BeforeClass
+	public static void init() throws Exception {
+		startACleanDJ();
+	}
+
+	/**
+	 * Shutdown embedded OpenDJ instance
+	 * Note: this is not in the abstract superclass so individual tests may avoid starting OpenDJ.
+	 */
+	@AfterClass
+	public static void shutdown() throws Exception {
+		stopDJ();
 	}
 
 	/**

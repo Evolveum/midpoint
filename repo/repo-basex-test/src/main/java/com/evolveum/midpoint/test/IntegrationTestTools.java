@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -74,6 +75,7 @@ public class IntegrationTestTools {
 	private static final String OBJECT_TITLE_OUT_PREFIX = "\n*** ";
 	private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
 	private static final String LOG_MESSAGE_PREFIX = "";
+	private static final String OBJECT_LIST_SEPARATOR = "---";
 	private static final long WAIT_FOR_LOOP_SLEEP_MILIS = 500;
 
 	public static void assertSuccess(String message, OperationResultType result) {
@@ -232,6 +234,17 @@ public class IntegrationTestTools {
 		logger.debug(ObjectTypeUtil.dump(o));
 	}
 
+	public static void display(String message, Collection<? extends ObjectType> collection) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
+		logger.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		for (ObjectType o : collection) {
+			System.out.println(ObjectTypeUtil.dump(o));
+			logger.debug(ObjectTypeUtil.dump(o));
+			System.out.println(OBJECT_LIST_SEPARATOR);
+			logger.debug(OBJECT_LIST_SEPARATOR);			
+		}
+	}
+	
 	public static void display(String title, Entry entry) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(entry.toLDIFString());

@@ -193,7 +193,13 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		ConnectorType connectorType = new ConnectorType();
 		ConnectorKey key = cinfo.getConnectorKey();
 		String stringID = keyToNamespaceSuffix(key);
-		connectorType.setName("ICF " + key.getConnectorName());
+		StringBuilder connectorName = new StringBuilder("ICF ");
+		connectorName.append(key.getConnectorName());
+		if (hostType!=null) {
+			connectorName.append(" @");
+			connectorName.append(hostType.getName());
+		}
+		connectorType.setName(connectorName.toString());
 		connectorType.setFramework(ICF_FRAMEWORK_URI);
 		connectorType.setConnectorType(key.getConnectorName());
 		connectorType.setNamespace(ICF_CONFIGURATION_NAMESPACE_PREFIX + stringID);
