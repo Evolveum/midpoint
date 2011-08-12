@@ -132,7 +132,7 @@ public interface ModelService {
 	 * @param input
 	 * @param task
 	 */
-	void importObjectsFromStream(InputStream input, Task task, OperationResult parentResult);
+	void importObjectsFromStream(InputStream input, Task task, Boolean overwrite, OperationResult parentResult);
 
 	/**
 	 * Finish initialization of the model and lower system components

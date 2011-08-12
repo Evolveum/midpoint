@@ -31,6 +31,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.icefaces.component.fileentry.FileEntry;
@@ -42,13 +44,17 @@ import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.api.logging.LoggingUtils;
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.validator.ObjectHandler;
 import com.evolveum.midpoint.validator.ValidationMessage;
 import com.evolveum.midpoint.validator.Validator;
 import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
 
 /**
  * 
@@ -59,9 +65,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 public class ImportController implements Serializable {
 
 	private static final long serialVersionUID = -4206532259499809326L;
-	private static final Trace TRACE = TraceManager.getTrace(ImportController.class);
+	private static final Trace TRACE = TraceManager
+			.getTrace(ImportController.class);
 	@Autowired(required = true)
-	private transient RepositoryManager repositoryManager;
+	private ModelService model;
 	private String editor;
 	private boolean showFileUpload = false;
 	private boolean overwrite = false;
@@ -107,7 +114,9 @@ public class ImportController implements Serializable {
 				clearController();
 			}
 		} catch (IOException ex) {
-			FacesUtils.addErrorMessage("Couldn't load object from xml, reason: " + ex.getMessage());
+			FacesUtils
+					.addErrorMessage("Couldn't load object from xml, reason: "
+							+ ex.getMessage());
 			// TODO: logging
 		} finally {
 			if (stream != null) {
@@ -124,7 +133,8 @@ public class ImportController implements Serializable {
 		for (FileEntryResults.FileInfo info : results.getFiles()) {
 			File file = info.getFile();
 			if (file == null || !file.exists() || !file.canRead()) {
-				FacesUtils.addErrorMessage("Can't read file '" + info.getFileName() + "'.");
+				FacesUtils.addErrorMessage("Can't read file '"
+						+ info.getFileName() + "'.");
 				return;
 			}
 
@@ -135,7 +145,8 @@ public class ImportController implements Serializable {
 					clearController();
 				}
 			} catch (IOException ex) {
-				FacesUtils.addErrorMessage("Couldn't load object from file '" + file.getName() + "'.", ex);
+				FacesUtils.addErrorMessage("Couldn't load object from file '"
+						+ file.getName() + "'.", ex);
 				// TODO: logging
 			} finally {
 				if (stream != null) {
@@ -145,74 +156,28 @@ public class ImportController implements Serializable {
 		}
 	}
 
+	
+
 	private void clearController() {
 		showFileUpload = false;
 		overwrite = false;
 		editor = null;
 	}
 
-	private boolean addObjectsToRepository(List<ObjectType> objects) {
-		if (objects == null) {
-			return false;
-		}
-
-		for (ObjectType object : objects) {
-			try {
-				if (overwrite && !repositoryManager.deleteObject(object.getOid())) {
-					FacesUtils.addWarnMessage("Couldn't delete object with oid '" + object.getOid() + "'.");
-				}
-
-				String oid = repositoryManager.addObject(object);
-				if (oid == null) {
-					continue;
-				}
-				if (oid.isEmpty()) {
-					FacesUtils.addWarnMessage("Repository returned empty string as new oid for object '"
-							+ object.getName() + "'.");
-					continue;
-				}
-
-				FacesUtils.addSuccessMessage("Successfully uploaded object '" + object.getName() + "'.");
-			} catch (Exception ex) {
-				LoggingUtils.logException(TRACE, "Couldn't import object {}", ex, object.getName());
-				FacesUtils.addErrorMessage("Couldn't import object '" + object.getName() + "'", ex);
-			}
-		}
-
-		return true;
-	}
 
 	private boolean uploadStream(InputStream input) {
-		final List<ObjectType> objects = new ArrayList<ObjectType>();
-		Validator validator = new Validator(new ObjectHandler() {
 
-			@Override
-			public void handleObject(ObjectType object, List<ValidationMessage> objectErrors) {
-				objects.add(object);
-			}
-		});
-		List<ValidationMessage> messages = validator.validate(input);
+		OperationResult parentResult = new OperationResult(
+				ImportController.class.getName() + ".uploadStream");
 
-		if (messages != null && !messages.isEmpty()) {
-			StringBuilder builder;
-			for (ValidationMessage message : messages) {
-				builder = new StringBuilder();
-				builder.append("Object '");
-				builder.append(message.getName());
-				builder.append("', oid '");
-				builder.append(message.getOid());
-				builder.append("' is not valid, reason: ");
-				builder.append(message.getMessage());
-				builder.append(".");
-				if (!StringUtils.isEmpty(message.getProperty())) {
-					builder.append(" Property: ");
-					builder.append(message.getProperty());
-				}
-				FacesUtils.addErrorMessage(builder.toString());
-			}
-			return false;
+		model.importObjectsFromStream(input, null, overwrite, parentResult);
+
+		if (!parentResult.isSuccess()) {
+			parentResult.computeStatus("Failed to import objects form file. Reason: " + parentResult.getMessage());
+			FacesUtils.addMessage(parentResult);
 		}
 
-		return addObjectsToRepository(objects);
+		return parentResult.isAcceptable();
+
 	}
 }

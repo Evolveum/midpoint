@@ -652,7 +652,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public void importObjectsFromStream(InputStream input, Task task, OperationResult parentResult) {
+	public void importObjectsFromStream(InputStream input, Task task, Boolean overwrite, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
 		// TODO: set summarization
 		ObjectImporter.importObjects(input, task, result, repository);
