@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+
+
+<!--
+
+This file is an example of Resource definition. It defines an Solaris resource
+using an Identity Connector Framework Solaris connector.
+
+This resource definition contains also definition to enable synchronization and
+especially an expression that is using a lookup of value from an configuration
+object.
+
+-->
+
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3dddd"
+	xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd"
+	xmlns:my="http://myself.me/schemas/whatever"
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+
+
+	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3dddd">
+    
+    	<!-- Resource name. It will be displayed in GUI.  -->
+		<c:name>Radegast Solaris</c:name>
+     
+     	<!-- Reference to the ICF Solaris connector. OID is "virtual" for now. -->
+		<connectorRef type="ConnectorType">
+			<and>
+		        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+		        <equal>
+		          <value>
+		              <connectorType>org.identityconnectors.solaris.SolarisConnector</connectorType>
+		          </value>
+		        </equal>
+		      </and>
+		</connectorRef>
+
+        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
+		<c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3dddd</c:namespace>
+
+        <!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+		<c:configuration
+		xmlns:icfcsolaris="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.unix.solaris/org.identityconnectors.solaris.SolarisConnector"
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+	
+            <!-- Configuration specific for the LDAP connector -->
+			<icfcsolaris:configurationProperties>
+				<icfcsolaris:port>22</icfcsolaris:port>
+				<icfcsolaris:host>radegast</icfcsolaris:host>
+				<icfcsolaris:loginUser>root</icfcsolaris:loginUser>
+				<icfcsolaris:password>qwe123</icfcsolaris:password>
+				<icfcsolaris:connectionType>SSH</icfcsolaris:connectionType>
+				<icfcsolaris:loginShellPrompt>#</icfcsolaris:loginShellPrompt>
+				<!--
+				<icfcsolaris:rootUser>root</icfcsolaris:rootUser>
+				<icfcsolaris:credentials>password</icfcsolaris:credentials>
+				<icfcsolaris:rootShellPrompt>#</icfcsolaris:rootShellPrompt>
+				<icfcsolaris:sudoAuthorization>true</icfcsolaris:sudoAuthorization>
+				<icfcsolaris:privateKey>???</icfcsolaris:privateKey>
+				<icfsolaris:passphrase>MySuperSecretPassphrase</icfsolaris:passphrase>
+
+				<icfsolaris:blockSize>100</icfsolaris:blockSize>
+				<icfsolaris:blockFetchTimeout>6000</icfsolaris:blockFetchTimeout>
+				<icfsolaris:mutexAcquireTimeout>60icfsolaris:mutexAcquireTimeout>
+
+				<icfsolaris:makeDirectory>true</icfsolaris:makeDirectory>
+				<icfsolaris:homeBaseDirectory>/home</icfsolaris:homeBaseDirectory>
+				<icfsolaris:defaultPrimaryGroup>users</icfsolaris:defaultPrimaryGroup>
+				<icfsolaris:loginShell>/bin/bash</icfsolaris:loginShell>
+				<icfsolaris:skeletonDirectory>/etc/skel</icfsolaris:skeletonDirectory>
+				<icfsolaris:deleteHomeDirectory>false</icfsolaris:deleteHomeDirectory>
+				<icfsolaris:systemDatabaseType>FILES</icfsolaris:systemDatabaseType>
+				<icfsolaris:nisBuildDirectory>/var/yp</icfsolaris:nisBuildDirectory>
+				<icfsolaris:nisPwdDir>/etc</icfsolaris:nisPwdDir>
+				<icfsolaris:nisShadowPasswordSupport>false</icfsolaris:nisShadowPasswordSupport>
+				<icfsolaris:commandTimeout>24000</icfsolaris:commandTimeout>
+-->
+			</icfcsolaris:configurationProperties>
+		
+			<!-- Generic ICF configuration -->
+
+			<icfc:connectorPoolConfiguration>
+				<icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
+				<icfc:minIdle>1</icfc:minIdle>
+				<icfc:maxIdle>10</icfc:maxIdle>
+				<icfc:maxObjects>10</icfc:maxObjects>
+				<icfc:maxWait>150000</icfc:maxWait>
+			</icfc:connectorPoolConfiguration>
+
+			<icfc:producerBufferSize>100</icfc:producerBufferSize>
+
+			<icfc:timeout>
+				<icfc:operation name="create">-1</icfc:operation>
+				<icfc:operation name="update">-1</icfc:operation>
+				<icfc:operation name="delete">-1</icfc:operation>
+				<icfc:operation name="test">-1</icfc:operation>
+				<icfc:operation name="scriptOnConnector">-1</icfc:operation>
+				<icfc:operation name="scriptOnResource">-1</icfc:operation>
+				<icfc:operation name="get">-1</icfc:operation>
+				<icfc:operation name="authenticate">-1</icfc:operation>
+				<icfc:operation name="search">-1</icfc:operation>
+				<icfc:operation name="validate">-1</icfc:operation>
+				<icfc:operation name="sync">-1</icfc:operation>
+				<icfc:operation name="schema">-1</icfc:operation>
+			</icfc:timeout>
+
+		</c:configuration>
+
+        <!-- Resource Schema Handling definition.
+             This part defines how the schema defined above will be used by
+             midPoint. It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+        -->
+		<schema>
+        <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3dddd" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3dddd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3dddd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"/>
+            <xsd:complexType name="CustomshellObjectClass">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <r:identifier ref="icfs:uid" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <r:displayName ref="icfs:name" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <r:nativeObjectClass xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">shell</r:nativeObjectClass>
+          </xsd:appinfo>
+        </xsd:annotation>
+                <xsd:complexContent>
+                    <xsd:extension base="r:ResourceObjectClass" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">
+                        <xsd:sequence>
+                            <xsd:element ref="icfs:uid"/>
+                            <xsd:element ref="icfs:name"/>
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="shell" type="xsd:string"/>
+            </xsd:sequence>
+          </xsd:extension>
+        </xsd:complexContent>
+      </xsd:complexType>
+            <xsd:complexType name="GroupObjectClass">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <r:identifier ref="icfs:uid" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <r:displayName ref="icfs:name" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <r:nativeObjectClass xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__GROUP__</r:nativeObjectClass>
+          </xsd:appinfo>
+        </xsd:annotation>
+                <xsd:complexContent>
+                    <xsd:extension base="r:ResourceObjectClass" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">
+                        <xsd:sequence>
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="users" type="xsd:string"/>
+                            <xsd:element ref="icfs:uid"/>
+                            <xsd:element minOccurs="0" name="gid" type="xsd:integer"/>
+                            <xsd:element ref="icfs:name"/>
+            </xsd:sequence>
+          </xsd:extension>
+        </xsd:complexContent>
+      </xsd:complexType>
+            <xsd:complexType name="AccountObjectClass">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <r:identifier ref="icfs:uid" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <r:displayName ref="icfs:name" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+                        <r:nativeObjectClass xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">__ACCOUNT__</r:nativeObjectClass>
+                        <r:accountType default="true" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
+          </xsd:appinfo>
+        </xsd:annotation>
+                <xsd:complexContent>
+                    <xsd:extension base="r:ResourceObjectClass" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd">
+                        <xsd:sequence>
+                            <xsd:element minOccurs="0" ref="icfs:password"/>
+                            <xsd:element minOccurs="0" name="comment" type="xsd:string"/>
+                            <xsd:element minOccurs="0" name="time_last_login" type="xsd:string"/>
+                            <xsd:element minOccurs="0" name="lock" type="xsd:boolean"/>
+                            <xsd:element minOccurs="0" name="warn" type="xsd:integer"/>
+                            <xsd:element minOccurs="0" name="inactive" type="xsd:integer"/>
+                            <xsd:element minOccurs="0" name="dir" type="xsd:string"/>
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="secondary_group" type="xsd:string"/>
+                            <xsd:element minOccurs="0" name="max" type="xsd:integer"/>
+                            <xsd:element minOccurs="0" name="force_change" type="xsd:boolean"/>
+                            <xsd:element minOccurs="0" name="min" type="xsd:integer"/>
+                            <xsd:element minOccurs="0" name="shell" type="xsd:string"/>
+                            <xsd:element ref="icfs:name"/>
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="authorization" type="xsd:string"/>
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="profile" type="xsd:string"/>
+                            <xsd:element minOccurs="0" name="expire" type="xsd:string"/>
+                            <xsd:element maxOccurs="unbounded" minOccurs="0" name="role" type="xsd:string"/>
+                            <xsd:element minOccurs="0" name="uid" type="xsd:integer"/>
+                            <xsd:element ref="icfs:uid"/>
+                            <xsd:element minOccurs="0" name="group" type="xsd:string"/>
+            </xsd:sequence>
+          </xsd:extension>
+        </xsd:complexContent>
+      </xsd:complexType>
+    </xsd:schema>
+    </schema>
+	<!-- empty schema handling -->
+    <schemaHandling/>
+
+
+	</c:resource>
+
+
+</c:objects>
