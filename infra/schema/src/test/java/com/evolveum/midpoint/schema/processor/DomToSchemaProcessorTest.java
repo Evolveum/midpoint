@@ -17,7 +17,7 @@ public class DomToSchemaProcessorTest {
 		Schema schema = Schema.parse(DOMUtil.getFirstChildElement(schemaDom));
 		
 		final String defaultNS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
-		final String icfNS = "http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd";
+		final String icfNS = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd";
 		ResourceObjectDefinition objectDef = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(defaultNS, "AccountObjectClass"));
 		
 		ResourceObjectAttributeDefinition attrDef = objectDef.findAttributeDefinition(new QName(icfNS, "uid"));
