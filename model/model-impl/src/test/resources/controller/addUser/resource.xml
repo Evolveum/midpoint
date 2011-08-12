@@ -23,7 +23,7 @@
        xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/10000000-0000-0000-0000-000000000003"
-       xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
+       xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">
     <c:name>Localhost OpenDJ</c:name>
     <c:type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</c:type>
     <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/10000000-0000-0000-0000-000000000003</c:namespace>
@@ -126,7 +126,7 @@
                                     </xsd:appinfo>
                                 </xsd:annotation>
                             </xsd:element>
-                            <xsd:element ref="ids:__UID__" minOccurs="0">
+                            <xsd:element ref="ids:uid" minOccurs="0">
                                 <xsd:annotation>
                                     <xsd:appinfo>
                                         <r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>

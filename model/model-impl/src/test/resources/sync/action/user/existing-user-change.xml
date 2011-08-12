@@ -142,23 +142,20 @@
 				xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 				xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/c0c010c0-d34d-b33f-f00d-333222111111"
-				xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
-				xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd">
+				xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">
 				<xsd:import
 					namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" />
 				<xsd:import
 					namespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/c0c010c0-d34d-b33f-f00d-333222111111" />
 				<xsd:import
-					namespace="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" />
-				<xsd:import
-					namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" />
+					namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
 
 				<!-- Definition of Account object class -->
 				<xsd:complexType name="Account">
 					<xsd:annotation>
 						<xsd:appinfo>
-							<r:identifier ref="vr0:__UID__" />
-							<r:secondaryIdentifier ref="vr0:__NAME__" />
+							<r:identifier ref="ids:uid" />
+							<r:secondaryIdentifier ref="ids:name" />
 							<r:displayName ref="ri:uid" />
 							<r:descriptionAttribute ref="ri:description" />
 							<r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
@@ -168,7 +165,7 @@
 					<xsd:complexContent>
 						<xsd:extension base="r:ResourceObjectClass">
 							<xsd:sequence>
-								<xsd:element ref="vr0:name">
+								<xsd:element ref="ids:name">
 									<xsd:annotation>
 										<xsd:appinfo>
 											<r:nativeAttributeName>__NAME__</r:nativeAttributeName>
@@ -184,7 +181,7 @@
 										</xsd:appinfo>
 									</xsd:annotation>
 								</xsd:element>
-								<xsd:element ref="vr0:password" minOccurs="0">
+								<xsd:element ref="ids:password" minOccurs="0">
 									<xsd:annotation>
 										<xsd:appinfo>
 											<r:attributeFlag>PASSWORD</r:attributeFlag>
@@ -210,7 +207,7 @@
 										</xsd:appinfo>
 									</xsd:annotation>
 								</xsd:element>
-								<xsd:element ref="vr0:uid" minOccurs="0">
+								<xsd:element ref="ids:uid" minOccurs="0">
 									<xsd:annotation>
 										<xsd:appinfo>
 											<r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
@@ -248,8 +245,8 @@
 				<xsd:complexType name="Group">
 					<xsd:annotation>
 						<xsd:appinfo>
-							<r:identifier ref="vr0:__UID__" />
-							<r:secondaryIdentifier ref="vr0:name" />
+							<r:identifier ref="ids:uid" />
+							<r:secondaryIdentifier ref="ids:name" />
 							<r:displayName ref="ri:description" />
 							<r:descriptionAttribute ref="ri:description" />
 							<r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
@@ -259,7 +256,7 @@
 					<xsd:complexContent>
 						<xsd:extension base="r:ResourceObjectClass">
 							<xsd:sequence>
-								<xsd:element ref="vr0:name">
+								<xsd:element ref="ids:name">
 									<xsd:annotation>
 										<xsd:appinfo>
 											<r:nativeAttributeName>__NAME__</r:nativeAttributeName>
@@ -274,7 +271,7 @@
 										</xsd:appinfo>
 									</xsd:annotation>
 								</xsd:element>
-								<xsd:element ref="vr0:uid">
+								<xsd:element ref="ids:uid">
 									<xsd:annotation>
 										<xsd:appinfo>
 											<r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
@@ -300,7 +297,7 @@
 			xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 			xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
 			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/c0c010c0-d34d-b33f-f00d-333222111111"
-			xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
+			xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 			xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd">
 
 			<!-- Definition of default account type. This is now the only account 
@@ -316,7 +313,7 @@
 
 				<!-- Definition of __NAME__ attribute handling. ICF will put entry DN 
 					into __NAME__ attribute. -->
-				<i:attribute ref="vr0:__NAME__">
+				<i:attribute ref="ids:name">
 
 					<!-- Readable name for the attribute. This will be used in GUI -->
 					<c:name>Distinguished Name</c:name>
@@ -350,7 +347,7 @@
 					into __UID__ attribute in case it is connecting to OpenDJ/OpenDS. It may 
 					be different for other directory servers and it also dependes on connector 
 					configuration. Please see connector documentation for more details. -->
-				<i:attribute ref="vr0:__UID__">
+				<i:attribute ref="ids:uid">
 
 					<!-- Readable name for the attribute. This will be used in GUI -->
 					<c:name>Entry UUID</c:name>

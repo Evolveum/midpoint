@@ -73,7 +73,7 @@ public class SchemaHandlerXPath2Test {
 		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, account,
 				AccountShadowType.class);
 
-		assertEquals("__NAME__", appliedAccountShadow.getAttributes().getAny().get(0).getLocalName());
+		assertEquals("name", appliedAccountShadow.getAttributes().getAny().get(0).getLocalName());
 		assertEquals("James Bond 007", appliedAccountShadow.getAttributes().getAny().get(0).getTextContent());
 	}
 }

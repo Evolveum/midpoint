@@ -156,7 +156,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writer.startElement("div", null);
 		writer.writeAttribute("class", "messages-details", null);
 		writer.writeAttribute("id", divId, null);
-		writeMessageDetailBold(FacesUtils.translateKey("operation." + result.getOperation()), writer);
+//		writeMessageDetailBold(FacesUtils.translateKey("operation." + result.getOperation()), writer);
 		writeMessageDetailNormal(result.getMessageCode(), writer);
 		writeOperationResult(result, context);
 

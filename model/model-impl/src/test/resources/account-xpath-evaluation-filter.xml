@@ -55,15 +55,15 @@
             </idc:ConnectorConfiguration>
         </configuration>
         <schema>
-            <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"/>
+            <xsd:schema elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
                 <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>
                 <xsd:complexType name="Account">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <r:identifier ref="ids:__UID__"/>
-                            <r:secondaryIdentifier ref="ids:__NAME__"/>
+                            <r:identifier ref="ids:uid"/>
+                            <r:secondaryIdentifier ref="ids:name"/>
                             <r:displayName ref="ri:description"/>
                             <r:descriptionAttribute ref="ri:description"/>
                             <r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
@@ -73,7 +73,7 @@
                     <xsd:complexContent>
                         <xsd:extension base="r:ResourceObjectClass">
                             <xsd:sequence>
-                                <xsd:element ref="ids:__NAME__">
+                                <xsd:element ref="ids:name">
                                     <xsd:annotation>
                                         <xsd:appinfo>
                                             <r:nativeAttributeName>__NAME__</r:nativeAttributeName>
@@ -89,7 +89,7 @@
                                         </xsd:appinfo>
                                     </xsd:annotation>
                                 </xsd:element>
-                                <xsd:element ref="ids:__PASSWORD__">
+                                <xsd:element ref="ids:password">
                                     <xsd:annotation>
                                         <xsd:appinfo>
                                             <r:attributeFlag>PASSWORD</r:attributeFlag>
@@ -115,7 +115,7 @@
                                         </xsd:appinfo>
                                     </xsd:annotation>
                                 </xsd:element>
-                                <xsd:element minOccurs="0" ref="ids:__UID__">
+                                <xsd:element minOccurs="0" ref="ids:uid">
                                     <xsd:annotation>
                                         <xsd:appinfo>
                                             <r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
@@ -138,8 +138,8 @@
                 <xsd:complexType name="Group">
                     <xsd:annotation>
                         <xsd:appinfo>
-                            <r:identifier ref="ids:__UID__"/>
-                            <r:secondaryIdentifier ref="ids:__NAME__"/>
+                            <r:identifier ref="ids:uid"/>
+                            <r:secondaryIdentifier ref="ids:name"/>
                             <r:displayName ref="ri:description"/>
                             <r:descriptionAttribute ref="ri:description"/>
                             <r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
@@ -149,7 +149,7 @@
                     <xsd:complexContent>
                         <xsd:extension base="r:ResourceObjectClass">
                             <xsd:sequence>
-                                <xsd:element ref="ids:__NAME__">
+                                <xsd:element ref="ids:name">
                                     <xsd:annotation>
                                         <xsd:appinfo>
                                             <r:nativeAttributeName>__NAME__</r:nativeAttributeName>
@@ -164,7 +164,7 @@
                                         </xsd:appinfo>
                                     </xsd:annotation>
                                 </xsd:element>
-                                <xsd:element ref="ids:__UID__">
+                                <xsd:element ref="ids:uid">
                                     <xsd:annotation>
                                         <xsd:appinfo>
                                             <r:attributeFlag>NOT_UPDATEABLE</r:attributeFlag>
@@ -183,7 +183,7 @@
             <accountType default="true">
                 <name>Default Account</name>
                 <objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</objectClass>
-                <attribute ref="ids:__NAME__" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                <attribute ref="ids:name" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
                     <name>Distinguished Name</name>
                     <access>create</access>
                     <access>read</access>
@@ -191,7 +191,7 @@
                         <valueExpression>concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')</valueExpression>
                     </outbound>
                 </attribute>
-                <attribute ref="ids:__UID__" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                <attribute ref="ids:uid" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
                     <name>Entry UUID</name>
                     <access>read</access>
                 </attribute>

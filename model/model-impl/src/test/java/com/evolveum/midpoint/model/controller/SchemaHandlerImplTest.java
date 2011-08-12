@@ -110,12 +110,12 @@ public class SchemaHandlerImplTest {
 
 		assertEquals(8, appliedAccountShadow.getAttributes().getAny().size());
 		final String NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
-		final String NS_1 = "http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd";
+		final String NS_1 = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd";
 		assertAttribute("cn", NS, "James Bond 007", appliedAccountShadow.getAttributes().getAny());
-		assertAttribute("__NAME__", NS_1, "uid=janko nemenny,ou=people,dc=example,dc=com",
+		assertAttribute("name", NS_1, "uid=janko nemenny,ou=people,dc=example,dc=com",
 				appliedAccountShadow.getAttributes().getAny());
 		assertAttribute("sn", NS, "", appliedAccountShadow.getAttributes().getAny());
-		assertAttribute("__PASSWORD__", NS_1, "janco", appliedAccountShadow.getAttributes().getAny());
+		assertAttribute("password", NS_1, "janco", appliedAccountShadow.getAttributes().getAny());
 		assertAttribute("givenName", NS, "James Jr.", appliedAccountShadow.getAttributes().getAny());
 		assertAttribute("givenName", "http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ",
 				"James Jr.", appliedAccountShadow.getAttributes().getAny());
