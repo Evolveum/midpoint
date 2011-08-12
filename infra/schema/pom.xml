@@ -229,23 +229,8 @@
 									<extension>true</extension>
 								</xsdOption>
 								<xsdOption>
-									<xsd>src/main/resources/xml/ns/public/resource/idconnector/resource-schema-1.xsd</xsd>
+									<xsd>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-1.xsd</xsd>
 									<extensionArgs>
-										<extensionArg>-Xts</extensionArg>
-									</extensionArgs>
-									<extension>true</extension>
-								</xsdOption>
-								<xsdOption>
-									<xsd>src/main/resources/xml/ns/public/resource/idconnector/configuration-1.xsd</xsd>
-									<extensionArgs>
-										<extensionArg>-Xts</extensionArg>
-									</extensionArgs>
-									<extension>true</extension>
-								</xsdOption>
-								<xsdOption>
-									<xsd>src/main/resources/xml/ns/public/resource/icf/schema-1.xsd</xsd>
-									<extensionArgs>
-										<!--extensionArg>-Xdv</extensionArg-->
 										<extensionArg>-Xts</extensionArg>
 									</extensionArgs>
 									<extension>true</extension>

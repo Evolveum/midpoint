@@ -21,18 +21,17 @@
 <!--                                                         -->
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
-	xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" elementFormDefault="qualified"
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:idfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" elementFormDefault="qualified"
 	targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
 	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" />
-	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" />
-	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/icf/schema-1.xsd" />
-	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" />
+	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" />
+	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
 	<xsd:complexType name="AccountObjectClass">
 		<xsd:annotation>
 			<xsd:appinfo>
 				<r:identifier xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-					ref="vr0:uid" />
+					ref="idfs:uid" />
 				<r:accountType xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
 					default="true" />
 			</xsd:appinfo>
@@ -52,7 +51,7 @@
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string" />
-					<xsd:element ref="vr0:uid">
+					<xsd:element ref="idfs:uid">
 						<xsd:annotation>
 							<xsd:appinfo>
 								<c:access>read</c:access>
@@ -67,7 +66,7 @@
 		<xsd:annotation>
 			<xsd:appinfo>
 				<r:identifier xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-					ref="vr0:uid" />
+					ref="idfs:uid" />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -79,9 +78,9 @@
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
-					<xsd:element ref="vr0:name" />
+					<xsd:element ref="idfs:name" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string" />
-					<xsd:element ref="vr0:uid" />
+					<xsd:element ref="idfs:uid" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
 					<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
