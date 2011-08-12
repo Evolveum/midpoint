@@ -62,6 +62,7 @@ import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
@@ -783,6 +784,21 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.provisioning.api.ProvisioningService#discoverConnectors(com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType, com.evolveum.midpoint.common.result.OperationResult)
+	 */
+	@Override
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) {
+		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()+".discoverConnectors");
+		result.addParam("host", hostType);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		Set<ConnectorType> discoverConnectors = connectorTypeManager.discoverConnectors(hostType, result);
+		
+		result.computeStatus("Connector discovery failed");
+		return discoverConnectors;
+	}
+	
+	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.provisioning.api.ProvisioningService#initialize()
 	 */
 	@Override
@@ -797,6 +813,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			LOGGER.info("Discovered local connector {}"+ObjectTypeUtil.toShortString(connector));
 		}
 		
-		result.computeStatus();
+		result.computeStatus("Provisioning post-initialization failed");
 	}
+
 }

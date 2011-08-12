@@ -101,7 +101,7 @@ public class SimpleUcfTest {
 	 */
 	@Test
 	public void testListConnectors() {
-		Set<ConnectorType> listConnectors = manager.listConnectors();
+		Set<ConnectorType> listConnectors = manager.listConnectors(null);
 
 		assertNotNull(listConnectors);
 		assertFalse(listConnectors.isEmpty());

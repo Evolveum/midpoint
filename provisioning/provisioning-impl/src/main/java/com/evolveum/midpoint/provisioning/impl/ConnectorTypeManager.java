@@ -44,6 +44,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -105,6 +106,10 @@ public class ConnectorTypeManager {
 		return (ConnectorType)object;
 	}
 	
+	public Set<ConnectorType> discoverLocalConnectors(OperationResult parentResult) {
+		return discoverConnectors(null,parentResult);
+	}
+	
 	/**
 	 * Lists local connectors and makes sure that appropriate ConnectorType objects for them exist in repository.
 	 * 
@@ -113,14 +118,20 @@ public class ConnectorTypeManager {
 	 *  
 	 * @return set of discovered connectors (new connectors found)
 	 */
-	public Set<ConnectorType> discoverLocalConnectors(OperationResult parentResult) {
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) {
 		
 		OperationResult result = parentResult.createSubresult(ConnectorTypeManager.class.getName()+".discoverLocalConnectors");
 		
-		Set<ConnectorType> discoveredConnectors = new HashSet<ConnectorType>();
-		Set<ConnectorType> localConnectors = connectorFactory.listConnectors();
+		// Make sure that the provided host has an OID.
+		// We need the host to have OID, so we can properly link connectors to it
+		if (hostType!=null && hostType.getOid()==null) {
+			throw new SystemException("Discovery attempt with non-persistent "+ObjectTypeUtil.toShortString(hostType));
+		}
 		
-		for (ConnectorType localConnector : localConnectors) {
+		Set<ConnectorType> discoveredConnectors = new HashSet<ConnectorType>();
+		Set<ConnectorType> foundConnectors = connectorFactory.listConnectors(hostType);
+		
+		for (ConnectorType localConnector : foundConnectors) {
 		
 			if (!isInRepo(localConnector,result)) {
 				// Sanitize framework-supplied OID
@@ -220,6 +231,15 @@ public class ConnectorTypeManager {
 		}
 		if (!a.getConnectorType().equals(b.getConnectorType())) {
 			return false;
+		}
+		if (a.getConnectorHostRef()!=null) {
+			if (!a.getConnectorHostRef().equals(b.getConnectorHostRef())) {
+				return false;
+			}
+		} else {
+			if (b.getConnectorHostRef()!=null) {
+				return false;
+			}
 		}
 		if (a.getVersion()==null && b.getVersion()==null) {
 			// Both connectors without version. This is OK.

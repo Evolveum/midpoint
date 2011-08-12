@@ -916,7 +916,7 @@ public class TestSanity extends AbstractIntegrationTest {
 	private void importObjectFromFile(String filename,OperationResult result) throws FileNotFoundException {
 		Task task = taskManager.createTaskInstance();
 		FileInputStream stream = new FileInputStream(filename);
-		modelService.importObjectsFromStream(stream, task, result);
+		modelService.importObjectsFromStream(stream, task, false, result);
 	}
 	
 }

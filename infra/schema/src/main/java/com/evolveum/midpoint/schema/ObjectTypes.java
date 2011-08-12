@@ -49,9 +49,9 @@ public enum ObjectTypes {
 
 	CONNECTOR("schema.objectTypes.connector", SchemaConstants.I_CONNECTOR_TYPE, SchemaConstants.I_CONNECTOR,
 			ConnectorType.class),
-
+			
 	CONNECTOR_HOST("schema.objectTypes.connectorHost", SchemaConstants.I_CONNECTOR_HOST_TYPE, SchemaConstants.I_CONNECTOR_HOST,
-					ConnectorHostType.class), 
+					ConnectorHostType.class),
 			
 	GENERIC_OBJECT("schema.objectTypes.genericObject", SchemaConstants.I_GENERIC_OBJECT_TYPE,
 			SchemaConstants.I_GENERIC_OBJECT, GenericObjectType.class),

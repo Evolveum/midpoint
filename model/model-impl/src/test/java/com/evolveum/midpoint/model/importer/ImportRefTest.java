@@ -96,7 +96,7 @@ public class ImportRefTest {
 		FileInputStream stream = new FileInputStream(IMPORT_FILE_NAME);
 
 		// WHEN
-		modelService.importObjectsFromStream(stream, task, result);
+		modelService.importObjectsFromStream(stream, task, false, result);
 
 		// THEN
 		result.computeStatus("Failed import.");

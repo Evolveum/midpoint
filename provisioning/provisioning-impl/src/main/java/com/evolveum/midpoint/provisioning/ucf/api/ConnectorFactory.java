@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import java.util.Set;
@@ -76,8 +77,9 @@ public interface ConnectorFactory {
 	 * persistent repository and they may disappear if the connector disappears
 	 * from the system. The returned connector objects are immutable.
 	 * 
+	 * @param host definition of a connector host or null for local connector list
 	 * @return list of all known connectors.
 	 */
-	public Set<ConnectorType> listConnectors();
+	public Set<ConnectorType> listConnectors(ConnectorHostType host);
 
 }

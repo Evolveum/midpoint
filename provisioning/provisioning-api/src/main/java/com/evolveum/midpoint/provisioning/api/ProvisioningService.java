@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.provisioning.api;
 
+import java.util.Set;
+
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -27,6 +29,8 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -390,6 +394,21 @@ public interface ProvisioningService {
 	 */
 	public OperationResult testResource(String resourceOid) throws ObjectNotFoundException;
 
+	/**
+	 * Discovers local or remote connectors.
+	 * 
+	 * The operation will try to search for new connectors. It works either on local host (hostType is null)
+	 * or on a remote host (hostType is not null). All discovered connectors are stored in the repository.
+	 * 
+	 * It returns connectors that were discovered: those that were not in the repository before invocation
+	 * of this operation. 
+	 * 
+	 * @param hostType definition of a connector host or null
+	 * @param parentResult parentResult parent OperationResult (in/out)
+	 * @return discovered connectors
+	 */
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult);
+	
 	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
 			OperationResult parentResult);
 	

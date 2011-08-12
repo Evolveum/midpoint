@@ -4520,6 +4520,13 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+					<xsd:element name="sharedSecret" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Shared secret used to authenticate client to the host.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:element name="timeout" type="xsd:integer" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
