@@ -246,7 +246,7 @@
 					<access>create</access>
 					<access>read</access>
 					<access>update</access>
-					<outbound>
+					<outbound default="true">
 						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">$i:user/i:givenName</valueExpression>
 					</outbound>
 				</attribute>
@@ -299,7 +299,7 @@
 		<vr1:password xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 			xmlns:vr1="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">janco</vr1:password>
 		<vr0:givenName xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-			xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">junit test given name</vr0:givenName>
+			xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">James Jr. unchanged</vr0:givenName>
 		<dj:givenName xmlns:dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ">James Jr.</dj:givenName>
 		<vr0:title xmlns:vr0="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">Mr.</vr0:title>
 	</attributes>

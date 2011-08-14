@@ -116,7 +116,7 @@ public class SchemaHandlerImplTest {
 				appliedAccountShadow.getAttributes().getAny());
 		assertAttribute("sn", NS, "", appliedAccountShadow.getAttributes().getAny());
 		assertAttribute("password", NS_1, "janco", appliedAccountShadow.getAttributes().getAny());
-		assertAttribute("givenName", NS, "James Jr.", appliedAccountShadow.getAttributes().getAny());
+		assertAttribute("givenName", NS, "James Jr. unchanged", appliedAccountShadow.getAttributes().getAny());
 		assertAttribute("givenName", "http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ",
 				"James Jr.", appliedAccountShadow.getAttributes().getAny());
 		assertAttribute("title", NS, "Mr.", appliedAccountShadow.getAttributes().getAny());
