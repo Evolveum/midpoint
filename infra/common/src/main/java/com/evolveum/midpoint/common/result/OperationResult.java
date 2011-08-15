@@ -36,6 +36,7 @@ import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.schema.exception.CommonException;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
@@ -58,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ParamsType;
  * @author Radovan Semancik
  * 
  */
-public class OperationResult implements Serializable {
+public class OperationResult implements Serializable, Dumpable {
 
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String INDENT_STRING = "    ";

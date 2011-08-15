@@ -45,6 +45,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -116,13 +117,23 @@ public class SimpleUcfTest {
 		}
 
 	}
+	
+	@Test
+	public void testConnectorSchema() throws ObjectNotFoundException {
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType,resource.getNamespace());
+		assertNotNull("Failed to instantiate connector",cc);
+		Schema connectorSchema = cc.generateConnectorSchema();
+		assertNotNull("No connector schema",connectorSchema);
+		display("Generated connector schema",connectorSchema);
+		assertFalse("Empty schema returned",connectorSchema.isEmpty());
+	}
 
 	@Test
 	public void testCreateConfiguredConnector() throws FileNotFoundException, JAXBException,
 			com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException {
 
 		ConnectorInstance cc = manager.createConnectorInstance(connectorType,resource.getNamespace());
-		assertNotNull(cc);
+		assertNotNull("Failed to instantiate connector",cc);
 		OperationResult result = new OperationResult(SimpleUcfTest.class.getName()+".testCreateConfiguredConnector");
 		cc.configure(resource.getConfiguration(),result);
 		result.computeStatus("test failed");

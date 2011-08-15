@@ -227,7 +227,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			// Make sure that the object is complete, e.g. there is a (fresh) schema
 			try {
 				ResourceType completeResource = getShadowCache().completeResource((ResourceType)repositoryObject,null,result);
-				result.computeStatus();
+				result.computeStatus("Resource retrieval failed");
 				return completeResource;
 			} catch (ObjectNotFoundException ex) {
 				result.recordFatalError("Resource object not found",ex);

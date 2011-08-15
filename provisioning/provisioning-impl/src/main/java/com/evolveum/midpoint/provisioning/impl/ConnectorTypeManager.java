@@ -43,6 +43,8 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -50,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
@@ -131,18 +134,55 @@ public class ConnectorTypeManager {
 		Set<ConnectorType> discoveredConnectors = new HashSet<ConnectorType>();
 		Set<ConnectorType> foundConnectors = connectorFactory.listConnectors(hostType);
 		
-		for (ConnectorType localConnector : foundConnectors) {
+		for (ConnectorType foundConnector : foundConnectors) {
 		
-			if (!isInRepo(localConnector,result)) {
-				// Sanitize framework-supplied OID
-				if (localConnector.getOid()!=null) {
-					LOGGER.warn("Provisioning framework "+localConnector.getFramework()+" supplied OID for connector "+ObjectTypeUtil.toShortString(localConnector));
-					localConnector.setOid(null);
+			if (!isInRepo(foundConnector,result)) {
+				
+				// Connector schema is normally not generated.
+				// Let's instantiate the connector and generate the schema
+				ConnectorInstance connectorInstance = null;
+				try {
+					connectorInstance = connectorFactory.createConnectorInstance(foundConnector, null);
+					Schema connectorSchema = connectorInstance.generateConnectorSchema();
+					if (connectorSchema==null) {
+						LOGGER.warn("Connector {} haven't provided configuration schema",ObjectTypeUtil.toShortString(foundConnector));
+					} else {
+						LOGGER.trace("Generated connector schema for {}: {} definitions",ObjectTypeUtil.toShortString(foundConnector),connectorSchema.getDefinitions().size());
+						Document xsdDoc = null;
+						// Convert to XSD
+						xsdDoc = connectorSchema.serializeToXsd();
+						Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
+						LOGGER.trace("Generated XSD connector schema: {}",DOMUtil.serializeDOMToString(xsdElement));
+						if (foundConnector.getSchema()==null) {
+							foundConnector.setSchema(new XmlSchemaType());
+						}
+						foundConnector.getSchema().getAny().add(xsdElement);
+					}
+				} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
+					LOGGER.error("Cannot instantiate discovered connector "+ObjectTypeUtil.toShortString(foundConnector));
+					result.recordPartialError("Cannot instantiate discovered connector "+ObjectTypeUtil.toShortString(foundConnector),ex);
+					// Skipping schema generation, but otherwise going on
+				} catch (SchemaProcessorException e) {
+					LOGGER.error("Error processing connector schema for "
+							+ ObjectTypeUtil.toShortString(foundConnector) + ": "
+							+ e.getMessage(), e);
+					result.recordPartialError(
+							"Error processing connector schema for "
+									+ ObjectTypeUtil.toShortString(foundConnector) + ": "
+									+ e.getMessage(), e);
+					// Skipping schema generation, but otherwise going on
 				}
 				
+				// Sanitize framework-supplied OID
+				if (foundConnector.getOid()!=null) {
+					LOGGER.warn("Provisioning framework "+foundConnector.getFramework()+" supplied OID for connector "+ObjectTypeUtil.toShortString(foundConnector));
+					foundConnector.setOid(null);
+				}
+				
+				// Store the connector object
 				String oid;
 				try {
-					oid = repositoryService.addObject(localConnector, result);
+					oid = repositoryService.addObject(foundConnector, result);
 				} catch (ObjectAlreadyExistsException e) {
 					// We don't specify the OID, therefore this should never happen
 					// Convert to runtime exception
@@ -155,8 +195,8 @@ public class ConnectorTypeManager {
 					result.recordFatalError("Got SchemaException while not expecting it: "+e.getMessage(),e);
 					throw new SystemException("Got SchemaException while not expecting it: "+e.getMessage(),e);
 				}
-				localConnector.setOid(oid);
-				discoveredConnectors.add(localConnector);
+				foundConnector.setOid(oid);
+				discoveredConnectors.add(foundConnector);
 			}
 			
 		}

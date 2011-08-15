@@ -75,6 +75,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.XPathSegment;
 import com.evolveum.midpoint.xml.schema.XPathType;
 
+import org.apache.commons.codec.binary.Base64;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
@@ -102,6 +103,7 @@ import org.identityconnectors.framework.common.objects.Uid;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
+import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -210,6 +212,81 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 		}
 
+	}
+	
+	/**
+	 * @param cinfo
+	 * @param connectorType
+	 */
+	public Schema generateConnectorSchema() {
+		
+		LOGGER.debug("Generating configuration schema for {}",this);
+		APIConfiguration defaultAPIConfiguration = cinfo.createDefaultAPIConfiguration();
+		ConfigurationProperties icfConfigurationProperties = defaultAPIConfiguration.getConfigurationProperties();
+		
+		if (icfConfigurationProperties == null || icfConfigurationProperties.getPropertyNames()==null || icfConfigurationProperties.getPropertyNames().isEmpty()) {
+			LOGGER.debug("No configuration schema for {}",this);
+			return null;
+		}
+		
+		Schema mpSchema = new Schema(connectorType.getNamespace());
+		PropertyContainerDefinition configDef = mpSchema.createPropertyContainerDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_COMPLEX_TYPE_LOCAL_NAME);
+		
+		for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
+			ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
+			
+			QName propXsdName = new QName(connectorType.getNamespace(),icfPropertyName);
+			QName propXsdType = icfTypeToXsdType(icfProperty.getType());
+			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", new Object[]{this, icfPropertyName, icfProperty.getType(), propXsdType});
+			PropertyDefinition propertyDefinifion = configDef.createPropertyDefinifion(propXsdName,propXsdType);
+			propertyDefinifion.setDisplayName(icfProperty.getDisplayName(null));
+			propertyDefinifion.setHelp(icfProperty.getHelpMessage(null));
+			if (isMultivaluedType(icfProperty.getType())) {
+				propertyDefinifion.setMaxOccurs(-1);
+			} else {
+				propertyDefinifion.setMaxOccurs(1);
+			}
+			if (icfProperty.isRequired()) {
+				propertyDefinifion.setMinOccurs(1);
+			} else {
+				propertyDefinifion.setMinOccurs(0);
+			}
+			
+		}
+		LOGGER.debug("Generated configuration schema for {}: {} definitions",this,mpSchema.getDefinitions().size());
+		return mpSchema;
+	}
+	
+	private QName icfTypeToXsdType(Class<?> type) {
+		// For arrays we are only interested in the component type
+		if (isMultivaluedType(type)) {
+			type = type.getComponentType();
+		}
+		QName propXsdType = null;
+		if (GuardedString.class.equals(type)) {
+			// GuardedString is a special case. It is a ICF-specific
+			// type
+			// implementing Potemkin-like security. Use a temporary
+			// "nonsense" type for now, so this will fail in tests and
+			// will be fixed later
+			propXsdType = SchemaConstants.R_PROTECTED_STRING_TYPE;
+		} else if (GuardedByteArray.class.equals(type)) {
+				// GuardedString is a special case. It is a ICF-specific
+				// type
+				// implementing Potemkin-like security. Use a temporary
+				// "nonsense" type for now, so this will fail in tests and
+				// will be fixed later
+				propXsdType = SchemaConstants.R_PROTECTED_BYTE_ARRAY_TYPE;
+		} else {
+			propXsdType = XsdTypeConverter.toXsdType(type);
+		}
+		return propXsdType;
+	}
+
+	private boolean isMultivaluedType(Class<?> type) {
+		// We consider arrays to be multi-valued
+		// ... unless it is byte[] or char[]
+		return type.isArray() && !type.equals(byte[].class) && !type.equals(char[].class);
 	}
 
 	/**
@@ -320,21 +397,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					.getAttributeInfo();
 			for (AttributeInfo attributeInfo : attributeInfoSet) {
 
-				QName attrXsdName = convertAttributeNameToQName(attributeInfo
-						.getName());
-
-				QName attrXsdType = null;
-				if (GuardedString.class.equals(attributeInfo.getType())) {
-					// GuardedString is a special case. It is a ICF-specific
-					// type
-					// implementing Potemkin-like security. Use a temporary
-					// "nonsense" type for now, so this will fail in tests and
-					// will be fixed later
-					attrXsdType = SchemaConstants.R_PROTECTED_STRING_TYPE;
-				} else {
-					attrXsdType = XsdTypeConverter.toXsdType(attributeInfo
-							.getType());
-				}
+				QName attrXsdName = convertAttributeNameToQName(attributeInfo.getName());
+				QName attrXsdType = icfTypeToXsdType(attributeInfo.getType());
 
 				// Create ResourceObjectAttributeDefinition, which is midPoint
 				// way how to express attribute schema.
@@ -1775,9 +1839,22 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (type.equals(GuardedString.class)) {
 			// Guarded string is a special ICF beast
 			return new GuardedString(configElement.getTextContent().toCharArray());
+		} else if (type.equals(GuardedByteArray.class)) {
+			// Guarded string is a special ICF beast
+			return new GuardedByteArray(Base64.decodeBase64(configElement.getTextContent()));
 		} else {
 			return XsdTypeConverter.toJavaValue(configElement, type);
 		}
+		
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
+	@Override
+	public String toString() {
+		return "ConnectorInstanceIcfImpl(" + ObjectTypeUtil.toShortString(connectorType) + ")";
 	}
 
 }

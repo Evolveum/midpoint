@@ -64,6 +64,7 @@ public class PropertyContainerDefinition extends Definition {
 
 	PropertyContainerDefinition(QName name, QName defaultName, QName typeName) {
 		super(name, defaultName, typeName);
+		propertyDefinitions = new HashSet<PropertyDefinition>();
 	}
 
 	/**
@@ -246,7 +247,7 @@ public class PropertyContainerDefinition extends Definition {
 	}
 
 	@Override
-	public String debugDump(int indent) {
+	public String dump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<indent; i++) {
 			sb.append(Schema.INDENT);
@@ -254,9 +255,27 @@ public class PropertyContainerDefinition extends Definition {
 		sb.append(toString());
 		sb.append("\n");
 		for (PropertyDefinition def : getDefinitions()) {
-			sb.append(def.debugDump(indent+1));
+			sb.append(def.dump(indent+1));
 		}
 		return sb.toString();
+	}
+
+	/**
+	 * @param name 
+	 * @param typeName 
+	 * 
+	 */
+	public PropertyDefinition createPropertyDefinifion(QName name, QName typeName) {
+		PropertyDefinition propDef = new PropertyDefinition(name, typeName);
+		propertyDefinitions.add(propDef);
+		return propDef;
+	}
+
+	/**
+	 * @return
+	 */
+	public boolean isEmpty() {
+		return propertyDefinitions.isEmpty();
 	}
 
 }

@@ -63,6 +63,10 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.Definition;
+import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -206,10 +210,11 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	
 	/**
 	 * Check whether the connectors were discovered correctly and were added to the repository.
+	 * @throws SchemaProcessorException 
 	 * 
 	 */
 	@Test
-	public void test001Connectors() {
+	public void test001Connectors() throws SchemaProcessorException {
 		displayTestTile("test001Connectors");
 		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
@@ -222,6 +227,23 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		for (ObjectType o : objects.getObject()) {
 			display("Found connector",o);
 			assertTrue(o instanceof ConnectorType);
+			ConnectorType conn = (ConnectorType)o;
+			if (conn.getConnectorType().equals("org.identityconnectors.ldap.LdapConnector")) {
+				// This connector is loaded manually, it has no schema
+				continue;
+			}
+			XmlSchemaType xmlSchemaType = conn.getSchema();
+			assertNotNull("xmlSchemaType is null",xmlSchemaType);
+			assertFalse("Empty schema",xmlSchemaType.getAny().isEmpty());
+			// Try to parse the schema
+			Schema schema = Schema.parse(xmlSchemaType.getAny().get(0));
+			assertNotNull("Cannot parse schema",schema);
+			assertFalse("Empty schema",schema.isEmpty());
+			Definition definition = schema.getDefinitions().iterator().next();
+			assertNotNull(definition);
+			assertTrue("Unexpected definition",definition instanceof PropertyContainerDefinition);
+			PropertyContainerDefinition pcd = (PropertyContainerDefinition)definition;
+			assertFalse("Empty definition",pcd.isEmpty());
 		}
 	}
 	

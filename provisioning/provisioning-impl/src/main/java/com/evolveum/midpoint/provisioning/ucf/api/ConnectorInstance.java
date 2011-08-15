@@ -71,6 +71,8 @@ public interface ConnectorInstance {
 	public void configure(Configuration configuration, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
 
 	
+	public Schema generateConnectorSchema();
+	
     /**
 	 * Retrieves the schema from the resource.
 	 * 

@@ -162,7 +162,7 @@ public abstract class Definition implements Serializable {
 		return displayName;
 	}
 	
-	void setDisplayName(String displayName) {		
+	public void setDisplayName(String displayName) {		
 		this.displayName = displayName;
 	}
 
@@ -183,7 +183,7 @@ public abstract class Definition implements Serializable {
 		return help;
 	}
 	
-	void setHelp(String help) {
+	public void setHelp(String help) {
 		this.help = help;
 	}
 	
@@ -192,7 +192,7 @@ public abstract class Definition implements Serializable {
 		return getClass().getSimpleName() + ":" + getName();
 	}
 	
-	public String debugDump(int indent) {
+	public String dump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i<indent; i++) {
 			sb.append(Schema.INDENT);

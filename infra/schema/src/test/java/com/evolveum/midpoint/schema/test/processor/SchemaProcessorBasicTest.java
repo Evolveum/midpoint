@@ -58,7 +58,7 @@ public class SchemaProcessorBasicTest {
 		assertNotNull(schema);
 		
 		System.out.println("Parsed schema from "+SCHEMA1_FILENAME+":");
-		System.out.println(schema.debugDump());
+		System.out.println(schema.dump());
 		
 		PropertyContainerDefinition type1Def = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE,"FirstType"));
 		assertEquals(new QName(SCHEMA_NAMESPACE,"FirstType"), type1Def.getTypeName());

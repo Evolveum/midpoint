@@ -33,6 +33,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AttributeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
@@ -54,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.A
  * @author Radovan Semancik
  * 
  */
-public class Schema {
+public class Schema implements Dumpable {
 
 	private static final Trace LOGGER = TraceManager.getTrace(Schema.class);
 	private String namespace;
@@ -66,6 +67,7 @@ public class Schema {
 			throw new IllegalArgumentException("Namespace can't be null or empty.");
 		}
 		this.namespace = namespace;
+		definitions = new HashSet<Definition>();
 	}
 
 	/**
@@ -175,18 +177,44 @@ public class Schema {
 		return null;
 	}
 
-	public String debugDump() {
+	public String dump() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Schema ns=");
 		sb.append(getNamespace());
 		sb.append("\n");
 		for (Definition def : getDefinitions()) {
-			sb.append(def.debugDump(1));
+			sb.append(def.dump(1));
 		}
 		return sb.toString();
 	}
 
 	public boolean isEmpty() {
 		return definitions.isEmpty();
+	}
+
+	/**
+	 * Creates a new property container definition and adds it to the schema.
+	 * 
+	 * @param localTypeName type name "relative" to schema namespace
+	 * @return new property container definition
+	 */
+	public PropertyContainerDefinition createPropertyContainerDefinition(String localTypeName) {
+		QName typeName = new QName(getNamespace(),localTypeName);
+		QName name = new QName(getNamespace(),toElementName(localTypeName));
+		PropertyContainerDefinition def = new PropertyContainerDefinition(name, name, typeName);
+		definitions.add(def);
+		return def;
+	}
+
+	/**
+	 * @param localTypeName
+	 * @return
+	 */
+	private String toElementName(String localTypeName) {
+		String elementName = StringUtils.uncapitalize(localTypeName);
+		if (elementName.endsWith("Type")) {
+			return elementName.substring(0,elementName.length()-4);
+		}
+		return elementName;
 	}
 }

@@ -130,6 +130,7 @@ public abstract class SchemaConstants {
 	public static final QName I_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
 
 	public static final QName R_PROTECTED_STRING_TYPE = new QName(NS_RESOURCE, "ProtectedStringType");
+	public static final QName R_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_RESOURCE, "ProtectedByteArrayType");
 	
 	// This constant should not be here. It is used by schema processor to supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)

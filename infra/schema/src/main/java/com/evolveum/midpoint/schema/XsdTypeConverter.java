@@ -22,6 +22,7 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
+import java.io.File;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -58,6 +59,8 @@ public class XsdTypeConverter {
         javaToXsdTypeMap = new HashMap();
 		xsdToJavaTypeMap = new HashMap();
         addMapping(String.class, SchemaConstants.XSD_STRING,true);
+        addMapping(char.class, SchemaConstants.XSD_STRING,false);
+        addMapping(File.class, SchemaConstants.XSD_STRING,false);
         addMapping(int.class, SchemaConstants.XSD_INTEGER,true);
         addMapping(Integer.class, SchemaConstants.XSD_INTEGER,false);
         addMapping(long.class, SchemaConstants.XSD_INTEGER,false);
@@ -95,6 +98,10 @@ public class XsdTypeConverter {
 		String stringContent = xmlElement.getTextContent();
 		if (type.equals(String.class)) {
 			return stringContent;
+		} else if (type.equals(char.class)) {
+			return stringContent.charAt(0);
+		} else if (type.equals(File.class)) {
+			return new File(stringContent);
 		} else if (type.equals(Integer.class)) {
 			return Integer.valueOf(stringContent);
 		} else if (type.equals(int.class)) {
@@ -176,6 +183,10 @@ public class XsdTypeConverter {
 		Class type = val.getClass();
 		if (type.equals(String.class)) {
 			element.setTextContent((String)val);
+		} else if (type.equals(char.class) || type.equals(Character.class)) {
+			element.setTextContent(((Character)val).toString());
+		} else if (type.equals(File.class)) {
+			element.setTextContent(((File)val).getPath());
 		} else if (type.equals(int.class) || type.equals(Integer.class)) {
 			element.setTextContent(((Integer)val).toString());
 		} else if (type.equals(long.class) || type.equals(Long.class)) {

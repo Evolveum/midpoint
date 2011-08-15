@@ -34,6 +34,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
+import com.evolveum.midpoint.util.Dumpable;
 
 /**
  * Property container groups properties into logical blocks. The reason for
@@ -55,7 +56,7 @@ import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationT
  * @author Radovan Semancik
  * 
  */
-public class PropertyContainer implements Serializable {
+public class PropertyContainer implements Serializable, Dumpable {
 
 	private static final long serialVersionUID = 5206821250098051028L;
 	private QName name;

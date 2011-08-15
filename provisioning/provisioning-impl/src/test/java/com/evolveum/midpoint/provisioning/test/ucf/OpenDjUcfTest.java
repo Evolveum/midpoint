@@ -231,7 +231,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		
 		assertNotNull(schema);
 		
-		System.out.println(schema.debugDump());
+		System.out.println(schema.dump());
 		
 		Document xsdSchema = Schema.serializeToXsd(schema);
 		

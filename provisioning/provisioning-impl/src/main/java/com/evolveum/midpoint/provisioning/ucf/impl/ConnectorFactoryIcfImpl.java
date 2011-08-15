@@ -61,12 +61,16 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.processor.Definition;
+import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.ClasspathUrlFinder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * Currently the only implementation of the UCF Connector Manager API interface.
@@ -90,6 +94,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
 	public static final QName ICFS_PASSWORD = new QName(NS_ICF_SCHEMA, "password");
 	public static final QName ICFS_ACCOUNT = new QName(NS_ICF_SCHEMA, "account");
+	public static final String CONNECTOR_SCHEMA_COMPLEX_TYPE_LOCAL_NAME = "ConnectorConfigurationType";
 	
 	// This usually refers to WEB-INF/lib/icf-connectors
 	private static final String BUNDLE_PATH = "../../lib/icf-connectors";
@@ -347,5 +352,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		return new ConnectorKey(connectorType.getConnectorBundle(),
 				connectorType.getConnectorVersion(),connectorType.getConnectorType());
 	}
+	
+	
 	
 }

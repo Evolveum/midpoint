@@ -94,12 +94,14 @@ class SchemaToDomProcessor {
 			document = init(schema);
 			Set<Definition> definitions = schema.getDefinitions();
 			for (Definition definition : definitions) {
-				if (definition instanceof ResourceObjectDefinition) {
-					addPropertyContainerDefinition(schema, (ResourceObjectDefinition) definition,
-							document.getDocumentElement());
+				if (definition instanceof PropertyContainerDefinition) {
+						addPropertyContainerDefinition(schema, (PropertyContainerDefinition) definition,
+								document.getDocumentElement());
 				} else if (definition instanceof PropertyDefinition) {
 					addPropertyDefinition(schema, (PropertyDefinition) definition,
 							document.getDocumentElement());
+				} else {
+					throw new IllegalArgumentException("Encountered unsupported definition in schema: "+definition);
 				}
 			}
 			// } catch (SchemaProcessorException ex) {
@@ -112,29 +114,33 @@ class SchemaToDomProcessor {
 		}
 		return document;
 	}
-
-	private void addPropertyContainerDefinition(Schema schema, ResourceObjectDefinition definition,
-			Element parent) {
+	
+	private void addPropertyContainerDefinition(Schema schema, PropertyContainerDefinition definition,
+				Element parent) {
 		Document document = parent.getOwnerDocument();
 		Element container = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "complexType");
 		// "typeName" should be used instead of "name" when defining a XSD type
 		setAttribute(container, "name", definition.getTypeName().getLocalPart());
 
-		Element annotation = createPropertyContainerAnnotation(definition, document);
-		if (annotation != null) {
-			container.appendChild(annotation);
+		Element definitionHomeElement = container;
+		if (definition instanceof ResourceObjectDefinition) {
+			Element annotation = createResourceObjectAnnotations((ResourceObjectDefinition)definition, document);
+			if (annotation != null) {
+				container.appendChild(annotation);
+			}
+			Element complexContent = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "complexContent");
+			container.appendChild(complexContent);
+			Element extension = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "extension");
+			setAttribute(extension, "base", prefixMap.get(SchemaConstants.NS_RESOURCE) + ":"
+					+ RESOURCE_OBJECT_CLASS);
+			complexContent.appendChild(extension);
+			definitionHomeElement = extension;
 		}
 
-		Element complexContent = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "complexContent");
-		container.appendChild(complexContent);
-		Element extension = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "extension");
-		setAttribute(extension, "base", prefixMap.get(SchemaConstants.NS_RESOURCE) + ":"
-				+ RESOURCE_OBJECT_CLASS);
-		extension.setAttribute("xmlns:" + prefixMap.get(SchemaConstants.NS_RESOURCE),
+		definitionHomeElement.setAttribute("xmlns:" + prefixMap.get(SchemaConstants.NS_RESOURCE),
 				SchemaConstants.NS_RESOURCE);
-		complexContent.appendChild(extension);
 		Element sequence = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "sequence");
-		extension.appendChild(sequence);
+		definitionHomeElement.appendChild(sequence);
 
 		Set<PropertyDefinition> definitions = definition.getDefinitions();
 		for (PropertyDefinition propertyDefinition : definitions) {
@@ -173,7 +179,7 @@ class SchemaToDomProcessor {
 		parent.appendChild(property);
 	}
 
-	private Element createPropertyContainerAnnotation(ResourceObjectDefinition definition, Document document) {
+	private Element createResourceObjectAnnotations(ResourceObjectDefinition definition, Document document) {
 		Element annotation = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "annotation");
 		Element appinfo = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "appinfo");
 		annotation.appendChild(appinfo);
@@ -353,18 +359,28 @@ class SchemaToDomProcessor {
 
 	private int addImportFromDefinition(Definition definition, Document document, int index,
 			Set<String> alreadyImportedNamespaces) {
+		// Add appropriate import if a definition is in different namespace
+		// e.g. <element ref="foo:bar">
 		String namespace = definition.getName().getNamespaceURI();
 		final String generatedPrefix = "vr";
 		if (!prefixMap.containsKey(namespace)) {
 			prefixMap.put(namespace, generatedPrefix + index);
 			index++;
 		}
-
 		addImportIfNotYetAdded(document, namespace, alreadyImportedNamespaces);
 
+		// Add appropriate import if the type of the definition is in a different namespace
+		// e.g. <element type="foo:BarType">
+		String typeNamespace = definition.getTypeName().getNamespaceURI();
+		if (!prefixMap.containsKey(typeNamespace)) {
+			prefixMap.put(typeNamespace, generatedPrefix + index);
+			index++;
+		}
+		addImportIfNotYetAdded(document, typeNamespace, alreadyImportedNamespaces);
+		
 		if (definition instanceof ResourceObjectDefinition) {
 			// We need to add the "r" namespace. This is not in the definitions but it in supertype definition
-			// therefore it will not be discovered
+			// therefore it will not be discovered 
 			addImportIfNotYetAdded(document, SchemaConstants.NS_RESOURCE, alreadyImportedNamespaces);
 		}
 		

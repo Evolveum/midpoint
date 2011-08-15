@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScheduleType;
@@ -51,7 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
  * @author Radovan Semancik
  *
  */
-public interface Task {
+public interface Task extends Dumpable {
 	
 	/**
 	 * Returns execution status.

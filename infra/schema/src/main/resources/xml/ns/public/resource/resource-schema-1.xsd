@@ -296,7 +296,26 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
+    
+    <xsd:simpleType name="ProtectedStringType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			TODO
+    		</xsd:documentation>
+    	</xsd:annotation>
+    	<xsd:restriction base="xsd:string">
+    	</xsd:restriction>
+    </xsd:simpleType>
 
+    <xsd:simpleType name="ProtectedByteArrayType">
+    	<xsd:annotation>
+    		<xsd:documentation>
+    			TODO
+    		</xsd:documentation>
+    	</xsd:annotation>
+    	<xsd:restriction base="xsd:string">
+    	</xsd:restriction>
+    </xsd:simpleType>
 
 <!-- ============================================================= -->
     
