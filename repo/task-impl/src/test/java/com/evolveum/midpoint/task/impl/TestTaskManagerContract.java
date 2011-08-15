@@ -189,7 +189,24 @@ public class TestTaskManagerContract {
 	@Test
 	public void test003Cycle() throws Exception {
 		// Add cycle task. This will get picked by task scanner and executed
-		addObjectFromFile(TASK_CYCLE_FILENAME);
+		
+		// But before that check sanity ... a known problem with xsi:type
+		ObjectType objectType = addObjectFromFile(TASK_CYCLE_FILENAME);
+		TaskType addedTask = (TaskType)objectType;
+		Element ext2 = addedTask.getExtension().getAny().get(1);
+		QName xsiType = DOMUtil.resolveXsiType(ext2, "d");
+		System.out.println("######################1# "+xsiType);
+		assertEquals("Bad xsi:type before adding task",DOMUtil.XSD_INTEGER,xsiType);
+
+		// Read from repo
+
+		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test003Cycle");
+
+		TaskType repoTask = repositoryService.getObject(TaskType.class, addedTask.getOid(), null, result);
+		ext2 = repoTask.getExtension().getAny().get(1);
+		xsiType = DOMUtil.resolveXsiType(ext2, "d");
+		System.out.println("######################2# "+xsiType);
+		assertEquals("Bad xsi:type after adding task",DOMUtil.XSD_INTEGER,xsiType);
 		
 		// We need to wait for a sync interval, so the task scanner has a chance to pick up this
 		// task
@@ -198,15 +215,14 @@ public class TestTaskManagerContract {
 		System.out.println("... done");
 		
 		// Check task status
-		
-		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test003Cycle");
+
 		Task task = taskManager.getTask(TASK_CYCLE_OID, result);
 		
 		assertNotNull(task);
 		System.out.println(task.dump());
 		
-		ObjectType o = repositoryService.getObject(TASK_CYCLE_OID,null, result);
-		System.out.println(ObjectTypeUtil.dump(o));
+		TaskType t = repositoryService.getObject(TaskType.class,TASK_CYCLE_OID,null, result);
+		System.out.println(ObjectTypeUtil.dump(t));
 		
 		// .. it should be running
 		assertEquals(TaskExecutionStatus.RUNNING,task.getExecutionStatus());
