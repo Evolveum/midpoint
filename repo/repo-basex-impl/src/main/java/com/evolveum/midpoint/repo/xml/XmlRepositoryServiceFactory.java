@@ -22,7 +22,6 @@
 package com.evolveum.midpoint.repo.xml;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,7 +52,8 @@ public class XmlRepositoryServiceFactory {
 	private String username;
 	private String password;
 	private String databaseName;
-
+	private String serverPath;
+	
 	private List<ClientSession> sessions = new ArrayList<ClientSession>();
 	BaseXServer server;
 
@@ -64,14 +64,28 @@ public class XmlRepositoryServiceFactory {
 			// no cleanup is required
 			TRACE.trace("Starting BaseX Server on {}:{}", host, port);
 
+			if (StringUtils.isNotEmpty(serverPath)) {
+				TRACE.debug("BaseX Server base path: {}", serverPath);
+	 	 	} else {
+	 	 		TRACE.debug("BaseX Server base not set, using default value");
+	 	 	}
+	 	 	StringBuffer commands = new StringBuffer();
+	 	 	if (StringUtils.isNotEmpty(serverPath)) {
+	 	 		if (StringUtils.equals("memory", serverPath)) {
+	 	 			commands.append("-cset mainmem true;info");
+	 	 	 	} else {
+	 	 	 		commands.append("-cset dbpath ").append(serverPath).append(";info");
+	 	 	 	}
+	 	 	}
+	 	 	 	
 			// args ordering is important!
 			if (embedded) {
-				this.checkPort();
+//				this.checkPort();
 				// set debug mode and run it in the same process
-				server = new BaseXServer("-p" + port, "-d", "-D", "-s");
+				server = new BaseXServer("-p" + port, "-d", "-D", "-s", commands.toString());
 			} else {
 				// set debug mode and run it as a Daemon process
-				server = new BaseXServer("-p" + port, "-d", "-s");
+				server = new BaseXServer("-p" + port, "-d", "-s", commands.toString());
 			}
 			TRACE.trace("BaseX Server started");
 		}
@@ -243,22 +257,30 @@ public class XmlRepositoryServiceFactory {
 		this.shutdown = shutdown;
 	}
 
-	private void checkPort() throws RepositoryServiceFactoryException {
-		ServerSocket ss = null;
-		try {
-			ss = new ServerSocket(this.getPort());
-			ss.setReuseAddress(true);
-		} catch (IOException e) {
-			throw new RepositoryServiceFactoryException("BaseX port (" + this.getPort()
-					+ ") already in use.", e);
-		} finally {
-			try {
-				if (ss != null) {
-					ss.close();
-				}
-			} catch (IOException e) {
-				TRACE.error("Reported IO error, while closing ServerSocket used to test availability of port for BaseX Server", e);
-			}
-		}
+	public String getServerPath() {
+		return serverPath;
 	}
+
+	public void setServerPath(String serverPath) {
+		this.serverPath = serverPath;
+	}
+		
+//	private void checkPort() throws RepositoryServiceFactoryException {
+//		ServerSocket ss = null;
+//		try {
+//			ss = new ServerSocket(this.getPort());
+//			ss.setReuseAddress(true);
+//		} catch (IOException e) {
+//			throw new RepositoryServiceFactoryException("BaseX port (" + this.getPort()
+//					+ ") already in use.", e);
+//		} finally {
+//			try {
+//				if (ss != null) {
+//					ss.close();
+//				}
+//			} catch (IOException e) {
+//				TRACE.error("Reported IO error, while closing ServerSocket used to test availability of port for BaseX Server", e);
+//			}
+//		}
+//	}
 }

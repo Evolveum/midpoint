@@ -50,6 +50,8 @@
 		<property name="port" value="19840" />
 		<property name="username" value="admin" />
 		<property name="password" value="admin" />
+		<!-- serverPath - where should BaseXServer store DB files, if no value set then default is used, if value="memory", then db is stored only in memory -->
+ 	 	<property name="serverPath" value="target/basex-data"/>				
 	</bean>
 
 	<!-- scope=prototype is mandatory, because every xml repo service has to 
