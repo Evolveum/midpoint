@@ -22,6 +22,7 @@ package com.evolveum.midpoint.common.object;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -62,7 +63,7 @@ public class ResourceTypeUtil {
 	
 	public static Element getResourceXsdSchema(ResourceType resource) {
 		for (Element e : resource.getSchema().getAny()) {
-			if (QNameUtil.compareQName(SchemaConstants.XSD_SCHEMA_ELEMENT, e)) {
+			if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
 				return e;
 			}
 		}

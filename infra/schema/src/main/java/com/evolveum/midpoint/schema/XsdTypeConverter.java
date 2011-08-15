@@ -58,17 +58,17 @@ public class XsdTypeConverter {
 		
         javaToXsdTypeMap = new HashMap();
 		xsdToJavaTypeMap = new HashMap();
-        addMapping(String.class, SchemaConstants.XSD_STRING,true);
-        addMapping(char.class, SchemaConstants.XSD_STRING,false);
-        addMapping(File.class, SchemaConstants.XSD_STRING,false);
-        addMapping(int.class, SchemaConstants.XSD_INTEGER,true);
-        addMapping(Integer.class, SchemaConstants.XSD_INTEGER,false);
-        addMapping(long.class, SchemaConstants.XSD_INTEGER,false);
-        addMapping(Long.class, SchemaConstants.XSD_INTEGER,false);
-        addMapping(boolean.class, SchemaConstants.XSD_BOOLEAN,true);
-		addMapping(byte[].class, SchemaConstants.XSD_BASE64BINARY,true);
-		addMapping(GregorianCalendar.class, SchemaConstants.XSD_DATETIME,true);
-		addMapping(QName.class, SchemaConstants.XSD_QNAME,true);
+        addMapping(String.class, DOMUtil.XSD_STRING,true);
+        addMapping(char.class, DOMUtil.XSD_STRING,false);
+        addMapping(File.class, DOMUtil.XSD_STRING,false);
+        addMapping(int.class, DOMUtil.XSD_INTEGER,true);
+        addMapping(Integer.class, DOMUtil.XSD_INTEGER,false);
+        addMapping(long.class, DOMUtil.XSD_INTEGER,false);
+        addMapping(Long.class, DOMUtil.XSD_INTEGER,false);
+        addMapping(boolean.class, DOMUtil.XSD_BOOLEAN,true);
+		addMapping(byte[].class, DOMUtil.XSD_BASE64BINARY,true);
+		addMapping(GregorianCalendar.class, DOMUtil.XSD_DATETIME,true);
+		addMapping(QName.class, DOMUtil.XSD_QNAME,true);
     }
 	
 	private static void addMapping(Class javaClass, QName xsdType,boolean both) {

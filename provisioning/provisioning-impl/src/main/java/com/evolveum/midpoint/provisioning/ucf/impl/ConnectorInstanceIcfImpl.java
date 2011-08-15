@@ -383,7 +383,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Every object has UID in ICF, therefore add it right now
 			ResourceObjectAttributeDefinition uidDefinition = new ResourceObjectAttributeDefinition(
 					roDefinition, ConnectorFactoryIcfImpl.ICFS_UID,
-					ConnectorFactoryIcfImpl.ICFS_UID, SchemaConstants.XSD_STRING);
+					ConnectorFactoryIcfImpl.ICFS_UID, DOMUtil.XSD_STRING);
 			// Make it mandatory
 			uidDefinition.setMinOccurs(1);
 			uidDefinition.setMaxOccurs(1);

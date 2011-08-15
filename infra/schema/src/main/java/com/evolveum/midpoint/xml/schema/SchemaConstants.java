@@ -135,22 +135,6 @@ public abstract class SchemaConstants {
 	// This constant should not be here. It is used by schema processor to supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)
 	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd";
-
-	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
-	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
-			NS_W3C_XML_SCHEMA_PREFIX);
-	public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI, "string",
-			NS_W3C_XML_SCHEMA_PREFIX);
-	public static final QName XSD_INTEGER = new QName(W3C_XML_SCHEMA_NS_URI, "integer",
-			NS_W3C_XML_SCHEMA_PREFIX);
-	public static final QName XSD_BOOLEAN = new QName(W3C_XML_SCHEMA_NS_URI, "boolean",
-			NS_W3C_XML_SCHEMA_PREFIX);
-	public static final QName XSD_BASE64BINARY = new QName(W3C_XML_SCHEMA_NS_URI, "base64Binary",
-			NS_W3C_XML_SCHEMA_PREFIX);
-	public static final QName XSD_DATETIME = new QName(W3C_XML_SCHEMA_NS_URI, "dateTime",
-			NS_W3C_XML_SCHEMA_PREFIX);
-	public static final QName XSD_QNAME = new QName(W3C_XML_SCHEMA_NS_URI, "QName",
-			NS_W3C_XML_SCHEMA_PREFIX);
 	
 	public static final String NS_PROVISIONING = "http://midpoint.evolveum.com/xml/ns/public/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-1.xsd";

@@ -26,8 +26,10 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -84,6 +86,8 @@ public class TaskImpl implements Task {
 	private OperationResult result;
 	private ScheduleType schedule;
 	private boolean canRun;
+	
+	private static final transient Trace logger = TraceManager.getTrace(TaskImpl.class);
 
 	/**
 	 * Note: This constructor assumes that the task is transient.
@@ -152,6 +156,7 @@ public class TaskImpl implements Task {
 		}
 		schedule = taskType.getSchedule();
 		// Parse the extension
+		logger.trace("Parsing extension {}",ObjectTypeUtil.dump(taskType.getExtension()));
 		extension = ExtensionProcessor.parseExtension(taskType.getExtension());
 	}
 	

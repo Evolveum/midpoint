@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -213,5 +214,21 @@ public class ObjectTypeUtil {
 			ref.setType(objectTypeType.getTypeQName());
 		}
 		return ref;
+	}
+
+	/**
+	 * @param extension
+	 * @return
+	 */
+	public static String dump(Extension extension) {
+		if (extension==null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder();
+		for (Element e : extension.getAny()) {
+			sb.append(DOMUtil.serializeDOMToString(e));
+			sb.append("\n");
+		}
+		return sb.toString();
 	}
 }

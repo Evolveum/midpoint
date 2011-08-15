@@ -30,6 +30,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -44,12 +45,15 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -72,6 +76,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 		"classpath:application-context-repository-test.xml" })
 public class RepositoryUserTest {
 
+	private static final String PIRACY_NS = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
+	private static final QName PIRACY_SHIP = new QName(PIRACY_NS,"ship");
+	private static final QName PIRACY_LOOT = new QName(PIRACY_NS,"loot");
+	
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
 
@@ -144,6 +152,22 @@ public class RepositoryUserTest {
 					((UserType) retrievedObject).getHonorificPrefix());
 			assertEquals(user.getHonorificSuffix(),
 					((UserType) retrievedObject).getHonorificSuffix());
+			
+			// Test retrieval of extension
+			System.out.println("Extension");
+			System.out.println(ObjectTypeUtil.dump(user.getExtension()));
+			assertEquals(2,user.getExtension().getAny().size());
+			Element ext1 = user.getExtension().getAny().get(0);
+			assertTrue(QNameUtil.compareQName(PIRACY_SHIP, ext1));
+			assertEquals("Black Pearl",ext1.getTextContent());
+			Element ext2 = user.getExtension().getAny().get(1);
+			assertTrue(QNameUtil.compareQName(PIRACY_LOOT, ext2));
+			// assert correct xsi:type attribute
+			QName xsiType = DOMUtil.resolveXsiType(ext2,"default");
+			assertEquals(DOMUtil.XSD_INTEGER,xsiType);
+			Object lootObject = XsdTypeConverter.toJavaValue(ext2);
+			assertTrue(lootObject instanceof Integer);
+			assertEquals(123123,lootObject);
 
 			//list the objects
 			objects = repositoryService.listObjects(ObjectTypes.USER.getClassDefinition(),

@@ -100,7 +100,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 	public ImportObjectsFromFileTaskHandler() {
 		super();
 		//handlers = new HashMap<Task, ImportAccountsFromResourceResultHandler>();
-		filenamePropertyDefinition = new PropertyDefinition(ImportConstants.FILENAME_PROPERTY_NAME, SchemaConstants.XSD_STRING);
+		filenamePropertyDefinition = new PropertyDefinition(ImportConstants.FILENAME_PROPERTY_NAME, DOMUtil.XSD_STRING);
 	}
 
 	@PostConstruct

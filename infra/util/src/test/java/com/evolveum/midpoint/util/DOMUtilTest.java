@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.util;
 
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 import static org.junit.Assert.*;
 
 import org.w3c.dom.Document;
@@ -40,6 +41,16 @@ public class DOMUtilTest {
 	private static final String ELEMENT_LOCAL = "el";
 	private static final String DEFAULT_NS = "http://foo.com/default";
 	private static final String ELEMENT_TOP_LOCAL = "top";
+	
+	private static final String XSD_TYPE_FILENAME = "src/test/resources/domutil/xsi-type.xml";
+	
+	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
+	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI, "string",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_INTEGER = new QName(W3C_XML_SCHEMA_NS_URI, "integer",
+			NS_W3C_XML_SCHEMA_PREFIX); 
 	
 	public DOMUtilTest() {
 	}
@@ -111,6 +122,24 @@ public class DOMUtilTest {
 		// Default namespace should be reused
 		assertFalse(content.contains(":"));
 		assertEquals(QNAME_IN_LOCAL, content);		
+	}
+	
+	@Test
+	public void testXsiType() {
+		// GIVEN
+		Document doc = DOMUtil.parseFile(XSD_TYPE_FILENAME);
+		Element root = DOMUtil.getFirstChildElement(doc);
+		Element el1 = DOMUtil.getFirstChildElement(root);
+		
+		// WHEN
+		QName xsiType = DOMUtil.resolveXsiType(el1, "def");
+		
+		// THEN
+		assertNotNull(xsiType);
+		assertTrue(XSD_INTEGER.equals(xsiType));
+		
+		assertTrue("Failed to detect xsi:type",DOMUtil.hasXsiType(el1));
+		
 	}
 
 }

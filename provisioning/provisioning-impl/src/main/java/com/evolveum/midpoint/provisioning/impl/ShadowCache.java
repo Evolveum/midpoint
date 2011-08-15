@@ -1747,7 +1747,7 @@ public class ShadowCache {
 	private Element findXsdElement(XmlSchemaType xmlSchemaType) {
 		List<Element> schemaElements = xmlSchemaType.getAny();
 		for (Element e : schemaElements) {
-			if (QNameUtil.compareQName(SchemaConstants.XSD_SCHEMA_ELEMENT, e)) {
+			if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
 				return e;
 			}
 		}

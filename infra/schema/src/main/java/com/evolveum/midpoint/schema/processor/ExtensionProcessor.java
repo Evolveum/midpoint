@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  */
 public class ExtensionProcessor {
 
-	public static final QName DEFAULT_TYPE = SchemaConstants.XSD_STRING;
+	public static final QName DEFAULT_TYPE = DOMUtil.XSD_STRING;
 	
 	public static PropertyContainer parseExtension(Extension xmlExtension) {
 		// Extension is optional, so don't die on null

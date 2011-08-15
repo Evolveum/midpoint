@@ -49,6 +49,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
+import static javax.xml.XMLConstants.W3C_XML_SCHEMA_INSTANCE_NS_URI;
+
 /**
  * 
  * 
@@ -62,10 +65,26 @@ public class DOMUtil {
 	public static final String W3C_XML_SCHEMA_XMLNS_URI = "http://www.w3.org/2000/xmlns/";
 	public static final String W3C_XML_SCHEMA_XMLNS_PREFIX = "xmlns";
 	
-	public static final String NS_W3C_XSI_URI = "http://www.w3.org/2001/XMLSchema-instance";
 	public static final String NS_W3C_XSI_PREFIX = "xsi";
-	public static final QName XSI_TYPE = new QName(NS_W3C_XSI_URI, "type",
+	public static final QName XSI_TYPE = new QName(W3C_XML_SCHEMA_INSTANCE_NS_URI, "type",
 			NS_W3C_XSI_PREFIX);
+	
+	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
+	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_STRING = new QName(W3C_XML_SCHEMA_NS_URI, "string",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_INTEGER = new QName(W3C_XML_SCHEMA_NS_URI, "integer",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_BOOLEAN = new QName(W3C_XML_SCHEMA_NS_URI, "boolean",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_BASE64BINARY = new QName(W3C_XML_SCHEMA_NS_URI, "base64Binary",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_DATETIME = new QName(W3C_XML_SCHEMA_NS_URI, "dateTime",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	public static final QName XSD_QNAME = new QName(W3C_XML_SCHEMA_NS_URI, "QName",
+			NS_W3C_XML_SCHEMA_PREFIX);
+	
 	private static final String RANDOM_ATTR_PREFIX_PREFIX = "qn";
 	private static final int RANDOM_ATTR_PREFIX_RND = 1000;
 	// To generate random namespace prefixes
