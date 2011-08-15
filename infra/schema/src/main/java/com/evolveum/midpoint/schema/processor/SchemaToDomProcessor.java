@@ -344,6 +344,10 @@ class SchemaToDomProcessor {
 		if (!prefixMap.containsKey(SchemaConstants.NS_ICF_SCHEMA)) {
 			prefixMap.put(SchemaConstants.NS_ICF_SCHEMA, "icfs");
 		}
+		// TODO: This is wrong. The dependency should be inverted (MID-356)
+		if (!prefixMap.containsKey(SchemaConstants.NS_ICF_CONFIGURATION)) {
+			prefixMap.put(SchemaConstants.NS_ICF_CONFIGURATION, "icfc");
+		}
 
 		prefixMap.put(schema.getNamespace(), "tns");
 

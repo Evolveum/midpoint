@@ -72,6 +72,11 @@ public class PropertyDefinition extends Definition {
 		super(name, null, typeName);
 	}
 
+	// This creates reference to other schema
+	public PropertyDefinition(QName name) {
+		super(name, null, null);
+	}
+	
 	/**
 	 * Returns allowed values for this property.
 	 * 

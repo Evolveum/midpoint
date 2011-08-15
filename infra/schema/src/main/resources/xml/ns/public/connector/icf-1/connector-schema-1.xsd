@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted 2011 [name of copyright owner]"
+ * -->
+ 
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
+    xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+    elementFormDefault="qualified">
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
+                schemaLocation="../../resource/resource-schema-1.xsd"/>
+    
+
+    <xsd:annotation>
+        <xsd:documentation>
+ 			Identity Connector Framework version 1 (ICF1) connector configuration schema.
+ 			
+ 			TODO
+
+			The specific connector schemas are based on this definition.
+			MidPoint will look for the definition of top-level element that is
+			by convention the element with local name "configuration". It will use it as basic definition
+			for resource configuration. The definition of "configuration" element will most likely
+			refer to the data types and elements used in this schema definition.
+ 			
+            Recommended namespace prefix: icfc
+        </xsd:documentation>
+    </xsd:annotation>
+    
+    <xsd:complexType name="ConnectorPoolConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Type that contains configuration of ICF connector pools. This configuration is common for all
+				ICF connectors, therefore it may be part of a static schema.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="minEvictableIdleTimeMillis" type="xsd:integer" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="minIdle" type="xsd:integer" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="maxIdle" type="xsd:integer" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="maxObjects" type="xsd:integer" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="maxWait" type="xsd:integer" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="connectorPoolConfiguration" type="tns:ConnectorPoolConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Element that contains configuration of ICF connector pools.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+	
+	<xsd:element name="producerBufferSize" type="xsd:integer">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+	
+	<xsd:element name="timeouts" type="tns:TimeoutsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+		
+
+	<xsd:complexType name="TimeoutsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Type that contains configuration of ICF operation timeouts.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="create" type="xsd:integer" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="get" type="xsd:integer" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="update" type="xsd:integer" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="delete" type="xsd:integer" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="test" type="xsd:integer" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="scriptOnConnector" type="xsd:integer" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="scriptOnResource" type="xsd:integer" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="authenticate" type="xsd:integer" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="search" type="xsd:integer" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="validate" type="xsd:integer" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="sync" type="xsd:integer" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="schema" type="xsd:integer" minOccurs="0">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+</xsd:schema>
+

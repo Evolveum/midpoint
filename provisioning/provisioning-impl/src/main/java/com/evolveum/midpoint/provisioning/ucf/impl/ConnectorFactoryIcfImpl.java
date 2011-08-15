@@ -65,6 +65,7 @@ import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.ClasspathUrlFinder;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -85,7 +86,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
 public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
-	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/configuration-1.xsd";
+	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-1.xsd";
 	// Note! This is also specified in SchemaConstants (MID-356)
 	public static final String NS_ICF_SCHEMA = ICF_FRAMEWORK_URI + "/resource-schema-1.xsd";
 	public static final String NS_ICF_SCHEMA_PREFIX = "icfs";
@@ -94,7 +95,16 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
 	public static final QName ICFS_PASSWORD = new QName(NS_ICF_SCHEMA, "password");
 	public static final QName ICFS_ACCOUNT = new QName(NS_ICF_SCHEMA, "account");
-	public static final String CONNECTOR_SCHEMA_COMPLEX_TYPE_LOCAL_NAME = "ConnectorConfigurationType";
+	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME = "configurationProperties";
+	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
+	public static final String CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME = "configuration";
+	public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
+	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(NS_ICF_CONFIGURATION,"connectorPoolConfiguration");
+	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(NS_ICF_CONFIGURATION,"ConnectorPoolConfigurationType");
+	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(NS_ICF_CONFIGURATION,"producerBufferSize");
+	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE = DOMUtil.XSD_INTEGER;
+	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(NS_ICF_CONFIGURATION,"timeouts");
+	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_TYPE = new QName(NS_ICF_CONFIGURATION,"TimeoutsType");
 	
 	// This usually refers to WEB-INF/lib/icf-connectors
 	private static final String BUNDLE_PATH = "../../lib/icf-connectors";

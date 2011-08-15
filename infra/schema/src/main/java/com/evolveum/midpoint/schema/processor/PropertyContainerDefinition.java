@@ -61,12 +61,23 @@ public class PropertyContainerDefinition extends Definition {
 
 	private static final long serialVersionUID = -5068923696147960699L;
 	private Set<PropertyDefinition> propertyDefinitions;
+	private String schemaNamespace;
 
 	PropertyContainerDefinition(QName name, QName defaultName, QName typeName) {
 		super(name, defaultName, typeName);
 		propertyDefinitions = new HashSet<PropertyDefinition>();
 	}
 
+	PropertyContainerDefinition(QName name, QName defaultName, QName typeName, String schemaNamespace) {
+		super(name, defaultName, typeName);
+		propertyDefinitions = new HashSet<PropertyDefinition>();
+		this.schemaNamespace = schemaNamespace;
+	}
+
+	protected String getSchemaNamespace() {
+		return schemaNamespace;
+	}
+	
 	/**
 	 * Finds a PropertyDefinition by looking at the property name.
 	 * 
@@ -260,16 +271,28 @@ public class PropertyContainerDefinition extends Definition {
 		return sb.toString();
 	}
 
-	/**
-	 * @param name 
-	 * @param typeName 
-	 * 
-	 */
 	public PropertyDefinition createPropertyDefinifion(QName name, QName typeName) {
 		PropertyDefinition propDef = new PropertyDefinition(name, typeName);
 		propertyDefinitions.add(propDef);
 		return propDef;
 	}
+	
+	// Creates reference to other schema
+	// TODO: maybe check if the name is in different namespace
+	// TODO: maybe create entirely new concept of property reference?
+	public PropertyDefinition createPropertyDefinifion(QName name) {
+		PropertyDefinition propDef = new PropertyDefinition(name);
+		propertyDefinitions.add(propDef);
+		return propDef;
+	}
+
+	
+	public PropertyDefinition createPropertyDefinifion(String localName, String localTypeName) {
+		QName name = new QName(getSchemaNamespace(),localName);
+		QName typeName = new QName(getSchemaNamespace(),localTypeName);
+		return createPropertyDefinifion(name,typeName);
+	}
+
 
 	/**
 	 * @return

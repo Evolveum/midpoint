@@ -231,8 +231,31 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		
 		Schema mpSchema = new Schema(connectorType.getNamespace());
-		PropertyContainerDefinition configDef = mpSchema.createPropertyContainerDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_COMPLEX_TYPE_LOCAL_NAME);
+
+		// Create definition of "configuration" element. midPoint will look for this.
+		mpSchema.createPropertyDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME,
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
+
+		// Create configuration type - the type used by the "configuration" element
+		PropertyContainerDefinition configurationContainerDef = mpSchema.createPropertyContainerDefinition(
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
+		// element with "ConfigurationPropertiesType" - the dynamic part of configuration schema
+		configurationContainerDef.createPropertyDefinifion(
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME, 
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
+		// Create common ICF configuration property containers as a references to a static schema 
+		configurationContainerDef.createPropertyDefinifion(
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT,
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE);
+		configurationContainerDef.createPropertyDefinifion(
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT,
+		ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE);
+		configurationContainerDef.createPropertyDefinifion(
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT,
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_TYPE);
 		
+		// Create definition of "configurationProperties" type (CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME)
+		PropertyContainerDefinition configDef = mpSchema.createPropertyContainerDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
 		for (String icfPropertyName : icfConfigurationProperties.getPropertyNames()) {
 			ConfigurationProperty icfProperty = icfConfigurationProperties.getProperty(icfPropertyName);
 			

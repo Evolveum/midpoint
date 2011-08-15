@@ -31,6 +31,7 @@
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" uri="../xml/ns/public/resource/resource-schema-1.xsd"/>
     
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" uri="../xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
+    <public publicId="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" uri="../xml/ns/public/connector/icf-1/connector-schema-1.xsd" />
 
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd"/>
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../xml/ns/experimental/ldap-resource-1.xsd"/>

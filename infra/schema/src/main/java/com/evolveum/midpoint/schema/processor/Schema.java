@@ -201,7 +201,24 @@ public class Schema implements Dumpable {
 	public PropertyContainerDefinition createPropertyContainerDefinition(String localTypeName) {
 		QName typeName = new QName(getNamespace(),localTypeName);
 		QName name = new QName(getNamespace(),toElementName(localTypeName));
-		PropertyContainerDefinition def = new PropertyContainerDefinition(name, name, typeName);
+		PropertyContainerDefinition def = new PropertyContainerDefinition(name, name, typeName, getNamespace());
+		definitions.add(def);
+		return def;
+	}
+	
+	public PropertyDefinition createPropertyDefinition(String localName,QName typeName) {
+		QName name = new QName(getNamespace(),localName);
+		return createPropertyDefinition(name, typeName);
+	}
+	
+	public PropertyDefinition createPropertyDefinition(String localName,String localTypeName) {
+		QName name = new QName(getNamespace(),localName);
+		QName typeName = new QName(getNamespace(),localTypeName);
+		return createPropertyDefinition(name, typeName);
+	}
+
+	public PropertyDefinition createPropertyDefinition(QName name,QName typeName) {
+		PropertyDefinition def = new PropertyDefinition(name, typeName);
 		definitions.add(def);
 		return def;
 	}
@@ -217,4 +234,5 @@ public class Schema implements Dumpable {
 		}
 		return elementName;
 	}
+
 }
