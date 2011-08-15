@@ -104,7 +104,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 	public ImportAccountsFromResourceTaskHandler() {
 		super();
 		handlers = new HashMap<Task, ImportAccountsFromResourceResultHandler>();
-		objectclassPropertyDefinition = new PropertyDefinition(ImportConstants.OBJECTCLASS_PROPERTY_NAME, SchemaConstants.XSD_QNAME);
+		objectclassPropertyDefinition = new PropertyDefinition(ImportConstants.OBJECTCLASS_PROPERTY_NAME, DOMUtil.XSD_QNAME);
 	}
 
 	@PostConstruct
