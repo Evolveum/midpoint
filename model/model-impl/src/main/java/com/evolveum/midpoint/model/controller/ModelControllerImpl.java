@@ -66,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionT
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -655,7 +656,8 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public void importObjectsFromStream(InputStream input, Task task, Boolean overwrite, OperationResult parentResult) {
+	public void importObjectsFromStream(InputStream input, Task task, Boolean overwrite,
+			OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
 		// TODO: set summarization
 		ObjectImporter.importObjects(input, task, result, repository);
@@ -715,13 +717,19 @@ public class ModelControllerImpl implements ModelController {
 
 		return object;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.api.ModelService#discoverConnectors(com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType, com.evolveum.midpoint.common.result.OperationResult)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.evolveum.midpoint.model.api.ModelService#discoverConnectors(com.evolveum
+	 * .midpoint.xml.ns._public.common.common_1.ConnectorHostType,
+	 * com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
 	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) {
-		OperationResult result = parentResult.createSubresult(ModelService.class.getName()+".discoverConnectors");
+		OperationResult result = parentResult.createSubresult(ModelService.class.getName()
+				+ ".discoverConnectors");
 		Set<ConnectorType> discoverConnectors = provisioning.discoverConnectors(hostType, result);
 		result.computeStatus("Connector discovery failed");
 		return discoverConnectors;
@@ -1067,6 +1075,11 @@ public class ModelControllerImpl implements ModelController {
 	@SuppressWarnings("unchecked")
 	private void processAddAccountFromChanges(ObjectModificationType change, UserType userBeforeChange,
 			OperationResult result) {
+		// MID-73 password push from user to account
+		// TODO: look for password property modification and next use it while
+		// creating account. If account schemahandling credentials
+		// outboundPassword is true, we have to push password
+
 		for (PropertyModificationType propertyChange : change.getPropertyModification()) {
 			if (!PropertyModificationTypeType.add.equals(propertyChange.getModificationType())
 					|| propertyChange.getValue() == null || propertyChange.getValue().getAny().isEmpty()) {
@@ -1112,6 +1125,8 @@ public class ModelControllerImpl implements ModelController {
 				if (account.getActivation() == null) {
 					account.setActivation(user.getActivation());
 				}
+				// MID-73
+				pushPasswordFromUserToAccount(user, account, result);
 
 				String newAccountOid = addObject(account, result);
 				ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid,
@@ -1125,6 +1140,35 @@ public class ModelControllerImpl implements ModelController {
 			}
 		}
 		user.getAccount().removeAll(accountsToDelete);
+	}
+
+	/**
+	 * MID-73 password push from user to account
+	 * 
+	 * @throws ObjectNotFoundException
+	 */
+	private void pushPasswordFromUserToAccount(UserType user, AccountShadowType account,
+			OperationResult result) throws ObjectNotFoundException {
+		ResourceType resource = account.getResource();
+		if (resource == null) {
+			resource = getObjectFromProvisioning(account.getResourceRef().getOid(),
+					new PropertyReferenceListType(), result, ResourceType.class);
+		}
+		AccountType accountHandling = ModelUtils.getAccountTypeFromHandling(account, resource);
+		boolean pushPasswordToAccount = false;
+		if (accountHandling.getCredentials() != null
+				&& accountHandling.getCredentials().isOutboundPassword() != null) {
+			pushPasswordToAccount = accountHandling.getCredentials().isOutboundPassword();
+		}
+		if (pushPasswordToAccount && user.getCredentials() != null
+				&& user.getCredentials().getPassword() != null) {
+			CredentialsType credentials = account.getCredentials();
+			if (credentials == null) {
+				credentials = new CredentialsType();
+				account.setCredentials(credentials);
+			}
+			credentials.setPassword(user.getCredentials().getPassword());
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1150,58 +1194,61 @@ public class ModelControllerImpl implements ModelController {
 			}
 
 			// from now on we have updated user, next step is processing
-			// outbound for every account, or enable/disable account if needed
-			List<ObjectReferenceType> accountRefs = user.getAccountRef();
-			for (ObjectReferenceType accountRef : accountRefs) {
-				OperationResult subResult = result.createSubresult(UPDATE_ACCOUNT);
-				addResultParams(subResult, new String[] { "change", "accountOid", "object", "accountRef" },
-						change, accountOid, object, accountRef);
-				if (StringUtils.isNotEmpty(accountOid) && accountOid.equals(accountRef.getOid())) {
-					subResult.computeStatus("Account excluded during modification, skipped.");
-					// preventing cycles while updating resource object shadows
-					continue;
-				}
-
-				try {
-					AccountShadowType account = getObject(accountRef.getOid(),
-							ModelUtils.createPropertyReferenceListType("Resource"), subResult,
-							AccountShadowType.class, true);
-
-					ObjectModificationType accountChange = null;
-					try {
-						schemaHandler.setModel(this);
-						accountChange = schemaHandler.processOutboundHandling(user, account, subResult);
-					} catch (SchemaHandlerException ex) {
-						LoggingUtils.logException(LOGGER, "Couldn't update outbound handling for account {}",
-								ex, accountRef.getOid());
-					}
-
-					if (accountChange == null) {
-						accountChange = new ObjectModificationType();
-						accountChange.setOid(account.getOid());
-					}
-
-					if (userActivationChanged != null) {
-						PropertyModificationType modification = new PropertyModificationType();
-						modification.setModificationType(PropertyModificationTypeType.replace);
-						modification.setPath(userActivationChanged.getPath());
-						modification.setValue(userActivationChanged.getValue());
-						accountChange.getPropertyModification().add(modification);
-					}
-
-					modifyObjectWithExclusion(accountChange, accountOid, subResult);
-
-					// ScriptsType scripts = getScripts(account, subResult);
-					// provisioning.modifyObject(accountChange, scripts,
-					// subResult);
-				} catch (Exception ex) {
-					LoggingUtils.logException(LOGGER, "Couldn't update account {}", ex, accountRef.getOid());
-				} finally {
-					subResult.computeStatus("Couldn't update account '" + accountRef.getOid() + "'.");
-				}
-			}
+			// outbound for every account or enable/disable account if needed
+			modifyAccountsAfterUserWithExclusion(user, change, userActivationChanged, accountOid, result);
 		} else {
 			repository.modifyObject(change, result);
+		}
+	}
+
+	private void modifyAccountsAfterUserWithExclusion(UserType user, ObjectModificationType change,
+			PropertyModificationType userActivationChanged, String accountOid, OperationResult result) {
+		List<ObjectReferenceType> accountRefs = user.getAccountRef();
+		for (ObjectReferenceType accountRef : accountRefs) {
+			OperationResult subResult = result.createSubresult(UPDATE_ACCOUNT);
+			addResultParams(subResult, new String[] { "change", "accountOid", "object", "accountRef" },
+					change, accountOid, user, accountRef);
+			if (StringUtils.isNotEmpty(accountOid) && accountOid.equals(accountRef.getOid())) {
+				subResult.computeStatus("Account excluded during modification, skipped.");
+				// preventing cycles while updating resource object shadows
+				continue;
+			}
+
+			try {
+				AccountShadowType account = getObject(accountRef.getOid(),
+						ModelUtils.createPropertyReferenceListType("Resource"), subResult,
+						AccountShadowType.class, true);
+
+				ObjectModificationType accountChange = null;
+				try {
+					schemaHandler.setModel(this);
+					accountChange = schemaHandler.processOutboundHandling(user, account, subResult);
+				} catch (SchemaHandlerException ex) {
+					LoggingUtils.logException(LOGGER, "Couldn't update outbound handling for account {}", ex,
+							accountRef.getOid());
+					subResult.recordFatalError(ex);
+				}
+
+				if (accountChange == null) {
+					accountChange = new ObjectModificationType();
+					accountChange.setOid(account.getOid());
+				}
+
+				if (userActivationChanged != null) {
+					PropertyModificationType modification = new PropertyModificationType();
+					modification.setModificationType(PropertyModificationTypeType.replace);
+					modification.setPath(userActivationChanged.getPath());
+					modification.setValue(userActivationChanged.getValue());
+					accountChange.getPropertyModification().add(modification);
+				}
+
+				modifyObjectWithExclusion(accountChange, accountOid, subResult);
+			} catch (Exception ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't update account {}", ex, accountRef.getOid());
+				subResult.recordFatalError(ex);
+			} finally {
+				subResult.computeStatus("Couldn't update account '" + accountRef.getOid() + "'.");
+			}
 		}
 	}
 
