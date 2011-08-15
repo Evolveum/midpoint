@@ -142,6 +142,12 @@ public class ConnectorTypeManager {
 				
 				LOGGER.trace("Connector "+ObjectTypeUtil.toShortString(foundConnector)+" not in the repository, \"dicovering\" it");
 				
+				// First of all we need to "embed" connectorHost to the connectorType. The UCF does not
+				// have access to repository, therefore it cannot resolve it for itself
+				if (hostType!=null && foundConnector.getConnectorHost()==null) {
+					foundConnector.setConnectorHost(hostType);
+				}
+				
 				// Connector schema is normally not generated.
 				// Let's instantiate the connector and generate the schema
 				ConnectorInstance connectorInstance = null;

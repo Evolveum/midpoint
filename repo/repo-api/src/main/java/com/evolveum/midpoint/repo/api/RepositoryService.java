@@ -139,8 +139,12 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+	public <T> T getObject(Class<T> type,String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
+	
+	@Deprecated
+	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+	throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * Add new object.

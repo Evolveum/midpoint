@@ -165,9 +165,20 @@ public class XmlRepositoryService implements RepositoryService {
 		}
 	}
 
+	
 	@Override
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
+		return getObject(ObjectType.class,oid,resolve,parentResult);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.repo.api.RepositoryService#getObject(java.lang.Class, java.lang.String, com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType, com.evolveum.midpoint.common.result.OperationResult)
+	 */
+	@Override
+	public <T> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException {
+	
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".getObject");
 		result.addParam("oid", oid);
@@ -175,7 +186,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 		validateOid(oid);
 
-		ObjectType object = null;
+		T object = null;
 		ClientQuery cq = null;
 		try {
 
@@ -196,9 +207,9 @@ public class XmlRepositoryService implements RepositoryService {
 						throw new SystemException("More than one object with oid " + oid + " found");
 					}
 
-					JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) JAXBUtil.unmarshal(c);
+					JAXBElement<T> o = (JAXBElement<T>) JAXBUtil.unmarshal(type,c);
 					if (o != null) {
-						object = o.getValue();
+							object = o.getValue();
 					}
 				}
 			}
@@ -725,4 +736,6 @@ public class XmlRepositoryService implements RepositoryService {
 		modifyObject(modification, result);
 
 	}
+
+	
 }

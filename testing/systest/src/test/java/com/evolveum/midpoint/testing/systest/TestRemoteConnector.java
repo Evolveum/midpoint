@@ -23,6 +23,8 @@ package com.evolveum.midpoint.testing.systest;
 import static org.junit.Assert.*;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.Set;
 
 import javax.xml.bind.JAXBException;
@@ -38,6 +40,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -59,6 +62,9 @@ public class TestRemoteConnector extends AbstractIntegrationTest {
 	
 	private static final String CONNECTOR_HOST_LOCALHOST_FILENAME = "src/test/resources/repo/connector-host-localhost.xml";
 	private static final String CONNECTOR_HOST_LOCALHOST_OID = "91919191-76e0-59e2-86d6-44cc44cc44cc";
+	
+	private static final String RESOURCE_FLATFILE_REMOTE_LOCALHOST_FILENAME = "src/test/resources/repo/resource-flatfile-remote.xml";
+	private static final String RESOURCE_FLATFILE_REMOTE_LOCALHOST_OID = "ef2bc95b-76e0-59e2-86d6-aaeeffeeffaa";
 
 	@Autowired(required = true)
 	private ModelService modelService;
@@ -141,15 +147,39 @@ public class TestRemoteConnector extends AbstractIntegrationTest {
 			assertNotNull("No schema for "+ObjectTypeUtil.toShortString(conn),conn.getSchema());
 		}
 	}
- 
+	 
 	@Test
-	public void test002ImportResource() {
+	public void test002ImportResource() throws FileNotFoundException {
+		displayTestTile("test002ImportResource");
+		
+		// GIVEN
+		
+		OperationResult result = new OperationResult(TestRemoteConnector.class.getName()+".test002ImportResource");
+		
+		// WHEN
+		
+		importObjectFromFile(RESOURCE_FLATFILE_REMOTE_LOCALHOST_FILENAME,result);
+		
+		// THEN
+		
+		// TODO
 		
 	}
 	
 	@Test
 	public void test003TestConnection() {
 		
+	}
+	
+	/**
+	 * @param resourceOpendjFilename
+	 * @return
+	 * @throws FileNotFoundException 
+	 */
+	private void importObjectFromFile(String filename,OperationResult result) throws FileNotFoundException {
+		Task task = taskManager.createTaskInstance();
+		FileInputStream stream = new FileInputStream(filename);
+		modelService.importObjectsFromStream(stream, task, false, result);
 	}
 	
 }

@@ -189,6 +189,10 @@ public final class JAXBUtil {
 	}
 
 	public static Object unmarshal(String xmlString) throws JAXBException {
+		return unmarshal(Object.class, xmlString);
+	}
+	
+	public static <T> JAXBElement<T> unmarshal(Class<T> type, String xmlString) throws JAXBException {
 		if (xmlString == null) {
 			return null;
 			// throw new
@@ -205,7 +209,7 @@ public final class JAXBUtil {
 		InputStream stream = null;
 		try {
 			stream = IOUtils.toInputStream(xmlString, "utf-8");
-			return unmarshal(stream);
+			return unmarshal(type, stream);
 		} catch (IOException ex) {
 			throw new JAXBException(ex);
 		} finally {
@@ -216,7 +220,23 @@ public final class JAXBUtil {
 	}
 
 	public static Object unmarshal(InputStream input) throws JAXBException {
-		return createUnmarshaller().unmarshal(input);
+		return unmarshal(Object.class,input);
+	}
+	
+	/**
+	 * 
+	 * @param <T>
+	 * @param type
+	 * @param input
+	 * @return
+	 * @throws JAXBException
+	 * @throws ClassCastException
+	 */
+	public static <T> JAXBElement<T> unmarshal(Class<T> type, InputStream input) throws JAXBException {
+		Object object = createUnmarshaller().unmarshal(input);
+		@SuppressWarnings("unchecked")
+		JAXBElement<T> jaxbElement = (JAXBElement<T>)object;
+		return jaxbElement;
 	}
 
 	public static Object silentUnmarshal(String xmlString) {
