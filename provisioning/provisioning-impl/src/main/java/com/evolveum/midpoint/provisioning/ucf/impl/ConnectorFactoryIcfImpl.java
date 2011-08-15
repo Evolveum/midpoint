@@ -145,6 +145,10 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		ConnectorInfo cinfo = getConnectorInfo(connectorType);
 		
 		if (cinfo==null) {
+			LOGGER.error("Failed to instantiate {}",ObjectTypeUtil.toShortString(connectorType));
+			LOGGER.debug("Connector key: {}, host: {}",getConnectorKey(connectorType),ObjectTypeUtil.toShortString(connectorType));
+			LOGGER.trace("Connector object: {}",ObjectTypeUtil.dump(connectorType));
+			LOGGER.trace("Connector host object: {}",ObjectTypeUtil.dump(connectorType.getConnectorHost()));
 			throw new ObjectNotFoundException("The connector "+ObjectTypeUtil.toShortString(connectorType)+" was not found");
 		}
 		
@@ -345,7 +349,15 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			throw new ObjectNotFoundException("Requested connector for framework "+connectorType.getFramework()+" cannot be found in framework "+ICF_FRAMEWORK_URI);
 		}
 		ConnectorKey key = getConnectorKey(connectorType);
-		return getLocalConnectorInfoManager().findConnectorInfo(key);
+		if (connectorType.getConnectorHost()==null && connectorType.getConnectorHostRef()==null) {
+			// Local connector
+			return getLocalConnectorInfoManager().findConnectorInfo(key);
+		}
+		ConnectorHostType host = connectorType.getConnectorHost();
+		if (host==null) {
+			throw new ObjectNotFoundException("Attempt to use remote connector without ConnectorHostType resolved (there is only ConnectorHostRef");
+		}
+		return getRemoteConnectorInfoManager(host).findConnectorInfo(key);
 	}
 	
 	private ConnectorKey getConnectorKey(ConnectorType connectorType) {

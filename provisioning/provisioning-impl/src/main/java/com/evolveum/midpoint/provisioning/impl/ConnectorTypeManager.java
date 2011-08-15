@@ -135,8 +135,12 @@ public class ConnectorTypeManager {
 		Set<ConnectorType> foundConnectors = connectorFactory.listConnectors(hostType);
 		
 		for (ConnectorType foundConnector : foundConnectors) {
+			
+			LOGGER.trace("Found connector "+ObjectTypeUtil.toShortString(foundConnector));
 		
 			if (!isInRepo(foundConnector,result)) {
+				
+				LOGGER.trace("Connector "+ObjectTypeUtil.toShortString(foundConnector)+" not in the repository, \"dicovering\" it");
 				
 				// Connector schema is normally not generated.
 				// Let's instantiate the connector and generate the schema
@@ -159,7 +163,7 @@ public class ConnectorTypeManager {
 						foundConnector.getSchema().getAny().add(xsdElement);
 					}
 				} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
-					LOGGER.error("Cannot instantiate discovered connector "+ObjectTypeUtil.toShortString(foundConnector));
+					LOGGER.error("Cannot instantiate discovered connector "+ObjectTypeUtil.toShortString(foundConnector), ex);
 					result.recordPartialError("Cannot instantiate discovered connector "+ObjectTypeUtil.toShortString(foundConnector),ex);
 					// Skipping schema generation, but otherwise going on
 				} catch (SchemaProcessorException e) {

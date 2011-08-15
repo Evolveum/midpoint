@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -134,6 +135,11 @@ public class TestRemoteConnector extends AbstractIntegrationTest {
 		// Then
 		
 		display("Discovered connectors",discoveredConnectors);
+		
+		assertFalse("Nothing dicovered",discoveredConnectors.isEmpty());
+		for(ConnectorType conn : discoveredConnectors) {
+			assertNotNull("No schema for "+ObjectTypeUtil.toShortString(conn),conn.getSchema());
+		}
 	}
  
 	@Test
