@@ -262,6 +262,7 @@ public class OperationResult implements Serializable, Dumpable {
 				break;
 			case UNKNOWN:
 			case WARNING:
+			case NOT_APPLICABLE:
 				if (message == null) {
 					if (StringUtils.isNotEmpty(warnMessage)) {
 						message = warnMessage;
@@ -300,6 +301,8 @@ public class OperationResult implements Serializable, Dumpable {
 			if (newStatus != OperationResultStatus.PARTIAL_ERROR) {
 				if (sub.getStatus() == OperationResultStatus.WARNING) {
 					newStatus = OperationResultStatus.WARNING;
+				} else if (sub.getStatus() == OperationResultStatus.NOT_APPLICABLE) {
+					newStatus = OperationResultStatus.NOT_APPLICABLE;
 				}
 			}
 		}

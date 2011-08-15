@@ -26,6 +26,7 @@ import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
@@ -1091,8 +1092,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	@Override
 	public void test(OperationResult parentResult) {
 
-		// OperationResult connectionResult = parentResult
-		// .createSubresult(ProvisioningService.TEST_CONNECTION_CONNECTOR_CONNECTION_OPERATION);
 		OperationResult connectionResult = parentResult
 				.createSubresult(ConnectorTestOperation.CONNECTOR_CONNECTION
 						.getOperation());
@@ -1104,6 +1103,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		try {
 			icfConnectorFacade.test();
 			connectionResult.recordSuccess();
+		} catch (UnsupportedOperationException ex) {
+			// Connector does not support test connection.
+			connectionResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Operation not supported by the connector", ex);
+			// Do not rethrow. Recording the status is just OK.
 		} catch (ConnectorSecurityException ex) {
 			// Looks like this happens for a wide variety of cases. It has inner
 			// exception that tells more

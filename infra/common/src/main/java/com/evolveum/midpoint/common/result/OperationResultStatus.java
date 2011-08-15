@@ -31,6 +31,8 @@ public enum OperationResultStatus {
 
 	/**
 	 * No information about operation is present.
+	 * Presence of this status usually means programming bug, e.g. someone forgot to
+	 * set or compute appropriate operation result.
 	 */
 	UNKNOWN,
 
@@ -55,7 +57,15 @@ public enum OperationResultStatus {
 	/**
 	 * Used when operation didn't finish correctly.
 	 */
-	FATAL_ERROR;
+	FATAL_ERROR,
+	
+	/**
+	 * Result does not make any sense for the operation. This is useful in cases that the
+	 * operation is not supported (e.g. an optional part of the interface).
+	 * This is different than UNKNOWN, as in this case we really know that it result is not
+	 * applicable. In UNKNOWN case we know nothing.
+	 */
+	NOT_APPLICABLE;
 
 	public static OperationResultStatus parseStatusType(OperationResultStatusType statusType) {
 		if (statusType == null) {

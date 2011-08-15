@@ -35,7 +35,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import com.evolveum.midpoint.common.object.ConnectorTypeUtil;
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
+import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -68,6 +70,8 @@ public class TestRemoteConnector extends AbstractIntegrationTest {
 
 	@Autowired(required = true)
 	private ModelService modelService;
+	
+	ResourceType resource;
 
 	/**
 	 * @throws JAXBException
@@ -149,7 +153,7 @@ public class TestRemoteConnector extends AbstractIntegrationTest {
 	}
 	 
 	@Test
-	public void test002ImportResource() throws FileNotFoundException {
+	public void test002ImportResource() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
 		displayTestTile("test002ImportResource");
 		
 		// GIVEN
@@ -162,13 +166,32 @@ public class TestRemoteConnector extends AbstractIntegrationTest {
 		
 		// THEN
 		
-		// TODO
+		resource = repositoryService.getObject(ResourceType.class, RESOURCE_FLATFILE_REMOTE_LOCALHOST_OID, null, result);
+		assertNotNull(resource);
+		String connectorOid = ResourceTypeUtil.getConnectorOid(resource);
+		assertNotNull(connectorOid);
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, result);
+		assertNotNull(connector);
+		String connectorHostOid = ConnectorTypeUtil.getConnectorHostTypeOid(connector);
+		assertNotNull(connectorHostOid);
+		ConnectorHostType connectorHost = repositoryService.getObject(ConnectorHostType.class,connectorHostOid,null,result);
+		assertNotNull(connectorHost);
+		assertEquals("localhost",connectorHost.getHostname());
 		
 	}
 	
 	@Test
-	public void test003TestConnection() {
+	public void test003TestConnection() throws ObjectNotFoundException {
+		displayTestTile("test003TestConnection");
 		
+		// GIVEN
+		
+		// WHEN
+		OperationResult testResult = modelService.testResource(RESOURCE_FLATFILE_REMOTE_LOCALHOST_OID);
+		
+		// THEN
+		display("Test resource result",testResult);
+		assertSuccess("Test resource failed",testResult);
 	}
 	
 	/**

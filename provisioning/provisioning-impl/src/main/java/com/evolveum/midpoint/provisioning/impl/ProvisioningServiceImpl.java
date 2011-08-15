@@ -615,7 +615,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		LOGGER.debug("Start testing resource with oid {} ", resourceOid);
 
-		
 		OperationResult parentResult = new OperationResult(
 				TEST_CONNECTION_OPERATION);
 		parentResult.addParam("resourceOid", resourceOid);
@@ -623,23 +622,19 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				ProvisioningServiceImpl.class);
 
 		try {
-			ObjectType objectType = getRepositoryService().getObject(
-					resourceOid, new PropertyReferenceListType(), parentResult);
+			ResourceType objectType = getRepositoryService().getObject(
+					ResourceType.class, resourceOid, new PropertyReferenceListType(), parentResult);
 
-			if (objectType instanceof ResourceType) {
-				ResourceType resourceType = (ResourceType) objectType;
+			ResourceType resourceType = (ResourceType) objectType;
 				getShadowCache().testConnection(resourceType, parentResult);
-			} else {
-				throw new IllegalArgumentException(
-						"Object with oid is not resource. OID: " + resourceOid);
-			}
+				
 		} catch (ObjectNotFoundException ex) {
 			throw new ObjectNotFoundException("Object with OID " + resourceOid
 					+ " not found");
 		} catch (SchemaException ex) {
 			throw new IllegalArgumentException(ex.getMessage(), ex);
 		}
-		parentResult.computeStatus();
+		parentResult.computeStatus("Test resource has failed");
 
 		LOGGER.debug("Finished testing resource with oid {} ", resourceOid);
 		return parentResult;
