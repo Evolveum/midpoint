@@ -35,6 +35,7 @@ import javax.xml.bind.JAXBElement;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -52,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
  * @author Igor Farinic
  */
 @ContextConfiguration(locations = {"../../../../../application-context-repository.xml", "classpath:application-context-repository-test.xml"})
-public class RepositoryUserTemplateTest {
+public class RepositoryUserTemplateTest extends AbstractTestNGSpringContextTests {
 
     @Autowired(required = true)
     private RepositoryService repositoryService;
