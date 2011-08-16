@@ -247,7 +247,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		}
 
 		try {
-			return model.getObject(ref.getOid(), new PropertyReferenceListType(), result, ResourceType.class,
+			return model.getObject(ResourceType.class, ref.getOid(), new PropertyReferenceListType(), result,
 					true);
 		} catch (Exception ex) {
 			throw new SchemaHandlerException("Couldn't get resource object.", ex);
@@ -308,7 +308,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		Object object = null;
 
 		try {
-			ObjectType objectType = model.getObject(oid, new PropertyReferenceListType(), ObjectType.class,
+			ObjectType objectType = model.getObject(ObjectType.class, oid, new PropertyReferenceListType(),
 					result);
 			if (objectType == null) {
 				return null;

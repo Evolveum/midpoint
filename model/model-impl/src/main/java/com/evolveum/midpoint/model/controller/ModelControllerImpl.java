@@ -219,7 +219,7 @@ public class ModelControllerImpl implements ModelController {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve, Class<T> clazz,
+	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
 			OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -630,7 +630,7 @@ public class ModelControllerImpl implements ModelController {
 
 		// Fetch resource definition from the repo/provisioning
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
-		ResourceType resource = getObject(resourceOid, resolve, ResourceType.class, result);
+		ResourceType resource = getObject(ResourceType.class, resourceOid, resolve, result);
 
 		importAccountsFromResourceTaskHandler.launch(resource, objectClass, task, result);
 
@@ -657,18 +657,18 @@ public class ModelControllerImpl implements ModelController {
 
 	private <T extends ObjectType> T getObjectFromRepository(String oid, PropertyReferenceListType resolve,
 			OperationResult result, Class<T> clazz) throws ObjectNotFoundException {
-		return getObject(oid, resolve, result, clazz, false);
+		return getObject(clazz, oid, resolve, result, false);
 	}
 
 	private <T extends ObjectType> T getObjectFromProvisioning(String oid, PropertyReferenceListType resolve,
 			OperationResult result, Class<T> clazz) throws ObjectNotFoundException {
-		return getObject(oid, resolve, result, clazz, true);
+		return getObject(clazz, oid, resolve, result, true);
 	}
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public <T extends ObjectType> T getObject(String oid, PropertyReferenceListType resolve,
-			OperationResult result, Class<T> clazz, boolean fromProvisioning) throws ObjectNotFoundException {
+	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
+			OperationResult result, boolean fromProvisioning) throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(result, "Operation result must not be null.");
 		Validate.notNull(clazz, "Object class must not be null.");
@@ -682,7 +682,7 @@ public class ModelControllerImpl implements ModelController {
 			if (fromProvisioning) {
 				objectType = provisioning.getObject(oid, resolve, subResult);
 			} else {
-				objectType = repository.getObject(oid, resolve, subResult);
+				objectType = repository.getObject(clazz, oid, resolve, subResult);
 			}
 			if (!clazz.isInstance(objectType)) {
 				throw new ObjectNotFoundException("Bad object type returned for referenced oid '" + oid
@@ -764,9 +764,9 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult configResult = result.createSubresult(GET_SYSTEM_CONFIGURATION);
 		SystemConfigurationType systemConfiguration = null;
 		try {
-			systemConfiguration = getObject(SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+			systemConfiguration = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 					ModelUtils.createPropertyReferenceListType("defaultUserTemplate"), result,
-					SystemConfigurationType.class, false);
+					false);
 			configResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			configResult.recordFatalError("Couldn't get system configuration.", ex);
@@ -985,8 +985,8 @@ public class ModelControllerImpl implements ModelController {
 			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException,
 			CommunicationException {
 		if (object instanceof ResourceObjectShadowType) {
-			object = getObject(object.getOid(), new PropertyReferenceListType(), result,
-					ResourceObjectShadowType.class, true);
+			object = getObject(ResourceObjectShadowType.class, object.getOid(), new PropertyReferenceListType(), result,
+					true);
 
 			UserType user = null;
 			try {
@@ -1206,9 +1206,9 @@ public class ModelControllerImpl implements ModelController {
 			}
 
 			try {
-				AccountShadowType account = getObject(accountRef.getOid(),
+				AccountShadowType account = getObject(AccountShadowType.class, accountRef.getOid(),
 						ModelUtils.createPropertyReferenceListType("Resource"), subResult,
-						AccountShadowType.class, true);
+						true);
 
 				ObjectModificationType accountChange = null;
 				try {
@@ -1306,8 +1306,8 @@ public class ModelControllerImpl implements ModelController {
 			addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
 			try {
 				ObjectReferenceType resourceRef = construction.getResourceRef();
-				ResourceType resource = getObject(resourceRef.getOid(), new PropertyReferenceListType(),
-						subResult, ResourceType.class, true);
+				ResourceType resource = getObject(ResourceType.class, resourceRef.getOid(), new PropertyReferenceListType(),
+						subResult, true);
 
 				AccountType accountType = ModelUtils.getAccountTypeFromHandling(construction.getType(),
 						resource);
@@ -1392,5 +1392,15 @@ public class ModelControllerImpl implements ModelController {
 			result.addParam(names[i], objects[i]);
 		}
 	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.api.ModelService#searchObjects(com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType, com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType, com.evolveum.midpoint.common.result.OperationResult)
+	 */
+	@Override
+	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException {
+		throw new NotImplementedException();
+	}
+
 
 }

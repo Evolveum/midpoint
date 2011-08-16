@@ -83,7 +83,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 
 		O objectType = null;
 		try {
-			objectType = getModel().getObject(oid, resolve, objectClass, result);
+			objectType = getModel().getObject(objectClass, oid, resolve, result);
 			result.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			throw ex;

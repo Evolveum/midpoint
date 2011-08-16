@@ -99,7 +99,7 @@ public class ModelWebService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service Get Object");
 		try {
-			ObjectType object = model.getObject(oid, resolve, ObjectType.class, operationResult);
+			ObjectType object = model.getObject(ObjectType.class, oid, resolve, operationResult);
 			handleOperationResult(operationResult, result);
 
 			return object;

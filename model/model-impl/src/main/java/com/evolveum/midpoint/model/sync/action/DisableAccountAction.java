@@ -65,9 +65,9 @@ public class DisableAccountAction extends BaseAction {
 		activation.setEnabled(false);
 
 		try {
-			AccountShadowType oldAccount = getModel().getObject(account.getOid(),
+			AccountShadowType oldAccount = getModel().getObject(AccountShadowType.class, account.getOid(),
 					new PropertyReferenceListType(), new OperationResult("Get Object"),
-					AccountShadowType.class, true);
+					true);
 
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldAccount, account);
 			getModel().modifyObject(changes, new OperationResult("Modify Object"));

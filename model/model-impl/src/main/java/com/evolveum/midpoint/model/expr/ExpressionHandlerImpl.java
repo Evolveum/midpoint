@@ -113,8 +113,8 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 		}
 
 		try {
-			return getModel().getObject(ref.getOid(), new PropertyReferenceListType(), result,
-					ResourceType.class, true);
+			return getModel().getObject(ResourceType.class, ref.getOid(), new PropertyReferenceListType(), result,
+					true);
 		} catch (Exception ex) {
 			throw new ExpressionException("Couldn't get resource object, reason: " + ex.getMessage(), ex);
 		}

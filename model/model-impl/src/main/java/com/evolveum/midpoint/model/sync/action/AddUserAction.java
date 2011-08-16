@@ -72,8 +72,8 @@ public class AddUserAction extends BaseAction {
 				UserTemplateType userTemplate = null;
 				String userTemplateOid = getUserTemplateOid();
 				if (StringUtils.isNotEmpty(userTemplateOid)) {
-					userTemplate = getModel().getObject(userTemplateOid, new PropertyReferenceListType(),
-							UserTemplateType.class, subResult);
+					userTemplate = getModel().getObject(UserTemplateType.class, userTemplateOid, new PropertyReferenceListType(),
+							subResult);
 				}
 
 				userOid = getModel().addUser(user, userTemplate, subResult);

@@ -176,7 +176,7 @@ public class XmlRepositoryService implements RepositoryService {
 	 * @see com.evolveum.midpoint.repo.api.RepositoryService#getObject(java.lang.Class, java.lang.String, com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType, com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
-	public <T> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
 	
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()

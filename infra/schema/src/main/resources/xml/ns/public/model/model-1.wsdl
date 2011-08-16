@@ -32,17 +32,23 @@
 
     <documentation>
 
-        Interface of the IDM Model subsystem.
-        
-        TODO
+	Interface of the IDM Model subsystem.
 
-        This interface is an extension of generic Object Access Interface. However due
-        to the WSDL limitations some parts of the definition (e.g. operations)
-        are copied&amp;pasted instead of re-used.
+	IDM Model Web interface provides access unified to the identity objects stored in the repository and on the resources. It
+	abstracts away the details about where and how are the data stored, it hides all the low-level system components.
 
-        Supported object types:
-          All object types from Common Schema
-          All object types from Identity Schema
+	Implementation of this interface are expected to enforce a consistency of access control decisions and model, e.g. to enforce
+	Role-Based Access Control (RBAC). RBAC is only one of many possibly models and this interface may have many implementations.
+
+	Implementations of this interface may automatically derive properties and attributes for objects. E.g. RBAC models may
+	automatically derive resource accounts attributes based on user role membership.
+
+	This a web service version of the IDM Model Interface represented in WSDL. As such it has some inherent limitations but it is
+	usable for remote access to the Model services.
+
+	Supported object types:
+	All object types from Common Schema
+	All object types from Identity Schema
 
     </documentation>
 
@@ -386,8 +392,8 @@
                 May return (null?? empty??) object if there is no owner
                 specified for the account.
 
-                Implements the backward "owns" assosciation between account
-                shadow and user. Forward assiciation is implemented by property
+                Implements the backward "owns" association between account
+                shadow and user. Forward association is implemented by property
                 "account" of user object.
 
                 Faults:
@@ -406,8 +412,8 @@
                 belong to the specified resource. Returns a list of such object
                 shadows or empty list if nothing was found.
 
-                Implements the backward "has" assosciation between resource and
-                resource object shadows. Forward assiciation is implemented by
+                Implements the backward "has" association between resource and
+                resource object shadows. Forward association is implemented by
                 property "resource" of resource object shadow.
 
                 Faults:

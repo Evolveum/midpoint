@@ -71,7 +71,7 @@ public class InitialDataImport {
 
 				boolean importObject = true;
 				try {
-					model.getObject(object.getOid(), new PropertyReferenceListType(), object.getClass(),
+					model.getObject(object.getClass(), object.getOid(), new PropertyReferenceListType(),
 							result);
 					importObject = false;
 					result.recordSuccess();

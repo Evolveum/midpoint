@@ -322,8 +322,11 @@ public interface ProvisioningService {
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException;
 
 	/**
-	 * Deleted object with provided OID. Must fail if object with specified OID
+	 * <p>Deletes object with specified OID.</p>
+	 * <p>
+	 * Must fail if object with specified OID
 	 * does not exists. Should be atomic.
+	 * </p>
 	 * 
 	 * @param oid
 	 *            OID of object to delete
@@ -429,7 +432,7 @@ public interface ProvisioningService {
 	 * @return resource objects in a form of "detached shadows"
 	 * @throws ObjectNotFoundException specified resource object does not exist
 	 * @throws SchemaException error handling resource schema
-	 * @throws CommunicationException 
+	 * @throws CommunicationException error communicating with the resource
 	 */
 	public ObjectListType listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException;

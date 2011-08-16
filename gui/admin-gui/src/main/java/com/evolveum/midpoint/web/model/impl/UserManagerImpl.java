@@ -161,7 +161,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 		OperationResult result = new OperationResult(SEARCH);
 		List<UserDto> users = new ArrayList<UserDto>();
 		try {
-			ObjectListType list = getModel().searchObjectsInRepository(search, paging, result);
+			ObjectListType list = getModel().searchObjects(search, paging, result);
 			for (ObjectType object : list.getObject()) {
 				if (!(object instanceof UserType)) {
 					LOGGER.debug("Skipping object {}, is't not user.", object.getName());
