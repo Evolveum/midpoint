@@ -60,25 +60,15 @@
 		</repository>
 	</repositories>
 	<dependencies>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>schema</artifactId>
-			<version>1.9-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>common</artifactId>
-			<version>1.9-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-api</artifactId>
-			<version>1.9-SNAPSHOT</version>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-basex-impl</artifactId>
-			<version>1.9-SNAPSHOT</version>
-		</dependency>
+	<dependency>
+		<groupId>commons-configuration</groupId>
+		<artifactId>commons-configuration</artifactId>
+		<version>1.6</version>
+	</dependency>
+	<dependency>
+		<groupId>com.evolveum.midpoint.infra</groupId>
+		<artifactId>util</artifactId>
+		<version>1.9-SNAPSHOT</version>
+	</dependency>
 	</dependencies>
 </project>
