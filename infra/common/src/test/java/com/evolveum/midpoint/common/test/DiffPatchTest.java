@@ -22,12 +22,10 @@
 
 package com.evolveum.midpoint.common.test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+import static org.testng.AssertJUnit.*;
+import org.testng.annotations.Test;
 
 import java.io.File;
-
-import org.junit.Test;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.patch.PatchXml;

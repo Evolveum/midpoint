@@ -22,6 +22,8 @@
 
 package com.evolveum.midpoint.validator.test;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.evolveum.midpoint.validator.ObjectHandler;
 import com.evolveum.midpoint.validator.ValidationMessage;
 import com.evolveum.midpoint.validator.Validator;
@@ -32,10 +34,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -53,7 +51,7 @@ public class BasicValidatorTest {
 
         List<ValidationMessage> errors = validateFile("resource-1-valid.xml");
         System.out.println("Errors: "+errors);
-        assertTrue(errors.isEmpty());
+        AssertJUnit.assertTrue(errors.isEmpty());
 
     }
 
@@ -72,10 +70,10 @@ public class BasicValidatorTest {
 
         List<ValidationMessage> errors = validateFile("three-objects.xml",handler);
 
-        assertTrue(errors.isEmpty());
-        assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
-        assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111112"));
-        assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111113"));
+        AssertJUnit.assertTrue(errors.isEmpty());
+        AssertJUnit.assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
+        AssertJUnit.assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111112"));
+        AssertJUnit.assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111113"));
     }
 
     @Test
@@ -83,10 +81,10 @@ public class BasicValidatorTest {
 
         List<ValidationMessage> errors = validateFile("not-well-formed.xml");
         
-        assertFalse(errors.isEmpty());
-        assertTrue(errors.get(0).toString().contains("terminated by the matching"));
+        AssertJUnit.assertFalse(errors.isEmpty());
+        AssertJUnit.assertTrue(errors.get(0).toString().contains("terminated by the matching"));
         // Check if line number is in the error
-        assertTrue(errors.get(0).toString().contains("line 48"));
+        AssertJUnit.assertTrue(errors.get(0).toString().contains("line 48"));
 
     }
 
@@ -95,10 +93,10 @@ public class BasicValidatorTest {
 
         List<ValidationMessage> errors = validateFile("undeclared-prefix.xml");
         
-        assertFalse(errors.isEmpty());
-        assertTrue(errors.get(0).toString().contains("not bound"));
+        AssertJUnit.assertFalse(errors.isEmpty());
+        AssertJUnit.assertTrue(errors.get(0).toString().contains("not bound"));
         // Check if line number is in the error
-        assertTrue(errors.get(0).toString().contains("line 43"));
+        AssertJUnit.assertTrue(errors.get(0).toString().contains("line 43"));
 
     }
 
@@ -108,9 +106,9 @@ public class BasicValidatorTest {
 
         List<ValidationMessage> errors = validateFile("no-name.xml");
 
-        assertFalse(errors.isEmpty());
-        assertTrue(errors.get(0).toString().contains("Empty property"));
-        assertTrue(errors.get(0).toString().contains("name"));
+        AssertJUnit.assertFalse(errors.isEmpty());
+        AssertJUnit.assertTrue(errors.get(0).toString().contains("Empty property"));
+        AssertJUnit.assertTrue(errors.get(0).toString().contains("name"));
 
     }
 

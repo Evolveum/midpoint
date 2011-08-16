@@ -85,5 +85,12 @@
 			<artifactId>saxonhe</artifactId>
 			<version>9.3</version>
 		</dependency>
+		<!--  Testing dependecies  -->
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.1.1</version>
+			<scope>compile</scope>
+		</dependency>
 	</dependencies>
 </project>

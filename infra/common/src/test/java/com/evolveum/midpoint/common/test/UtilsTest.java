@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.common.test;
 
+import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.Utils;
 
 import java.io.File;
@@ -31,10 +32,6 @@ import java.io.IOException;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  * Unit tests for Util class

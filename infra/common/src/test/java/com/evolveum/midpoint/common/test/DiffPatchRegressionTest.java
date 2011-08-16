@@ -22,8 +22,13 @@
 
 package com.evolveum.midpoint.common.test;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNotNull;
+
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,11 +40,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -72,12 +72,12 @@ public class DiffPatchRegressionTest {
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
-    public void setUp() {
+    @BeforeMethod
+	public void setUp() {
     }
 
-    @After
-    public void tearDown() {
+    @AfterMethod
+	public void tearDown() {
     }
 
     private static Document parseXmlToDocument(String xml) throws ParserConfigurationException, SAXException, IOException {

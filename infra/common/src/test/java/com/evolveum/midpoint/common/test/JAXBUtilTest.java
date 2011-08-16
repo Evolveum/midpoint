@@ -22,18 +22,19 @@
 
 package com.evolveum.midpoint.common.test;
 
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.AssertJUnit;
+import static org.testng.AssertJUnit.*;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -64,7 +65,7 @@ public class JAXBUtilTest {
         Element el = JAXBUtil.jaxbToDom(o, new QName("http://foo/","bar","x"), doc);
 
         assertNotNull(el);
-        assertEquals("bar",el.getLocalName());
+        AssertJUnit.assertEquals("bar",el.getLocalName());
 
 //        System.out.println("EL: "+el);
 //        System.out.println(DOMUtil.serializeDOMToString(el));
@@ -79,7 +80,7 @@ public class JAXBUtilTest {
         Element el = JAXBUtil.jaxbToDom(o, new QName("http://foo/","accountRef","x"), doc);
 
         assertNotNull(el);
-        assertEquals("accountRef",el.getLocalName());
+        AssertJUnit.assertEquals("accountRef",el.getLocalName());
 
         System.out.println("EL2: "+el);
         System.out.println(DOMUtil.serializeDOMToString(el));

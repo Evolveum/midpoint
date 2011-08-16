@@ -20,11 +20,10 @@
  */
 package com.evolveum.midpoint.common.patch;
 
+import org.testng.annotations.Test;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
-
-import org.junit.Test;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.test.XmlAsserts;

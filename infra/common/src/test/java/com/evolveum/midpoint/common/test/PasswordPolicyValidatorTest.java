@@ -22,16 +22,15 @@
 
 package com.evolveum.midpoint.common.test;
 
-import static org.junit.Assert.*;
-
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
+import static org.testng.AssertJUnit.*;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-
-import org.junit.Test;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
@@ -51,12 +50,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import static org.junit.Assert.*;
 
 public class PasswordPolicyValidatorTest {
 
@@ -83,11 +78,11 @@ public class PasswordPolicyValidatorTest {
 		PasswordPolicyType pp = jbe.getValue();
 		StringPolicyType sp = pp.getStringPolicy();
 		StringPolicyUtils.normalize(sp);
-		assertNotNull(sp.getCharacterClass());
-		assertNotNull(sp.getLimitations().getLimit());
-		assertTrue(-1 == sp.getLimitations().getMaxLength());
-		assertTrue(0 == sp.getLimitations().getMinLength());
-		assertTrue(0 == " !\"#$%&'()*+,-.01234567890:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
+		AssertJUnit.assertNotNull(sp.getCharacterClass());
+		AssertJUnit.assertNotNull(sp.getLimitations().getLimit());
+		AssertJUnit.assertTrue(-1 == sp.getLimitations().getMaxLength());
+		AssertJUnit.assertTrue(0 == sp.getLimitations().getMinLength());
+		AssertJUnit.assertTrue(0 == " !\"#$%&'()*+,-.01234567890:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 				.compareTo(sp.getCharacterClass().getValue()));
 	}
 
@@ -133,7 +128,7 @@ public class PasswordPolicyValidatorTest {
 			if (!op.isSuccess()) {
 				logger.error("Result:" + op.dump());
 			}
-			assertTrue(op.isSuccess());
+			AssertJUnit.assertTrue(op.isSuccess());
 			assertNotNull(psswd);
 
 		}
@@ -147,7 +142,7 @@ public class PasswordPolicyValidatorTest {
 			if (!op.isSuccess()) {
 				logger.error("Result:" + op.dump());
 			}
-			assertTrue(op.isSuccess());
+			AssertJUnit.assertTrue(op.isSuccess());
 			assertNotNull(psswd);
 
 		}
@@ -158,7 +153,7 @@ public class PasswordPolicyValidatorTest {
 		psswd = PasswordGenerator.generate(pp, op);
 		op.computeStatus();
 		assertNotNull(psswd);
-		assertTrue(op.isAcceptable());
+		AssertJUnit.assertTrue(op.isAcceptable());
 
 		// Switch to all must be first :-) to test if there is error
 		for (StringLimitType l : pp.getStringPolicy().getLimitations().getLimit()) {
@@ -168,7 +163,7 @@ public class PasswordPolicyValidatorTest {
 		psswd = PasswordGenerator.generate(pp, op);
 		assertNull(psswd);
 		op.computeStatus();
-		assertTrue(op.getStatus() == OperationResultStatus.FATAL_ERROR);
+		AssertJUnit.assertTrue(op.getStatus() == OperationResultStatus.FATAL_ERROR);
 	}
 
 	/*******************************************************************************************/
@@ -187,10 +182,10 @@ public class PasswordPolicyValidatorTest {
 		PasswordPolicyType pp = jbe.getValue();
 
 		// Test on all cases
-		assertTrue(pwdValidHelper("582a**A", pp));
-		assertFalse(pwdValidHelper("58", pp));
-		assertFalse(pwdValidHelper("333a**aGaa", pp));
-		assertFalse(pwdValidHelper("AAA4444", pp));
+		AssertJUnit.assertTrue(pwdValidHelper("582a**A", pp));
+		AssertJUnit.assertFalse(pwdValidHelper("58", pp));
+		AssertJUnit.assertFalse(pwdValidHelper("333a**aGaa", pp));
+		AssertJUnit.assertFalse(pwdValidHelper("AAA4444", pp));
 	}
 
 	private boolean pwdValidHelper(String password, PasswordPolicyType pp) {
@@ -227,7 +222,7 @@ public class PasswordPolicyValidatorTest {
 		PasswordPolicyUtils.validatePassword(password, pps, op);
 		op.computeStatus();
 		logger.error(op.dump());
-		assertTrue(op.isSuccess());
+		AssertJUnit.assertTrue(op.isSuccess());
 		
 	}
 
