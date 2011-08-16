@@ -20,9 +20,9 @@
  * Portions Copyrighted 2011 Igor Farinic
  * Portions Copyrighted 2011 Peter Prochazka
  */
-package com.evolveum.midpoint.repo.init;
+package com.evolveum.midpoint.init;
 
-import com.evolveum.midpoint.repo.init.StartupConfiguration;
+import com.evolveum.midpoint.init.StartupConfiguration;
 
 public class RepositoryFactory {
 	

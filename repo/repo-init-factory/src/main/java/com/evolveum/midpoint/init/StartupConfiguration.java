@@ -19,7 +19,7 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  * Portions Copyrighted 2011 Peter Prochazka
  */
-package com.evolveum.midpoint.repo.init;
+package com.evolveum.midpoint.init;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
