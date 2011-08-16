@@ -57,6 +57,7 @@
 		<slf4j.version>1.6.1</slf4j.version>
 		<spring.version>3.0.5.RELEASE</spring.version>
 		<spring.security.version>3.0.5.RELEASE</spring.security.version>
+		<testng.version>6.1.1</testng.version>
 		<xml.resolver.version>1.2</xml.resolver.version>
 	</properties>
 	<organization>
@@ -213,13 +214,18 @@
 								</property>
 							</systemPropertyVariables>
 						</configuration>
-						<dependencies>
+						<!-- <dependencies>
 							<dependency>
 								<groupId>org.apache.maven.surefire</groupId>
 								<artifactId>surefire-junit47</artifactId>
 								<version>2.9</version>
 							</dependency>
-						</dependencies>
+							<dependency>
+								<groupId>org.apache.maven.surefire</groupId>
+								<artifactId>surefire-testng</artifactId>
+								<version>2.9</version>
+							</dependency>
+						</dependencies> -->
 
 					</plugin>
 					<plugin>
