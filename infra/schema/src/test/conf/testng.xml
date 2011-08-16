@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="unit" parallel="false">
+  <test name="Schema" preserve-order="false">
+    <classes>
+      <class name="com.evolveum.midpoint.schema.test.ExpressionHolderTest"/>
+      <class name="com.evolveum.midpoint.schema.test.ValueAssignmentHolderTest"/>
+      <class name="com.evolveum.midpoint.schema.test.XPathTest"/>
+      <class name="com.evolveum.midpoint.schema.test.processor.SchemaProcessorBasicTest"/>
+      <class name="com.evolveum.midpoint.schema.processor.DomToSchemaProcessorTest"/>
+    </classes>
+  </test>
+</suite>

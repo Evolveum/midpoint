@@ -1,10 +1,9 @@
 package com.evolveum.midpoint.schema.processor;
 
-import static org.junit.Assert.*;
-
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import javax.xml.namespace.QName;
 
-import org.junit.Test;
 import org.w3c.dom.Document;
 
 import com.evolveum.midpoint.util.DOMUtil;
@@ -21,18 +20,18 @@ public class DomToSchemaProcessorTest {
 		ResourceObjectDefinition objectDef = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(defaultNS, "AccountObjectClass"));
 		
 		ResourceObjectAttributeDefinition attrDef = objectDef.findAttributeDefinition(new QName(icfNS, "uid"));
-		assertTrue(attrDef.canRead());
-		assertFalse(attrDef.canUpdate());
-		assertFalse(attrDef.canCreate());
+		AssertJUnit.assertTrue(attrDef.canRead());
+		AssertJUnit.assertFalse(attrDef.canUpdate());
+		AssertJUnit.assertFalse(attrDef.canCreate());
 		
 		attrDef = objectDef.findAttributeDefinition(new QName(defaultNS, "title"));
-		assertTrue(attrDef.canRead());
-		assertTrue(attrDef.canUpdate());
-		assertTrue(attrDef.canCreate());
+		AssertJUnit.assertTrue(attrDef.canRead());
+		AssertJUnit.assertTrue(attrDef.canUpdate());
+		AssertJUnit.assertTrue(attrDef.canCreate());
 		
 		attrDef = objectDef.findAttributeDefinition(new QName(defaultNS, "photo"));
-		assertFalse(attrDef.canRead());
-		assertTrue(attrDef.canUpdate());
-		assertTrue(attrDef.canCreate());
+		AssertJUnit.assertFalse(attrDef.canRead());
+		AssertJUnit.assertTrue(attrDef.canUpdate());
+		AssertJUnit.assertTrue(attrDef.canCreate());
 	}
 }

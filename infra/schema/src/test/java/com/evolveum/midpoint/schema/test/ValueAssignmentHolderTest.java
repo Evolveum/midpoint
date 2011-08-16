@@ -22,6 +22,8 @@
 
 package com.evolveum.midpoint.schema.test;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AttributeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -36,11 +38,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
 import org.w3c.dom.Element;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -74,17 +72,17 @@ public class ValueAssignmentHolderTest {
 
         ValueAssignmentHolder inbound = new ValueAssignmentHolder(inboundElement);
 
-        assertNotNull(inbound.getSource());
-        assertEquals("$i:account/i:attributes/foo:vessel", inbound.getSource().getExpressionAsString().trim());
-        assertEquals("$c:user/c:extension/piracy:ship", inbound.getTarget().getXPath().trim());
+        AssertJUnit.assertNotNull(inbound.getSource());
+        AssertJUnit.assertEquals("$i:account/i:attributes/foo:vessel", inbound.getSource().getExpressionAsString().trim());
+        AssertJUnit.assertEquals("$c:user/c:extension/piracy:ship", inbound.getTarget().getXPath().trim());
 
         // -----
 
         inboundElement = inbounds.get(1);
         inbound = new ValueAssignmentHolder(inboundElement);
 
-        assertNull(inbound.getSource());
-        assertEquals("$c:user/c:extension/foo:whatever", inbound.getTarget().getXPath().trim());
+        AssertJUnit.assertNull(inbound.getSource());
+        AssertJUnit.assertEquals("$c:user/c:extension/foo:whatever", inbound.getTarget().getXPath().trim());
 
 
     }
@@ -110,18 +108,18 @@ public class ValueAssignmentHolderTest {
 
         ValueAssignmentHolder inbound = new ValueAssignmentHolder(inboundElement);
 
-        assertNotNull(inbound.getSource());
-        assertEquals("$i:account/i:attributes/foo:vessel", inbound.getSource().getExpressionAsString().trim());
-        assertEquals("$c:user/c:extension/piracy:ship", inbound.getTarget().getXPath().trim());
+        AssertJUnit.assertNotNull(inbound.getSource());
+        AssertJUnit.assertEquals("$i:account/i:attributes/foo:vessel", inbound.getSource().getExpressionAsString().trim());
+        AssertJUnit.assertEquals("$c:user/c:extension/piracy:ship", inbound.getTarget().getXPath().trim());
         
         List<ValueFilterType> filter = inbound.getFilter();
 
         System.out.println("Filters: "+filter);
 
-        assertNotNull(filter);
-        assertFalse(filter.isEmpty());
+        AssertJUnit.assertNotNull(filter);
+        AssertJUnit.assertFalse(filter.isEmpty());
 
-        assertEquals("http://whatever.com/filter#firstOne", filter.get(0).getType());
+        AssertJUnit.assertEquals("http://whatever.com/filter#firstOne", filter.get(0).getType());
 
     }
 

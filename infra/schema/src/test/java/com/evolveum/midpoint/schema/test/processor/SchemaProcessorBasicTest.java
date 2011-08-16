@@ -4,6 +4,10 @@
  */
 package com.evolveum.midpoint.schema.test.processor;
 
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.AssertJUnit;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
@@ -14,12 +18,6 @@ import com.evolveum.midpoint.util.DOMUtil;
 import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -35,11 +33,11 @@ public class SchemaProcessorBasicTest {
 	public SchemaProcessorBasicTest() {
 	}
 	
-	@Before
+	@BeforeMethod
 	public void setUp() {
 	}
 	
-	@After
+	@AfterMethod
 	public void tearDown() {
 	}
 
@@ -55,15 +53,15 @@ public class SchemaProcessorBasicTest {
 		
 		// THEN
 		
-		assertNotNull(schema);
+		AssertJUnit.assertNotNull(schema);
 		
 		System.out.println("Parsed schema from "+SCHEMA1_FILENAME+":");
 		System.out.println(schema.dump());
 		
 		PropertyContainerDefinition type1Def = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE,"FirstType"));
-		assertEquals(new QName(SCHEMA_NAMESPACE,"FirstType"), type1Def.getTypeName());
+		AssertJUnit.assertEquals(new QName(SCHEMA_NAMESPACE,"FirstType"), type1Def.getTypeName());
 		PropertyDefinition prop1Def = type1Def.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"prop1"));
-		assertEquals(new QName(SCHEMA_NAMESPACE,"prop1"), prop1Def.getName());
+		AssertJUnit.assertEquals(new QName(SCHEMA_NAMESPACE,"prop1"), prop1Def.getName());
 	}
 
 	@Test
@@ -72,23 +70,23 @@ public class SchemaProcessorBasicTest {
 		
 		Document schemaDom = DOMUtil.parseFile(SCHEMA1_FILENAME);
 		Schema schema = Schema.parse(DOMUtil.getFirstChildElement(schemaDom));
-		assertNotNull(schema);
+		AssertJUnit.assertNotNull(schema);
 		PropertyContainerDefinition type1Def = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE,"FirstType"));
-		assertEquals(new QName(SCHEMA_NAMESPACE,"FirstType"), type1Def.getTypeName());
+		AssertJUnit.assertEquals(new QName(SCHEMA_NAMESPACE,"FirstType"), type1Def.getTypeName());
 		PropertyDefinition prop1Def = type1Def.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"prop1"));
-		assertEquals(new QName(SCHEMA_NAMESPACE,"prop1"), prop1Def.getName());
+		AssertJUnit.assertEquals(new QName(SCHEMA_NAMESPACE,"prop1"), prop1Def.getName());
 		
 		// WHEN
 		
 		// Instantiate PropertyContainer (XSD type)
 		PropertyContainer type1Inst = type1Def.instantiate(new QName(SCHEMA_NAMESPACE,"first"));
-		assertNotNull(type1Inst);
-		assertNotNull(type1Inst.getDefinition());
+		AssertJUnit.assertNotNull(type1Inst);
+		AssertJUnit.assertNotNull(type1Inst.getDefinition());
 		
 		// Instantiate Property (XSD element)
 		Property prop1Inst = prop1Def.instantiate();
-		assertNotNull(prop1Inst);
-		assertNotNull(prop1Inst.getDefinition());
+		AssertJUnit.assertNotNull(prop1Inst);
+		AssertJUnit.assertNotNull(prop1Inst.getDefinition());
 		
 		// Set some value
 		prop1Inst.setValue("FOOBAR");
@@ -118,11 +116,11 @@ public class SchemaProcessorBasicTest {
 		
 		Document schemaDom = DOMUtil.parseFile(SCHEMA1_FILENAME);
 		Schema schema = Schema.parse(DOMUtil.getFirstChildElement(schemaDom));
-		assertNotNull(schema);
+		AssertJUnit.assertNotNull(schema);
 		PropertyContainerDefinition type1Def = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE,"FirstType"));
-		assertEquals(new QName(SCHEMA_NAMESPACE,"FirstType"), type1Def.getTypeName());
+		AssertJUnit.assertEquals(new QName(SCHEMA_NAMESPACE,"FirstType"), type1Def.getTypeName());
 		PropertyDefinition prop1Def = type1Def.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"prop1"));
-		assertEquals(new QName(SCHEMA_NAMESPACE,"prop1"), prop1Def.getName());
+		AssertJUnit.assertEquals(new QName(SCHEMA_NAMESPACE,"prop1"), prop1Def.getName());
 		
 		// WHEN
 		
@@ -133,15 +131,15 @@ public class SchemaProcessorBasicTest {
 		
 		System.out.println("PROPS: "+properties);
 		
-		assertEquals(2,properties.size());
+		AssertJUnit.assertEquals(2,properties.size());
 		
 		for (Property prop : properties) {
 			if (prop.getName().getLocalPart().equals("prop1")) {
-				assertEquals("Barbar", prop.getValue(String.class));
+				AssertJUnit.assertEquals("Barbar", prop.getValue(String.class));
 			}
 			if (prop.getName().getLocalPart().equals("prop2")) {
 				int val = prop.getValue(int.class);
-				assertEquals(123456, val);
+				AssertJUnit.assertEquals(123456, val);
 			}
 		}
 	}

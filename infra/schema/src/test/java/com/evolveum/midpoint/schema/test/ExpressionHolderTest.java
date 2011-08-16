@@ -22,6 +22,8 @@
 
 package com.evolveum.midpoint.schema.test;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 import com.evolveum.midpoint.xml.schema.ExpressionHolder;
@@ -34,9 +36,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import org.junit.Test;
 import org.w3c.dom.Element;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -70,7 +70,7 @@ public class ExpressionHolderTest {
 
         ExpressionHolder ex = new ExpressionHolder(element);
 
-        assertEquals("$c:user/c:extension/foo:something/bar:somethingElse", ex.getExpressionAsString().trim());
+        AssertJUnit.assertEquals("$c:user/c:extension/foo:something/bar:somethingElse", ex.getExpressionAsString().trim());
         
         Map<String, String> namespaceMap = ex.getNamespaceMap();
 
@@ -79,8 +79,8 @@ public class ExpressionHolderTest {
             System.out.println(key+" : "+uri);
         }
 
-        assertEquals("http://midpoint.evolveum.com/xml/ns/samples/piracy", namespaceMap.get("piracy"));
-        assertEquals("http://default.com/whatever", namespaceMap.get(""));
+        AssertJUnit.assertEquals("http://midpoint.evolveum.com/xml/ns/samples/piracy", namespaceMap.get("piracy"));
+        AssertJUnit.assertEquals("http://default.com/whatever", namespaceMap.get(""));
 
     }
 
@@ -104,7 +104,7 @@ public class ExpressionHolderTest {
 
         ExpressionHolder ex = new ExpressionHolder(element);
 
-        assertEquals("$c:user/c:extension/foo:something/bar:somethingElse", ex.getExpressionAsString().trim());
+        AssertJUnit.assertEquals("$c:user/c:extension/foo:something/bar:somethingElse", ex.getExpressionAsString().trim());
 
         Map<String, String> namespaceMap = ex.getNamespaceMap();
 
@@ -113,9 +113,9 @@ public class ExpressionHolderTest {
             System.out.println(key+" : "+uri);
         }
 
-        assertEquals("http://midpoint.evolveum.com/xml/ns/samples/piracy", namespaceMap.get("piracy"));
-        assertEquals("http://midpoint.evolveum.com/xml/ns/samples/bar", namespaceMap.get("bar"));
-        assertEquals("http://default.com/whatever", namespaceMap.get(""));
+        AssertJUnit.assertEquals("http://midpoint.evolveum.com/xml/ns/samples/piracy", namespaceMap.get("piracy"));
+        AssertJUnit.assertEquals("http://midpoint.evolveum.com/xml/ns/samples/bar", namespaceMap.get("bar"));
+        AssertJUnit.assertEquals("http://default.com/whatever", namespaceMap.get(""));
 
     }
 
