@@ -22,24 +22,22 @@
 
 package com.evolveum.midpoint.repo.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.Assert;
 import java.io.File;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
@@ -59,10 +57,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
  * 
  * @author Igor Farinic
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
 		"classpath:application-context-repository-test.xml" })
-public class RepositoryGenericObjectTest {
+public class RepositoryGenericObjectTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
@@ -86,11 +84,11 @@ public class RepositoryGenericObjectTest {
 	public static void tearDownClass() throws Exception {
 	}
 
-	@Before
+	@BeforeMethod
 	public void setUp() {
 	}
 
-	@After
+	@AfterMethod
 	public void tearDown() {
 	}
 
@@ -111,7 +109,7 @@ public class RepositoryGenericObjectTest {
 			}
 		} else if ((object.getExtension() != null && retrievedObject.getExtension() == null)
 				|| (object.getExtension() == null && retrievedObject.getExtension() != null)) {
-			fail("Extension section is null for one object but not null for other object");
+			Assert.fail("Extension section is null for one object but not null for other object");
 		}
 	}
 
@@ -143,7 +141,7 @@ public class RepositoryGenericObjectTest {
 			repositoryService.deleteObject(genericObjectOid, new OperationResult("test"));
 			try {
 				repositoryService.getObject(genericObjectOid, new PropertyReferenceListType(), new OperationResult("test"));
-				fail("Object with oid " + genericObjectOid + " was not deleted");
+				Assert.fail("Object with oid " + genericObjectOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
 			}

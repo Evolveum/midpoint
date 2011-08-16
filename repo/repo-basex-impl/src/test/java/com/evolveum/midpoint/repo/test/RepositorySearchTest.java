@@ -22,24 +22,22 @@
 
 package com.evolveum.midpoint.repo.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -65,10 +63,9 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  * 
  * @author Igor Farinic
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
 		"classpath:application-context-repository-test.xml" })
-public class RepositorySearchTest {
+public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
@@ -92,11 +89,11 @@ public class RepositorySearchTest {
 	public static void tearDownClass() throws Exception {
 	}
 
-	@Before
+	@BeforeMethod
 	public void setUp() {
 	}
 
-	@After
+	@AfterMethod
 	public void tearDown() {
 	}
 
@@ -265,7 +262,7 @@ public class RepositorySearchTest {
 		}
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void searchAccountByNoAttributesUseQueryUtil() throws Exception {
 		XPathSegment xpathSegment = new XPathSegment(SchemaConstants.I_ATTRIBUTES);
 		Document doc = DOMUtil.getDocument();

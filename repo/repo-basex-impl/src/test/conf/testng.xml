@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="unit" parallel="false">
+  <test name="basex repository" preserve-order="false">
+    <classes>
+      <class name="com.evolveum.midpoint.repo.test.RepositoryAccountTest"/>
+      <class name="com.evolveum.midpoint.repo.test.RepositoryGenericObjectTest"/>
+      <class name="com.evolveum.midpoint.repo.test.RepositoryTest"/>
+      <class name="com.evolveum.midpoint.repo.test.RepositorySearchTest"/>
+      <class name="com.evolveum.midpoint.repo.test.RepositoryUserTest"/>
+      <class name="com.evolveum.midpoint.repo.test.RepositoryUserTemplateTest"/>
+      <class name="com.evolveum.midpoint.repo.test.SpringApplicationContextTest"/>
+      <class name="com.evolveum.midpoint.repo.test.RepositoryResourceStateTest"/>
+      <class name="com.evolveum.midpoint.repo.test.RepositoryResourceTest"/>
+    </classes>
+  </test>
+</suite>

@@ -22,25 +22,23 @@
 
 package com.evolveum.midpoint.repo.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.Assert;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
@@ -71,10 +69,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  * @author Igor Farinic
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
 		"classpath:application-context-repository-test.xml" })
-public class RepositoryUserTest {
+public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 
 	private static final String PIRACY_NS = "http://midpoint.evolveum.com/xml/ns/samples/piracy";
 	private static final QName PIRACY_SHIP = new QName(PIRACY_NS,"ship");
@@ -102,11 +99,11 @@ public class RepositoryUserTest {
 	public static void tearDownClass() throws Exception {
 	}
 
-	@Before
+	@BeforeMethod
 	public void setUp() {
 	}
 
-	@After
+	@AfterMethod
 	public void tearDown() {
 	}
 
@@ -187,7 +184,7 @@ public class RepositoryUserTest {
 			repositoryService.deleteObject(oid, new OperationResult("test"));
 			try {
 				repositoryService.getObject(oid, new PropertyReferenceListType(), new OperationResult("test"));
-				fail("Object with oid " + oid + " was not deleted");
+				Assert.fail("Object with oid " + oid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
 			}		

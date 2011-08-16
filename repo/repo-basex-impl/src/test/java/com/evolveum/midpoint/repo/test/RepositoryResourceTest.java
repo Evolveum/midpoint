@@ -22,24 +22,22 @@
 
 package com.evolveum.midpoint.repo.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.Assert;
 import java.io.File;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
@@ -50,25 +48,20 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.ObjectNotFoundFaultType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
  * @author Igor Farinic
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
 		"classpath:application-context-repository-test.xml" })
-public class RepositoryResourceTest {
+public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 
 	org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RepositoryResourceTest.class);
 
@@ -94,12 +87,12 @@ public class RepositoryResourceTest {
 	public static void tearDownClass() throws Exception {
 	}
 
-	@Before
+	@BeforeMethod
 	public void setUp() {
 
 	}
 
-	@After
+	@AfterMethod
 	public void tearDown() {
 	}
 
@@ -119,7 +112,7 @@ public class RepositoryResourceTest {
 			}
 		} else if ((object.getExtension() != null && retrievedObject.getExtension() == null)
 				|| (object.getExtension() == null && retrievedObject.getExtension() != null)) {
-			fail("Extension section is null for one object but not null for other object");
+			Assert.fail("Extension section is null for one object but not null for other object");
 		}
 	}
 
@@ -158,7 +151,7 @@ public class RepositoryResourceTest {
 			repositoryService.deleteObject(resourceOid, new OperationResult("test"));
 			try {
 				repositoryService.getObject(resourceOid, new PropertyReferenceListType(), new OperationResult("test"));
-				fail("Object with oid " + resourceOid + " was not deleted");
+				Assert.fail("Object with oid " + resourceOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
 			}

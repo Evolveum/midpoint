@@ -22,22 +22,19 @@
 
 package com.evolveum.midpoint.repo.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.Assert;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -54,7 +51,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
  *
  * @author Igor Farinic
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"../../../../../application-context-repository.xml", "classpath:application-context-repository-test.xml"})
 public class RepositoryUserTemplateTest {
 
@@ -80,12 +76,12 @@ public class RepositoryUserTemplateTest {
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
-    public void setUp() {
+    @BeforeMethod
+	public void setUp() {
     }
 
-    @After
-    public void tearDown() {
+    @AfterMethod
+	public void tearDown() {
     }
 
     @Test
@@ -110,7 +106,7 @@ public class RepositoryUserTemplateTest {
 			repositoryService.deleteObject(userTemplateOid, new OperationResult("test"));
 			try {
 				repositoryService.getObject(userTemplateOid, new PropertyReferenceListType(), new OperationResult("test"));
-				fail("Object with oid " + userTemplateOid + " was not deleted");
+				Assert.fail("Object with oid " + userTemplateOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
 			}

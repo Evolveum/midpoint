@@ -22,23 +22,21 @@
 
 package com.evolveum.midpoint.repo.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.ExpectedException;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -55,10 +53,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  * @author Igor Farinic
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
 		"classpath:application-context-repository-test.xml" })
-public class RepositoryTest {
+public class RepositoryTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
@@ -79,16 +76,15 @@ public class RepositoryTest {
 	public static void tearDownClass() throws Exception {
 	}
 
-	@Before
+	@BeforeMethod
 	public void setUp() {
 	}
 
-	@After
+	@AfterMethod
 	public void tearDown() {
 	}
 
-	@Test
-	@ExpectedException(value=ObjectAlreadyExistsException.class)
+	@Test(expectedExceptions = ObjectAlreadyExistsException.class)
 	public void addObjectThatAlreadyExists() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111111";
 		try {
@@ -110,8 +106,7 @@ public class RepositoryTest {
 
 	}
 
-	@Test
-	@ExpectedException(value=ObjectAlreadyExistsException.class)
+	@Test(expectedExceptions = ObjectAlreadyExistsException.class)
 	public void addObjectWithTheSameName() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111111";
 		try {
@@ -135,8 +130,7 @@ public class RepositoryTest {
 	}
 
 	
-	@Test
-	@ExpectedException(value=ObjectNotFoundException.class)
+	@Test(expectedExceptions = ObjectNotFoundException.class)
 	public void getNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		//try to get not existing object, exception is expected
@@ -151,8 +145,7 @@ public class RepositoryTest {
 		assertEquals(0, retrievedList.getCount().intValue());
 	}	
 
-	@Test
-	@ExpectedException(value=ObjectNotFoundException.class)
+	@Test(expectedExceptions = ObjectNotFoundException.class)
 	public void modifyNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		ObjectModificationType objModifications = new ObjectModificationType();
@@ -163,8 +156,7 @@ public class RepositoryTest {
 		repositoryService.modifyObject(objModifications, new OperationResult("test"));
 	}
 	
-	@Test
-	@ExpectedException(value=ObjectNotFoundException.class)
+	@Test(expectedExceptions = ObjectNotFoundException.class)
 	public void deleteNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		//try to delete not existing object, exception is expected

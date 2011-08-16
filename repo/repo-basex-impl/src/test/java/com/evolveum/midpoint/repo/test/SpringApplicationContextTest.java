@@ -22,17 +22,15 @@
 
 package com.evolveum.midpoint.repo.test;
 
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
@@ -42,9 +40,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
  * @author Igor Farinic
 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = {"../../../../../application-context-repository.xml", "classpath:application-context-repository-test.xml"})
-public class SpringApplicationContextTest {
+public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests {
 
     @Autowired(required=true)
     private RepositoryService repositoryService;
@@ -60,12 +57,12 @@ public class SpringApplicationContextTest {
     public static void tearDownClass() throws Exception {
     }
 
-    @Before
-    public void setUp() {
+    @BeforeMethod
+	public void setUp() {
     }
 
-    @After
-    public void tearDown() {
+    @AfterMethod
+	public void tearDown() {
     }
 
     @Test
