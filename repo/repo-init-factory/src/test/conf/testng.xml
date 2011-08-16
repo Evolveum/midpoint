@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suite name="Suite" parallel="false">
+  <test name="Test">
+    <classes>
+      <class name="com.evolveum.midpoint.init.ConfigurationLoadTest"/>
+    </classes>
+  </test>
+</suite>
