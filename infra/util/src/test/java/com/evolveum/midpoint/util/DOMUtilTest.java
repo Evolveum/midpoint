@@ -20,14 +20,14 @@
  */
 package com.evolveum.midpoint.util;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
+import static org.testng.AssertJUnit.*;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
-import static org.junit.Assert.*;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
-import org.junit.Test;
 
 /**
  * @author Radovan Semancik
@@ -75,13 +75,13 @@ public class DOMUtilTest {
 		String[] split = content.split(":");
 		// Default namespace should not be used unless explicitly matches existing declaration
 		// therefore there should be a prefix
-		assertEquals(2,split.length);
+		AssertJUnit.assertEquals(2,split.length);
 		String prefix = split[0];
 		String localPart = split[1];
-		assertFalse(prefix.isEmpty());
+		AssertJUnit.assertFalse(prefix.isEmpty());
 		String namespaceURI = e.lookupNamespaceURI(prefix);
-		assertEquals(QNAME_IN_NS, namespaceURI);
-		assertEquals(QNAME_IN_LOCAL, localPart);
+		AssertJUnit.assertEquals(QNAME_IN_NS, namespaceURI);
+		AssertJUnit.assertEquals(QNAME_IN_LOCAL, localPart);
 		
 		// WHEN
 		
@@ -89,7 +89,7 @@ public class DOMUtilTest {
 		
 		// THEN
 		
-		assertEquals(in, out);
+		AssertJUnit.assertEquals(in, out);
 	}
 	
 	@Test
@@ -120,8 +120,8 @@ public class DOMUtilTest {
 		
 		String content = e.getTextContent();
 		// Default namespace should be reused
-		assertFalse(content.contains(":"));
-		assertEquals(QNAME_IN_LOCAL, content);		
+		AssertJUnit.assertFalse(content.contains(":"));
+		AssertJUnit.assertEquals(QNAME_IN_LOCAL, content);		
 	}
 	
 	@Test
@@ -136,9 +136,9 @@ public class DOMUtilTest {
 		
 		// THEN
 		assertNotNull(xsiType);
-		assertTrue(XSD_INTEGER.equals(xsiType));
+		AssertJUnit.assertTrue(XSD_INTEGER.equals(xsiType));
 		
-		assertTrue("Failed to detect xsi:type",DOMUtil.hasXsiType(el1));
+		AssertJUnit.assertTrue("Failed to detect xsi:type",DOMUtil.hasXsiType(el1));
 		
 	}
 

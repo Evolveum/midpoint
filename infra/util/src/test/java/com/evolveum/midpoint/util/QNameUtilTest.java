@@ -22,10 +22,10 @@
 
 package com.evolveum.midpoint.util;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.evolveum.midpoint.util.QNameUtil;
 import javax.xml.namespace.QName;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -48,7 +48,7 @@ public class QNameUtilTest {
 
         // Then
 
-        assertEquals(new QName("http://foo.com/bar","baz"), qname);
+        AssertJUnit.assertEquals(new QName("http://foo.com/bar","baz"), qname);
     }
 
     @Test
@@ -63,7 +63,7 @@ public class QNameUtilTest {
 
         // Then
 
-        assertEquals(new QName("http://foo.com/bar/","baz"), qname);
+        AssertJUnit.assertEquals(new QName("http://foo.com/bar/","baz"), qname);
     }
 
     @Test
@@ -78,7 +78,7 @@ public class QNameUtilTest {
 
         // Then
 
-        assertEquals("http://foo.com/bar#baz", uri);
+        AssertJUnit.assertEquals("http://foo.com/bar#baz", uri);
 
     }
 
@@ -94,7 +94,7 @@ public class QNameUtilTest {
 
         // Then
 
-        assertEquals("http://foo.com/bar/baz", uri);
+        AssertJUnit.assertEquals("http://foo.com/bar/baz", uri);
 
     }
 
@@ -110,7 +110,7 @@ public class QNameUtilTest {
 
         // Then
 
-        assertEquals("http://foo.com/bar#baz", uri);
+        AssertJUnit.assertEquals("http://foo.com/bar#baz", uri);
 
     }
 

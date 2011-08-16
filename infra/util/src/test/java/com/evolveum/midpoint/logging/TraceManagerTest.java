@@ -22,9 +22,10 @@
 
 package com.evolveum.midpoint.logging;
 
+import org.testng.annotations.Test;
 import com.evolveum.midpoint.api.logging.Trace;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.testng.AssertJUnit.*;
+
 
 /**
  *
