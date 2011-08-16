@@ -564,34 +564,25 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
-			OperationResult result) {
+	public ObjectListType listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
+			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-		Validate.notNull(objectType, "Object type must not be null.");
+		Validate.notNull(objectClass, "Object type must not be null.");
 		Validate.notNull(paging, "Paging must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
 		LOGGER.debug(
 				"Listing resource objects {} from resource, oid {}, from {} to {} ordered {} by {}.",
-				new Object[] { objectType, resourceOid, paging.getOffset(), paging.getMaxSize(),
+				new Object[] { objectClass, resourceOid, paging.getOffset(), paging.getMaxSize(),
 						paging.getOrderDirection(), paging.getOrderDirection() });
 
 		OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECTS);
 		addResultParams(subResult, new String[] { "resourceOid", "objectType", "paging" }, resourceOid,
-				objectType, paging);
+				objectClass, paging);
 
 		ObjectListType list = null;
-		try {
-			list = provisioning.listResourceObjects(resourceOid, objectType, paging, subResult);
-			subResult.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't list resource objects of type {} for resource "
-					+ "with oid {}", ex, objectType, resourceOid);
-			subResult.recordFatalError("Couldn't list resource objects of type '" + objectType
-					+ "' for resource, oid '" + resourceOid + "'.", ex);
-		} finally {
-			LOGGER.debug(subResult.dump());
-		}
+		list = provisioning.listResourceObjects(resourceOid, objectClass, paging, subResult);
+		subResult.recordSuccess();
 
 		if (list == null) {
 			list = new ObjectListType();

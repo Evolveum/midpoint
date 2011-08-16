@@ -39,7 +39,6 @@ import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationalResultType;
 
 /**
  * The task hander for a live synchronization.

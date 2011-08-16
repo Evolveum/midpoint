@@ -28,8 +28,10 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
@@ -93,8 +95,8 @@ public interface ModelService {
 	<T extends ResourceObjectShadowType> List<T> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException;
 
-	ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
-			OperationResult result);
+	ObjectListType listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
+			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException;
 
 	/**
 	 * This returns OperationResult instead of taking it as in/out argument.

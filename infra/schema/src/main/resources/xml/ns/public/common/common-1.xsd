@@ -1480,6 +1480,50 @@
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
+	
+	<xsd:complexType name="ImportOptionsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				The options for import tasks. It specifies optional settings for import such as "overwrite" and "stop on error".
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="overwrite" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to a true value it will cause that objects that are already in the repository will be
+						overwritten by the imported objects.
+						It may not be applicable to all import types. E.g. it makes no sense for import from resource, as this
+						is not storing objects in the repository directly.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="stopAfterErrors" type="xsd:integer" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Number of errors that will cause import to stop. If set to one the import will stop on first error.
+						If set to zero or negative value the import will not stop on any error. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="summarizeSucceses" type="xsd:boolean" minOccurs="0" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true the successfuly imported items will be summarized in the result.
+						WARNING: setting this to false may result in a very large result structure and may cause overflow of
+						the system memory.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="summarizeErrors" type="xsd:boolean" minOccurs="0" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true the importe errors will be summarized in the result.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 
 	<xsd:complexType name="TaskType">
 		<xsd:annotation>
@@ -5890,44 +5934,6 @@
 	<!-- OPERATIONAL SCHEMA -->
 
 	<!-- The following clauses belong to the operation support. -->
-	<xsd:complexType name="OperationalResultType">
-		<xsd:annotation>
-			<xsd:documentation>
-				DEPRECATED
-
-				This object is and INOUT part of every operation.
-
-				@WebParam(name = "result", mode =
-				WebParam.Mode.INOUT,
-				partName =
-				"result")
-
-				It
-				collects all custom operation result that not
-				part of the
-				actual
-				operation but usefull
-				in some case.
-				It
-				can trace and collect
-				information from all operation call
-				but then this object
-				gets big and
-				heavy so consider it
-				when you intend
-				to use it.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" base="tns:ObjectReferenceType">
-				<xsd:sequence>
-					<xsd:element ref="tns:extension"/>
-					<xsd:element ref="tns:operationalResult" minOccurs="0" maxOccurs="unbounded"/>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-	<xsd:element name="operationalResult" type="tns:OperationalResultType"/>
 
 	<!-- TODO - check -->
 
@@ -6060,6 +6066,7 @@
 	</xsd:complexType>
 
 	<!-- End of TODO -->
+	
 	<xsd:element name="operationResult" type="tns:OperationResultType"/>
 
 	<xsd:complexType name="OperationResultType">
@@ -6145,6 +6152,13 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="FATAL_ERROR"/>
+					</xsd:appinfo>
+				</xsd:annotation>
+			</xsd:enumeration>
+			<xsd:enumeration value="not_applicable">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<jaxb:typesafeEnumMember name="NOT_APPLICABLE"/>
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>

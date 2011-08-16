@@ -409,8 +409,30 @@ public interface ProvisioningService {
 	 */
 	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult);
 	
-	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
-			OperationResult parentResult);
+	/**
+	 * Lists resource objects.
+	 * 
+	 * This method differs from other method in this interface as it works with resource objects directly.
+	 * It returns resource objects in a form of "detached shadow", that means fully-populated shadow objects
+	 * with no OID. The results of this method may not be stored in the repository.
+	 * 
+	 * The purpose of this method is to work directly with the resource without the potential problems of
+	 * provisioning implementation. E.g. it may be used to test resource connectivity or correctness of resource
+	 * setup. It may also be used to reach object types that are not directly supported as "shadows" by the provisioning
+	 * implementation.
+	 * 
+	 * @param resourceOid OID of the resource to fetch objects from
+	 * @param objectClass Object class of the objects to fetch
+	 * @param paging paging specification to limit operation result (optional)
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * @return resource objects in a form of "detached shadows"
+	 * @throws ObjectNotFoundException specified resource object does not exist
+	 * @throws SchemaException error handling resource schema
+	 * @throws CommunicationException 
+	 */
+	public ObjectListType listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException;
 	
 	/**
 	 * Finish initialization of provisioning system.

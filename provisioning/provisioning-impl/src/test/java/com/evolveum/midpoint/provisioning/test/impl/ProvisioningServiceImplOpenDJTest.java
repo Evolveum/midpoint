@@ -125,6 +125,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private static final String ACCOUNT_SEARCH_OID = "c0c010c0-d34d-b44f-f11d-333222777777";
 	private static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+	private static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"AccountObjectClass");
 
 	protected static OpenDJUtil djUtil = new OpenDJUtil();
 	private JAXBContext jaxbctx;
@@ -276,8 +277,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		displayTestTile("test003Connection");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test003Connection");
-		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
-		ResourceType resourceBefore = (ResourceType)object;
+		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
 		assertTrue("Found schema before test connection. Bad test setup?",xmlSchemaTypeBefore.getAny().isEmpty());
 		
@@ -286,13 +286,27 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		display("Test connection result",operationResult);
 		assertSuccess("Test connection failed",operationResult);
 
-		object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
-		ResourceType resourceAfter = (ResourceType)object;
+		ResourceType resourceAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
 		XmlSchemaType xmlSchemaTypeAfter = resourceAfter.getSchema();
 		assertNotNull("No schema after test connection",xmlSchemaTypeAfter);
 		assertFalse("No schema after test connection",xmlSchemaTypeAfter.getAny().isEmpty());
 
 		display("Generated schema",xmlSchemaTypeBefore.getAny());
+		
+		// TODO: try to parse the schema
+	}
+	
+	@Test
+	public void test004ListResourceObjects() throws SchemaException, ObjectNotFoundException, CommunicationException {
+		displayTestTile("test004ListResourceObjects");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test004ListResourceObjects");
+		// WHEN
+		ObjectListType objectList = provisioningService.listResourceObjects(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
+		// THEN
+		assertNotNull(objectList);
+		assertFalse("Empty list returned",objectList.getObject().isEmpty());
+		display("Resource object list "+RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS,objectList.getObject());
 	}
 
 	@Test

@@ -311,30 +311,59 @@ public class ShadowCache {
 					+ connector + ": " + ex.getMessage(), ex);
 		}
 
+		// Complete the shadow by adding attributes from the resource object
+		ResourceObjectShadowType resultShadow = assembleShadow(ro,repositoryShadow, parentResult);
+		
+		LOGGER.debug("Fresh object from ucf {}",
+				JAXBUtil.silentMarshalWrap(resultShadow));
+
+		parentResult.recordSuccess();
+		return resultShadow;
+	}
+		
+	/**
+	 * Creates a shadow object from the supplied resource object.
+	 * 
+	 * If an optional resourceObject is specified, it will be used as a base for creating the shadow. In this case
+	 * the same instance is returned, but it is enriched with attributes from the resource object.
+	 *  
+	 * @param resourceObject
+	 * @param repositoryShadow
+	 * @return
+	 * @throws SchemaException 
+	 */
+	public ResourceObjectShadowType assembleShadow(ResourceObject resourceObject, ResourceObjectShadowType repositoryShadow, OperationResult parentResult) throws SchemaException {
+		ResourceObjectShadowType resultShadow;
+		Document doc;
+		if (repositoryShadow!=null) {
+			resultShadow = repositoryShadow;
+			Element firstElement = resultShadow.getAttributes().getAny().get(0);
+			doc = firstElement.getOwnerDocument();
+		} else {
+			// TODO: create specific subtypes
+			resultShadow = new ResourceObjectShadowType();
+			Attributes attributes = new Attributes();
+			resultShadow.setAttributes(attributes);
+			doc = DOMUtil.getDocument();
+		}
 		// Let's replace the attribute values fetched from repository with the
 		// ResourceObject content fetched from resource. The resource is more
 		// fresh and the attributes more complete.
 		// TODO: Discovery
-		Element firstElement = repositoryShadow.getAttributes().getAny().get(0);
-		Document doc = firstElement.getOwnerDocument();
 		// TODO: Optimize the use of XML namespaces
 		List<Element> xmlAttributes;
 		try {
-			xmlAttributes = ro.serializePropertiesToDom(doc);
+			xmlAttributes = resourceObject.serializePropertiesToDom(doc);
 
 		} catch (SchemaProcessorException ex) {
 			parentResult.recordFatalError(
 					"Schema error. Reason: " + ex.getMessage(), ex);
 			throw new SchemaException("Schema error: " + ex.getMessage(), ex);
 		}
-		repositoryShadow.getAttributes().getAny().clear();
-		repositoryShadow.getAttributes().getAny().addAll(xmlAttributes);
-
-		LOGGER.debug("Fresh object from ucf {}",
-				JAXBUtil.silentMarshalWrap(repositoryShadow));
-
-		parentResult.recordSuccess();
-		return repositoryShadow;
+		resultShadow.getAttributes().getAny().clear();
+		resultShadow.getAttributes().getAny().addAll(xmlAttributes);
+		
+		return resultShadow;
 	}
 
 	/**
@@ -355,8 +384,6 @@ public class ShadowCache {
 	 * Not used now. Will be used in import. Only provided for demonstration how
 	 * to map ResourceObject to shadow.
 	 * 
-	 * !!! NOT TESTED !!!
-	 * 
 	 * @param resource
 	 * @param objectClass
 	 * @param handler
@@ -365,8 +392,8 @@ public class ShadowCache {
 	 * @throws ObjectNotFoundException
 	 *             the connector object was not found
 	 */
-	public void listShadows(ResourceType resource, QName objectClass,
-			final ShadowHandler handler, final OperationResult parentResult)
+	public void listShadows(final ResourceType resource, final QName objectClass,
+			final ShadowHandler handler, final boolean readFromRepository, final OperationResult parentResult)
 			throws CommunicationException, ObjectNotFoundException,
 			SchemaException {
 
@@ -415,16 +442,28 @@ public class ShadowCache {
 			public boolean handle(ResourceObject object) {
 
 				ResourceObjectShadowType shadow;
-				try {
-					shadow = lookupShadow(object, parentResult);
-				} catch (SchemaProcessorException e) {
-					// TODO: better error handling
-					// TODO log it?
-					return false;
-				} catch (SchemaException e) {
-					// TODO: better error handling
-					// TODO log it?
-					return false;
+				if (readFromRepository) {
+					// Attached shadow (with OID)
+					try {
+						shadow = lookupShadow(object, parentResult);
+					} catch (SchemaProcessorException e) {
+						// TODO: better error handling
+						LOGGER.error("Schema processor exception in resource object search on {} for {}: {}",new Object[]{ObjectTypeUtil.toShortString(resource),objectClass,e.getMessage(),e});
+						return false;
+					} catch (SchemaException e) {
+						// TODO: better error handling
+						LOGGER.error("Schema exception in resource object search on {} for {}: {}",new Object[]{ObjectTypeUtil.toShortString(resource),objectClass,e.getMessage(),e});
+						return false;
+					}
+				} else {
+					// Detached shadow (without OID)
+					try {
+						shadow = assembleShadow(object, null, parentResult);
+					} catch (SchemaException e) {
+						// TODO: better error handling
+						LOGGER.error("Schema exception in resource object search on {} for {}: {}",new Object[]{ObjectTypeUtil.toShortString(resource),objectClass,e.getMessage(),e});
+						return false;
+					}
 				}
 
 				// TODO: if shadow does not exists, create it now

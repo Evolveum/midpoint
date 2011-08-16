@@ -642,9 +642,50 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public ObjectListType listResourceObjects(String resourceOid,
-			QName objectType, PagingType paging, OperationResult parentResult) {
-		// TODO Auto-generated method stub
-		throw new NotImplementedException();
+			QName objectClass, PagingType paging, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException {
+		
+		final OperationResult result = parentResult
+		.createSubresult(ProvisioningService.class.getName() + ".listResourceObjects");
+		result.addParam("resourceOid", resourceOid);
+		result.addParam("objectClass", objectClass);
+		result.addParam("paging", paging);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		if (resourceOid == null) {
+			throw new IllegalArgumentException(
+					"Resource not defined in a search query");
+		}
+		if (objectClass == null) {
+			throw new IllegalArgumentException(
+					"Objectclass not defined in a search query");
+		}
+		
+		ResourceType resource = null;
+		try {
+			resource = getRepositoryService().getObject(ResourceType.class,
+					resourceOid, new PropertyReferenceListType(), result);
+
+		} catch (ObjectNotFoundException e) {
+			result.recordFatalError("Resource with oid " + resourceOid
+					+ "not found. Reason: " + e);
+			throw new ObjectNotFoundException(e.getMessage(), e);
+		}
+		
+		final ObjectListType objectList = new ObjectListType();
+
+		final ShadowHandler shadowHandler = new ShadowHandler() {
+
+			@Override
+			public boolean handle(ResourceObjectShadowType shadow) {
+				LOGGER.debug("Found shadow: {}", DebugUtil.prettyPrint(shadow));
+				objectList.getObject().add(shadow);
+				return true;
+			}
+		};
+		
+		shadowCache.listShadows(resource, objectClass, shadowHandler, false, result);
+		
+		return objectList;
 	}
 
 	@Override
@@ -731,7 +772,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ResourceType resource = null;
 		try {
-			resource = (ResourceType) getRepositoryService().getObject(
+			resource = getRepositoryService().getObject(ResourceType.class,
 					resourceOid, new PropertyReferenceListType(), result);
 
 		} catch (ObjectNotFoundException e) {

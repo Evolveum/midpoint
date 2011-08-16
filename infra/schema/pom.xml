@@ -172,14 +172,6 @@
 										<extraarg>-xjc-Xts</extraarg>
 									</extraargs>
 								</wsdlOption>
-								<wsdlOption>
-									<wsdl>src/main/resources/xml/ns/private/model/passwordWrapper.wsdl</wsdl>
-									<extraargs>
-										<extraarg>-impl</extraarg>
-										<extraarg>-verbose</extraarg>
-										<extraarg>-xjc-Xts</extraarg>
-									</extraargs>
-								</wsdlOption>
 							</wsdlOptions>
 						</configuration>
 						<goals>
