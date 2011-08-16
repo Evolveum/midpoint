@@ -96,15 +96,16 @@
 			<version>${commons.io.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
-		</dependency>
-		<dependency>
 			<groupId>com.sleepycat</groupId>
 			<artifactId>je</artifactId>
 			<version>4.1.10</version>
-			<type>jar</type>
+		</dependency>
+		<!--  Testing dependecies  -->
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>6.1.1</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

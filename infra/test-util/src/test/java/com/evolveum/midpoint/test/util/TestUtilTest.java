@@ -22,9 +22,9 @@
 
 package com.evolveum.midpoint.test.util;
 
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
-import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  *
@@ -39,19 +39,19 @@ public class TestUtilTest {
     @Test
     public void testGetSampleObject() {
         ExtensibleObjectType result = TestUtil.getSampleObject(SampleObjects.RESOURCETYPE_LOCALHOST_OPENDJ);
-        assertNotNull(result);
+        AssertJUnit.assertNotNull(result);
         result = null;
         result = TestUtil.getSampleObject(SampleObjects.RESOURCEACCESSCONFIGURATIONTYPE_IDENTITY_CONNECTOR_INTEGRATION);
-        assertNotNull(result);
+        AssertJUnit.assertNotNull(result);
         result = null;
         result = TestUtil.getSampleObject(SampleObjects.ACCOUNTSHADOWTYPE_OPENDJ_JBOND);
-        assertNotNull(result);
+        AssertJUnit.assertNotNull(result);
         result = null;
         result = TestUtil.getSampleObject(SampleObjects.RESOURCETYPE_FLATFILE);
-        assertNotNull(result);
+        AssertJUnit.assertNotNull(result);
         result = null;
         result = TestUtil.getSampleObject(SampleObjects.RESOURCETYPE_LOCALHOST_DATABASETABLE);
-        assertNotNull(result);
+        AssertJUnit.assertNotNull(result);
     }
 
 }
