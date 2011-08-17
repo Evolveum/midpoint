@@ -24,9 +24,10 @@ package com.evolveum.midpoint.schema.test;
 
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
+
+import com.evolveum.midpoint.schema.holder.ExpressionHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
-import com.evolveum.midpoint.xml.schema.ExpressionHolder;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

@@ -61,7 +61,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.sun.xml.xsom.XSAnnotation;
 import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSContentType;

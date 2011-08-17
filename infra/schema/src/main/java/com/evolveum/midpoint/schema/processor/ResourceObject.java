@@ -26,7 +26,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**
  * Resource Object.

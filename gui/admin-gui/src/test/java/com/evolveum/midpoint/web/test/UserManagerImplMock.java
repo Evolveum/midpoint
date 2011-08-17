@@ -32,7 +32,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.schema.xpath.XPathHolder;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;

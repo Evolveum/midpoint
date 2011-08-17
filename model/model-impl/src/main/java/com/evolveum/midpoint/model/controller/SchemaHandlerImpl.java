@@ -51,14 +51,17 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.model.expr.ExpressionHandlerImpl;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.ExpressionHolder;
+import com.evolveum.midpoint.schema.holder.ValueAssignmentHolder;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.xpath.XPathSegment;
-import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -78,9 +81,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType.Value;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.VariableDefinitionType;
-import com.evolveum.midpoint.xml.schema.ExpressionHolder;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.ValueAssignmentHolder;
 
 /**
  * 

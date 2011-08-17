@@ -24,12 +24,12 @@ package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.schema.xpath.XPathSegment;
-import com.evolveum.midpoint.schema.xpath.XPathHolder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.ExpressionHolder;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.util.MapXPathVariableResolver;
 import com.evolveum.midpoint.util.Variable;
-import com.evolveum.midpoint.xml.schema.ExpressionHolder;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xpath.MidPointNamespaceContext;
 import com.evolveum.midpoint.xpath.MidPointXPathFunctionResolver;
 import com.evolveum.midpoint.xpath.functions.CapitalizeFunction;

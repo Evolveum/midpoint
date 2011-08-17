@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema;
+package com.evolveum.midpoint.schema.constants;
 
 import javax.xml.namespace.QName;
 
@@ -35,7 +35,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationT
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 

@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.xml.schema;
+package com.evolveum.midpoint.schema.constants;
 
 //import com.evolveum.midpoint.api.logging.Trace;
 //import com.evolveum.midpoint.logging.TraceManager;

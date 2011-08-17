@@ -48,8 +48,10 @@ import com.evolveum.midpoint.model.expr.ExpressionException;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
-import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.holder.ExpressionHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
@@ -69,8 +71,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationType.Reaction;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.schema.ExpressionHolder;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 

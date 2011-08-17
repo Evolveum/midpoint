@@ -34,8 +34,8 @@ import org.basex.server.ClientSession;
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 public class XmlRepositoryServiceFactory {
 

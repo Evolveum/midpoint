@@ -25,9 +25,9 @@ package com.evolveum.midpoint.schema.test;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.schema.xpath.TrivialXPathParser;
-import com.evolveum.midpoint.schema.xpath.XPathSegment;
-import com.evolveum.midpoint.schema.xpath.XPathHolder;
+import com.evolveum.midpoint.schema.holder.TrivialXPathParser;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;

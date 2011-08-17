@@ -33,8 +33,8 @@ import org.apache.commons.codec.binary.Base64;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.test.XmlAsserts;
-import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;

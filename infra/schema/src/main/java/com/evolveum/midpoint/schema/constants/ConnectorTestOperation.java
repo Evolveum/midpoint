@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.schema;
+package com.evolveum.midpoint.schema.constants;
 
 /**
  * 

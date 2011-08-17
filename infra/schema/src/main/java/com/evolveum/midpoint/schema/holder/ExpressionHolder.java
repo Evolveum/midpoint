@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.xml.schema;
+package com.evolveum.midpoint.schema.holder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,7 +30,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.schema.xpath.TrivialXPathParser;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**
  *

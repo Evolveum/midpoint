@@ -23,7 +23,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**
  * 

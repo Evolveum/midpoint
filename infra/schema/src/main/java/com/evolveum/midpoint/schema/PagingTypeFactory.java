@@ -22,11 +22,11 @@ package com.evolveum.midpoint.schema;
 
 import org.apache.commons.lang.StringUtils;
 
-import com.evolveum.midpoint.schema.xpath.XPathHolder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 

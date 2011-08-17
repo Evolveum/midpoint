@@ -28,9 +28,9 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.TypedValue;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * @author Radovan Semancik

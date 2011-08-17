@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.schema.xpath;
+package com.evolveum.midpoint.schema.holder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,8 +41,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  *

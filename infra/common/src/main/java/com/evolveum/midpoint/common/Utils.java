@@ -35,14 +35,14 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.schema.xpath.XPathSegment;
-import com.evolveum.midpoint.schema.xpath.XPathHolder;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.util.constants.MidPointConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * 
@@ -176,7 +176,7 @@ public class Utils {
 
 	public static PropertyReferenceType fillPropertyReference(String resolve) {
 		PropertyReferenceType property = new PropertyReferenceType();
-		com.evolveum.midpoint.schema.xpath.XPathHolder xpath = new com.evolveum.midpoint.schema.xpath.XPathHolder(
+		com.evolveum.midpoint.schema.holder.XPathHolder xpath = new com.evolveum.midpoint.schema.holder.XPathHolder(
 				Utils.getPropertyName(resolve));
 		property.setProperty(xpath.toElement(SchemaConstants.NS_C, "property"));
 		return property;

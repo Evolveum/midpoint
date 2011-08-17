@@ -58,7 +58,7 @@ import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.sun.xml.xsom.XSParticle;
 
 /**

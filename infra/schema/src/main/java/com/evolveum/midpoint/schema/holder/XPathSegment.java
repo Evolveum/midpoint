@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.schema.xpath;
+package com.evolveum.midpoint.schema.holder;
 
 import javax.xml.namespace.QName;
 

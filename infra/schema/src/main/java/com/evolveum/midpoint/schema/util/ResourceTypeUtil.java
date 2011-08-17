@@ -21,12 +21,12 @@ package com.evolveum.midpoint.schema.util;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there

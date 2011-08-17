@@ -22,9 +22,9 @@ package com.evolveum.midpoint.model.expr;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.schema.holder.ExpressionHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.schema.ExpressionHolder;
 
 /**
  * 
