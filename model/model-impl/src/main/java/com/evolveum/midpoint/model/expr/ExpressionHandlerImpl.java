@@ -33,8 +33,8 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.xpath.XPathUtil;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.ExpressionHolder;

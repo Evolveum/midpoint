@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.validator;
+package com.evolveum.midpoint.common.validator;
 
 import java.io.File;
 import java.io.FileInputStream;

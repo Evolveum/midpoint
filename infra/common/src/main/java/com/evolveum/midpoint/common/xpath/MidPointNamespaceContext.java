@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.xpath;
+package com.evolveum.midpoint.common.xpath;
 
 import java.util.HashMap;
 import java.util.Iterator;

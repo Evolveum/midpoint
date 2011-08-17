@@ -43,9 +43,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.DebugUtil;
-import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.XmlUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.xpath.XPathUtil;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.model.expr.ExpressionHandlerImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;

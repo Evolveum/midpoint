@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.common;
+package com.evolveum.midpoint.common.xpath;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.ExpressionHolder;
@@ -32,7 +32,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.xpath.MidPointXPathFunctionResolver;
 import com.evolveum.midpoint.util.xpath.functions.CapitalizeFunction;
-import com.evolveum.midpoint.xpath.MidPointNamespaceContext;
 import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;

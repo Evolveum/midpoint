@@ -36,8 +36,8 @@ import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.xpath.XPathUtil;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;

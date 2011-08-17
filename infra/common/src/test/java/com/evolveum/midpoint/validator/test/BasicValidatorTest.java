@@ -24,9 +24,10 @@ package com.evolveum.midpoint.validator.test;
 
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
-import com.evolveum.midpoint.validator.ObjectHandler;
-import com.evolveum.midpoint.validator.ValidationMessage;
-import com.evolveum.midpoint.validator.Validator;
+
+import com.evolveum.midpoint.common.validator.ObjectHandler;
+import com.evolveum.midpoint.common.validator.ValidationMessage;
+import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import java.io.File;
 import java.io.FileInputStream;
