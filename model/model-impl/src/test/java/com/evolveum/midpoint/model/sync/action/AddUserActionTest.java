@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.model.sync.action;
 
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -32,9 +34,6 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -64,7 +63,6 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author lazyman
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
 public class AddUserActionTest extends BaseActionTest {
@@ -72,7 +70,7 @@ public class AddUserActionTest extends BaseActionTest {
 	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/user");
 	private static final Trace LOGGER = TraceManager.getTrace(AddUserActionTest.class);
 
-	@Before
+	@BeforeMethod
 	public void before() {
 		Mockito.reset(provisioning, repository);
 		before(new AddUserAction());
@@ -115,7 +113,7 @@ public class AddUserActionTest extends BaseActionTest {
 	 * 
 	 * @throws Exception
 	 */
-	@Test(expected = SynchronizationException.class)
+	@Test(expectedExceptions = SynchronizationException.class)
 	@SuppressWarnings("unchecked")
 	public void templateNotFound() throws Exception {
 		setActionParameters();

@@ -22,9 +22,11 @@
 
 package com.evolveum.midpoint.model;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.Assert;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -34,13 +36,11 @@ import java.io.File;
 import javax.xml.bind.JAXBElement;
 import javax.xml.ws.Holder;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -67,10 +67,11 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
  * 
  * @author lazyman
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+
 @ContextConfiguration(locations = { "classpath:application-context-model-unit-test.xml",
-		"classpath:application-context-model.xml", "classpath:application-context-task.xml" })
-public class ModelServiceTest {
+		"classpath:application-context-model.xml", 
+		"classpath:application-context-task.xml" })
+public class ModelServiceTest extends AbstractTestNGSpringContextTests  {
 
 	private static final File TEST_FOLDER_CONTROLLER = new File("./src/test/resources/controller");
 	@Autowired(required = true)
@@ -80,22 +81,22 @@ public class ModelServiceTest {
 	@Autowired(required = true)
 	RepositoryService repositoryService;
 
-	@Before
+	@BeforeMethod
 	public void before() {
 		Mockito.reset(provisioningService, repositoryService);
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void addNullObject() throws FaultMessage {
 		try {
 			modelService.addObject(null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("Add must fail.");
+		Assert.fail("Add must fail.");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	@SuppressWarnings("unchecked")
 	public void addUserWithoutName() throws Exception {
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
@@ -105,10 +106,10 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("add must fail.");
+		Assert.fail("add must fail.");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void testGetNullOid() throws FaultMessage {
 		try {
 			modelService.getObject(null, new PropertyReferenceListType(), new Holder<OperationResultType>(
@@ -116,10 +117,10 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("get must fail");
+		Assert.fail("get must fail");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void testGetEmptyOid() throws FaultMessage {
 		try {
 			modelService.getObject("", new PropertyReferenceListType(), new Holder<OperationResultType>(
@@ -127,30 +128,30 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("get must fail");
+		Assert.fail("get must fail");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void testGetNullOidAndPropertyRef() throws FaultMessage {
 		try {
 			modelService.getObject(null, null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("get must fail");
+		Assert.fail("get must fail");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void testGetNullPropertyRef() throws FaultMessage {
 		try {
 			modelService.getObject("001", null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("get must fail");
+		Assert.fail("get must fail");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void getNonexistingObject() throws FaultMessage, ObjectNotFoundException, SchemaException {
 		try {
 			final String oid = "abababab-abab-abab-abab-000000000001";
@@ -164,40 +165,40 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertObjectNotFoundFault(ex);
 		}
-		fail("get must fail");
+		Assert.fail("get must fail");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void testDeleteNullOid() throws FaultMessage {
 		try {
 			modelService.deleteObject(null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("delete must fail");
+		Assert.fail("delete must fail");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void testDeleteEmptyOid() throws FaultMessage {
 		try {
 			modelService.deleteObject("", null);
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("delete must fail");
+		Assert.fail("delete must fail");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void testDeleteNullResult() throws FaultMessage {
 		try {
 			modelService.deleteObject("1", null);
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("delete must fail");
+		Assert.fail("delete must fail");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void testDeleteNonExisting() throws FaultMessage, ObjectNotFoundException, SchemaException {
 		try {
 			final String oid = "abababab-abab-abab-abab-000000000001";
@@ -210,10 +211,10 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertObjectNotFoundFault(ex);
 		}
-		fail("delete must fail");
+		Assert.fail("delete must fail");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void nullObjectType() throws FaultMessage {
 		try {
 			modelService.listObjects(null, new PagingType(), new Holder<OperationResultType>(
@@ -221,30 +222,30 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("Illegal argument exception was not thrown.");
+		Assert.fail("Illegal argument exception was not thrown.");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void nullObjectTypeAndPaging() throws FaultMessage {
 		try {
 			modelService.listObjects(null, null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("Illegal argument exception was not thrown.");
+		Assert.fail("Illegal argument exception was not thrown.");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void nullPagingList() throws FaultMessage {
 		try {
 			modelService.listObjects("", null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("Illegal argument exception was not thrown.");
+		Assert.fail("Illegal argument exception was not thrown.");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void badPagingList() throws FaultMessage {
 		PagingType paging = new PagingType();
 		paging.setMaxSize(-1);
@@ -256,10 +257,10 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("Illegal argument exception was not thrown.");
+		Assert.fail("Illegal argument exception was not thrown.");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void nullOid() throws FaultMessage {
 		try {
 			modelService.getPropertyAvailableValues(null, new PropertyReferenceListType(),
@@ -267,10 +268,10 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("Illegal argument excetion must be thrown");
+		Assert.fail("Illegal argument excetion must be thrown");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void emptyOid() throws FaultMessage {
 		try {
 			modelService.getPropertyAvailableValues("", new PropertyReferenceListType(),
@@ -278,10 +279,10 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("Illegal argument excetion must be thrown");
+		Assert.fail("Illegal argument excetion must be thrown");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void nullQueryType() throws FaultMessage {
 		try {
 			modelService.searchObjects(null, new PagingType(), new Holder<OperationResultType>(
@@ -289,10 +290,10 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("Illegal argument exception was not thrown.");
+		Assert.fail("Illegal argument exception was not thrown.");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void nullQueryTypeAndPaging() throws FaultMessage {
 		try {
 			modelService
@@ -300,10 +301,10 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("Illegal argument exception was not thrown.");
+		Assert.fail("Illegal argument exception was not thrown.");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void badPagingSearch() throws FaultMessage {
 		PagingType paging = new PagingType();
 		paging.setMaxSize(-1);
@@ -315,10 +316,10 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("Illegal argument exception was not thrown.");
+		Assert.fail("Illegal argument exception was not thrown.");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void nullChangeModify() throws FaultMessage {
 		try {
 			modelService.modifyObject(null, new Holder<OperationResultType>(new OperationResultType()));
@@ -327,7 +328,7 @@ public class ModelServiceTest {
 		}
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void nonExistingUidModify() throws FaultMessage, ObjectNotFoundException, SchemaException {
 		final String oid = "1";
 		ObjectModificationType modification = new ObjectModificationType();
@@ -351,7 +352,7 @@ public class ModelServiceTest {
 		}
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void nullResourceOidListShadows() throws FaultMessage {
 		try {
 			modelService.listResourceObjectShadows(null, "notRelevant", new Holder<OperationResultType>(
@@ -361,7 +362,7 @@ public class ModelServiceTest {
 		}
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void emptyResourceOidListShadows() throws FaultMessage {
 		try {
 			modelService.listResourceObjectShadows(null, "notRelevant", new Holder<OperationResultType>(
@@ -371,7 +372,7 @@ public class ModelServiceTest {
 		}
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void nullShadowTypeListShadows() throws FaultMessage {
 		try {
 			modelService.listResourceObjectShadows("1", null, new Holder<OperationResultType>(
@@ -381,7 +382,7 @@ public class ModelServiceTest {
 		}
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void emptyShadowTypeListShadows() throws FaultMessage {
 		try {
 			modelService.listResourceObjectShadows("1", "", new Holder<OperationResultType>(
@@ -392,7 +393,7 @@ public class ModelServiceTest {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public <T extends ResourceObjectShadowType> void nonexistingResourceOidListResourceShadow() throws FaultMessage, ObjectNotFoundException {
 		final String resourceOid = "abababab-abab-abab-abab-000000000001";
 		when(
@@ -418,7 +419,7 @@ public class ModelServiceTest {
 		assertEquals(0, list.getObject().size());
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void nullAccountOidListAccountShadowOwner() throws FaultMessage {
 		try {
 			modelService.listAccountShadowOwner(null, new Holder<OperationResultType>(
@@ -426,10 +427,10 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("Illegal argument excetion must be thrown");
+		Assert.fail("Illegal argument excetion must be thrown");
 	}
 
-	@Test(expected = FaultMessage.class)
+	@Test(expectedExceptions = FaultMessage.class)
 	public void emptyAccountOidListAccountShadowOwner() throws FaultMessage {
 		try {
 			modelService.listAccountShadowOwner("",
@@ -437,6 +438,6 @@ public class ModelServiceTest {
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
-		fail("Illegal argument excetion must be thrown");
+		Assert.fail("Illegal argument excetion must be thrown");
 	}
 }

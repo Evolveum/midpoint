@@ -20,19 +20,17 @@
  */
 package com.evolveum.midpoint.model.expr;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
+import org.testng.Assert;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -56,10 +54,9 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author lazyman
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
-public class ExpressionHandlerImplTest {
+public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests  {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ExpressionHandlerImplTest.class);
 	private static final File TEST_FOLDER = new File("./src/test/resources");
@@ -68,7 +65,7 @@ public class ExpressionHandlerImplTest {
 	@Autowired
 	private ExpressionHandler expressionHandler;
 
-	@Test(expected = ExpressionException.class)
+	@Test(expectedExceptions = ExpressionException.class)
 	@SuppressWarnings("unchecked")
 	public void testConfirmUserWithoutModel() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
@@ -86,7 +83,7 @@ public class ExpressionHandlerImplTest {
 		OperationResult result = new OperationResult("testConfirmUserWithoutModel");
 		try {
 			expressionHandler.evaluateConfirmationExpression(user, account, expression, result);
-			fail();
+			Assert.fail();
 		} finally {
 			LOGGER.info(result.dump());
 		}

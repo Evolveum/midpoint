@@ -20,8 +20,10 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.Assert;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -33,15 +35,12 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
@@ -66,10 +65,9 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  * @author lazyman
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
-public class ControllerModifyObjectWithExclusionTest {
+public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSpringContextTests  {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/modify");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerModifyObjectWithExclusionTest.class);
@@ -80,29 +78,29 @@ public class ControllerModifyObjectWithExclusionTest {
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
 
-	@Before
+	@BeforeMethod
 	public void before() {
 		Mockito.reset(repository, provisioning);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChange() throws Exception {
 		controller.modifyObjectWithExclusion(null, null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChangeOid() throws Exception {
 		controller.modifyObjectWithExclusion(new ObjectModificationType(), null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyChangeOid() throws Exception {
 		ObjectModificationType change = new ObjectModificationType();
 		change.setOid("");
 		controller.modifyObjectWithExclusion(change, null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
 		ObjectModificationType change = new ObjectModificationType();
 		change.setOid("1");
@@ -183,7 +181,7 @@ public class ControllerModifyObjectWithExclusionTest {
 		}
 
 		if (!foundActivation) {
-			fail("Activation property modification was not found.");
+			Assert.fail("Activation property modification was not found.");
 		}
 	}
 }

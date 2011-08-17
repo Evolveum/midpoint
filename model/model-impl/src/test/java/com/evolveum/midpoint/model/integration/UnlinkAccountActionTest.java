@@ -20,8 +20,9 @@
  */
 package com.evolveum.midpoint.model.integration;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.util.List;
@@ -29,12 +30,10 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -48,10 +47,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-repository-test.xml", "classpath:application-context-provisioning.xml", "classpath:application-context-task.xml" })
-public class UnlinkAccountActionTest {
+public class UnlinkAccountActionTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)
 	private ResourceObjectChangeListener resourceObjectChangeListener;
@@ -83,9 +81,8 @@ public class UnlinkAccountActionTest {
 	// return object;
 	// }
 
-	@Ignore
 	// FIXME: fix test
-	@Test
+	@Test(enabled = false)
 	public void testUnlinkAccountAction() throws Exception {
 
 		final String resourceOid = "45645645-d34d-b33f-f00d-333222111111";

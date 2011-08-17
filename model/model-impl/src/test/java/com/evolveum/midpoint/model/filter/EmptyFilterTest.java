@@ -20,10 +20,9 @@
  */
 package com.evolveum.midpoint.model.filter;
 
-import static org.junit.Assert.assertEquals;
-
-import org.junit.Before;
-import org.junit.Test;
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.model.controller.Filter;
@@ -38,12 +37,12 @@ public class EmptyFilterTest {
 
 	private Filter filter;
 
-	@Before
+	@BeforeMethod
 	public void before() {
 		filter = new EmptyFilter();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullNode() {
 		filter.apply(null);
 	}

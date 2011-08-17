@@ -20,14 +20,13 @@
  */
 package com.evolveum.midpoint.model.filter;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.AssertJUnit;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.model.controller.Filter;
 import com.evolveum.midpoint.util.DOMUtil;
-
-import static org.junit.Assert.*;
 
 /**
  * 
@@ -40,12 +39,12 @@ public class DiacriticsFilterTest {
 	private static final String expected = "ciscelsctzyaieaoaørlacełnoszzruaeiurlkngszcaaadeilnooooorstuzCGIIOSUaaaeeeiiiooouuuaaaceeiooou";
 	private Filter filter;
 
-	@Before
+	@BeforeMethod
 	public void before() {
 		filter = new DiacriticsFilter();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullNode() {
 		filter.apply(null);
 	}
@@ -55,7 +54,7 @@ public class DiacriticsFilterTest {
 		Node testNode = DOMUtil.getDocument().createElement("testTag");
 		testNode.setTextContent(null);
 		Node node = filter.apply(testNode);
-		assertEquals(node, testNode);
+		AssertJUnit.assertEquals(node, testNode);
 	}
 
 	@Test
@@ -63,10 +62,10 @@ public class DiacriticsFilterTest {
 		Node testNode = DOMUtil.getDocument().createElement("testTag");
 		testNode.setTextContent("");
 		Node node = filter.apply(testNode);
-		assertEquals(node, testNode);
+		AssertJUnit.assertEquals(node, testNode);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testValueInBadElementType() {
 		Node testNode = DOMUtil.getDocument().createComment(input);
 		filter.apply(testNode);
@@ -78,7 +77,7 @@ public class DiacriticsFilterTest {
 		testNode.setTextContent(input);
 		Node node = filter.apply(testNode);
 
-		assertEquals(expected, node.getTextContent());
+		AssertJUnit.assertEquals(expected, node.getTextContent());
 	}
 
 	@Test
@@ -86,6 +85,6 @@ public class DiacriticsFilterTest {
 		Node testNode = DOMUtil.getDocument().createTextNode(input);
 		Node node = filter.apply(testNode);
 
-		assertEquals(expected, node.getNodeValue());
+		AssertJUnit.assertEquals(expected, node.getNodeValue());
 	}
 }

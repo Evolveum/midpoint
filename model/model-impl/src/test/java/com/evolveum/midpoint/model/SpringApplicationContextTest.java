@@ -22,13 +22,11 @@
 
 package com.evolveum.midpoint.model;
 
-import static org.junit.Assert.assertNotNull;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.repo.api.RepositoryService;
 
@@ -38,19 +36,19 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
  * 
  */
 //@RunWith(SpringJUnit4ClassRunner.class)
-//@ContextConfiguration(locations = { 
-//		"classpath:application-context-repository-test.xml",
-//		"classpath:application-context-model.xml",
-//		"classpath:application-context-provisioning.xml",
-//		"classpath:application-context-task.xml" 
-//		})
-public class SpringApplicationContextTest {
+@ContextConfiguration(locations = { 
+		"classpath:application-context-repository-test.xml",
+		"classpath:application-context-model.xml",
+		"classpath:application-context-provisioning.xml",
+		"classpath:application-context-task.xml" 
+		})
+public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests  {
 
-//	@Autowired(required = true)
+	@Autowired(required = true)
 	RepositoryService repositoryService;
 
 	@Test
 	public void initApplicationContext() {
-//		assertNotNull(repositoryService);
+		assertNotNull(repositoryService);
 	}
 }

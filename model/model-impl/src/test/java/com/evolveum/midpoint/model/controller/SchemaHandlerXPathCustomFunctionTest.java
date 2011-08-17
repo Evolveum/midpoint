@@ -22,17 +22,15 @@
 
 package com.evolveum.midpoint.model.controller;
 
-import static org.junit.Assert.assertEquals;
-
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
@@ -49,10 +47,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * @author Igor Farinic
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
-public class SchemaHandlerXPathCustomFunctionTest {
+public class SchemaHandlerXPathCustomFunctionTest extends AbstractTestNGSpringContextTests {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlerXPathCustomFunctionTest.class);
 	@Autowired

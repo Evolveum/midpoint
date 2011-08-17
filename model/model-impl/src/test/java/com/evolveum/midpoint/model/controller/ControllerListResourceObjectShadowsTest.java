@@ -20,9 +20,11 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -32,13 +34,10 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
@@ -57,10 +56,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
  * @author lazyman
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
-public class ControllerListResourceObjectShadowsTest {
+public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSpringContextTests  {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/listObjects");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerListResourceObjectShadowsTest.class);
@@ -71,27 +69,27 @@ public class ControllerListResourceObjectShadowsTest {
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
 
-	@Before
+	@BeforeMethod
 	public void before() {
 		Mockito.reset(repository, provisioning);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResourceOid() throws Exception {
 		controller.listResourceObjectShadows(null, null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyResourceOid() throws Exception {
 		controller.listResourceObjectShadows("", null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullClassType() throws Exception {
 		controller.listResourceObjectShadows("1", null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
 		controller.listResourceObjectShadows("1", AccountShadowType.class, null);
 	}
@@ -123,6 +121,7 @@ public class ControllerListResourceObjectShadowsTest {
 		}
 	}
 
+	@Test(enabled = false)
 	private <T extends ResourceObjectShadowType> void testShadowListType(ResourceObjectShadowListType expected,
 			List<T> returnedList) {
 		List<ResourceObjectShadowType> expectedList = expected.getObject();

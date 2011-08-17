@@ -20,12 +20,13 @@
  */
 package com.evolveum.midpoint.model.sync.action;
 
+import org.testng.annotations.Test;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.model.controller.ModelController;
@@ -44,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
  * @author lazyman
  * 
  */
-public abstract class BaseActionTest {
+public abstract class BaseActionTest extends AbstractTestNGSpringContextTests  {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/sync");
 	protected Action action;
@@ -64,12 +65,12 @@ public abstract class BaseActionTest {
 		base.setSchemaHandler(schemaHandler);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChange() throws Exception {
 		action.executeChanges("1", null, null, null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullSituation() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = null;
 
@@ -77,7 +78,7 @@ public abstract class BaseActionTest {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullShadowAfterChange() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "change-correct.xml"))).getValue();
@@ -87,7 +88,7 @@ public abstract class BaseActionTest {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "change-correct.xml"))).getValue();

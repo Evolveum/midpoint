@@ -20,12 +20,10 @@
  */
 package com.evolveum.midpoint.model.sync;
 
-import org.junit.Test;
-
+import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-
-import static org.junit.Assert.*;
 
 /**
  * 
@@ -38,12 +36,12 @@ public class SynchronizationSituationTest {
 	public void nullUser() {
 		SynchronizationSituation situation = new SynchronizationSituation(null,
 				SynchronizationSituationType.UNMATCHED);
-		assertNotNull(situation);
-		assertNull(situation.getUser());
-		assertEquals(SynchronizationSituationType.UNMATCHED, situation.getSituation());
+		AssertJUnit.assertNotNull(situation);
+		AssertJUnit.assertNull(situation.getUser());
+		AssertJUnit.assertEquals(SynchronizationSituationType.UNMATCHED, situation.getSituation());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullSituation() {
 		new SynchronizationSituation(new UserType(), null);
 	}
@@ -53,8 +51,8 @@ public class SynchronizationSituationTest {
 		UserType user = new UserType();
 		SynchronizationSituation situation = new SynchronizationSituation(user,
 				SynchronizationSituationType.UNMATCHED);
-		assertNotNull(situation);
-		assertEquals(user, situation.getUser());
-		assertEquals(SynchronizationSituationType.UNMATCHED, situation.getSituation());
+		AssertJUnit.assertNotNull(situation);
+		AssertJUnit.assertEquals(user, situation.getUser());
+		AssertJUnit.assertEquals(SynchronizationSituationType.UNMATCHED, situation.getSituation());
 	}
 }

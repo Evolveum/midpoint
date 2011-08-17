@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="unit" parallel="false">
+	<test name="model" preserve-order="false">
+		<classes>
+			<class name="com.evolveum.midpoint.model.controller.ControllerAddObjectTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerAddUserTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerDeleteObjectTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerGetObjectTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerLaunchImportTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerListAccountShadowOwnerTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerListObjectsTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerListResourceObjectShadowsTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerListResourceObjectsTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerModifyObjectTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerModifyObjectWithExclusionTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerSearchObjectsInProvisioningTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerSearchObjectsInRepositoryTest" />
+			<class name="com.evolveum.midpoint.model.controller.ControllerTestResourceTest" />
+			<class name="com.evolveum.midpoint.model.controller.FilterManagerImplTest" />
+			<class name="com.evolveum.midpoint.model.controller.ModelUtilsTest" />
+			<class name="com.evolveum.midpoint.model.controller.SchemaHandlerImplTest" />
+			<class name="com.evolveum.midpoint.model.controller.SchemaHandlerXPath2Test" />
+			<class name="com.evolveum.midpoint.model.controller.SchemaHandlerXPathCustomFunctionTest" />
+			<class name="com.evolveum.midpoint.model.controller.SchemaHandlerUserDefinedVariablesTest" />
+			<class name="com.evolveum.midpoint.model.expr.ExpressionHandlerImplTest" />
+			<class name="com.evolveum.midpoint.model.filter.DiacriticsFilterTest" />
+			<class name="com.evolveum.midpoint.model.filter.EmptyFilterTest" />
+			<class name="com.evolveum.midpoint.model.filter.PatternFilterTest" />
+			<class name="com.evolveum.midpoint.model.importer.ImportRefTest" />
+			<class name="com.evolveum.midpoint.model.importer.ImportTest" />
+			<class name="com.evolveum.midpoint.model.integration.AddUserActionTest" />
+			<class name="com.evolveum.midpoint.model.integration.DeleteAccountActionTest" />
+			<class name="com.evolveum.midpoint.model.integration.LinkAccountActionTest" />
+			<class name="com.evolveum.midpoint.model.integration.ModifyUserActionTest" />
+			<class name="com.evolveum.midpoint.model.integration.UnlinkAccoountActionTest" />
+			<class name="com.evolveum.midpoint.model.sync.action.AddAccountActionTest" />
+			<class name="com.evolveum.midpoint.model.sync.action.AddUserActionTest" />
+			<class name="com.evolveum.midpoint.model.sync.action.BaseActionTest" />
+			<class name="com.evolveum.midpoint.model.sync.action.DeleteAccountActionTest" />
+			<class name="com.evolveum.midpoint.model.sync.action.DeleteUserActionTest" />
+			<class name="com.evolveum.midpoint.model.sync.action.LinkAccountActionTest" />
+			<class name="com.evolveum.midpoint.model.sync.action.ModifyUserActionTest" />
+			<class name="com.evolveum.midpoint.model.sync.action.UnlinkAccountActionTest" />
+			<class name="com.evolveum.midpoint.model.sync.SynchronizationServiceTest" />
+			<class name="com.evolveum.midpoint.model.sync.SynchronizationSituationTest" />
+			<class name="com.evolveum.midpoint.model.sync.ActionManagerImplTest" />
+			<class name="com.evolveum.midpoint.model.ModelServiceTest" />
+			<class name="com.evolveum.midpoint.model.SpringApplicationContextTest" />
+		</classes>
+	</test>
+</suite>

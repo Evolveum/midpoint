@@ -20,39 +20,36 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 /**
  * 
  * @author lazyman
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
-public class FilterManagerImplTest {
+public class FilterManagerImplTest extends AbstractTestNGSpringContextTests  {
 
 	@Autowired(required = true)
 	private FilterManager<? extends Filter> manager;
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void setFilterMappingNull() {
 		manager.setFilterMapping(null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void getFilterInstanceNullUri() {
 		manager.getFilterInstance(null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void getFilterInstanceEmptyUri() {
 		manager.getFilterInstance("");
 	}

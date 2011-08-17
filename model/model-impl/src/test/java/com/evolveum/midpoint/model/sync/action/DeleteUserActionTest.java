@@ -20,16 +20,14 @@
  */
 package com.evolveum.midpoint.model.sync.action;
 
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
@@ -47,7 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
  * @author lazyman
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
 public class DeleteUserActionTest extends BaseActionTest {
@@ -55,22 +52,23 @@ public class DeleteUserActionTest extends BaseActionTest {
 	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/user");
 	private static final Trace LOGGER = TraceManager.getTrace(DeleteUserActionTest.class);
 
-	@Before
+	@BeforeMethod
 	public void before() {
 		Mockito.reset(provisioning, repository);
 		before(new DeleteUserAction());
 	}
 
-	@Test(expected = SynchronizationException.class)
+	@Test(expectedExceptions = SynchronizationException.class)
 	public void nullUserOid() throws Exception {
 		testDeleteUser(null);
 	}
 
-	@Test(expected = SynchronizationException.class)
+	@Test(expectedExceptions = SynchronizationException.class)
 	public void emptyUserOid() throws Exception {
 		testDeleteUser("");
 	}
 
+	@Test(enabled = false)
 	@SuppressWarnings("unchecked")
 	private void testDeleteUser(String userOid) throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
@@ -87,7 +85,7 @@ public class DeleteUserActionTest extends BaseActionTest {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test(expected = SynchronizationException.class)
+	@Test(expectedExceptions = SynchronizationException.class)
 	public void nonExistingUser() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "existing-user-change.xml"))).getValue();

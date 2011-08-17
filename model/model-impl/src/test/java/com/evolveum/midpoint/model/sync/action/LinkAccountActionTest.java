@@ -20,8 +20,10 @@
  */
 package com.evolveum.midpoint.model.sync.action;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -33,14 +35,10 @@ import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
@@ -69,7 +67,6 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author lazyman
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
 public class LinkAccountActionTest extends BaseActionTest {
@@ -77,13 +74,13 @@ public class LinkAccountActionTest extends BaseActionTest {
 	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/account");
 	private static final Trace LOGGER = TraceManager.getTrace(LinkAccountActionTest.class);
 
-	@Before
+	@BeforeMethod
 	public void before() {
 		Mockito.reset(provisioning, repository);
 		before(new LinkAccountAction());
 	}
 
-	@Test(expected = SynchronizationException.class)
+	@Test(expectedExceptions = SynchronizationException.class)
 	@SuppressWarnings("unchecked")
 	public void nonExistingUser() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil

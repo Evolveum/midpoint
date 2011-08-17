@@ -20,8 +20,9 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
@@ -35,15 +36,12 @@ import java.io.File;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
@@ -70,10 +68,9 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
  * @author lazyman
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
-public class ControllerAddObjectTest {
+public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests  {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/addObject");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerAddObjectTest.class);
@@ -84,22 +81,22 @@ public class ControllerAddObjectTest {
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
 
-	@Before
+	@BeforeMethod
 	public void before() {
 		Mockito.reset(provisioning, repository);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullObject() throws Exception {
 		controller.addObject(null, new OperationResult("Test Operation"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
 		controller.addObject(new UserType(), null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	@SuppressWarnings("unchecked")
 	public void addUserWithoutName() throws Exception {
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
@@ -152,7 +149,7 @@ public class ControllerAddObjectTest {
 	 * Testing add user with undefined user template. It must fail because user
 	 * already exists (mocked).
 	 */
-	@Test(expected = ObjectAlreadyExistsException.class)
+	@Test(expectedExceptions = ObjectAlreadyExistsException.class)
 	@SuppressWarnings("unchecked")
 	public void addUserWithExistingOid() throws Exception {
 		ModelTUtil.mockGetSystemConfiguration(repository, new File(TEST_FOLDER, "system-configuration.xml"));

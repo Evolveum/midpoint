@@ -20,15 +20,14 @@
  */
 package com.evolveum.midpoint.model.sync;
 
+import org.testng.annotations.Test;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
@@ -42,23 +41,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
  * @author lazyman
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
-public class SynchronizationServiceTest {
+public class SynchronizationServiceTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/sync");
 	private static final Trace LOGGER = TraceManager.getTrace(SynchronizationServiceTest.class);
 	@Autowired(required = true)
 	private transient ResourceObjectChangeListener synchronizationService;
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChange() {
 		synchronizationService.notifyChange(null, new OperationResult("Test Operation"));
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChangeResource() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "change-without-resource.xml"))).getValue();
@@ -66,7 +64,7 @@ public class SynchronizationServiceTest {
 	}
 	
 	@SuppressWarnings("unchecked")
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChangeObject() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "change-without-object.xml"))).getValue();
@@ -74,7 +72,7 @@ public class SynchronizationServiceTest {
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
 		ResourceObjectShadowChangeDescriptionType change = ((JAXBElement<ResourceObjectShadowChangeDescriptionType>) JAXBUtil
 				.unmarshal(new File(TEST_FOLDER, "change-correct.xml"))).getValue();

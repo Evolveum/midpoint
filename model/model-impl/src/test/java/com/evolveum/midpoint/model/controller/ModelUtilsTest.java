@@ -20,17 +20,16 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.junit.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
@@ -54,17 +53,17 @@ public class ModelUtilsTest {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller");
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void createReferenceNullOid() {
 		ModelUtils.createReference(null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void createReferenceEmptyOid() {
 		ModelUtils.createReference("", null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void createReferenceNullType() {
 		ModelUtils.createReference(SystemObjectsType.SYSTEM_CONFIGURATION.value(), null);
 	}
@@ -84,13 +83,13 @@ public class ModelUtilsTest {
 		ModelUtils.validatePaging(null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validatePagingBadOffsetAttribute() {
 		ModelUtils.validatePaging(PagingTypeFactory
 				.createPaging(-5, 10, OrderDirectionType.ASCENDING, "name"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void validatePagingBadMaxAttribute() {
 		ModelUtils.validatePaging(PagingTypeFactory
 				.createPaging(5, -10, OrderDirectionType.ASCENDING, "name"));
@@ -102,7 +101,7 @@ public class ModelUtilsTest {
 				.validatePaging(PagingTypeFactory.createPaging(5, 10, OrderDirectionType.ASCENDING, "name"));
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void getPasswordFromNullAccount() {
 		ModelUtils.getPassword(null);
 	}
@@ -125,7 +124,7 @@ public class ModelUtilsTest {
 		assertNotNull(password);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void generatePasswordNullAccount() {
 		ModelUtils.generatePassword(null, 5);
 	}
@@ -148,12 +147,12 @@ public class ModelUtilsTest {
 		assertEquals(length, new String(Base64.decodeBase64(element.getTextContent())).length());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void getAccountTypeDefinitionFromSchemaHandlingNullAccount() {
 		ModelUtils.getAccountTypeFromHandling((ResourceObjectShadowType)null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void getAccountTypeDefinitionFromSchemaHandlingNullResource() {
 		ModelUtils.getAccountTypeFromHandling(new AccountShadowType(), null);
 	}
@@ -195,7 +194,7 @@ public class ModelUtilsTest {
 		XmlAsserts.assertPatch(new File(TEST_FOLDER, "property-list-type.xml"), JAXBUtil.marshalWrap(list));
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void unresolveResourceObjectNull() {
 		ModelUtils.unresolveResourceObjectShadow(null);
 	}

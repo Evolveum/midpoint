@@ -1,40 +1,35 @@
 /*
  * Copyright (c) 2011 Evolveum
- *
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the License). You may not use this file except in
+ * 
+ * The contents of this file are subject to the terms of the Common Development
+ * and Distribution License (the License). You may not use this file except in
  * compliance with the License.
- *
+ * 
  * You can obtain a copy of the License at
- * http://www.opensource.org/licenses/cddl1 or
- * CDDLv1.0.txt file in the source code distribution.
- * See the License for the specific language governing
+ * http://www.opensource.org/licenses/cddl1 or CDDLv1.0.txt file in the source
+ * code distribution. See the License for the specific language governing
  * permission and limitations under the License.
- *
- * If applicable, add the following below the CDDL Header,
- * with the fields enclosed by brackets [] replaced by
- * your own identifying information:
- *
+ * 
+ * If applicable, add the following below the CDDL Header, with the fields
+ * enclosed by brackets [] replaced by your own identifying information:
+ * 
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 package com.evolveum.midpoint.model.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
 import java.io.File;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
@@ -52,41 +47,40 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * @author lazyman
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
-public class SchemaHandlerImplTest {
+public class SchemaHandlerImplTest extends AbstractTestNGSpringContextTests {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlerImplTest.class);
 	@Autowired(required = true)
 	private transient SchemaHandler handler;
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void processInboundHandlingNullUser() throws Exception {
 		handler.processInboundHandling(null, null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void processInboundHandlingNullResourceObjectShadow() throws Exception {
 		handler.processInboundHandling(new UserType(), null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void processInboundHandlingNullResult() throws Exception {
 		handler.processInboundHandling(new UserType(), new ResourceObjectShadowType(), null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void processOutboundHandlingNullUser() throws Exception {
 		handler.processOutboundHandling(null, null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void processOutboundHandlingNullResourceObjectShadow() throws Exception {
 		handler.processOutboundHandling(new UserType(), null, null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void processOutboundHandlingNullResult() throws Exception {
 		handler.processOutboundHandling(new UserType(), new ResourceObjectShadowType(), null);
 	}
@@ -97,14 +91,14 @@ public class SchemaHandlerImplTest {
 
 		AccountShadowType objectShadow = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				"src/test/resources/account-xpath-evaluation.xml"))).getValue();
-		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-				"src/test/resources/user-new.xml"))).getValue();
+		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File("src/test/resources/user-new.xml")))
+				.getValue();
 
 		OperationResult result = new OperationResult("Process Outbound");
 		ObjectModificationType changes = handler.processOutboundHandling(user, objectShadow, result);
 		LOGGER.info(result.dump());
 		// TODO: test changes object
-		
+
 		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, objectShadow,
 				AccountShadowType.class);
 
@@ -112,13 +106,13 @@ public class SchemaHandlerImplTest {
 		final String NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
 		final String NS_1 = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd";
 		assertAttribute("cn", NS, "James Bond 007", appliedAccountShadow.getAttributes().getAny());
-		assertAttribute("name", NS_1, "uid=janko nemenny,ou=people,dc=example,dc=com",
-				appliedAccountShadow.getAttributes().getAny());
+		assertAttribute("name", NS_1, "uid=janko nemenny,ou=people,dc=example,dc=com", appliedAccountShadow
+				.getAttributes().getAny());
 		assertAttribute("sn", NS, "", appliedAccountShadow.getAttributes().getAny());
 		assertAttribute("password", NS_1, "janco", appliedAccountShadow.getAttributes().getAny());
 		assertAttribute("givenName", NS, "James Jr. unchanged", appliedAccountShadow.getAttributes().getAny());
-		assertAttribute("givenName", "http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ",
-				"James Jr.", appliedAccountShadow.getAttributes().getAny());
+		assertAttribute("givenName", "http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ", "James Jr.",
+				appliedAccountShadow.getAttributes().getAny());
 		assertAttribute("title", NS, "Mr.", appliedAccountShadow.getAttributes().getAny());
 		assertAttribute("description", NS, "Created by IDM", appliedAccountShadow.getAttributes().getAny());
 	}
@@ -144,8 +138,8 @@ public class SchemaHandlerImplTest {
 	public void testApplyInboundSchemaHandlingOnUserReplace() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				"src/test/resources/account-xpath-evaluation.xml"))).getValue();
-		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-				"src/test/resources/user-new.xml"))).getValue();
+		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File("src/test/resources/user-new.xml")))
+				.getValue();
 
 		OperationResult result = new OperationResult("testApplyInboundSchemaHandlingOnUserReplace");
 		UserType appliedUser = handler.processInboundHandling(user, account, result);
@@ -208,7 +202,7 @@ public class SchemaHandlerImplTest {
 		assertEquals("MikeFromExtension", appliedUser.getExtension().getAny().get(0).getTextContent());
 		assertEquals("DudikoffFromExtension", appliedUser.getExtension().getAny().get(1).getTextContent());
 	}
-	
+
 	//
 	// @Test
 	// @SuppressWarnings("unchecked")

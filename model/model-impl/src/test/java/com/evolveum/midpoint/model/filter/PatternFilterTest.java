@@ -19,13 +19,12 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  */package com.evolveum.midpoint.model.filter;
 
-import static org.junit.Assert.assertEquals;
-
+import static org.testng.AssertJUnit.assertEquals;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -46,17 +45,17 @@ public class PatternFilterTest {
 	private static final String expected = "mxdPxxnt";
 	private Filter filter;
 
-	@Before
+	@BeforeMethod
 	public void before() {
 		filter = new PatternFilter();
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testNullNode() {
 		filter.apply(null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testEmptyParameters() {
 		Node testNode = DOMUtil.getDocument().createElement("tag");
 		testNode.setTextContent(input);
@@ -93,7 +92,7 @@ public class PatternFilterTest {
 		assertEquals(expected, node.getTextContent());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testValueInElementBadParameters() {
 		List<Object> parameters = createBadParameters();
 		filter.setParameters(parameters);
@@ -105,7 +104,7 @@ public class PatternFilterTest {
 		assertEquals(expected, node.getTextContent());
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void testValueInElementBadParameters2() {
 		List<Object> parameters = createBadParameters2();
 		filter.setParameters(parameters);

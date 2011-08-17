@@ -20,7 +20,6 @@
  */
 package com.evolveum.midpoint.model.test.util;
 
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.when;
@@ -29,6 +28,8 @@ import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+
+import org.testng.Assert;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -79,14 +80,14 @@ public class ModelTUtil {
 
 	public static void assertObjectNotFoundFault(FaultMessage ex) throws FaultMessage {
 		if (!(ex.getFaultInfo() instanceof ObjectNotFoundFaultType)) {
-			fail("not object not found fault.");
+			Assert.fail("not object not found fault.");
 		}
 		throw ex;
 	}
 
 	public static void assertIllegalArgumentFault(FaultMessage ex) throws FaultMessage {
 		if (!(ex.getFaultInfo() instanceof IllegalArgumentFaultType)) {
-			fail("not illegal argument fault.");
+			Assert.fail("not illegal argument fault.");
 		}
 		throw ex;
 	}
