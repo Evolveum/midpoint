@@ -22,8 +22,7 @@
 package com.evolveum.midpoint.repo.xml;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.ServerSocket;
 
 import org.apache.commons.lang.StringUtils;
 import org.basex.BaseXServer;
@@ -53,9 +52,7 @@ public class XmlRepositoryServiceFactory {
 	private String password;
 	private String databaseName;
 	private String serverPath;
-	
-	private List<ClientSession> sessions = new ArrayList<ClientSession>();
-	BaseXServer server;
+	private BaseXServer server;
 
 	public void init() throws RepositoryServiceFactoryException {
 
@@ -66,21 +63,21 @@ public class XmlRepositoryServiceFactory {
 
 			if (StringUtils.isNotEmpty(serverPath)) {
 				TRACE.debug("BaseX Server base path: {}", serverPath);
-	 	 	} else {
-	 	 		TRACE.debug("BaseX Server base not set, using default value");
-	 	 	}
-	 	 	StringBuffer commands = new StringBuffer();
-	 	 	if (StringUtils.isNotEmpty(serverPath)) {
-	 	 		if (StringUtils.equals("memory", serverPath)) {
-	 	 			commands.append("-cset mainmem true;info");
-	 	 	 	} else {
-	 	 	 		commands.append("-cset dbpath ").append(serverPath).append(";info");
-	 	 	 	}
-	 	 	}
-	 	 	 	
+			} else {
+				TRACE.debug("BaseX Server base not set, using default value");
+			}
+			StringBuffer commands = new StringBuffer();
+			if (StringUtils.isNotEmpty(serverPath)) {
+				if (StringUtils.equals("memory", serverPath)) {
+					commands.append("-cset mainmem true;info");
+				} else {
+					commands.append("-cset dbpath ").append(serverPath).append(";info");
+				}
+			}
+
 			// args ordering is important!
 			if (embedded) {
-//				this.checkPort();
+				this.checkPort();
 				// set debug mode and run it in the same process
 				server = new BaseXServer("-p" + port, "-d", "-D", "-s", commands.toString());
 			} else {
@@ -134,7 +131,7 @@ public class XmlRepositoryServiceFactory {
 					session.close();
 				} catch (IOException e) {
 					throw new RepositoryServiceFactoryException(
-							"XML DB Client Session IO Exception during DB initialization", e);
+							"BaseX Client Session IO Exception during DB initialization", e);
 				}
 			}
 		}
@@ -143,16 +140,6 @@ public class XmlRepositoryServiceFactory {
 
 	public void destroy() {
 		if (shutdown) {
-			for (ClientSession session : sessions) {
-				try {
-					TRACE.trace("Closing XML DB Client session");
-					session.close();
-				} catch (IOException ex) {
-					TRACE.error("Reported IO while closing session to XML Database", ex);
-					throw new SystemException("Reported IO while closing session to XML Database", ex);
-				}
-			}
-
 			if (server != null) {
 				server.stop();
 			}
@@ -160,21 +147,8 @@ public class XmlRepositoryServiceFactory {
 	}
 
 	public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
-		ClientSession session = null;
-		try {
-			session = new ClientSession(host, port, username, password);
-			session.execute("OPEN " + databaseName);
-			RepositoryService repositoryService = new XmlRepositoryService(session);
-			return repositoryService;
-		} catch (IOException e) {
-			throw new RepositoryServiceFactoryException("XML DB IO Exception during client initialization", e);
-		} catch (BaseXException e) {
-			throw new RepositoryServiceFactoryException("XML DB Exception during client initialization", e);
-		} finally {
-			if (session != null) {
-				sessions.add(session);
-			}
-		}
+		RepositoryService repositoryService = new XmlRepositoryService(host, port, username, password, databaseName);
+		return repositoryService;
 	}
 
 	public boolean isRunServer() {
@@ -264,23 +238,25 @@ public class XmlRepositoryServiceFactory {
 	public void setServerPath(String serverPath) {
 		this.serverPath = serverPath;
 	}
-		
-//	private void checkPort() throws RepositoryServiceFactoryException {
-//		ServerSocket ss = null;
-//		try {
-//			ss = new ServerSocket(this.getPort());
-//			ss.setReuseAddress(true);
-//		} catch (IOException e) {
-//			throw new RepositoryServiceFactoryException("BaseX port (" + this.getPort()
-//					+ ") already in use.", e);
-//		} finally {
-//			try {
-//				if (ss != null) {
-//					ss.close();
-//				}
-//			} catch (IOException e) {
-//				TRACE.error("Reported IO error, while closing ServerSocket used to test availability of port for BaseX Server", e);
-//			}
-//		}
-//	}
+
+	private void checkPort() throws RepositoryServiceFactoryException {
+		ServerSocket ss = null;
+		try {
+			ss = new ServerSocket(this.getPort());
+			ss.setReuseAddress(true);
+		} catch (IOException e) {
+			throw new RepositoryServiceFactoryException(
+					"BaseX port (" + this.getPort() + ") already in use.", e);
+		} finally {
+			try {
+				if (ss != null) {
+					ss.close();
+				}
+			} catch (IOException e) {
+				TRACE.error(
+						"Reported IO error, while closing ServerSocket used to test availability of port for BaseX Server",
+						e);
+			}
+		}
+	}
 }

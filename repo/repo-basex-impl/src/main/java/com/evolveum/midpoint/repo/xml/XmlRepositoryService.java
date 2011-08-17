@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.UUID;
 
@@ -33,9 +34,11 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.pool.ObjectPool;
+import org.apache.commons.pool.PoolableObjectFactory;
+import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.pool.impl.GenericObjectPool.Config;
 import org.basex.core.BaseXException;
 import org.basex.server.ClientQuery;
 import org.basex.server.ClientSession;
@@ -61,7 +64,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.patch.PatchException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -79,30 +81,47 @@ public class XmlRepositoryService implements RepositoryService {
 
 	private static final String C_PREFIX = "c";
 
-	private static final String COMMAND_PREFIX = "";
-
 	private static final String DECLARE_NAMESPACE_C = "declare namespace c='" + SchemaConstants.NS_C + "';\n";
 	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryService.class);
-	private ClientSession session;
+	private ObjectPool sessions;
 
-	XmlRepositoryService(ClientSession session) {
+	// TODO: inject from Configuration Object
+	private String host;
+	private int port;
+	private String username;
+	private String password;
+	private String dbName;
+
+	XmlRepositoryService(String host, int port, String username, String password, String dbName) {
 		super();
-		this.session = session;
-
+		this.host = host; 
+		this.port = port;
+		this.username = username; 
+		this.password = password;
+		this.dbName = dbName;
 	}
 
-	// Note: client session is closed in XmlRepositoryServiceFactory, because
-	// Spring is not managing lifecycle of prototype beans
-	// public void close() {
-	// try {
-	// TRACE.error("Closing XML DB Client session");
-	// session.close();
-	// } catch (IOException ex) {
-	// TRACE.error("Reported IO while closing session to XML Database", ex);
-	// throw new
-	// SystemException("Reported IO while closing session to XML Database", ex);
-	// }
-	// }
+	public void init() {
+		TRACE.error("Initialize BaseX Client sessions pool");
+		// TODO: make pool configuration external
+		Config poolConfig = new Config();
+		poolConfig.lifo = false;
+		poolConfig.maxActive = 10;
+		PoolableObjectFactory factory = new BaseXClientSessionPoolableObjectFactory(host, port, username,
+				password, dbName);
+		sessions = new GenericObjectPool(factory, poolConfig);
+	}
+
+	public void close() {
+		try {
+			TRACE.error("Releasing and closing BaseX Client sessions pool");
+			// TODO:
+			sessions.close();
+		} catch (Exception ex) {
+			TRACE.error("Reported exception while closing BaseX client session pool", ex);
+			throw new SystemException("Reported exception while closing BaseX client session pool", ex);
+		}
+	}
 
 	@Override
 	public String addObject(ObjectType object, OperationResult parentResult)
@@ -113,6 +132,7 @@ public class XmlRepositoryService implements RepositoryService {
 				+ ".addObject");
 		result.addParam("object", object);
 
+		StringBuilder query = new StringBuilder();
 		try {
 			// generate new oid, if necessary
 			oid = (null != object.getOid() ? object.getOid() : UUID.randomUUID().toString());
@@ -121,12 +141,8 @@ public class XmlRepositoryService implements RepositoryService {
 			Map<String, Object> properties = new HashMap<String, Object>();
 			properties.put(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
 			String serializedObject = JAXBUtil.marshalWrap(properties, object, SchemaConstants.C_OBJECT);
-			// FIXME: try to find another solution how to escape XQuery special
-			// characters in XMLs
-			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
-			serializedObject = StringUtils.replace(serializedObject, "}", "}}");
+			serializedObject = escapeXQuerySpecialChars(serializedObject);
 
-			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
 			if (object instanceof ResourceObjectShadowType) {
 				query.append(DECLARE_NAMESPACE_C).append("let $x := ").append(serializedObject).append("\n")
 						.append("return insert node $x into //c:objects");
@@ -142,43 +158,38 @@ public class XmlRepositoryService implements RepositoryService {
 						.append(OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS).append("'))");
 			}
 			TRACE.trace("generated query: " + query);
-
-			cq = session.query(query.toString());
-			cq.execute();
-			result.recordSuccess();
-			return oid;
-
 		} catch (JAXBException ex) {
 			LoggingUtils.logException(TRACE, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
-
-		} catch (BaseXException ex) {
-			if (StringUtils.contains(ex.getMessage(), OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS)) {
-				result.recordWarning("Object with the same name already exists");
-				throw new ObjectAlreadyExistsException(ex);
-			} else {
-				LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
-				result.recordFatalError("Reported error by XML Database", ex);
-				throw new SystemException("Reported error by XML Database", ex);
-			}
 		}
+
+		executeQuery(query, result);
+
+		result.recordSuccess();
+		return oid;
 	}
 
-	
 	@Override
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
-		return getObject(ObjectType.class,oid,resolve,parentResult);
+		return getObject(ObjectType.class, oid, resolve, parentResult);
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.repo.api.RepositoryService#getObject(java.lang.Class, java.lang.String, com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType, com.evolveum.midpoint.common.result.OperationResult)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.evolveum.midpoint.repo.api.RepositoryService#getObject(java.lang.
+	 * Class, java.lang.String,
+	 * com.evolveum.midpoint.xml.ns._public.common.common_1
+	 * .PropertyReferenceListType,
+	 * com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
-	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
-	
+	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".getObject");
 		result.addParam("oid", oid);
@@ -188,13 +199,16 @@ public class XmlRepositoryService implements RepositoryService {
 
 		T object = null;
 		ClientQuery cq = null;
+
+		StringBuilder query = new StringBuilder();
+		query.append(DECLARE_NAMESPACE_C);
+		query.append("for $x in //c:object where $x/@oid=\"").append(oid).append("\" return $x");
+
+		TRACE.trace("generated query: " + query);
+
+		ClientSession session = null;
 		try {
-
-			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
-			query.append(DECLARE_NAMESPACE_C);
-			query.append("for $x in //c:object where $x/@oid=\"").append(oid).append("\" return $x");
-
-			TRACE.trace("generated query: " + query);
+			session = (ClientSession) sessions.borrowObject();
 
 			cq = session.query(query.toString());
 
@@ -207,9 +221,9 @@ public class XmlRepositoryService implements RepositoryService {
 						throw new SystemException("More than one object with oid " + oid + " found");
 					}
 
-					JAXBElement<T> o = (JAXBElement<T>) JAXBUtil.unmarshal(type,c);
+					JAXBElement<T> o = (JAXBElement<T>) JAXBUtil.unmarshal(type, c);
 					if (o != null) {
-							object = o.getValue();
+						object = o.getValue();
 					}
 				}
 			}
@@ -218,18 +232,30 @@ public class XmlRepositoryService implements RepositoryService {
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (BaseXException ex) {
-			LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
-			result.recordFatalError("Reported error by XML Database", ex);
-			throw new SystemException("Reported error by XML Database", ex);
+			errorLogRecordAndRethrow("Reported error by XML Database", result, ex);
+		} catch (NoSuchElementException ex) {
+			errorLogRecordAndRethrow("No BaseX Client session in the pool", result, ex);
+		} catch (IllegalStateException ex) {
+			errorLogRecordAndRethrow(
+					"Illegal state of BaseX Client session pool while borrowing client session", result, ex);
+		} catch (Exception ex) {
+			errorLogRecordAndRethrow("Error borrowing BaseX Client session from the pool", result, ex);
 		} finally {
+			if (session != null) {
+				try {
+					sessions.returnObject(session);
+				} catch (Exception ex) {
+					errorLogRecordAndRethrow("Error returning BaseX Client session to pool", result, ex);
+				}
+			}
 			if (null != cq) {
 				try {
 					cq.close();
 				} catch (BaseXException ex) {
-					LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
-					throw new SystemException("Reported error by XML Database", ex);
+					errorLogRecordAndRethrow("Reported error by XML Database", result, ex);
 				}
 			}
+
 		}
 		if (object == null) {
 			result.recordFatalError("Object not found. OID: " + oid);
@@ -240,7 +266,8 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging, OperationResult parentResult) {
+	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging,
+			OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".listObjects");
 		result.addParam("objectType", objectType);
@@ -265,15 +292,15 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> List<T> searchObjects(Class<T> clazz, QueryType query, PagingType paging, OperationResult parentResult)
-			throws SchemaException {
+	public <T extends ObjectType> List<T> searchObjects(Class<T> clazz, QueryType query, PagingType paging,
+			OperationResult parentResult) throws SchemaException {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".searchObjects");
 		result.addParam("query", query);
 		result.addParam("paging", paging);
 
 		TRACE.trace("midPoint query: {}", JAXBUtil.silentMarshalWrap(query));
-		
+
 		validateQuery(query);
 
 		NodeList children = query.getFilter().getChildNodes();
@@ -317,7 +344,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 		return searchObjects(clazz, objectType, paging, filters, namespaces, result);
 	}
-
+	
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
@@ -327,6 +354,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 		validateObjectChange(objectChange);
 
+		String serializedObject = null;
 		try {
 			// get object from repo
 			// FIXME: possible problems with resolving property reference before
@@ -336,35 +364,30 @@ public class XmlRepositoryService implements RepositoryService {
 
 			// modify the object
 			PatchXml xmlPatchTool = new PatchXml();
-			String serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
-			if (serializedObject != null) {
-				// FIXME: try to find another solution how to escape XQuery
-				// special characters in XMLs
-				serializedObject = StringUtils.replace(serializedObject, "{", "{{");
-				serializedObject = StringUtils.replace(serializedObject, "}", "}}");
-			}
-			
-			// store modified object in repo
-			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
-			query.append(DECLARE_NAMESPACE_C).append("replace node //c:object[@oid=\"")
-					.append(objectChange.getOid()).append("\"] with ").append(serializedObject);
-
-			TRACE.trace("generated query: " + query);
-
-			ClientQuery cq = session.query(query.toString());
-			cq.execute();
-			result.computeStatus();
+			serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
+			serializedObject = escapeXQuerySpecialChars(serializedObject);
 
 		} catch (PatchException ex) {
-			LoggingUtils.logException(TRACE, "Failed to modify object", ex);
-			result.recordFatalError("Failed to modify object", ex);
-			throw new SystemException("Failed to modify object", ex);
-
-		} catch (BaseXException ex) {
-			LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
-			result.recordFatalError("Reported error by XML Database", ex);
-			throw new SystemException("Reported error by XML Database", ex);
+			errorLogRecordAndRethrow("Failed to modify object", result, ex);
 		}
+
+		// store modified object in repo
+		StringBuilder query = new StringBuilder();
+		query.append(DECLARE_NAMESPACE_C).append("replace node //c:object[@oid=\"")
+				.append(objectChange.getOid()).append("\"] with ").append(serializedObject);
+
+		TRACE.trace("generated query: " + query);
+
+		try {
+			executeQuery(query, result);
+		} catch (ObjectAlreadyExistsException ex) {
+			// modify query will not generate this type of exception, yet!
+			errorLogRecordAndRethrow(
+					"Thrown unexpected exception - modify query should not generate this type of exception",
+					result, ex);
+		}
+
+		result.recordSuccess();
 	}
 
 	@Override
@@ -392,20 +415,22 @@ public class XmlRepositoryService implements RepositoryService {
 					ex);
 		}
 
+		StringBuilder query = new StringBuilder();
+		query.append(DECLARE_NAMESPACE_C);
+		query.append("delete nodes //c:object[@oid=\"").append(oid).append("\"]");
+
+		TRACE.trace("generated query: " + query);
+
 		try {
-			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
-			query.append(DECLARE_NAMESPACE_C);
-			query.append("delete nodes //c:object[@oid=\"").append(oid).append("\"]");
-
-			ClientQuery cq = session.query(query.toString());
-			cq.execute();
-
-			result.recordSuccess();
-		} catch (BaseXException ex) {
-			LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
-			result.recordFatalError("Reported error by XML Database", ex);
-			throw new SystemException("Reported error by XML Database");
+			executeQuery(query, result);
+		} catch (ObjectAlreadyExistsException ex) {
+			// delete query will not generate this type of exception
+			errorLogRecordAndRethrow(
+					"Thrown unexpected exception - delete query should not generate this type of exception",
+					result, ex);
 		}
+
+		result.recordSuccess();
 	}
 
 	@Override
@@ -426,8 +451,8 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:accountRef", accountOid);
-		List<UserType> retrievedObjects = searchObjects(UserType.class,ObjectTypes.USER.getObjectTypeUri(), null, filters,
-				namespaces, result);
+		List<UserType> retrievedObjects = searchObjects(UserType.class, ObjectTypes.USER.getObjectTypeUri(),
+				null, filters, namespaces, result);
 
 		if (null == retrievedObjects || retrievedObjects.size() == 0) {
 			result.recordSuccess();
@@ -457,118 +482,175 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:resourceRef", resourceOid);
-		List<T> retrievedObjects = searchObjects(resourceObjectShadowType, ObjectTypes.ACCOUNT.getObjectTypeUri(), null,
-				filters, namespaces, result);
+		List<T> retrievedObjects = searchObjects(resourceObjectShadowType,
+				ObjectTypes.ACCOUNT.getObjectTypeUri(), null, filters, namespaces, result);
 
 		result.recordSuccess();
 		return retrievedObjects;
 	}
 
-	private <T extends ObjectType> List<T> searchObjects(Class<T> clazz, String objectType, PagingType paging, Map<String, String> filters,
-			Map<String, String> namespaces, OperationResult result) {
+	@Override
+	public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
+			ConcurrencyException, SchemaException {
+
+		// TODO: atomicity
+
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+				+ ".claimTask");
+		result.addParam(OperationResult.PARAM_OID, oid);
+
+		// Check whether the task is claimed
+
+		ObjectType object = getObject(oid, null, result);
+		// TODO: check
+		TaskType task = (TaskType) object;
+
+		if (task.getExclusivityStatus() != TaskExclusivityStatusType.RELEASED) {
+			// TODO: check whether the claim is not expired yet
+			throw new ConcurrencyException("Attempt to claim already claimed task (OID:" + oid + ")");
+		}
+
+		// Modify the status to claim the task.
+		// TODO: mark node identifier and claim expiration (later)
+
+		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
+				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.CLAIMED.value());
+
+		modifyObject(TaskType.class, modification, result);
+
+	}
+
+	@Override
+	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException {
+
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
+				+ ".releaseTask");
+		result.addParam(OperationResult.PARAM_OID, oid);
+
+		// Modify the status to claim the task.
+
+		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
+				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.RELEASED.value());
+
+		modifyObject(TaskType.class, modification, result);
+
+	}
+
+	private <T extends ObjectType> List<T> searchObjects(Class<T> clazz, String objectType,
+			PagingType paging, Map<String, String> filters, Map<String, String> namespaces,
+			OperationResult result) {
 
 		List<T> objectList = new ArrayList<T>();
 		// FIXME: objectList.count has to contain all elements that match search
 		// criteria, but not only from paging interval
+		StringBuilder query = new StringBuilder();
+
+		if (namespaces != null) {
+			for (Entry<String, String> namespaceEntry : namespaces.entrySet()) {
+				query.append("declare namespace ").append(namespaceEntry.getKey()).append("='")
+						.append(namespaceEntry.getValue()).append("';\n");
+			}
+		}
+
+		query.append("for $x in //c:object ");
+		if (objectType != null
+				|| (null != paging && null != paging.getOffset() && null != paging.getMaxSize())
+				|| (filters != null && !filters.isEmpty())) {
+			query.append("where ");
+		}
+		if (objectType != null) {
+			// FIXME: possible problems with object type checking. Now it is
+			// simple string checking, because import schema is not
+			// supported by basex database
+			query.append("$x/@xsi:type=\"").append(objectType.substring(objectType.lastIndexOf("#") + 1))
+					.append("\"");
+		}
+		if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
+			query.append("[fn:position() = ( ").append(paging.getOffset() * paging.getMaxSize())
+					.append(" to ").append(((paging.getOffset() + 1) * paging.getMaxSize()) - 1)
+					.append(") ] ");
+		}
+		if (filters != null) {
+			int pos = 0;
+			for (Map.Entry<String, String> filterEntry : filters.entrySet()) {
+				if ((pos > 0) || (pos == 0 && (objectType != null))) {
+					query.append(" and ");
+				}
+				// FIXME: now only refs are searched by attributes values
+				if (StringUtils.contains(filterEntry.getKey(), "Ref")) {
+					// search based on attribute value
+					query.append("$x/").append(filterEntry.getKey()).append("/@oid='")
+							.append(filterEntry.getValue()).append("'");
+				} else {
+					// search based on element value
+					query.append("$x/").append(filterEntry.getKey()).append("='")
+							.append(filterEntry.getValue()).append("'");
+				}
+
+				pos++;
+			}
+		}
+		if (null != paging && null != paging.getOrderBy()) {
+			XPathHolder xpath = new XPathHolder(paging.getOrderBy().getProperty());
+			String orderBy = xpath.getXPath();
+			query.append(" order by $x/").append(orderBy);
+			if (null != paging.getOrderDirection()) {
+				query.append(" ");
+				query.append(StringUtils.lowerCase(paging.getOrderDirection().toString()));
+			}
+		}
+		query.append(" return $x ");
+
+		TRACE.trace("generated query: " + query);
+
 		ClientQuery cq = null;
+		ClientSession session = null;
 		try {
-
-			StringBuilder query = new StringBuilder(COMMAND_PREFIX);
-
-			if (namespaces != null) {
-				for (Entry<String, String> namespaceEntry : namespaces.entrySet()) {
-					query.append("declare namespace ").append(namespaceEntry.getKey()).append("='")
-							.append(namespaceEntry.getValue()).append("';\n");
-				}
-			}
-
-			query.append("for $x in //c:object ");
-			if (objectType != null
-					|| (null != paging && null != paging.getOffset() && null != paging.getMaxSize())
-					|| (filters != null && !filters.isEmpty()) ) {
-				query.append("where ");
-			}
-			if (objectType != null) {
-				// FIXME: possible problems with object type checking. Now it is
-				// simple string checking, because import schema is not
-				// supported by basex database
-				query.append("$x/@xsi:type=\"").append(objectType.substring(objectType.lastIndexOf("#") + 1))
-						.append("\"");
-			}
-			if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
-				query.append("[fn:position() = ( ").append(paging.getOffset() * paging.getMaxSize())
-						.append(" to ").append(((paging.getOffset() + 1) * paging.getMaxSize()) - 1)
-						.append(") ] ");
-			}
-			if (filters != null) {
-				int pos = 0;
-				for (Map.Entry<String, String> filterEntry : filters.entrySet()) {
-					if ((pos > 0) || (pos == 0 && (objectType != null))) {
-						query.append(" and ");
-					}
-					// FIXME: now only refs are searched by attributes values
-					if (StringUtils.contains(filterEntry.getKey(), "Ref")) {
-						// search based on attribute value
-						query.append("$x/").append(filterEntry.getKey()).append("/@oid='")
-								.append(filterEntry.getValue()).append("'");
-					} else {
-						// search based on element value
-						query.append("$x/").append(filterEntry.getKey()).append("='")
-								.append(filterEntry.getValue()).append("'");
-					}
-
-					pos++;
-				}
-			}
-			if (null != paging && null != paging.getOrderBy()) {
-				XPathHolder xpath = new XPathHolder(paging.getOrderBy().getProperty());
-				String orderBy = xpath.getXPath();
-				query.append(" order by $x/").append(orderBy);
-				if (null != paging.getOrderDirection()) {
-					query.append(" ");
-					query.append(StringUtils.lowerCase(paging.getOrderDirection().toString()));
-				}
-			}
-			query.append(" return $x ");
-
-			TRACE.trace("generated query: " + query);
-
+			session = (ClientSession) sessions.borrowObject();
 			cq = session.query(query.toString());
 			if (null != cq.init()) {
 				while (cq.more()) {
 					String c = cq.next();
 
-					JAXBElement<T> o = JAXBUtil.unmarshal(clazz,c);
+					JAXBElement<T> o = JAXBUtil.unmarshal(clazz, c);
 					if (o != null) {
 						objectList.add(o.getValue());
 					}
 				}
 			}
-
-			result.recordSuccess();
-			return objectList;
-
 		} catch (JAXBException ex) {
 			LoggingUtils.logException(TRACE, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
-
 		} catch (BaseXException ex) {
-			LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
-			result.recordFatalError("Reported error by XML Database", ex);
-			throw new SystemException("Reported error by XML Database", ex);
-
+			errorLogRecordAndRethrow("Reported error by XML Database", result, ex);
+		} catch (NoSuchElementException ex) {
+			errorLogRecordAndRethrow("No BaseX Client session in the pool", result, ex);
+		} catch (IllegalStateException ex) {
+			errorLogRecordAndRethrow(
+					"Illegal state of BaseX Client session pool while borrowing client session", result, ex);
+		} catch (Exception ex) {
+			errorLogRecordAndRethrow("Error borrowing BaseX Client session from the pool", result, ex);
 		} finally {
+			if (session != null) {
+				try {
+					sessions.returnObject(session);
+				} catch (Exception ex) {
+					errorLogRecordAndRethrow("Error returning BaseX Client session to pool", result, ex);
+				}
+			}
 			if (null != cq) {
 				try {
 					cq.close();
 				} catch (BaseXException ex) {
-					LoggingUtils.logException(TRACE, "Reported error by XML Database", ex);
-					result.recordFatalError("Reported error by XML Database", ex);
-					throw new SystemException("Reported error by XML Database", ex);
+					errorLogRecordAndRethrow("Reported error by XML Database", result, ex);
 				}
 			}
 		}
+
+		result.recordSuccess();
+		return objectList;
 	}
 
 	private void processValueNode(Node criteriaValueNode, Map<String, String> filters,
@@ -677,53 +759,54 @@ public class XmlRepositoryService implements RepositoryService {
 		}
 	}
 
-	@Override
-	public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
-			ConcurrencyException, SchemaException {
+	private void errorLogRecordAndRethrow(String message, OperationResult result, Exception ex) {
+		LoggingUtils.logException(TRACE, message, ex);
+		result.recordFatalError(message, ex);
+		throw new SystemException(message, ex);
+	}
 
-		// TODO: atomicity
-
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
-				+ ".claimTask");
-		result.addParam(OperationResult.PARAM_OID, oid);
-
-		// Check whether the task is claimed
-
-		ObjectType object = getObject(oid, null, result);
-		// TODO: check
-		TaskType task = (TaskType) object;
-
-		if (task.getExclusivityStatus() != TaskExclusivityStatusType.RELEASED) {
-			// TODO: check whether the claim is not expired yet
-			throw new ConcurrencyException("Attempt to claim already claimed task (OID:" + oid + ")");
+	private String escapeXQuerySpecialChars(String serializedObject) {
+		if (serializedObject != null) {
+			// FIXME: try to find another solution how to escape XQuery
+			// special characters in XMLs
+			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
+			serializedObject = StringUtils.replace(serializedObject, "}", "}}");
 		}
-
-		// Modify the status to claim the task.
-		// TODO: mark node identifier and claim expiration (later)
-
-		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
-				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.CLAIMED.value());
-
-		modifyObject(TaskType.class, modification, result);
-
+		
+		return serializedObject;
 	}
 
-	@Override
-	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException {
-
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
-				+ ".releaseTask");
-		result.addParam(OperationResult.PARAM_OID, oid);
-
-		// Modify the status to claim the task.
-
-		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
-				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.RELEASED.value());
-
-		modifyObject(TaskType.class, modification, result);
-
+	private void executeQuery(StringBuilder query, OperationResult result)
+			throws ObjectAlreadyExistsException {
+		ClientQuery cq;
+		ClientSession session = null;
+		try {
+			session = (ClientSession) sessions.borrowObject();
+			cq = session.query(query.toString());
+			cq.execute();
+		} catch (BaseXException ex) {
+			if (StringUtils.contains(ex.getMessage(), OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS)) {
+				result.recordWarning("Object with the same name already exists");
+				throw new ObjectAlreadyExistsException(ex);
+			} else {
+				errorLogRecordAndRethrow("Reported error by XML Database", result, ex);
+			}
+		} catch (NoSuchElementException ex) {
+			errorLogRecordAndRethrow("No BaseX Client session in the pool", result, ex);
+		} catch (IllegalStateException ex) {
+			errorLogRecordAndRethrow(
+					"Illegal state of BaseX Client session pool while borrowing client session", result, ex);
+		} catch (Exception ex) {
+			errorLogRecordAndRethrow("Error borrowing BaseX Client session from the pool", result, ex);
+		} finally {
+			if (session != null) {
+				try {
+					sessions.returnObject(session);
+				} catch (Exception ex) {
+					errorLogRecordAndRethrow("Error returning BaseX Client session to pool", result, ex);
+				}
+			}
+		}
 	}
 
-	
 }

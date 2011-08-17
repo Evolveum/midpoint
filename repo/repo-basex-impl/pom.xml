@@ -53,13 +53,24 @@
 		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
 		<url>https://fisheye.evolveum.com/midpoint/</url>
 	</scm>
-	<repositories>
-		<repository>
-			<id>central</id>
-			<name>repo</name>
-			<url>http://repo.evolveum.com/repo</url>
-		</repository>
-	</repositories>
+
+<repositories>
+        <repository>
+          <snapshots>
+            <enabled>false</enabled>
+          </snapshots>
+          <id>central</id>
+          <name>repo</name>
+          <url>http://repo.evolveum.com/repo</url>
+        </repository>
+        <repository>
+          <snapshots />
+          <id>snapshots</id>
+          <name>libs-snapshot</name>
+          <url>http://repo.evolveum.com/libs-snapshot</url>
+        </repository>
+      </repositories>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
@@ -85,7 +96,11 @@
 			<groupId>org.basex</groupId>
 			<artifactId>basex-api</artifactId>
 		</dependency>
-		
+		<dependency>
+		    <groupId>commons-pool</groupId>
+		    <artifactId>commons-pool</artifactId>
+		    <version>1.5.6</version>
+		</dependency>
 		<!--  Testing dependecies  -->
 		<dependency>
 			<groupId>org.testng</groupId>
