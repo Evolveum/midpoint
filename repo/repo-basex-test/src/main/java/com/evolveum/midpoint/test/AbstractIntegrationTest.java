@@ -30,6 +30,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
 import org.testng.annotations.*;
+import org.testng.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -94,8 +95,10 @@ public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
 		System.out.println("obj: " + object.getName());
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName() + ".addObjectFromFile");
 		if (object instanceof TaskType) {
+			Assert.assertNotNull(taskManager);
 			taskManager.addTask((TaskType)object, result);
 		} else {
+			Assert.assertNotNull(repositoryService);
 			repositoryService.addObject(object, result);
 		}
 		return object;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false">
-	<test name="model" preserve-order="true" parallel="true" verbose="10">
+	<test name="model" preserve-order="true" parallel="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.model.controller.ControllerAddObjectTest" />
 			<class name="com.evolveum.midpoint.model.controller.ControllerAddUserTest" />

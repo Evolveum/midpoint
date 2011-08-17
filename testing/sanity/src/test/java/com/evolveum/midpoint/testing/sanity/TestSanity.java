@@ -19,35 +19,27 @@
  */
 package com.evolveum.midpoint.testing.sanity;
 
-import static org.junit.Assert.*;
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertNotEmpty;
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayJaxb;
+import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
+import static org.testng.AssertJUnit.assertNotNull;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opends.server.core.AddOperation;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -58,54 +50,42 @@ import org.opends.server.types.SearchScope;
 import org.opends.server.util.LDIFReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.controller.ModelControllerImpl;
-import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.impl.ProvisioningServiceImpl;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
-import com.evolveum.midpoint.test.ldap.OpenDJUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
@@ -130,14 +110,13 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
  * @author Radovan Semancik
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-provisioning.xml",
 		"classpath:application-context-sanity-test.xml",
 		"classpath:application-context-task.xml" ,
 		"classpath:application-context-repository-test.xml"})
 
-public class TestSanity extends AbstractIntegrationTest {
+public class TestSanity extends AbstractIntegrationTest  {
 
 	private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
 	private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
@@ -195,6 +174,7 @@ public class TestSanity extends AbstractIntegrationTest {
 	// This will get called from the superclass to init the repository
 	// It will be called only once
 	public void initSystem() throws Exception {
+		
 		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
 		
 		OperationResult result = new OperationResult("initSystem");
@@ -236,16 +216,16 @@ public class TestSanity extends AbstractIntegrationTest {
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test000Integrity");
-		assertNotNull(modelWeb);
-		assertNotNull(modelService);
-		assertNotNull(repositoryService);
-		assertTrue(systemInitialized);
-		assertNotNull(taskManager);
+		AssertJUnit.assertNotNull(modelWeb);
+		AssertJUnit.assertNotNull(modelService);
+		AssertJUnit.assertNotNull(repositoryService);
+		AssertJUnit.assertTrue(systemInitialized);
+		AssertJUnit.assertNotNull(taskManager);
 
 		OperationResult result = new OperationResult(TestSanity.class.getName() + ".test000Integrity");
 		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
-		assertTrue(object instanceof ResourceType);
-		assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
+		AssertJUnit.assertTrue(object instanceof ResourceType);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
 
 		// TODO: test if OpenDJ is running
 	}
@@ -281,12 +261,12 @@ public class TestSanity extends AbstractIntegrationTest {
 		
 		OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnection");
 		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, opResult);
-		assertTrue(object instanceof ResourceType);
-		assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
+		AssertJUnit.assertTrue(object instanceof ResourceType);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
 		resource = (ResourceType)object;
 		display("Initialized resource",resource);
-		assertNotNull("Resource schema was not generated",resource.getSchema());
-		assertFalse("Resource schema was not generated",resource.getSchema().getAny().isEmpty());
+		AssertJUnit.assertNotNull("Resource schema was not generated",resource.getSchema());
+		AssertJUnit.assertFalse("Resource schema was not generated",resource.getSchema().getAny().isEmpty());
 	}
 
 	/**
@@ -313,7 +293,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		displayJaxb(holder.value, SchemaConstants.C_RESULT);
 		assertSuccess("addObject has failed", holder.value);
 
-		assertEquals(USER_JACK_OID, oid);
+		AssertJUnit.assertEquals(USER_JACK_OID, oid);
 
 		OperationResult repoResult = new OperationResult("getObject");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
@@ -321,9 +301,9 @@ public class TestSanity extends AbstractIntegrationTest {
 		ObjectType repoObject = repositoryService.getObject(oid, resolve, repoResult);
 
 		assertSuccess("getObject has failed", repoResult);
-		assertEquals(USER_JACK_OID, repoObject.getOid());
+		AssertJUnit.assertEquals(USER_JACK_OID, repoObject.getOid());
 		UserType repoUser = (UserType) repoObject;
-		assertEquals(user.getFullName(), repoUser.getFullName());
+		AssertJUnit.assertEquals(user.getFullName(), repoUser.getFullName());
 
 		// TODO: better checks
 	}
@@ -363,10 +343,10 @@ public class TestSanity extends AbstractIntegrationTest {
 		displayJaxb("User (repository)", repoUser, new QName("user"));
 
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
-		assertEquals(1, accountRefs.size());
+		AssertJUnit.assertEquals(1, accountRefs.size());
 		ObjectReferenceType accountRef = accountRefs.get(0);
 		shadowOid = accountRef.getOid();
-		assertFalse(shadowOid.isEmpty());
+		AssertJUnit.assertFalse(shadowOid.isEmpty());
 
 		// Check if shadow was created in the repo
 
@@ -378,8 +358,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
 
-		assertNotNull(repoShadow);
-		assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+		AssertJUnit.assertNotNull(repoShadow);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
 		// check attributes in the shadow: should be only identifiers (ICF UID)
 
@@ -390,7 +370,7 @@ public class TestSanity extends AbstractIntegrationTest {
 			if (element.getNamespaceURI().equals(ConnectorFactoryIcfImpl.ICFS_UID.getNamespaceURI())
 					&& element.getLocalName().equals(ConnectorFactoryIcfImpl.ICFS_UID.getLocalPart())) {
 				if (uid != null) {
-					fail("Multiple values for ICF UID in shadow attributes");
+					Assert.fail("Multiple values for ICF UID in shadow attributes");
 				} else {
 					uid = element.getTextContent();
 				}
@@ -399,7 +379,7 @@ public class TestSanity extends AbstractIntegrationTest {
 			}
 		}
 
-		assertFalse(hasOthers);
+		AssertJUnit.assertFalse(hasOthers);
 		assertNotNull(uid);
 
 		// check if account was created in LDAP
@@ -413,7 +393,7 @@ public class TestSanity extends AbstractIntegrationTest {
 				SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100, 100, false,
 				"(entryUUID=" + uid + ")", null);
 
-		assertEquals(1, op.getEntriesSent());
+		AssertJUnit.assertEquals(1, op.getEntriesSent());
 		SearchResultEntry response = op.getSearchEntries().get(0);
 
 		display("LDAP account", response);
@@ -441,8 +421,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		AccountShadowType modelShadow = (AccountShadowType) modelObject;
 		displayJaxb("Shadow (model)", modelShadow, new QName("shadow"));
 
-		assertNotNull(modelShadow);
-		assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
+		AssertJUnit.assertNotNull(modelShadow);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
 		assertAttributeNotNull(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID);
 		assertAttribute(modelShadow, resource, "uid", "jack");
@@ -486,16 +466,16 @@ public class TestSanity extends AbstractIntegrationTest {
 		UserType repoUser = (UserType) repoObject;
 		displayJaxb(repoUser, new QName("user"));
 
-		assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
-		assertEquals("somewhere", repoUser.getLocality());
+		AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
+		AssertJUnit.assertEquals("somewhere", repoUser.getLocality());
 
 		// Check if appropriate accountRef is still there
 
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
-		assertEquals(1, accountRefs.size());
+		AssertJUnit.assertEquals(1, accountRefs.size());
 		ObjectReferenceType accountRef = accountRefs.get(0);
 		String newShadowOid = accountRef.getOid();
-		assertEquals(shadowOid, newShadowOid);
+		AssertJUnit.assertEquals(shadowOid, newShadowOid);
 
 		// Check if shadow is still in the repo and that it is untouched
 
@@ -504,8 +484,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertSuccess("getObject(repo) has failed", repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
 		displayJaxb(repoShadow, new QName("shadow"));
-		assertNotNull(repoShadow);
-		assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+		AssertJUnit.assertNotNull(repoShadow);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
 		// check attributes in the shadow: should be only identifiers (ICF UID)
 
@@ -516,7 +496,7 @@ public class TestSanity extends AbstractIntegrationTest {
 			if (element.getNamespaceURI().equals(ConnectorFactoryIcfImpl.ICFS_UID.getNamespaceURI())
 					&& element.getLocalName().equals(ConnectorFactoryIcfImpl.ICFS_UID.getLocalPart())) {
 				if (uid != null) {
-					fail("Multiple values for ICF UID in shadow attributes");
+					Assert.fail("Multiple values for ICF UID in shadow attributes");
 				} else {
 					uid = element.getTextContent();
 				}
@@ -525,7 +505,7 @@ public class TestSanity extends AbstractIntegrationTest {
 			}
 		}
 
-		assertFalse(hasOthers);
+		AssertJUnit.assertFalse(hasOthers);
 		assertNotNull(uid);
 
 		// Check if LDAP account was updated
@@ -534,7 +514,7 @@ public class TestSanity extends AbstractIntegrationTest {
 				SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100, 100, false,
 				"(entryUUID=" + uid + ")", null);
 
-		assertEquals(1, op.getEntriesSent());
+		AssertJUnit.assertEquals(1, op.getEntriesSent());
 		SearchResultEntry response = op.getSearchEntries().get(0);
 
 		display(response);
@@ -580,7 +560,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		try {
 			repositoryService.getObject(USER_JACK_OID, resolve, repoResult);
-			fail("User still exists in repo after delete");
+			Assert.fail("User still exists in repo after delete");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
 		}
@@ -589,10 +569,10 @@ public class TestSanity extends AbstractIntegrationTest {
 		repoResult = new OperationResult("getObject");
 		try {
 			repositoryService.getObject(shadowOid, resolve, repoResult);
-			fail("Shadow still exists in repo after delete");
+			Assert.fail("Shadow still exists in repo after delete");
 		} catch (ObjectNotFoundException e) {
 			// This is expected, but check also the result
-			assertFalse("getObject failed as expected, but the result indicates success",
+			AssertJUnit.assertFalse("getObject failed as expected, but the result indicates success",
 					repoResult.isSuccess());
 		}
 
@@ -601,7 +581,7 @@ public class TestSanity extends AbstractIntegrationTest {
 				SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100, 100, false,
 				"(uid=" + USER_JACK_LDAP_UID + ")", null);
 
-		assertEquals(0, op.getEntriesSent());
+		AssertJUnit.assertEquals(0, op.getEntriesSent());
 
 	}
 
@@ -648,44 +628,44 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
 		assertSuccess("getTask has failed", result);
-		assertNotNull(task);
+		AssertJUnit.assertNotNull(task);
 		display("Task after pickup", task);
 
 		ObjectType o = repositoryService.getObject(TASK_OPENDJ_SYNC_OID, null, result);
 		display("Task after pickup in the repository", o);
 
 		// .. it should be running
-		assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+		AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
 
 		// .. and claimed
-		assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+		AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
 		// .. and last run should not be zero
 		assertNotNull(task.getLastRunStartTimestamp());
-		assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
+		AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
 		assertNotNull(task.getLastRunFinishTimestamp());
-		assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+		AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
 
 		// Test for extension. This will also roughly test extension processor
 		// and schema processor
 		PropertyContainer taskExtension = task.getExtension();
-		assertNotNull(taskExtension);
+		AssertJUnit.assertNotNull(taskExtension);
 		display("Task extension", taskExtension);
 		Property shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever",
 				"shipState"));
-		assertEquals("capsized", shipStateProp.getValue(String.class));
+		AssertJUnit.assertEquals("capsized", shipStateProp.getValue(String.class));
 		Property deadProp = taskExtension
 				.findProperty(new QName("http://myself.me/schemas/whatever", "dead"));
-		assertEquals(Integer.class, deadProp.getValues().iterator().next().getClass());
-		assertEquals(Integer.valueOf(42), deadProp.getValue(Integer.class));
+		AssertJUnit.assertEquals(Integer.class, deadProp.getValues().iterator().next().getClass());
+		AssertJUnit.assertEquals(Integer.valueOf(42), deadProp.getValue(Integer.class));
 
 		// The progress should be 0, as there were no changes yet
-		assertEquals(0, task.getProgress());
+		AssertJUnit.assertEquals(0, task.getProgress());
 
 		// Test for presence of a result. It should be there and it should
 		// indicate success
 		OperationResult taskResult = task.getResult();
-		assertNotNull(taskResult);
+		AssertJUnit.assertNotNull(taskResult);
 
 		// Failure is expected here ... for now
 		// assertTrue(taskResult.isSuccess());
@@ -711,7 +691,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		
 		final OperationResult result = new OperationResult(TestSanity.class.getName() + ".test101LiveSyncCreate");
 		final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
-		assertNotNull(syncCycle);
+		AssertJUnit.assertNotNull(syncCycle);
 		
 		final Object tokenBefore;
 		Property tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
@@ -727,7 +707,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// THEN
 
-		assertEquals("LDAP add operation failed", ResultCode.SUCCESS, addOperation.getResultCode());
+		AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS, addOperation.getResultCode());
 
 		// Wait a bit to give the sync cycle time to detect the change
 
@@ -772,10 +752,10 @@ public class TestSanity extends AbstractIntegrationTest {
 		ObjectListType objects = modelWeb.searchObjects(query, null, holder);
 
 		assertSuccess("searchObjects has failed", holder.value);
-		assertEquals("User not found (or found too many)", 1, objects.getObject().size());
+		AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
 		UserType user = (UserType) objects.getObject().get(0);
 
-		assertEquals(user.getName(), WILL_NAME);
+		AssertJUnit.assertEquals(user.getName(), WILL_NAME);
 
 		// TODO: more checks
 	}
@@ -805,11 +785,11 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertSuccess("importFromResource has failed", taskHolder.value.getResult());
 		// Convert the returned TaskType to a more usable Task
 		Task task = taskManager.createTaskInstance(taskHolder.value);
-		assertNotNull(task);
+		AssertJUnit.assertNotNull(task);
 		assertNotNull(task.getOid());
-		assertTrue(task.isAsynchronous());
-		assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
-		assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
+		AssertJUnit.assertTrue(task.isAsynchronous());
+		AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING, task.getExecutionStatus());
+		AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED, task.getExclusivityStatus());
 
 		display("Import task after launch", task);
 
@@ -839,7 +819,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		display("Import task after finish (fetched from model)", task);
 
-		assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
+		AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
 
 		//Ugly fix to wait until state change success fully on slowmachines.
 		try {
@@ -847,13 +827,13 @@ public class TestSanity extends AbstractIntegrationTest {
  		} catch (Exception e) {
 		}
 
-		assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+		AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 
 		OperationResult taskResult = task.getResult();
-		assertNotNull("Task has no result", taskResult);
-		assertTrue("Task failed", taskResult.isSuccess());
+		AssertJUnit.assertNotNull("Task has no result", taskResult);
+		AssertJUnit.assertTrue("Task failed", taskResult.isSuccess());
 
-		assertTrue("No progress", task.getProgress() > 0);
+		AssertJUnit.assertTrue("No progress", task.getProgress() > 0);
 
 		// Check if the import created users and shadows
 
@@ -861,7 +841,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		// to look directly into repository
 		List<AccountShadowType> sobjects = repositoryService.listObjects(AccountShadowType.class, null, result);
 		assertSuccess("listObjects has failed", result);
-		assertFalse("No shadows created", sobjects.isEmpty());
+		AssertJUnit.assertFalse("No shadows created", sobjects.isEmpty());
 
 		for (AccountShadowType shadow : sobjects) {
 			display("Shadow object after import (repo)", shadow);
@@ -870,13 +850,13 @@ public class TestSanity extends AbstractIntegrationTest {
 																	// strange
 																	// ;-)
 			assertNotEmpty("No name in shadow", shadow.getName());
-			assertNotNull("No objectclass in shadow", shadow.getObjectClass());
-			assertNotNull("Null attributes in shadow", shadow.getAttributes());
+			AssertJUnit.assertNotNull("No objectclass in shadow", shadow.getObjectClass());
+			AssertJUnit.assertNotNull("Null attributes in shadow", shadow.getAttributes());
 			assertAttributeNotNull("No UID in shadow", shadow, ConnectorFactoryIcfImpl.ICFS_UID);
 		}
 		ObjectListType uobjects = modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), null, resultHolder);
 		assertSuccess("listObjects has failed", resultHolder.value);
-		assertFalse("No users created", uobjects.getObject().isEmpty());
+		AssertJUnit.assertFalse("No users created", uobjects.getObject().isEmpty());
 
 		for (ObjectType oo : uobjects.getObject()) {
 			UserType user = (UserType) oo;
@@ -890,7 +870,7 @@ public class TestSanity extends AbstractIntegrationTest {
 			// givenName is not mandatory in LDAP, therefore givenName may not
 			// be present on user
 			List<ObjectReferenceType> accountRefs = user.getAccountRef();
-			assertEquals("Wrong accountRef", 1, accountRefs.size());
+			AssertJUnit.assertEquals("Wrong accountRef", 1, accountRefs.size());
 			ObjectReferenceType accountRef = accountRefs.get(0);
 			// here was ref to resource oid, not account oid
 
@@ -903,7 +883,7 @@ public class TestSanity extends AbstractIntegrationTest {
 				}
 			}
 			if (!found) {
-				fail("accountRef does not point to existing account " + accountRef.getOid());
+				Assert.fail("accountRef does not point to existing account " + accountRef.getOid());
 			}
 		}
 	}
@@ -919,7 +899,7 @@ public class TestSanity extends AbstractIntegrationTest {
 					}
 				},
 				10000);
-		assertEquals("Some tasks left running after shutdown", new HashSet<Task>(),
+		AssertJUnit.assertEquals("Some tasks left running after shutdown", new HashSet<Task>(),
 				taskManager.getRunningTasks());
 	}
 
