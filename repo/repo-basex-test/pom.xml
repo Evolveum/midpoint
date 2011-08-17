@@ -20,7 +20,8 @@
 <!-- Portions Copyrighted 2010 Peter Prochazka -->
 <!-- -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<name>midPoint Repository - basex repository - test contexts</name>
 	<groupId>com.evolveum.midpoint.repo</groupId>
@@ -62,39 +63,28 @@
 	<dependencies>
 		<dependency>
 			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>util</artifactId>
-			<version>1.9-SNAPSHOT</version>
-		</dependency>
-		<!-- Test -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>${junit.version}</version>
-		</dependency>
-				<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
-			<artifactId>test-util</artifactId>
-			<version>1.9-SNAPSHOT</version>
-			<scope>compile</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.infra</groupId>
 			<artifactId>common</artifactId>
 			<version>1.9-SNAPSHOT</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>repo-api</artifactId>
 			<version>1.9-SNAPSHOT</version>
-			<scope>compile</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
 			<artifactId>task-api</artifactId>
 			<version>1.9-SNAPSHOT</version>
-			<type>jar</type>
-			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>test-util</artifactId>
+			<version>1.9-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>util</artifactId>
+			<version>1.9-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>
