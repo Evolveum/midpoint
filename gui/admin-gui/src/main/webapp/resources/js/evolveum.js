@@ -15,3 +15,23 @@ function displayMessageDetails(id, showImage, hideImage) {
 		buttonElement.src = showImage;
 	}
 }
+
+function displayMessageErrorDetails(id) {
+	var blockElement = document.getElementById(id + "_block");
+	var value = blockElement.style.display;
+	if (value == 'none' || value == '') {
+		blockElement.style.display = 'block';
+	} else {
+		blockElement.style.display = 'none';
+	}
+}
+
+function displayMessageCauseDetails(id) {
+	var blockElement = document.getElementById(id + "_block");
+	var value = blockElement.style.display;
+	if (value == 'none' || value == '') {
+		blockElement.style.display = 'block';
+	} else {
+		blockElement.style.display = 'none';
+	}
+}

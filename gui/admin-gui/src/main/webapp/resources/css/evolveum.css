@@ -261,6 +261,26 @@ a {
 	cursor: pointer;
 }
 
+.messages-details-error_button {
+	font-style: italic;
+	color: black; 
+	cursor: Pointer;
+}
+
+.messages-details-error {
+	overflow: auto;
+}
+
+.messages-details-cause_button {
+	font-style: italic;
+	color: black; 
+	cursor: Pointer;
+}
+
+.messages-details-cause {
+	overflow: auto;
+}
+
 #messages li span div.messages-details {
 	margin-top: 3px;
 	display: none;

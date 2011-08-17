@@ -133,6 +133,14 @@ public final class AutoFormFactory {
 
 		return message;
 	}
+	
+	static UICommand createShowContentImage(Application application) {
+		return createButtonImage(application, "/resources/images/content_show.png", "ShowContent");
+	}
+	
+	static UICommand createHideContentImage(Application application) {
+		return createButtonImage(application, "/resources/images/content_hide.png", "HideContent");
+	}
 
 	static UICommand createAddImage(Application application) {
 		return createButtonImage(application, "/resources/images/add.png", "Add");
