@@ -17,40 +17,32 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
  */
+package com.evolveum.midpoint.util.logging;
 
-package com.evolveum.midpoint.logging;
-
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import org.apache.commons.lang.Validate;
+
+
 /**
- *
- * @author Vilo Repan
+ * 
+ * @author lazyman
+ * 
  */
-public interface LoggerMXBean {
+public class LoggingUtils {
 
-    String getName();
+	public static void logException(Trace logger, String message, Exception ex, Object... objects) {
+		Validate.notNull(logger, "Logger can't be null.");
+		Validate.notNull(ex, "Exception can't be null.");
 
-    String getDisplayName();
+		List<Object> args = new ArrayList<Object>();
+		args.addAll(Arrays.asList(objects));
+		args.add(ex.getMessage());
 
-    void setDisplayName(String displayName);
-    
-    List<LogInfo> getLogInfoList();
-
-    void setLogInfoList(List<LogInfo> logInfoList);
-
-    LogInfo getLogInfo(String packageName);
-
-    void setLogInfo(LogInfo logInfo);
-
-    void setLogInfo(String packageName, int level);
-
-    String getLogPattern();
-
-    void setLogPattern(String pattern);
-
-    void setModuleLogLevel(int level);
-
-    int getModuleLogLevel();
+		logger.error(message + ", reason: {}", args.toArray());
+		logger.debug(message + ".", ex);
+	}
 }

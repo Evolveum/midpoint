@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 Igor Farinic
  */
-package com.evolveum.midpoint.aspect;
+package com.evolveum.midpoint.util.aspect;
 
 import org.apache.log4j.NDC;
 import org.aspectj.lang.ProceedingJoinPoint;

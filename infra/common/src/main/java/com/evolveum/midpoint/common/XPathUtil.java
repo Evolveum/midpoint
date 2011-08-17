@@ -22,17 +22,17 @@
 
 package com.evolveum.midpoint.common;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.ExpressionHolder;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.util.MapXPathVariableResolver;
 import com.evolveum.midpoint.util.Variable;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.xpath.MidPointXPathFunctionResolver;
+import com.evolveum.midpoint.util.xpath.functions.CapitalizeFunction;
 import com.evolveum.midpoint.xpath.MidPointNamespaceContext;
-import com.evolveum.midpoint.xpath.MidPointXPathFunctionResolver;
-import com.evolveum.midpoint.xpath.functions.CapitalizeFunction;
 import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;

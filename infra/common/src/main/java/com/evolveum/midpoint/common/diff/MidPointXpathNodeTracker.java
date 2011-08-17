@@ -23,7 +23,7 @@
 package com.evolveum.midpoint.common.diff;
 
 import com.evolveum.midpoint.common.Utils;
-import com.evolveum.midpoint.util.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -317,7 +317,7 @@ public class MidPointXpathNodeTracker extends XpathNodeTracker {
             buf.append(XPATH_SEPARATOR).append(currentValue);
 
             if (null != oid) {
-                buf.append(XPATH_NODE_INDEX_START).append("@").append(MidPointConstants.ATTR_OID_NAME).append("=\"").append(oid).append("\"").append(XPATH_NODE_INDEX_END);
+                buf.append(XPATH_NODE_INDEX_START).append("@").append(SchemaConstants.C_OID_ATTRIBUTE.getLocalPart()).append("=\"").append(oid).append("\"").append(XPATH_NODE_INDEX_END);
             }
 
             if (currentAttribute != null) {

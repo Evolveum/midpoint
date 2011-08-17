@@ -20,7 +20,14 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.util.constants;
+package com.evolveum.midpoint.util.xpath;
+
+import java.util.HashMap;
+import java.util.Map;
+import javax.xml.namespace.QName;
+import javax.xml.xpath.XPathFunction;
+import javax.xml.xpath.XPathFunctionResolver;
+import org.apache.commons.lang.Validate;
 
 /**
  * 
@@ -29,8 +36,20 @@ package com.evolveum.midpoint.util.constants;
  * @version $Revision$ $Date$
  * @since 0.1
  */
-public class MidPointConstants {
+public class MidPointXPathFunctionResolver implements XPathFunctionResolver {
 
-        public static final String ATTR_OID_NAME = "oid";
+    Map<QName, XPathFunction>  map = new HashMap<QName, XPathFunction>();
+
+    @Override
+    public XPathFunction resolveFunction(QName fname, int arity) {
+        Validate.notNull("The function name cannot be null");
+        Validate.isTrue(arity >= 0, "Provided negative value for function arity");
+
+        return map.get(fname);
+    }
+
+    public void registerFunction(QName fname, XPathFunction function) {
+        map.put(fname, function);
+    }
 
 }

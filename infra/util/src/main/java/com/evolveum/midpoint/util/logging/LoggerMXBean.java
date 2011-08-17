@@ -20,36 +20,37 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.exception;
+package com.evolveum.midpoint.util.logging;
 
-import com.evolveum.midpoint.api.exceptions.MidPointException;
+import java.util.List;
 
 /**
- * Sample Class Doc
  *
- * @author $author$
- * @version $Revision$ $Date$
- * @since 1.0.0
+ * @author Vilo Repan
  */
-public class ConfigurationError extends MidPointException {
+public interface LoggerMXBean {
 
-    public static final String code_id = "$Id$";
+    String getName();
 
-    public ConfigurationError() {
-    }
+    String getDisplayName();
 
-    public ConfigurationError(String message) {
-        super(message);
-    }
-
-    public ConfigurationError(String message, Throwable cause) {
-        super(message, cause);
-    }
-
-    public ConfigurationError(Throwable cause) {
-        super(cause);
-    }
-
+    void setDisplayName(String displayName);
     
+    List<LogInfo> getLogInfoList();
 
+    void setLogInfoList(List<LogInfo> logInfoList);
+
+    LogInfo getLogInfo(String packageName);
+
+    void setLogInfo(LogInfo logInfo);
+
+    void setLogInfo(String packageName, int level);
+
+    String getLogPattern();
+
+    void setLogPattern(String pattern);
+
+    void setModuleLogLevel(int level);
+
+    int getModuleLogLevel();
 }

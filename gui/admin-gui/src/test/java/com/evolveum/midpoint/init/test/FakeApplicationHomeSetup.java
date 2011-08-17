@@ -25,9 +25,9 @@ package com.evolveum.midpoint.init.test;
  * @author mamut
  */
 
-import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.init.ApplicationHomeSetup;
-import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class FakeApplicationHomeSetup extends ApplicationHomeSetup{
 	

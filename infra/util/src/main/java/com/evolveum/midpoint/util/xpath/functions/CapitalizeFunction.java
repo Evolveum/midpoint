@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.xpath.functions;
+package com.evolveum.midpoint.util.xpath.functions;
 
 import java.util.List;
 import javax.xml.xpath.XPathFunction;

@@ -34,9 +34,9 @@ import java.util.ResourceBundle;
 import javax.faces.application.Application;
 import javax.faces.context.FacesContext;
 
-import com.evolveum.midpoint.api.logging.LoggingUtils;
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * 

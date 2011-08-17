@@ -31,9 +31,9 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AttributeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;

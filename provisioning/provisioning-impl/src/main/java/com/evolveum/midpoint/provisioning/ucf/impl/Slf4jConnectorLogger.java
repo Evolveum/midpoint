@@ -22,8 +22,9 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import org.identityconnectors.common.logging.Log.Level;
 import org.identityconnectors.common.logging.LogSpi;
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Logger for ICF Connectors.

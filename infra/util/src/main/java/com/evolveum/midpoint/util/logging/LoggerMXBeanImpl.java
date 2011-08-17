@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.logging;
+package com.evolveum.midpoint.util.logging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +28,6 @@ import java.util.List;
 import org.apache.log4j.Appender;
 import org.apache.log4j.Level;
 
-import com.evolveum.midpoint.api.logging.Trace;
 
 /**
  *

@@ -20,9 +20,8 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.logging;
+package com.evolveum.midpoint.util.logging;
 
-import com.evolveum.midpoint.api.logging.Trace;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;

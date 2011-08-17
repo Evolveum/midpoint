@@ -22,7 +22,8 @@
 
 package com.evolveum.midpoint.common.diff;
 
-import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import java.util.LinkedList;
 import java.util.List;
 import org.custommonkey.xmlunit.Difference;

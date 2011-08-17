@@ -20,30 +20,27 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.logging;
+package com.evolveum.midpoint.util.logging;
 
-import org.testng.annotations.Test;
-import com.evolveum.midpoint.api.logging.Trace;
-import static org.testng.AssertJUnit.*;
+import org.slf4j.Logger;
 
+import com.evolveum.midpoint.util.logging.impl.TraceImpl;
 
 /**
+ * Sample Class Doc
  *
- * @author laszlohordos
+ * @author $author$
+ * @version $Revision$ $Date$
+ * @since 1.0.0
  */
-public class TraceManagerTest {
+public class TraceManager {
 
-    public TraceManagerTest() {
+    public static final String code_id = "$Id$";
+    private static Logger LOG = org.slf4j.LoggerFactory.getLogger(TraceManager.class);
+
+    public static Trace getTrace(Class clazz) {
+        Logger logger = org.slf4j.LoggerFactory.getLogger(clazz);
+
+        return new TraceImpl(logger);
     }
-
-    /**
-     * Test of getTrace method, of class TraceManager.
-     */
-    @Test
-    public void testGetTrace() {
-        System.out.println("getTrace");
-        Trace result = TraceManager.getTrace(TraceManagerTest.class);
-        assertNotNull(result.getName());
-    }
-
 }

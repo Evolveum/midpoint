@@ -17,31 +17,32 @@
  * your own identifying information:
  *
  * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2010 Forgerock
  */
-package com.evolveum.midpoint.api.logging;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+package com.evolveum.midpoint.util.logging;
 
-import org.apache.commons.lang.Validate;
+import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.*;
+
 
 /**
- * 
- * @author lazyman
- * 
+ *
+ * @author laszlohordos
  */
-public class LoggingUtils {
+public class TraceManagerTest {
 
-	public static void logException(Trace logger, String message, Exception ex, Object... objects) {
-		Validate.notNull(logger, "Logger can't be null.");
-		Validate.notNull(ex, "Exception can't be null.");
+    public TraceManagerTest() {
+    }
 
-		List<Object> args = new ArrayList<Object>();
-		args.addAll(Arrays.asList(objects));
-		args.add(ex.getMessage());
+    /**
+     * Test of getTrace method, of class TraceManager.
+     */
+    @Test
+    public void testGetTrace() {
+        System.out.println("getTrace");
+        Trace result = TraceManager.getTrace(TraceManagerTest.class);
+        assertNotNull(result.getName());
+    }
 
-		logger.error(message + ", reason: {}", args.toArray());
-		logger.debug(message + ".", ex);
-	}
 }

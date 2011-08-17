@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.logging.impl;
+package com.evolveum.midpoint.util.logging.impl;
 
 import java.io.IOException;
 import java.util.HashMap;

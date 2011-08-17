@@ -41,12 +41,12 @@ import org.apache.log4j.RollingFileAppender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.SystemPropertyUtils;
 
-import com.evolveum.midpoint.api.logging.LoggingUtils;
-import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.logging.TraceManager;
-import com.evolveum.midpoint.logging.impl.NdcFilteringDailyRollingFileAppender;
-import com.evolveum.midpoint.logging.impl.NdcFilteringRollingFileAppender;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.logging.impl.NdcFilteringDailyRollingFileAppender;
+import com.evolveum.midpoint.util.logging.impl.NdcFilteringRollingFileAppender;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.SystemManager;

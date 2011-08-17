@@ -33,12 +33,11 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.util.CollectionUtils;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
-import com.evolveum.midpoint.util.constants.MidPointConstants;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
@@ -192,7 +191,7 @@ public class Utils {
 	public static String getNodeOid(Node node) {
 		Node oidNode = null;
 		if ((null == node.getAttributes())
-				|| (null == (oidNode = node.getAttributes().getNamedItem(MidPointConstants.ATTR_OID_NAME)))
+				|| (null == (oidNode = node.getAttributes().getNamedItem(SchemaConstants.C_OID_ATTRIBUTE.getLocalPart())))
 				|| (StringUtils.isEmpty(oidNode.getNodeValue()))) {
 			return null;
 		}

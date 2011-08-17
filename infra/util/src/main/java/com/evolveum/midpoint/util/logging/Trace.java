@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.api.logging;
+package com.evolveum.midpoint.util.logging;
 
 import org.slf4j.Logger;
 

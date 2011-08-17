@@ -20,12 +20,12 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.logging.impl;
+package com.evolveum.midpoint.util.logging.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.Marker;
 
-import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.util.logging.Trace;
 
 /**
  * Sample Class Doc

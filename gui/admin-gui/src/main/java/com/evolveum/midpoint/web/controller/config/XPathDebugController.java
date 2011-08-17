@@ -43,14 +43,14 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.ExpressionHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.XPathUtil;
-import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.util.Variable;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.BrowserBean;
 import com.evolveum.midpoint.web.bean.XPathVariableBean;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;

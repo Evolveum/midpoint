@@ -20,9 +20,9 @@ package com.evolveum.midpoint.init;
 
 import java.io.File;
 
-import com.evolveum.midpoint.api.exceptions.MidPointException;
-import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class ApplicationHomeSetup {
 
@@ -99,7 +99,7 @@ public class ApplicationHomeSetup {
 		File d = new File(dir);
 		if (d.isFile()) {
 			logger.error(dir + " is file and NOT a directory.");
-			throw new MidPointException(dir + " is file and NOT a directory !!!");
+			throw new SystemException(dir + " is file and NOT a directory !!!");
 		}
 
 		if (d.isDirectory()) {
@@ -121,7 +121,7 @@ public class ApplicationHomeSetup {
 		Boolean st = d.mkdirs();
 		if (!st) {
 			logger.error("Unable to create directory " + dir + " as user " + System.getProperty("user.name"));
-			throw new MidPointException("Unable to create directory " + dir + " as user "
+			throw new SystemException("Unable to create directory " + dir + " as user "
 					+ System.getProperty("user.name"));
 		}
 	}

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2011 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -15,37 +15,17 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
- *
- * Portions Copyrighted 2011 [name of copyright owner]
- * Portions Copyrighted 2010 Forgerock
+ * "Portions Copyrighted 2011 [name of copyright owner]"
+ * 
  */
-
-package com.evolveum.midpoint.api.exceptions;
+package com.evolveum.midpoint.util.aspect;
 
 /**
- * Generic exception in IDM system.
- * 
- * @author $author$
- * @version $Revision$ $Date$
- * @since 1.0.0
+ * @author Radovan Semancik
+ *
  */
-@SuppressWarnings("serial")
-public class MidPointException extends RuntimeException {
-
-	public static final String code_id = "$Id$";
-
-	public MidPointException(Throwable cause) {
-		super(cause);
-	}
-
-	public MidPointException(String message, Throwable cause) {
-		super(message, cause);
-	}
-
-	public MidPointException(String message) {
-		super(message);
-	}
-
-	public MidPointException() {
-	}
+public interface ObjectFormatter {
+	
+	public String format(Object o);
+	
 }

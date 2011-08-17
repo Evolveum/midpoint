@@ -43,9 +43,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import com.evolveum.midpoint.aspect.LoggingAspect;
-import com.evolveum.midpoint.aspect.ObjectFormatter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.aspect.LoggingAspect;
+import com.evolveum.midpoint.util.aspect.ObjectFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
