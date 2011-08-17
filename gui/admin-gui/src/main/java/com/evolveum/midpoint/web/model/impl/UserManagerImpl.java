@@ -100,7 +100,7 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
 					changedObject.getXmlObject());
 			if (changes != null && changes.getOid() != null && changes.getPropertyModification().size() > 0) {
-				getModel().modifyObject(changes, result);
+				getModel().modifyObject(UserType.class, changes, result);
 			}
 
 			if (null != changes) {

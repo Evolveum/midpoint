@@ -76,7 +76,7 @@ public class UnlinkAccountAction extends BaseAction {
 						ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.delete,
 								null, SchemaConstants.I_ACCOUNT_REF, accountRef));
 
-				getModel().modifyObject(changes, subResult);
+				getModel().modifyObject(UserType.class, changes, subResult);
 			} else {
 				LOGGER.debug("Skipping unlink account from user, shadow in change is not AccountShadowType.");
 			}

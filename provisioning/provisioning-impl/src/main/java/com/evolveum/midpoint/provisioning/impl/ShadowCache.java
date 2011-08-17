@@ -1768,7 +1768,7 @@ public class ShadowCache {
 			ObjectModificationType objectModificationType = ObjectTypeUtil
 					.createModificationReplaceProperty(resource.getOid(),
 							SchemaConstants.I_SCHEMA, xmlSchemaType);
-			repositoryService.modifyObject(objectModificationType, result);
+			repositoryService.modifyObject(resource.getClass(), objectModificationType, result);
 		}
 
 		return resource;

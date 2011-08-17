@@ -487,7 +487,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public void modifyObject(ObjectModificationType objectChange,
+	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange,
 			ScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException,
 			CommunicationException {
@@ -514,7 +514,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 
 		//getting object to modify
-		ObjectType objectType = getRepositoryService().getObject(
+		T objectType = getRepositoryService().getObject(type,
 				objectChange.getOid(), new PropertyReferenceListType(),
 				parentResult);
 

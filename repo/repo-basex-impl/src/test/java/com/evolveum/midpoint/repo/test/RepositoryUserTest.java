@@ -216,7 +216,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
 					"src/test/resources/user-without-extension.xml"), new File(
 					"src/test/resources/user-added-extension.xml"));
-			repositoryService.modifyObject(objectModificationType, new OperationResult("test"));
+			repositoryService.modifyObject(UserType.class, objectModificationType, new OperationResult("test"));
 
 			//check the extension in the object
 			retrievedObject = repositoryService.getObject(oid, new PropertyReferenceListType(), new OperationResult("test"));
@@ -305,7 +305,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 							.getFirstChild());
 			modification.setValue(value);
 			modifications.getPropertyModification().add(modification);
-			repositoryService.modifyObject(modifications, new OperationResult("test"));
+			repositoryService.modifyObject(UserType.class, modifications, new OperationResult("test"));
 
 			//check if account ref was removed from the object
 			ObjectType retrievedObject = repositoryService.getObject(oid,

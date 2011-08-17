@@ -147,25 +147,28 @@ public interface RepositoryService {
 	throws ObjectNotFoundException, SchemaException;
 
 	/**
-	 * Add new object.
-	 * 
+	 * <p>Add new object.</p>
+	 * <p>
 	 * The OID provided in the input message may be empty. In that case the OID
 	 * will be assigned by the implementation of this method and it will be
 	 * provided as return value.
-	 * 
+	 * </p><p>
 	 * This operation should fail if such object already exists (if object with
 	 * the provided OID already exists).
-	 * 
+	 * </p><p>
 	 * The operation may fail if provided OID is in an unusable format for the
 	 * storage. Generating own OIDs and providing them to this method is not
 	 * recommended for normal operation.
-	 * 
+	 * </p><p>
 	 * Should be atomic. Should not allow creation of two objects with the same
 	 * OID (even if created in parallel).
-	 * 
+	 * </p><p>
 	 * The operation may fail if the object to be created does not conform to
 	 * the underlying schema of the storage system or the schema enforced by the
 	 * implementation.
+	 * </p><p>
+	 * Note: no need for explicit type parameter here. The object parameter contains the information.
+	 * </p>
 	 * 
 	 * @param object
 	 *            object to create
@@ -186,15 +189,16 @@ public interface RepositoryService {
 			throws ObjectAlreadyExistsException, SchemaException;
 
 	/**
-	 * Returns all objects of specified type in the repository.
-	 * 
+	 * <p>Returns all objects of specified type in the repository.</p>
+	 * <p>
 	 * This can be considered as a simplified search operation.
-	 * 
+	 * </p><p>
 	 * Returns empty list if object type is correct but there are no objects of
 	 * that type. The ordering of the results is not significant and may be arbitrary
 	 * unless sorting in the paging is used.
-	 * 
+	 * </p><p>
 	 * Should fail if object type is wrong.
+	 * </p>
 	 * 
 	 * @param type
 	 * @param paging
@@ -209,15 +213,18 @@ public interface RepositoryService {
 	public <T extends ObjectType> List<T> listObjects(Class<T> type, PagingType paging, OperationResult parentResult);
 
 	/**
-	 * Search for objects in the repository. Searches through all object types.
+	 * <p>Search for objects in the repository.</p>
+	 * <p>
+	 * Searches through all object types.
 	 * Returns a list of objects that match search criteria.
-	 * 
+	 * </p><p>
 	 * Returns empty list if object type is correct but there are no objects of
 	 * that type. The ordering of the results is not significant and may be arbitrary
 	 * unless sorting in the paging is used.
-	 * 
+	 * </p><p>
 	 * Should fail if object type is wrong. Should fail if unknown property is
 	 * specified in the query.
+	 * </p>
 	 * 
 	 * @param query
 	 *            search query
@@ -237,18 +244,20 @@ public interface RepositoryService {
 			throws SchemaException;
 
 	/**
-	 * Modifies object using relative change description. Must fail if user with
+	 * <p>Modifies object using relative change description.</p>
+	 * Must fail if user with
 	 * provided OID does not exists. Must fail if any of the described changes
 	 * cannot be applied. Should be atomic.
-	 * 
+	 * </p><p>
 	 * If two or more modify operations are executed in parallel, the operations
 	 * should be merged. In case that the operations are in conflict (e.g. one
 	 * operation adding a value and the other removing the same value), the
 	 * result is not deterministic.
-	 * 
+	 * </p><p>
 	 * The operation may fail if the modified object does not conform to the
 	 * underlying schema of the storage system or the schema enforced by the
 	 * implementation.
+	 * </p>
 	 * 
 	 * TODO: optimistic locking
 	 * 
@@ -266,12 +275,14 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	public void modifyObject(ObjectModificationType objectChange, OperationResult parentResult)
+	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
 
 	/**
-	 * Deletes object with specified OID. Must fail if object with specified OID
-	 * does not exists. Should be atomic.
+	 * <p>Deletes object with specified OID.</p>
+	 * <p>
+	 * Must fail if object with specified OID does not exists. Should be atomic.
+	 * </p>
 	 * 
 	 * @param oid
 	 *            OID of object to delete
@@ -286,15 +297,16 @@ public interface RepositoryService {
 	public void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException;
 
 	/**
-	 * Returns list of available values for specified properties.
-	 * 
+	 * <p>Returns list of available values for specified properties.</p>
+	 * <p>
 	 * The returned values can be used as valid values for properties of the
 	 * specific object. The provided values can be used e.g. for listing them in
 	 * GUI list boxes, for early validation (pre-validation), displaying help
 	 * messages, auto-complete, etc.
-	 * 
+	 * </p><p>
 	 * In case the list of available values is too big or it is not available,
 	 * the empty list should be returned, setting the "closed" flag to false.
+	 * </p>
 	 * 
 	 * @param oid
 	 *            OID of the object for which to determine values
@@ -314,21 +326,22 @@ public interface RepositoryService {
 			throws ObjectNotFoundException;
 
 	/**
-	 * Returns the User object representing owner of specified account (account
-	 * shadow).
-	 * 
+	 * <p>Returns the User object representing owner of specified account (account
+	 * shadow).</p>
+	 * <p>
 	 * May return null if there is no owner specified for the account.
-	 * 
+	 * </p><p>
 	 * May only be called with OID of AccountShadow object.
-	 * 
+	 * </p><p>
 	 * Implements the backward "owns" association between account shadow and
 	 * user. Forward association is implemented by property "account" of user
 	 * object.
-	 * 
+	 * </p><p>
 	 * This is a "list" operation even though it may return at most one owner.
 	 * However the operation implies searching the repository for an owner,
 	 * which may be less efficient that following a direct association. Hence it
 	 * is called "list" to indicate that there may be non-negligible overhead.
+	 * </p>
 	 * 
 	 * @param accountOid
 	 *            OID of account shadow
@@ -345,15 +358,18 @@ public interface RepositoryService {
 			throws ObjectNotFoundException;
 
 	/**
-	 * Search for resource object shadows of a specified type that belong to the
-	 * specified resource. Returns a list of such object shadows or empty list
+	 * <p>Search for resource object shadows of a specified type that belong to the
+	 * specified resource.</p>
+	 * <p>
+	 * Returns a list of such object shadows or empty list
 	 * if nothing was found.
-	 * 
+	 * </p><p>
 	 * Implements the backward "has" association between resource and resource
 	 * object shadows. Forward association is implemented by property "resource"
 	 * of resource object shadow.
-	 * 
+	 * </p><p>
 	 * May only be called with OID of Resource object.
+	 * </p>
 	 * 
 	 * @param resourceOid
 	 *            OID of resource definition (ResourceType)
@@ -371,13 +387,14 @@ public interface RepositoryService {
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException;
 	
 	/**
-	 * Claim a task.
-	 * 
+	 * <p>Claim a task.</p>
+	 * <p>
 	 * The task can be claimed only by a single node in the cluster. Attempt to claim an
 	 * already claimed task results in an exception. The claim must be atomic. It is kind
 	 * of a lock for the system.
-	 * 
+	 * </p><p>
 	 * TODO: better description
+	 * </p>
 	 * 
 	 * @param oid task OID
 	 * @param parentResult parentResult parent OperationResult (in/out)
@@ -390,12 +407,13 @@ public interface RepositoryService {
 	public void claimTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, ConcurrencyException, SchemaException;
 	
 	/**
-	 * Release a claimed task.
-	 * 
+	 * <p>Release a claimed task.</p>
+	 * <p>
 	 * TODO: better description
-	 * 
+	 * </p><p>
 	 * Note: Releasing a task that is not claimed is not an error. Warning should be logged, but this
 	 * should not throw any exception.
+	 * </p>
 	 *  
 	 * @param oid task OID
 	 * @param parentResult parentResult parent OperationResult (in/out)

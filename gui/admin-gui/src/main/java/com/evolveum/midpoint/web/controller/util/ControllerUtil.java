@@ -79,7 +79,9 @@ public class ControllerUtil {
 		OperationResult opResult = new OperationResult("Get Object");
 		result.addSubresult(opResult);
 		try {
-			ObjectType object = model.getObject(oid, new PropertyReferenceListType(),
+			ObjectType object = model.getObject(
+					ObjectTypes.OBJECT.getObjectTypeUri(),
+					oid, new PropertyReferenceListType(),
 					new Holder<OperationResultType>(opResult.createOperationResultType()));
 
 			if (clazz.isInstance(object)) {

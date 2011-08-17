@@ -25,7 +25,7 @@ public interface ModelController extends ModelService {
 	
 	<T extends ObjectType> List<T> searchObjectsInRepository(Class<T> type, QueryType query, PagingType paging, OperationResult result);
 
-	void modifyObjectWithExclusion(ObjectModificationType change, String accountOid, OperationResult result)
+	<T extends ObjectType> void modifyObjectWithExclusion(Class<T> type, ObjectModificationType change, String accountOid, OperationResult result)
 			throws ObjectNotFoundException;
 
 	<T extends ObjectType> T getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve, OperationResult result,

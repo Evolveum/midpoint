@@ -383,7 +383,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	public void modifyTask(ObjectModificationType objectChange, OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException {
 		// TODO: result
-		repositoryService.modifyObject(objectChange, parentResult);
+		repositoryService.modifyObject(TaskType.class, objectChange, parentResult);
 		// Wake up scanner thread. This may be runnable task now
 		scannerThread.scan();
 	}

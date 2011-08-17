@@ -86,6 +86,7 @@
     </message>
 
     <message name="getObjectRequest">
+    	<part name="objectType" type="xsd:anyURI"/>
         <part name="oid" type="xsd:string"/>
         <part name="resolve" type="c:PropertyReferenceListType"/>
         <part name="result" type="c:OperationResultType" />
@@ -114,6 +115,7 @@
     </message>
 
     <message name="searchObjectsRequest">
+    	<part name="objectType" type="xsd:anyURI"/>
         <part name="query" type="c:QueryType">
             <documentation>
                 Search criteria
@@ -132,6 +134,7 @@
     </message>
 
     <message name="modifyObjectRequest">
+    	<part name="objectType" type="xsd:anyURI"/>
         <part name="objectChange" type="c:ObjectModificationType"/>
         <part name="result" type="c:OperationResultType" />
     </message>

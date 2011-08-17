@@ -118,7 +118,7 @@ public class LinkAccountActionTest extends BaseActionTest {
 			LOGGER.debug(result.dump());
 		}
 
-		verify(repository, times(0)).modifyObject(any(ObjectModificationType.class),
+		verify(repository, times(0)).modifyObject(any(Class.class),any(ObjectModificationType.class),
 				any(OperationResult.class));
 	}
 
@@ -157,7 +157,7 @@ public class LinkAccountActionTest extends BaseActionTest {
 
 				return null;
 			}
-		}).when(repository).modifyObject(any(ObjectModificationType.class), any(OperationResult.class));
+		}).when(repository).modifyObject(any(Class.class),any(ObjectModificationType.class), any(OperationResult.class));
 
 		try {
 			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
@@ -167,7 +167,7 @@ public class LinkAccountActionTest extends BaseActionTest {
 			LOGGER.debug(result.dump());
 		}
 
-		verify(repository, times(1)).modifyObject(any(ObjectModificationType.class),
+		verify(repository, times(1)).modifyObject(any(Class.class),any(ObjectModificationType.class),
 				any(OperationResult.class));
 	}
 }

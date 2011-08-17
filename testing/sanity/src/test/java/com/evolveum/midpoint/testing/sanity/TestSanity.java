@@ -136,6 +136,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 	private static final String USER_JACK_FILENAME = "src/test/resources/repo/user-jack.xml";
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	private static final String USER_JACK_LDAP_UID = "jack";
+	private static final String USER_JACK_LDAP_DN = "uid="+USER_JACK_LDAP_UID+",ou=people,dc=example,dc=com";
 
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
 	private static final String WILL_NAME = "wturner";
@@ -223,6 +224,8 @@ public class TestSanity extends AbstractIntegrationTest  {
 		AssertJUnit.assertNotNull(taskManager);
 
 		OperationResult result = new OperationResult(TestSanity.class.getName() + ".test000Integrity");
+		ResourceType resource = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, resource.getOid());
 		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
 		AssertJUnit.assertTrue(object instanceof ResourceType);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
@@ -326,7 +329,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
 
 		// WHEN
-		modelWeb.modifyObject(objectChange, holder);
+		modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(),objectChange, holder);
 
 		// THEN
 		displayJaxb("modifyObject result", holder.value, SchemaConstants.C_RESULT);
@@ -352,17 +355,16 @@ public class TestSanity extends AbstractIntegrationTest  {
 
 		repoResult = new OperationResult("getObject");
 
-		repoObject = repositoryService.getObject(shadowOid, resolve, repoResult);
+		AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, shadowOid, resolve, repoResult);
 		assertSuccess("addObject has failed", repoResult);
-		AccountShadowType repoShadow = (AccountShadowType) repoObject;
-
 		displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
-
 		AssertJUnit.assertNotNull(repoShadow);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
+		// Check the "name" property, it should be set to DN, not entryUUID
+		assertEquals("Wrong name property",USER_JACK_LDAP_DN,repoShadow.getName());
+		
 		// check attributes in the shadow: should be only identifiers (ICF UID)
-
 		String uid = null;
 		boolean hasOthers = false;
 		List<Element> xmlAttributes = repoShadow.getAttributes().getAny();
@@ -412,7 +414,9 @@ public class TestSanity extends AbstractIntegrationTest  {
 		holder.value = result;
 
 		// WHEN
-		ObjectType modelObject = modelWeb.getObject(shadowOid, resolve, holder);
+		ObjectType modelObject = modelWeb.getObject(
+				ObjectTypes.ACCOUNT.getObjectTypeUri(),
+				shadowOid, resolve, holder);
 
 		// THEN
 		displayJaxb("getObject result", holder.value, SchemaConstants.C_RESULT);
@@ -451,7 +455,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
 
 		// WHEN
-		modelWeb.modifyObject(objectChange, holder);
+		modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange, holder);
 
 		// THEN
 		System.out.println("modifyObject result:");
@@ -749,7 +753,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 		OperationResultType resultType = new OperationResultType();
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(resultType);
 
-		ObjectListType objects = modelWeb.searchObjects(query, null, holder);
+		ObjectListType objects = modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null, holder);
 
 		assertSuccess("searchObjects has failed", holder.value);
 		AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
@@ -804,7 +808,9 @@ public class TestSanity extends AbstractIntegrationTest  {
 					@Override
 					public boolean check() throws Exception {
 						Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-						ObjectType obj = modelWeb.getObject(taskOid, new PropertyReferenceListType(), resultHolder);
+						ObjectType obj = modelWeb.getObject(
+								ObjectTypes.TASK.getObjectTypeUri(),
+								taskOid, new PropertyReferenceListType(), resultHolder);
 						assertSuccess("getObject has failed", resultHolder.value);
 						Task task = taskManager.createTaskInstance((TaskType) obj);
 						return(task.getExecutionStatus() == TaskExecutionStatus.CLOSED);
@@ -813,7 +819,8 @@ public class TestSanity extends AbstractIntegrationTest  {
 				30000);
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-		ObjectType obj = modelWeb.getObject(task.getOid(), new PropertyReferenceListType(), resultHolder);
+		ObjectType obj = modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(),
+				task.getOid(), new PropertyReferenceListType(), resultHolder);
 		assertSuccess("getObject has failed", resultHolder.value);
 		task = taskManager.createTaskInstance((TaskType) obj);
 

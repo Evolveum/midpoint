@@ -32,6 +32,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
@@ -57,25 +58,25 @@ public class ControllerModifyObjectTest extends AbstractTestNGSpringContextTests
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChange() throws Exception {
-		controller.modifyObject(null, null);
+		controller.modifyObject(UserType.class, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChangeOid() throws Exception {
-		controller.modifyObject(new ObjectModificationType(), null);
+		controller.modifyObject(UserType.class, new ObjectModificationType(), null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyChangeOid() throws Exception {
 		ObjectModificationType change = new ObjectModificationType();
 		change.setOid("");
-		controller.modifyObject(change, null);
+		controller.modifyObject(UserType.class, change, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
 		ObjectModificationType change = new ObjectModificationType();
 		change.setOid("1");
-		controller.modifyObject(change, null);
+		controller.modifyObject(UserType.class, change, null);
 	}
 }

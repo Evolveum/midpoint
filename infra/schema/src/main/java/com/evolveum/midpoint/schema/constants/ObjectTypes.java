@@ -74,8 +74,10 @@ public enum ObjectTypes {
 			TaskType.class), 
 			
 	RESOURCE_OBJECT_SHADOW("schema.objectTypes.resourceObject", SchemaConstants.I_RESOURCE_OBJECT_SHADOW_TYPE, SchemaConstants.I_RESOURCE_OBJECT_SHADOW,
-			ResourceObjectShadowType.class),;
-	
+			ResourceObjectShadowType.class), 
+			
+	OBJECT("schema.objectTypes.object", SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT,
+			ObjectType.class);
 	
 
 	private String localizationKey;

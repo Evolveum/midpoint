@@ -134,7 +134,7 @@ public class BrowserBean extends ListController<BrowserItem> {
 		query.setFilter(ControllerUtil.createQuery(name, null));
 		ObjectListType list = null;
 		try {
-			list = model.searchObjects(query, new PagingType(), new Holder<OperationResultType>(
+			list = model.searchObjects(ObjectTypes.OBJECT.getObjectTypeUri(),query, new PagingType(), new Holder<OperationResultType>(
 					new OperationResultType()));
 		} catch (FaultMessage ex) {
 			FacesUtils.addErrorMessage("Couldn't search for object '" + name + "'.", ex);

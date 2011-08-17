@@ -149,7 +149,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 					new PropertyReferenceListType(), result);
 			if (oldObject != null) {
 				ObjectModificationType objectChange = CalculateXmlDiff.calculateChanges(oldObject, object);
-				repositoryService.modifyObject(objectChange, result);
+				repositoryService.modifyObject(object.getClass(), objectChange, result);
 
 				result.recordSuccess();
 				saved = true;

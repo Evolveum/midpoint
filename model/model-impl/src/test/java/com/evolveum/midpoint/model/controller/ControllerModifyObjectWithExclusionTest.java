@@ -85,26 +85,26 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChange() throws Exception {
-		controller.modifyObjectWithExclusion(null, null, null);
+		controller.modifyObjectWithExclusion(UserType.class, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChangeOid() throws Exception {
-		controller.modifyObjectWithExclusion(new ObjectModificationType(), null, null);
+		controller.modifyObjectWithExclusion(UserType.class, new ObjectModificationType(), null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyChangeOid() throws Exception {
 		ObjectModificationType change = new ObjectModificationType();
 		change.setOid("");
-		controller.modifyObjectWithExclusion(change, null, null);
+		controller.modifyObjectWithExclusion(UserType.class, change, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
 		ObjectModificationType change = new ObjectModificationType();
 		change.setOid("1");
-		controller.modifyObjectWithExclusion(change, null, null);
+		controller.modifyObjectWithExclusion(UserType.class, change, null, null);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -147,17 +147,17 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 
 				return null;
 			}
-		}).when(provisioning).modifyObject(any(ObjectModificationType.class), any(ScriptsType.class),
+		}).when(provisioning).modifyObject(any(Class.class),any(ObjectModificationType.class), any(ScriptsType.class),
 				any(OperationResult.class));
 
 		OperationResult result = new OperationResult("disableUser");
 		try {
-			controller.modifyObject(change, result);
+			controller.modifyObject(UserType.class, change, result);
 		} finally {
 			LOGGER.debug(result.dump());
 		}
 
-		verify(provisioning).modifyObject(any(ObjectModificationType.class), any(ScriptsType.class),
+		verify(provisioning).modifyObject(any(Class.class),any(ObjectModificationType.class), any(ScriptsType.class),
 				any(OperationResult.class));
 	}
 

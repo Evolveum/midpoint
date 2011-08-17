@@ -80,7 +80,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),
 					changedObject.getXmlObject());
 			if (changes != null && changes.getOid() != null) {
-				getModel().modifyObject(changes, result);
+				getModel().modifyObject(AccountShadowType.class, changes, result);
 			}
 		} catch (DiffException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update account {}, error while diffing", ex,

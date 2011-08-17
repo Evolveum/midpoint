@@ -361,7 +361,7 @@ public class TaskImpl implements Task {
 		}
 		
 		try {
-			repositoryService.modifyObject(objectChange, opResult);
+			repositoryService.modifyObject(TaskType.class, objectChange, opResult);
 		} catch (ObjectNotFoundException ex) {
 			opResult.recordFatalError("Object not found", ex);
 			throw ex;
@@ -478,7 +478,7 @@ public class TaskImpl implements Task {
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setTimeInMillis(lastRunStartTimestamp);
 		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid, SchemaConstants.C_TASK_LAST_RUN_START_TIMESTAMP, cal);
-		repositoryService.modifyObject(modification, parentResult);
+		repositoryService.modifyObject(TaskType.class, modification, parentResult);
 	}
 
 	@Override
@@ -506,7 +506,7 @@ public class TaskImpl implements Task {
 			resultModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_RESULT, null);
 		}
 		modification.getPropertyModification().add(resultModification);
-		repositoryService.modifyObject(modification, parentResult);
+		repositoryService.modifyObject(TaskType.class, modification, parentResult);
 		// TODO: Also save the OpResult
 	}
 	
@@ -556,7 +556,7 @@ public class TaskImpl implements Task {
 		PropertyModificationType timestampModification = ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace, null, SchemaConstants.C_TASK_EXECUTION_STATUS, TaskExecutionStatusType.CLOSED.value());
 		modification.getPropertyModification().add(timestampModification);
 		try {
-			repositoryService.modifyObject(modification, result);
+			repositoryService.modifyObject(TaskType.class, modification, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found", ex);
 			throw ex;

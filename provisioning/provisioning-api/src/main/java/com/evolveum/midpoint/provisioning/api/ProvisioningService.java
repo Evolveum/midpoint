@@ -324,7 +324,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public void modifyObject(ObjectModificationType objectChange, ScriptsType scripts,
+	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange, ScriptsType scripts,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException;
 
 	/**

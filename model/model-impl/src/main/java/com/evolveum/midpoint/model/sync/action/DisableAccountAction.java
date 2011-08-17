@@ -70,7 +70,7 @@ public class DisableAccountAction extends BaseAction {
 					true);
 
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldAccount, account);
-			getModel().modifyObject(changes, new OperationResult("Modify Object"));
+			getModel().modifyObject(AccountShadowType.class, changes, new OperationResult("Modify Object"));
 		} catch (DiffException ex) {
 			trace.error("Couldn't disable account {}, error while creating diff: {}.",
 					new Object[] { account.getOid(), ex.getMessage() });

@@ -319,7 +319,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public void modifyObject(ObjectModificationType objectChange, OperationResult parentResult)
+	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".modifyObject");
@@ -704,7 +704,7 @@ public class XmlRepositoryService implements RepositoryService {
 		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
 				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.CLAIMED.value());
 
-		modifyObject(modification, result);
+		modifyObject(TaskType.class, modification, result);
 
 	}
 
@@ -721,7 +721,7 @@ public class XmlRepositoryService implements RepositoryService {
 		ObjectModificationType modification = ObjectTypeUtil.createModificationReplaceProperty(oid,
 				SchemaConstants.C_TASK_EXECLUSIVITY_STATUS, TaskExclusivityStatusType.RELEASED.value());
 
-		modifyObject(modification, result);
+		modifyObject(TaskType.class, modification, result);
 
 	}
 

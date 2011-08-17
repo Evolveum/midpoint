@@ -175,7 +175,7 @@ public interface ModelService {
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected state
 	 */
-	void modifyObject(ObjectModificationType change, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+	<T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * <p>Deletes object with specified OID.</p>

@@ -84,7 +84,7 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
 					ObjectTypeUtil.createPropertyModificationType(PropertyModificationTypeType.replace,
 							xpath, document.getDocumentElement()));
 
-			getModel().modifyObject(change, result);
+			getModel().modifyObject(SystemConfigurationType.class, change, result);
 			updated = true;
 		} catch (Exception ex) {
 			ex.printStackTrace();

@@ -91,7 +91,7 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	@Override
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve,
+	public ObjectType getObject(String objectTypeUri, String oid, PropertyReferenceListType resolve,
 			Holder<OperationResultType> result) throws FaultMessage {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
 		notNullArgument(resolve, "Property reference list  must not be null.");
@@ -99,7 +99,7 @@ public class ModelWebService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service Get Object");
 		try {
-			ObjectType object = model.getObject(ObjectType.class, oid, resolve, operationResult);
+			ObjectType object = model.getObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid, resolve, operationResult);
 			handleOperationResult(operationResult, result);
 
 			return object;
@@ -134,14 +134,14 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	@Override
-	public ObjectListType searchObjects(QueryType query, PagingType paging, Holder<OperationResultType> result)
+	public ObjectListType searchObjects(String objectTypeUri, QueryType query, PagingType paging, Holder<OperationResultType> result)
 			throws FaultMessage {
 		notNullArgument(query, "Query must not be null.");
 		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult("Model Service Search Objects");
 		try {
-			List<ObjectType> list = model.searchObjectsInRepository(ObjectType.class, query, paging, operationResult);
+			List<? extends ObjectType> list = model.searchObjectsInRepository(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, paging, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
 			for (ObjectType o : list) {
@@ -156,14 +156,14 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	@Override
-	public void modifyObject(ObjectModificationType change, Holder<OperationResultType> result)
+	public void modifyObject(String objectTypeUri, ObjectModificationType change, Holder<OperationResultType> result)
 			throws FaultMessage {
 		notNullArgument(change, "Object modification must not be null.");
 		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult("Model Service Modify Object");
 		try {
-			model.modifyObject(change, operationResult);
+			model.modifyObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), change, operationResult);
 			handleOperationResult(operationResult, result);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL modifyObject() failed", ex);

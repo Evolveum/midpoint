@@ -90,7 +90,7 @@ public class ModifyUserAction extends BaseAction {
 
 			ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
 			if (modification != null && modification.getOid() != null) {
-				getModel().modifyObject(modification, subResult);
+				getModel().modifyObject(UserType.class, modification, subResult);
 			} else {
 				LOGGER.warn("Diff returned null for changes of user {}, caused by shadow {}",
 						userType.getOid(), shadowAfterChange.getOid());

@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.SystemPropertyUtils;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -268,7 +269,8 @@ public class LoggingManager {
 
 		SystemConfigurationType config = null;
 		try {
-			ObjectType object = model.getObject(SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+			ObjectType object = model.getObject(ObjectTypes.SYSTEM_CONFIGURATION.getObjectTypeUri(),
+					SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 					new PropertyReferenceListType(), new Holder<OperationResultType>(resultTypeHolder));
 			config = (SystemConfigurationType) object;
 

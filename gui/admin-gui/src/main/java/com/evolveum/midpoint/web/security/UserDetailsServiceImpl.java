@@ -38,6 +38,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -99,7 +100,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		query.setFilter(createQuery(username));
 		TRACE.trace("Looking for user, query:\n" + DOMUtil.printDom(query.getFilter()));
 
-		ObjectListType list = modelService.searchObjects(query, new PagingType(),
+		ObjectListType list = modelService.searchObjects(
+				ObjectTypes.USER.getObjectTypeUri(),
+				query, new PagingType(),
 				new Holder<OperationResultType>(new OperationResultType()));
 		if (list == null) {
 			return null;
@@ -195,7 +198,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 			ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
 			if (modification != null && modification.getOid() != null) {
-				modelService.modifyObject(modification, new Holder<OperationResultType>(
+				modelService.modifyObject(
+						ObjectTypes.USER.getObjectTypeUri(),
+						modification, new Holder<OperationResultType>(
 						new OperationResultType()));
 			}
 		} catch (com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage ex) {
@@ -218,7 +223,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	}
 
 	private UserType getUserByOid(String oid) throws FaultMessage {
-		ObjectType object = modelService.getObject(oid, new PropertyReferenceListType(),
+		ObjectType object = modelService.getObject(
+				ObjectTypes.USER.getObjectTypeUri(),
+				oid, new PropertyReferenceListType(),
 				new Holder<OperationResultType>(new OperationResultType()));
 		if (object != null && (object instanceof UserType)) {
 			return (UserType) object;

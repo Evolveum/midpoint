@@ -44,6 +44,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.xpath.XPathUtil;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.ExpressionHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -143,7 +144,9 @@ public class XPathDebugController implements Serializable {
 			if (StringUtils.isNotEmpty(variable.getVariableName())) {
 				if (variable.getType().equals("Object")) {
 					try {
-						ObjectType objectType = port.getObject(variable.getValue(),
+						ObjectType objectType = port.getObject(
+								ObjectTypes.OBJECT.getObjectTypeUri(),
+								variable.getValue(),
 								new PropertyReferenceListType(), new Holder<OperationResultType>(
 										new OperationResultType()));
 						// Variable only accepts String or Node, but here we

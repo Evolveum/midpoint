@@ -610,9 +610,9 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 			System.out.println("oid changed obj: " + objectChange.getObjectModification().getOid());
 
-			provisioningService.modifyObject(objectChange.getObjectModification(), null, result);
+			provisioningService.modifyObject(AccountShadowType.class,objectChange.getObjectModification(), null, result);
 
-			AccountShadowType accountType = (AccountShadowType) provisioningService.getObject(
+			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
 					ACCOUNT_MODIFY_OID, new PropertyReferenceListType(), result);
 			String changedSn = null;
 			for (Element e : accountType.getAttributes().getAny()) {

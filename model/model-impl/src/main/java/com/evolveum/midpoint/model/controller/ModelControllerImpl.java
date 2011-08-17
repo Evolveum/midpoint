@@ -389,13 +389,13 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public void modifyObject(ObjectModificationType change, OperationResult result)
+	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change, OperationResult result)
 			throws ObjectNotFoundException {
-		modifyObjectWithExclusion(change, null, result);
+		modifyObjectWithExclusion(type, change, null, result);
 	}
 
 	@Override
-	public void modifyObjectWithExclusion(ObjectModificationType change, String accountOid,
+	public <T extends ObjectType> void modifyObjectWithExclusion(Class<T> type, ObjectModificationType change, String accountOid,
 			OperationResult result) throws ObjectNotFoundException {
 		Validate.notNull(change, "Object modification must not be null.");
 		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
@@ -414,8 +414,8 @@ public class ModelControllerImpl implements ModelController {
 		addResultParams(subResult, new String[] { "change", "accountOid" }, change, accountOid);
 
 		try {
-			ObjectType object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(),
-					subResult, ObjectType.class);
+			T object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(),
+					subResult, type);
 			if (object instanceof TaskType) {
 				modifyTaskWithExclusion(change, accountOid, subResult, object);
 			} else if (ProvisioningTypes.isManagedByProvisioning(object)) {
@@ -924,7 +924,7 @@ public class ModelControllerImpl implements ModelController {
 		ObjectModificationType change = createUserModification(accountsToBeDeleted, refsToBeDeleted);
 		change.setOid(user.getOid());
 		try {
-			repository.modifyObject(change, result);
+			repository.modifyObject(UserType.class, change, result);
 		} catch (ObjectNotFoundException ex) {
 			throw ex;
 		} catch (Exception ex) {
@@ -986,11 +986,11 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void modifyProvisioningObjectWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException,
+	private <T extends ObjectType> void modifyProvisioningObjectWithExclusion(ObjectModificationType change, String accountOid,
+			OperationResult result, T object) throws ObjectNotFoundException, SchemaException,
 			CommunicationException {
 		if (object instanceof ResourceObjectShadowType) {
-			object = getObject(ResourceObjectShadowType.class, object.getOid(), new PropertyReferenceListType(), result,
+			object = (T) getObject(ResourceObjectShadowType.class, object.getOid(), new PropertyReferenceListType(), result,
 					true);
 
 			UserType user = null;
@@ -1009,7 +1009,7 @@ public class ModelControllerImpl implements ModelController {
 			try {
 				PatchXml patchXml = new PatchXml();
 				String xmlPatchedObject = patchXml.applyDifferences(change, object);
-				object = ((JAXBElement<ResourceObjectShadowType>) JAXBUtil.unmarshal(xmlPatchedObject))
+				object = (T) ((JAXBElement<ResourceObjectShadowType>) JAXBUtil.unmarshal(xmlPatchedObject))
 						.getValue();
 
 				ObjectModificationType newChange = processOutboundSchemaHandling(user,
@@ -1030,7 +1030,7 @@ public class ModelControllerImpl implements ModelController {
 
 		ScriptsType scripts = getScripts(object, result);
 		if (StringUtils.isNotEmpty(change.getOid())) {
-			provisioning.modifyObject(change, scripts, result);
+			provisioning.modifyObject(object.getClass(), change, scripts, result);
 		}
 	}
 
@@ -1168,14 +1168,14 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void modifyRepositoryObjectWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result, ObjectType object) throws ObjectNotFoundException, SchemaException {
+	private <T extends ObjectType> void modifyRepositoryObjectWithExclusion(ObjectModificationType change, String accountOid,
+			OperationResult result, T object) throws ObjectNotFoundException, SchemaException {
 		if (object instanceof UserType) {
 			UserType user = (UserType) object;
 			// processing add account
 			processAddAccountFromChanges(change, user, result);
 
-			repository.modifyObject(change, result);
+			repository.modifyObject(object.getClass(), change, result);
 			try {
 				PatchXml patchXml = new PatchXml();
 				String u = patchXml.applyDifferences(change, user);
@@ -1193,7 +1193,7 @@ public class ModelControllerImpl implements ModelController {
 			// outbound for every account or enable/disable account if needed
 			modifyAccountsAfterUserWithExclusion(user, change, userActivationChanged, accountOid, result);
 		} else {
-			repository.modifyObject(change, result);
+			repository.modifyObject(object.getClass(), change, result);
 		}
 	}
 
@@ -1238,7 +1238,7 @@ public class ModelControllerImpl implements ModelController {
 					accountChange.getPropertyModification().add(modification);
 				}
 
-				modifyObjectWithExclusion(accountChange, accountOid, subResult);
+				modifyObjectWithExclusion(AccountShadowType.class, accountChange, accountOid, subResult);
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't update account {}", ex, accountRef.getOid());
 				subResult.recordFatalError(ex);

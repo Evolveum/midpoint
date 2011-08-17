@@ -154,7 +154,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 		PropertyModificationType modification = new PropertyModificationType();
 		objModifications.getPropertyModification().add(modification);
 		//try to modify not existing object, exception is expected
-		repositoryService.modifyObject(objModifications, new OperationResult("test"));
+		repositoryService.modifyObject(UserType.class, objModifications, new OperationResult("test"));
 	}
 	
 	@Test(expectedExceptions = ObjectNotFoundException.class)

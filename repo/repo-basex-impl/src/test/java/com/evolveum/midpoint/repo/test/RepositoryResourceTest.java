@@ -185,7 +185,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			ObjectModificationType objectModificationType = CalculateXmlDiff.calculateChanges(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"), new File(
 					"src/test/resources/resource-modified-removed-tags.xml"));
-			repositoryService.modifyObject(objectModificationType, new OperationResult("test"));
+			repositoryService.modifyObject(ResourceType.class, objectModificationType, new OperationResult("test"));
 			retrievedObject = repositoryService.getObject(resourceOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(modifiedResource, (ResourceType) retrievedObject);
