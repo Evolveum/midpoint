@@ -32,6 +32,8 @@ import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+
 /**
  * Sample Class Doc
  * 
@@ -39,7 +41,7 @@ import java.util.jar.JarFile;
  * @version $Revision$ $Date$
  * @since 1.0.0
  */
-public class OpenDJUnitTestAdapter {
+public class OpenDJUnitTestAdapter extends AbstractTestNGSpringContextTests {
 
 	protected static String ldapDataDir = "target/test-data/opendj";
 

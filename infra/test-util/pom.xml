@@ -93,11 +93,13 @@
 			<groupId>com.sleepycat</groupId>
 			<artifactId>je</artifactId>
 		</dependency>
-		<!--  Testing dependecies  -->
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
-			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
 		</dependency>
 	</dependencies>
 </project>

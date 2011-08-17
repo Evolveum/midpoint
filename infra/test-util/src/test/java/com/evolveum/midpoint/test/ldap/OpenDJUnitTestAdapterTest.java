@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.test.ldap;
 
+import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeClass;
@@ -31,6 +32,7 @@ import java.io.File;
  *
  * @author elek
  */
+@ContextConfiguration(locations = { "classpath:dummy-context.xml"})
 public class OpenDJUnitTestAdapterTest extends OpenDJUnitTestAdapter {
 
     public OpenDJUnitTestAdapterTest() {
