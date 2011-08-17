@@ -101,107 +101,98 @@ public class TaskScanner extends Thread {
 				OperationResult loopResult = new OperationResult(TaskScanner.class.getName() + ".run");
 				PagingType paging = new PagingType();
 				QueryType query = createQuery();
-				ObjectListType tasks = null;
+				List<TaskType> tasks = null;
 				try {
-					tasks = repositoryService.searchObjects(query, paging, loopResult);
+					tasks = repositoryService.searchObjects(TaskType.class, query, paging, loopResult);
 				} catch (SchemaException e) {
 					logger.error("Task scanner cannot search for tasks", e);
 					// TODO: better error handling
 				}
 
 				if (tasks != null) {
-					logger.trace("Task scanner found {} runnable tasks", tasks.getObject().size());
-					List<ObjectType> objectList = tasks.getObject();
-					for (Object o : objectList) {
-						if (o instanceof TaskType) {
-							TaskType task = (TaskType) o;
-							logger.trace("Task scanner: Start processing task " + task.getName() + " (OID: " + task.getOid()
-									+ ")");
+					logger.trace("Task scanner found {} runnable tasks", tasks.size());
+					for (TaskType task : tasks) {
+							logger.trace("Task scanner: Start processing task " + task.getName() + " (OID: " + task.getOid() + ")");
+						if (canHandle(task)) {
+							if (ScheduleEvaluator.shouldRun(task)) {
+								long startTime = System.currentTimeMillis();
 
-							if (canHandle(task)) {
-								if (ScheduleEvaluator.shouldRun(task)) {
-									long startTime = System.currentTimeMillis();
+								boolean claimed = false;
+								try {
+									repositoryService.claimTask(task.getOid(), loopResult);
+									claimed = true;
+								} catch (ConcurrencyException ex) {
+									// Claim failed. This means that the
+									// task
+									// was claimed by another
+									// host in the meantime. We don't really
+									// need to care. It will
+									// get executed by the host that
+									// succeeded
+									// in claiming the
+									// task.
+									// Just log warning for now. This can be
+									// switched to DEBUG later.
+									logger.warn(
+											"Task scanner: Claiming of task {} failed due to concurrency exception \"{}\", skipping it.",
+											DebugUtil.prettyPrint(task), ex.getMessage());
 
-									boolean claimed = false;
-									try {
-										repositoryService.claimTask(task.getOid(), loopResult);
-										claimed = true;
-									} catch (ConcurrencyException ex) {
-										// Claim failed. This means that the
-										// task
-										// was claimed by another
-										// host in the meantime. We don't really
-										// need to care. It will
-										// get executed by the host that
-										// succeeded
-										// in claiming the
-										// task.
-										// Just log warning for now. This can be
-										// switched to DEBUG later.
-										logger.warn(
-												"Task scanner: Claiming of task {} failed due to concurrency exception \"{}\", skipping it.",
-												DebugUtil.prettyPrint(task), ex.getMessage());
-
-									}
-
-									if (claimed) {
-
-										try {
-
-											logger.debug("Task scanner is passing task to task manager:  "
-													+ DebugUtil.prettyPrint(task));
-
-											taskManagerImpl.processRunnableTaskType(task);
-
-											// TODO: Remember the start time
-											// only if
-											// the
-											// call is successful
-
-											// We do not release the task here.
-											// Task
-											// manager should do it.
-											// We don't know the state of the
-											// task.
-											// The task manage may have
-											// allocated the thread for the task
-											// and
-											// the task may be still running
-											// releasing it now may be an error.
-
-										} catch (RuntimeException ex) {
-											// Runtime exceptions are used from
-											// time
-											// to time, although all the
-											// exceptions that could be
-											// reasonably
-											// caught should be transformed to
-											// Faults, obvious not all of them
-											// are.
-											// Do not cause this thread to die
-											// because of bug in the synchronize
-											// method.
-
-											// TODO: Better error reporting
-											logger.error(
-													"Task scanner got runtime exception (processRunnableTaskType): {} : {}",
-													new Object[] { ex.getClass().getSimpleName(), ex.getMessage(), ex });
-										}
-									} // claimed
-								} else {
-									logger.trace("Task scanner: skipping task " + DebugUtil.prettyPrint(task)
-											+ " because it should not run yet");
 								}
+
+								if (claimed) {
+
+									try {
+
+										logger.debug("Task scanner is passing task to task manager:  "
+												+ DebugUtil.prettyPrint(task));
+
+										taskManagerImpl.processRunnableTaskType(task);
+
+										// TODO: Remember the start time
+										// only if
+										// the
+										// call is successful
+
+										// We do not release the task here.
+										// Task
+										// manager should do it.
+										// We don't know the state of the
+										// task.
+										// The task manage may have
+										// allocated the thread for the task
+										// and
+										// the task may be still running
+										// releasing it now may be an error.
+
+									} catch (RuntimeException ex) {
+										// Runtime exceptions are used from
+										// time
+										// to time, although all the
+										// exceptions that could be
+										// reasonably
+										// caught should be transformed to
+										// Faults, obvious not all of them
+										// are.
+										// Do not cause this thread to die
+										// because of bug in the synchronize
+										// method.
+
+										// TODO: Better error reporting
+										logger.error(
+												"Task scanner got runtime exception (processRunnableTaskType): {} : {}",
+												new Object[] { ex.getClass().getSimpleName(), ex.getMessage(), ex });
+									}
+								} // claimed
 							} else {
 								logger.trace("Task scanner: skipping task " + DebugUtil.prettyPrint(task)
-										+ " because there is no handler for it on this node");
+										+ " because it should not run yet");
 							}
-
-							logger.trace("Task scanner: End processing task " + DebugUtil.prettyPrint(task));
 						} else {
-							logger.error("Task scanner got unexpected object type in listObjects: " + o.getClass().getName());
-							// skip it
+							logger.trace("Task scanner: skipping task " + DebugUtil.prettyPrint(task)
+									+ " because there is no handler for it on this node");
 						}
+
+						logger.trace("Task scanner: End processing task " + DebugUtil.prettyPrint(task));
 					}
 				}
 

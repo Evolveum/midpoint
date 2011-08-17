@@ -145,10 +145,10 @@ public class RepositoryAccountTest  extends AbstractTestNGSpringContextTests {
 			// list account objects with simple paging
 			PagingType pagingType = PagingTypeFactory
 					.createPaging(0, 5, OrderDirectionType.ASCENDING, "name");
-			ObjectListType objects = repositoryService.listObjects(ObjectTypes.ACCOUNT.getClassDefinition(),
+			List<AccountShadowType> objects = repositoryService.listObjects(AccountShadowType.class,
 					pagingType, new OperationResult("test"));
-			assertEquals(1, objects.getObject().size());
-			compareObjects(accountShadow, (AccountShadowType) objects.getObject().get(0));
+			assertEquals(1, objects.size());
+			compareObjects(accountShadow, (AccountShadowType) objects.get(0));
 
 			// delete object
 			repositoryService.deleteObject(accountOid, new OperationResult("test"));

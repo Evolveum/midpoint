@@ -196,7 +196,7 @@ public interface RepositoryService {
 	 * 
 	 * Should fail if object type is wrong.
 	 * 
-	 * @param objectType
+	 * @param type
 	 * @param paging
 	 *            paging specification to limit operation result (optional)
 	 * @param parentResult
@@ -206,7 +206,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong object type
 	 */
-	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult);
+	public <T extends ObjectType> List<T> listObjects(Class<T> type, PagingType paging, OperationResult parentResult);
 
 	/**
 	 * Search for objects in the repository. Searches through all object types.
@@ -233,7 +233,7 @@ public interface RepositoryService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
+	public <T extends ObjectType> List<T>  searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException;
 
 	/**

@@ -108,12 +108,11 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
 					"src/test/resources/query-user-by-name.xml"))).getValue();
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
+			List<UserType> objectList = repositoryService.searchObjects(UserType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
-			assertNotNull(objectList.getObject());
-			assertEquals(1, objectList.getObject().size());
+			assertEquals(1, objectList.size());
 
-			UserType foundUser = (UserType) objectList.getObject().get(0);
+			UserType foundUser = objectList.get(0);
 			assertEquals("Cpt. Jack Sparrow", foundUser.getFullName());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
@@ -135,12 +134,11 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
 					"src/test/resources/query-all-by-name.xml"))).getValue();
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
+			List<UserType> objectList = repositoryService.searchObjects(UserType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
-			assertNotNull(objectList.getObject());
-			assertEquals(1, objectList.getObject().size());
+			assertEquals(1, objectList.size());
 
-			UserType foundUser = (UserType) objectList.getObject().get(0);
+			UserType foundUser = objectList.get(0);
 			assertEquals("Cpt. Jack Sparrow", foundUser.getFullName());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
@@ -164,12 +162,11 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
 					"src/test/resources/query-account-by-attributes.xml"))).getValue();
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
+			List<AccountShadowType> objectList = repositoryService.searchObjects(AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
-			assertNotNull(objectList.getObject());
-			assertEquals(1, objectList.getObject().size());
+			assertEquals(1, objectList.size());
 
-			accountShadow = (AccountShadowType) objectList.getObject().get(0);
+			accountShadow = objectList.get(0);
 			assertNotNull(accountShadow.getAttributes().getAny());
 			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", accountShadow.getAttributes().getAny()
 					.get(0).getTextContent());
@@ -197,12 +194,11 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
 					"src/test/resources/query-account-by-attributes-and-resource-ref.xml"))).getValue();
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
+			List<AccountShadowType> objectList = repositoryService.searchObjects(AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
-			assertNotNull(objectList.getObject());
-			assertEquals(1, objectList.getObject().size());
+			assertEquals(1, objectList.size());
 
-			accountShadow = (AccountShadowType) objectList.getObject().get(0);
+			accountShadow = objectList.get(0);
 			assertNotNull(accountShadow.getAttributes().getAny());
 			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", accountShadow.getAttributes().getAny()
 					.get(0).getTextContent());
@@ -218,49 +214,6 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 		}
 	}
 
-	@Test
-	@SuppressWarnings({ "rawtypes" })
-	public void searchResourceStateByResourceRef() throws Exception {
-		String resourceOid = "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e";
-		String resourceStateOid = "d0db5be9-cb93-401f-b6c1-111111111111";
-		try {
-			// insert new resource state
-			ResourceStateType newResourceState = new ResourceStateType();
-			newResourceState.setOid(resourceStateOid);
-			newResourceState.setName("ResourceStateForSearch");
-			ObjectReferenceType resourceRef = new ObjectReferenceType();
-			resourceRef.setOid(resourceOid);
-			newResourceState.setResourceRef(resourceRef);
-			ResourceStateType.SynchronizationState state = new ResourceStateType.SynchronizationState();
-			Document doc = DOMUtil.getDocument();
-			Element element = doc.createElement("fakeNode");
-			element.setTextContent("fakeValue");
-			doc.appendChild(element);
-			state.getAny().add((Element) doc.getFirstChild());
-			newResourceState.setSynchronizationState(state);
-			repositoryService.addObject(newResourceState, new OperationResult("test"));
-
-			// search for object
-			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
-					"src/test/resources/query-resource-state-by-resource-ref.xml"))).getValue();
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
-			assertNotNull(objectList);
-			assertNotNull(objectList.getObject());
-			assertEquals(1, objectList.getObject().size());
-
-			ResourceStateType resourceState = (ResourceStateType) objectList.getObject().get(0);
-			assertNotNull(resourceState);
-			assertNotNull(resourceOid, resourceState.getResourceRef().getOid());
-			assertNotNull(resourceState.getSynchronizationState().getAny());
-		} finally {
-			// to be sure try to delete the object as part of cleanup
-			try {
-				repositoryService.deleteObject(resourceStateOid, new OperationResult("test"));
-			} catch (Exception ex) {
-				// ignore exceptions during cleanup
-			}
-		}
-	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void searchAccountByNoAttributesUseQueryUtil() throws Exception {
@@ -279,7 +232,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
-		repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
+		repositoryService.searchObjects(AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
 
 	}
 
@@ -314,13 +267,12 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			query.setFilter(filter);
 
 			// search objects
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
+			List<AccountShadowType> objectList = repositoryService.searchObjects(AccountShadowType.class, query, new PagingType(), new OperationResult("test"));
 
 			assertNotNull(objectList);
-			assertNotNull(objectList.getObject());
-			assertEquals(1, objectList.getObject().size());
+			assertEquals(1, objectList.size());
 
-			accountShadow = (AccountShadowType) objectList.getObject().get(0);
+			accountShadow = objectList.get(0);
 			assertNotNull(accountShadow.getAttributes().getAny());
 			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", accountShadow.getAttributes().getAny()
 					.get(0).getTextContent());
@@ -348,12 +300,11 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
 					"src/test/resources/query-connector-by-type.xml"))).getValue();
-			ObjectListType objectList = repositoryService.searchObjects(query, new PagingType(), new OperationResult("test"));
+			List<ConnectorType> objectList = repositoryService.searchObjects(ConnectorType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
-			assertNotNull(objectList.getObject());
-			assertEquals(1, objectList.getObject().size());
+			assertEquals(1, objectList.size());
 
-			ConnectorType foundConnector = (ConnectorType) objectList.getObject().get(0);
+			ConnectorType foundConnector = objectList.get(0);
 			assertEquals("ICF org.identityconnectors.ldap.LdapConnector", foundConnector.getName());
 		} finally {
 			// to be sure try to delete the object as part of cleanup

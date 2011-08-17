@@ -61,17 +61,17 @@ public class ControllerSearchObjectsInProvisioningTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullQuery() {
-		controller.searchObjectsInProvisioning(null, null, null);
+		controller.searchObjectsInProvisioning(null,null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullPaging() {
-		controller.searchObjectsInProvisioning(new QueryType(), null, null);
+		controller.searchObjectsInProvisioning(null,new QueryType(), null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullResult() {
 		controller
-				.searchObjectsInProvisioning(new QueryType(), PagingTypeFactory.createListAllPaging(), null);
+				.searchObjectsInProvisioning(null, new QueryType(), PagingTypeFactory.createListAllPaging(), null);
 	}
 }

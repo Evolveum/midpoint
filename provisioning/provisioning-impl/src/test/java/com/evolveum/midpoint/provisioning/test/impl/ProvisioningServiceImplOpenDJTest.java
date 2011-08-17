@@ -220,14 +220,12 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".test001Connectors");
 		
-		ObjectListType objects = repositoryService.listObjects(ConnectorType.class, null, result);
+		List<ConnectorType> connectors = repositoryService.listObjects(ConnectorType.class, null, result);
 		
-		assertFalse("No connector found",objects.getObject().isEmpty());
+		assertFalse("No connector found",connectors.isEmpty());
 		
-		for (ObjectType o : objects.getObject()) {
-			display("Found connector",o);
-			AssertJUnit.assertTrue(o instanceof ConnectorType);
-			ConnectorType conn = (ConnectorType)o;
+		for (ConnectorType conn : connectors) {
+			display("Found connector",conn);
 			if (conn.getConnectorType().equals("org.identityconnectors.ldap.LdapConnector")) {
 				// This connector is loaded manually, it has no schema
 				continue;
@@ -655,7 +653,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		try {
 
 			try {
-				ObjectListType objListType = provisioningService.listObjects(AccountShadowType.class,
+				List<AccountShadowType> objListType = provisioningService.listObjects(AccountShadowType.class,
 						new PagingType(), result);
 				Assert.fail("Expected excetpion, but haven't got one");
 			} catch (Exception ex) {
@@ -763,8 +761,8 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			QueryType query = ((JAXBElement<QueryType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/impl/query-filter-all-accounts.xml"))).getValue();
 
-			ObjectListType objListType = provisioningService.searchObjects(query, new PagingType(), result);
-			for (ObjectType objType : objListType.getObject()) {
+			List<AccountShadowType> objListType = provisioningService.searchObjects(AccountShadowType.class, query, new PagingType(), result);
+			for (AccountShadowType objType : objListType) {
 				if (objType == null) {
 					System.out.println("Object not found in repository.");
 				} else {
@@ -797,15 +795,15 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".listConnectorsTest");
 		
-		ObjectListType objListType = provisioningService.listObjects(ConnectorType.class, new PagingType(), result);
-		assertNotNull(objListType);
+		List<ConnectorType> connectors = provisioningService.listObjects(ConnectorType.class, new PagingType(), result);
+		assertNotNull(connectors);
 		
-		List<ObjectType> objects = objListType.getObject();
-		for (ObjectType objType : objects){
-			assertEquals(ConnectorType.class, objType.getClass());
-			System.out.println("connector name: "+ ((ConnectorType) objType).getName());
-			System.out.println("connector type: "+ ((ConnectorType) objType).getConnectorType());
+		for (ConnectorType conn : connectors){
+			System.out.println("connector name: "+ conn.getName());
+			System.out.println("connector type: "+ conn.getConnectorType());
 		}
+		
+		// TODO: assert something
 	}
 	
 	private ObjectType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException {

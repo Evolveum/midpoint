@@ -32,6 +32,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.Assert;
 import java.io.File;
+import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -115,9 +116,9 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			//get actual number of user objects in the repo
 			
 			PagingType pagingType = PagingTypeFactory.createPaging(0, 5, OrderDirectionType.ASCENDING, "name");
-			ObjectListType objects = repositoryService.listObjects(
-					ObjectTypes.USER.getClassDefinition(), pagingType, new OperationResult("test"));
-			int actualSize = objects.getObject().size();
+			List<UserType> objects = repositoryService.listObjects(UserType.class,
+					pagingType, new OperationResult("test"));
+			int actualSize = objects.size();
 
 			//add new user object
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
@@ -167,18 +168,18 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			assertEquals(123123,lootObject);
 
 			//list the objects
-			objects = repositoryService.listObjects(ObjectTypes.USER.getClassDefinition(),
+			objects = repositoryService.listObjects(UserType.class,
 					pagingType, new OperationResult("test"));
 			boolean oidTest = false;
 
 			//check if user under test is retrieved from the repo
-			for (ObjectType o : objects.getObject()) {
+			for (UserType o : objects) {
 				if (oid.equals(o.getOid())) {
 					oidTest = true;
 				}
 			}
 			assertTrue(oidTest);
-			assertEquals(actualSize + 1, objects.getObject().size());
+			assertEquals(actualSize + 1, objects.size());
 
 			// delete object
 			repositoryService.deleteObject(oid, new OperationResult("test"));

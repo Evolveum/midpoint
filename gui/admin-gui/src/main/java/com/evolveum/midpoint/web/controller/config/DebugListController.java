@@ -122,7 +122,7 @@ public class DebugListController extends ListController<ObjectBean> {
 			return null;
 		}
 
-		ObjectListType list = null;
+		List<? extends ObjectType> list = null;
 		try {
 			list = repositoryManager.listObjects(ObjectTypes.getObjectTypeClass(objectType), getOffset(),
 					getRowsCount());
@@ -133,7 +133,7 @@ public class DebugListController extends ListController<ObjectBean> {
 		}
 
 		getObjects().clear();
-		for (ObjectType object : list.getObject()) {
+		for (ObjectType object : list) {
 			getObjects().add(new ObjectBean(object.getOid(), object.getName()));
 		}
 		

@@ -280,7 +280,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
+	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult result) {
 		Validate.notNull(objectType, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -296,7 +296,7 @@ public class ModelControllerImpl implements ModelController {
 
 		OperationResult subResult = result.createSubresult(LIST_OBJECTS);
 		addResultParams(subResult, new String[] { "objectType", "paging" }, objectType, paging);
-		ObjectListType list = null;
+		List<T> list = null;
 		try {
 			if (ProvisioningTypes.isObjectTypeManagedByProvisioning(objectType)) {
 				LOGGER.debug("Listing objects from provisioning.");
@@ -315,14 +315,28 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		if (list == null) {
-			list = new ObjectListType();
-			list.setCount(0);
+			list = new ArrayList<T>();
 		}
 
 		return list;
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.model.api.ModelService#searchObjects(com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType, com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType, com.evolveum.midpoint.common.result.OperationResult)
+	 */
+	@Override
+	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException {
+		throw new NotImplementedException();
+	}
+	
+	@Override
+	public <T extends ObjectType> List<T>  searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException {
+		throw new NotImplementedException();
+	}
 
-	private ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult result,
+	private <T extends ObjectType> List<T> searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult result,
 			boolean searchInProvisioning) {
 		Validate.notNull(query, "Query must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -343,12 +357,12 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult subResult = result.createSubresult(operationName);
 		addResultParams(subResult, new String[] { "query", "paging", "searchInProvisioning" }, query, paging,
 				searchInProvisioning);
-		ObjectListType list = null;
+		List<T> list = null;
 		try {
 			if (searchInProvisioning) {
-				list = provisioning.searchObjects(query, paging, subResult);
+				list = provisioning.searchObjects(type, query, paging, subResult);
 			} else {
-				list = repository.searchObjects(query, paging, subResult);
+				list = repository.searchObjects(type, query, paging, subResult);
 			}
 			subResult.recordSuccess();
 		} catch (Exception ex) {
@@ -365,22 +379,21 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		if (list == null) {
-			list = new ObjectListType();
-			list.setCount(0);
+			list = new ArrayList<T>();
 		}
 
 		return list;
 	}
 
 	@Override
-	public ObjectListType searchObjectsInProvisioning(QueryType query, PagingType paging,
+	public <T extends ObjectType> List<T> searchObjectsInProvisioning(Class<T> type, QueryType query, PagingType paging,
 			OperationResult result) {
-		return searchObjects(query, paging, result, true);
+		return searchObjects(type, query, paging, result, true);
 	}
 
 	@Override
-	public ObjectListType searchObjectsInRepository(QueryType query, PagingType paging, OperationResult result) {
-		return searchObjects(query, paging, result, false);
+	public <T extends ObjectType> List<T> searchObjectsInRepository(Class<T> type, QueryType query, PagingType paging, OperationResult result) {
+		return searchObjects(type, query, paging, result, false);
 	}
 
 	@Override
@@ -1392,15 +1405,5 @@ public class ModelControllerImpl implements ModelController {
 			result.addParam(names[i], objects[i]);
 		}
 	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.api.ModelService#searchObjects(com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType, com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType, com.evolveum.midpoint.common.result.OperationResult)
-	 */
-	@Override
-	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException {
-		throw new NotImplementedException();
-	}
-
 
 }

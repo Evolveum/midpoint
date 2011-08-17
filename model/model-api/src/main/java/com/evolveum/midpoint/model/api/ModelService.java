@@ -302,7 +302,7 @@ public interface ModelService {
 	 * @throws IllegalArgumentException
 	 *             wrong object type
 	 */
-	ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
+	<T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult result);
 	
 	/**
@@ -331,6 +331,10 @@ public interface ModelService {
 	 * @throws ObjectNotFoundException object required for a search was not found (e.g. resource definition)
 	 * @throws IllegalArgumentException wrong query format
 	 */
+	<T extends ObjectType> List<T> searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
+	throws SchemaException, ObjectNotFoundException;
+	
+	@Deprecated
 	ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException;
 	

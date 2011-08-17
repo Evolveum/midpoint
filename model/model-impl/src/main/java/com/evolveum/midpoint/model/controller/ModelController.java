@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.model.controller;
 
+import java.util.List;
+
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
@@ -19,9 +21,9 @@ public interface ModelController extends ModelService {
 	String SEARCH_OBJECTS_IN_PROVISIONING = CLASS_NAME + "searchObjectsInProvisioning";
 	String MODIFY_OBJECT_WITH_EXCLUSION = CLASS_NAME + "modifyObjectWithExclusion";
 
-	ObjectListType searchObjectsInProvisioning(QueryType query, PagingType paging, OperationResult result);
+	<T extends ObjectType> List<T> searchObjectsInProvisioning(Class<T> type, QueryType query, PagingType paging, OperationResult result);
 	
-	ObjectListType searchObjectsInRepository(QueryType query, PagingType paging, OperationResult result);
+	<T extends ObjectType> List<T> searchObjectsInRepository(Class<T> type, QueryType query, PagingType paging, OperationResult result);
 
 	void modifyObjectWithExclusion(ObjectModificationType change, String accountOid, OperationResult result)
 			throws ObjectNotFoundException;

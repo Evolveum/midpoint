@@ -60,16 +60,16 @@ public class ControllerSearchObjectsInRepositoryTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullQuery() {
-		controller.searchObjectsInRepository(null, null, null);
+		controller.searchObjectsInRepository(null,null, null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullPaging() {
-		controller.searchObjectsInRepository(new QueryType(), null, null);
+		controller.searchObjectsInRepository(null,new QueryType(), null, null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void nullResult() {
-		controller.searchObjectsInRepository(new QueryType(), PagingTypeFactory.createListAllPaging(), null);
+		controller.searchObjectsInRepository(null,new QueryType(), PagingTypeFactory.createListAllPaging(), null);
 	}
 }

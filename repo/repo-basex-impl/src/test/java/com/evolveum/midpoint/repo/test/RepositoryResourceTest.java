@@ -140,12 +140,11 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			compareObjects(resource, (ResourceType) retrievedObject);
 
 			// list objects
-			ObjectListType objects = repositoryService.listObjects(
-					ObjectTypes.RESOURCE.getClassDefinition(), new PagingType(), new OperationResult("test"));
+			List<ResourceType> objects = repositoryService.listObjects(
+					ResourceType.class, new PagingType(), new OperationResult("test"));
 			assertNotNull(objects);
-			assertNotNull(objects.getObject());
-			assertEquals(1, objects.getObject().size());
-			compareObjects(resource, (ResourceType) objects.getObject().get(0));
+			assertEquals(1, objects.size());
+			compareObjects(resource, (ResourceType) objects.get(0));
 
 			// delete resource
 			repositoryService.deleteObject(resourceOid, new OperationResult("test"));

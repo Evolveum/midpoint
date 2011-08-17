@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.Assert;
 import java.io.File;
+import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
@@ -99,9 +100,9 @@ public class RepositoryUserTemplateTest extends AbstractTestNGSpringContextTests
             assertEquals(userTemplate.getAccountConstruction().get(0).getResourceRef().getOid(), ((UserTemplateType) retrievedObject).getAccountConstruction().get(0).getResourceRef().getOid());
             
             //list object
-            ObjectListType objects = repositoryService.listObjects(ObjectTypes.USER_TEMPLATE.getClassDefinition(), new PagingType(), new OperationResult("test"));
-            assertEquals(1, objects.getObject().size());
-            assertEquals(userTemplateOid, objects.getObject().get(0).getOid());
+            List<UserTemplateType> objects = repositoryService.listObjects(UserTemplateType.class, new PagingType(), new OperationResult("test"));
+            assertEquals(1, objects.size());
+            assertEquals(userTemplateOid, objects.get(0).getOid());
             
 			// delete object
 			repositoryService.deleteObject(userTemplateOid, new OperationResult("test"));

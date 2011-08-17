@@ -144,19 +144,18 @@ public class DebugViewController implements Serializable {
 		}
 
 		try {
-			ObjectListType list = repositoryManager.searchObjects(editOtherName);
+			List<? extends ObjectType> list = repositoryManager.searchObjects(editOtherName);
 
-			List<ObjectType> objects = list.getObject();
-			if (objects.isEmpty()) {
+			if (list.isEmpty()) {
 				FacesUtils.addErrorMessage("Couldn't find object that matches name '" + editOtherName + "'.");
 				return null;
 			}
-			if (objects.size() > 1) {
+			if (list.size() > 1) {
 				FacesUtils.addErrorMessage("Found more than one object that matches name '" + editOtherName
 						+ "'.");
 				return null;
 			}
-			ObjectType objectType = objects.get(0);
+			ObjectType objectType = list.get(0);
 			object = new ObjectBean(objectType.getOid(), objectType.getName());
 			xml = JAXBUtil.marshal(new ObjectFactory().createObject(objectType));
 		} catch (Exception ex) {

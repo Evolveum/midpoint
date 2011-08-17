@@ -1095,10 +1095,10 @@ public class ShadowCache {
 			throws SchemaException, ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException {
 
-		ObjectListType accountList = searchAccountByUid(
+		List<AccountShadowType> accountList = searchAccountByUid(
 				change.getIdentifiers(), parentResult);
 
-		if (accountList.getObject().size() > 1) {
+		if (accountList.size() > 1) {
 			parentResult
 					.recordFatalError("Found more than one account with the identifier "
 							+ change.getIdentifiers() + ".");
@@ -1109,7 +1109,7 @@ public class ShadowCache {
 
 		AccountShadowType newAccount = null;
 		// if object doesn't exist, create it now
-		if (accountList.getObject().isEmpty()) {
+		if (accountList.isEmpty()) {
 
 			if (!(change.getChange() instanceof ObjectChangeDeletionType)) {
 				newAccount = createNewAccount(change, resource, connector,
@@ -1119,30 +1119,22 @@ public class ShadowCache {
 			}
 			// if exist, set the old shadow to the change
 		} else {
-			for (ObjectType obj : accountList.getObject()) {
-				if (!(obj instanceof ResourceObjectShadowType)) {
-					parentResult
-							.recordFatalError("Object type must be one of the resource object shadow.");
-					throw new IllegalStateException(
-							"Object type must be one of the resource object shadow.");
-				}
-				newAccount = (AccountShadowType) obj;
-				// if the fetched chande was one of the deletion type, delete
-				// corresponding account from repo now
-				if (change.getChange() instanceof ObjectChangeDeletionType) {
-					try {
-						getRepositoryService().deleteObject(
-								newAccount.getOid(), parentResult);
-					} catch (ObjectNotFoundException ex) {
-						parentResult.recordFatalError(
-								"Object with oid " + newAccount.getOid()
-										+ " not found in repo. Reason: "
-										+ ex.getMessage(), ex);
-						throw new ObjectNotFoundException("Object with oid "
-								+ newAccount.getOid()
-								+ " not found in repo. Reason: "
-								+ ex.getMessage(), ex);
-					}
+			newAccount = accountList.get(0);
+			// if the fetched change was one of the deletion type, delete
+			// corresponding account from repo now
+			if (change.getChange() instanceof ObjectChangeDeletionType) {
+				try {
+					getRepositoryService().deleteObject(
+							newAccount.getOid(), parentResult);
+				} catch (ObjectNotFoundException ex) {
+					parentResult.recordFatalError(
+							"Object with oid " + newAccount.getOid()
+									+ " not found in repo. Reason: "
+									+ ex.getMessage(), ex);
+					throw new ObjectNotFoundException("Object with oid "
+							+ newAccount.getOid()
+							+ " not found in repo. Reason: "
+							+ ex.getMessage(), ex);
 				}
 			}
 		}
@@ -1150,7 +1142,7 @@ public class ShadowCache {
 		return newAccount;
 	}
 
-	private ObjectListType searchAccountByUid(Set<Property> identifiers,
+	private List<AccountShadowType> searchAccountByUid(Set<Property> identifiers,
 			OperationResult parentResult) throws SchemaException {
 		XPathSegment xpathSegment = new XPathSegment(
 				SchemaConstants.I_ATTRIBUTES);
@@ -1176,9 +1168,9 @@ public class ShadowCache {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
-		ObjectListType accountList = null;
+		List<AccountShadowType> accountList = null;
 		try {
-			accountList = getRepositoryService().searchObjects(query,
+			accountList = getRepositoryService().searchObjects(AccountShadowType.class,query,
 					new PagingType(), parentResult);
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError(
@@ -1307,21 +1299,20 @@ public class ShadowCache {
 		PagingType paging = new PagingType();
 
 		// TODO: check for errors
-		ObjectListType results;
+		List<ResourceObjectShadowType> results;
 
-		results = getRepositoryService().searchObjects(query, paging,
-				parentResult);
+		results = getRepositoryService().searchObjects(ResourceObjectShadowType.class, query, paging, parentResult);
 
-		if (results.getObject().size() == 0) {
+		if (results.size() == 0) {
 			return null;
 		}
-		if (results.getObject().size() > 1) {
+		if (results.size() > 1) {
 			// TODO: Better error handling later
 			throw new IllegalStateException("More than one shadows found for "
 					+ resourceObject);
 		}
 
-		return (ResourceObjectShadowType) results.getObject().get(0);
+		return results.get(0);
 	}
 
 	private QueryType createSearchShadowQuery(ResourceObject resourceObject)

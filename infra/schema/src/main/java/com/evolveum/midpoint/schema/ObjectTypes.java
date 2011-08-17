@@ -137,9 +137,18 @@ public enum ObjectTypes {
 				return type;
 			}
 		}
-
 		throw new IllegalArgumentException("Unsupported object type uri " + objectTypeUri);
 	}
+	
+	public static ObjectTypes getObjectTypeFromTypeQName(QName typeQName) {
+		for (ObjectTypes type : values()) {
+			if (type.getTypeQName().equals(typeQName)) {
+				return type;
+			}
+		}
+		throw new IllegalArgumentException("Unsupported object type qname " + typeQName);
+	}
+
 
 	public static String getObjectTypeUri(String objectType) {
 		return getObjectType(objectType).getObjectTypeUri();
@@ -164,4 +173,5 @@ public enum ObjectTypes {
 
 		throw new IllegalArgumentException("Unsupported object type " + objectType);
 	}
+
 }

@@ -130,12 +130,11 @@ public class RepositoryGenericObjectTest extends AbstractTestNGSpringContextTest
 			compareObjects(genericObject, (GenericObjectType) retrievedObject);
 
 			// list objects of type
-			ObjectListType objects = repositoryService.listObjects(
-					ObjectTypes.GENERIC_OBJECT.getClassDefinition(), new PagingType(), new OperationResult("test"));
+			List<GenericObjectType> objects = repositoryService.listObjects(
+					GenericObjectType.class, new PagingType(), new OperationResult("test"));
 			assertNotNull(objects);
-			assertNotNull(objects.getObject());
-			assertEquals(1, objects.getObject().size());
-			compareObjects(genericObject, (GenericObjectType) objects.getObject().get(0));
+			assertEquals(1, objects.size());
+			compareObjects(genericObject, (GenericObjectType) objects.get(0));
 
 			// delete object
 			repositoryService.deleteObject(genericObjectOid, new OperationResult("test"));

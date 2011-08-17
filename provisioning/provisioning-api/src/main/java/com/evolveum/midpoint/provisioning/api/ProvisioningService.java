@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.api;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -112,6 +113,7 @@ public interface ProvisioningService {
 	 * network failure or similar external cases. The retrieval may also take
 	 * relatively long time (e.g. until it times out).
 	 * 
+	 * @param type the type (class) of object to get
 	 * @param oid
 	 *            OID of the object to get
 	 * @param resolve
@@ -131,9 +133,13 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException;
 
+	@Deprecated
+	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
+		throws ObjectNotFoundException, CommunicationException, SchemaException;
+	
 	/**
 	 * Add new object.
 	 * 
@@ -225,7 +231,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public ObjectListType listObjects(Class<? extends ObjectType> objectType, PagingType paging,
+	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult parentResult);
 
 	/**
@@ -254,7 +260,7 @@ public interface ProvisioningService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
+	public <T extends ObjectType> List<T> searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException;
 	
 	/**

@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -232,9 +233,9 @@ public class ConnectorTypeManager {
 		QueryType query = new QueryType();
         query.setFilter(filter);
 		
-        ObjectListType foundConnectors;
+        List<ConnectorType> foundConnectors;
 		try {
-			foundConnectors = repositoryService.searchObjects(query, null, result);
+			foundConnectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
 		} catch (SchemaException e) {
 			// If there is a schema error it must be a bug. Convert to runtime exception
 			LOGGER.error("Got SchemaException while not expecting it: "+e.getMessage(),e);
@@ -242,19 +243,13 @@ public class ConnectorTypeManager {
 			throw new SystemException("Got SchemaException while not expecting it: "+e.getMessage(),e);
 		}
 		
-		if (foundConnectors.getObject().size()==0) {
+		if (foundConnectors.size()==0) {
 			// Nothing found, the connector is not in the repo
 			return false;
 		}
 		
 		String foundOid = null;
-		for (ObjectType o : foundConnectors.getObject()) {
-			if (!(o instanceof ConnectorType)) {
-				LOGGER.error("Repository malfunction, got "+o+" while expecting "+ConnectorType.class.getSimpleName());
-				result.recordFatalError("Repository malfunction, got "+o+" while expecting "+ConnectorType.class.getSimpleName());
-				throw new IllegalStateException("Repository malfunction, got "+o+" while expecting "+ConnectorType.class.getSimpleName());
-			}
-			ConnectorType foundConnector = (ConnectorType)o;
+		for (ConnectorType foundConnector : foundConnectors) {
 			if (compareConnectors(connector,foundConnector)) {
 				if (foundOid!=null) {
 					// More than one connector matches. Inconsistent repo state. Log error.

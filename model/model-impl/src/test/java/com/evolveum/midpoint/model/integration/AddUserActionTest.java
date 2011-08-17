@@ -151,12 +151,12 @@ public class AddUserActionTest {
 			QueryType query = new QueryType();
 			query.setFilter(filter);
 
-			ObjectListType list = repositoryService.searchObjects(query, new PagingType(),
+			List<UserType> list = repositoryService.searchObjects(UserType.class, query, new PagingType(),
 					new OperationResult("Search Objects"));
 			assertNotNull(list);
-			assertEquals(1, list.getObject().size());
+			assertEquals(1, list.size());
 
-			addedUser = (UserType) list.getObject().get(0);
+			addedUser = list.get(0);
 			assertNotNull(addedUser);
 
 			List<ObjectReferenceType> accountRefs = addedUser.getAccountRef();

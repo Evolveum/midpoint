@@ -117,11 +117,16 @@ public class ModelWebService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service List Objects");
 		try {
-			ObjectListType list = model.listObjects(ObjectTypes.getObjectTypeFromUri(objectType)
+			List<? extends ObjectType> list = model.listObjects(ObjectTypes.getObjectTypeFromUri(objectType)
 					.getClassDefinition(), paging, operationResult);
 			handleOperationResult(operationResult, result);
 
-			return list;
+			ObjectListType listType = new ObjectListType();
+			for (ObjectType o : list) {
+				listType.getObject().add(o);
+			}
+			listType.setCount(list.size());
+			return listType;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL listObjects() failed", ex);
 			throw createSystemFault(ex, operationResult);
@@ -136,10 +141,14 @@ public class ModelWebService implements ModelPortType {
 
 		OperationResult operationResult = new OperationResult("Model Service Search Objects");
 		try {
-			ObjectListType list = model.searchObjectsInRepository(query, paging, operationResult);
+			List<ObjectType> list = model.searchObjectsInRepository(ObjectType.class, query, paging, operationResult);
 			handleOperationResult(operationResult, result);
-
-			return list;
+			ObjectListType listType = new ObjectListType();
+			for (ObjectType o : list) {
+				listType.getObject().add(o);
+			}
+			listType.setCount(list.size());
+			return listType;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL searchObjects() failed", ex);
 			throw createSystemFault(ex, operationResult);

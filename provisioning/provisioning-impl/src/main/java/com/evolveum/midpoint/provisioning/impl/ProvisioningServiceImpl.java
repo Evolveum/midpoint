@@ -148,6 +148,13 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	public ObjectType getObject(String oid, PropertyReferenceListType resolve,
 			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException {
+		return getObject(ObjectType.class,oid,resolve,parentResult);
+	}
+	
+	@Override
+	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
+			OperationResult parentResult) throws ObjectNotFoundException,
+			CommunicationException, SchemaException {
 
 		Validate.notNull(oid, "Oid of object to get must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
@@ -166,7 +173,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		ObjectType repositoryObject = null;
 
 		try {
-			repositoryObject = getRepositoryService().getObject(oid, resolve,
+			repositoryObject = getRepositoryService().getObject(type, oid, resolve,
 					result);
 			LOGGER.trace("**PROVISIONING: Got repository object {}",
 					JAXBUtil.silentMarshalWrap(repositoryObject));
@@ -221,14 +228,14 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			result.recordSuccess();
 			LOGGER.debug("**PROVISIONING: Get object finished.");
-			return shadow;
+			return (T) shadow;
 			
 		} else if (repositoryObject instanceof ResourceType) {
 			// Make sure that the object is complete, e.g. there is a (fresh) schema
 			try {
 				ResourceType completeResource = getShadowCache().completeResource((ResourceType)repositoryObject,null,result);
 				result.computeStatus("Resource retrieval failed");
-				return completeResource;
+				return (T) completeResource;
 			} catch (ObjectNotFoundException ex) {
 				result.recordFatalError("Resource object not found",ex);
 				throw ex;
@@ -241,7 +248,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			}
 		} else {
 			result.recordSuccess();
-			return repositoryObject;
+			return (T) repositoryObject;
 		}
 
 	}
@@ -397,7 +404,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public ObjectListType listObjects(Class<? extends ObjectType> objectType,
+	public <T extends ObjectType> List<T>  listObjects(Class<T> objectType,
 			PagingType paging, OperationResult parentResult) {
 
 		Validate.notNull(objectType, "Object type to list must not be null.");
@@ -414,7 +421,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS,
 				ProvisioningServiceImpl.class);
 
-		ObjectListType objListType = null;
+		List<T> objListType = null;
 
 		// TODO: should listing connectors trigger rediscovery?
 		
@@ -460,18 +467,18 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public ObjectListType searchObjects(QueryType query, PagingType paging,
+	public <T extends ObjectType> List<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
 			OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException {
 
-		final ObjectListType objListType = new ObjectListType();
+		final List<T> objListType = new ArrayList<T>();
 
 		final ResultHandler handler = new ResultHandler() {
 
 			@Override
 			public boolean handle(ObjectType object,
 					OperationResult parentResult) {
-				return objListType.getObject().add(object);
+				return objListType.add((T)object);
 			}
 		};
 

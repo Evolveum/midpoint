@@ -50,12 +50,12 @@ public class TaskListController extends ListController<TaskItem> {
 
 	@Override
 	protected String listObjects() {
-		ObjectListType taskTypeList = repositoryManager.listObjects(
+		List<TaskType> taskTypeList = repositoryManager.listObjects(
 				TaskType.class, getOffset(), getRowsCount());
 		List<TaskItem> runningTasks = getObjects();
 		runningTasks.clear();
-		for (ObjectType taskType : taskTypeList.getObject()) {
-			runningTasks.add(new TaskItem((TaskType) taskType));
+		for (TaskType taskType : taskTypeList) {
+			runningTasks.add(new TaskItem(taskType));
 		}
 
 		listAll = false;

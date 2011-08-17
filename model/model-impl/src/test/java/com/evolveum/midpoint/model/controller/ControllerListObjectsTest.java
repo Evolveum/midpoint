@@ -45,6 +45,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
+import com.evolveum.midpoint.common.object.MiscUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.test.util.equal.UserTypeComparator;
@@ -99,21 +100,21 @@ public class ControllerListObjectsTest {
 	@Test
 	@SuppressWarnings("unchecked")
 	public void userList() throws Exception {
-		final ObjectListType expectedUserList = ((JAXBElement<ObjectListType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "user-list.xml"))).getValue();
+		final List<UserType> expectedUserList = MiscUtil.toList(UserType.class,((JAXBElement<ObjectListType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER, "user-list.xml"))).getValue());
 
 		when(
-				repository.listObjects(eq(ObjectTypes.USER.getClassDefinition()), any(PagingType.class),
+				repository.listObjects(eq(UserType.class), any(PagingType.class),
 						any(OperationResult.class))).thenReturn(expectedUserList);
 
 		OperationResult result = new OperationResult("List Users");
 		try {
-			final ObjectListType returnedUserList = controller.listObjects(
-					ObjectTypes.USER.getClassDefinition(), new PagingType(), result);
+			final List<UserType> returnedUserList = controller.listObjects(UserType.class,
+					new PagingType(), result);
 
 			verify(repository, times(1)).listObjects(eq(ObjectTypes.USER.getClassDefinition()),
 					any(PagingType.class), any(OperationResult.class));
-			testObjectListTypes(expectedUserList, returnedUserList);
+			testObjectList(expectedUserList, returnedUserList);
 		} finally {
 			LOGGER.debug(result.dump());
 		}
@@ -140,6 +141,25 @@ public class ControllerListObjectsTest {
 			testUserLists(new ArrayList(expectedList), new ArrayList(returnedList));
 		}
 	}
+	
+	private void testObjectList(List<? extends ObjectType> expectedList, List<? extends ObjectType> returnedList) {
+		assertNotNull(expectedList);
+		assertNotNull(returnedList);
+
+		assertTrue(expectedList == null ? returnedList == null : returnedList != null);
+		if (expectedList == null) {
+			return;
+		}
+		assertEquals(expectedList.size(), returnedList.size());
+		if (expectedList.size() == 0) {
+			return;
+		}
+
+		if (expectedList.get(0) instanceof UserType) {
+			testUserLists(new ArrayList(expectedList), new ArrayList(returnedList));
+		}
+	}
+
 
 	private void testUserLists(List<UserType> expected, List<UserType> returned) {
 		UserTypeComparator comp = new UserTypeComparator();

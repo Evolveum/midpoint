@@ -20,6 +20,9 @@
  */
 package com.evolveum.midpoint.web.repo;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -58,12 +61,12 @@ public class RepositoryManagerImpl implements RepositoryManager {
 	private transient RepositoryService repositoryService;
 
 	@Override
-	public ObjectListType listObjects(Class<? extends ObjectType> objectType, int offset, int count) {
+	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, int offset, int count) {
 		Validate.notNull(objectType, "Object type must not be null.");
 		LOGGER.debug("Listing objects of type {} paged from {}, count {}.", new Object[] { objectType,
 				offset, count });
 
-		ObjectListType list = null;
+		List<T> list = null;
 		OperationResult result = new OperationResult(LIST_OBJECTS);
 		try {
 			PagingType paging = PagingTypeFactory.createPaging(offset, count, OrderDirectionType.ASCENDING,
@@ -78,24 +81,24 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		printResults(LOGGER, result);
 
 		if (list == null) {
-			list = new ObjectListType();
+			list = new ArrayList<T>();
 		}
 
 		return list;
 	}
 
 	@Override
-	public ObjectListType searchObjects(String name) {
+	public List<? extends ObjectType> searchObjects(String name) {
 		Validate.notEmpty(name, "Name must not be null.");
 		LOGGER.debug("Searching objects with name {}.", new Object[] { name });
 
 		OperationResult result = new OperationResult(SEARCH_OBJECTS);
-		ObjectListType list = null;
+		List<ObjectType> list = null;
 		try {
 			QueryType query = new QueryType();
 			query.setFilter(ControllerUtil.createQuery(name, null));
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(query));
-			list = repositoryService.searchObjects(query, null, result);
+			list = repositoryService.searchObjects(ObjectType.class, query, null, result);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't search for object with name {}", ex, name);
@@ -105,7 +108,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		printResults(LOGGER, result);
 
 		if (list == null) {
-			list = new ObjectListType();
+			list = new ArrayList<ObjectType>();
 		}
 
 		return list;

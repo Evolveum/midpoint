@@ -34,6 +34,7 @@ import com.evolveum.midpoint.common.result.OperationConstants;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
@@ -200,10 +201,11 @@ public class ObjectImporter {
 		// Let's do resolving
 		QueryType query = new QueryType();
 		query.setFilter(filter);
-		ObjectListType objects = null;
+		List<? extends ObjectType> objects = null;
 		try {
 		
-			objects = repository.searchObjects(query, null, result);
+			objects = repository.searchObjects(ObjectTypes.getObjectTypeFromTypeQName(ref.getType())
+					.getClassDefinition(),query, null, result);
 		
 		} catch (SchemaException e) {
 			// This is unexpected, but may happen. Record fatal error
@@ -214,16 +216,16 @@ public class ObjectImporter {
 			result.recordFatalError("Repository system error during resolution of reference "+propName,e);
 			return;
 		}
-		if (objects.getObject().isEmpty()) {
+		if (objects.isEmpty()) {
 			result.recordFatalError("Repository reference "+propName+" cannot be resolved: filter matches no object");
 			return;
 		}
-		if (objects.getObject().size()>1) {
-			result.recordFatalError("Repository reference "+propName+" cannot be resolved: filter matches "+objects.getObject().size()+" objects");
+		if (objects.size()>1) {
+			result.recordFatalError("Repository reference "+propName+" cannot be resolved: filter matches "+objects.size()+" objects");
 			return;
 		}
 		// Bingo. We have exactly one object.
-		String oid = objects.getObject().get(0).getOid();
+		String oid = objects.get(0).getOid();
 		ref.setOid(oid);
 	}
 

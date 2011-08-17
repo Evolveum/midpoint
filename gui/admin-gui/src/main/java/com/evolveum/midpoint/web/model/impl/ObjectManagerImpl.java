@@ -176,9 +176,9 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		Collection<O> collection = new ArrayList<O>();
 		OperationResult result = new OperationResult(LIST);
 		try {
-			ObjectListType objectList = getModel().listObjects(type, paging, result);
-			for (ObjectType objectType : objectList.getObject()) {
-				collection.add((O) objectType);
+			List<O> objectList = getModel().listObjects(type, paging, result);
+			for (O objectType : objectList) {
+				collection.add(objectType);
 			}
 			result.recordSuccess();
 		} catch (Exception ex) {

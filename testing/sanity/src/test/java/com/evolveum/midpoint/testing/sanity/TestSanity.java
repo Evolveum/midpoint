@@ -859,12 +859,11 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Listing of shadows is not supported by the provisioning. So we need
 		// to look directly into repository
-		ObjectListType sobjects = repositoryService.listObjects(AccountShadowType.class, null, result);
+		List<AccountShadowType> sobjects = repositoryService.listObjects(AccountShadowType.class, null, result);
 		assertSuccess("listObjects has failed", result);
-		assertFalse("No shadows created", sobjects.getObject().isEmpty());
+		assertFalse("No shadows created", sobjects.isEmpty());
 
-		for (ObjectType oo : sobjects.getObject()) {
-			ResourceObjectShadowType shadow = (ResourceObjectShadowType) oo;
+		for (AccountShadowType shadow : sobjects) {
 			display("Shadow object after import (repo)", shadow);
 			assertNotEmpty("No OID in shadow", shadow.getOid()); // This would
 																	// be really
@@ -897,7 +896,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 			// XXX: HACK: I don't know how to match accounts here
 			boolean found = false;
-			for (ObjectType account : sobjects.getObject()) {
+			for (AccountShadowType account : sobjects) {
 				if (accountRef.getOid().equals(account.getOid())) {
 					found = true;
 					break;

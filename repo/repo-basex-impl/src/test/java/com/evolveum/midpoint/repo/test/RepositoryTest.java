@@ -30,6 +30,7 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeClass;
 import java.io.File;
+import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -139,10 +141,9 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 	
 	@Test
 	public void listObjectsNoObjectsOfThatTypeReturnsEmptyList() throws Exception {
-		ObjectListType retrievedList = repositoryService.listObjects(ObjectTypes.RESOURCE.getClassDefinition(), null, new OperationResult("test"));
+		List<ResourceType> retrievedList = repositoryService.listObjects(ResourceType.class, null, new OperationResult("test"));
 		assertNotNull(retrievedList);
-		assertEquals(0, retrievedList.getObject().size());
-		assertEquals(0, retrievedList.getCount().intValue());
+		assertEquals(0, retrievedList.size());
 	}	
 
 	@Test(expectedExceptions = ObjectNotFoundException.class)

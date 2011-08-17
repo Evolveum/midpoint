@@ -30,6 +30,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -119,11 +120,11 @@ public class ImportTest {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 
-		ObjectListType objects = repositoryService.searchObjects(query, null, result);
+		List<UserType> users = repositoryService.searchObjects(UserType.class, query, null, result);
 
-		assertNotNull(objects);
-		assertEquals("Search retuned unexpected results", 1, objects.getObject().size());
-		UserType guybrush = (UserType) objects.getObject().get(0);
+		assertNotNull(users);
+		assertEquals("Search retuned unexpected results", 1, users.size());
+		UserType guybrush = users.get(0);
 		assertNotNull(guybrush);
 		assertEquals("Guybrush", guybrush.getGivenName());
 		assertEquals("Threepwood", guybrush.getFamilyName());

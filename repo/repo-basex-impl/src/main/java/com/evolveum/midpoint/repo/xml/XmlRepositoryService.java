@@ -240,7 +240,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public ObjectListType listObjects(Class objectType, PagingType paging, OperationResult parentResult) {
+	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".listObjects");
 		result.addParam("objectType", objectType);
@@ -259,13 +259,13 @@ public class XmlRepositoryService implements RepositoryService {
 		namespaces.put("c", SchemaConstants.NS_C);
 		namespaces.put("idmdn", SchemaConstants.NS_C);
 
-		ObjectListType objects = searchObjects(oType, paging, null, namespaces, result);
+		List<T> objects = searchObjects(objectType, oType, paging, null, namespaces, result);
 		result.recordSuccess();
 		return objects;
 	}
 
 	@Override
-	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
+	public <T extends ObjectType> List<T> searchObjects(Class<T> clazz, QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".searchObjects");
@@ -315,7 +315,7 @@ public class XmlRepositoryService implements RepositoryService {
 			}
 		}
 
-		return searchObjects(objectType, paging, filters, namespaces, result);
+		return searchObjects(clazz, objectType, paging, filters, namespaces, result);
 	}
 
 	@Override
@@ -426,21 +426,20 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:accountRef", accountOid);
-		ObjectListType retrievedObjects = searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, filters,
+		List<UserType> retrievedObjects = searchObjects(UserType.class,ObjectTypes.USER.getObjectTypeUri(), null, filters,
 				namespaces, result);
-		List<ObjectType> objects = retrievedObjects.getObject();
 
-		if (null == retrievedObjects || objects == null || objects.size() == 0) {
+		if (null == retrievedObjects || retrievedObjects.size() == 0) {
 			result.recordSuccess();
 			return null;
 		}
 
-		if (objects.size() > 1) {
-			result.recordFatalError("Found incorrect number of objects " + objects.size());
-			throw new SystemException("Found incorrect number of objects " + objects.size());
+		if (retrievedObjects.size() > 1) {
+			result.recordFatalError("Found incorrect number of objects " + retrievedObjects.size());
+			throw new SystemException("Found incorrect number of objects " + retrievedObjects.size());
 		}
 
-		UserType userType = (UserType) objects.get(0);
+		UserType userType = retrievedObjects.get(0);
 
 		result.recordSuccess();
 		return userType;
@@ -458,30 +457,19 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:resourceRef", resourceOid);
-		ObjectListType retrievedObjects = searchObjects(ObjectTypes.ACCOUNT.getObjectTypeUri(), null,
+		List<T> retrievedObjects = searchObjects(resourceObjectShadowType, ObjectTypes.ACCOUNT.getObjectTypeUri(), null,
 				filters, namespaces, result);
 
-		@SuppressWarnings("unchecked")
-		List<T> objects = (List<T>) CollectionUtils.collect(retrievedObjects.getObject(), new Transformer() {
-			@Override
-			public Object transform(final Object input) {
-				return (T) input;
-			}
-		});
-
-		List<T> ros = new ArrayList<T>();
-		ros.addAll(objects);
 		result.recordSuccess();
-		return ros;
+		return retrievedObjects;
 	}
 
-	private ObjectListType searchObjects(String objectType, PagingType paging, Map<String, String> filters,
+	private <T extends ObjectType> List<T> searchObjects(Class<T> clazz, String objectType, PagingType paging, Map<String, String> filters,
 			Map<String, String> namespaces, OperationResult result) {
 
-		ObjectListType objectList = new ObjectListType();
+		List<T> objectList = new ArrayList<T>();
 		// FIXME: objectList.count has to contain all elements that match search
 		// criteria, but not only from paging interval
-		objectList.setCount(0);
 		ClientQuery cq = null;
 		try {
 
@@ -550,9 +538,9 @@ public class XmlRepositoryService implements RepositoryService {
 				while (cq.more()) {
 					String c = cq.next();
 
-					JAXBElement<ObjectType> o = (JAXBElement<ObjectType>) JAXBUtil.unmarshal(c);
+					JAXBElement<T> o = JAXBUtil.unmarshal(clazz,c);
 					if (o != null) {
-						objectList.getObject().add(o.getValue());
+						objectList.add(o.getValue());
 					}
 				}
 			}

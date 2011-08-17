@@ -436,38 +436,32 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 	private List<UserType> findUsersByCorrelationRule(ResourceObjectShadowType resourceShadow,
 			QueryType query, OperationResult result) throws SynchronizationException {
-		List<UserType> users = new ArrayList<UserType>();
 
 		if (query == null) {
 			LOGGER.error("Corrrelation rule for resource '{}' doesn't contain query, "
 					+ "returning empty list of users.", resourceShadow.getName());
-			return users;
+			return null;
 		}
 
 		Element element = query.getFilter();
 		if (element == null) {
 			LOGGER.error("Corrrelation rule for resource '{}' doesn't contain query, "
 					+ "returning empty list of users.", resourceShadow.getName());
-			return users;
+			return null;
 		}
 		Element filter = updateFilterWithAccountValues(resourceShadow, element, result);
+		List<UserType> users = null;
 		try {
 			query = new ObjectFactory().createQueryType();
 			query.setFilter(filter);
 			LOGGER.debug("CORRELATION: expression for OID {} results in filter {}", resourceShadow.getOid(),
 					DebugUtil.prettyPrint(query));
 			PagingType paging = new PagingType();
-			ObjectListType container = controller.searchObjectsInRepository(query, paging, result);
-			if (container == null) {
-				return users;
+			users = controller.searchObjectsInRepository(UserType.class, query, paging, result);
+			if (users == null) {
+				return null;
 			}
 
-			List<ObjectType> objects = container.getObject();
-			for (ObjectType object : objects) {
-				if (object instanceof UserType) {
-					users.add((UserType) object);
-				}
-			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER,
 					"Couldn't search users in repository, based on filter (simplified)\n{}.", ex,
