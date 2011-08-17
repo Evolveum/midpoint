@@ -32,6 +32,7 @@ import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
@@ -48,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * 
@@ -140,7 +140,7 @@ public class UserManagerImplMock implements UserManager {
 			Collection<GuiResourceDto> resources = resourceManagerMock.list();
 			for (PropertyReferenceType property : resolve.getProperty()) {
 				if (Utils.getPropertyName("Account").equals(
-						(new XPathType(property.getProperty())).getXPath())) {
+						(new XPathHolder(property.getProperty())).getXPath())) {
 					for (AccountShadowDto acc : accounts) {
 						if (acc.getOid().equals(userDto.getAccountRef().get(0).getOid())) {
 							((UserType) userDto.getXmlObject()).getAccount().add(
@@ -152,7 +152,7 @@ public class UserManagerImplMock implements UserManager {
 				}
 
 				if (Utils.getPropertyName("Resource").equals(
-						(new XPathType(property.getProperty())).getXPath())) {
+						(new XPathHolder(property.getProperty())).getXPath())) {
 					for (ResourceDto res : resources) {
 						System.out.println("res oid " + res.getOid());
 						if (res.getOid().equals(userDto.getAccount().get(0).getResourceRef().getOid())) {

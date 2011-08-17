@@ -45,6 +45,8 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.xpath.XPathSegment;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -56,8 +58,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * 
@@ -221,7 +221,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 		Document doc = DOMUtil.getDocument();
 		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
 		xpathSegments.add(xpathSegment);
-		XPathType xpath = new XPathType(xpathSegments);
+		XPathHolder xpath = new XPathHolder(xpathSegments);
 
 		List<Element> values = new ArrayList<Element>();
 
@@ -251,7 +251,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			Document doc = DOMUtil.getDocument();
 			List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
 			xpathSegments.add(xpathSegment);
-			XPathType xpath = new XPathType(xpathSegments);
+			XPathHolder xpath = new XPathHolder(xpathSegments);
 			List<Element> values = new ArrayList<Element>();
 			values.add((Element) DOMUtil
 					.parseDocument(

@@ -59,6 +59,8 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.xpath.XPathSegment;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -88,8 +90,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * 
@@ -230,34 +230,26 @@ public class ModelControllerImpl implements ModelController {
 		addResultParams(subResult, new String[] { "oid", "resolve", "class" }, oid, resolve, clazz);
 		T object = null;
 		try {
-			// TODO: HACK !!!!!!!!!!!!!! START till we parametrize getObject
-			// (can't get connector type from admin-gui now)
-			if (oid.startsWith("icf")) {
+			// If class parameter is ObjectType we don't know if real object
+			// is handled by provisioning or directly by repo, so we try to
+			// get object from repository and then update class parameter to
+			// real class. If needed we call provisioning to get object
+			ObjectNotFoundException objectNotFound = null;
+			if (ObjectType.class.equals(clazz) || !ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
+				try {
+					object = getObjectFromRepository(oid, resolve, subResult, clazz);
+				} catch (ObjectNotFoundException ex) {
+					objectNotFound = ex;
+				}
+			}
+			clazz = object == null ? clazz : (Class<T>) object.getClass();
+
+			if (ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
 				object = getObjectFromProvisioning(oid, resolve, subResult, clazz);
-			} else {
-				// TODO: END HACK
-
-				// If class parameter is ObjectType we don't know if real object
-				// is handled by provisioning or directly by repo, so we try to
-				// get object from repository and then update class parameter to
-				// real class. If needed we call provisioning to get object
-				ObjectNotFoundException objectNotFound = null;
-				if (ObjectType.class.equals(clazz) || !ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
-					try {
-						object = getObjectFromRepository(oid, resolve, subResult, clazz);
-					} catch (ObjectNotFoundException ex) {
-						objectNotFound = ex;
-					}
-				}
-				clazz = object == null ? clazz : (Class<T>) object.getClass();
-
-				if (ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
-					object = getObjectFromProvisioning(oid, resolve, subResult, clazz);
-				} else if (objectNotFound != null) {
-					// throw previously catched exception, we don't need to call
-					// repository again
-					throw objectNotFound;
-				}
+			} else if (objectNotFound != null) {
+				// throw previously caught exception, we don't need to call
+				// repository again
+				throw objectNotFound;
 			}
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
@@ -1258,7 +1250,7 @@ public class ModelControllerImpl implements ModelController {
 
 	private PropertyModificationType hasUserActivationChanged(ObjectModificationType change) {
 		for (PropertyModificationType modification : change.getPropertyModification()) {
-			XPathType xpath = new XPathType(modification.getPath());
+			XPathHolder xpath = new XPathHolder(modification.getPath());
 			List<XPathSegment> segments = xpath.toSegments();
 			if (segments == null || segments.isEmpty() || segments.size() > 1) {
 				continue;

@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -71,7 +72,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatu
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 public class XmlRepositoryService implements RepositoryService {
 
@@ -302,7 +302,7 @@ public class XmlRepositoryService implements RepositoryService {
 				Node criteria = DOMUtil.getFirstChildElement(child);
 
 				if (validateFilterElement(SchemaConstants.NS_C, "path", criteria)) {
-					XPathType xpathType = new XPathType((Element) criteria);
+					XPathHolder xpathType = new XPathHolder((Element) criteria);
 					String parentPath = xpathType.getXPath();
 
 					Node criteriaValueNode = DOMUtil.getNextSiblingElement(criteria);
@@ -521,7 +521,7 @@ public class XmlRepositoryService implements RepositoryService {
 				}
 			}
 			if (null != paging && null != paging.getOrderBy()) {
-				XPathType xpath = new XPathType(paging.getOrderBy().getProperty());
+				XPathHolder xpath = new XPathHolder(paging.getOrderBy().getProperty());
 				String orderBy = xpath.getXPath();
 				query.append(" order by $x/").append(orderBy);
 				if (null != paging.getOrderDirection()) {

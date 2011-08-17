@@ -46,14 +46,14 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.patch.PatchXml;
+import com.evolveum.midpoint.schema.xpath.XPathSegment;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  *
@@ -114,7 +114,7 @@ public class DiffPatchRegressionTest {
         change.setModificationType(PropertyModificationTypeType.replace);
 
         Document userDoc = parseXmlToDocument(new File("src/test/resources/user-real-esb.xml"));
-        XPathType xphatType = new XPathType(".", userDoc.getFirstChild());
+        XPathHolder xphatType = new XPathHolder(".", userDoc.getFirstChild());
         change.setPath(xphatType.toElement(SchemaConstants.NS_C, "xpath"));
 
         change.setValue(new Value());
@@ -157,7 +157,7 @@ public class DiffPatchRegressionTest {
         modification.setModificationType(PropertyModificationTypeType.replace);
         List<XPathSegment> segments = new ArrayList<XPathSegment>();
         segments.add(new XPathSegment(SchemaConstants.I_CREDENTIALS));
-        XPathType xpath = new XPathType(segments);
+        XPathHolder xpath = new XPathHolder(segments);
         modification.setPath(xpath.toElement(SchemaConstants.NS_C, "path", doc));
         Element e = doc.createElementNS(SchemaConstants.NS_C, "password");
         e.setTextContent(newPassword);

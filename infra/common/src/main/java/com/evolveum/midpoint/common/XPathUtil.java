@@ -24,12 +24,12 @@ package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.xpath.XPathSegment;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.MapXPathVariableResolver;
 import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.xml.schema.ExpressionHolder;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
 import com.evolveum.midpoint.xpath.MidPointNamespaceContext;
 import com.evolveum.midpoint.xpath.MidPointXPathFunctionResolver;
 import com.evolveum.midpoint.xpath.functions.CapitalizeFunction;
@@ -107,7 +107,7 @@ public class XPathUtil {
         return xpath;
     }
 
-    public NodeList matchedNodesByXPath(XPathType xpathType, Map<QName, Variable> variables, Node domObject) throws XPathExpressionException {
+    public NodeList matchedNodesByXPath(XPathHolder xpathType, Map<QName, Variable> variables, Node domObject) throws XPathExpressionException {
         Validate.notNull(xpathType, "xpathType is null");
         Validate.notNull(domObject, "domObject is null");
         try {
@@ -135,7 +135,7 @@ public class XPathUtil {
 //    }
 	
 		public static void createNodesDefinedByXPath(Document doc,
-			XPathType xpathType) {
+			XPathHolder xpathType) {
 		Validate.notNull(doc, "Provided parameter doc was null");
 		Validate.notNull(xpathType, "Provided parameter xpathType was null");
 
@@ -149,8 +149,8 @@ public class XPathUtil {
 			for (i = 0; i < segments.size(); i++) {
 				NodeList nodes;
 				try {
-					XPathType path = null;
-					path = new XPathType(segments.subList(0, i + 1));
+					XPathHolder path = null;
+					path = new XPathHolder(segments.subList(0, i + 1));
 					nodes = (new XPathUtil()).matchedNodesByXPath(path, null,
 							doc.getFirstChild());
 				} catch (XPathExpressionException ex) {

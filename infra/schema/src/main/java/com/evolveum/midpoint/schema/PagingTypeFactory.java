@@ -22,11 +22,11 @@ package com.evolveum.midpoint.schema;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * 
@@ -60,7 +60,7 @@ public abstract class PagingTypeFactory {
 
 	private static PropertyReferenceType fillPropertyReference(String resolve) {
 		PropertyReferenceType property = new PropertyReferenceType();
-		XPathType xpath = new XPathType(getPropertyName(resolve));
+		XPathHolder xpath = new XPathHolder(getPropertyName(resolve));
 		property.setProperty(xpath.toElement(SchemaConstants.NS_C, "property"));
 		return property;
 	}

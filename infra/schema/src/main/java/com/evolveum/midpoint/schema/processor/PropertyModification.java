@@ -30,12 +30,12 @@ import org.apache.commons.lang.NotImplementedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * Experimental ... kind of
@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.schema.XPathType;
  */
 public class PropertyModification {
 	
-	private XPathType path;
+	private XPathHolder path;
 	// Storing property instead of property name, so a property definition that may be associated with property will
 	// be passed on
 	private Property property;
@@ -80,7 +80,7 @@ public class PropertyModification {
 	 * @param values
 	 * @param modificationType
 	 */
-	public PropertyModification(Property property, ModificationType modificationType, XPathType path, Set<Object> values) {
+	public PropertyModification(Property property, ModificationType modificationType, XPathHolder path, Set<Object> values) {
 		super();
 		this.path = path;
 		this.property = property;
@@ -98,13 +98,13 @@ public class PropertyModification {
 	 */
 	public PropertyModification(Property property, ModificationType modificationType, Set<Object> values) {
 		super();
-		this.path = new XPathType();
+		this.path = new XPathHolder();
 		this.property = property;
 		this.modifyValues = values;
 		this.modificationType = modificationType;
 	}
 	
-	public XPathType getPath() {
+	public XPathHolder getPath() {
 		return path;
 	}
 	
@@ -135,7 +135,7 @@ public class PropertyModification {
 	 * @throws SchemaProcessorException 
 	 */
 	public PropertyModificationType toPropertyModificationType(QName parentPath, boolean recordType) throws SchemaProcessorException {
-		XPathType absolutePath = path;
+		XPathHolder absolutePath = path;
 		if (parentPath!=null) {
 			absolutePath = path.transposedPath(parentPath);
 		}

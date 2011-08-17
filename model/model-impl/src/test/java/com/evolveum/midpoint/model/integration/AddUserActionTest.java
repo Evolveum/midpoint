@@ -53,6 +53,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -66,7 +67,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-repository-test.xml", "classpath:application-context-provisioning.xml", "classpath:application-context-task.xml" })
@@ -134,7 +134,7 @@ public class AddUserActionTest extends AbstractTestNGSpringContextTests {
 			// creating filter to search user according to the user name
 			Document doc = DOMUtil.getDocument();
 
-			XPathType xpath = new XPathType();
+			XPathHolder xpath = new XPathHolder();
 
 			List<Element> values = new ArrayList<Element>();
 			Element element = doc.createElementNS(SchemaConstants.NS_C, "name");

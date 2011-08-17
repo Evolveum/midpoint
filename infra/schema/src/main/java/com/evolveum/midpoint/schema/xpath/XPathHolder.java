@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.xml.schema;
+package com.evolveum.midpoint.schema.xpath;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,6 +42,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  *
@@ -54,7 +55,7 @@ import com.evolveum.midpoint.util.DOMUtil;
  *
  * @author semancik
  */
-public class XPathType {
+public class XPathHolder {
 
     public static final String REPLACE_PREFIX_FOR_DEFAULT_NAMESPACE = "idmdn";
     private boolean absolute;
@@ -65,25 +66,25 @@ public class XPathType {
     /**
      * Sets "current node" Xpath.
      */
-    public XPathType() {
+    public XPathHolder() {
         absolute = false;
         segments = new ArrayList<XPathSegment>();
     }
 
     // This should not really be used. There should always be a namespace
-    public XPathType(String xpath) {
+    public XPathHolder(String xpath) {
         parse(xpath, null, null);
     }
 
-    public XPathType(String xpath, Map<String, String> namespaceMap) {
+    public XPathHolder(String xpath, Map<String, String> namespaceMap) {
         parse(xpath, null, namespaceMap);
     }
 
-    public XPathType(List<XPathSegment> segments) {
+    public XPathHolder(List<XPathSegment> segments) {
         this(segments, false);
     }
 
-    public XPathType(List<XPathSegment> segments, boolean absolute) {
+    public XPathHolder(List<XPathSegment> segments, boolean absolute) {
         this.segments = new ArrayList<XPathSegment>();
         for (XPathSegment segment : segments) {
             if (StringUtils.isEmpty(segment.getQName().getPrefix())) {
@@ -98,7 +99,7 @@ public class XPathType {
         this.absolute = absolute;
     }
 
-    public XPathType(Element domElement) {
+    public XPathHolder(Element domElement) {
 
         String xpath = ".";
         if (null != domElement) {
@@ -126,7 +127,7 @@ public class XPathType {
 //        }
     }
 
-    public XPathType(String xpath, Node domNode) {
+    public XPathHolder(String xpath, Node domNode) {
 
         parse(xpath, domNode, null);
     }
@@ -352,7 +353,7 @@ public class XPathType {
      * @param parentPath
      * @return
      */
-    public XPathType transposedPath(QName parentPath) {
+    public XPathHolder transposedPath(QName parentPath) {
     	XPathSegment segment = new XPathSegment(parentPath);
     	List<XPathSegment> segments = new ArrayList<XPathSegment>();
     	segments.add(segment);
@@ -365,11 +366,11 @@ public class XPathType {
      * @param parentPath
      * @return
      */
-    public XPathType transposedPath(List<XPathSegment> parentPath) {
+    public XPathHolder transposedPath(List<XPathSegment> parentPath) {
     	List<XPathSegment> allSegments = new ArrayList<XPathSegment>();
     	allSegments.addAll(parentPath);
     	allSegments.addAll(toSegments());
-    	return new XPathType(allSegments);
+    	return new XPathHolder(allSegments);
     }
 
     

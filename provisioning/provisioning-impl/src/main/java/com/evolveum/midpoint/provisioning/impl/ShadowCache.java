@@ -73,6 +73,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
+import com.evolveum.midpoint.schema.xpath.XPathSegment;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -97,8 +99,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
 import com.sun.xml.bind.v2.schemagen.xmlschema.SchemaTop;
 
 /**
@@ -1149,7 +1149,7 @@ public class ShadowCache {
 		Document doc = DOMUtil.getDocument();
 		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
 		xpathSegments.add(xpathSegment);
-		XPathType xpath = new XPathType(xpathSegments);
+		XPathHolder xpath = new XPathHolder(xpathSegments);
 		List<Element> values = new ArrayList<Element>();
 		try {
 			for (Property identifier : identifiers) {
@@ -1324,7 +1324,7 @@ public class ShadowCache {
 				SchemaConstants.I_ATTRIBUTES);
 		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
 		xpathSegments.add(xpathSegment);
-		XPathType xpath = new XPathType(xpathSegments);
+		XPathHolder xpath = new XPathHolder(xpathSegments);
 
 		// Now we need to determine what is the identifer and set corrent
 		// value for it in the filter
@@ -1657,7 +1657,7 @@ public class ShadowCache {
 		Document doc = DOMUtil.getDocument();
 		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
 		xpathSegments.add(xpathSegment);
-		XPathType xpath = new XPathType(xpathSegments);
+		XPathHolder xpath = new XPathHolder(xpathSegments);
 		List<Element> values = new ArrayList<Element>();
 		try {
 			for (Property identifier : identifiers) {

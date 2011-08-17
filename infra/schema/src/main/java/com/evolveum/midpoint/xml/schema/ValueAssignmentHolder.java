@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.xml.schema;
 
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueFilterType;
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ public class ValueAssignmentHolder {
 
     private Element dom;
     private ExpressionHolder source;
-    private XPathType target;
+    private XPathHolder target;
     private List<ValueFilterType> filters;
 
     public ValueAssignmentHolder(Element dom) {
@@ -67,7 +68,7 @@ public class ValueAssignmentHolder {
         return source;
     }
 
-    public XPathType getTarget() {
+    public XPathHolder getTarget() {
         if (target != null) {
             return target;
         }
@@ -79,7 +80,7 @@ public class ValueAssignmentHolder {
             throw new IllegalArgumentException("Value assignment has more than one elements <target>");
         }
         Element element = (Element) elements.item(0);
-        target = new XPathType(element);
+        target = new XPathHolder(element);
         return target;
     }
 

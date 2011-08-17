@@ -56,6 +56,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
+import com.evolveum.midpoint.schema.xpath.XPathSegment;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
@@ -73,8 +75,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptOrderType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 import org.apache.commons.codec.binary.Base64;
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
@@ -1581,7 +1581,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		XPathSegment attrSegment = new XPathSegment(
 				SchemaConstants.I_ATTRIBUTES);
 		segments.add(attrSegment);
-		XPathType t = new XPathType(segments);
+		XPathHolder t = new XPathHolder(segments);
 		Element xpathElement = t.toElement(
 				SchemaConstants.I_PROPERTY_CONTAINER_REFERENCE_PATH, doc);
 		return xpathElement;

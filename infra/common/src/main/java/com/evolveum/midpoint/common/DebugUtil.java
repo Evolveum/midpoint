@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
 import java.beans.PropertyDescriptor;
@@ -69,7 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * 
@@ -99,7 +99,7 @@ public class DebugUtil implements ObjectFormatter {
 		if (ref == null) {
 			return "null";
 		}
-		XPathType xpath = new XPathType(ref.getProperty());
+		XPathHolder xpath = new XPathHolder(ref.getProperty());
 		return xpath.toString();
 
 	}
@@ -241,7 +241,7 @@ public class DebugUtil implements ObjectFormatter {
 		sb.append(change.getModificationType());
 		sb.append(",");
 		if (change.getPath() != null) {
-			XPathType xpath = new XPathType(change.getPath());
+			XPathHolder xpath = new XPathHolder(change.getPath());
 			sb.append(xpath.toString());
 		} else {
 			sb.append("xpath=null");

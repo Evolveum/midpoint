@@ -22,9 +22,9 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,7 +58,7 @@ public class QueryUtil {
      * @param values
      * @return "equal" filter segment (as DOM)
      */
-    public static Element createEqualFilter(Document doc, XPathType xpath, List<Element> values) {
+    public static Element createEqualFilter(Document doc, XPathHolder xpath, List<Element> values) {
         Validate.notNull(doc);
         Validate.notNull(values);
         Validate.notEmpty(values);
@@ -84,7 +84,7 @@ public class QueryUtil {
      * @param value
      * @return "equal" filter segment (as DOM)
      */
-    public static Element createEqualFilter(Document doc, XPathType xpath, Element value) {
+    public static Element createEqualFilter(Document doc, XPathHolder xpath, Element value) {
         Validate.notNull(doc);
         Validate.notNull(value);
 
@@ -101,7 +101,7 @@ public class QueryUtil {
      * @param value
      * @return "equal" filter segment (as DOM)
      */
-    public static Element createEqualFilter(Document doc, XPathType xpath, QName properyName, String value) {
+    public static Element createEqualFilter(Document doc, XPathHolder xpath, QName properyName, String value) {
         Validate.notNull(doc);
         Validate.notNull(properyName);
         Validate.notNull(value);
@@ -121,7 +121,7 @@ public class QueryUtil {
      * @param value
      * @return "equal" filter segment (as DOM)
      */
-    public static Element createEqualFilter(Document doc, XPathType xpath, QName properyName, QName value) {
+    public static Element createEqualFilter(Document doc, XPathHolder xpath, QName properyName, QName value) {
         Validate.notNull(doc);
         Validate.notNull(properyName);
         Validate.notNull(value);
@@ -142,7 +142,7 @@ public class QueryUtil {
      * @param oid OID of the referenced object
      * @return "equal" filter segment (as DOM)
      */
-    public static Element createEqualRefFilter(Document doc, XPathType xpath, QName propertyName, String oid) {
+    public static Element createEqualRefFilter(Document doc, XPathHolder xpath, QName propertyName, String oid) {
     	Element value = doc.createElementNS(propertyName.getNamespaceURI(), propertyName.getLocalPart());
     	value.setAttributeNS(SchemaConstants.C_OID_ATTRIBUTE.getNamespaceURI(), SchemaConstants.C_OID_ATTRIBUTE.getLocalPart(), oid);
     	return createEqualFilter(doc,xpath,value);

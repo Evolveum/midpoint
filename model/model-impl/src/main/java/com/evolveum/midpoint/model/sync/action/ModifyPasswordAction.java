@@ -32,6 +32,8 @@ import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.schema.xpath.XPathSegment;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
@@ -40,8 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * 
@@ -96,7 +96,7 @@ public class ModifyPasswordAction extends BaseAction {
 	private PropertyModificationType getPasswordFromModification(ObjectChangeModificationType objectChange) {
 		List<PropertyModificationType> list = objectChange.getObjectModification().getPropertyModification();
 		for (PropertyModificationType propModification : list) {
-			XPathType path = new XPathType(propModification.getPath());
+			XPathHolder path = new XPathHolder(propModification.getPath());
 			List<XPathSegment> segments = path.toSegments();
 			if (segments.size() == 0 || !segments.get(0).getQName().equals(SchemaConstants.I_CREDENTIALS)) {
 				continue;

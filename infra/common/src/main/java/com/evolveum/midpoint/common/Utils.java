@@ -35,14 +35,14 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.api.logging.Trace;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.xpath.XPathSegment;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.constants.MidPointConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * 
@@ -142,7 +142,7 @@ public class Utils {
 
 	public static boolean haveToResolve(String propertyName, PropertyReferenceListType resolve) {
 		for (PropertyReferenceType property : resolve.getProperty()) {
-			XPathType xpath = new XPathType(property.getProperty());
+			XPathHolder xpath = new XPathHolder(property.getProperty());
 			List<XPathSegment> segments = xpath.toSegments();
 			if (CollectionUtils.isEmpty(segments)) {
 				continue;
@@ -176,7 +176,7 @@ public class Utils {
 
 	public static PropertyReferenceType fillPropertyReference(String resolve) {
 		PropertyReferenceType property = new PropertyReferenceType();
-		com.evolveum.midpoint.xml.schema.XPathType xpath = new com.evolveum.midpoint.xml.schema.XPathType(
+		com.evolveum.midpoint.schema.xpath.XPathHolder xpath = new com.evolveum.midpoint.schema.xpath.XPathHolder(
 				Utils.getPropertyName(resolve));
 		property.setProperty(xpath.toElement(SchemaConstants.NS_C, "property"));
 		return property;

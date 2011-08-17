@@ -24,6 +24,7 @@ package com.evolveum.midpoint.common.object;
 
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
@@ -39,7 +40,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -93,7 +93,7 @@ public class ObjectTypeUtil {
     }
 
 //    TODO: refactor to use one code base for the method
-    public static PropertyModificationType createPropertyModificationType(PropertyModificationTypeType changeType, XPathType xpathType, Node node) {
+    public static PropertyModificationType createPropertyModificationType(PropertyModificationTypeType changeType, XPathHolder xpathType, Node node) {
         PropertyModificationType change = new PropertyModificationType();
         change.setValue(new Value());
         change.setModificationType(changeType);
@@ -106,7 +106,7 @@ public class ObjectTypeUtil {
 //        return createPropertyModificationType(changetype, xpath, new QName(element.getNamespaceURI(), element.getLocalName()), element.getTextContent());
 //    }
 
-    public static PropertyModificationType createPropertyModificationType(PropertyModificationTypeType changetype, XPathType xpath, QName property, Object value) {
+    public static PropertyModificationType createPropertyModificationType(PropertyModificationTypeType changetype, XPathHolder xpath, QName property, Object value) {
 
         PropertyModificationType propertyChange = new PropertyModificationType();
         propertyChange.setModificationType(changetype);
@@ -115,7 +115,7 @@ public class ObjectTypeUtil {
 
         if (xpath == null) {
             // Default XPath is empty XPath, which means "."
-            xpath = new XPathType();
+            xpath = new XPathHolder();
         }
 
         if (property.getPrefix() == null) {

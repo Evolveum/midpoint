@@ -40,6 +40,7 @@ import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.XmlUtil;
 import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
@@ -48,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationTy
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * Main class for XML patching
@@ -73,7 +73,7 @@ public class PatchXml extends XPathUtil {
             return;
         }
 
-        XPathType xpathUtil = new XPathType(change.getPath());
+        XPathHolder xpathUtil = new XPathHolder(change.getPath());
         //String xpathString = xpathUtil.getXPath();
         List<Element> values = change.getValue().getAny();
         //Note: for now supported is only one existingValue in the list

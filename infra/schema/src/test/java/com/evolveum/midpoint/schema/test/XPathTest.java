@@ -24,12 +24,13 @@ package com.evolveum.midpoint.schema.test;
 
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
+
+import com.evolveum.midpoint.schema.xpath.TrivialXPathParser;
+import com.evolveum.midpoint.schema.xpath.XPathSegment;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.schema.TrivialXPathParser;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -102,7 +103,7 @@ public class XPathTest {
 //                System.out.println("  E: " + e.getLocalName());
             }
 
-            XPathType xpath = new XPathType(path);
+            XPathHolder xpath = new XPathHolder(path);
 
             AssertJUnit.assertEquals("/c:extension/piracy:ship", xpath.getXPath());
 
@@ -136,7 +137,7 @@ public class XPathTest {
 
             System.out.println("XPATH segments: " + segments);
 
-            XPathType xpathFromSegments = new XPathType(segments);
+            XPathHolder xpathFromSegments = new XPathHolder(segments);
 
             System.out.println("XPath from segments: " + xpathFromSegments);
 
@@ -171,7 +172,7 @@ public class XPathTest {
 
         // When
 
-        XPathType xpath = new XPathType(xpathString, el1);
+        XPathHolder xpath = new XPathHolder(xpathString, el1);
 
         // Then
 
@@ -213,7 +214,7 @@ public class XPathTest {
 
         // When
 
-        XPathType xpath = new XPathType(xpathString, el1);
+        XPathHolder xpath = new XPathHolder(xpathString, el1);
 
         // Then
 
@@ -230,7 +231,7 @@ public class XPathTest {
                     "declare namespace x='http://www.xxx.com';"+
                     "$v:var/x:xyz";
 
-            XPathType xpath = new XPathType(xpathStr);
+            XPathHolder xpath = new XPathHolder(xpathStr);
 
             AssertJUnit.assertEquals("$v:var/x:xyz", xpath.getXPath());
             AssertJUnit.assertEquals("http://vvv.com", xpath.getNamespaceMap().get("v"));
@@ -242,7 +243,7 @@ public class XPathTest {
     @Test
     public void dotTest() {
 
-        XPathType dotPath = new XPathType(".");
+        XPathHolder dotPath = new XPathHolder(".");
 
         AssertJUnit.assertTrue(dotPath.toSegments().isEmpty());
 
@@ -282,7 +283,7 @@ public class XPathTest {
         String xpathStr =
                 "declare namespace foo='http://ff.com/';\ndeclare default namespace 'http://default.com/';\n declare  namespace bar = 'http://www.b.com' ;declare namespace x= \"http://xxx.com/\";\nfoo:foofoo/x:bar";
 
-        XPathType xpath = new XPathType(xpathStr);
+        XPathHolder xpath = new XPathHolder(xpathStr);
 
         System.out.println("Pure XPath: "+xpath.getXPath());
         AssertJUnit.assertEquals("foo:foofoo/x:bar", xpath.getXPath());
@@ -298,7 +299,7 @@ public class XPathTest {
 
         String xpathStr = "foo:foo/bar:bar";
 
-        XPathType xpath = new XPathType(xpathStr);
+        XPathHolder xpath = new XPathHolder(xpathStr);
 
         System.out.println("Pure XPath: "+xpath.getXPath());
         AssertJUnit.assertEquals("foo:foo/bar:bar", xpath.getXPath());
@@ -328,7 +329,7 @@ public class XPathTest {
             stream.close();
         }
 
-        XPathType xpath = new XPathType(xpathStr);
+        XPathHolder xpath = new XPathHolder(xpathStr);
 
         System.out.println("Stragechars Pure XPath: "+xpath.getXPath());
         AssertJUnit.assertEquals("$i:user/i:extension/ri:foobar", xpath.getXPath());

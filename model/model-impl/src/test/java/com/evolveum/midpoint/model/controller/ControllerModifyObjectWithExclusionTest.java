@@ -49,6 +49,8 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.xpath.XPathSegment;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -57,8 +59,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * 
@@ -164,7 +164,7 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 	private void assertActivation(ObjectModificationType modification) {
 		boolean foundActivation = false;
 		for (PropertyModificationType property : modification.getPropertyModification()) {
-			XPathType xpath = new XPathType(property.getPath());
+			XPathHolder xpath = new XPathHolder(property.getPath());
 			List<XPathSegment> segments = xpath.toSegments();
 			if (segments == null || segments.isEmpty() || segments.size() > 1) {
 				continue;

@@ -57,6 +57,8 @@ import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.xpath.XPathSegment;
+import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -79,8 +81,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.VariableDefinitionTy
 import com.evolveum.midpoint.xml.schema.ExpressionHolder;
 import com.evolveum.midpoint.xml.schema.SchemaConstants;
 import com.evolveum.midpoint.xml.schema.ValueAssignmentHolder;
-import com.evolveum.midpoint.xml.schema.XPathSegment;
-import com.evolveum.midpoint.xml.schema.XPathType;
 
 /**
  * 
@@ -339,7 +339,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 		ExpressionHolder expression = outbound.getValueExpression() == null ? null : new ExpressionHolder(
 				outbound.getValueExpression());
-		XPathType xpathType = getXPathForAttribute(attributeName);
+		XPathHolder xpathType = getXPathForAttribute(attributeName);
 
 		String attributeValue;
 		// if (expression != null
@@ -377,7 +377,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		return modifications;
 	}
 
-	private boolean isApplicablePropertyConstruction(boolean isDefault, XPathType xpathType,
+	private boolean isApplicablePropertyConstruction(boolean isDefault, XPathHolder xpathType,
 			Map<QName, Variable> variables, ObjectType objectType) throws SchemaHandlerException {
 		if (isDefault) {
 			QName elementQName = null;
@@ -413,12 +413,12 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	/**
 	 * construct XPath that points to resource object shadow's attribute
 	 */
-	private XPathType getXPathForAttribute(QName attributeName) {
+	private XPathHolder getXPathForAttribute(QName attributeName) {
 		List<XPathSegment> segments = new ArrayList<XPathSegment>();
 		segments.add(new XPathSegment(SchemaConstants.I_ATTRIBUTES));
 		segments.add(new XPathSegment(attributeName));
 
-		return new XPathType(segments);
+		return new XPathHolder(segments);
 	}
 
 	private String extractValue(AttributeDescriptionType attribute) {
@@ -466,7 +466,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		List<XPathSegment> segments = new ArrayList<XPathSegment>();
 		// segments.add(new XPathSegment(SchemaConstants.C_OBJECT));
 		segments.add(new XPathSegment(SchemaConstants.I_ATTRIBUTES));
-		XPathType xpathType = new XPathType(segments);
+		XPathHolder xpathType = new XPathHolder(segments);
 
 		List<Element> attributes = attrs.getAny();
 		for (Element attribute : attributes) {
@@ -549,7 +549,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			}
 
 			List<ValueFilterType> filters = inbound.getFilter();
-			XPathType xpathType = inbound.getTarget();
+			XPathHolder xpathType = inbound.getTarget();
 			NodeList matchedNodes;
 			try {
 				matchedNodes = new XPathUtil().matchedNodesByXPath(xpathType, variables, domUser);
@@ -572,7 +572,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 				// if no matches found, then we will search for the parent of
 				// the element and add new node to it
 
-				XPathType parentXpath = constructParentXpath(xpathType);
+				XPathHolder parentXpath = constructParentXpath(xpathType);
 				try {
 					matchedNodes = new XPathUtil().matchedNodesByXPath(parentXpath, variables, domUser);
 					parentNode = matchedNodes.item(0);
@@ -581,14 +581,14 @@ public class SchemaHandlerImpl implements SchemaHandler {
 						// if there is no extension section at all and we have
 						// extension attributes then we will create it
 						List<XPathSegment> segments = parentXpath.toSegments();
-						XPathType relativeParentXPath = null;
+						XPathHolder relativeParentXPath = null;
 						// if first element in the xpath is variable, we assume
 						// it is referencing the doc and we will replace it
 						if (segments != null && !segments.isEmpty() && segments.get(0).isVariable()) {
 							// we will remove the segment, because
 							// DOMUtil.createNodesDefinedByXPath expects
 							// relative xpath
-							relativeParentXPath = new XPathType(segments.subList(1, segments.size()));
+							relativeParentXPath = new XPathHolder(segments.subList(1, segments.size()));
 							Document doc = DOMUtil.getDocument();
 							doc.adoptNode(domUser);
 							doc.appendChild(domUser);
@@ -610,7 +610,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 					parentNode = domUser;
 					wasEmpty = true;
 				}
-				userPropertyQName = getUserPropertyQNameFromXPathType(xpathType);
+				userPropertyQName = getUserPropertyQNameFromXPathHolder(xpathType);
 				// II. transform tag names from account's attribute to user tags
 				List<Element> newNodes = transformAccountAttributeToUserProperty(
 						nodesAttributesFromAccountShadow, userPropertyQName, filters);
@@ -659,11 +659,11 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		return domUser;
 	}
 
-	private XPathType constructParentXpath(XPathType xpathType) {
+	private XPathHolder constructParentXpath(XPathHolder xpathType) {
 		List<XPathSegment> segments = xpathType.toSegments();
 		List<XPathSegment> parentSegments = new ArrayList<XPathSegment>();
 		parentSegments.addAll(segments.subList(0, segments.size() - 1));
-		XPathType parentXpath = new XPathType(parentSegments);
+		XPathHolder parentXpath = new XPathHolder(parentSegments);
 
 		return parentXpath;
 	}
@@ -715,7 +715,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		return newNodes;
 	}
 
-	private QName getUserPropertyQNameFromXPathType(XPathType xpathType) {
+	private QName getUserPropertyQNameFromXPathHolder(XPathHolder xpathType) {
 		List<XPathSegment> segments = xpathType.toSegments();
 		XPathSegment lastSegment = segments.get(segments.size() - 1);
 		return lastSegment.getQName();
