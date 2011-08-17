@@ -29,9 +29,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.testng.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -81,7 +79,7 @@ public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
 	// not work
 	// directly. We also need to init the repo after spring autowire is done, so
 	// @BeforeClass won't work either.
-	@Before
+	@BeforeTest
 	public void initSystemConditional() throws Exception {
 		if (!systemInitialized) {
 			initSystem();

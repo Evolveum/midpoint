@@ -21,8 +21,11 @@
 package com.evolveum.midpoint.task.impl;
 
 
-import static org.junit.Assert.*;
-
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
+import org.testng.AssertJUnit.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -37,17 +40,12 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -75,11 +73,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
  * @author Radovan Semancik
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+
 @ContextConfiguration(locations = { "classpath:application-context-task.xml", 
 			"classpath:application-context-task-test.xml",
 			"classpath:application-context-repository-test.xml" })
-public class TestTaskManagerContract {
+public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 	
 	private static final String TASK_CYCLE_FILENAME = "src/test/resources/repo/cycle-task.xml";
 	private static final String TASK_CYCLE_OID = "91919191-76e0-59e2-86d6-998877665544";
@@ -110,7 +108,7 @@ public class TestTaskManagerContract {
 	// not work
 	// directly. We also need to init the repo after spring autowire is done, so
 	// @BeforeClass won't work either.
-	@Before
+	@BeforeMethod
 	public void initRepository() throws Exception {
 		if (!repoInitialized) {
 			//addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
@@ -134,8 +132,8 @@ public class TestTaskManagerContract {
 	 */
 	@Test
 	public void test000Integrity() {
-		assertNotNull(repositoryService);
-		assertNotNull(taskManager);
+		AssertJUnit.assertNotNull(repositoryService);
+		AssertJUnit.assertNotNull(taskManager);
 
 //		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName() + ".test000Integrity");
 //		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
@@ -159,31 +157,31 @@ public class TestTaskManagerContract {
 		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test002Single");
 		Task task = taskManager.getTask(TASK_SINGLE_OID, result);
 		
-		assertNotNull(task);
+		AssertJUnit.assertNotNull(task);
 		System.out.println(task.dump());
 		
 		ObjectType o = repositoryService.getObject(TASK_SINGLE_OID, null, result);
 		System.out.println(ObjectTypeUtil.dump(o));
 		
 		// .. it should be closed
-		assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
+		AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
 		
 		// .. and released
-		assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+		AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
 		
 		// .. and last run should not be zero
-		assertNotNull(task.getLastRunStartTimestamp());
-		assertFalse(task.getLastRunStartTimestamp().longValue()==0);
-		assertNotNull(task.getLastRunFinishTimestamp());
-		assertFalse(task.getLastRunFinishTimestamp().longValue()==0);
+		AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
+		AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue()==0);
+		AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
+		AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue()==0);
 
 		// The progress should be more than 0 as the task has run at least once
-		assertTrue(task.getProgress()>0);
+		AssertJUnit.assertTrue(task.getProgress()>0);
 		
 		// Test for presence of a result. It should be there and it should indicate success
 		OperationResult taskResult = task.getResult();
-		assertNotNull(taskResult);		
-		assertTrue(taskResult.isSuccess());
+		AssertJUnit.assertNotNull(taskResult);		
+		AssertJUnit.assertTrue(taskResult.isSuccess());
 	}
 
 	@Test
@@ -196,7 +194,7 @@ public class TestTaskManagerContract {
 		Element ext2 = addedTask.getExtension().getAny().get(1);
 		QName xsiType = DOMUtil.resolveXsiType(ext2, "d");
 		System.out.println("######################1# "+xsiType);
-		assertEquals("Bad xsi:type before adding task",DOMUtil.XSD_INTEGER,xsiType);
+		AssertJUnit.assertEquals("Bad xsi:type before adding task",DOMUtil.XSD_INTEGER,xsiType);
 
 		// Read from repo
 
@@ -206,7 +204,7 @@ public class TestTaskManagerContract {
 		ext2 = repoTask.getExtension().getAny().get(1);
 		xsiType = DOMUtil.resolveXsiType(ext2, "d");
 		System.out.println("######################2# "+xsiType);
-		assertEquals("Bad xsi:type after adding task",DOMUtil.XSD_INTEGER,xsiType);
+		AssertJUnit.assertEquals("Bad xsi:type after adding task",DOMUtil.XSD_INTEGER,xsiType);
 		
 		// We need to wait for a sync interval, so the task scanner has a chance to pick up this
 		// task
@@ -218,31 +216,31 @@ public class TestTaskManagerContract {
 
 		Task task = taskManager.getTask(TASK_CYCLE_OID, result);
 		
-		assertNotNull(task);
+		AssertJUnit.assertNotNull(task);
 		System.out.println(task.dump());
 		
 		TaskType t = repositoryService.getObject(TaskType.class,TASK_CYCLE_OID,null, result);
 		System.out.println(ObjectTypeUtil.dump(t));
 		
 		// .. it should be running
-		assertEquals(TaskExecutionStatus.RUNNING,task.getExecutionStatus());
+		AssertJUnit.assertEquals(TaskExecutionStatus.RUNNING,task.getExecutionStatus());
 		
 		// .. and claimed
-		assertEquals(TaskExclusivityStatus.CLAIMED,task.getExclusivityStatus());
+		AssertJUnit.assertEquals(TaskExclusivityStatus.CLAIMED,task.getExclusivityStatus());
 		
 		// .. and last run should not be zero
-		assertNotNull(task.getLastRunStartTimestamp());
-		assertFalse(task.getLastRunStartTimestamp().longValue()==0);
-		assertNotNull(task.getLastRunFinishTimestamp());
-		assertFalse(task.getLastRunFinishTimestamp().longValue()==0);
+		AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
+		AssertJUnit.assertFalse(task.getLastRunStartTimestamp().longValue()==0);
+		AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
+		AssertJUnit.assertFalse(task.getLastRunFinishTimestamp().longValue()==0);
 
 		// The progress should be more than 0 as the task has run at least once
-		assertTrue(task.getProgress()>0);
+		AssertJUnit.assertTrue(task.getProgress()>0);
 		
 		// Test for presence of a result. It should be there and it should indicate success
 		OperationResult taskResult = task.getResult();
-		assertNotNull(taskResult);		
-		assertTrue(taskResult.isSuccess());
+		AssertJUnit.assertNotNull(taskResult);		
+		AssertJUnit.assertTrue(taskResult.isSuccess());
 	}
 	
 	@Test
@@ -250,19 +248,19 @@ public class TestTaskManagerContract {
 		
 		OperationResult result = new OperationResult(TestTaskManagerContract.class.getName()+".test004Extension");
 		Task task = taskManager.getTask(TASK_CYCLE_OID, result);
-		assertNotNull(task);
+		AssertJUnit.assertNotNull(task);
 		
 		// Test for extension. This will also roughly test extension processor and schema processor
 		PropertyContainer taskExtension = task.getExtension();
-		assertNotNull(taskExtension);
+		AssertJUnit.assertNotNull(taskExtension);
 		System.out.println(taskExtension.dump());
 		
 		Property shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","shipState"));
-		assertEquals("capsized",shipStateProp.getValue(String.class));
+		AssertJUnit.assertEquals("capsized",shipStateProp.getValue(String.class));
 		
 		Property deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","dead"));
-		assertEquals(Integer.class,deadProp.getValues().iterator().next().getClass());
-		assertEquals(Integer.valueOf(42),deadProp.getValue(Integer.class));
+		AssertJUnit.assertEquals(Integer.class,deadProp.getValues().iterator().next().getClass());
+		AssertJUnit.assertEquals(Integer.valueOf(42),deadProp.getValue(Integer.class));
 		
 		List<PropertyModification> mods = new ArrayList<PropertyModification>();
 		// One more mariner drowned
@@ -287,21 +285,21 @@ public class TestTaskManagerContract {
 		
 		// get the extension again ... and test it ... again
 		taskExtension = task.getExtension();
-		assertNotNull(taskExtension);
+		AssertJUnit.assertNotNull(taskExtension);
 		System.out.println(taskExtension.dump());
 		
 		shipStateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","shipState"));
-		assertEquals("sunk",shipStateProp.getValue(String.class));
+		AssertJUnit.assertEquals("sunk",shipStateProp.getValue(String.class));
 		
 		deadProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","dead"));
-		assertEquals(Integer.class,deadProp.getValues().iterator().next().getClass());
-		assertEquals(Integer.valueOf(43),deadProp.getValue(Integer.class));
+		AssertJUnit.assertEquals(Integer.class,deadProp.getValues().iterator().next().getClass());
+		AssertJUnit.assertEquals(Integer.valueOf(43),deadProp.getValue(Integer.class));
 		
 		dateProp = taskExtension.findProperty(new QName("http://myself.me/schemas/whatever","sinkTimestamp"));
-		assertNotNull("sinkTimestamp is null",dateProp);
-		assertEquals(GregorianCalendar.class,dateProp.getValues().iterator().next().getClass());
+		AssertJUnit.assertNotNull("sinkTimestamp is null",dateProp);
+		AssertJUnit.assertEquals(GregorianCalendar.class,dateProp.getValues().iterator().next().getClass());
 		GregorianCalendar fetchedDate = dateProp.getValue(GregorianCalendar.class);
-		assertTrue(fetchedDate.compareTo(sinkDate)==0);
+		AssertJUnit.assertTrue(fetchedDate.compareTo(sinkDate)==0);
 		
 	}
 	
@@ -322,9 +320,9 @@ public class TestTaskManagerContract {
 			if (element.getNamespaceURI().equals(name.getNamespaceURI())
 					&& element.getLocalName().equals(name.getLocalPart())) {
 				if (found) {
-					fail("Multiple values for "+name+" attribute in shadow attributes");
+					Assert.fail("Multiple values for "+name+" attribute in shadow attributes");
 				} else {
-					assertEquals(value,element.getTextContent());
+					AssertJUnit.assertEquals(value,element.getTextContent());
 					found = true;
 				}
 			}
@@ -332,10 +330,10 @@ public class TestTaskManagerContract {
 	}
 
 	protected void assertAttribute(SearchResultEntry response, String name, String value) {
-		Assert.assertNotNull(response.getAttribute(name.toLowerCase()));
-		Assert.assertEquals(1, response.getAttribute(name.toLowerCase()).size());
+		AssertJUnit.assertNotNull(response.getAttribute(name.toLowerCase()));
+		AssertJUnit.assertEquals(1, response.getAttribute(name.toLowerCase()).size());
 		Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
-		Assert.assertEquals(value, attribute.iterator().next().getValue().toString());
+		AssertJUnit.assertEquals(value, attribute.iterator().next().getValue().toString());
 	}
 	
 	private <T> T unmarshallJaxbFromFile(String filePath, Class<T> clazz) throws FileNotFoundException, JAXBException {

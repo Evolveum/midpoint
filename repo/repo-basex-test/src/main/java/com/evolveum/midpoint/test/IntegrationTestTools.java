@@ -20,11 +20,6 @@
  */
 package com.evolveum.midpoint.test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -36,7 +31,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import org.junit.Assert;
+import static org.testng.AssertJUnit.*;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchResultEntry;
@@ -168,10 +163,10 @@ public class IntegrationTestTools {
 	}
 
 	public static void assertAttribute(SearchResultEntry response, String name, String value) {
-		Assert.assertNotNull(response.getAttribute(name.toLowerCase()));
-		Assert.assertEquals(1, response.getAttribute(name.toLowerCase()).size());
+		assertNotNull(response.getAttribute(name.toLowerCase()));
+		assertEquals(1, response.getAttribute(name.toLowerCase()).size());
 		Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
-		Assert.assertEquals(value, attribute.iterator().next().getValue().toString());
+		assertEquals(value, attribute.iterator().next().getValue().toString());
 	}
 
 	public static void displayTestTile(String title) {
