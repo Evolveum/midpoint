@@ -20,31 +20,27 @@
 
 package com.evolveum.midpoint.provisioning.test.ucf;
 
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertNotNull;
+import static org.testng.AssertJUnit.assertNotNull;
 
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.core.Response.Status.Family;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.eclipse.core.internal.resources.mapping.ChangeDescription;
-import org.identityconnectors.framework.common.objects.Uid;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -57,30 +53,24 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
-import com.evolveum.midpoint.provisioning.ucf.api.Token;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
-import com.evolveum.midpoint.schema.processor.PropertyContainer;
-import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
+@ContextConfiguration(locations = { "classpath:dummy-context.xml"})
 public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
@@ -113,7 +103,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		stopDJ();
 	}
 
-	@Before
+	@BeforeMethod
 	public void initUcf() throws Exception {
 
 		File file = new File(FILENAME_RESOURCE_OPENDJ);
@@ -153,7 +143,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 
 	}
 
-	@After
+	@AfterMethod
 	public void shutdownUcf() throws Exception {
 	
 	}
@@ -250,9 +240,9 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		ResourceObject resObj = null;
 		try {
 			 resObj = cc.fetchObject(objectClass, identifiers, result);
-			fail();
+			Assert.fail();
 		} catch (ObjectNotFoundException ex) {
-			assertNull(resObj);
+			AssertJUnit.assertNull(resObj);
 		}
 
 	}
@@ -277,7 +267,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		
 		ResourceObject resObj = cc.fetchObject(objectClass, identifiers, result);
 		
-		assertNull(resObj.findAttribute(new QName(RESOURCE_NS, "givenName")));
+		AssertJUnit.assertNull(resObj.findAttribute(new QName(RESOURCE_NS, "givenName")));
 		
 		String addedEmployeeNumber =resObj.findAttribute(new QName(RESOURCE_NS, "employeeNumber")).getValue(String.class);
 		String changedSn = resObj.findAttribute(new QName(RESOURCE_NS, "sn")).getValue(String.class);
@@ -289,9 +279,9 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		System.out.println("added street: " + addedStreet);
 
 
-		assertEquals("123123123", addedEmployeeNumber);
-		assertEquals("Smith007", changedSn);
-		assertEquals("Wall Street", addedStreet);
+		AssertJUnit.assertEquals("123123123", addedEmployeeNumber);
+		AssertJUnit.assertEquals("Smith007", changedSn);
+		AssertJUnit.assertEquals("Wall Street", addedStreet);
 		
 		
 	}
@@ -308,7 +298,7 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 		
 		System.out.println("token "+ lastToken.toString());
 		List<Change> changes = cc.fetchChanges(objectClass, lastToken, result);
-		assertEquals(0, changes.size());
+		AssertJUnit.assertEquals(0, changes.size());
 	}
 	
 	

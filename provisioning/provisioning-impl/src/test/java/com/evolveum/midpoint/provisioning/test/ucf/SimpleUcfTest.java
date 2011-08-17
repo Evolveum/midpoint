@@ -19,8 +19,11 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.io.File;
@@ -33,13 +36,9 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.object.ObjectTypeUtil;
-import com.evolveum.midpoint.common.object.ResourceTypeUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -49,7 +48,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -71,7 +69,7 @@ public class SimpleUcfTest {
 	public SimpleUcfTest() {
 	}
 
-	@Before
+	@BeforeMethod
 	public void setUp() throws FileNotFoundException, JAXBException {
 		ConnectorFactoryIcfImpl managerImpl = new ConnectorFactoryIcfImpl();
 		managerImpl.initialize();
@@ -92,7 +90,7 @@ public class SimpleUcfTest {
 
 	}
 
-	@After
+	@AfterMethod
 	public void tearDown() {
 	}
 

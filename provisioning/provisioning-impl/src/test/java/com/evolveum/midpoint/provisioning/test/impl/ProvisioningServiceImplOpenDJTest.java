@@ -19,12 +19,17 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.io.File;
@@ -37,12 +42,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -99,7 +98,7 @@ import com.evolveum.midpoint.xml.schema.SchemaConstants;
  * @author Radovan Semancik
  * @author Katka Valalikova
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+
 @ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
 		"classpath:application-context-provisioning-test.xml",
 		"classpath:application-context-repository-test.xml" })
@@ -166,7 +165,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 	}
 
-	@Before
+	@BeforeMethod
 	public void initProvisioning() throws Exception {
 
 		assertNotNull(manager);
@@ -190,7 +189,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		addObjectFromFile(FILENAME_ACCOUNT_BAD);
 	}
 	
-	@After
+	@AfterMethod
 	public void shutdownUcf() throws Exception {
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
@@ -227,7 +226,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		
 		for (ObjectType o : objects.getObject()) {
 			display("Found connector",o);
-			assertTrue(o instanceof ConnectorType);
+			AssertJUnit.assertTrue(o instanceof ConnectorType);
 			ConnectorType conn = (ConnectorType)o;
 			if (conn.getConnectorType().equals("org.identityconnectors.ldap.LdapConnector")) {
 				// This connector is loaded manually, it has no schema
@@ -242,7 +241,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			assertFalse("Empty schema",schema.isEmpty());
 			Definition definition = schema.getDefinitions().iterator().next();
 			assertNotNull(definition);
-			assertTrue("Unexpected definition",definition instanceof PropertyContainerDefinition);
+			AssertJUnit.assertTrue("Unexpected definition",definition instanceof PropertyContainerDefinition);
 			PropertyContainerDefinition pcd = (PropertyContainerDefinition)definition;
 			assertFalse("Empty definition",pcd.isEmpty());
 		}
@@ -262,7 +261,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		Set<ConnectorType> discoverLocalConnectors = connectorTypeManager.discoverLocalConnectors(result);
 		result.computeStatus("test failed");
 		assertSuccess("discoverLocalConnectors failed", result);
-		assertTrue("Rediscovered something",discoverLocalConnectors.isEmpty());
+		AssertJUnit.assertTrue("Rediscovered something",discoverLocalConnectors.isEmpty());
 	}
 	
 	/**
@@ -279,7 +278,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test003Connection");
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
-		assertTrue("Found schema before test connection. Bad test setup?",xmlSchemaTypeBefore.getAny().isEmpty());
+		AssertJUnit.assertTrue("Found schema before test connection. Bad test setup?",xmlSchemaTypeBefore.getAny().isEmpty());
 		
 		OperationResult	operationResult = provisioningService.testResource(RESOURCE_OPENDJ_OID);
 		
@@ -368,7 +367,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 		try {
 			ObjectType object = provisioningService.getObject(NON_EXISTENT_OID, resolve, result);
-			fail("Expected exception, but haven't got one");
+			Assert.fail("Expected exception, but haven't got one");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
 
@@ -381,9 +380,9 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			assertFalse(result.hasUnknownStatus());
 			// TODO: check result
 		} catch (CommunicationException e) {
-			fail("Expected ObjectNotFoundException, but got" + e);
+			Assert.fail("Expected ObjectNotFoundException, but got" + e);
 		} catch (SchemaException e) {
-			fail("Expected ObjectNotFoundException, but got" + e);
+			Assert.fail("Expected ObjectNotFoundException, but got" + e);
 		} finally {
 			try {
 				repositoryService.deleteObject(ACCOUNT1_OID, result);
@@ -416,7 +415,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 		try {
 			ObjectType object = provisioningService.getObject(ACCOUNT_BAD_OID, resolve, result);
-			fail("Expected exception, but haven't got one");
+			Assert.fail("Expected exception, but haven't got one");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
 
@@ -429,9 +428,9 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			assertFalse(result.hasUnknownStatus());
 			// TODO: check result
 		} catch (CommunicationException e) {
-			fail("Expected ObjectNotFoundException, but got" + e);
+			Assert.fail("Expected ObjectNotFoundException, but got" + e);
 		} catch (SchemaException e) {
-			fail("Expected ObjectNotFoundException, but got" + e);
+			Assert.fail("Expected ObjectNotFoundException, but got" + e);
 		} finally {
 			try {
 				repositoryService.deleteObject(ACCOUNT1_OID, result);
@@ -509,7 +508,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		try {
 		
 			addedObjectOid = provisioningService.addObject(null, null, result);
-			fail("Expected IllegalArgumentException but haven't got one.");
+			Assert.fail("Expected IllegalArgumentException but haven't got one.");
 		} catch(IllegalArgumentException ex){
 			assertEquals("Object to add must not be null.", ex.getMessage());
 			assertNull(addedObjectOid);
@@ -555,7 +554,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			try {
 				objType = provisioningService.getObject(ACCOUNT_DELETE_OID, new PropertyReferenceListType(),
 						result);
-				fail("Expected exception ObjectNotFoundException, but haven't got one.");
+				Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
 			} catch (ObjectNotFoundException ex) {
 				System.out.println("Catched ObjectNotFoundException.");
 				assertNull(objType);
@@ -565,7 +564,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 				objType = repositoryService.getObject(ACCOUNT_DELETE_OID, new PropertyReferenceListType(),
 						result);
 				// objType = container.getObject();
-				fail("Expected exception, but haven't got one.");
+				Assert.fail("Expected exception, but haven't got one.");
 			} catch (Exception ex) {
 				assertNull(objType);
 				assertEquals("Object not found. OID: " + ACCOUNT_DELETE_OID, ex.getMessage());
@@ -658,7 +657,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			try {
 				ObjectListType objListType = provisioningService.listObjects(AccountShadowType.class,
 						new PagingType(), result);
-				fail("Expected excetpion, but haven't got one");
+				Assert.fail("Expected excetpion, but haven't got one");
 			} catch (Exception ex) {
 				assertEquals("NotImplementedException", ex.getClass().getSimpleName());
 			}

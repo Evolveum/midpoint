@@ -19,6 +19,12 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.AssertJUnit;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -56,15 +62,6 @@ import java.util.HashSet;
 import javax.xml.namespace.QName;
 
 import org.eclipse.core.resources.ResourceAttributes;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import static org.junit.Assert.*;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import org.springframework.test.context.ContextConfiguration;
@@ -80,7 +77,6 @@ import org.w3c.dom.Document;
  * @author Radovan Semancik
  * @author Katka Valalikova
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
 		"classpath:application-context-provisioning-test.xml",
 		"classpath:application-context-repository-test.xml" })
@@ -113,8 +109,8 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
         stopDJ();
     }
 
-    @Before
-    public void initUcf() throws Exception {
+    @BeforeMethod
+	public void initUcf() throws Exception {
 
         File file = new File(FILENAME_RESOURCE_OPENDJ);
         FileInputStream fis = new FileInputStream(file);
@@ -141,19 +137,19 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		manager = managerImpl;
 
 		cc = manager.createConnectorInstance(connectorType,resource.getNamespace());
-		assertNotNull(cc);
+		AssertJUnit.assertNotNull(cc);
 		cc.configure(resource.getConfiguration(), new OperationResult("initUcf"));
 		// TODO: assert something
 		
 		OperationResult result = new OperationResult(this.getClass().getName()+".initUcf");
 		schema = cc.fetchResourceSchema(result);
 		
-		assertNotNull(schema);
+		AssertJUnit.assertNotNull(schema);
 
     }
 
-    @After
-    public void shutdownUcf() throws Exception {
+    @AfterMethod
+	public void shutdownUcf() throws Exception {
     }
 
 	/**
@@ -174,12 +170,12 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 
         //THEN
         result.computeStatus("test failed");
-        assertNotNull(result);
+        AssertJUnit.assertNotNull(result);
         OperationResult connectorConnectionResult = result.getSubresults().get(0);
-        assertNotNull(connectorConnectionResult);
+        AssertJUnit.assertNotNull(connectorConnectionResult);
 		System.out.println("Test \"connector connection\" result: "+connectorConnectionResult);
-        assertTrue(connectorConnectionResult.isSuccess());
-		assertTrue(result.isSuccess());
+        AssertJUnit.assertTrue(connectorConnectionResult.isSuccess());
+		AssertJUnit.assertTrue(result.isSuccess());
     }
 
 	
@@ -205,12 +201,12 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
         //THEN
         result.computeStatus("test failed");
         display("Test result (FAILURE EXPECTED)",result);
-        assertNotNull(result);
+        AssertJUnit.assertNotNull(result);
         OperationResult connectorConnectionResult = result.getSubresults().get(1);
-        assertNotNull(connectorConnectionResult);
+        AssertJUnit.assertNotNull(connectorConnectionResult);
 		System.out.println("Test \"connector connection\" result: "+connectorConnectionResult+" (FAILURE EXPECTED)");
-        assertTrue("Unexpected success of bad connector test",!connectorConnectionResult.isSuccess());
-		assertTrue(!result.isSuccess());
+        AssertJUnit.assertTrue("Unexpected success of bad connector test",!connectorConnectionResult.isSuccess());
+		AssertJUnit.assertTrue(!result.isSuccess());
     }
 
 	/**
@@ -229,7 +225,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		
 		// THEN
 		
-		assertNotNull(schema);
+		AssertJUnit.assertNotNull(schema);
 		
 		System.out.println(schema.dump());
 		
@@ -240,12 +236,12 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		System.out.println("-------------------------------------------------------------------------------------");
 		
 		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(resource.getNamespace(),"AccountObjectClass"));
-		assertNotNull(accountDefinition);
+		AssertJUnit.assertNotNull(accountDefinition);
 		
-		assertFalse("No identifiers for account object class ",accountDefinition.getIdentifiers().isEmpty());
+		AssertJUnit.assertFalse("No identifiers for account object class ",accountDefinition.getIdentifiers().isEmpty());
 		
 		PropertyDefinition uidDefinition = accountDefinition.findPropertyDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
-		assertNotNull(uidDefinition);
+		AssertJUnit.assertNotNull(uidDefinition);
 		
 		for (Definition def : schema.getDefinitions()) {
 			ResourceObjectDefinition rdef = (ResourceObjectDefinition)def;
@@ -306,7 +302,7 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		
 		// THEN
 		
-		assertNotNull(ro);
+		AssertJUnit.assertNotNull(ro);
 		System.out.println("Fetched object "+ro);
 		System.out.println("Result:");
 		System.out.println(result.dump());
