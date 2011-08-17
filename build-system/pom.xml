@@ -109,7 +109,12 @@
 				<artifactId>commons-pool</artifactId>
 				<version>1.5.6</version>
 			</dependency>
-
+			<dependency>
+				<groupId>javax.persistence</groupId>
+				<artifactId>persistence-api</artifactId>
+				<version>1.0</version>
+				<optional>true</optional>
+			</dependency>
 			<dependency>
 				<groupId>log4j</groupId>
 				<artifactId>log4j</artifactId>
@@ -195,6 +200,32 @@
 				<version>${opendj.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>org.identityconnectors</groupId>
+				<artifactId>connector-framework</artifactId>
+				<version>1.1.5559</version>
+			</dependency>
+			<dependency>
+				<groupId>org.identityconnectors</groupId>
+				<artifactId>connector-framework-internal</artifactId>
+				<version>1.1.5559</version>
+			</dependency>
+			<dependency>
+				<groupId>org.identityconnectors</groupId>
+				<artifactId>org.identityconnectors.ldap</artifactId>
+				<version>1.0.5531</version>
+			</dependency>
+			<dependency>
+				<groupId>org.identityconnectors</groupId>
+				<artifactId>org.identityconnectors.databasetable</artifactId>
+				<version>1.1.4958</version>
+			</dependency>
+			<dependency>
+				<groupId>org.identityconnectors</groupId>
+				<artifactId>org.identityconnectors.flatfile</artifactId>
+				<version>1.0.2838</version>
+			</dependency>
+
+			<dependency>
 				<groupId>org.mockito</groupId>
 				<artifactId>mockito-all</artifactId>
 				<version>${mockito.version}</version>
@@ -219,9 +250,13 @@
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-test</artifactId>
 				<version>${spring.version}</version>
-				<scope>test</scope>
 			</dependency>
-
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-tx</artifactId>
+				<version>${spring.version}</version>
+				<scope>provided</scope>
+			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-api</artifactId>
@@ -232,7 +267,11 @@
 				<artifactId>slf4j-log4j12</artifactId>
 				<version>${slf4j.version}</version>
 			</dependency>
-
+			<dependency>
+				<groupId>org.scannotation</groupId>
+				<artifactId>scannotation</artifactId>
+				<version>1.0.3</version>
+			</dependency>
 			<dependency>
 				<groupId>xml-resolver</groupId>
 				<artifactId>xml-resolver</artifactId>
