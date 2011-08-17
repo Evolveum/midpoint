@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.common.object;
+package com.evolveum.midpoint.schema.util;
 
 import org.w3c.dom.Element;
 

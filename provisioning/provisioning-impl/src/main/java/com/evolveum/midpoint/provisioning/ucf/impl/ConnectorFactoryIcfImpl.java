@@ -43,12 +43,12 @@ import org.identityconnectors.framework.api.RemoteFrameworkConnectionInfo;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.api.logging.Trace;
-import com.evolveum.midpoint.common.object.ObjectTypeUtil;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.ClasspathUrlFinder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;

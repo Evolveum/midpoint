@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
@@ -43,7 +44,6 @@ import org.w3c.dom.Text;
 
 import com.evolveum.midpoint.aspect.LoggingAspect;
 import com.evolveum.midpoint.aspect.ObjectFormatter;
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;

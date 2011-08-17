@@ -20,11 +20,12 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.xml.schema;
+package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.schema.SchemaConstants;
 
 /**
  * Utility class for easier manipulation of UserType.

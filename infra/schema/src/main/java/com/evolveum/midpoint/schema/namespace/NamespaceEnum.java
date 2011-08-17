@@ -20,7 +20,7 @@
  * Portions Copyrighted 2010 Forgerock
  */
 
-package com.evolveum.midpoint.common.jaxb;
+package com.evolveum.midpoint.schema.namespace;
 
 /**
  *

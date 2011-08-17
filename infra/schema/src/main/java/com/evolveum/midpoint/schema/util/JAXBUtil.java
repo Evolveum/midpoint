@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.common.jaxb;
+package com.evolveum.midpoint.schema.util;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,6 +43,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.api.logging.Trace;
+import com.evolveum.midpoint.schema.namespace.PrefixMapper;
 import com.evolveum.midpoint.logging.TraceManager;
 import com.evolveum.midpoint.schema.ObjectTypes;
 import com.evolveum.midpoint.util.DOMUtil;

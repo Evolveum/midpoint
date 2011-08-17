@@ -38,8 +38,8 @@ import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.XPathUtil;
 import com.evolveum.midpoint.common.XmlUtil;
-import com.evolveum.midpoint.common.jaxb.JAXBUtil;
 import com.evolveum.midpoint.logging.TraceManager;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.xpath.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.patch.PatchException;
