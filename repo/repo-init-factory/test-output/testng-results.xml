@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testng-results skipped="0" failed="0" total="1" passed="1">
+  <reporter-output>
+  </reporter-output>
+  <suite name="Default suite" duration-ms="45" started-at="2011-08-16T14:18:42Z" finished-at="2011-08-16T14:18:42Z">
+    <groups>
+    </groups>
+    <test name="Default test" duration-ms="45" started-at="2011-08-16T14:18:42Z" finished-at="2011-08-16T14:18:42Z">
+      <class name="com.evolveum.midpoint.init.ConfigurationLoadTest">
+        <test-method status="PASS" signature="sampleTest()[pri:0, instance:com.evolveum.midpoint.init.ConfigurationLoadTest@6e3d60]" name="sampleTest" duration-ms="24" started-at="2011-08-16T14:18:42Z" finished-at="2011-08-16T14:18:42Z">
+        </test-method>
+      </class>
+    </test>
+  </suite>
+</testng-results>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="false" verbose="true">
-  <test name="infraTest" preserve-order="true">
+<suite name="unit" parallel="true">
+  <test name="infraTest" parallel="true" preserve-order="false" verbose="10">
     <classes>
       <class name="com.evolveum.midpoint.logging.TraceManagerTest"/>
       <class name="com.evolveum.midpoint.util.QNameUtilTest"/>

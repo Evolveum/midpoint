@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false">
-	<test name="model" preserve-order="false">
+	<test name="model" preserve-order="true" parallel="true" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.model.controller.ControllerAddObjectTest" />
 			<class name="com.evolveum.midpoint.model.controller.ControllerAddUserTest" />
@@ -33,7 +33,7 @@
 			<class name="com.evolveum.midpoint.model.integration.DeleteAccountActionTest" />
 			<class name="com.evolveum.midpoint.model.integration.LinkAccountActionTest" />
 			<class name="com.evolveum.midpoint.model.integration.ModifyUserActionTest" />
-			<class name="com.evolveum.midpoint.model.integration.UnlinkAccoountActionTest" />
+			<class name="com.evolveum.midpoint.model.integration.UnlinkAccountActionTest" />
 			<class name="com.evolveum.midpoint.model.sync.action.AddAccountActionTest" />
 			<class name="com.evolveum.midpoint.model.sync.action.AddUserActionTest" />
 			<class name="com.evolveum.midpoint.model.sync.action.BaseActionTest" />
@@ -45,8 +45,8 @@
 			<class name="com.evolveum.midpoint.model.sync.SynchronizationServiceTest" />
 			<class name="com.evolveum.midpoint.model.sync.SynchronizationSituationTest" />
 			<class name="com.evolveum.midpoint.model.sync.ActionManagerImplTest" />
-			<class name="com.evolveum.midpoint.model.ModelServiceTest" />
-			<class name="com.evolveum.midpoint.model.SpringApplicationContextTest" />
+<!-- 			<class name="com.evolveum.midpoint.model.ModelServiceTest" /> -->
+<!-- 			<class name="com.evolveum.midpoint.model.SpringApplicationContextTest" /> -->
 		</classes>
 	</test>
 </suite>
