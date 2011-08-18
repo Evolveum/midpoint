@@ -70,6 +70,16 @@
 				<version>4.1.10</version>
 			</dependency>
 			<dependency>
+				<groupId>com.sun.faces</groupId>
+				<artifactId>jsf-api</artifactId>
+				<version>${jsf.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.sun.faces</groupId>
+				<artifactId>jsf-impl</artifactId>
+				<version>${jsf.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>com.sun.xml.bind</groupId>
 				<artifactId>jaxb-impl</artifactId>
 				<version>${jaxb.version}</version>
@@ -110,23 +120,47 @@
 				<version>1.5.6</version>
 			</dependency>
 			<dependency>
+				<groupId>javax.annotation</groupId>
+				<artifactId>jsr250-api</artifactId>
+				<version>1.0</version>
+			</dependency>
+			<dependency>
+				<groupId>javax.el</groupId>
+				<artifactId>el-api</artifactId>
+				<version>${el.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>javax.inject</groupId>
+				<artifactId>javax.inject</artifactId>
+				<version>1</version>
+			</dependency>
+			<dependency>
 				<groupId>javax.persistence</groupId>
 				<artifactId>persistence-api</artifactId>
 				<version>1.0</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>servlet-api</artifactId>
+				<version>2.5</version>
+				<scope>provided</scope>
+			</dependency>
+			<dependency>
+				<groupId>javax.servlet</groupId>
+				<artifactId>jstl</artifactId>
+				<version>1.2</version>
+			</dependency>
+			<dependency>
 				<groupId>log4j</groupId>
 				<artifactId>log4j</artifactId>
 				<version>1.2.16</version>
 			</dependency>
-
 			<dependency>
 				<groupId>net.sf.saxon</groupId>
 				<artifactId>saxonhe</artifactId>
 				<version>9.3</version>
 			</dependency>
-
 			<dependency>
 				<groupId>org.apache.cxf</groupId>
 				<artifactId>cxf-rt-core</artifactId>
@@ -177,7 +211,6 @@
 				<artifactId>cxf-common-utilities</artifactId>
 				<version>${cxf.version}</version>
 			</dependency>
-
 			<dependency>
 				<groupId>org.apache.felix</groupId>
 				<artifactId>org.osgi.core</artifactId>
@@ -193,12 +226,33 @@
 				<artifactId>basex</artifactId>
 				<version>${basex.version}</version>
 			</dependency>
-
+			<dependency>
+				<groupId>org.glassfish.web</groupId>
+				<artifactId>el-impl</artifactId>
+				<version>${el.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>org.forgerock.opendj</groupId>
 				<artifactId>opendj</artifactId>
 				<version>${opendj.version}</version>
 			</dependency>
+			<!-- ice faces  -->
+			<dependency>
+				<groupId>org.icefaces</groupId>
+				<artifactId>icefaces-compat</artifactId>
+				<version>${icefaces.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.icefaces</groupId>
+				<artifactId>icefaces-ace</artifactId>
+				<version>${icefaces.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.icepush</groupId>
+				<artifactId>icepush</artifactId>
+				<version>${icepush.version}</version>
+			</dependency>
+			<!--  Identity conectors  -->
 			<dependency>
 				<groupId>org.identityconnectors</groupId>
 				<artifactId>connector-framework</artifactId>
@@ -211,8 +265,8 @@
 			</dependency>
 			<dependency>
 				<groupId>org.identityconnectors</groupId>
-				<artifactId>org.identityconnectors.ldap</artifactId>
-				<version>1.0.5531</version>
+				<artifactId>org.identityconnectors.db2</artifactId>
+				<version>1.0.4828</version>
 			</dependency>
 			<dependency>
 				<groupId>org.identityconnectors</groupId>
@@ -221,10 +275,29 @@
 			</dependency>
 			<dependency>
 				<groupId>org.identityconnectors</groupId>
+				<artifactId>org.identityconnectors.flat</artifactId>
+				<version>1.1.1503</version>
+			</dependency>
+			<dependency>
+				<groupId>org.identityconnectors</groupId>
 				<artifactId>org.identityconnectors.flatfile</artifactId>
 				<version>1.0.2838</version>
 			</dependency>
-
+			<dependency>
+				<groupId>org.identityconnectors</groupId>
+				<artifactId>org.identityconnectors.ldap</artifactId>
+				<version>1.0.5531</version>
+			</dependency>
+			<dependency>
+				<groupId>org.identityconnectors</groupId>
+				<artifactId>org.identityconnectors.mysqluser</artifactId>
+				<version>1.1.4900</version>
+			</dependency>
+			<dependency>
+				<groupId>org.identityconnectors</groupId>
+				<artifactId>org.identityconnectors.spml</artifactId>
+				<version>1.0.4828</version>
+			</dependency>
 			<dependency>
 				<groupId>org.mockito</groupId>
 				<artifactId>mockito-all</artifactId>
@@ -232,8 +305,24 @@
 				<scope>test</scope>
 			</dependency>
 			<dependency>
+				<groupId>org.scannotation</groupId>
+				<artifactId>scannotation</artifactId>
+				<version>1.0.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-log4j12</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			<!--  Spring dependencies  -->
+			<dependency>
 				<groupId>org.springframework</groupId>
-				<artifactId>spring-core</artifactId>
+				<artifactId>spring-aspects</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
 			<dependency>
@@ -248,6 +337,11 @@
 			</dependency>
 			<dependency>
 				<groupId>org.springframework</groupId>
+				<artifactId>spring-core</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
 				<artifactId>spring-test</artifactId>
 				<version>${spring.version}</version>
 			</dependency>
@@ -258,19 +352,24 @@
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
-				<version>${slf4j.version}</version>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-web</artifactId>
+				<version>${spring.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-log4j12</artifactId>
-				<version>${slf4j.version}</version>
+				<groupId>org.springframework.security</groupId>
+				<artifactId>spring-security-config</artifactId>
+				<version>${spring.security.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.scannotation</groupId>
-				<artifactId>scannotation</artifactId>
-				<version>1.0.3</version>
+				<groupId>org.springframework.security</groupId>
+				<artifactId>spring-security-web</artifactId>
+				<version>${spring.security.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.testng</groupId>
+				<artifactId>testng</artifactId>
+				<version>${testng.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>xml-resolver</groupId>
@@ -281,13 +380,6 @@
 				<groupId>xmlunit</groupId>
 				<artifactId>xmlunit</artifactId>
 				<version>1.3</version>
-			</dependency>
-			
-        <!-- Test -->
-			<dependency>
-				<groupId>org.testng</groupId>
-				<artifactId>testng</artifactId>
-				<version>${testng.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
