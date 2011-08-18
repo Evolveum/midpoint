@@ -25,7 +25,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<name>midPoint Repository - initialization factory</name>
 	<groupId>com.evolveum.midpoint.repo</groupId>
-	<artifactId>repo-init-factory</artifactId>
+	<artifactId>system-init</artifactId>
 	<packaging>jar</packaging>
 	<parent>
 		<artifactId>repo</artifactId>
