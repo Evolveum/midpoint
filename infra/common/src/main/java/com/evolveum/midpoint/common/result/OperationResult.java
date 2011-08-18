@@ -496,6 +496,10 @@ public class OperationResult implements Serializable, Dumpable {
 		// May be switched to a more structured method later
 		details.add(detailLine);
 	}
+	
+	public List<String> getDetail(){
+		return details;
+	}
 
 	@Override
 	public String toString() {
