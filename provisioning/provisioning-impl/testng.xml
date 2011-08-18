@@ -6,7 +6,7 @@
       <class name="com.evolveum.midpoint.provisioning.test.ucf.AddDeleteObjectUcfTest"/>
       <class name="com.evolveum.midpoint.provisioning.test.ucf.SimpleUcfTest"/>
       <class name="com.evolveum.midpoint.provisioning.test.impl.ProvisioningServiceImplOpenDJTest"/>
-      <class name="com.evolveum.midpoint.provisioning.test.impl.SynchronizationTest"/>
+<!--       <class name="com.evolveum.midpoint.provisioning.test.impl.SynchronizationTest"/> -->
       <class name="com.evolveum.midpoint.provisioning.test.ucf.OpenDjUcfTest"/>
     </classes>
   </test>
