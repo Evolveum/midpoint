@@ -21,29 +21,43 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2010-2011 ForgeRock, Inc.          -->
 
-<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:m="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc" elementFormDefault="qualified"
-	jaxb:extensionBindingPrefixes="xjc" jaxb:version="2.0">
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+			xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
+            elementFormDefault="qualified"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
 
 	<xsd:annotation>
 		<xsd:documentation>
-			This is a common schema for midPoint project. It contains all the data types that the stock midPoint is
-			using.
+			This is a common schema for midPoint project. It contains all the
+			data types that the stock midPoint is using.
 
-			This file contains more that a common schema in fact. It contains all the objects, even parts of what is known as
-			identity schema and model schema in midPoint.
+			This file contains more that a common schema in fact. It contains
+			all the objects, even parts of what is known as identity schema and
+			model schema in midPoint.
 
 			See https://wiki.evolveum.com/display/midPoint/Data+Model for more details.
 		</xsd:documentation>
 		<xsd:appinfo>
 			<jaxb:globalBindings>
-				<xjc:typeSubstitution type="complex"/>
-				<xjc:serializable uid="201105211233"/>
+				<xjc:typeSubstitution type="complex" />
+				<xjc:serializable uid="201105211233" />
 			</jaxb:globalBindings>
 		</xsd:appinfo>
 	</xsd:annotation>
+	
+	<xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="../../../../../../test/resources/standard/xenc-schema.xsd">
+		<xsd:annotation>
+			<xsd:documentation>
+				The XML Encryption schema. Used for "protected" data types (property encryption).
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:import>
 
 	<!-- ################################## -->
 	<!-- ##      Common Schema Layer     ## -->
@@ -56,8 +70,7 @@
 			<xsd:documentation>
 				Human-readable name for object, property, attribute or whatever.
 
-				TODO: Any special reason this is top-level
-				element?
+				TODO: Any special reason this is top-level element?
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -65,10 +78,11 @@
 	<xsd:element name="propertyContainer">
 		<xsd:annotation>
 			<xsd:documentation>
-				This is XSD annotation. It marks XSD type that is a property container.
+				This is XSD annotation. It marks XSD type that is a property
+				container.
 
-				Every first-level element in a
-				property container is either a property or another property container.
+				Every first-level element in a property container is either a
+				property or another property container.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -76,14 +90,15 @@
 	<xsd:complexType name="XPathType" mixed="true">
 		<xsd:annotation>
 			<xsd:appinfo>
-				<jaxb:dom/>
+				<jaxb:dom />
 			</xsd:appinfo>
 			<xsd:documentation>
-				Defines a type for XPath pointer. It points to a specific part of the XML tree. Only a path expressions
-				should be used in this type, as it is used as an l-value, i.e. pointing to a part of XML where an value can be assigned.
+				Defines a type for XPath pointer. It points to a specific part
+				of the XML tree. Only a path expressions should be used in
+				this type, as it is used as an l-value, i.e. pointing to a
+				part of XML where an value can be assigned.
 
-				cf.
-				ExpressionType
+				cf. ExpressionType
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:complexType>
@@ -96,43 +111,45 @@
 			<xsd:documentation>
 				Common supertype for all identity objects.
 
-				Defines basic properties that each object must have to live in our system
-				(identifier, name).
+				Defines basic properties that each object must have to live in
+				our system (identifier, name).
 
-				Objects consists of identifier and name (see definition below) and a set of properties represented as XML
-				elements in the object's body. The properties are represented as first-level XML elements (tags) of
-				the object XML
-				representation and may be also contained in other tags (e.g. extension, attributes) that are marked by a
-				propertyContainer
-				annotation. The QName (namespace and local name) of the element holding the property is considered to be a property name.
+				Objects consists of identifier and name (see definition below)
+				and a set of properties represented as XML elements in the
+				object's body. The properties are represented as first-level
+				XML elements (tags) of the object XML representation and may
+				be also contained in other tags (e.g. extension, attributes)
+				that are marked by a propertyContainer annotation. The QName
+				(namespace and local name) of the element holding the property
+				is considered to be a property name.
 
-				Single-value properties must appear as a none or one
-				instance of the XML element holding the value.
+				Single-value properties must appear as a none or one instance
+				of the XML element holding the value.
 
-				Multi-value properties
-				must appear as none or more instances of the same XML element.
-				Multi-valued properties are regarded as unordered sets.
-				Duplicate values are allowed, but duplicates should not be preserved by the implementations. The
-				implementations should
-				reduce duplicate values to a single value if it is possible and efficient.
+				Multi-value properties must appear as none or more instances of
+				the same XML element. Multi-valued properties are regarded as
+				unordered sets. Duplicate values are allowed, but duplicates
+				should not be preserved by the implementations. The implementations
+				should reduce duplicate values to a single value if it is
+				possible and efficient.
 
-				If an element for a specific property does not
-				appear in the object it means that the property value is undefined
-				(property does not exists). This is a different state as
-				compared to passing an empty XML element. Empty XML element means that the property exists,
-				but has an empty (null) value.
-				Implementations must be able to handle undefined (non-existent) properties, but
-				may NOT be able to handle empty (null)
-				values. The use of empty (null) values is DISCOURADGED.
+				If an element for a specific property does not appear in the
+				object it means that the property value is undefined (property
+				does not exists). This is a different state as compared to
+				passing an empty XML element. Empty XML element means that the
+				property exists, but has an empty (null) value. Implementations
+				must be able to handle undefined (non-existent) properties, but
+				may NOT be able to handle empty (null) values. The use of empty
+				(null) values is DISCOURADGED.
 
-				It is not mandated by this specification how to pass ordered lists
-				and multi-value properties with duplicates.
-				However it is recommended to use single value properties with appropriate complex
+				It is not mandated by this specification how to pass ordered
+				lists and multi-value properties with duplicates. However it is
+				recommended to use single value properties with appropriate complex
 				XML data structures to hold such data.
 
-				The following XML snippet is an example of the object (omitting namespace definitions,
-				but
-				assuming default namespace to be the target namespace of this schema definition):
+				The following XML snippet is an example of the object (omitting
+				namespace definitions, but assuming default namespace to be the
+				target namespace of this schema definition):
 
 <![CDATA[
         <user oid="d3adm3a4" version="42">
@@ -141,11 +158,11 @@
               <foo:geekName>F00 B4r</foo:geekName>
               <org:guild>Societus Geekus Europeus</org:guild>
               <org:guild>Basset User Group</org:guild>
-              <pet:pet species="dog" breed="basset" name="Doggie"/>
-              <pet:pet species="mouse" breed="logitech" name="Mousee"/>
+              <pet:pet><pet:species>dog</pet:species><pet:breed>basset</pet:breed><pet:name>Doggie</pet:name></pet:pet>
+              <pet:pet><pet:species>mouse</pet:species><pet:breed>logitech</pet:breed><pet:name>Mousee</pet:name></pet:pet>
               <com:shoppingPreferences>
-                  <com:tShirt size="XXL" color="#000000"/>
-                  <com:tie preference="no thanks"/>
+                  <com:tShirt><com:size>XXL</com:size><com:color>#000000</com:color></com:tShirt>
+                  <com:tie><com:preference>no thanks</com:preference></com:tie>
               </com:shoppingPreferences>
             </extension>
             <fullName>Foo Bar</fullName>
@@ -155,94 +172,55 @@
 ]]>
 
 				The above example describes an object with identifier "d3adm3a4",
-				name
-				"foobar" and type defined by its top-level
-				element User
-				(that
-				corresponds to URI
-				"http://midpoint.evolveum.com/xml/ns/identity/1#User".
-				The object has
-				7
-				properties. Three of them are
-				standard properties
-				defined by this
-				schema:
+				name "foobar" and type defined by its top-level element User that
+				corresponds to URI "http://midpoint.evolveum.com/xml/ns/identity/1#User".
+				The object has 7 properties. Three of them are standard
+				properties defined by this schema:
 
-				Standard properties "fullName", "givenName"
-				and "familyName"
-				in default
-				namespace.
-				These are single-valued string properties.
+				Standard properties "fullName", "givenName" and "familyName"
+				in default namespace. These are single-valued string properties.
 
-				All
-				the other properties are
-				non-standard extended attributes, but they
-				are
-				considered equal to the standard attributes. They are
-				quarantined in
-				the &lt;extension&gt; tag only to avoid XSD unique
-				particle attribution
-				(UPA) problems. In the above example the
+				All the other properties are non-standard "extended" properties,
+				but they are considered equal to the standard attributes. They are
+				quarantined in the &lt;extension&gt; tag only to avoid XSD unique
+				particle attribution (UPA) problems. In the above example the
 				non-standard properties are:
 
-				Property "geekName" in namespace
-				defined
-				by "foo" prefix. This is also
-				single-valued
-				string property.
+				Property "geekName" in namespace defined by "foo" prefix. This is also
+				single-valued string property.
 
-				Multi-valued non-standard property "guild". It is a string
-				propery
-				with multiple values. Multiple
-				values are repsented by providing
+				Multi-valued non-standard property "guild". It is a string property
+				with multiple values. Multiple values are represented by providing
 				multiple instances of XML elements in the document.
-				Such properties
-				are typically
-				used for roles, groups, etc.
+				Such properties are typically used for roles, groups, etc.
 
-				Complex property "pet".
-				This property is defined by
-				complex XML type,
-				using XML
-				attributes to
-				represent structured data.
-				It is also multi-valued property.
+				Complex property "pet". This property is defined by
+				complex XML type, using XML sub-elements to
+				represent structured data. Note that the use of XML attributes
+				is discouraged in the properties, although it might be possible in
+				some cases. This is also multi-valued property.
 
-				Complex
-				property "shoppingPreferences".
-				This
-				property is using complex
-				XML
-				type to form a structure of XML elemenets to represent data. This is
-				a
-				single-valued property.
+				Complex property "shoppingPreferences". This property is using
+				complex XML type to form a structure of XML elements to
+				represent data. This is a single-valued property.
+				Note that the sub-elements "tShirt" and "tie" are NOT considered
+				to be properties. 
 
 				QName-URI mapping:
 
-				For the purpose of this
-				schema and all components that are using it,
-				URIs
-				and QNames are
-				considered
-				equivalent. This is required by WWW
-				architecture and also
-				helps avoid some drawbacks and
-				bugs in ESB
-				implementations.
+				For the purpose of this schema and all components that are using it,
+				URIs and QNames are considered equivalent. This is required by WWW
+				architecture and also helps avoid some drawbacks and bugs in XML-related
+				implementations that usually do not deal QNames well.
 
-				The QNames
-				are mapped to URIs by concatenating namespace URI and a local
-				name.
-				If URI does
-				not end with slash (/) or hash (#) character,
-				slash is
-				concatenated to the URI before adding the local name. The
-				URI-QName
+				The QNames are mapped to URIs by concatenating namespace URI and a local
+				name. If URI does not end with slash (/) or hash (#) character, slash is
+				concatenated to the URI before adding the local name. The URI-QName
 				mapping is the reverse process.
 
 			</xsd:documentation>
 			<xsd:appinfo>
-				<tns:propertyContainer/>
+				<tns:propertyContainer />
 			</xsd:appinfo>
 		</xsd:annotation>
 
@@ -250,41 +228,23 @@
 			<xsd:element ref="tns:name">
 				<xsd:annotation>
 					<xsd:documentation>
-						Human-readable, mutable name of the object.
-						It
-						may also be an identifier (login name, group
-						name).
-						Should be
-						unique
-						in the respective context of
-						interpretation. E.g. the name of the
-						UserType subtype
-						should be
-						unique in the whole system.
-						The name of
-						the AccountType subtype should be unique in the
-						provisioning target
-						(target
-						system) that it belongs to.
+						Human-readable, mutable name of the object. It
+						may also be an identifier (login name, group name).
+						Should be unique in the respective context of
+						interpretation. E.g. the name of the UserType subtype
+						should be unique in the whole system.
+						The name of the AccountType subtype should be unique in the
+						scope of resource (target system) that it belongs to.
 
-						This may
-						not be human-readable
-						in a sense to display
-						to a common end-user. It is
-						indended to be
-						displayed to
-						IDM system administrator.
-						Therefore it may contain
-						quite
-						a "ugly" structures such as
-						LDAP DN or URL.
+						This may not be human-readable in a sense to display
+						to a common end-user. It is intended to be displayed to
+						IDM system administrator. Therefore it may contain quite
+						a "ugly" structures such as LDAP DN or URL.
 
-						Name is considered
-						to be ordinary property of the
-						object. Therefore it can be changes
-						by invoking
-						ususal
-						operations, etc.
+						Name is considered to be ordinary property of the object.
+						Therefore it can be changed by invoking usual modifyObject
+						operations. However, change of the name may have side
+						effects (rename process).
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -294,94 +254,53 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					System-wide immutable identifier for the object.
-					Will be probably quite long and not
-					human-readable.
-					Should
-					not be
-					displayed to user. It has no meaning
-					outside of IDM system and
-					should not be directly
+					Will be probably quite long and not human-readable. It
+					should not be displayed to user. It has no meaning
+					outside of IDM system and should not be directly
 					passed to any third-party systems.
 
-					This
-					identifier must be unique in the entire system.
+					This identifier must be unique in the entire system.
 
-					This attribute is
-					immutable.
-					It cannot be changed.
-					Any operation attempting
-					to change
-					this identifier must
-					fail.
+					This attribute is immutable.
+					It cannot be changed. Any operation attempting
+					to change this identifier must fail.
+					
+					OID is not property and therefore cannot be "addressed"
+					in usual operations.
 
-					OID must be provided for all
-					objects that
-					are
-					persistently stored. There may be detached
-					objects
-					without OID.
-					Such objects have the same structure
-					as
-					normal objects, they are just
-					not stored in the
-					repository. E.g.
-					object that are only stored on
-					resource
-					and are
+					OID must be provided for all objects that are persistently
+					stored. There may be detached objects without OID.
+					Such objects have the same structure as normal objects,
+					they are just not stored in the repository. E.g.
+					object that are only stored on resource and are
 					not replicated in the repository. Such objects
-					do not
-					have OID therefore their
-					XML representation
-					cannot contain oid
-					attribute.
+					do not have OID therefore their XML representation
+					cannot contain oid attribute.
 
 					The OID should be unique in both time and space. That
-					means that OIDs must be
-					unique in the whole system
-					in
-					any moment and
-					should not be re-used. If an object is
-					deleted, the OID of that
-					object should not
-					be used by
-					a new
-					object. The reason is to avoid
-					problems with stale
-					links pointing to a wrong object and appearing
-					valid.
-					However,
-					this is not a strict requirement. Some marginal
+					means that OIDs must be unique in the whole system
+					in any moment and should not be re-used. If an object is
+					deleted, the OID of that object should not be used by
+					a new object. The reason is to avoid problems with stale
+					links pointing to a wrong object and appearing valid.
+					However, this is not a strict requirement. Some marginal
 					probability of OID reuse is tolerated. The recommended
-					practice is
-					to
-					add some randomness to the process of
+					practice is to add some randomness to the process of
 					OID generation.
 
-					This
-					attribute is NOT (necessarily) ASN.1 OID.
+					This attribute is NOT (necessarily) ASN.1 OID and should not
+					be confused with it.
 
-					The attribute is
-					named
-					"oid" meaning object identifier.
-					It is not named "id" to avoid
-					confusion with xml:id
-					attribute as it is easy to
-					confuse these
-					two if
-					namespace prefix is ommited. The confusion with ASN.1
-					OID id not
-					likely.
+					The attribute is named "oid" meaning object identifier.
+					It is not named "id" to avoid confusion with xml:id
+					attribute as it is easy to confuse these two if
+					namespace prefix is omitted. The confusion with ASN.1
+					OID id not likely.
 
-					The oid is XML attribute
-					of this object instead
-					of
-					element
-					because it has special purpose of identifying
-					the object. It is also
-					immutable,
-					therefore we do not
-					need to hadle
-					changes to it.
+					The oid is XML attribute of this object instead of
+					element because it has special purpose of identifying
+					the object. It is also immutable, therefore we do not
+					need to handle changes to it.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -391,24 +310,13 @@
 				<xsd:documentation>
 					Version for optimistic locking.
 
-					Contains the
-					version in which this object was read from the
-					repository,
-					fetched
-					from the resource, etc.
+					Contains the version in which this object was read from the
+					repository, fetched from the resource, etc.
 
-					Type of the version attribute is string, not
-					integer
-					to provide
-					flexibility for various
-					versioning
-					schemes in
-					implementation (e.g. ETags). The type
-					really does not matter, the
-					only
-					things that matters
-					is if the
-					version is the same or different.
+					Type of the version attribute is string, not integer to provide
+					flexibility for various versioning schemes in implementation
+					(e.g. ETags). The type really does not matter, the only
+					things that matters is if the version is the same or different.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
@@ -420,15 +328,12 @@
 			<xsd:documentation>
 				Place for non-standard object properties. The
 				elements placed here will be handled exactly
-				like the
-				elements
-				in the
-				object body.
+				like the elements in the object body.
 
 				It must NOT contain standard elements.
 			</xsd:documentation>
 			<xsd:appinfo>
-				<tns:propertyContainer/>
+				<tns:propertyContainer />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -436,7 +341,7 @@
 				<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
 					<xsd:annotation>
 						<xsd:appinfo>
-							<xjc:dom/>
+							<xjc:dom />
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:any>
@@ -448,24 +353,17 @@
 	<xsd:complexType name="ExtensibleObjectType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Object with generic extensibility mechanism. It
-				contains a
-				special XML element where almost any
-				extension can
-				be
-				placed.
+				Object with generic extensibility mechanism. It contains a
+				special XML element where almost any extension can be placed.
 				The extension is treated exactly the same as other object
-				properties by the code (storage,
-				modifications, etc),
-				except
-				that the
-				system may not be able to understand their meaning.
+				properties by the code (storage, modifications, etc), except
+				that the system may not be able to understand their meaning.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
 			<xsd:extension base="tns:ObjectType">
 				<xsd:sequence>
-					<xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1"/>
+					<xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -475,25 +373,14 @@
 	<xsd:complexType name="GenericObjectType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Generic object for storing unknown (unexpected)
-				object types.
+				Generic object for storing unknown (unexpected) object types.
 
-				The generic object should be used if
-				there is a
-				need to
-				store a
-				custom object (e.g KangarooType) at deployment-time
-				and the
-				XML type relacement
-				extensibility cannot be used.
-				The
-				properties of
-				such custom objects are to be placed in the
-				extension part of this
-				object. The schema is not checked or
-				enforced
-				for this type of
-				objects if technically possible.
+				The generic object should be used if there is a need to
+				store a custom object (e.g KangarooType) at deployment-time
+				and the XML type relacement extensibility cannot be used.
+				The properties of such custom objects are to be placed in the
+				extension part of this object. The schema is not checked or
+				enforced for this type of objects if technically possible.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
@@ -503,34 +390,18 @@
 						<xsd:annotation>
 							<xsd:documentation>
 								Type of the stored object.
-								This attribute
-								contains URI defining the type (class) of
-								stored
-								object. The URI
-								that maps to a QName of an
-								object XML element should be used if
-								possible (see QName
-								mapping
-								above). However this is not
-								mandatory
-								and the
+								This attribute contains URI defining the type (class) of
+								stored object. The URI that maps to a QName of an object
+								XML element should be used if possible (see QName
+								mapping above). However this is not mandatory and the
 								implementation must be able to work with any URI.
 
-								Object
-								type may be
-								changed, but the possible values may
-								be constrained by
-								the implementation. E.g. the
-								implementation may allow to
-								change
-								the object type only
-								to the subtype or
-								supertype, or it may fail
-								if the
-								attributes of the object does not
-								conform to the schema
-								constraints defined for the new
-								type.
+								Object type may be changed, but the possible values may
+								be constrained by the implementation. E.g. the implementation
+								may allow to change the object type only to the subtype or
+								supertype, or it may fail if the attributes of the object
+								does not conform to the schema constraints defined for the
+								new type.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -543,8 +414,7 @@
 	<xsd:complexType name="ObjectReferenceType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Reference to an object. It contains OID of the
-				object that it
+				Reference to an object. It contains OID of the object that it
 				refers to.
 			</xsd:documentation>
 		</xsd:annotation>
@@ -563,7 +433,7 @@
 			<xsd:annotation>
 				<xsd:documentation>
 					Target of the reference.
-					
+
 					Optional only during imports. The objects stored in the repository must have the OID
 					value filled in.
 				</xsd:documentation>
@@ -574,26 +444,19 @@
 				<xsd:documentation>
 					XSD type of the reference target object.
 
-					It should
-					be provided if the type is known (e.g. when
-					reading
-					object from the
-					repository).
+					It should be provided if the type is known (e.g. when
+					reading object from the repository).
 
 					The primary reason for this is to have some kind of
-					type
-					safety but especially
-					to be able to use
-					this in the XPaths
-					that
-					specify what references to resolve.
+					type safety but especially to be able to use
+					this in the XPaths that specify what references to resolve.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>
 	</xsd:complexType>
 
-	<xsd:element name="object" type="tns:ObjectType"/>
-	<xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object"/>
+	<xsd:element name="object" type="tns:ObjectType" />
+	<xsd:element name="genericObject" type="tns:GenericObjectType" substitutionGroup="tns:object" />
 
 
 	<!-- Property-related types -->
@@ -601,23 +464,16 @@
 	<xsd:complexType name="PropertyReferenceType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Property reference. Selects one or more properties
-				in the
-				object instance documents. Subtypes of
-				property
-				reference
-				describe properties in the object instances.
-				For example by
-				describing change to the property,
-				available values
-				for the
-				property,
-				etc.
+				Property reference. Selects one or more properties in the
+				object instance documents. Subtypes of property reference
+				describe properties in the object instances. For example by
+				describing change to the property, available values
+				for the property, etc.
 			</xsd:documentation>
 		</xsd:annotation>
 
 		<xsd:sequence>
-			<xsd:element ref="c:property"/>
+			<xsd:element ref="c:property" />
 		</xsd:sequence>
 
 	</xsd:complexType>
@@ -625,25 +481,15 @@
 	<xsd:element name="property" type="tns:XPathType">
 		<xsd:annotation>
 			<xsd:documentation>
-				XPath expression selecting the property. It may
-				select
-				multiple properties. But it must not be used
-				to select
-				XML
-				constructs inside a property, unless such property is
-				in itself an
-				object.
+				XPath expression selecting the property. It may select
+				multiple properties. But it must not be used to select
+				XML constructs inside a property, unless such property is
+				in itself an object.
 
-				The root of the path is
-				assumed to be the element
-				of the
-				top-most ObjectType. The path should be absolute,
-				starting with
-				leading slash ("/").
-				If the leading slash is
-				not present,
-				it should be
-				assumed, but warning message
+				The root of the path is assumed to be the element
+				of the top-most ObjectType. The path should be absolute,
+				starting with leading slash ("/"). If the leading slash is
+				not present, it should be assumed, but warning message
 				should be logged in such case.
 
 				Good
@@ -669,27 +515,17 @@
 	<xsd:complexType name="PropertyContainerReferenceType">
 		<xsd:annotation>
 			<xsd:documentation>
-				Property container reference. Selects exactly one
-				XML element
-				that holds properties. Subtypes of
-				property
-				container
+				Property container reference. Selects exactly one XML element
+				that holds properties. Subtypes of property container
 				reference describe properties in the object instances, but they
-				use
-				native reference to the
-				specific property (e.g.
-				QName or
-				XML elements
-				using xsd:any type).
+				use native reference to the specific property (e.g.
+				QName or XML elements using xsd:any type).
 				For example by describing change to the
-				property,
-				available values
-				for the property,
-				etc.
+				property, available values for the property, etc.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element ref="c:path" minOccurs="0"/>
+			<xsd:element ref="c:path" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -697,27 +533,15 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				XPath expression selecting the property container.
-				It must
-				select exactly one XML element. It must
-				not be
-				used to select
-				XML constructs inside a property, unless such property is
-				in itself
-				an object.
+				It must select exactly one XML element. It must not be used to
+				select XML constructs inside a property, unless such property is
+				in itself an object.
 
-				The root of the
-				path is assumed to
-				be the element of the
+				The root of the path is assumed to be the element of the
 				top-most ObjectType. Path attribute may be ommited. In that
-				case it
-				is
-				assumed to be "/". The path should
-				be absolute,
-				starting with
-				leading slash ("/"). If the leading slash is
-				not
-				present, it should be
-				assumed, but warning message
+				case it is assumed to be "/". The path should be absolute,
+				starting with leading slash ("/"). If the leading slash is
+				not present, it should be assumed, but warning message
 				should be logged in such case.
 
 				Good
@@ -727,11 +551,8 @@
 				/account[@oid='1234']/attributes
 
 				Bad examples:
-				/extension/shoppingPreferences this selects a property, not property
-				container
-				/extension/shoppingPreferences/tShirt (tShirt
-				is not
-				property container)
+				/extension/shoppingPreferences this selects a property, not property container
+				/extension/shoppingPreferences/tShirt (tShirt is not property container)
 
 			</xsd:documentation>
 		</xsd:annotation>
@@ -745,7 +566,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="property" type="tns:PropertyReferenceType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="property" type="tns:PropertyReferenceType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -762,7 +583,7 @@
 					<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:appinfo>
-								<xjc:dom/>
+								<xjc:dom />
 							</xsd:appinfo>
 						</xsd:annotation>
 					</xsd:any>
@@ -798,7 +619,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="availableValues" type="tns:PropertyAvailableValuesType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="availableValues" type="tns:PropertyAvailableValuesType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -808,35 +629,35 @@
 				TODO
 			</xsd:documentation>
 			<xsd:appinfo>
-				<jaxb:typesafeEnumClass/>
+				<jaxb:typesafeEnumClass />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="read">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="read"/>
+						<jaxb:typesafeEnumMember name="read" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="update">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="update"/>
+						<jaxb:typesafeEnumMember name="update" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="create">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="create"/>
+						<jaxb:typesafeEnumMember name="create" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
 
-	<xsd:element name="access" type="tns:AccessType"/>
+	<xsd:element name="access" type="tns:AccessType" />
 
 	<!-- Object changes -->
 
@@ -886,7 +707,7 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:element name="objectModification" type="tns:ObjectModificationType"/>
+	<xsd:element name="objectModification" type="tns:ObjectModificationType" />
 
 	<xsd:complexType name="PropertyModificationType">
 		<xsd:annotation>
@@ -927,7 +748,7 @@
 											be repeated.
 										</xsd:documentation>
 										<xsd:appinfo>
-											<xjc:dom/>
+											<xjc:dom />
 										</xsd:appinfo>
 									</xsd:annotation>
 								</xsd:any>
@@ -963,28 +784,28 @@
 				strange.
 			</xsd:documentation>
 			<xsd:appinfo>
-				<jaxb:typesafeEnumClass/>
+				<jaxb:typesafeEnumClass />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="add">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="add"/>
+						<jaxb:typesafeEnumMember name="add" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="replace">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="replace"/>
+						<jaxb:typesafeEnumMember name="replace" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="delete">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="delete"/>
+						<jaxb:typesafeEnumMember name="delete" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -995,11 +816,8 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				Describes a change of a specific object.
-				This is
-				abstract type. It cannot be used directly.
-				Use the
-				subtypes
-				instead.
+				This is abstract type. It cannot be used directly.
+				Use the subtypes instead.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:complexType>
@@ -1014,7 +832,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:ObjectChangeType">
 				<xsd:sequence>
-					<xsd:element name="object" type="tns:ObjectType"/>
+					<xsd:element name="object" type="tns:ObjectType" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -1030,7 +848,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:ObjectChangeType">
 				<xsd:sequence>
-					<xsd:element name="objectModification" type="tns:ObjectModificationType"/>
+					<xsd:element name="objectModification" type="tns:ObjectModificationType" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -1173,15 +991,30 @@
 
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="ProtectedStringType">
+		<xsd:annotation>
+			<xsd:documentation>
+				This is a general-purpose type to store sensitive values that should be encrypted in
+				the repository. It is using starndard XML Encryption schema.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element ref="xenc:EncryptedData">
+				<xsd:annotation>
+					<xsd:documentation>
+						Use of XML Encryption standard EncryptionData element.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 
 	<xsd:complexType name="EmptyType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Type that contains nothing.
-				Used in WSDL messages
-				that do not return anything to
-				silence the
-				warnings.
+				Used in WSDL messages that do not return anything to silence the warnings.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:complexType>
@@ -1191,7 +1024,7 @@
 	<xsd:complexType name="FilterType">
 		<xsd:annotation>
 			<xsd:appinfo>
-				<jaxb:dom/>
+				<jaxb:dom />
 			</xsd:appinfo>
 		</xsd:annotation>
 	</xsd:complexType>
@@ -1206,21 +1039,21 @@
 
 	<xsd:complexType name="QueryType">
 		<xsd:sequence>
-			<xsd:element ref="tns:filter"/>
+			<xsd:element ref="tns:filter" />
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:element name="filter" type="tns:FilterType"/>
+	<xsd:element name="filter" type="tns:FilterType" />
 
 	<xsd:complexType name="UriFilterType">
 		<xsd:complexContent>
 			<xsd:extension base="tns:FilterType">
-				<xsd:attribute name="uri" type="xsd:anyURI"/>
+				<xsd:attribute name="uri" type="xsd:anyURI" />
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="type" substitutionGroup="tns:filter" type="tns:UriFilterType"/>
+	<xsd:element name="type" substitutionGroup="tns:filter" type="tns:UriFilterType" />
 
 	<xsd:complexType name="PropertyComplexValueFilterType">
 		<xsd:complexContent>
@@ -1254,7 +1087,7 @@
 												or "or" clauses if needed.
 											</xsd:documentation>
 											<xsd:appinfo>
-												<xjc:dom/>
+												<xjc:dom />
 											</xsd:appinfo>
 										</xsd:annotation>
 									</xsd:any>
@@ -1330,24 +1163,24 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:FilterType">
 				<xsd:sequence>
-					<xsd:element ref="c:property"/>
+					<xsd:element ref="c:property" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 
 
-	<xsd:element name="equal" substitutionGroup="tns:filter" type="tns:PropertyComplexValueFilterType"/>
-	<xsd:element name="greaterOrEqual" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
-	<xsd:element name="lessOrEqual" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
+	<xsd:element name="equal" substitutionGroup="tns:filter" type="tns:PropertyComplexValueFilterType" />
+	<xsd:element name="greaterOrEqual" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType" />
+	<xsd:element name="lessOrEqual" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType" />
 
 	<!-- Following element should be constrained a bit more, because their value 
 		is always string respectively. But we don't know how to constrain it now 
 		and we do not have the time to find out. Therefore it should be OK for now. -->
-	<xsd:element name="substring" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType"/>
+	<xsd:element name="substring" substitutionGroup="tns:filter" type="tns:PropertySimpleValueFilterType" />
 
-	<xsd:element name="present" substitutionGroup="tns:filter" type="tns:PropertyNoValueFilterType"/>
-	<xsd:element name="true" substitutionGroup="tns:filter" type="tns:PropertyNoValueFilterType"/>
+	<xsd:element name="present" substitutionGroup="tns:filter" type="tns:PropertyNoValueFilterType" />
+	<xsd:element name="true" substitutionGroup="tns:filter" type="tns:PropertyNoValueFilterType" />
 
 	<xsd:complexType name="LogicalOperatorFilterType" abstract="true">
 		<xsd:complexContent>
@@ -1360,7 +1193,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:LogicalOperatorFilterType">
 				<xsd:sequence>
-					<xsd:element ref="tns:filter"/>
+					<xsd:element ref="tns:filter" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -1370,15 +1203,15 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:LogicalOperatorFilterType">
 				<xsd:sequence>
-					<xsd:element ref="tns:filter" minOccurs="1" maxOccurs="unbounded"/>
+					<xsd:element ref="tns:filter" minOccurs="1" maxOccurs="unbounded" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="and" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType"/>
-	<xsd:element name="or" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType"/>
-	<xsd:element name="not" substitutionGroup="tns:filter" type="tns:UnaryLogicalOperatorFilterType"/>
+	<xsd:element name="and" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType" />
+	<xsd:element name="or" substitutionGroup="tns:filter" type="tns:NAryLogicalOperatorFilterType" />
+	<xsd:element name="not" substitutionGroup="tns:filter" type="tns:UnaryLogicalOperatorFilterType" />
 
 	<xsd:complexType name="PagingType">
 		<xsd:annotation>
@@ -1467,20 +1300,20 @@
 			<xsd:enumeration value="ascending">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="ASCENDING"/>
+						<jaxb:typesafeEnumMember name="ASCENDING" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="descending">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="DESCENDING"/>
+						<jaxb:typesafeEnumMember name="DESCENDING" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 		</xsd:restriction>
 	</xsd:simpleType>
-	
+
 	<xsd:complexType name="ImportOptionsType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -1638,14 +1471,14 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	
-	<xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object"/>
-	
+
+	<xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object" />
+
 	<xsd:simpleType name="TaskExecutionStatusType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Execution status provides information about the task overall high-level execution state. It tells
-								whether the task is running/runnable, waits for something or is done.
+				whether the task is running/runnable, waits for something or is done.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
@@ -1655,7 +1488,7 @@
 						The task is running or is ready to be executed. This state implies that the task is being actively executed by IDM nodes, e.g. there is a thread on one of the IDM nodes that executes the task or the system needs to allocate such thread.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="RUNNING"/>
+						<jaxb:typesafeEnumMember name="RUNNING" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1665,7 +1498,7 @@
 						The IDM system is waiting while the task is being executed on an external node (e.g. external workflow engine) or is waiting for some kind of external signal (e.g. approval in internal workflow). The task may be running on external node or blocked on IDM node. One way or another, there is no point in allocating a thread to run this task. Other task properties provide more information about the actual "business" state of the task.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="WAITING"/>
+						<jaxb:typesafeEnumMember name="WAITING" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1675,7 +1508,7 @@
 						The task is done. No other changes or progress will happen. The task in this state is considered immutable and the only things that can happen to it is a delete by a cleanup code.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="CLOSED"/>
+						<jaxb:typesafeEnumMember name="CLOSED" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1695,7 +1528,7 @@
 						The tasks is being held by one of the IDM nodes. The node is either executing the task or making some kind of "exclusive" operation on the task. Only one node may "claim" a task. Claimed tasks has an allocated *thread* that is used for task execution.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="CLAIMED"/>
+						<jaxb:typesafeEnumMember name="CLAIMED" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1705,7 +1538,7 @@
 						The task is free for all nodes to participate. Any node may try to "claim" the task to execute it or make another step in the task lifecycle. Released task is not being executed by an IDM node and therefore does not have an allocated thread.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="RELEASED"/>
+						<jaxb:typesafeEnumMember name="RELEASED" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1728,7 +1561,7 @@
 						Once the task is finished, it will not be executed again.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="SINGLE"/>
+						<jaxb:typesafeEnumMember name="SINGLE" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1739,7 +1572,7 @@
 						The task is executed as many times as the schedule specifies.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="RECURRING"/>
+						<jaxb:typesafeEnumMember name="RECURRING" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1757,16 +1590,16 @@
 				<xsd:annotation>
 					<xsd:documentation>
 						The task is claimed (exclusivelly locked) to a specific node only if it is executing.
-						
+
 						The thread is allocated only for the minimal amount of time.
-						
+
 						It does not matter which node will execute the task as long as there is an appropriate handler.
-						
+
 						This is efficient for tasks that take long time to execute and the execution mostly waits (e.g. approvals)
 						or for tasks which have long interval between executions (e.g. reconciliation).
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="LOOSE"/>
+						<jaxb:typesafeEnumMember name="LOOSE" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1775,16 +1608,16 @@
 					<xsd:documentation>
 						Task is claimed (exclusivelly locked) to a specific node for a long time. It may be claimed until the
 						executing node is up and running.
-						
+
 						A theread may be running and allocated for the task all the time. The thread may to to sleep as needed,
 						but during that time the task remains claimed.
-						
+
 						The node that started to execute this task will be preferred for subsequent executions.
-						
+
 						This is efficient for recurring tasks executed in short intervals, such as live synchronization.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="TIGHT"/>
+						<jaxb:typesafeEnumMember name="TIGHT" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1817,15 +1650,15 @@
 
 	<xsd:complexType name="ObjectContainerType">
 		<xsd:sequence>
-			<xsd:element name="object" type="tns:ObjectType"/>
+			<xsd:element name="object" type="tns:ObjectType" />
 		</xsd:sequence>
 	</xsd:complexType>
 
 	<xsd:complexType name="ObjectListType">
 		<xsd:sequence>
-			<xsd:element name="object" type="tns:ObjectType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="object" type="tns:ObjectType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
-		<xsd:attribute name="count" type="xsd:int"/>
+		<xsd:attribute name="count" type="xsd:int" />
 	</xsd:complexType>
 
 	<xsd:complexType name="CycleListType">
@@ -1835,7 +1668,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="cycle" type="tns:CycleType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="cycle" type="tns:CycleType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -1846,17 +1679,17 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="name" type="xsd:string"/>
-			<xsd:element name="displayName" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="running" type="xsd:boolean"/>
-			<xsd:element name="lastStatus" type="xsd:string"/>
-			<xsd:element name="lastRunStart" type="xsd:dateTime"/>
-			<xsd:element name="lastRunFinish" type="xsd:dateTime"/>
+			<xsd:element name="name" type="xsd:string" />
+			<xsd:element name="displayName" type="xsd:string" minOccurs="0" />
+			<xsd:element name="running" type="xsd:boolean" />
+			<xsd:element name="lastStatus" type="xsd:string" />
+			<xsd:element name="lastRunStart" type="xsd:dateTime" />
+			<xsd:element name="lastRunFinish" type="xsd:dateTime" />
 			<xsd:element name="lastError">
 				<xsd:complexType>
 					<xsd:sequence>
-						<xsd:element name="message" type="tns:DiagnosticsMessageType"/>
-						<xsd:element name="timestamp" type="xsd:dateTime"/>
+						<xsd:element name="message" type="tns:DiagnosticsMessageType" />
+						<xsd:element name="timestamp" type="xsd:dateTime" />
 					</xsd:sequence>
 				</xsd:complexType>
 			</xsd:element>
@@ -2202,7 +2035,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="credentials" type="tns:CredentialsType"/>
+	<xsd:element name="credentials" type="tns:CredentialsType" />
 
 	<xsd:complexType name="CredentialsType">
 		<xsd:annotation>
@@ -2211,7 +2044,7 @@
 				This is not perfect.
 			</xsd:documentation>
 			<xsd:appinfo>
-				<tns:propertyContainer/>
+				<tns:propertyContainer />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -2333,7 +2166,7 @@
 
 			</xsd:choice>
 
-			<xsd:element name="activation" type="tns:ActivationType"/>
+			<xsd:element name="activation" type="tns:ActivationType" />
 
 		</xsd:sequence>
 	</xsd:complexType>
@@ -2362,7 +2195,7 @@
 				should not be assigned, etc.
 			</xsd:documentation>
 			<xsd:appinfo>
-				<tns:propertyContainer/>
+				<tns:propertyContainer />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -2533,15 +2366,15 @@
 								<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded">
 									<xsd:annotation>
 										<xsd:appinfo>
-											<xjc:dom/>
+											<xjc:dom />
 										</xsd:appinfo>
 									</xsd:annotation>
 								</xsd:any>
 							</xsd:sequence>
 						</xsd:complexType>
 					</xsd:element>
-					<xsd:element ref="tns:schemaHandling"/>
-					<xsd:element ref="tns:configuration"/>
+					<xsd:element ref="tns:schemaHandling" />
+					<xsd:element ref="tns:configuration" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -2676,8 +2509,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="resourceAccessConfigurationRef" type="tns:ResourceAccessConfigurationReferenceType"
-						minOccurs="0">
+					<xsd:element name="resourceAccessConfigurationRef" type="tns:ResourceAccessConfigurationReferenceType" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
 								DEPRECATED. This will be removed.
@@ -2688,7 +2520,7 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element ref="tns:configuration"/>
+					<xsd:element ref="tns:configuration" />
 					<xsd:element ref="tns:schema" minOccurs="0">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -2743,21 +2575,22 @@
 								Resource
 								schema is read-only. Changing
 								resource
-								schema is not supported.
+								schema is
+								not supported.
 
 								TODO: annotations in the schema
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element ref="tns:schemaHandling" minOccurs="0"/>
-					<xsd:element ref="tns:scripts" minOccurs="0"/>
-					<xsd:element ref="tns:synchronization" minOccurs="0"/>
+					<xsd:element ref="tns:schemaHandling" minOccurs="0" />
+					<xsd:element ref="tns:scripts" minOccurs="0" />
+					<xsd:element ref="tns:synchronization" minOccurs="0" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="schema" type="tns:XmlSchemaType"/>
+	<xsd:element name="schema" type="tns:XmlSchemaType" />
 
 	<xsd:complexType name="XmlSchemaType">
 		<xsd:annotation>
@@ -2798,14 +2631,14 @@
 			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<xjc:dom/>
+						<xjc:dom />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:any>
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:element name="schemaHandling" type="tns:SchemaHandlingType"/>
+	<xsd:element name="schemaHandling" type="tns:SchemaHandlingType" />
 	<xsd:complexType name="SchemaHandlingType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -2994,9 +2827,9 @@
 								</xsd:documentation>
 							</xsd:annotation>
 							<xsd:complexType>
-								<xsd:attribute name="ref" type="xsd:QName"/>
-								<xsd:attribute name="minOccurs" type="xsd:string" use="optional" default="1"/>
-								<xsd:attribute name="maxOccurs" type="xsd:string" use="optional" default="1"/>
+								<xsd:attribute name="ref" type="xsd:QName" />
+								<xsd:attribute name="minOccurs" type="xsd:string" use="optional" default="1" />
+								<xsd:attribute name="maxOccurs" type="xsd:string" use="optional" default="1" />
 							</xsd:complexType>
 						</xsd:element>
 					</xsd:sequence>
@@ -3012,7 +2845,7 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:element name="scripts" type="tns:ScriptsType"/>
+	<xsd:element name="scripts" type="tns:ScriptsType" />
 
 	<xsd:complexType name="ScriptsType">
 		<xsd:annotation>
@@ -3136,28 +2969,28 @@
 			<xsd:enumeration value="get">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="GET"/>
+						<jaxb:typesafeEnumMember name="GET" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="add">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="ADD"/>
+						<jaxb:typesafeEnumMember name="ADD" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="modify">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="MODIFY"/>
+						<jaxb:typesafeEnumMember name="MODIFY" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="delete">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="DELETE"/>
+						<jaxb:typesafeEnumMember name="DELETE" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -3180,7 +3013,7 @@
 						operation.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="BEFORE"/>
+						<jaxb:typesafeEnumMember name="BEFORE" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -3192,7 +3025,7 @@
 						operation.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="AFTER"/>
+						<jaxb:typesafeEnumMember name="AFTER" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -3218,7 +3051,7 @@
 						running (which is usually IDM system).
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="CONNECTOR"/>
+						<jaxb:typesafeEnumMember name="CONNECTOR" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -3235,7 +3068,7 @@
 						multi-host resources.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="RESOURCE"/>
+						<jaxb:typesafeEnumMember name="RESOURCE" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -3298,7 +3131,7 @@
 				<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
 					<xsd:annotation>
 						<xsd:appinfo>
-							<xjc:dom/>
+							<xjc:dom />
 						</xsd:appinfo>
 					</xsd:annotation>
 				</xsd:any>
@@ -3516,7 +3349,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element ref="c:extension" minOccurs="0" maxOccurs="1"/>
+			<xsd:element ref="c:extension" minOccurs="0" maxOccurs="1" />
 			<xsd:choice>
 				<xsd:element name="value" nillable="true">
 					<xsd:annotation>
@@ -3573,7 +3406,7 @@
 										different values of course).
 									</xsd:documentation>
 									<xsd:appinfo>
-										<xjc:dom/>
+										<xjc:dom />
 									</xsd:appinfo>
 								</xsd:annotation>
 							</xsd:any>
@@ -3841,7 +3674,7 @@
 				http://java.net/jira/browse/JAXB-798
 			</xsd:documentation>
 			<xsd:appinfo>
-				<jaxb:dom/>
+				<jaxb:dom />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -3976,9 +3809,9 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
-	<xsd:element name="valueFilter" type="tns:ValueFilterType"/>
+	<xsd:element name="valueFilter" type="tns:ValueFilterType" />
 
-	<xsd:element name="synchronization" type="tns:SynchronizationType"/>
+	<xsd:element name="synchronization" type="tns:SynchronizationType" />
 
 	<xsd:complexType name="SynchronizationType">
 		<xsd:annotation>
@@ -4203,7 +4036,7 @@
 						The account exists as it should.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="CONFIRMED"/>
+						<jaxb:typesafeEnumMember name="CONFIRMED" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -4215,7 +4048,7 @@
 						TODO: Do we need this situation?
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="COLLISION"/>
+						<jaxb:typesafeEnumMember name="COLLISION" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -4226,7 +4059,7 @@
 						been deleted. 
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="DELETED"/>
+						<jaxb:typesafeEnumMember name="DELETED" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -4237,7 +4070,7 @@
 						does not. 
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="MISSING"/>
+						<jaxb:typesafeEnumMember name="MISSING" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -4253,7 +4086,7 @@
 						assignment that implies such account).
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="FOUND"/>
+						<jaxb:typesafeEnumMember name="FOUND" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -4268,7 +4101,7 @@
 						and that owner should not have the account.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="UNASSIGNED"/>
+						<jaxb:typesafeEnumMember name="UNASSIGNED" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -4281,7 +4114,7 @@
 						account.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="UNMATCHED"/>
+						<jaxb:typesafeEnumMember name="UNMATCHED" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -4292,7 +4125,7 @@
 						found for it.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="DISPUTED"/>
+						<jaxb:typesafeEnumMember name="DISPUTED" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -4380,7 +4213,7 @@
 								<xsd:any minOccurs="0" maxOccurs="unbounded">
 									<xsd:annotation>
 										<xsd:appinfo>
-											<jaxb:dom/>
+											<jaxb:dom />
 										</xsd:appinfo>
 									</xsd:annotation>
 								</xsd:any>
@@ -4403,7 +4236,7 @@
 				exists. E.g. a
 				connector framework may create a derived type and return that instead of this type.
 
-				The values of "framework", "connectorType" and "connectorVersion" (if present) together form a unique 
+				The values of "framework", "connectorType" and "connectorVersion" (if present) together form a unique
 				identification of the connector. That means that two ConnectorType objects that have these values same
 				represent the same connector. Only one such instance of ConnectorType should exist in the repository.
 
@@ -4527,7 +4360,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="connector" type="tns:ConnectorType" substitutionGroup="c:object"/>
+	<xsd:element name="connector" type="tns:ConnectorType" substitutionGroup="c:object" />
 
 	<xsd:complexType name="ConnectorHostType">
 		<xsd:annotation>
@@ -4587,8 +4420,8 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	
-	<xsd:element name="connectorHost" type="tns:ConnectorHostType" substitutionGroup="c:object"/>
+
+	<xsd:element name="connectorHost" type="tns:ConnectorHostType" substitutionGroup="c:object" />
 
 
 	<xsd:complexType name="ResourceObjectShadowType">
@@ -4774,7 +4607,8 @@
 										object.
 
 										This element is
-										supposed to be
+										supposed
+										to be
 										used only for
 										resource object that follow
 										standard resource
@@ -4784,7 +4618,7 @@
 										objects.
 									</xsd:documentation>
 									<xsd:appinfo>
-										<tns:propertyContainer/>
+										<tns:propertyContainer />
 									</xsd:appinfo>
 								</xsd:annotation>
 								<xsd:complexType>
@@ -4792,7 +4626,7 @@
 										<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
 											<xsd:annotation>
 												<xsd:appinfo>
-													<xjc:dom/>
+													<xjc:dom />
 												</xsd:appinfo>
 											</xsd:annotation>
 										</xsd:any>
@@ -4813,7 +4647,7 @@
 									schemas.
 								</xsd:documentation>
 								<xsd:appinfo>
-									<xjc:dom/>
+									<xjc:dom />
 								</xsd:appinfo>
 							</xsd:annotation>
 						</xsd:any>
@@ -4896,19 +4730,19 @@
 
 	<xsd:complexType name="ResourceObjectShadowListType">
 		<xsd:sequence>
-			<xsd:element name="object" type="tns:ResourceObjectShadowType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="object" type="tns:ResourceObjectShadowType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
 	<xsd:complexType name="UserContainerType">
 		<xsd:sequence>
-			<xsd:element name="user" type="tns:UserType"/>
+			<xsd:element name="user" type="tns:UserType" />
 		</xsd:sequence>
 	</xsd:complexType>
 
 	<xsd:complexType name="UserListType">
 		<xsd:sequence>
-			<xsd:element name="user" type="tns:UserType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="user" type="tns:UserType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -4965,7 +4799,7 @@
 						as an opaque data.
 					</xsd:documentation>
 					<xsd:appinfo>
-						<xjc:dom/>
+						<xjc:dom />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:any>
@@ -5080,7 +4914,7 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:element name="resourceTestResult" type="tns:ResourceTestResultType"/>
+	<xsd:element name="resourceTestResult" type="tns:ResourceTestResultType" />
 
 	<xsd:complexType name="TestResultType">
 		<xsd:annotation>
@@ -5212,8 +5046,8 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="launchTime" type="xsd:dateTime" minOccurs="0"/>
-			<xsd:element name="finishTime" type="xsd:dateTime" minOccurs="0"/>
+			<xsd:element name="launchTime" type="xsd:dateTime" minOccurs="0" />
+			<xsd:element name="finishTime" type="xsd:dateTime" minOccurs="0" />
 			<xsd:element name="progress" type="xsd:long" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -5239,18 +5073,18 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="lastStatus" type="xsd:string"/>
-			<xsd:element name="numberOfErrors" type="xsd:long" minOccurs="0"/>
-			<xsd:element name="lastError" type="tns:DiagnosticsMessageType" minOccurs="0"/>
+			<xsd:element name="lastStatus" type="xsd:string" />
+			<xsd:element name="numberOfErrors" type="xsd:long" minOccurs="0" />
+			<xsd:element name="lastError" type="tns:DiagnosticsMessageType" minOccurs="0" />
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:element name="user" type="tns:UserType" substitutionGroup="c:object"/>
-	<xsd:element name="resource" type="tns:ResourceType" substitutionGroup="c:object"/>
-	<xsd:element name="resourceState" type="tns:ResourceStateType" substitutionGroup="c:object"/>
-	<xsd:element name="account" type="tns:AccountShadowType" substitutionGroup="c:object"/>
-	<xsd:element name="resourceObjectShadow" type="tns:ResourceObjectShadowType" substitutionGroup="c:object"/>
-	<xsd:element name="modification" type="tns:ObjectModificationType"/>
+	<xsd:element name="user" type="tns:UserType" substitutionGroup="c:object" />
+	<xsd:element name="resource" type="tns:ResourceType" substitutionGroup="c:object" />
+	<xsd:element name="resourceState" type="tns:ResourceStateType" substitutionGroup="c:object" />
+	<xsd:element name="account" type="tns:AccountShadowType" substitutionGroup="c:object" />
+	<xsd:element name="resourceObjectShadow" type="tns:ResourceObjectShadowType" substitutionGroup="c:object" />
+	<xsd:element name="modification" type="tns:ObjectModificationType" />
 
 	<!-- Following types SHOULD NOT be here. They should be in the provisioning 
 		WSDL definition. However, there is a bug in OpenESB (OPENESB-5) and placing 
@@ -5260,14 +5094,14 @@
 	<xsd:complexType name="ResourceObjectType">
 		<xsd:annotation>
 			<xsd:appinfo>
-				<tns:propertyContainer/>
+				<tns:propertyContainer />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:any namespace="##other" minOccurs="1" maxOccurs="unbounded" processContents="lax">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<xjc:dom/>
+						<xjc:dom />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:any>
@@ -5277,14 +5111,14 @@
 	<xsd:complexType name="ResourceObjectIdentificationType">
 		<xsd:annotation>
 			<xsd:appinfo>
-				<tns:propertyContainer/>
+				<tns:propertyContainer />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:any namespace="##other" minOccurs="1" maxOccurs="unbounded" processContents="lax">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<xjc:dom/>
+						<xjc:dom />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:any>
@@ -5302,11 +5136,11 @@
 					examples.
 				</xsd:documentation>
 				<xsd:appinfo>
-					<tns:propertyContainer/>
+					<tns:propertyContainer />
 				</xsd:appinfo>
 			</xsd:annotation>
 			<xsd:sequence>
-				<xsd:element ref="c:object" minOccurs="0" maxOccurs="unbounded"/>
+				<xsd:element ref="c:object" minOccurs="0" maxOccurs="unbounded" />
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>
@@ -5386,7 +5220,7 @@
 				type is used.
 			</xsd:documentation>
 			<xsd:appinfo>
-				<jaxb:dom/>
+				<jaxb:dom />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:attribute name="language" type="xsd:anyURI" use="optional" default="http://www.w3.org/TR/xpath/">
@@ -5439,7 +5273,7 @@
 		</xsd:attribute>
 	</xsd:complexType>
 
-	<xsd:element name="expression" type="tns:ExpressionType"/>
+	<xsd:element name="expression" type="tns:ExpressionType" />
 
 	<xsd:element name="condition" type="tns:ExpressionType">
 		<xsd:annotation>
@@ -5599,7 +5433,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="m:ProtoStructureType">
+			<xsd:extension base="tns:ProtoStructureType">
 				<xsd:sequence>
 					<xsd:element name="impliedAccount" type="tns:AccountConstructionType">
 						<xsd:annotation>
@@ -5640,11 +5474,11 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="role" type="tns:RoleType" substitutionGroup="tns:object"/>
+	<xsd:element name="role" type="tns:RoleType" substitutionGroup="tns:object" />
 
 	<xsd:complexType name="AccountConstructionType">
 		<xsd:sequence>
-			<xsd:element ref="c:extension" minOccurs="0" maxOccurs="1"/>
+			<xsd:element ref="c:extension" minOccurs="0" maxOccurs="1" />
 			<xsd:choice>
 				<xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
 					<xsd:annotation>
@@ -5721,7 +5555,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="attribute" type="i:ValueConstructionType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="attribute" type="tns:ValueConstructionType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						Account attribute values implied by
@@ -5751,7 +5585,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="entitlement" type="i:EntitlementConstructionType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="entitlement" type="tns:EntitlementConstructionType" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						Assignments implied by this role.
@@ -5787,7 +5621,7 @@
 
 	<xsd:complexType name="EntitlementConstructionType">
 		<xsd:complexContent>
-			<xsd:extension base="i:ValueConstructionType">
+			<xsd:extension base="tns:ValueConstructionType">
 				<xsd:choice>
 					<xsd:element name="type" type="xsd:string" minOccurs="0">
 						<xsd:annotation>
@@ -5866,7 +5700,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="c:ExtensibleObjectType">
 				<xsd:sequence>
-					<xsd:element name="propertyConstruction" type="i:PropertyConstructionType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:element name="propertyConstruction" type="tns:PropertyConstructionType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
 								Defines how any of the User's properties
@@ -5897,7 +5731,7 @@
 						</xsd:annotation>
 					</xsd:element>
 					<!-- TODO: Assignment construction. Later. -->
-					<xsd:element name="accountConstruction" type="m:AccountConstructionType" minOccurs="0" maxOccurs="unbounded">
+					<xsd:element name="accountConstruction" type="tns:AccountConstructionType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
 								Defines an account that the user should have.
@@ -5929,7 +5763,7 @@
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:element name="userTemplate" type="tns:UserTemplateType" substitutionGroup="c:object"/>
+	<xsd:element name="userTemplate" type="tns:UserTemplateType" substitutionGroup="c:object" />
 
 	<!-- OPERATIONAL SCHEMA -->
 
@@ -5937,15 +5771,15 @@
 
 	<!-- TODO - check -->
 
-	<xsd:element name="passwordPolicy" type="tns:PasswordPolicyType"/>
+	<xsd:element name="passwordPolicy" type="tns:PasswordPolicyType" />
 
 	<xsd:complexType name="PasswordPolicyType">
 		<xsd:complexContent>
 			<xsd:extension base="c:ObjectType">
 				<xsd:sequence>
-					<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-					<xsd:element name="lifetime" type="c:PasswordLifeTimeType" minOccurs="1" maxOccurs="1"/>
-					<xsd:element name="stringPolicy" type="c:StringPolicyType" minOccurs="1" maxOccurs="1"/>
+					<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+					<xsd:element name="lifetime" type="c:PasswordLifeTimeType" minOccurs="1" maxOccurs="1" />
+					<xsd:element name="stringPolicy" type="c:StringPolicyType" minOccurs="1" maxOccurs="1" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -5973,7 +5807,7 @@
 				</xsd:annotation>
 				<xsd:simpleType>
 					<xsd:restriction base="xsd:int">
-						<xsd:minInclusive value="0"/>
+						<xsd:minInclusive value="0" />
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:element>
@@ -5988,7 +5822,7 @@
 				</xsd:annotation>
 				<xsd:simpleType>
 					<xsd:restriction base="xsd:int">
-						<xsd:minInclusive value="0"/>
+						<xsd:minInclusive value="0" />
 					</xsd:restriction>
 				</xsd:simpleType>
 			</xsd:element>
@@ -6013,9 +5847,9 @@
 
 	<xsd:complexType name="StringPolicyType">
 		<xsd:sequence>
-			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="limitations" type="tns:limitationsType" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="limitations" type="tns:limitationsType" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -6025,12 +5859,12 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="minLength" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="maxLength" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="minUniqueChars" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="checkPattern" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="limit" type="tns:StringLimitType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="minLength" type="xsd:int" default="0" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="maxLength" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="minUniqueChars" type="xsd:int" default="0" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="checkAgainstDictionary" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="checkPattern" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="limit" type="tns:StringLimitType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -6040,11 +5874,11 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="maxOccurs" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="mustBeFirst" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1"/>
-			<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1"/>
+			<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="minOccurs" type="xsd:int" default="0" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="maxOccurs" type="xsd:int" default="-1" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="mustBeFirst" type="xsd:boolean" default="false" minOccurs="0" maxOccurs="1" />
+			<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="0" maxOccurs="1" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -6057,17 +5891,17 @@
 		</xsd:annotation>
 		<xsd:sequence>
 			<xsd:choice>
-				<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="1" maxOccurs="unbounded"/>
-				<xsd:element name="value" type="xsd:string" minOccurs="1"/>
+				<xsd:element name="characterClass" type="tns:CharacterClassType" minOccurs="1" maxOccurs="unbounded" />
+				<xsd:element name="value" type="xsd:string" minOccurs="1" />
 			</xsd:choice>
 		</xsd:sequence>
-		<xsd:attribute name="ref" type="xsd:QName" use="optional"/>
-		<xsd:attribute name="name" type="xsd:QName" use="optional"/>
+		<xsd:attribute name="ref" type="xsd:QName" use="optional" />
+		<xsd:attribute name="name" type="xsd:QName" use="optional" />
 	</xsd:complexType>
 
 	<!-- End of TODO -->
-	
-	<xsd:element name="operationResult" type="tns:OperationResultType"/>
+
+	<xsd:element name="operationResult" type="tns:OperationResultType" />
 
 	<xsd:complexType name="OperationResultType">
 		<xsd:annotation>
@@ -6076,28 +5910,28 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="operation" type="xsd:string"/>
-			<xsd:element name="status" type="tns:OperationResultStatusType"/>
-			<xsd:element name="params" type="tns:ParamsType" minOccurs="0"/>
-			<xsd:element name="token" type="xsd:long"/>
-			<xsd:element name="messageCode" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="message" type="xsd:string"/>
-			<xsd:element name="localizedMessage" type="tns:LocalizedMessageType" minOccurs="0"/>
-			<xsd:element name="details" type="xsd:string" minOccurs="0"/>
-			<xsd:element name="partialResults" type="tns:OperationResultType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="operation" type="xsd:string" />
+			<xsd:element name="status" type="tns:OperationResultStatusType" />
+			<xsd:element name="params" type="tns:ParamsType" minOccurs="0" />
+			<xsd:element name="token" type="xsd:long" />
+			<xsd:element name="messageCode" type="xsd:string" minOccurs="0" />
+			<xsd:element name="message" type="xsd:string" />
+			<xsd:element name="localizedMessage" type="tns:LocalizedMessageType" minOccurs="0" />
+			<xsd:element name="details" type="xsd:string" minOccurs="0" />
+			<xsd:element name="partialResults" type="tns:OperationResultType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
 	<xsd:complexType name="LocalizedMessageType">
 		<xsd:sequence>
-			<xsd:element name="key" type="xsd:string"/>
-			<xsd:element name="argument" type="xsd:anySimpleType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="key" type="xsd:string" />
+			<xsd:element name="argument" type="xsd:anySimpleType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
 	<xsd:complexType name="ParamsType">
 		<xsd:sequence>
-			<xsd:element name="entry" type="tns:EntryType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="entry" type="tns:EntryType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -6109,12 +5943,12 @@
 						TODO
 					</xsd:documentation>
 					<xsd:appinfo>
-						<xjc:dom/>
+						<xjc:dom />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:any>
 		</xsd:sequence>
-		<xsd:attribute name="key" type="xsd:string" use="required"/>
+		<xsd:attribute name="key" type="xsd:string" use="required" />
 	</xsd:complexType>
 
 	<xsd:simpleType name="OperationResultStatusType">
@@ -6123,49 +5957,49 @@
 				TODO
 			</xsd:documentation>
 			<xsd:appinfo>
-				<jaxb:typesafeEnumClass/>
+				<jaxb:typesafeEnumClass />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="success">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="SUCCESS"/>
+						<jaxb:typesafeEnumMember name="SUCCESS" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="warning">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="WARNING"/>
+						<jaxb:typesafeEnumMember name="WARNING" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="partial_error">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="PARTIAL_ERROR"/>
+						<jaxb:typesafeEnumMember name="PARTIAL_ERROR" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="fatal_error">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="FATAL_ERROR"/>
+						<jaxb:typesafeEnumMember name="FATAL_ERROR" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="not_applicable">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="NOT_APPLICABLE"/>
+						<jaxb:typesafeEnumMember name="NOT_APPLICABLE" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="unknown">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="UNKNOWN"/>
+						<jaxb:typesafeEnumMember name="UNKNOWN" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -6174,7 +6008,7 @@
 
 	<!-- Configuration types -->
 
-	<xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
+	<xsd:element name="systemConfiguration" type="tns:SystemConfigurationType" />
 
 	<xsd:complexType name="SystemConfigurationType">
 		<xsd:annotation>
@@ -6267,8 +6101,8 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="logger" type="tns:LoggerConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
-			<xsd:element name="appender" type="tns:AppenderConfigurationType" minOccurs="0" maxOccurs="unbounded"/>
+			<xsd:element name="logger" type="tns:LoggerConfigurationType" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="appender" type="tns:AppenderConfigurationType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
@@ -6338,63 +6172,63 @@
 				TODO
 			</xsd:documentation>
 			<xsd:appinfo>
-				<jaxb:typesafeEnumClass/>
+				<jaxb:typesafeEnumClass />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="all">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="ALL"/>
+						<jaxb:typesafeEnumMember name="ALL" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="fatal">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="FATAL"/>
+						<jaxb:typesafeEnumMember name="FATAL" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="error">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="ERROR"/>
+						<jaxb:typesafeEnumMember name="ERROR" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="warn">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="WARN"/>
+						<jaxb:typesafeEnumMember name="WARN" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="info">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="INFO"/>
+						<jaxb:typesafeEnumMember name="INFO" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="debug">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="DEBUG"/>
+						<jaxb:typesafeEnumMember name="DEBUG" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="trace">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="TRACE"/>
+						<jaxb:typesafeEnumMember name="TRACE" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="all">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="ALL"/>
+						<jaxb:typesafeEnumMember name="ALL" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -6407,21 +6241,21 @@
 				TODO and create categories
 			</xsd:documentation>
 			<xsd:appinfo>
-				<jaxb:typesafeEnumClass/>
+				<jaxb:typesafeEnumClass />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="category1">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="CATEGORY1"/>
+						<jaxb:typesafeEnumMember name="CATEGORY1" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="category2">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="CATEGORY2"/>
+						<jaxb:typesafeEnumMember name="CATEGORY2" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -6434,49 +6268,49 @@
 				TODO
 			</xsd:documentation>
 			<xsd:appinfo>
-				<jaxb:typesafeEnumClass/>
+				<jaxb:typesafeEnumClass />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="model">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="MODEL"/>
+						<jaxb:typesafeEnumMember name="MODEL" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="provisioning">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="PROVISIONING"/>
+						<jaxb:typesafeEnumMember name="PROVISIONING" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="repository">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="REPOSITORY"/>
+						<jaxb:typesafeEnumMember name="REPOSITORY" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="web">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="GUI"/>
+						<jaxb:typesafeEnumMember name="GUI" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="taskManager">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="TASKMANAGER"/>
+						<jaxb:typesafeEnumMember name="TASKMANAGER" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="resourceObjectChangeListener">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="RESOURCEOBJECTCHANGELISTENER"/>
+						<jaxb:typesafeEnumMember name="RESOURCEOBJECTCHANGELISTENER" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -6494,17 +6328,17 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="pattern" type="xsd:string"/>
+			<xsd:element name="pattern" type="xsd:string" />
 		</xsd:sequence>
-		<xsd:attribute name="name" type="xsd:string"/>
+		<xsd:attribute name="name" type="xsd:string" />
 	</xsd:complexType>
 
 	<xsd:complexType name="FileAppenderConfigurationType">
 		<xsd:complexContent>
 			<xsd:extension base="tns:AppenderConfigurationType">
 				<xsd:sequence>
-					<xsd:element name="filePath" type="xsd:string"/>
-					<xsd:element name="append" type="xsd:boolean"/>
+					<xsd:element name="filePath" type="xsd:string" />
+					<xsd:element name="append" type="xsd:boolean" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -6514,12 +6348,12 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:FileAppenderConfigurationType">
 				<xsd:sequence>
-					<xsd:element name="maxFileSize" type="xsd:int"/>
+					<xsd:element name="maxFileSize" type="xsd:int" />
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="DailyRollingFileAppenderConfigurationType">
 		<xsd:complexContent>
 			<xsd:extension base="tns:FileAppenderConfigurationType">
@@ -6529,14 +6363,14 @@
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="NdcRollingFileAppenderConfigurationType">
 		<xsd:complexContent>
 			<xsd:extension base="tns:RollingFileAppenderConfigurationType">
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
-	
+
 	<xsd:complexType name="NdcDailyRollingFileAppenderConfigurationType">
 		<xsd:complexContent>
 			<xsd:extension base="tns:DailyRollingFileAppenderConfigurationType">
@@ -6550,21 +6384,21 @@
 				OID constants for system objects
 			</xsd:documentation>
 			<xsd:appinfo>
-				<jaxb:typesafeEnumClass/>
+				<jaxb:typesafeEnumClass />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="00000000-0000-0000-0000-000000000001">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="SYSTEM_CONFIGURATION"/>
+						<jaxb:typesafeEnumMember name="SYSTEM_CONFIGURATION" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="00000000-0000-0000-0000-000000000002">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="USER_ADMINISTRATOR"/>
+						<jaxb:typesafeEnumMember name="USER_ADMINISTRATOR" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
