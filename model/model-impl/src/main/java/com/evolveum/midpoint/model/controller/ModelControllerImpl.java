@@ -312,16 +312,24 @@ public class ModelControllerImpl implements ModelController {
 
 		return list;
 	}
-	
+
 	@Override
-	public <T extends ObjectType> List<T>  searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException {
-		//TODO: wtf?		
-		throw new NotImplementedException();
+	public <T extends ObjectType> List<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
+			OperationResult result) throws SchemaException, ObjectNotFoundException {
+		Validate.notNull(type, "Object type must not be null.");
+		Validate.notNull(query, "Query must not be null.");
+		Validate.notNull(result, "Result type must not be null.");
+
+		if (ProvisioningTypes.isClassManagedByProvisioning(type)) {
+			return searchObjectsInProvisioning(type, query, paging, result);
+		} else {
+			return searchObjectsInRepository(type, query, paging, result);
+		}
 	}
 
-	private <T extends ObjectType> List<T> searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult result,
-			boolean searchInProvisioning) {
+	private <T extends ObjectType> List<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
+			OperationResult result, boolean searchInProvisioning) {
+		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(query, "Query must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 		ModelUtils.validatePaging(paging);
@@ -370,25 +378,27 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public <T extends ObjectType> List<T> searchObjectsInProvisioning(Class<T> type, QueryType query, PagingType paging,
-			OperationResult result) {
+	public <T extends ObjectType> List<T> searchObjectsInProvisioning(Class<T> type, QueryType query,
+			PagingType paging, OperationResult result) {
 		return searchObjects(type, query, paging, result, true);
 	}
 
 	@Override
-	public <T extends ObjectType> List<T> searchObjectsInRepository(Class<T> type, QueryType query, PagingType paging, OperationResult result) {
+	public <T extends ObjectType> List<T> searchObjectsInRepository(Class<T> type, QueryType query,
+			PagingType paging, OperationResult result) {
 		return searchObjects(type, query, paging, result, false);
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change, OperationResult result)
-			throws ObjectNotFoundException {
+	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType change,
+			OperationResult result) throws ObjectNotFoundException {
 		modifyObjectWithExclusion(type, change, null, result);
 	}
 
 	@Override
-	public <T extends ObjectType> void modifyObjectWithExclusion(Class<T> type, ObjectModificationType change, String accountOid,
-			OperationResult result) throws ObjectNotFoundException {
+	public <T extends ObjectType> void modifyObjectWithExclusion(Class<T> type,
+			ObjectModificationType change, String accountOid, OperationResult result)
+			throws ObjectNotFoundException {
 		Validate.notNull(change, "Object modification must not be null.");
 		Validate.notEmpty(change.getOid(), "Change oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -406,8 +416,8 @@ public class ModelControllerImpl implements ModelController {
 		addResultParams(subResult, new String[] { "change", "accountOid" }, change, accountOid);
 
 		try {
-			T object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(),
-					subResult, type);
+			T object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(), subResult,
+					type);
 			if (object instanceof TaskType) {
 				modifyTaskWithExclusion(change, accountOid, subResult, object);
 			} else if (ProvisioningTypes.isManagedByProvisioning(object)) {
@@ -761,9 +771,9 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult configResult = result.createSubresult(GET_SYSTEM_CONFIGURATION);
 		SystemConfigurationType systemConfiguration = null;
 		try {
-			systemConfiguration = getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-					ModelUtils.createPropertyReferenceListType("defaultUserTemplate"), result,
-					false);
+			systemConfiguration = getObject(SystemConfigurationType.class,
+					SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+					ModelUtils.createPropertyReferenceListType("defaultUserTemplate"), result, false);
 			configResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			configResult.recordFatalError("Couldn't get system configuration.", ex);
@@ -978,12 +988,12 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T extends ObjectType> void modifyProvisioningObjectWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result, T object) throws ObjectNotFoundException, SchemaException,
-			CommunicationException {
+	private <T extends ObjectType> void modifyProvisioningObjectWithExclusion(ObjectModificationType change,
+			String accountOid, OperationResult result, T object) throws ObjectNotFoundException,
+			SchemaException, CommunicationException {
 		if (object instanceof ResourceObjectShadowType) {
-			object = (T) getObject(ResourceObjectShadowType.class, object.getOid(), new PropertyReferenceListType(), result,
-					true);
+			object = (T) getObject(ResourceObjectShadowType.class, object.getOid(),
+					new PropertyReferenceListType(), result, true);
 
 			UserType user = null;
 			try {
@@ -1160,8 +1170,9 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@SuppressWarnings("unchecked")
-	private <T extends ObjectType> void modifyRepositoryObjectWithExclusion(ObjectModificationType change, String accountOid,
-			OperationResult result, T object) throws ObjectNotFoundException, SchemaException {
+	private <T extends ObjectType> void modifyRepositoryObjectWithExclusion(ObjectModificationType change,
+			String accountOid, OperationResult result, T object) throws ObjectNotFoundException,
+			SchemaException {
 		if (object instanceof UserType) {
 			UserType user = (UserType) object;
 			// processing add account
@@ -1204,8 +1215,7 @@ public class ModelControllerImpl implements ModelController {
 
 			try {
 				AccountShadowType account = getObject(AccountShadowType.class, accountRef.getOid(),
-						ModelUtils.createPropertyReferenceListType("Resource"), subResult,
-						true);
+						ModelUtils.createPropertyReferenceListType("Resource"), subResult, true);
 
 				ObjectModificationType accountChange = null;
 				try {
@@ -1303,8 +1313,8 @@ public class ModelControllerImpl implements ModelController {
 			addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
 			try {
 				ObjectReferenceType resourceRef = construction.getResourceRef();
-				ResourceType resource = getObject(ResourceType.class, resourceRef.getOid(), new PropertyReferenceListType(),
-						subResult, true);
+				ResourceType resource = getObject(ResourceType.class, resourceRef.getOid(),
+						new PropertyReferenceListType(), subResult, true);
 
 				AccountType accountType = ModelUtils.getAccountTypeFromHandling(construction.getType(),
 						resource);
