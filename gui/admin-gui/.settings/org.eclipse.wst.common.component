@@ -4,14 +4,15 @@
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
         <wb-resource deploy-path="/" source-path="/src/main/webapp"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
+        <wb-resource deploy-path="/WEB-INF/lib/icf-connectors/" source-path="/target/idm/WEB-INF/lib/icf-connectors"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/test/resources"/>
         <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/repo-api/repo-api">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/schema/schema">
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/common/common">
             <dependency-type>uses</dependency-type>
         </dependent-module>
-        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/common/common">
+        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/schema/schema">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/model-api/model-api">
@@ -33,9 +34,6 @@
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/provisioning-impl/provisioning-impl">
-            <dependency-type>uses</dependency-type>
-        </dependent-module>
-        <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/task-impl/task-impl">
             <dependency-type>uses</dependency-type>
         </dependent-module>
         <property name="context-root" value="admin-gui"/>
