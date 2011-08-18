@@ -50,7 +50,6 @@ import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -161,13 +160,9 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 		OperationResult result = new OperationResult(SEARCH);
 		List<UserDto> users = new ArrayList<UserDto>();
 		try {
-			ObjectListType list = getModel().searchObjects(search, paging, result);
-			for (ObjectType object : list.getObject()) {
-				if (!(object instanceof UserType)) {
-					LOGGER.debug("Skipping object {}, is't not user.", object.getName());
-					continue;
-				}
-				UserDto userDto = createObject((UserType) object);
+			List<UserType> list = getModel().searchObjects(UserType.class, search, paging, result);
+			for (UserType user : list) {
+				UserDto userDto = createObject(user);
 				users.add(userDto);
 			}
 		} catch (Exception ex) {

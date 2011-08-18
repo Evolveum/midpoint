@@ -313,18 +313,10 @@ public class ModelControllerImpl implements ModelController {
 		return list;
 	}
 	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.model.api.ModelService#searchObjects(com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType, com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType, com.evolveum.midpoint.common.result.OperationResult)
-	 */
-	@Override
-	public ObjectListType searchObjects(QueryType query, PagingType paging, OperationResult parentResult)
-			throws SchemaException, ObjectNotFoundException {
-		throw new NotImplementedException();
-	}
-	
 	@Override
 	public <T extends ObjectType> List<T>  searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException {
+		//TODO: wtf?		
 		throw new NotImplementedException();
 	}
 
