@@ -32,6 +32,8 @@ import java.util.UUID;
 
 import javax.xml.namespace.QName;
 
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
@@ -110,6 +112,7 @@ public class ResourceManagerImplMock implements ResourceManager {
 		return new ArrayList<ResourceObjectShadowDto<T>>();
 	}
 
+	@Test
 	@Override
 	public OperationResult testConnection(String resourceOid) {
 		throw new UnsupportedOperationException("Not supported yet.");

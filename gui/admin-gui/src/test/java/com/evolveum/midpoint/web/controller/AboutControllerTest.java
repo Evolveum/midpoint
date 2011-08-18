@@ -20,53 +20,52 @@
  */
 package com.evolveum.midpoint.web.controller;
 
+import static org.testng.AssertJUnit.assertNotNull;
+
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.web.controller.AboutController.SystemItem;
-
-import static junit.framework.Assert.*;
 
 /**
  * 
  * @author lazyman
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
 		"classpath:application-context-test.xml",
 		"classpath:application-context-repository-test.xml" })
-public class AboutControllerTest {
+public class AboutControllerTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)
 	AboutController controller;
 
-	@Before
+	@BeforeMethod
 	public void before() {
-		assertNotNull(controller);
+		AssertJUnit.assertNotNull(controller);
 	}
 
 	@Test
 	public void getItems() {
 		List<SystemItem> items = controller.getItems();
-		assertNotNull(items);
-		assertEquals(11, items.size());
+		AssertJUnit.assertNotNull(items);
+		AssertJUnit.assertEquals(11, items.size());
 
 		for (SystemItem item : items) {
-			assertNotNull(item);
+			AssertJUnit.assertNotNull(item);
 			assertNotNull(item.getProperty());
 			assertNotNull(item.getValue());
 
-			assertFalse("".equals(item.getProperty()));
-			assertFalse("".equals(item.getValue()));
+			AssertJUnit.assertFalse("".equals(item.getProperty()));
+			AssertJUnit.assertFalse("".equals(item.getValue()));
 		}
 	}
 }

@@ -20,40 +20,36 @@
  */
 package com.evolveum.midpoint.web.controller;
 
-import static junit.framework.Assert.assertNotNull;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
 
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-
-import static junit.framework.Assert.*;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 /**
  * 
  * @author lazyman
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
 		"classpath:application-context-test.xml",
 		"classpath:application-context-repository-test.xml" })
-public class LoginControllerTest {
+public class LoginControllerTest extends AbstractTestNGSpringContextTests{
 
 	@Autowired(required = true)
 	LoginController controller;
 	
-	@Before
+	@BeforeMethod
 	public void before() {
 		assertNotNull(controller);
 	}
 	
-	@Ignore
 	@Test
 	public void nullUsername() {
 		controller.setUserName(null);

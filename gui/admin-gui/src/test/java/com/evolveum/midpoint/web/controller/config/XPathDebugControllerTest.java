@@ -22,11 +22,10 @@
 
 package com.evolveum.midpoint.web.controller.config;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.web.bean.XPathVariableBean;
 
@@ -34,13 +33,13 @@ import com.evolveum.midpoint.web.bean.XPathVariableBean;
  * 
  * @author Katuska
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
 		"classpath:application-context-test.xml",
 		"classpath:application-context-repository-test.xml" })
-public class XPathDebugControllerTest {
+public class XPathDebugControllerTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired
 	private XPathDebugController xpathController;

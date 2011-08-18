@@ -22,13 +22,12 @@
 
 package com.evolveum.midpoint.web.test;
 
-import static org.junit.Assert.assertNotNull;
+import static org.testng.AssertJUnit.assertNotNull;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.init.InitialDataImport;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -45,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
  * @author Igor Farinic
  * 
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+
 @ContextConfiguration(locations = { 
 		"file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
@@ -56,7 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 //		"classpath:application-context-repository.xml",
 		"classpath:application-context-repository-test.xml"
 		 })
-public class SpringApplicationContextTest {
+public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests  {
 
 	@Autowired(required = true)
 	private ObjectTypeCatalog objectTypeCatalog;

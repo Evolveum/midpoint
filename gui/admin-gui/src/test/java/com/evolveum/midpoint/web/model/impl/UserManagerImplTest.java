@@ -20,42 +20,39 @@
  */
 package com.evolveum.midpoint.web.model.impl;
 
-import static org.junit.Assert.*;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.AssertJUnit;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
-import com.evolveum.midpoint.web.model.UserManager;
 
 /**
  * 
  * @author lazyman
  *
  */
-@RunWith(SpringJUnit4ClassRunner.class)
+
 @ContextConfiguration(locations = { "file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
 		"classpath:application-context-test.xml",
 		"classpath:application-context-repository-test.xml" })
-public class UserManagerImplTest {
+public class UserManagerImplTest extends AbstractTestNGSpringContextTests  {
 
 	private static final Trace LOGGER = TraceManager.getTrace(UserManagerImplTest.class);
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog catalog;
 	
-	@Before
+	@BeforeMethod
 	public void before(){ 
-		assertNotNull(catalog);
-		assertNotNull(ControllerUtil.getUserManager(catalog));
+		AssertJUnit.assertNotNull(catalog);
+		AssertJUnit.assertNotNull(ControllerUtil.getUserManager(catalog));
 	}
 	
 	@Test

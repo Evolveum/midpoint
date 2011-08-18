@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Suite" parallel="none">
+  <test name="Test" preserve-order="false">
+    <classes>
+      <class name="com.evolveum.midpoint.web.test.ResourceManagerImplMock"/>
+      <class name="com.evolveum.midpoint.web.controller.AboutControllerTest"/>
+      <class name="com.evolveum.midpoint.web.security.MidPointAuthenticationProviderTest"/>
+      <class name="com.evolveum.midpoint.web.test.SpringApplicationContextTest"/>
+      <class name="com.evolveum.midpoint.web.model.impl.UserManagerImplTest"/>
+      <class name="com.evolveum.midpoint.web.controller.config.XPathDebugControllerTest"/>
+      <class name="com.evolveum.midpoint.web.controller.LoginControllerTest"/>
+    </classes>
+  </test>
+</suite>
