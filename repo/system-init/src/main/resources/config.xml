@@ -19,6 +19,23 @@
 <!-- Portions Copyrighted 2010 Peter Prochazka               -->
 <!--                                                         -->
 <configuration>
-  <system/>
-  <properties fileName="midpoint.properties"/>
+	<midpoint>
+		<repository>
+			<class>com.evolveum.midpoint.repo.xml</class>
+			<runServer>true</runServer>
+			<embedded>true</embedded> <!-- embedded is applicable only if runServer > true -->
+			<shutdown>true</shutdown>
+			<dropDatabase>false</dropDatabase>
+			<initialDataPath></initialDataPath> <!-- initialDataPath - path containing xmls that should be loaded into DB -->
+			<databaseName>midPoint</databaseName> <!-- database name -->
+			<!-- client connection properties -->
+			<host>localhost</host>
+			<port>1984</port>
+			<username>admin</username>
+			<password>admin</password>
+		</repository>
+		<dir>
+			<icfconnector>icf-connector</icfconnector>
+		</dir>
+	</midpoint>
 </configuration>
