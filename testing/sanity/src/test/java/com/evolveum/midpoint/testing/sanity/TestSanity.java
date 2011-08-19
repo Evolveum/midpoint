@@ -262,7 +262,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 		assertSuccess("testResource has failed", result.getPartialResults().get(0));
 		
 		OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnection");
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
+		resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, resource.getOid());
 		display("Initialized resource",resource);
 		AssertJUnit.assertNotNull("Resource schema was not generated",resource.getSchema());
@@ -357,7 +357,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
 		// Check the "name" property, it should be set to DN, not entryUUID
-		Assert.assertEquals(repoShadow.getName(), USER_JACK_LDAP_DN, "Wrong name property");
+		Assert.assertEquals(repoShadow.getName().toLowerCase(), USER_JACK_LDAP_DN.toLowerCase(), "Wrong name property");
 		
 		// check attributes in the shadow: should be only identifiers (ICF UID)
 		String uid = null;

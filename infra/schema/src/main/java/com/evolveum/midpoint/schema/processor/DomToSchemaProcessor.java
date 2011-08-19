@@ -25,6 +25,7 @@ import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ACCESS
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ACCOUNT_TYPE;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ATTRIBUTE_DISPLAY_NAME;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_DESCRIPTION_ATTRIBUTE;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_NAMING_ATTRIBUTE;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_DISPLAY_NAME;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_HELP;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_IDENTIFIER;
@@ -196,6 +197,11 @@ class DomToSchemaProcessor {
 				document, objectClass);
 		if (attrDefinition != null) {
 			objectClass.setDisplayNameAttribute(attrDefinition);
+		}
+		// namingAttribute
+		attrDefinition = getAnnotationReference(annotation, A_NAMING_ATTRIBUTE, document, objectClass);
+		if (attrDefinition != null) {
+			objectClass.setNamingAttribute(attrDefinition);
 		}
 		// descriptionAttribute
 		attrDefinition = getAnnotationReference(annotation, A_DESCRIPTION_ATTRIBUTE, document, objectClass);

@@ -25,6 +25,7 @@ import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ACCOUN
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ATTRIBUTE_DISPLAY_NAME;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ATTR_DEFAULT;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_DESCRIPTION_ATTRIBUTE;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_NAMING_ATTRIBUTE;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_DISPLAY_NAME;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_HELP;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_IDENTIFIER;
@@ -200,6 +201,10 @@ class SchemaToDomProcessor {
 		if (definition.getDescriptionAttribute() != null) {
 			appinfo.appendChild(createRefAnnotation(A_DESCRIPTION_ATTRIBUTE, createPrefixedValue(definition
 					.getDescriptionAttribute().getName()), document));
+		}
+		if (definition.getNamingAttribute() != null) {
+			appinfo.appendChild(createRefAnnotation(A_NAMING_ATTRIBUTE, createPrefixedValue(definition
+					.getNamingAttribute().getName()), document));
 		}
 		// TODO: what to do with native object class, composite
 		// // nativeObjectClass

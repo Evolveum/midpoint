@@ -43,6 +43,8 @@ final class ProcessorConstants {
 
 	static final QName A_DESCRIPTION_ATTRIBUTE = new QName(SchemaConstants.NS_RESOURCE,
 			"descriptionAttribute");
+	
+	static final QName A_NAMING_ATTRIBUTE = new QName(SchemaConstants.NS_RESOURCE,"namingAttribute");
 
 	static final QName A_NATIVE_ATTRIBUTE_NAME = new QName(SchemaConstants.NS_RESOURCE, "nativeAttributeName");
 

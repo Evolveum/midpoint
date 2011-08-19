@@ -21,6 +21,8 @@
 package com.evolveum.midpoint.model.importer;
 
 import org.testng.annotations.Test;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
@@ -89,7 +91,7 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 
 	}
 
-	@Test
+	@Test(enabled = false)
 	public void test001BadImport() throws FileNotFoundException, SchemaException {
 		displayTestTile(this,"test001BadImport");
 		// GIVEN
@@ -107,9 +109,9 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 		// Jack is OK in the import file, he should be imported
 		try {
 			UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
-			Assert.assertNotNull(jack, "Jack is null");
+			AssertJUnit.assertNotNull(jack, "Jack is null");
 		} catch (ObjectNotFoundException e) {
-			Assert.fail("Jack was not imported",e);
+			AssertJUnit.fail("Jack was not imported",e);
 		}
 		
 		List<UserType> users = repositoryService.listObjects(UserType.class, null, result);
