@@ -50,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAddition
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 
@@ -59,8 +60,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSitua
  * 
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml", 
-		"classpath:application-context-task.xml" })
+		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
 public class AddAccountActionTest extends BaseActionTest {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/account");
@@ -107,7 +107,7 @@ public class AddAccountActionTest extends BaseActionTest {
 				new ObjectAlreadyExistsException("resource object shadow not found."));
 		assertNotNull(change.getResource());
 		when(
-				provisioning.getObject(eq(change.getResource().getOid()),
+				provisioning.getObject(eq(ResourceType.class), eq(change.getResource().getOid()),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
 				change.getResource());
 
@@ -145,7 +145,7 @@ public class AddAccountActionTest extends BaseActionTest {
 		});
 		assertNotNull(change.getResource());
 		when(
-				provisioning.getObject(eq(change.getResource().getOid()),
+				provisioning.getObject(eq(ResourceType.class), eq(change.getResource().getOid()),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
 				change.getResource());
 
