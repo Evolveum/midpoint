@@ -1282,9 +1282,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		
 		if (ConnectorFactoryIcfImpl.ICFS_UID.equals(attrQName)) {
-			// This should never happen. UID is not an attribute
-			throw new SchemaException("Requested mapping for UID (QName " + attrQName
-					+ ") which is not an attribute. This is most likely a product bug.");
+			// UID is strictly speaking not an attribute. But it acts as an
+			// attribute e.g. in create operation. Therefore we need to map it.
+			return Uid.NAME;
 		}
 
 		// No mapping available
