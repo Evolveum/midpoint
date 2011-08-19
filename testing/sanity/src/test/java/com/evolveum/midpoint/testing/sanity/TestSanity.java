@@ -175,12 +175,14 @@ public class TestSanity extends AbstractIntegrationTest  {
 	// This will get called from the superclass to init the repository
 	// It will be called only once
 	public void initSystem() throws Exception {
-		
+		LOGGER.trace("initSystem");
 		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
 		
 		OperationResult result = new OperationResult("initSystem");
 		// This should discover the connectors
+		LOGGER.trace("initSystem: trying modelService.postInit()");
 		modelService.postInit(result);
+		LOGGER.trace("initSystem: modelService.postInit() done");
 		
 		// Need to import instead of add, so the (dynamic) connector reference will be resolved
 		// correctly
@@ -920,6 +922,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 	 * @throws FileNotFoundException 
 	 */
 	private void importObjectFromFile(String filename,OperationResult result) throws FileNotFoundException {
+		LOGGER.trace("importObjectFromFile: {}",filename);
 		Task task = taskManager.createTaskInstance();
 		FileInputStream stream = new FileInputStream(filename);
 		modelService.importObjectsFromStream(stream, task, false, result);

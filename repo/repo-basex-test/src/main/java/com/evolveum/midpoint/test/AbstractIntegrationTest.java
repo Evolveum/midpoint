@@ -38,6 +38,8 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import com.evolveum.midpoint.test.ldap.OpenDJUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -48,6 +50,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
  *
  */
 public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
+	
+	private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
 	
 	/**
 	 * Utility to control embedded OpenDJ instance (start/stop)
@@ -82,7 +86,9 @@ public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
 	// @BeforeClass won't work either.
 	@BeforeTest
 	public void initSystemConditional() throws Exception {
+		LOGGER.trace("initSystemConditional: systemInitialized={}",systemInitialized);
 		if (!systemInitialized) {
+			LOGGER.trace("initSystemConditional: invoking initSystem");
 			initSystem();
 			systemInitialized = true;
 		}
@@ -91,14 +97,15 @@ public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
 	abstract public void initSystem() throws Exception;
 	
 	protected ObjectType addObjectFromFile(String filePath) throws Exception {
+		LOGGER.trace("addObjectFromFile: {}",filePath);
 		ObjectType object = unmarshallJaxbFromFile(filePath, ObjectType.class);
 		System.out.println("obj: " + object.getName());
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName() + ".addObjectFromFile");
 		if (object instanceof TaskType) {
-			Assert.assertNotNull(taskManager);
+			Assert.assertNotNull(taskManager,"Task manager is not initialized");
 			taskManager.addTask((TaskType)object, result);
 		} else {
-			Assert.assertNotNull(repositoryService);
+			Assert.assertNotNull(repositoryService,"Repository service is not initialized");
 			repositoryService.addObject(object, result);
 		}
 		return object;
