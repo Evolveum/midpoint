@@ -228,9 +228,6 @@ public class TestSanity extends AbstractIntegrationTest  {
 		OperationResult result = new OperationResult(TestSanity.class.getName() + ".test000Integrity");
 		ResourceType resource = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, resource.getOid());
-		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, result);
-		AssertJUnit.assertTrue(object instanceof ResourceType);
-		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
 
 		// TODO: test if OpenDJ is running
 	}
@@ -265,10 +262,8 @@ public class TestSanity extends AbstractIntegrationTest  {
 		assertSuccess("testResource has failed", result.getPartialResults().get(0));
 		
 		OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnection");
-		ObjectType object = repositoryService.getObject(RESOURCE_OPENDJ_OID, null, opResult);
-		AssertJUnit.assertTrue(object instanceof ResourceType);
-		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, object.getOid());
-		resource = (ResourceType)object;
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, resource.getOid());
 		display("Initialized resource",resource);
 		AssertJUnit.assertNotNull("Resource schema was not generated",resource.getSchema());
 		AssertJUnit.assertFalse("Resource schema was not generated",resource.getSchema().getAny().isEmpty());
@@ -303,11 +298,10 @@ public class TestSanity extends AbstractIntegrationTest  {
 		OperationResult repoResult = new OperationResult("getObject");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-		ObjectType repoObject = repositoryService.getObject(oid, resolve, repoResult);
-
+		UserType repoUser = repositoryService.getObject(UserType.class, oid, resolve, repoResult);
+		
 		assertSuccess("getObject has failed", repoResult);
-		AssertJUnit.assertEquals(USER_JACK_OID, repoObject.getOid());
-		UserType repoUser = (UserType) repoObject;
+		AssertJUnit.assertEquals(USER_JACK_OID, repoUser.getOid());
 		AssertJUnit.assertEquals(user.getFullName(), repoUser.getFullName());
 
 		// TODO: better checks
@@ -342,8 +336,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 		OperationResult repoResult = new OperationResult("getObject");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-		ObjectType repoObject = repositoryService.getObject(USER_JACK_OID, resolve, repoResult);
-		UserType repoUser = (UserType) repoObject;
+		UserType repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
 
 		displayJaxb("User (repository)", repoUser, new QName("user"));
 
@@ -364,7 +357,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
 		// Check the "name" property, it should be set to DN, not entryUUID
-		Assert.assertEquals("Wrong name property",USER_JACK_LDAP_DN,repoShadow.getName());
+		Assert.assertEquals(repoShadow.getName(), USER_JACK_LDAP_DN, "Wrong name property");
 		
 		// check attributes in the shadow: should be only identifiers (ICF UID)
 		String uid = null;

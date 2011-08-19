@@ -127,7 +127,9 @@ public class ModelControllerImpl implements ModelController {
 			ObjectNotFoundException {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
-		Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
+		if (!(object instanceof ResourceObjectShadowType)) {
+			Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
+		}
 		LOGGER.debug("Adding object {} with oid {} and name {}.", new Object[] {
 				object.getClass().getSimpleName(), object.getOid(), object.getName() });
 		if (LOGGER.isTraceEnabled()) {

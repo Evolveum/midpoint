@@ -29,6 +29,7 @@
 			<class name="com.evolveum.midpoint.model.filter.PatternFilterTest" />
 			<class name="com.evolveum.midpoint.model.importer.ImportRefTest" />
 			<class name="com.evolveum.midpoint.model.importer.ImportTest" />
+			<class name="com.evolveum.midpoint.model.importer.BadImportTest" />
 			<class name="com.evolveum.midpoint.model.integration.AddUserActionTest" />
 			<class name="com.evolveum.midpoint.model.integration.DeleteAccountActionTest" />
 			<class name="com.evolveum.midpoint.model.integration.LinkAccountActionTest" />

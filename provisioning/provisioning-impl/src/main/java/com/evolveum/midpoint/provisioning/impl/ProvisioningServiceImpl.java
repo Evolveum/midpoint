@@ -271,33 +271,35 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS,
 				ProvisioningServiceImpl.class);
-
-		String addedShadow = null;
-
-		try {
-			//calling shadow cache to add object
-			addedShadow = getShadowCache().addShadow(object, scripts, null,
-					parentResult);
-			LOGGER.trace("**PROVISIONING: Added shadow object {}",
-					JAXBUtil.silentMarshalWrap(addedShadow));
-			result.recordSuccess();
-		} catch (GenericFrameworkException ex) {
-			LOGGER.error("**PROVISIONING: Can't add object {}. Reason {}",
-					object, ex);
-			result.recordFatalError(
-					"Failed to add shadow object: " + ex.getMessage(), ex);
-			throw new CommunicationException(ex.getMessage(), ex);
-		} catch (SchemaException ex){
-			LOGGER.error("**PROVISIONING: Couldn't add object. Reason: {}", ex.getMessage(), ex);
-			result.recordFatalError("Couldn't add object. Reason: " + ex.getMessage(), ex);
-			throw new SchemaException("Couldn't add object. Reason: " + ex.getMessage(), ex);
-		} catch (ObjectAlreadyExistsException ex){
-			result.recordFatalError("Could't add object. Object already exist, " + ex.getMessage(), ex);
-			throw new ObjectAlreadyExistsException("Could't add object. Object already exist, " + ex.getMessage(), ex);
+		
+		String oid = null;
+		if (object instanceof ResourceObjectShadowType) {	
+			try {
+				//calling shadow cache to add object
+				oid = getShadowCache().addShadow((ResourceObjectShadowType)object, scripts, null,
+						parentResult);
+				LOGGER.trace("**PROVISIONING: Added shadow object {}",oid);
+				result.recordSuccess();
+			} catch (GenericFrameworkException ex) {
+				LOGGER.error("**PROVISIONING: Can't add object {}. Reason {}",
+						object, ex);
+				result.recordFatalError(
+						"Failed to add shadow object: " + ex.getMessage(), ex);
+				throw new CommunicationException(ex.getMessage(), ex);
+			} catch (SchemaException ex){
+				LOGGER.error("**PROVISIONING: Couldn't add object. Reason: {}", ex.getMessage(), ex);
+				result.recordFatalError("Couldn't add object. Reason: " + ex.getMessage(), ex);
+				throw new SchemaException("Couldn't add object. Reason: " + ex.getMessage(), ex);
+			} catch (ObjectAlreadyExistsException ex){
+				result.recordFatalError("Could't add object. Object already exist, " + ex.getMessage(), ex);
+				throw new ObjectAlreadyExistsException("Could't add object. Object already exist, " + ex.getMessage(), ex);
+			}
+		} else {
+			oid = repositoryService.addObject(object, result);
 		}
 
 		LOGGER.debug("**PROVISIONING: Adding object finished.");
-		return addedShadow;
+		return oid;
 	}
 
 	@Override

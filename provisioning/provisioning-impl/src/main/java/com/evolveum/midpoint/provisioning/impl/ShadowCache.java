@@ -219,8 +219,8 @@ public class ShadowCache {
 		// for accessing the object by UCF.
 		// Later, the repository object may have a fully cached object from.
 		if (repositoryShadow == null) {
-			repositoryShadow = (ResourceObjectShadowType) getRepositoryService()
-					.getObject(oid, null, parentResult);
+			repositoryShadow = getRepositoryService()
+					.getObject(ResourceObjectShadowType.class, oid, null, parentResult);
 			LOGGER.debug("Found shadow object: {}",
 					JAXBUtil.silentMarshalWrap(repositoryShadow));
 		}
@@ -492,98 +492,76 @@ public class ShadowCache {
 		parentResult.recordSuccess();
 	}
 
-	public String addShadow(ObjectType object, ScriptsType scripts,
+	public String addShadow(ResourceObjectShadowType shadow, ScriptsType scripts,
 			ResourceType resource, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException,
 			ObjectAlreadyExistsException, SchemaException,
 			ObjectNotFoundException {
 
-		Validate.notNull(object, "Object to add must not be null.");
+		Validate.notNull(shadow, "Object to add must not be null.");
 
 		LOGGER.debug("Start adding shadow object {}.",
-				JAXBUtil.silentMarshalWrap(object));
+				JAXBUtil.silentMarshalWrap(shadow));
 
-		if (object instanceof AccountShadowType) {
-
-			AccountShadowType resourceObjectShadow = (AccountShadowType) object;
-
-			if (resource == null) {
-				resource = getResource(
-						ResourceObjectShadowUtil
-								.getResourceOid(resourceObjectShadow),
-						parentResult);
-			}
-
-			ConnectorInstance connector = getConnectorInstance(resource,
+		if (resource == null) {
+			resource = getResource(
+					ResourceObjectShadowUtil
+							.getResourceOid(shadow),
 					parentResult);
-			Schema schema = getResourceSchema(resource, connector, parentResult);
-
-			// convert xml attributes to ResourceObject
-			ResourceObject resourceObject = convertFromXml(
-					resourceObjectShadow, schema, parentResult);
-			String result = null;
-			Set<ResourceObjectAttribute> resourceAttributes = null;
-			// add object using connector, setting new properties to the
-			// resourceObject
-
-			try {
-				Set<Operation> scriptOperations = null;
-
-				scriptOperations = createExecuteScriptOperation(
-						OperationTypeType.ADD, scripts, parentResult);
-
-				resourceAttributes = connector.addObject(resourceObject,
-						scriptOperations, parentResult);
-
-				LOGGER.debug("Added object: {}",
-						DebugUtil.prettyPrint(resourceAttributes));
-				resourceObject.getProperties().addAll(resourceAttributes);
-			} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
-				parentResult.recordFatalError(
-						"Error communitacing with the connector " + connector
-								+ ": " + ex.getMessage(), ex);
-				throw new CommunicationException(
-						"Error communitacing with the connector " + connector
-								+ ": " + ex.getMessage(), ex);
-			} catch (GenericFrameworkException ex) {
-				parentResult.recordFatalError("Generic error in connector: "
-						+ ex.getMessage(), ex);
-				throw new GenericConnectorException(
-						"Generic error in connector: " + ex.getMessage(), ex);
-			}
-
-			// create account shadow from resource object identifiers. This
-			// account shadow consisted
-			// of the identifiers added to the repo
-			LOGGER.debug("Setting identifier of added obejct to the repository object");
-
-			resourceObjectShadow = (AccountShadowType) createResourceShadow(
-					resourceObject.getIdentifiers(), resourceObjectShadow);
-
-			if (resourceObjectShadow == null) {
-				parentResult
-						.recordFatalError("Error while creating account shadow object to save in the reposiotory. AccountShadow is null.");
-				throw new IllegalStateException(
-						"Error while creating account shadow object to save in the reposiotory. AccountShadow is null.");
-			}
-			LOGGER.debug("Adding object with identifiers to the repository.");
-
-			try {
-				result = getRepositoryService().addObject(resourceObjectShadow,
-						parentResult);
-			} catch (ObjectAlreadyExistsException ex) {
-				parentResult
-						.recordFatalError(
-								"Can't add shadow object to the repository. Shadow object already exist. Reason: "
-										+ ex.getMessage(), ex);
-				throw new ObjectAlreadyExistsException(
-						"Can't add shadow object to the repository. Shadow object already exist. Reason: "
-								+ ex.getMessage(), ex);
-			}
-			parentResult.recordSuccess();
-			return result;
 		}
-		return null;
+
+		ConnectorInstance connector = getConnectorInstance(resource,
+				parentResult);
+		Schema schema = getResourceSchema(resource, connector, parentResult);
+
+		// convert xml attributes to ResourceObject
+		ResourceObject resourceObject = convertResourceObjectFromXml(
+				shadow, schema, parentResult);
+
+		Set<ResourceObjectAttribute> resourceAttributes = null;
+		// add object using connector, setting new properties to the
+		// resourceObject
+
+		try {
+			Set<Operation> scriptOperations = null;
+
+			scriptOperations = createExecuteScriptOperation(
+					OperationTypeType.ADD, scripts, parentResult);
+
+			resourceAttributes = connector.addObject(resourceObject,
+					scriptOperations, parentResult);
+
+			LOGGER.debug("Added object: {}",
+					DebugUtil.prettyPrint(resourceAttributes));
+			resourceObject.getProperties().addAll(resourceAttributes);
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+			parentResult.recordFatalError(
+					"Error communitacing with the connector " + connector
+							+ ": " + ex.getMessage(), ex);
+			throw new CommunicationException(
+					"Error communitacing with the connector " + connector
+							+ ": " + ex.getMessage(), ex);
+		} catch (GenericFrameworkException ex) {
+			parentResult.recordFatalError("Generic error in connector: "
+					+ ex.getMessage(), ex);
+			throw new GenericConnectorException(
+					"Generic error in connector: " + ex.getMessage(), ex);
+		}
+
+		shadow = createShadow(resourceObject, resource, shadow);
+
+		if (shadow == null) {
+			parentResult
+					.recordFatalError("Error while creating account shadow object to save in the reposiotory. AccountShadow is null.");
+			throw new IllegalStateException(
+					"Error while creating account shadow object to save in the reposiotory. AccountShadow is null.");
+		}
+		LOGGER.debug("Adding object with identifiers to the repository.");
+
+		addShadowToRepository(shadow, resourceObject, parentResult);
+				
+		parentResult.recordSuccess();
+		return shadow.getOid();
 
 	}
 
@@ -942,8 +920,14 @@ public class ShadowCache {
 						// repository
 						// we need to create the shadow to align repo state to
 						// the reality (resource)
-						shadow = createResourceShadow(object, resourceType,
-								parentResult);
+						shadow = createShadow(object, resourceType, null);
+						try {
+							addShadowToRepository(shadow, object, parentResult);
+						} catch (ObjectAlreadyExistsException e) {
+							// This should not happen. We haven't supplied an OID so is should not conflict
+							LOGGER.error("Unexpected repository behavior: Object already exists: {}",e.getMessage(),e);
+							// but still go on ...
+						}
 
 						// And notify about the change we have discovered (if
 						// requested to do so)
@@ -1062,9 +1046,9 @@ public class ShadowCache {
 
 			for (Change change : changes) {
 				// search objects in repository
-				AccountShadowType newAccount = findOrCreateAccount(connector,
+				ResourceObjectShadowType newShadow = findOrCreateShadowFromChange(connector,
 						resourceType, change, parentResult);
-				change.setOldShadow(newAccount);
+				change.setOldShadow(newShadow);
 			}
 		} catch (SchemaException ex) {
 			parentResult.recordFatalError("Schema error: " + ex.getMessage(),
@@ -1090,7 +1074,7 @@ public class ShadowCache {
 		return changes;
 	}
 
-	private AccountShadowType findOrCreateAccount(ConnectorInstance connector,
+	private ResourceObjectShadowType findOrCreateShadowFromChange(ConnectorInstance connector,
 			ResourceType resource, Change change, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException {
@@ -1107,39 +1091,39 @@ public class ShadowCache {
 							+ change.getIdentifiers() + ".");
 		}
 
-		AccountShadowType newAccount = null;
+		ResourceObjectShadowType newShadow = null;
 		// if object doesn't exist, create it now
 		if (accountList.isEmpty()) {
 
 			if (!(change.getChange() instanceof ObjectChangeDeletionType)) {
-				newAccount = createNewAccount(change, resource, connector,
+				newShadow = createNewAccountFromChange(change, resource, connector,
 						parentResult);
 				LOGGER.debug("Create account shadow object: {}",
-						ObjectTypeUtil.toShortString(newAccount));
+						ObjectTypeUtil.toShortString(newShadow));
 			}
 			// if exist, set the old shadow to the change
 		} else {
-			newAccount = accountList.get(0);
+			newShadow = accountList.get(0);
 			// if the fetched change was one of the deletion type, delete
 			// corresponding account from repo now
 			if (change.getChange() instanceof ObjectChangeDeletionType) {
 				try {
 					getRepositoryService().deleteObject(AccountShadowType.class, 
-							newAccount.getOid(), parentResult);
+							newShadow.getOid(), parentResult);
 				} catch (ObjectNotFoundException ex) {
 					parentResult.recordFatalError(
-							"Object with oid " + newAccount.getOid()
+							"Object with oid " + newShadow.getOid()
 									+ " not found in repo. Reason: "
 									+ ex.getMessage(), ex);
 					throw new ObjectNotFoundException("Object with oid "
-							+ newAccount.getOid()
+							+ newShadow.getOid()
 							+ " not found in repo. Reason: "
 							+ ex.getMessage(), ex);
 				}
 			}
 		}
 
-		return newAccount;
+		return newShadow;
 	}
 
 	private List<AccountShadowType> searchAccountByUid(Set<Property> identifiers,
@@ -1183,16 +1167,19 @@ public class ShadowCache {
 		return accountList;
 	}
 
-	private AccountShadowType createNewAccount(Change change,
-			ResourceType resourceType, ConnectorInstance connector,
+	private ResourceObjectShadowType createNewAccountFromChange(Change change,
+			ResourceType resource, ConnectorInstance connector,
 			OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException,
 			GenericFrameworkException {
 
-		AccountShadowType newAccount = null;
+		ResourceObject resourceObject = fetchResourceObject(
+				change.getIdentifiers(), connector, resource, parentResult);
+		
+		ResourceObjectShadowType shadow = null;
 		try {
-			newAccount = (AccountShadowType) createResourceShadow(
-					change.getIdentifiers(), new AccountShadowType());
+			shadow = createShadow(
+					resourceObject, resource, null);
 		} catch (SchemaException ex) {
 			parentResult
 					.recordFatalError("Can't create account shadow from identifiers: "
@@ -1202,30 +1189,28 @@ public class ShadowCache {
 							+ change.getIdentifiers());
 		}
 		ObjectReferenceType ref = new ObjectReferenceType();
-		ref.setOid(resourceType.getOid());
-		newAccount.setResourceRef(ref);
+		ref.setOid(resource.getOid());
+		shadow.setResourceRef(ref);
 
-		QName objectClass = new QName(resourceType.getNamespace(),
+		QName objectClass = new QName(resource.getNamespace(),
 				"AccountObjectClass");
-		newAccount.setObjectClass(objectClass);
+		shadow.setObjectClass(objectClass);
 
 		// set name for new account
-		ResourceObject resourceObject = fetchResourceObject(
-				change.getIdentifiers(), connector, resourceType, parentResult);
 		String accountName = determineShadowName(resourceObject);
-		newAccount.setName(resourceType.getName() + "-" + accountName);
+		shadow.setName(resource.getName() + "-" + accountName);
 
 		try {
-			getRepositoryService().addObject(newAccount, parentResult);
+			getRepositoryService().addObject(shadow, parentResult);
 		} catch (ObjectAlreadyExistsException e) {
 			parentResult.recordFatalError(
-					"Can't add account " + DebugUtil.prettyPrint(newAccount)
+					"Can't add account " + DebugUtil.prettyPrint(shadow)
 							+ " to the repository. Reason: " + e.getMessage(),
 					e);
 			throw new IllegalStateException(e.getMessage(), e);
 		}
 
-		return newAccount;
+		return shadow;
 	}
 
 	private ResourceObject fetchResourceObject(Set<Property> identifiers,
@@ -1425,7 +1410,7 @@ public class ShadowCache {
 	private ResourceType getResource(String oid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException {
 		// TODO: add some caching
-		return (ResourceType) getRepositoryService().getObject(oid, null,
+		return getRepositoryService().getObject(ResourceType.class, oid, null,
 				parentResult);
 	}
 
@@ -1440,7 +1425,7 @@ public class ShadowCache {
 	 * @throws SchemaException
 	 *             Object class definition was not found
 	 */
-	private ResourceObject convertFromXml(
+	private ResourceObject convertResourceObjectFromXml(
 			ResourceObjectShadowType resourceObjectShadow, Schema schema,
 			OperationResult parentResult) throws SchemaException {
 		QName objectClass = resourceObjectShadow.getObjectClass();
@@ -1482,8 +1467,7 @@ public class ShadowCache {
 	 * @return resourceObjectShadow
 	 * @throws SchemaException
 	 */
-	private ResourceObjectShadowType createResourceShadow(
-			Set<Property> identifiers,
+	private ResourceObjectShadowType createShadow(Set<Property> identifiers,
 			ResourceObjectShadowType resourceObjectShadow)
 			throws SchemaException {
 
@@ -1523,25 +1507,65 @@ public class ShadowCache {
 	 * @return shadow object created in the repository
 	 * @throws SchemaException
 	 */
-	private ResourceObjectShadowType createResourceShadow(
-			ResourceObject resourceObject, ResourceType resource,
-			OperationResult parentResult) throws SchemaException {
+	private ResourceObjectShadowType createShadow(ResourceObject resourceObject, ResourceType resource, ResourceObjectShadowType shadow) throws SchemaException {
 
-		ResourceObjectShadowType shadow = null;
-
-		// Determine correct type for the shadow
-		if (resourceObject.isAccountType()) {
-			shadow = new AccountShadowType();
-		} else {
-			shadow = new ResourceObjectShadowType();
+		if (shadow == null) {
+			// Determine correct type for the shadow
+			if (resourceObject.isAccountType()) {
+				shadow = new AccountShadowType();
+			} else {
+				shadow = new ResourceObjectShadowType();
+			}
 		}
 
-		shadow.setObjectClass(resourceObject.getDefinition().getTypeName());
-		shadow.setName(determineShadowName(resourceObject));
-		shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
-		Attributes attributes = new Attributes();
-		shadow.setAttributes(attributes);
+		if (shadow.getObjectClass()==null) {
+			shadow.setObjectClass(resourceObject.getDefinition().getTypeName());
+		}
+		if (shadow.getName()==null) {
+			shadow.setName(determineShadowName(resourceObject));
+		}
+		if (shadow.getResource()==null) {
+			shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
+		}
+		if (shadow.getAttributes()==null) {
+			Attributes attributes = new Attributes();
+			shadow.setAttributes(attributes);
+		}
+		
+		Document doc = DOMUtil.getDocument();
+		
+		// Add all attributes to the shadow
+		shadow.getAttributes().getAny().clear();
+		for (ResourceObjectAttribute attr : resourceObject.getAttributes()) {
+			try {
+				List<Element> eList = attr.serializeToDom(doc);
+				shadow.getAttributes().getAny().addAll(eList);
+			} catch (SchemaProcessorException e) {
+				throw new SchemaException(
+						"An error occured while serializing attribute " + attr
+								+ " to DOM");
+			}
+		}
+		
+		return shadow;
+	}
+	
+	/*
+	 * 
+	 * Stores only the attributes that need to go to the repository
+	 * 
+	 * ResoureObject is needed to determine the schema and identifier values.
+	 * 
+	 * The OID will be set back to the shadow
+	 * 
+	 */
+	private void addShadowToRepository(ResourceObjectShadowType shadow, ResourceObject resourceObject, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException {
 
+		// Replace original attributes with an empty set
+		Attributes origAttrs = shadow.getAttributes();
+		Attributes repoAttrs = new Attributes();
+		shadow.setAttributes(repoAttrs);
+		
 		Document doc = DOMUtil.getDocument();
 
 		// Add identifiers to the shadow
@@ -1563,32 +1587,18 @@ public class ShadowCache {
 
 			oid = getRepositoryService().addObject(shadow, parentResult);
 
-		} catch (ObjectAlreadyExistsException e) {
+		} catch (ObjectAlreadyExistsException ex) {
 			// This should not happen. The OID is not supplied and it is
 			// generated by the repo
 			// If it happens, it must be a repo bug. Therefore it is safe to
 			// convert to runtime exception
-			LOGGER.error("Unexpected repository behavior: "
-					+ e.getClass().getSimpleName() + ": " + e.getMessage(), e);
-			throw new IllegalStateException("Unexpected repository behavior: "
-					+ e.getClass().getSimpleName() + ": " + e.getMessage());
+			parentResult.recordFatalError("Can't add shadow object to the repository. Shadow object already exist. Reason: "
+							+ ex.getMessage(), ex);
+			throw new ObjectAlreadyExistsException("Can't add shadow object to the repository. Shadow object already exist. Reason: "
+							+ ex.getMessage(), ex);
 		}
 		shadow.setOid(oid);
-
-		// Add all attributes to the shadow
-		shadow.getAttributes().getAny().clear();
-		for (ResourceObjectAttribute attr : resourceObject.getAttributes()) {
-			try {
-				List<Element> eList = attr.serializeToDom(doc);
-				shadow.getAttributes().getAny().addAll(eList);
-			} catch (SchemaProcessorException e) {
-				throw new SchemaException(
-						"An error occured while serializing attribute " + attr
-								+ " to DOM");
-			}
-		}
-
-		return shadow;
+		shadow.setAttributes(origAttrs);
 	}
 
 	private String determineShadowName(ResourceObject resourceObject)
