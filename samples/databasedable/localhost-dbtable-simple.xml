@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+
+
+<!--
+
+This file is an example of Resource definition. It defines an Solaris resource
+using an Identity Connector Framework Solaris connector.
+
+This resource definition contains also definition to enable synchronization and
+especially an expression that is using a lookup of value from an configuration
+object.
+
+-->
+
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+	xmlns:my="http://myself.me/schemas/whatever"
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+
+	<c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee">
+    
+    	<!-- Resource name. It will be displayed in GUI.  -->
+		<c:name>Localhost DBTable</c:name>
+     
+     	<!-- Reference to the ICF DatabaseTable connector. OID is "virtual" for now. -->
+		<connectorRef type="ConnectorType">
+			<and>
+		        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+		        <equal>
+		          <value>
+		              <connectorType>org.identityconnectors.databasetable.DatabaseTableConnector</connectorType>
+		          </value>
+		        </equal>
+		      </and>
+		</connectorRef>
+
+        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
+		<c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee</c:namespace>
+
+        <!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+		<c:configuration
+			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf-1/configuration-1.xsd">
+
+            <!-- Configuration specific for the DBTable connector -->
+			<icscdbtable:configurationProperties>
+				<icscdbtable:port>3306</icscdbtable:port>
+				<icscdbtable:quoting></icscdbtable:quoting>
+				<icscdbtable:host>localhost</icscdbtable:host>
+				<icscdbtable:user>root</icscdbtable:user>
+				<icscdbtable:password>qwe123</icscdbtable:password>
+				<icscdbtable:database>midpoint_tests</icscdbtable:database>
+				<icscdbtable:table>idrepo</icscdbtable:table>
+				<icscdbtable:keyColumn>userId</icscdbtable:keyColumn>
+				<icscdbtable:passwordColumn>password</icscdbtable:passwordColumn>
+				<icscdbtable:jdbcDriver>com.mysql.jdbc.Driver</icscdbtable:jdbcDriver>
+				<icscdbtable:jdbcUrlTemplate>jdbc:mysql://%h:%p/%d</icscdbtable:jdbcUrlTemplate>
+				<icscdbtable:enableEmptyString>false</icscdbtable:enableEmptyString>
+				<icscdbtable:rethrowAllSQLExceptions>true</icscdbtable:rethrowAllSQLExceptions>
+				<icscdbtable:nativeTimestamps>false</icscdbtable:nativeTimestamps>
+				<icscdbtable:allNative>false</icscdbtable:allNative>
+				<icscdbtable:changeLogColumn></icscdbtable:changeLogColumn>
+				<icscdbtable:datasource></icscdbtable:datasource>
+			</icscdbtable:configurationProperties>
+		
+			<!-- Generic ICF configuration -->
+
+
+		</c:configuration>
+
+        <!-- Resource Schema Handling definition.
+             This part defines how the schema defined above will be used by
+             midPoint. It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+        -->
+
+	</c:resource>
+
+
+</c:objects>
