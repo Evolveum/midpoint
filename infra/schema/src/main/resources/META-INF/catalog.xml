@@ -51,4 +51,11 @@
 	
     <system systemId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd"/>
     <system systemId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../xml/ns/experimental/ldap-resource-1.xsd"/>
+    
+    <!-- Bundled standard schemas -->
+    
+    <system systemId="http://www.w3.org/2001/XMLSchema" uri="../xml/ns/standard/XMLSchema.xsd"/>
+    <system systemId="http://www.w3.org/2001/04/xmlenc#" uri="../xml/ns/standard/xenc-schema.xsd"/>
+    <system systemId="http://www.w3.org/2000/09/xmldsig#" uri="../xml/ns/standard/xmldsig-core-schema.xsd"/>
+    
 </catalog>

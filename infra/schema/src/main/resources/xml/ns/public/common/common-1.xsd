@@ -51,7 +51,7 @@
 		</xsd:appinfo>
 	</xsd:annotation>
 	
-	<xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="../../../../../../test/resources/standard/xenc-schema.xsd">
+	<xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="../../standard/xenc-schema.xsd">
 		<xsd:annotation>
 			<xsd:documentation>
 				The XML Encryption schema. Used for "protected" data types (property encryption).
