@@ -213,6 +213,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writer.startElement("span", null);
 		writer.writeAttribute("class", "messages-details-error_button", null);
 		writer.writeAttribute("id", "errorNumber" + errorNum, null);
+		writer.writeAttribute("unselectable", "on", null);
 		StringBuilder script = new StringBuilder();
 		script.append("displayMessageErrorDetails('");
 		script.append("errorNumber" + errorNum);
@@ -235,14 +236,14 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writer.endElement("div");
 		errorNum++;
 
-		writer.endElement("li");
-		writer.endElement("ul");
-
 		if (!result.getSubresults().isEmpty()) {
 			for (OperationResult subResult : result.getSubresults()) {
 				writeOperationResult(subResult, context);
 			}
 		}
+		
+		writer.endElement("li");
+		writer.endElement("ul");
 
 	}
 
@@ -304,6 +305,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 			writer.startElement("span", null);
 			writer.writeAttribute("class", "messages-details-cause_button", null);
 			writer.writeAttribute("id", "causeNumber" + causeNum, null);
+			writer.writeAttribute("unselectable", "on", null);
 			StringBuilder script = new StringBuilder();
 			script.append("displayMessageCauseDetails('");
 			script.append("causeNumber" + causeNum);
