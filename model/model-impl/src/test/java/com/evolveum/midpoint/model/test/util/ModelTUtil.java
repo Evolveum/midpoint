@@ -135,12 +135,13 @@ public class ModelTUtil {
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(file)).getValue();
 			userOidExpected = user.getOid();
 			when(
-					repository.getObject(eq(user.getOid()), any(PropertyReferenceListType.class),
-							any(OperationResult.class))).thenReturn(user);
+					repository.getObject(any(Class.class), eq(user.getOid()),
+							any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+					user);
 		} else {
 			when(
-					repository.getObject(eq(userOid), any(PropertyReferenceListType.class),
-							any(OperationResult.class))).thenThrow(
+					repository.getObject(any(Class.class), eq(userOid),
+							any(PropertyReferenceListType.class), any(OperationResult.class))).thenThrow(
 					new ObjectNotFoundException("user not found."));
 		}
 

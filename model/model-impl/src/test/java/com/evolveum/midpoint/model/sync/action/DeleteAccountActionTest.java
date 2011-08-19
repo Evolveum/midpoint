@@ -20,12 +20,11 @@
  */
 package com.evolveum.midpoint.model.sync.action;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.*;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.File;
 
@@ -33,6 +32,8 @@ import javax.xml.bind.JAXBElement;
 
 import org.mockito.Mockito;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAddition
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 
@@ -75,7 +77,7 @@ public class DeleteAccountActionTest extends BaseActionTest {
 		String shadowOid = addition.getObject().getOid();
 
 		when(
-				repository.getObject(eq(shadowOid), any(PropertyReferenceListType.class),
+				repository.getObject(any(Class.class), eq(shadowOid), any(PropertyReferenceListType.class),
 						any(OperationResult.class))).thenThrow(
 				new ObjectNotFoundException("resource object shadow not found."));
 
@@ -101,7 +103,7 @@ public class DeleteAccountActionTest extends BaseActionTest {
 		String shadowOid = addition.getObject().getOid();
 
 		when(
-				repository.getObject(eq(shadowOid), any(PropertyReferenceListType.class),
+				repository.getObject(any(Class.class), eq(shadowOid), any(PropertyReferenceListType.class),
 						any(OperationResult.class))).thenReturn(addition.getObject());
 
 		OperationResult result = new OperationResult("Delete Account Action Test");
@@ -125,13 +127,14 @@ public class DeleteAccountActionTest extends BaseActionTest {
 		String shadowOid = addition.getObject().getOid();
 
 		when(
-				repository.getObject(eq(shadowOid), any(PropertyReferenceListType.class),
+				repository.getObject(any(Class.class), eq(shadowOid), any(PropertyReferenceListType.class),
 						any(OperationResult.class))).thenReturn(addition.getObject());
 		when(
-				repository.getObject(eq("c0c010c0-d34d-b44f-f11d-333222111111"), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(change.getResource());
-		when(							  
-				provisioning.getObject(eq("c0c010c0-d34d-b44f-f11d-333222111111"),
+				repository.getObject(any(Class.class), eq("c0c010c0-d34d-b44f-f11d-333222111111"),
+						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+				change.getResource());
+		when(
+				provisioning.getObject(any(Class.class), eq("c0c010c0-d34d-b44f-f11d-333222111111"),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
 				change.getResource());
 

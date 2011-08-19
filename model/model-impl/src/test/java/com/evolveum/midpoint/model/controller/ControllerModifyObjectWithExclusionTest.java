@@ -128,11 +128,11 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 				repository.getObject(any(Class.class), eq(object.getOid()),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(object);
 		when(
-				repository.getObject(eq(AccountShadowType.class), eq(account.getOid()),
+				repository.getObject(any(Class.class), eq(account.getOid()),
 						any(PropertyReferenceListType.class), any(OperationResult.class)))
 				.thenReturn(account);
 		when(
-				provisioning.getObject(eq(AccountShadowType.class), eq(account.getOid()),
+				provisioning.getObject(any(Class.class), eq(account.getOid()),
 						any(PropertyReferenceListType.class), any(OperationResult.class)))
 				.thenReturn(account);
 		when(

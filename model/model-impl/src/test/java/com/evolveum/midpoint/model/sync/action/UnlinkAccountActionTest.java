@@ -61,6 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
@@ -89,7 +90,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 
 		String userOid = "1";
 		when(
-				repository.getObject(eq(userOid), any(PropertyReferenceListType.class),
+				repository.getObject(eq(UserType.class), eq(userOid), any(PropertyReferenceListType.class),
 						any(OperationResult.class))).thenThrow(new ObjectNotFoundException("user not found"));
 
 		try {
@@ -118,7 +119,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 			LOGGER.debug(result.dump());
 		}
 
-		verify(repository, times(0)).modifyObject(any(Class.class),any(ObjectModificationType.class),
+		verify(repository, times(0)).modifyObject(any(Class.class), any(ObjectModificationType.class),
 				any(OperationResult.class));
 	}
 
@@ -132,32 +133,36 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 		final String shadowOid = change.getShadow().getOid();
 
 		final String userOid = ModelTUtil.mockUser(repository, new File(TEST_FOLDER, "user.xml"), null);
-		doNothing().doAnswer(new Answer<Void>() {
+		doNothing()
+				.doAnswer(new Answer<Void>() {
 
-			@Override
-			public Void answer(InvocationOnMock invocation) throws Throwable {
-				ObjectModificationType change = (ObjectModificationType) invocation.getArguments()[0];
-				assertNotNull(change);
-				assertEquals(userOid, change.getOid());
-				assertEquals(1, change.getPropertyModification().size());
+					@Override
+					public Void answer(InvocationOnMock invocation) throws Throwable {
+						ObjectModificationType change = (ObjectModificationType) invocation.getArguments()[0];
+						assertNotNull(change);
+						assertEquals(userOid, change.getOid());
+						assertEquals(1, change.getPropertyModification().size());
 
-				PropertyModificationType modification = change.getPropertyModification().get(0);
-				assertNotNull(modification.getValue());
-				assertEquals(1, modification.getValue().getAny().size());
-				assertEquals(modification.getModificationType(), PropertyModificationTypeType.delete);
+						PropertyModificationType modification = change.getPropertyModification().get(0);
+						assertNotNull(modification.getValue());
+						assertEquals(1, modification.getValue().getAny().size());
+						assertEquals(modification.getModificationType(), PropertyModificationTypeType.delete);
 
-				Element element = modification.getValue().getAny().get(0);
+						Element element = modification.getValue().getAny().get(0);
 
-				ObjectReferenceType accountRef = new ObjectReferenceType();
-				accountRef.setOid(shadowOid);
-				accountRef.setType(ObjectTypes.ACCOUNT.getTypeQName());
+						ObjectReferenceType accountRef = new ObjectReferenceType();
+						accountRef.setOid(shadowOid);
+						accountRef.setType(ObjectTypes.ACCOUNT.getTypeQName());
 
-				XmlAsserts.assertPatch(JAXBUtil.marshalWrap(accountRef, SchemaConstants.I_ACCOUNT_REF),
-						DOMUtil.printDom(element).toString());
+						XmlAsserts.assertPatch(JAXBUtil
+								.marshalWrap(accountRef, SchemaConstants.I_ACCOUNT_REF),
+								DOMUtil.printDom(element).toString());
 
-				return null;
-			}
-		}).when(repository).modifyObject(any(Class.class),any(ObjectModificationType.class), any(OperationResult.class));
+						return null;
+					}
+				})
+				.when(repository)
+				.modifyObject(any(Class.class), any(ObjectModificationType.class), any(OperationResult.class));
 
 		try {
 			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
@@ -167,7 +172,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 			LOGGER.debug(result.dump());
 		}
 
-		verify(repository, times(1)).modifyObject(any(Class.class),any(ObjectModificationType.class),
+		verify(repository, times(1)).modifyObject(any(Class.class), any(ObjectModificationType.class),
 				any(OperationResult.class));
 	}
 }
