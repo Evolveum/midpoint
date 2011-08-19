@@ -84,7 +84,7 @@ public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
 	// not work
 	// directly. We also need to init the repo after spring autowire is done, so
 	// @BeforeClass won't work either.
-	@BeforeTest
+	@BeforeMethod
 	public void initSystemConditional() throws Exception {
 		LOGGER.trace("initSystemConditional: systemInitialized={}",systemInitialized);
 		if (!systemInitialized) {
