@@ -94,44 +94,48 @@ public class ControllerAddUserTest extends AbstractTestNGSpringContextTests {
 	public void addUserWithSimpleTemplate() throws Exception {
 		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "empty-user.xml")))
 				.getValue();
-		UserTemplateType userTemplate = ((JAXBElement<UserTemplateType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-				"user-template.xml"))).getValue();
-		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "resource.xml")))
-				.getValue();
+		UserTemplateType userTemplate = ((JAXBElement<UserTemplateType>) JAXBUtil.unmarshal(new File(
+				TEST_FOLDER, "user-template.xml"))).getValue();
+		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"resource.xml"))).getValue();
 
 		final String userOid = "10000000-0000-0000-0000-000000000001";
 		final String resourceOid = "10000000-0000-0000-0000-000000000003";
 		final String accountOid = "10000000-0000-0000-0000-000000000004";
 
-		when(provisioning.getObject(eq(resourceOid), any(PropertyReferenceListType.class), any(OperationResult.class)))
-				.thenReturn(resource);
-		when(provisioning.addObject(any(AccountShadowType.class), any(ScriptsType.class), any(OperationResult.class)))
-				.thenAnswer(new Answer<String>() {
-					@Override
-					public String answer(InvocationOnMock invocation) throws Throwable {
-						AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];
-						AccountShadowType expectedAccount = ((JAXBElement<AccountShadowType>) JAXBUtil
-								.unmarshal(new File(TEST_FOLDER, "expected-account.xml"))).getValue();
-
-						XmlAsserts.assertPatch(JAXBUtil.marshalWrap(account, SchemaConstants.I_ACCOUNT_SHADOW_TYPE),
-								JAXBUtil.marshalWrap(expectedAccount, SchemaConstants.I_ACCOUNT_SHADOW_TYPE));
-
-						return accountOid;
-					}
-				});
-		when(repository.addObject(any(UserType.class), any(OperationResult.class))).thenAnswer(new Answer<String>() {
+		when(
+				provisioning.getObject(eq(ResourceType.class), eq(resourceOid),
+						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+				resource);
+		when(
+				provisioning.addObject(any(AccountShadowType.class), any(ScriptsType.class),
+						any(OperationResult.class))).thenAnswer(new Answer<String>() {
 			@Override
 			public String answer(InvocationOnMock invocation) throws Throwable {
-				UserType user = (UserType) invocation.getArguments()[0];
-				UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
-						"expected-user.xml"))).getValue();
+				AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];
+				AccountShadowType expectedAccount = ((JAXBElement<AccountShadowType>) JAXBUtil
+						.unmarshal(new File(TEST_FOLDER, "expected-account.xml"))).getValue();
 
-				XmlAsserts.assertPatch(JAXBUtil.marshalWrap(user, SchemaConstants.I_USER_TYPE),
-						JAXBUtil.marshalWrap(expectedUser, SchemaConstants.I_USER_TYPE));
+				XmlAsserts.assertPatch(JAXBUtil.marshalWrap(account, SchemaConstants.I_ACCOUNT_SHADOW_TYPE),
+						JAXBUtil.marshalWrap(expectedAccount, SchemaConstants.I_ACCOUNT_SHADOW_TYPE));
 
-				return userOid;
+				return accountOid;
 			}
 		});
+		when(repository.addObject(any(UserType.class), any(OperationResult.class))).thenAnswer(
+				new Answer<String>() {
+					@Override
+					public String answer(InvocationOnMock invocation) throws Throwable {
+						UserType user = (UserType) invocation.getArguments()[0];
+						UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+								TEST_FOLDER, "expected-user.xml"))).getValue();
+
+						XmlAsserts.assertPatch(JAXBUtil.marshalWrap(user, SchemaConstants.I_USER_TYPE),
+								JAXBUtil.marshalWrap(expectedUser, SchemaConstants.I_USER_TYPE));
+
+						return userOid;
+					}
+				});
 
 		OperationResult result = new OperationResult("Add User With Template");
 		try {

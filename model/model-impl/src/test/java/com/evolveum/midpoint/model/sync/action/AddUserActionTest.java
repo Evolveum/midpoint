@@ -54,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAddition
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -94,7 +95,7 @@ public class AddUserActionTest extends BaseActionTest {
 				.unmarshal(new File(TEST_FOLDER, "existing-user.xml"))).getValue();
 		final String userOid = user.getOid();
 		when(
-				repository.getObject(eq(userOid), any(PropertyReferenceListType.class),
+				repository.getObject(any(Class.class), eq(userOid), any(PropertyReferenceListType.class),
 						any(OperationResult.class))).thenReturn(user);
 		try {
 			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();
@@ -157,11 +158,12 @@ public class AddUserActionTest extends BaseActionTest {
 		UserTemplateType template = ((JAXBElement<UserTemplateType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"user-template.xml"))).getValue();
 		when(
-				repository.getObject(eq(template.getOid()), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(template);
+				repository.getObject(eq(UserTemplateType.class), eq(template.getOid()),
+						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+				template);
 
 		when(
-				provisioning.getObject(eq(change.getResource().getOid()),
+				provisioning.getObject(eq(ResourceType.class), eq(change.getResource().getOid()),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
 				change.getResource());
 

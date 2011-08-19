@@ -97,7 +97,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = ObjectNotFoundException.class)
 	public void getNonExistingObject() throws ObjectNotFoundException, SchemaException {
 		final String oid = "abababab-abab-abab-abab-000000000001";
-		when(repository.getObject(eq(oid), any(PropertyReferenceListType.class), any(OperationResult.class)))
+		when(repository.getObject(any(Class.class),eq(oid), any(PropertyReferenceListType.class), any(OperationResult.class)))
 				.thenThrow(new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
 		controller.getObject(ObjectType.class, oid, new PropertyReferenceListType(), new OperationResult(
@@ -111,7 +111,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 				"get-user-correct.xml"))).getValue();
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
-		when(repository.getObject(eq(oid), any(PropertyReferenceListType.class), any(OperationResult.class)))
+		when(repository.getObject(eq(UserType.class),eq(oid), any(PropertyReferenceListType.class), any(OperationResult.class)))
 				.thenReturn(expectedUser);
 
 		OperationResult result = new OperationResult("Get Object");
@@ -122,7 +122,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 			assertNotNull(user);
 			assertEquals(expectedUser.getName(), user.getName());
 
-			verify(repository, atLeastOnce()).getObject(eq(oid), any(PropertyReferenceListType.class),
+			verify(repository, atLeastOnce()).getObject(eq(UserType.class), eq(oid), any(PropertyReferenceListType.class),
 					any(OperationResult.class));
 		} finally {
 			LOGGER.debug("getUserCorrect" + result.dump());

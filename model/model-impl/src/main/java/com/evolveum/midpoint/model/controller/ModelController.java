@@ -16,6 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 public interface ModelController extends ModelService {
 
+	// Constants for OperationResult
 	String CLASS_NAME = ModelController.class.getName() + ".";
 	String SEARCH_OBJECTS_IN_PROVISIONING = CLASS_NAME + "searchObjectsInProvisioning";
 	String MODIFY_OBJECT_WITH_EXCLUSION = CLASS_NAME + "modifyObjectWithExclusion";

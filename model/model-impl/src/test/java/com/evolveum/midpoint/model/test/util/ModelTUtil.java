@@ -73,7 +73,8 @@ public class ModelTUtil {
 				.unmarshal(file)).getValue();
 
 		when(
-				repository.getObject(eq(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
+				repository.getObject(eq(SystemConfigurationType.class),
+						eq(SystemObjectsType.SYSTEM_CONFIGURATION.value()),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
 				systemConfiguration);
 	}

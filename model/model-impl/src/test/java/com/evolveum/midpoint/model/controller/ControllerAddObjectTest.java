@@ -20,9 +20,6 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import static org.testng.AssertJUnit.assertEquals;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Matchers.eq;
@@ -30,6 +27,7 @@ import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 
@@ -42,6 +40,8 @@ import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
@@ -70,7 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
-public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests  {
+public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/addObject");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerAddObjectTest.class);
@@ -180,8 +180,9 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests  {
 		ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"resource.xml"))).getValue();
 		when(
-				provisioning.getObject(eq(resourceOid), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(resource);
+				provisioning.getObject(eq(ResourceType.class), eq(resourceOid),
+						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+				resource);
 
 		final String accountOid = "10000000-0000-0000-0000-000000000004";
 		when(
@@ -217,8 +218,8 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests  {
 		String userOid = controller.addObject(addedUser, result);
 		LOGGER.debug(result.dump());
 
-		verify(provisioning, atLeast(1)).getObject(eq(resourceOid), any(PropertyReferenceListType.class),
-				any(OperationResult.class));
+		verify(provisioning, atLeast(1)).getObject(eq(ResourceType.class), eq(resourceOid),
+				any(PropertyReferenceListType.class), any(OperationResult.class));
 		verify(repository, times(1)).addObject(argThat(new ObjectTypeNameMatcher(addedUser.getName())),
 				any(OperationResult.class));
 		assertEquals(oid, userOid);

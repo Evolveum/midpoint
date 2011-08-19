@@ -20,8 +20,6 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
@@ -38,6 +36,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -61,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
-public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests  {
+public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/deleteObject");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerDeleteObjectTest.class);
@@ -100,16 +100,17 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 				"delete-user.xml"))).getValue();
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
-		when(repository.getObject(eq(oid), any(PropertyReferenceListType.class), any(OperationResult.class)))
-				.thenReturn(expectedUser);
+		when(
+				repository.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(expectedUser);
 		OperationResult result = new OperationResult("Delete Object From Repo");
 		try {
 			controller.deleteObject(oid, result);
 		} finally {
 			LOGGER.debug(result.dump());
 		}
-		verify(repository, atLeastOnce()).getObject(eq(oid), any(PropertyReferenceListType.class),
-				any(OperationResult.class));
+		verify(repository, atLeastOnce()).getObject(any(Class.class), eq(oid),
+				any(PropertyReferenceListType.class), any(OperationResult.class));
 		verify(repository, times(1)).deleteObject(eq(oid), any(OperationResult.class));
 	}
 
@@ -121,8 +122,9 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 				TEST_FOLDER, "delete-resource.xml"))).getValue();
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
-		when(repository.getObject(eq(oid), any(PropertyReferenceListType.class), any(OperationResult.class)))
-				.thenReturn(expectedUser);
+		when(
+				repository.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(expectedUser);
 		OperationResult result = new OperationResult("Delete Object From Provisioning");
 		try {
 			controller.deleteObject(oid, result);
@@ -130,8 +132,8 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 			LOGGER.debug(result.dump());
 		}
 
-		verify(repository, atLeastOnce()).getObject(eq(oid), any(PropertyReferenceListType.class),
-				any(OperationResult.class));
+		verify(repository, atLeastOnce()).getObject(any(Class.class), eq(oid),
+				any(PropertyReferenceListType.class), any(OperationResult.class));
 		verify(provisioning, times(1)).deleteObject(eq(oid), any(ScriptsType.class),
 				any(OperationResult.class));
 	}

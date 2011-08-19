@@ -20,15 +20,12 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import static org.testng.AssertJUnit.assertEquals;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
-import org.testng.Assert;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
 import java.util.List;
@@ -41,6 +38,9 @@ import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -57,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -67,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
-public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSpringContextTests  {
+public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/modify");
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerModifyObjectWithExclusionTest.class);
@@ -121,19 +122,21 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 				TEST_FOLDER, "change.xml"))).getValue();
 
 		when(
-				repository.getObject(eq(user.getOid()), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(user);
+				repository.getObject(eq(UserType.class), eq(user.getOid()),
+						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(user);
 		when(
-				repository.getObject(eq(object.getOid()), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(object);
+				repository.getObject(any(Class.class), eq(object.getOid()),
+						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(object);
 		when(
-				repository.getObject(eq(account.getOid()), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(account);
+				repository.getObject(eq(AccountShadowType.class), eq(account.getOid()),
+						any(PropertyReferenceListType.class), any(OperationResult.class)))
+				.thenReturn(account);
 		when(
-				provisioning.getObject(eq(account.getOid()), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(account);
+				provisioning.getObject(eq(AccountShadowType.class), eq(account.getOid()),
+						any(PropertyReferenceListType.class), any(OperationResult.class)))
+				.thenReturn(account);
 		when(
-				provisioning.getObject(eq(account.getResource().getOid()),
+				provisioning.getObject(eq(ResourceType.class), eq(account.getResource().getOid()),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
 				account.getResource());
 
@@ -147,8 +150,8 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 
 				return null;
 			}
-		}).when(provisioning).modifyObject(any(Class.class),any(ObjectModificationType.class), any(ScriptsType.class),
-				any(OperationResult.class));
+		}).when(provisioning).modifyObject(any(Class.class), any(ObjectModificationType.class),
+				any(ScriptsType.class), any(OperationResult.class));
 
 		OperationResult result = new OperationResult("disableUser");
 		try {
@@ -157,8 +160,8 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 			LOGGER.debug(result.dump());
 		}
 
-		verify(provisioning).modifyObject(any(Class.class),any(ObjectModificationType.class), any(ScriptsType.class),
-				any(OperationResult.class));
+		verify(provisioning).modifyObject(any(Class.class), any(ObjectModificationType.class),
+				any(ScriptsType.class), any(OperationResult.class));
 	}
 
 	private void assertActivation(ObjectModificationType modification) {

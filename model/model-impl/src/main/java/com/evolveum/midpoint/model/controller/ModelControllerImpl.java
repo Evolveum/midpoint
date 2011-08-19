@@ -687,7 +687,7 @@ public class ModelControllerImpl implements ModelController {
 		try {
 			ObjectType objectType = null;
 			if (fromProvisioning) {
-				objectType = provisioning.getObject(oid, resolve, subResult);
+				objectType = provisioning.getObject(clazz, oid, resolve, subResult);
 			} else {
 				objectType = repository.getObject(clazz, oid, resolve, subResult);
 			}
@@ -922,7 +922,6 @@ public class ModelControllerImpl implements ModelController {
 			return;
 		}
 
-		// TODO: save updated user, create property changes
 		ObjectModificationType change = createUserModification(accountsToBeDeleted, refsToBeDeleted);
 		change.setOid(user.getOid());
 		try {
