@@ -76,7 +76,7 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 	 */
 	@Test
 	public void test000Integrity() {
-		displayTestTile("test000Integrity");
+		displayTestTile(this,"test000Integrity");
 		assertNotNull(modelService);
 		assertNotNull(repositoryService);
 
@@ -85,7 +85,7 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 	// Temporarily disabled due to strange spring/junit race condition
 	@Test(enabled = false)
 	public void test001GoodRefImport() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
-		displayTestTile("test001GoodRefImport");
+		displayTestTile(this,"test001GoodRefImport");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportRefTest.class.getName() + "test001GoodRefImport");

@@ -20,13 +20,15 @@
  */
 package com.evolveum.midpoint.model.importer;
 
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 import org.testng.annotations.Test;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -35,6 +37,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -49,23 +52,24 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
- * @author Radovan Semancik
+ * Test import with wrong data. Check if the import produces usable error messages.
  * 
+ * @author Radovan Semancik
+ *
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-repository-test.xml",
 		"classpath:application-context-provisioning.xml",
 		"classpath:application-context-task.xml" })
-public class ImportTest extends AbstractTestNGSpringContextTests {
-
-	private static final File IMPORT_FILE_NAME = new File("src/test/resources/importer/import.xml");
-	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+public class BadImportTest extends AbstractTestNGSpringContextTests {
 	
+	private static final File BAD_IMPORT_FILE_NAME = new File("src/test/resources/importer/import-bad.xml");
+	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+
 	@Autowired(required = true)
 	ModelService modelService;
 	@Autowired(required = true)
@@ -80,80 +84,39 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	@Test
 	public void test000Integrity() {
 		displayTestTile(this,"test000Integrity");
-		assertNotNull(modelService);
-		assertNotNull(repositoryService);
+		AssertJUnit.assertNotNull(modelService);
+		AssertJUnit.assertNotNull(repositoryService);
 
 	}
 
 	@Test
-	public void test001GoodImport() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
-		displayTestTile(this,"test001GoodImport");
+	public void test001BadImport() throws FileNotFoundException, SchemaException {
+		displayTestTile(this,"test001BadImport");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportTest.class.getName() + "test001GoodImport");
-		FileInputStream stream = new FileInputStream(IMPORT_FILE_NAME);
+		FileInputStream stream = new FileInputStream(BAD_IMPORT_FILE_NAME);
 
 		// WHEN
 		modelService.importObjectsFromStream(stream, task, false, result);
 
 		// THEN
 		result.computeStatus("Failed import.");
-		display("Result after good import", result);
-		assertSuccess("Import has failed (result)", result);
+		display("Result after bad import", result);
 
-		// Check import with fixed OID
-		UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
-		assertNotNull(jack);
-		assertEquals("Jack", jack.getGivenName());
-		assertEquals("Sparrow", jack.getFamilyName());
-		assertEquals("Cpt. Jack Sparrow", jack.getFullName());
-
-		// Check import with generated OID
-		Document doc = DOMUtil.getDocument();
-		Element filter = QueryUtil.createAndFilter(doc,
-				QueryUtil.createTypeFilter(doc, ObjectTypes.USER.getObjectTypeUri()),
-				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "guybrush"));
-
-		QueryType query = new QueryType();
-		query.setFilter(filter);
-
-		List<UserType> users = repositoryService.searchObjects(UserType.class, query, null, result);
-
-		assertNotNull(users);
-		assertEquals("Search retuned unexpected results", 1, users.size());
-		UserType guybrush = users.get(0);
-		assertNotNull(guybrush);
-		assertEquals("Guybrush", guybrush.getGivenName());
-		assertEquals("Threepwood", guybrush.getFamilyName());
-		assertEquals("Guybrush Threepwood", guybrush.getFullName());
-
-	}
-
-	// Import the same thing again. Watch how it burns :-)
-	@Test
-	public void test002DupicateImport() throws FileNotFoundException, ObjectNotFoundException,
-			SchemaException {
-		displayTestTile(this,"test002DupicateImport");
-		// GIVEN
-		Task task = taskManager.createTaskInstance();
-		OperationResult result = new OperationResult(ImportTest.class.getName() + "test002DupicateImport");
-		FileInputStream stream = new FileInputStream(IMPORT_FILE_NAME);
-
-		// WHEN
-		modelService.importObjectsFromStream(stream, task, false, result);
-
-		// THEN
-		result.computeStatus("Failed import.");
-		display("Result after dupicate import", result);
-		assertFalse("Unexpected success", result.isSuccess());
-
-		// All three users should fail. First two because of OID conflict,
-		// guybrush because of name conflict
-		// (nobody else could have such a stupid name)
-		for (OperationResult subresult : result.getSubresults().get(0).getSubresults()) {
-			assertFalse("Unexpected success in subresult", subresult.isSuccess());
+		// Jack is OK in the import file, he should be imported
+		try {
+			UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+			Assert.assertNotNull(jack, "Jack is null");
+		} catch (ObjectNotFoundException e) {
+			Assert.fail("Jack was not imported",e);
 		}
+		
+		List<UserType> users = repositoryService.listObjects(UserType.class, null, result);
+
+		AssertJUnit.assertNotNull(users);
+		AssertJUnit.assertEquals("Search retuned unexpected results", 2, users.size());
 
 	}
-
+	
 }
