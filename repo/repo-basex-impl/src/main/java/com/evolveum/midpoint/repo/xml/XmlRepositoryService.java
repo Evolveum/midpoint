@@ -391,7 +391,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException {
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".deleteObject");
 		result.addParam("oid", oid);
@@ -434,7 +434,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
+	public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type, String oid,
 			PropertyReferenceListType properties, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		throw new UnsupportedOperationException("Not implemented yet.");

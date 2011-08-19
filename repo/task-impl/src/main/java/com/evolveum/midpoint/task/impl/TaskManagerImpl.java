@@ -391,7 +391,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	@Override
 	public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException {
 		// TODO: result
-		repositoryService.deleteObject(oid, parentResult);
+		repositoryService.deleteObject(TaskType.class, oid, parentResult);
 	}
 
 	@Override

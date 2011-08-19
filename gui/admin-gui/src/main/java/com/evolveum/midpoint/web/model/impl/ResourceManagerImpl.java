@@ -38,7 +38,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 
 	private static final long serialVersionUID = -4183063295869675058L;
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceManagerImpl.class);
-
+	
 	@Override
 	protected Class<? extends ObjectType> getSupportedObjectClass() {
 		return ResourceType.class;
@@ -230,4 +230,5 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 
 		return new ConnectorDto(connector);
 	}
+
 }

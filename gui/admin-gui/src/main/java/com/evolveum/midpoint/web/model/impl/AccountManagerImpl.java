@@ -54,6 +54,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 
 	private static final long serialVersionUID = 3793939681394774533L;
 	private static final Trace LOGGER = TraceManager.getTrace(AccountManagerImpl.class);
+	
 
 	@Override
 	public Collection<AccountShadowDto> list(PagingType paging) {
@@ -115,4 +116,5 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 
 		return user;
 	}
+
 }

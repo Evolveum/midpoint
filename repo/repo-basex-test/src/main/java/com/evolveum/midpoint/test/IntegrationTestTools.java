@@ -174,6 +174,11 @@ public class IntegrationTestTools {
 		logger.info(TEST_LOG_PREFIX + title + TEST_LOG_SUFFIX);
 	}
 
+	public static void displayTestTile(Object testCase, String title) {
+		System.out.println(TEST_OUT_PREFIX + testCase.getClass().getSimpleName() + "." + title + TEST_OUT_SUFFIX);
+		logger.info(TEST_LOG_PREFIX + testCase.getClass().getSimpleName() + "." + title + TEST_LOG_SUFFIX);
+	}
+	
 	public static void waitFor(String message, Checker checker, int timeoutInterval) throws Exception {
 		System.out.println(message);
 		logger.debug(LOG_MESSAGE_PREFIX + message);

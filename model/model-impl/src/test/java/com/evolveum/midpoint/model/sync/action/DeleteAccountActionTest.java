@@ -89,7 +89,7 @@ public class DeleteAccountActionTest extends BaseActionTest {
 			LOGGER.debug(result.dump());
 		}
 
-		verify(provisioning, times(1)).deleteObject(eq(shadowOid), any(ScriptsType.class),
+		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(shadowOid), any(ScriptsType.class),
 				any(OperationResult.class));
 	}
 
@@ -113,7 +113,7 @@ public class DeleteAccountActionTest extends BaseActionTest {
 		} finally {
 			LOGGER.debug(result.dump());
 		}
-		verify(provisioning, times(1)).deleteObject(eq(shadowOid), any(ScriptsType.class),
+		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(shadowOid), any(ScriptsType.class),
 				any(OperationResult.class));
 	}
 
@@ -145,7 +145,7 @@ public class DeleteAccountActionTest extends BaseActionTest {
 		} finally {
 			LOGGER.debug(result.dump());
 		}
-		verify(provisioning, times(1)).deleteObject(eq(shadowOid), any(ScriptsType.class),
+		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(shadowOid), any(ScriptsType.class),
 				any(OperationResult.class));
 	}
 }

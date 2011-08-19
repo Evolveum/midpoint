@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.provisioning.test.ucf;
 
 import static org.testng.AssertJUnit.assertNotNull;
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
@@ -195,27 +196,8 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 	}
 
 	@Test
-	public void testAddObject() throws Exception {
-
-		OperationResult result = new OperationResult(this.getClass().getName()
-				+ ".testAdd");
-
-		Set<ResourceObjectAttribute> resourceAttributes = addSampleResourceObject(
-				"jack", "Jack", "Sparow");
-	
-		for (ResourceObjectAttribute resourceAttribute : resourceAttributes) {
-			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(resourceAttribute.getName())) {
-				String uid = resourceAttribute.getValue(String.class);
-				System.out.println("uuuuid:" + uid);
-				assertNotNull(uid);
-
-			}
-		}
-
-	}
-
-	@Test
-	public void testDeleteObject() throws Exception {
+	public void testAddDeleteObject() throws Exception {
+		displayTestTile(this,"testDeleteObject");
 
 		OperationResult result = new OperationResult(this.getClass().getName()
 				+ ".testDelete");
@@ -249,6 +231,8 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 	
 	@Test
 	public void testChangeModifyObject() throws Exception{
+		displayTestTile(this,"testChangeModifyObject");
+		
 		OperationResult result = new OperationResult(this.getClass().getName()
 				+ ".testModify");
 
@@ -288,6 +272,8 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 	
 	@Test
 	public void testFetchChanges() throws Exception{
+		displayTestTile(this,"testFetchChanges");
+		
 		OperationResult result = new OperationResult(this.getClass().getName()
 				+ ".testFetchChanges");
 		QName objectClass = new QName(resource.getNamespace(), "AccountObjectClass"); 

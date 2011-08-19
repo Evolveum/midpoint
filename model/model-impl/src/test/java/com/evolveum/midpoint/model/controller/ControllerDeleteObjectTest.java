@@ -43,6 +43,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -79,23 +80,23 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullOid() throws Exception {
-		controller.deleteObject(null, null);
+		controller.deleteObject(UserType.class, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyOid() throws Exception {
-		controller.deleteObject("", null);
+		controller.deleteObject(UserType.class, "", null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
-		controller.deleteObject("1", null);
+		controller.deleteObject(UserType.class, "1", null);
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectRepo() throws FaultMessage, JAXBException, ObjectNotFoundException,
-			SchemaException {
+			SchemaException, ConsistencyViolationException {
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"delete-user.xml"))).getValue();
 
@@ -105,19 +106,19 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 						any(OperationResult.class))).thenReturn(expectedUser);
 		OperationResult result = new OperationResult("Delete Object From Repo");
 		try {
-			controller.deleteObject(oid, result);
+			controller.deleteObject(UserType.class, oid, result);
 		} finally {
 			LOGGER.debug(result.dump());
 		}
 		verify(repository, atLeastOnce()).getObject(any(Class.class), eq(oid),
 				any(PropertyReferenceListType.class), any(OperationResult.class));
-		verify(repository, times(1)).deleteObject(eq(oid), any(OperationResult.class));
+		verify(repository, times(1)).deleteObject(any(Class.class), eq(oid), any(OperationResult.class));
 	}
 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectProvisioning() throws FaultMessage, JAXBException, ObjectNotFoundException,
-			SchemaException, CommunicationException {
+			SchemaException, CommunicationException, ConsistencyViolationException {
 		final ResourceType expectedUser = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "delete-resource.xml"))).getValue();
 
@@ -127,14 +128,14 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 						any(OperationResult.class))).thenReturn(expectedUser);
 		OperationResult result = new OperationResult("Delete Object From Provisioning");
 		try {
-			controller.deleteObject(oid, result);
+			controller.deleteObject(UserType.class, oid, result);
 		} finally {
 			LOGGER.debug(result.dump());
 		}
 
 		verify(repository, atLeastOnce()).getObject(any(Class.class), eq(oid),
 				any(PropertyReferenceListType.class), any(OperationResult.class));
-		verify(provisioning, times(1)).deleteObject(eq(oid), any(ScriptsType.class),
+		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(oid), any(ScriptsType.class),
 				any(OperationResult.class));
 	}
 }

@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAddition
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 
 @ContextConfiguration(locations = {
@@ -128,7 +129,7 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(
 				ProvisioningServiceImplOpenDJTest.class.getName()
 						+ ".cleanUpRepo");
-		repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+		repositoryService.deleteObject(ResourceType.class, RESOURCE_OPENDJ_OID, result);
 	}
 
 	private ObjectType createObjectFromFile(String filePath)
@@ -189,7 +190,7 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 			// assertEquals(true, mock.isCalled());
 
 		} finally {
-			repositoryService.deleteObject(SYNC_TASK_OID, result);
+			repositoryService.deleteObject(TaskType.class, SYNC_TASK_OID, result);
 		}
 	}
 

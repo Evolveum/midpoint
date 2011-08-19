@@ -57,7 +57,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectManagerImpl.class);
 	@Autowired(required = true)
 	private transient ModelService model;
-
+	
 	protected ModelService getModel() {
 		return model;
 	}
@@ -134,7 +134,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 
 		OperationResult result = new OperationResult(DELETE);
 		try {
-			getModel().deleteObject(oid, result);
+			getModel().deleteObject(getSupportedObjectClass(), oid, result);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete object {} from model", ex, oid);

@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
  * 
@@ -58,9 +59,8 @@ public class DeleteUserAction extends BaseAction {
 		}
 
 		try {
-			if (getModel().deleteObject(userOid, result)) {
-				userOid = null;
-			}
+			getModel().deleteObject(UserType.class, userOid, result);
+			userOid = null;
 			subResult.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete user {}", ex, userOid);

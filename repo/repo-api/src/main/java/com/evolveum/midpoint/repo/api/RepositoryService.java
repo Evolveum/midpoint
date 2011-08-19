@@ -294,7 +294,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
 	 */
-	public void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException;
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException;
 
 	/**
 	 * <p>Returns list of available values for specified properties.</p>
@@ -321,7 +321,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
-	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
+	public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type, String oid,
 			PropertyReferenceListType properties, OperationResult parentResult)
 			throws ObjectNotFoundException;
 

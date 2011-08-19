@@ -169,11 +169,11 @@ public class AddUserActionTest extends AbstractTestNGSpringContextTests {
 			throw ex;
 		} finally {
 			// cleanup repo
-			ModelTUtil.deleteObject(repositoryService, accountOid);
-			ModelTUtil.deleteObject(repositoryService, resourceOid);
-			ModelTUtil.deleteObject(repositoryService, userTemplateOid);
+			ModelTUtil.deleteObject(repositoryService, AccountShadowType.class, accountOid);
+			ModelTUtil.deleteObject(repositoryService, ResourceType.class, resourceOid);
+			ModelTUtil.deleteObject(repositoryService, UserType.class, userTemplateOid);
 			if (addedUser != null) {
-				ModelTUtil.deleteObject(repositoryService, addedUser.getOid());
+				ModelTUtil.deleteObject(repositoryService, UserType.class, addedUser.getOid());
 			}
 		}
 	}

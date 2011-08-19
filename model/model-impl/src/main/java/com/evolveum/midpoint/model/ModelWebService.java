@@ -172,13 +172,15 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	@Override
-	public void deleteObject(String oid, Holder<OperationResultType> result) throws FaultMessage {
+	public void deleteObject(String objectTypeUri, String oid, Holder<OperationResultType> result) throws FaultMessage {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
+		notEmptyArgument(objectTypeUri, "objectType must not be null or empty.");
 		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult("Model Service Delete Object");
 		try {
-			model.deleteObject(oid, operationResult);
+			model.deleteObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(),
+					oid, operationResult);
 			handleOperationResult(operationResult, result);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL deleteObject() failed", ex);

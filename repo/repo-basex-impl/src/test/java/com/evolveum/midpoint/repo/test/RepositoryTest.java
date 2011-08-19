@@ -100,7 +100,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid, new OperationResult("test"));
+				repositoryService.deleteObject(UserType.class, oid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -123,7 +123,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid, new OperationResult("test"));
+				repositoryService.deleteObject(UserType.class, oid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -161,7 +161,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 	public void deleteNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		//try to delete not existing object, exception is expected
-		repositoryService.deleteObject(oid, new OperationResult("test"));	
+		repositoryService.deleteObject(UserType.class, oid, new OperationResult("test"));	
 	}
 	
 }

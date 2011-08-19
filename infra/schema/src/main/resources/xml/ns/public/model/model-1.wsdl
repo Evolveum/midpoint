@@ -143,6 +143,7 @@
     </message>
 
     <message name="deleteObjectRequest">
+    	<part name="objectType" type="xsd:anyURI"/>
         <part name="oid" type="xsd:string"/>
         <part name="result" type="c:OperationResultType" />
     </message>

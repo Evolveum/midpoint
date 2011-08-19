@@ -57,7 +57,7 @@ public class DeleteAccountAction extends BaseAction {
 		}
 
 		try {
-			getModel().deleteObject(shadowAfterChange.getOid(), subResult);
+			getModel().deleteObject(shadowAfterChange.getClass(), shadowAfterChange.getOid(), subResult);
 			subResult.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete resource object shadow {}, oid {}.", ex,

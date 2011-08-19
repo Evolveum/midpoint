@@ -147,7 +147,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			compareObjects(resource, (ResourceType) objects.get(0));
 
 			// delete resource
-			repositoryService.deleteObject(resourceOid, new OperationResult("test"));
+			repositoryService.deleteObject(ResourceType.class, resourceOid, new OperationResult("test"));
 			try {
 				repositoryService.getObject(resourceOid, new PropertyReferenceListType(), new OperationResult("test"));
 				Assert.fail("Object with oid " + resourceOid + " was not deleted");
@@ -157,7 +157,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(resourceOid, new OperationResult("test"));
+				repositoryService.deleteObject(ResourceType.class, resourceOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -194,7 +194,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(resourceOid, new OperationResult("test"));
+				repositoryService.deleteObject(ResourceType.class, resourceOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}

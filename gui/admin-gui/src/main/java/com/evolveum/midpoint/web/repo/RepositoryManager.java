@@ -49,7 +49,7 @@ public interface RepositoryManager {
 
 	boolean saveObject(ObjectType object);
 
-	boolean deleteObject(String oid);
+	<T extends ObjectType> boolean deleteObject(Class<T> type, String oid);
 
 	String addObject(ObjectType object) throws ObjectAlreadyExistsException;
 }

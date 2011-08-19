@@ -546,7 +546,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public void deleteObject(String oid, ScriptsType scripts,
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ScriptsType scripts,
 			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException {
 		// TODO Auto-generated method stub

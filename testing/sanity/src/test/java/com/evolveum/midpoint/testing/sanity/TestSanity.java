@@ -218,7 +218,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 	 */
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test000Integrity");
+		displayTestTile(this,"test000Integrity");
 		AssertJUnit.assertNotNull(modelWeb);
 		AssertJUnit.assertNotNull(modelService);
 		AssertJUnit.assertNotNull(repositoryService);
@@ -554,7 +554,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
 
 		// WHEN
-		modelWeb.deleteObject(USER_JACK_OID, holder);
+		modelWeb.deleteObject(ObjectTypes.USER.getObjectTypeUri(),USER_JACK_OID, holder);
 
 		// THEN
 		System.out.println("deleteObject result:");

@@ -171,7 +171,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void testDeleteNullOid() throws FaultMessage {
 		try {
-			modelService.deleteObject(null, new Holder<OperationResultType>(new OperationResultType()));
+			modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), null, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -181,7 +181,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void testDeleteEmptyOid() throws FaultMessage {
 		try {
-			modelService.deleteObject("", null);
+			modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), "", null);
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -191,7 +191,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void testDeleteNullResult() throws FaultMessage {
 		try {
-			modelService.deleteObject("1", null);
+			modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), "1", null);
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -207,7 +207,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 							any(OperationResult.class))).thenThrow(
 					new ObjectNotFoundException("Object with oid '' not found."));
 
-			modelService.deleteObject(oid, new Holder<OperationResultType>(new OperationResultType()));
+			modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), oid, new Holder<OperationResultType>(new OperationResultType()));
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertObjectNotFoundFault(ex);
 		}

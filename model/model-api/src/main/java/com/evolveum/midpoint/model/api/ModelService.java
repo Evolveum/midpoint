@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -224,16 +225,16 @@ public interface ModelService {
 	 *            OID of object to delete
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
-	 * @return TODO ?????????????????????????
 	 * @throws ObjectNotFoundException
 	 *             specified object does not exist
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
+	 * @throws ConsistencyViolationException sub-operation failed, cannot delete objects as its deletion would lead to inconsistent state
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	boolean deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException;
+	<T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException, ConsistencyViolationException;
 
 	/**
 	 * <p>

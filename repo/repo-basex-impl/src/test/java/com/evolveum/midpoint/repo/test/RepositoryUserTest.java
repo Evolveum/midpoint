@@ -182,7 +182,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			assertEquals(actualSize + 1, objects.size());
 
 			// delete object
-			repositoryService.deleteObject(oid, new OperationResult("test"));
+			repositoryService.deleteObject(UserType.class, oid, new OperationResult("test"));
 			try {
 				repositoryService.getObject(oid, new PropertyReferenceListType(), new OperationResult("test"));
 				Assert.fail("Object with oid " + oid + " was not deleted");
@@ -192,7 +192,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid, new OperationResult("test"));
+				repositoryService.deleteObject(UserType.class, oid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -228,7 +228,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid, new OperationResult("test"));
+				repositoryService.deleteObject(UserType.class, oid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
@@ -263,7 +263,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			if (oid != null) {
 				// to be sure try to delete the object as part of cleanup
 				try {
-					repositoryService.deleteObject(oid, new OperationResult("test"));
+					repositoryService.deleteObject(UserType.class, oid, new OperationResult("test"));
 				} catch (Exception ex) {
 					// ignore exceptions during cleanup
 				}
@@ -316,19 +316,19 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(resourceOid, new OperationResult("test"));
+				repositoryService.deleteObject(ResourceType.class, resourceOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(accountRefToDeleteOid, new OperationResult("test"));
+				repositoryService.deleteObject(AccountShadowType.class, accountRefToDeleteOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(oid, new OperationResult("test"));
+				repositoryService.deleteObject(UserType.class, oid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}

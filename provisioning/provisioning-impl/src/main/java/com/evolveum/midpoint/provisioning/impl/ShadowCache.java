@@ -693,7 +693,7 @@ public class ShadowCache {
 			LOGGER.debug("Detele object with oid {} form repository.",
 					accountShadow.getOid());
 			try {
-				getRepositoryService().deleteObject(accountShadow.getOid(),
+				getRepositoryService().deleteObject(AccountShadowType.class, accountShadow.getOid(),
 						parentResult);
 			} catch (ObjectNotFoundException ex) {
 				parentResult.recordFatalError("Can't delete object "
@@ -1124,7 +1124,7 @@ public class ShadowCache {
 			// corresponding account from repo now
 			if (change.getChange() instanceof ObjectChangeDeletionType) {
 				try {
-					getRepositoryService().deleteObject(
+					getRepositoryService().deleteObject(AccountShadowType.class, 
 							newAccount.getOid(), parentResult);
 				} catch (ObjectNotFoundException ex) {
 					parentResult.recordFatalError(

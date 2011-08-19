@@ -119,9 +119,9 @@ public class UnlinkAccountActionTest extends AbstractTestNGSpringContextTests {
 
 		} finally {
 			// cleanup repo
-			ModelTUtil.deleteObject(repositoryService, accountOid);
-			ModelTUtil.deleteObject(repositoryService, resourceOid);
-			ModelTUtil.deleteObject(repositoryService, userOid);
+			ModelTUtil.deleteObject(repositoryService, AccountShadowType.class, accountOid);
+			ModelTUtil.deleteObject(repositoryService, ResourceType.class, resourceOid);
+			ModelTUtil.deleteObject(repositoryService, UserType.class, userOid);
 		}
 	}
 }

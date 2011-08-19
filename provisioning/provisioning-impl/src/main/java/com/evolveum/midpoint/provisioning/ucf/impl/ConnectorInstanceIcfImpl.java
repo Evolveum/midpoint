@@ -1280,6 +1280,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (ConnectorFactoryIcfImpl.ICFS_PASSWORD.equals(attrQName)) {
 			return PASSWORD_ATTRIBUTE_NAME;
 		}
+		
+		if (ConnectorFactoryIcfImpl.ICFS_UID.equals(attrQName)) {
+			// This should never happen. UID is not an attribute
+			throw new SchemaException("Requested mapping for UID (QName " + attrQName
+					+ ") which is not an attribute. This is most likely a product bug.");
+		}
 
 		// No mapping available
 

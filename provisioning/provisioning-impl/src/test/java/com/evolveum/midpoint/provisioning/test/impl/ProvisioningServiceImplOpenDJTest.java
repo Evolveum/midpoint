@@ -195,15 +195,15 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".shutdownUcf");
 		try {
-			repositoryService.deleteObject(ACCOUNT1_OID, result);
+			repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
 		} catch (Exception e) {
 		}
 		try {
-			repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+			repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 		} catch (Exception e) {
 		}
 		try {
-			repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+			repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
 		} catch (Exception e) {
 		}
 	}
@@ -336,15 +336,15 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			
 		} finally {
 			try {
-				repositoryService.deleteObject(ACCOUNT1_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
 			} catch (Exception ex) {
 			}
 
@@ -383,15 +383,15 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			Assert.fail("Expected ObjectNotFoundException, but got" + e);
 		} finally {
 			try {
-				repositoryService.deleteObject(ACCOUNT1_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
 			} catch (Exception ex) {
 			}
 
@@ -431,15 +431,15 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			Assert.fail("Expected ObjectNotFoundException, but got" + e);
 		} finally {
 			try {
-				repositoryService.deleteObject(ACCOUNT1_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
 			} catch (Exception ex) {
 			}
 
@@ -474,19 +474,19 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			assertEquals("will", objType.getName());
 		} finally {
 			try {
-				repositoryService.deleteObject(ACCOUNT1_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_NEW_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_NEW_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
 			} catch (Exception ex) {
 			}
 
@@ -512,15 +512,15 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			assertNull(addedObjectOid);
 		} finally {
 			try {
-				repositoryService.deleteObject(ACCOUNT1_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
 			} catch (Exception ex) {
 			}
 
@@ -545,7 +545,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			String addedObjectOid = provisioningService.addObject(object, null, result);
 			assertEquals(ACCOUNT_DELETE_OID, addedObjectOid);
 
-			provisioningService.deleteObject(ACCOUNT_DELETE_OID, null, result);
+			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, result);
 
 			ObjectType objType = null;
 
@@ -570,15 +570,15 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			}
 		} finally {
 			try {
-				repositoryService.deleteObject(ACCOUNT1_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
 			} catch (Exception ex) {
 			}
 
@@ -624,19 +624,19 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			assertEquals("First", changedSn);
 		} finally {
 			try {
-				repositoryService.deleteObject(ACCOUNT1_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_MODIFY_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_MODIFY_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
 			} catch (Exception ex) {
 			}
 
@@ -662,19 +662,19 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 		} finally {
 			try {
-				repositoryService.deleteObject(ACCOUNT1_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_MODIFY_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_MODIFY_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
 			} catch (Exception ex) {
 			}
 
@@ -723,19 +723,19 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			}
 		} finally {
 			try {
-				repositoryService.deleteObject(ACCOUNT1_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_SEARCH_ITERATIVE_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_SEARCH_ITERATIVE_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
 			} catch (Exception ex) {
 			}
 		}
@@ -771,19 +771,19 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 			}
 		} finally {
 			try {
-				repositoryService.deleteObject(ACCOUNT1_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_BAD_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(ACCOUNT_SEARCH_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_SEARCH_OID, result);
 			} catch (Exception ex) {
 			}
 			try {
-				repositoryService.deleteObject(RESOURCE_OPENDJ_OID, result);
+				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
 			} catch (Exception ex) {
 			}
 		}

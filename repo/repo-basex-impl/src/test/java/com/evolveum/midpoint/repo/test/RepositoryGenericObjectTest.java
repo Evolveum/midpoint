@@ -137,7 +137,7 @@ public class RepositoryGenericObjectTest extends AbstractTestNGSpringContextTest
 			compareObjects(genericObject, (GenericObjectType) objects.get(0));
 
 			// delete object
-			repositoryService.deleteObject(genericObjectOid, new OperationResult("test"));
+			repositoryService.deleteObject(GenericObjectType.class, genericObjectOid, new OperationResult("test"));
 			try {
 				repositoryService.getObject(genericObjectOid, new PropertyReferenceListType(), new OperationResult("test"));
 				Assert.fail("Object with oid " + genericObjectOid + " was not deleted");
@@ -147,7 +147,7 @@ public class RepositoryGenericObjectTest extends AbstractTestNGSpringContextTest
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
-				repositoryService.deleteObject(genericObjectOid, new OperationResult("test"));
+				repositoryService.deleteObject(GenericObjectType.class, genericObjectOid, new OperationResult("test"));
 			} catch (Exception ex) {
 				// ignore exceptions during cleanup
 			}

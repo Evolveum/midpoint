@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.ProvisioningTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
+import com.evolveum.midpoint.schema.exception.ConsistencyViolationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -447,7 +448,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public boolean deleteObject(String oid, OperationResult result) throws ObjectNotFoundException {
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result) throws ObjectNotFoundException, ConsistencyViolationException {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Deleting object with oid {}.", new Object[] { oid });
@@ -455,7 +456,6 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult subResult = result.createSubresult(DELETE_OBJECT);
 		addResultParams(subResult, new String[] { "oid" }, oid);
 
-		boolean deleted = false;
 		try {
 			ObjectType object = getObjectFromRepository(oid, new PropertyReferenceListType(), subResult,
 					ObjectType.class);
@@ -464,28 +464,26 @@ public class ModelControllerImpl implements ModelController {
 				taskManager.deleteTask(oid, subResult);
 			} else if (ProvisioningTypes.isManagedByProvisioning(object)) {
 				ScriptsType scripts = getScripts(object, subResult);
-				provisioning.deleteObject(oid, scripts, subResult);
+				provisioning.deleteObject(type, oid, scripts, subResult);
 			} else {
 				if (object instanceof UserType) {
 					deleteUserAccounts((UserType) object, subResult);
 				}
 
-				repository.deleteObject(oid, subResult);
+				repository.deleteObject(type, oid, subResult);
 			}
-			deleted = true;
 			subResult.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}", ex, oid);
 			subResult.recordFatalError("Couldn't find object with oid '" + oid + "'.", ex);
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}", ex, oid);
-			subResult.recordFatalError("Couldn't delete object with oid '" + oid + "'.", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}, potential consistency violation", ex, oid);
+			subResult.recordFatalError("Couldn't delete object with oid '" + oid + "', potential consistency violation");
+			throw new ConsistencyViolationException("Couldn't delete object with oid '" + oid + "', potential consistency violation", ex);
 		} finally {
 			LOGGER.debug(subResult.dump());
 		}
-
-		return deleted;
 	}
 
 	@Override
@@ -902,8 +900,12 @@ public class ModelControllerImpl implements ModelController {
 	private void deleteUserAccounts(UserType user, OperationResult result) throws ObjectNotFoundException {
 		List<AccountShadowType> accountsToBeDeleted = new ArrayList<AccountShadowType>();
 		for (AccountShadowType account : user.getAccount()) {
-			if (deleteObject(account.getOid(), result)) {
+			try {
+				deleteObject(AccountShadowType.class, account.getOid(), result);
 				accountsToBeDeleted.add(account);
+			} catch (ConsistencyViolationException ex) {
+				// TODO: handle this
+				LOGGER.error("TODO handle ConsistencyViolationException",ex);
 			}
 		}
 
@@ -911,8 +913,12 @@ public class ModelControllerImpl implements ModelController {
 
 		List<ObjectReferenceType> refsToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
-			if (deleteObject(accountRef.getOid(), result)) {
+			try {
+				deleteObject(AccountShadowType.class, accountRef.getOid(), result);
 				refsToBeDeleted.add(accountRef);
+			} catch (ConsistencyViolationException ex) {
+				// TODO handle this
+				LOGGER.error("TODO handle ConsistencyViolationException",ex);
 			}
 		}
 		user.getAccountRef().removeAll(refsToBeDeleted);

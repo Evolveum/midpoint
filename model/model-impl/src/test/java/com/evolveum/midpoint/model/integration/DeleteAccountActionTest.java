@@ -123,8 +123,8 @@ public class DeleteAccountActionTest extends AbstractTestNGSpringContextTests {
 
 		} finally {
 			// cleanup repo
-			ModelTUtil.deleteObject(repositoryService, accountOid);
-			ModelTUtil.deleteObject(repositoryService, resourceOid);
+			ModelTUtil.deleteObject(repositoryService, AccountShadowType.class, accountOid);
+			ModelTUtil.deleteObject(repositoryService, ResourceType.class, resourceOid);
 		}
 	}
 }

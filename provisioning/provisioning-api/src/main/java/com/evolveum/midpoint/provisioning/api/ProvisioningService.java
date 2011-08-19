@@ -348,7 +348,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public void deleteObject(String oid, ScriptsType scripts, OperationResult parentResult)
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, ScriptsType scripts, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException;
 
 	/**

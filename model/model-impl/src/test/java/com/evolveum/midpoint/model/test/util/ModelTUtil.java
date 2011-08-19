@@ -99,12 +99,12 @@ public class ModelTUtil {
 		return object;
 	}
 
-	public static void deleteObject(RepositoryService repositoryService, String oid) {
+	public static <T extends ObjectType> void deleteObject(RepositoryService repositoryService, Class<T> type, String oid) {
 		if (StringUtils.isEmpty(oid)) {
 			return;
 		}
 		try {
-			repositoryService.deleteObject(oid, new OperationResult("Delete Object"));
+			repositoryService.deleteObject(type, oid, new OperationResult("Delete Object"));
 		} catch (Exception e) {
 		}
 	}

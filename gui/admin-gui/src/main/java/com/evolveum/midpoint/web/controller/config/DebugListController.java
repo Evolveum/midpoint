@@ -151,7 +151,7 @@ public class DebugListController extends ListController<ObjectBean> {
 			return;
 		}
 
-		if (!repositoryManager.deleteObject(oidToDelete)) {
+		if (!repositoryManager.deleteObject(ObjectTypes.getObjectTypeClass(objectType),oidToDelete)) {
 			FacesUtils.addErrorMessage("Delete object failed.");
 		}
 

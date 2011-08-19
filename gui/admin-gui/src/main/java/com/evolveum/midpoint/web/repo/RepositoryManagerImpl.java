@@ -168,14 +168,14 @@ public class RepositoryManagerImpl implements RepositoryManager {
 	}
 
 	@Override
-	public boolean deleteObject(String oid) {
+	public <T extends ObjectType> boolean deleteObject(Class<T> type, String oid) {
 		Validate.notEmpty(oid, "Oid must not be null.");
 		LOGGER.debug("Deleting object with oid {}.", new Object[] { oid });
 
 		OperationResult result = new OperationResult(DELETE_OBJECT);
 		boolean deleted = false;
 		try {
-			repositoryService.deleteObject(oid, result);
+			repositoryService.deleteObject(type, oid, result);
 			result.recordSuccess();
 			deleted = true;
 		} catch (Exception ex) {
