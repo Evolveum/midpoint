@@ -82,6 +82,11 @@
 			<groupId>net.sf.saxon</groupId>
 			<artifactId>saxonhe</artifactId>
 		</dependency>
+		<dependency>
+		    <groupId>org.apache.santuario</groupId>
+		    <artifactId>xmlsec</artifactId>
+		    <version>1.4.5</version>
+		</dependency>
 		<!--  Testing dependecies  -->
 		<dependency>
 			<groupId>org.testng</groupId>
