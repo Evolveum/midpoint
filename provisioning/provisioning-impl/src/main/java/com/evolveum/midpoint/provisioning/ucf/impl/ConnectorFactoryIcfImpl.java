@@ -22,6 +22,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 import java.io.File;
 import java.io.FileFilter;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.HashMap;
@@ -282,7 +283,9 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 		File icfFolder = null;
 		try {
-			icfFolder = new File(new File(this.getClass().getClassLoader().getResource("com").toURI()),
+			URI uri = this.getClass().getClassLoader().getResource("com").toURI();
+			LOGGER.trace("bundle path uri = {}",uri);
+			icfFolder = new File(new File(uri),
 					BUNDLE_PATH);
 		} catch (URISyntaxException ex) {
 			LOGGER.debug("Couldn't find icf-connectors folder, reason: " + ex.getMessage());

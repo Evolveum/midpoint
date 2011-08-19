@@ -34,6 +34,7 @@ public class BaseXClientSessionPoolableObjectFactory implements PoolableObjectFa
 
 	@Override
 	public boolean validateObject(Object obj) {
+		ClientSession session = (ClientSession) obj;
 		return true;
 	}
 

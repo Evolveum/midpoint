@@ -118,5 +118,5 @@ public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
 		T objectType = ((JAXBElement<T>) object).getValue();
 		return objectType;
 	}
-
+	
 }
