@@ -20,19 +20,37 @@
  */
 package com.evolveum.midpoint.common.crypto;
 
-public class EncryptionException extends Exception {
+import static org.testng.Assert.assertNull;
 
-	private static final long serialVersionUID = 8289563205061329615L;
+import org.testng.annotations.BeforeTest;
+import org.testng.annotations.Test;
 
-	public EncryptionException(String message) {
-		super(message);
+/**
+ * 
+ * @author lazyman
+ * 
+ */
+public class ProtectorTest {
+
+	private Protector protector;
+
+	@BeforeTest
+	public void before() {
+		protector = new Protector();
 	}
 
-	public EncryptionException(String message, Throwable throwable) {
-		super(message, throwable);
+	@Test
+	public void encryptNullString() throws EncryptionException {
+		assertNull(protector.encryptString(null));
 	}
 
-	public EncryptionException(Throwable throwable) {
-		super(throwable);
+	@Test
+	public void encryptEmptyString() throws EncryptionException {
+		assertNull(protector.encryptString(""));
+	}
+
+	@Test
+	public void encryptNullElement() throws EncryptionException {
+		assertNull(protector.encrypt(null));
 	}
 }
