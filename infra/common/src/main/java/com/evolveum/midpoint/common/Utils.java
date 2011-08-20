@@ -76,6 +76,7 @@ public class Utils {
 		return result;
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void copyPropertiesSilent(Object target, Object source) {
 		try {
 			BeanUtils.copyProperties(target, source);
@@ -92,7 +93,7 @@ public class Utils {
 						boolean existsSetter = true;
 						try {
 							Method targetSetterMethod = target.getClass().getDeclaredMethod(
-									"set" + StringUtils.capitalise(fields[i].getName()), List.class);
+									"set" + StringUtils.capitalize(fields[i].getName()), List.class);
 							if (null == targetSetterMethod) {
 								existsSetter = false;
 							}
@@ -103,9 +104,9 @@ public class Utils {
 						}
 						if (!existsSetter) {
 							Method targetMethod = target.getClass().getDeclaredMethod(
-									"get" + StringUtils.capitalise(fields[i].getName()));
+									"get" + StringUtils.capitalize(fields[i].getName()));
 							Method sourceMethod = source.getClass().getDeclaredMethod(
-									"get" + StringUtils.capitalise(fields[i].getName()));
+									"get" + StringUtils.capitalize(fields[i].getName()));
 							if (null != targetMethod && null != sourceMethod) {
 								List<String> targetList = (List) targetMethod.invoke(target);
 								List<String> sourceList = (List) sourceMethod.invoke(source);
@@ -191,7 +192,8 @@ public class Utils {
 	public static String getNodeOid(Node node) {
 		Node oidNode = null;
 		if ((null == node.getAttributes())
-				|| (null == (oidNode = node.getAttributes().getNamedItem(SchemaConstants.C_OID_ATTRIBUTE.getLocalPart())))
+				|| (null == (oidNode = node.getAttributes().getNamedItem(
+						SchemaConstants.C_OID_ATTRIBUTE.getLocalPart())))
 				|| (StringUtils.isEmpty(oidNode.getNodeValue()))) {
 			return null;
 		}

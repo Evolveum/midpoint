@@ -25,14 +25,19 @@ import java.security.Key;
 import java.security.KeyStore;
 
 import javax.crypto.SecretKey;
+import javax.xml.crypto.dsig.keyinfo.KeyInfo;
+import javax.xml.crypto.dsig.keyinfo.KeyInfoFactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.xml.security.Init;
+import org.apache.xml.security.encryption.EncryptionProperties;
+import org.apache.xml.security.encryption.EncryptionProperty;
 import org.apache.xml.security.encryption.XMLCipher;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
@@ -57,18 +62,15 @@ public class Protector {
 		try {
 			keyStore = KeyStore.getInstance("jceks");
 			// "com/../../keystore.jceks"
-			InputStream stream = Protector.class.getClassLoader()
-					.getResourceAsStream("com/../keystore.jceks");
+			String path = "com/../keystore.jceks";
+			InputStream stream = Protector.class.getClassLoader().getResourceAsStream(path);
 
 			if (stream == null) {
-				throw new EncryptionException(
-						"Couldn't load keystore. File not found on classpath. BETTER MESSAGE IN HERE!!!!");
+				throw new EncryptionException("Couldn't load keystore as resource '" + path + "'");
 			}
 			keyStore.load(stream, KEYSTORE_PASSWORD);
 		} catch (Exception ex) {
-			ex.printStackTrace();
-
-			throw new RuntimeException();
+			throw new SystemException(ex.getMessage(), ex);
 		}
 	}
 
@@ -88,7 +90,9 @@ public class Protector {
 
 		Document document;
 		try {
-			SecretKey secret = getSecretKey(ALIAS_MASTER_PASSWORD, KEY_PASSWORD);
+			String alias = StringUtils.isEmpty(protectedString.getAlias()) ? ALIAS_MASTER_PASSWORD
+					: protectedString.getAlias();
+			SecretKey secret = getSecretKey(alias, KEY_PASSWORD);
 			XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_256);
 			xmlCipher.init(XMLCipher.DECRYPT_MODE, secret);
 			document = xmlCipher.doFinal(encrypted.getOwnerDocument(), encrypted);
@@ -127,10 +131,19 @@ public class Protector {
 		ProtectedStringType protectedString = new ProtectedStringType();
 		Document document;
 		try {
-			SecretKey secret = getSecretKey(ALIAS_MASTER_PASSWORD, KEY_PASSWORD);
+			String alias = StringUtils.isEmpty(protectedString.getAlias()) ? ALIAS_MASTER_PASSWORD
+					: protectedString.getAlias();
+			SecretKey secret = getSecretKey(alias, KEY_PASSWORD);
 			XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_256);
 			xmlCipher.init(XMLCipher.ENCRYPT_MODE, secret);
-
+//			EncryptionProperties properties = xmlCipher.createEncryptionProperties();
+//			EncryptionProperty property = xmlCipher.createEncryptionProperty();
+//			property.setId("alias");
+//			Element element = DOMUtil.getDocument().createElementNS("aaa", "alias");
+//			element.setTextContent(alias);
+//			property.addEncryptionInformation(element);
+//			properties.addEncryptionProperty(property);
+//			xmlCipher.getEncryptedData().setEncryptionProperties(properties);
 			document = xmlCipher.doFinal(plain.getOwnerDocument(), plain);
 			protectedString.setEncryptedData(document.getDocumentElement());
 		} catch (Exception ex) {
@@ -161,7 +174,6 @@ public class Protector {
 		System.out.println(JAXBUtil.marshalWrap(encrypted));
 		System.out.println("***");
 		System.out.println(protector.decryptString(encrypted));
-
 		System.out.println("=======");
 		Document document = DOMUtil.getDocument();
 		Element element = document.createElement("element");
@@ -171,50 +183,5 @@ public class Protector {
 		System.out.println(JAXBUtil.marshalWrap(encrypted));
 		System.out.println("***");
 		System.out.println(DOMUtil.printDom(protector.decrypt(encrypted)));
-
-		// SecretKey secret = getSecretKey("master", "changeit".toCharArray());
-		// // char[] password = "heslo".toCharArray();
-		// // byte[] salt = "sol".getBytes();
-		// // SecretKey secret = createSecretKey(password, salt);
-		//
-		// XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_256);
-		// xmlCipher.init(XMLCipher.ENCRYPT_MODE, secret);
-		//
-		// Document document = DOMUtil.getDocument();
-		// Element passwordE = document.createElementNS(SchemaConstants.NS_C,
-		// "password");
-		// passwordE.setTextContent("VILKOOOOOOOOOOO");
-		//
-		// EncryptedData data = xmlCipher.encryptData(document, passwordE);
-		//
-		// String text = DOMUtil.printDom(xmlCipher.martial(data)).toString();
-		// System.out.println(DOMUtil.printDom(passwordE));
-		// System.out.println(text);
-		// System.out.println("*************************");
-		// // String text =
-		// //
-		// "<xenc:EncryptedData xmlns:xenc=\"http://www.w3.org/2001/04/xmlenc#\" "
-		// // +
-		// // "Type=\"http://www.w3.org/2001/04/xmlenc#Element\">" +
-		// //
-		// "<xenc:EncryptionMethod Algorithm=\"http://www.w3.org/2001/04/xmlenc#aes256-cbc\"/>"
-		// // +
-		// // "<xenc:CipherData>" +
-		// //
-		// "<xenc:CipherValue>hv5v9lQAaUz2wF1G+06T2tkrh9ZGBUdRni/O30shk+79P9HsPEimaMfTscGkLEi8HKaEHJf8ss7x5WBcoFXdCw==</xenc:CipherValue>"
-		// // +
-		// // "</xenc:CipherData>" +
-		// // "</xenc:EncryptedData>";
-		//
-		// // secret = createSecretKey(password, salt);
-		// xmlCipher = XMLCipher.getInstance(XMLCipher.AES_256);
-		// xmlCipher.init(XMLCipher.DECRYPT_MODE, secret);
-		// document = DOMUtil.parseDocument(text);
-		// // xmlCipher.loadEncryptedData(document,
-		// document.getDocumentElement());
-		// Document fin = xmlCipher.doFinal(document,
-		// document.getDocumentElement());
-		// System.out.println(DOMUtil.printDom(document));
-		// // System.out.println(DOMUtil.printDom(fin));
 	}
 }

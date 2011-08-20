@@ -21,11 +21,9 @@
  */
 package com.evolveum.midpoint.common.test;
 
-
-import org.testng.Assert;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.StringBufferInputStream;
 import java.util.List;
 
 import org.custommonkey.xmlunit.DetailedDiff;
@@ -65,10 +63,11 @@ public class XmlAsserts {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	public static void assertPatch(String origXml, String patchedXml) throws Exception {
 		setupXmlUnitForTest();
-		Diff d = new Diff(new InputSource(new StringBufferInputStream(origXml)), new InputSource(
-				new StringBufferInputStream(patchedXml)));
+		Diff d = new Diff(new InputSource(new ByteArrayInputStream(origXml.getBytes("utf-8"))),
+				new InputSource(new ByteArrayInputStream(patchedXml.getBytes("utf-8"))));
 		DetailedDiff dd = new DetailedDiff(d);
 		dd.overrideElementQualifier(new OidQualifier());
 		dd.overrideDifferenceListener(new MidPointDifferenceListener());
