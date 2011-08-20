@@ -1,26 +1,27 @@
 <?xml version="1.0"?>
-<!-- Copyright (c) 2011 Evolveum                             -->
-<!--                                                         -->
-<!-- The contents of this file are subject to the terms      -->
-<!-- of the Common Development and Distribution License      -->
-<!-- (the License). You may not use this file except in      -->
-<!-- compliance with the License.                            -->
-<!--                                                         -->
-<!-- You can obtain a copy of the License at                 -->
-<!-- http://www.opensource.org/licenses/cddl1 or             -->
-<!-- CDDLv1.0.txt file in the source code distribution.      -->
-<!-- See the License for the specific language governing     -->
-<!-- permission and limitations under the License.           -->
-<!--                                                         -->
+<!-- Copyright (c) 2011 Evolveum -->
+<!-- -->
+<!-- The contents of this file are subject to the terms -->
+<!-- of the Common Development and Distribution License -->
+<!-- (the License). You may not use this file except in -->
+<!-- compliance with the License. -->
+<!-- -->
+<!-- You can obtain a copy of the License at -->
+<!-- http://www.opensource.org/licenses/cddl1 or -->
+<!-- CDDLv1.0.txt file in the source code distribution. -->
+<!-- See the License for the specific language governing -->
+<!-- permission and limitations under the License. -->
+<!-- -->
 <!-- If applicable, add the following below the CDDL Header, -->
-<!-- with the fields enclosed by brackets [] replaced by     -->
-<!-- your own identifying information:                       -->
-<!--                                                         -->
-<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Peter Prochazka               -->
-<!--                                                         -->
+<!-- with the fields enclosed by brackets [] replaced by -->
+<!-- your own identifying information: -->
+<!-- -->
+<!-- Portions Copyrighted 2011 [name of copyright owner] -->
+<!-- Portions Copyrighted 2010 Peter Prochazka -->
+<!-- -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<name>midPoint Infrastructure - common</name>
 	<groupId>com.evolveum.midpoint.infra</groupId>
@@ -83,11 +84,19 @@
 			<artifactId>saxonhe</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>org.apache.santuario</groupId>
-		    <artifactId>xmlsec</artifactId>
-		    <version>1.4.5</version>
+			<groupId>org.apache.santuario</groupId>
+			<artifactId>xmlsec</artifactId>
+			<version>1.4.5</version>
 		</dependency>
-		<!--  Testing dependecies  -->
+		<!-- this dependency probably can be removed after protector 
+		class is implemented (just for development purposes only) -->
+		<dependency>
+			<groupId>xalan</groupId>
+			<artifactId>xalan</artifactId>
+			<version>2.7.1</version>
+			<scope>provided</scope>
+		</dependency>
+		<!-- Testing dependecies -->
 		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
