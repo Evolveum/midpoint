@@ -101,6 +101,8 @@ public abstract class BaseAction implements Action {
 	}
 
 	protected SchemaHandler getSchemaHandler() {
+		schemaHandler.setModel(getModel());
+		
 		return schemaHandler;
 	}
 

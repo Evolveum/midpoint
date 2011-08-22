@@ -95,7 +95,6 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	private transient ExpressionHandler expressionHandler;
 	@Autowired(required = true)
 	private transient FilterManager<Filter> filterManager;
-	@Autowired(required = true)
 	private ModelController model;
 
 	public void setModel(ModelController model) {
