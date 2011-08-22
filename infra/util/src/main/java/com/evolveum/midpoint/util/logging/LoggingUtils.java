@@ -43,6 +43,7 @@ public class LoggingUtils {
 		args.add(ex.getMessage());
 
 		logger.error(message + ", reason: {}", args.toArray());
+		//Note: messages could contain {}, however these are not replaced with actual arguments, because logging API does not have support to log stack trace and format the message
 		logger.debug(message + ".", ex);
 	}
 }
