@@ -23,10 +23,11 @@ package com.evolveum.midpoint.web.jsf.messages;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.List;
+
 import javax.faces.application.FacesMessage;
 import javax.faces.application.Resource;
 import javax.faces.component.FacesComponent;
@@ -37,6 +38,8 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.result.OperationResultStatus;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.icesoft.faces.component.ext.HtmlMessages;
 
@@ -48,6 +51,7 @@ import com.icesoft.faces.component.ext.HtmlMessages;
 @FacesComponent("MidPointFacesMessages")
 public class MidPointFacesMessages extends HtmlMessages {
 
+	private static final Trace LOGGER = TraceManager.getTrace(MidPointFacesMessages.class);
 	public static final String IMAGE_BUTTON = "ImageButton";
 	public static final String IMAGE_BUTTON_CONTENT = "ImageButtonContent";
 	private int errorNum = 0;
@@ -134,6 +138,13 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writer.startElement("li", null);
 		writer.startElement("span", null);
 		writer.writeAttribute("class", getMessageSeverityClass(message), null);
+
+		if (result == null) {
+			writer.writeText(FacesUtils.translateKey("Operation result is null."), null);
+			writer.endElement("span");
+			writer.endElement("li");
+			return;
+		}
 
 		// main message
 		writer.startElement("span", null);
@@ -238,10 +249,14 @@ public class MidPointFacesMessages extends HtmlMessages {
 
 		if (!result.getSubresults().isEmpty()) {
 			for (OperationResult subResult : result.getSubresults()) {
+				if (subResult == null) {
+					LOGGER.error("Sub result of operation result '" + result.getOperation() + "' is null.");
+					continue;
+				}
 				writeOperationResult(subResult, context);
 			}
 		}
-		
+
 		writer.endElement("li");
 		writer.endElement("ul");
 
@@ -329,7 +344,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 		}
 
 	}
-	
+
 	private void writeMessageDetailNormal(Object detail, ResponseWriter writer) throws IOException {
 		writeMessageDetail(detail, writer, "message-detail");
 	}

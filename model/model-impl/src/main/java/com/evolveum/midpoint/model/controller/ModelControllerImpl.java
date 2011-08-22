@@ -610,7 +610,16 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		LOGGER.debug("Testing resource with oid {}.", new Object[] { resourceOid });
 
-		OperationResult testResult = provisioning.testResource(resourceOid);
+		OperationResult testResult = null;
+		try {
+			testResult = provisioning.testResource(resourceOid);
+		} catch (ObjectNotFoundException ex) {
+			throw ex;
+		} catch (SystemException ex) {
+			throw ex;
+		} catch (Exception ex) {
+			throw new SystemException(ex.getMessage(), ex);
+		}
 
 		if (testResult != null) {
 			LOGGER.debug(testResult.dump());
