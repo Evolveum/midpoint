@@ -216,6 +216,8 @@
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                         $i:user/i:fullName
                     </i:valueExpression>
+                    <c:valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#diacriticsFilter"
+							xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd" />						
                 </i:outbound>
             </i:attribute>
             <i:attribute ref="ri:sn">

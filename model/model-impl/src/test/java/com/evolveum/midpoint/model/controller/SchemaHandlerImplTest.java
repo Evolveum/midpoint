@@ -150,7 +150,7 @@ public class SchemaHandlerImplTest extends AbstractTestNGSpringContextTests {
 		// family name has to be null in source
 		// family name will not be filled because it is referenced by not
 		// defined attribute in resource schema
-		assertNull(appliedUser.getFamilyName());
+		assertEquals("prvy", appliedUser.getFamilyName());
 	}
 
 	@Test

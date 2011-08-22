@@ -239,6 +239,20 @@
 					<outbound>
 						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">$i:user/i:familyName</valueExpression>
 					</outbound>
+					<inbound>
+						<valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
+							xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">
+							<f:replace>
+                                      <!-- Replaces all unicode control characters with emtpty string -->
+								<f:pattern>\p{C}</f:pattern>
+								<f:replacement></f:replacement>
+							</f:replace>
+						</valueFilter>
+						<target>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:familyName
+                        </target>
+					</inbound>
 				</attribute>
 				<attribute ref="ri:givenName"
 					xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
