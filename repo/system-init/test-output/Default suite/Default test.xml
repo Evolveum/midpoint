@@ -1,4 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite hostname="Zaria" name="com.evolveum.midpoint.init.ConfigurationLoadTest" tests="1" failures="0" timestamp="16 Aug 2011 12:18:42 GMT" time="0.045" errors="0">
-  <testcase name="sampleTest" time="0.024" classname="com.evolveum.midpoint.init.ConfigurationLoadTest"/>
-</testsuite>
