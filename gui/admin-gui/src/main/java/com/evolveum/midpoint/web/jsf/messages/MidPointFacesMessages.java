@@ -316,7 +316,11 @@ public class MidPointFacesMessages extends HtmlMessages {
 			writer.startElement("ul", null);
 			writer.startElement("li", null);
 			writer.write("&raquo; Cause &gt;&gt; ");
-			writer.writeText(th.getMessage(), null);
+			if (StringUtils.isNotEmpty(th.getMessage())) {
+				writer.writeText(th.getMessage(), null);
+			} else {
+				writer.writeText(FacesUtils.translateKey("Exception message is null."), null);
+			}
 			writer.startElement("span", null);
 			writer.writeAttribute("class", "messages-details-cause_button", null);
 			writer.writeAttribute("id", "causeNumber" + causeNum, null);
