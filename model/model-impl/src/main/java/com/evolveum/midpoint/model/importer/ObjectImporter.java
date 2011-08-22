@@ -30,13 +30,14 @@ import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.result.OperationConstants;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.common.validator.ObjectHandler;
+import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.ValidationMessage;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.common.validator.ValidationMessage.Type;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -59,143 +60,175 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
  * 
  */
 public class ObjectImporter {
-	
+
 	private static final Trace logger = TraceManager.getTrace(ObjectImporter.class);
+	private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName()+".resolveReference";
 
-	public static void importObjects(InputStream input, final Task task, final OperationResult parentResult, final RepositoryService repository) {
-		
-		Validator validator = new Validator(
+	public static void importObjects(InputStream input, final Task task, final OperationResult parentResult,
+			final RepositoryService repository) {
 
-			new ObjectHandler() {
-				
-				long progress = 0;
-	
-				@Override
-				public void handleObject(ObjectType object, List<ValidationMessage> objectErrors) {
-	
-					progress++;
-					
-					logger.debug("Starting import of object {}",ObjectTypeUtil.toShortString(object));
-					
-					OperationResult result = parentResult.createSubresult(OperationConstants.IMPORT_OBJECT);
-					result.addParam(OperationResult.PARAM_OBJECT, object);
-					result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
-					// TODO: params, context
-					
-					applyValidationMessages(objectErrors, object,result);
-					
-					if (result.isAcceptable()) {
-						
-						resolveReferences(object,repository,result);
-					
-						if (result.isAcceptable()) {
-							try {
-					
-								repository.addObject(object, result);
-								result.recordSuccess();
-								
-							} catch (ObjectAlreadyExistsException e) {
-								result.recordFatalError("Object already exists",e);
-								logger.error("Object already exists",e);
-							} catch (SchemaException e) {
-								result.recordFatalError("Schema violation",e);
-								logger.error("Schema violation",e);
-							} catch (RuntimeException e) {
-								result.recordFatalError("Unexpected problem", e);
-								logger.error("Unexpected problem", e);
-							}
-							
+		EventHandler handler = new EventHandler() {
+
+			long progress = 0;
+
+			@Override
+			public void handleObject(ObjectType object, OperationResult objectResult) {
+
+				progress++;
+
+				logger.debug("Starting import of object {}", ObjectTypeUtil.toShortString(object));
+
+				objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
+				// TODO: params, context
+
+				if (objectResult.isAcceptable()) {
+
+					resolveReferences(object, repository, objectResult);
+
+					if (objectResult.isAcceptable()) {
+						try {
+
+							repository.addObject(object, objectResult);
+							objectResult.recordSuccess();
+
+						} catch (ObjectAlreadyExistsException e) {
+							objectResult.recordFatalError("Object already exists", e);
+							logger.error("Object already exists", e);
+						} catch (SchemaException e) {
+							objectResult.recordFatalError("Schema violation", e);
+							logger.error("Schema violation", e);
+						} catch (RuntimeException e) {
+							objectResult.recordFatalError("Unexpected problem", e);
+							logger.error("Unexpected problem", e);
 						}
+
 					}
-					
-					// TODO check if there are too many errors
-	
 				}
-				
-			});
-		
-		validator.setVerbose(true);
-		
-		List<ValidationMessage> messages = validator.validate(input);
-		
-		for (ValidationMessage message: messages) {
-			if (message.getType() == Type.ERROR) {
-				logger.error("Import: {}",message);
-			} else {
-				logger.warn("Import: {}",message);
+
+				// TODO check if there are too many errors
+
 			}
-		}
-		
-		applyValidationMessages(messages, null, parentResult);
+
+			@Override
+			public void handleGlobalError(OperationResult currentResult) {
+				// No reaction				
+			}
+
+		};
+
+		Validator validator = new Validator(handler);
+		validator.setVerbose(true);
+
+		validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
+
 	}
 
-	protected static void resolveReferences(ObjectType object, RepositoryService repository, OperationResult result) {
-		// We need to look up all object references. Probably the only efficient way to do it is to use reflection.
+	protected static void resolveReferences(ObjectType object, RepositoryService repository,
+			OperationResult result) {
+		// We need to look up all object references. Probably the only efficient
+		// way to do it is to use reflection.
 		Class type = object.getClass();
 		Method[] methods = type.getMethods();
-		for(int i=0;i<methods.length;i++) {
+		for (int i = 0; i < methods.length; i++) {
 			Method method = methods[i];
 			Class returnType = method.getReturnType();
 			if (ObjectReferenceType.class.isAssignableFrom(returnType)) {
-				// we have a method that returns ObjectReferenceType, try to resolve it.
+				// we have a method that returns ObjectReferenceType, try to
+				// resolve it.
 				if (method.getName().startsWith("get")) {
 					String suffix = method.getName().substring(3);
-					String propName = suffix.substring(0, 1).toLowerCase()+suffix.substring(1);
-					logger.debug("Found reference property {}, method {}",propName,method.getName());
+					String propName = suffix.substring(0, 1).toLowerCase() + suffix.substring(1);
+					logger.debug("Found reference property {}, method {}", propName, method.getName());
 					try {
 						Object returnVal = method.invoke(object);
 						ObjectReferenceType ref = (ObjectReferenceType) returnVal;
 						resolveRef(ref, propName, repository, result);
 						if (!result.isAcceptable()) {
-							logger.error("Error resolving reference {}: {}",propName,result.getMessage());
+							logger.error("Error resolving reference {}: {}", propName, result.getMessage());
 							return;
 						}
 					} catch (IllegalArgumentException e) {
 						// Should not happen, getters have no arguments
-						result.recordFatalError("Cannot invoke getter "+method.getName()+" due to IllegalArgumentException",e);
+						result.recordFatalError("Cannot invoke getter " + method.getName()
+								+ " due to IllegalArgumentException", e);
 						return;
 					} catch (IllegalAccessException e) {
 						// Should not happen, getters have no arguments
-						result.recordFatalError("Cannot invoke getter "+method.getName()+" due to IllegalAccessException",e);
+						result.recordFatalError("Cannot invoke getter " + method.getName()
+								+ " due to IllegalAccessException", e);
 						return;
 					} catch (InvocationTargetException e) {
 						// Should not happen, getters have no arguments
-						result.recordFatalError("Cannot invoke getter "+method.getName()+" due to InvocationTargetException",e);
+						result.recordFatalError("Cannot invoke getter " + method.getName()
+								+ " due to InvocationTargetException", e);
 						return;
 					}
-					logger.debug("Reference {} processed",propName);
+					logger.debug("Reference {} processed", propName);
 				}
 			}
 		}
 	}
 
-	private static void resolveRef(ObjectReferenceType ref, String propName, RepositoryService repository, OperationResult result) {
-		if (ref==null) {
+	private static void resolveRef(ObjectReferenceType ref, String propName, RepositoryService repository,
+			OperationResult parentResult) {
+		if (ref == null) {
 			// Nothing to do
 			return;
 		}
+		
+		OperationResult result = parentResult.createSubresult(OPERATION_RESOLVE_REFERENCE);
+		result.addContext(OperationResult.CONTEXT_PROPERTY, propName);
+		
 		Element filter = ref.getFilter();
-		if (ref.getOid()!=null && !ref.getOid().isEmpty()) {
+		if (ref.getOid() != null && !ref.getOid().isEmpty()) {
 			// We have OID
-			if (filter!=null) {
-				// We have both filter and OID. We will choose OID, but let's at least log a warning
-				result.appendDetail("Both OID and filter for property "+propName);
-				result.recordPartialError("Both OID and filter for property "+propName);
+			if (filter != null) {
+				// We have both filter and OID. We will choose OID, but let's at
+				// least log a warning
+				result.appendDetail("Both OID and filter for property " + propName);
+				result.recordPartialError("Both OID and filter for property " + propName);
 				ref.setFilter(null);
 			}
-			// Nothing to resolve
+			// Nothing to resolve, but let's check if the OID exists
+			Class<? extends ObjectType> type = ObjectType.class;
+			if (ref.getType()!=null) {
+				ObjectTypes refType = ObjectTypes.getObjectTypeFromTypeQName(ref.getType());
+				if (refType==null) {
+					result.recordWarning("Unknown type specified in reference "+propName+": "+ref.getType());
+				} else {
+					type = refType.getClassDefinition();
+				}
+			}
+			ObjectType object = null;
+			try {
+				object = repository.getObject(type, ref.getOid(), null, result);
+			} catch (ObjectNotFoundException e) {
+				result.recordWarning("Reference "+propName+" refers to a non-existing object "+ref.getOid());
+			} catch (SchemaException e) {
+				result.recordPartialError("Schema error while trying to retrieve object "+ref.getOid()+" : "+e.getMessage(),e);
+				logger.error("Schema error while trying to retrieve object "+ref.getOid()+" : "+e.getMessage(),e);
+				// But continue otherwise
+			}
+			if (object != null && ref.getType()!=null) {
+				// Check if declared and actual type matches
+				if (!object.getClass().equals(type)) {
+					result.recordWarning("Type mismatch on property "+propName+": declared:"+ref.getType()+", actual: "+object.getClass());
+				}
+			}
+			result.recordSuccessIfUnknown();
 			return;
 		}
-		if (filter==null) {
+		if (filter == null) {
 			// No OID and no filter. We are lost.
-			result.recordFatalError("Neither OID nor filter for property "+propName+": cannot resolve reference");
+			result.recordFatalError("Neither OID nor filter for property " + propName
+					+ ": cannot resolve reference");
 			return;
 		}
 		// No OID and we have filter. Let's check the filter a bit
-		logger.debug("Resolving using filter {}",DOMUtil.serializeDOMToString(filter));
+		logger.debug("Resolving using filter {}", DOMUtil.serializeDOMToString(filter));
 		NodeList childNodes = filter.getChildNodes();
-		if(childNodes.getLength()==0) {
-			result.recordFatalError("OID not specified and filter is empty for property "+propName);
+		if (childNodes.getLength() == 0) {
+			result.recordFatalError("OID not specified and filter is empty for property " + propName);
 			return;
 		}
 		// Let's do resolving
@@ -203,41 +236,33 @@ public class ObjectImporter {
 		query.setFilter(filter);
 		List<? extends ObjectType> objects = null;
 		try {
-		
+
 			objects = repository.searchObjects(ObjectTypes.getObjectTypeFromTypeQName(ref.getType())
-					.getClassDefinition(),query, null, result);
-		
+					.getClassDefinition(), query, null, result);
+
 		} catch (SchemaException e) {
 			// This is unexpected, but may happen. Record fatal error
-			result.recordFatalError("Repository schema error during resolution of reference "+propName,e);
+			result.recordFatalError("Repository schema error during resolution of reference " + propName, e);
 			return;
 		} catch (SystemException e) {
 			// We don't want this to tear down entire import.
-			result.recordFatalError("Repository system error during resolution of reference "+propName,e);
+			result.recordFatalError("Repository system error during resolution of reference " + propName, e);
 			return;
 		}
 		if (objects.isEmpty()) {
-			result.recordFatalError("Repository reference "+propName+" cannot be resolved: filter matches no object");
+			result.recordFatalError("Repository reference " + propName
+					+ " cannot be resolved: filter matches no object");
 			return;
 		}
-		if (objects.size()>1) {
-			result.recordFatalError("Repository reference "+propName+" cannot be resolved: filter matches "+objects.size()+" objects");
+		if (objects.size() > 1) {
+			result.recordFatalError("Repository reference " + propName
+					+ " cannot be resolved: filter matches " + objects.size() + " objects");
 			return;
 		}
 		// Bingo. We have exactly one object.
 		String oid = objects.get(0).getOid();
 		ref.setOid(oid);
+		result.recordSuccessIfUnknown();
 	}
 
-	protected static void applyValidationMessages(List<ValidationMessage> objectErrors, ObjectType object, OperationResult result) {
-		for (ValidationMessage message: objectErrors) {
-			if (message.getType() == Type.ERROR) {
-				result.recordFatalError(message.toString());
-				result.appendDetail(message.toString());
-			} else {
-				result.recordPartialError(message.toString());
-				result.appendDetail(message.toString());
-			}
-		}
-	}
 }

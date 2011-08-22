@@ -25,7 +25,8 @@ package com.evolveum.midpoint.validator.test;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
-import com.evolveum.midpoint.common.validator.ObjectHandler;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.ValidationMessage;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -43,35 +44,46 @@ import java.util.List;
 public class BasicValidatorTest {
 
     public static final String BASE_PATH = "src/test/resources/validator/";
+	private static final String OBJECT_RESULT_OPERATION_NAME = BasicValidatorTest.class.getName() + ".validateObject";
 
     public BasicValidatorTest() {
     }
 
     @Test
     public void resource1Valid() throws Exception {
-
-        List<ValidationMessage> errors = validateFile("resource-1-valid.xml");
-        System.out.println("Errors: "+errors);
-        AssertJUnit.assertTrue(errors.isEmpty());
+    	System.out.println("\n===[ resource1Valid ]=====");
+    	
+    	OperationResult result = new OperationResult(this.getClass().getName()+".resource1Valid");
+    	
+        validateFile("resource-1-valid.xml", result);
+        AssertJUnit.assertTrue(result.isSuccess());
 
     }
 
     @Test
     public void handlerTest() throws Exception {
+    	System.out.println("\n===[ handlerTest ]=====");
 
+    	OperationResult result = new OperationResult(this.getClass().getName()+".handlerTest");
+    	
         final List<String> handledOids = new ArrayList<String>();
 
-        ObjectHandler handler = new ObjectHandler() {
+        EventHandler handler = new EventHandler() {
 
             @Override
-            public void handleObject(ObjectType object, List<ValidationMessage> objectErrors) {
+            public void handleObject(ObjectType object, OperationResult objectResult) {
                 handledOids.add(object.getOid());
             }
+
+			@Override
+			public void handleGlobalError(OperationResult currentResult) {
+				// No reaction
+			}
         };
 
-        List<ValidationMessage> errors = validateFile("three-objects.xml",handler);
+        validateFile("three-objects.xml",handler,result);
 
-        AssertJUnit.assertTrue(errors.isEmpty());
+        AssertJUnit.assertTrue(result.isSuccess());
         AssertJUnit.assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
         AssertJUnit.assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111112"));
         AssertJUnit.assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111113"));
@@ -79,45 +91,54 @@ public class BasicValidatorTest {
 
     @Test
     public void notWellFormed() throws Exception {
+    	System.out.println("\n===[ notWellFormed ]=====");
 
-        List<ValidationMessage> errors = validateFile("not-well-formed.xml");
+    	OperationResult result = new OperationResult(this.getClass().getName()+".notWellFormed");
+    	
+        validateFile("not-well-formed.xml",result);
         
-        AssertJUnit.assertFalse(errors.isEmpty());
-        AssertJUnit.assertTrue(errors.get(0).toString().contains("terminated by the matching"));
+        AssertJUnit.assertFalse(result.isSuccess());
+        AssertJUnit.assertTrue(result.getMessage().contains("terminated by the matching"));
         // Check if line number is in the error
-        AssertJUnit.assertTrue(errors.get(0).toString().contains("line 48"));
+        AssertJUnit.assertTrue(result.getMessage().contains("line 48"));
 
     }
 
     @Test
     public void undeclaredPrefix() throws Exception {
-
-        List<ValidationMessage> errors = validateFile("undeclared-prefix.xml");
+    	System.out.println("\n===[ undeclaredPrefix ]=====");
+    	
+        OperationResult result = new OperationResult(this.getClass().getName()+".undeclaredPrefix");
         
-        AssertJUnit.assertFalse(errors.isEmpty());
-        AssertJUnit.assertTrue(errors.get(0).toString().contains("not bound"));
+        validateFile("undeclared-prefix.xml",result);
+        
+        AssertJUnit.assertFalse(result.isSuccess());
+        AssertJUnit.assertTrue(result.getMessage().contains("not bound"));
         // Check if line number is in the error
-        AssertJUnit.assertTrue(errors.get(0).toString().contains("line 43"));
+        AssertJUnit.assertTrue(result.getMessage().contains("line 43"));
 
     }
 
 
     @Test
     public void noName() throws Exception {
+    	System.out.println("\n===[ noName ]=====");
 
-        List<ValidationMessage> errors = validateFile("no-name.xml");
+        OperationResult result = new OperationResult(this.getClass().getName()+".noName");
+        
+        validateFile("no-name.xml",result);
 
-        AssertJUnit.assertFalse(errors.isEmpty());
-        AssertJUnit.assertTrue(errors.get(0).toString().contains("Empty property"));
-        AssertJUnit.assertTrue(errors.get(0).toString().contains("name"));
+        AssertJUnit.assertFalse(result.isSuccess());
+        AssertJUnit.assertTrue(result.getSubresults().get(0).getSubresults().get(0).getMessage().contains("Empty property"));
+        AssertJUnit.assertTrue(result.getSubresults().get(0).getSubresults().get(0).getMessage().contains("name"));
 
     }
 
-    private List<ValidationMessage> validateFile(String filename) throws FileNotFoundException {
-        return validateFile(filename,null);
+    private void validateFile(String filename, OperationResult result) throws FileNotFoundException {
+        validateFile(filename,null,result);
     }
 
-    private List<ValidationMessage> validateFile(String filename,ObjectHandler handler) throws FileNotFoundException {
+    private void validateFile(String filename,EventHandler handler, OperationResult result) throws FileNotFoundException {
 
         String filepath = BASE_PATH + filename;
 
@@ -134,17 +155,15 @@ public class BasicValidatorTest {
         }
         validator.setVerbose(false);
 
-        List<ValidationMessage> errors = validator.validate(fis);
+		validator.validate(fis, result, OBJECT_RESULT_OPERATION_NAME);
 
-        if (!errors.isEmpty()) {
-            for (ValidationMessage error : errors) {
-                System.out.println(error);
-            }
+        if (!result.isSuccess()) {
+        	System.out.println("Errors:");
+        	System.out.println(result.dump());
         } else {
             System.out.println("No errors");
+            System.out.println(result.dump());
         }
-
-        return errors;
 
     }
 

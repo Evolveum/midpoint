@@ -33,10 +33,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import com.evolveum.midpoint.common.validator.ObjectHandler;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.ValidationMessage;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -220,33 +222,45 @@ public class DebugViewController implements Serializable {
 
 	private ObjectType getObjectFromXml(String xml) {
 		final List<ObjectType> objects = new ArrayList<ObjectType>();
-		Validator validator = new Validator(new ObjectHandler() {
+		Validator validator = new Validator(new EventHandler() {
 
 			@Override
-			public void handleObject(ObjectType object, List<ValidationMessage> objectErrors) {
+			public void handleObject(ObjectType object, OperationResult objectResult) {
 				if (objects.isEmpty()) {
 					objects.add(object);
 				}
 			}
+
+			@Override
+			public void handleGlobalError(OperationResult currentResult) {
+				// no reaction
+			}
 		});
+		// TODO: fix operation names
+		OperationResult result = new OperationResult("Get Object from XML");
 		try {
-			List<ValidationMessage> messages = validator.validate(IOUtils.toInputStream(xml, "utf-8"));
-			if (messages != null && !messages.isEmpty()) {
-				StringBuilder builder;
-				for (ValidationMessage message : messages) {
+			validator.validate(IOUtils.toInputStream(xml, "utf-8"), result, "processing object");
+			result.computeStatus("Object processing failed");
+			
+			StringBuilder builder;
+			// Display result as an interactive tree
+			for (OperationResult subresult : result.getSubresults()) {
+				if (!subresult.isSuccess()) {
 					builder = new StringBuilder();
-					builder.append(message.getType());
-					builder.append(": Object with oid '");
-					builder.append(message.getOid());
+					builder.append(result.getStatus());
+					builder.append(": Object '");
+					builder.append(ObjectTypeUtil.toShortString(result.getContext(ObjectType.class, OperationResult.CONTEXT_OBJECT)));
 					builder.append("' is not valid, reason: ");
-					builder.append(message.getMessage());
+					builder.append(result.getMessage());
 					builder.append(".");
-					if (!StringUtils.isEmpty(message.getProperty())) {
+					if (result.getContext(String.class, OperationResult.CONTEXT_PROPERTY)!=null) {
 						builder.append(" Property: ");
-						builder.append(message.getProperty());
+						builder.append(result.getContext(String.class, OperationResult.CONTEXT_PROPERTY));
 					}
 					FacesUtils.addErrorMessage(builder.toString());
 				}
+			}
+			if (!result.isAcceptable()) {
 				return null;
 			}
 		} catch (IOException ex) {

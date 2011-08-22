@@ -22,6 +22,9 @@
 
 package com.evolveum.midpoint.common.validator;
 
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
@@ -43,31 +46,31 @@ import org.xml.sax.SAXParseException;
 /**
  * 
  * 
- * This is not thread-safe! Only a single thread is supposed to use a single
- * instace of validator.
+ * @author Radovan Semancik
  * 
- * @author semancik
  */
 public class Validator {
 
+	private static final String INPUT_STEAM_CHARSET = "utf-8";
+	private static final String OPERATION_PREFIX = Validator.class.getName() + ".";
+	private static final String OPERATION_RESOURCE_NAMESPACE_CHECK = OPERATION_PREFIX + "resourceNamespaceCheck";
+	private static final String OPERATION_RESOURCE_BASICS_CHECK = OPERATION_PREFIX + "objectBasicsCheck";;
 	private boolean verbose = false;
-	private List<ValidationMessage> errors;
-	private List<ValidationMessage> objectErrors;
-	ObjectHandler handler;
+	EventHandler handler;
 
 	public Validator() {
 		handler = null;
 	}
 
-	public Validator(ObjectHandler handler) {
+	public Validator(EventHandler handler) {
 		this.handler = handler;
 	}
 
-	public ObjectHandler getHanlder() {
+	public EventHandler getHandler() {
 		return handler;
 	}
 
-	public void setHandler(ObjectHandler handler) {
+	public void setHandler(EventHandler handler) {
 		this.handler = handler;
 	}
 
@@ -79,26 +82,29 @@ public class Validator {
 		this.verbose = verbose;
 	}
 
-	public List<ValidationMessage> validate(InputStream inputStream) {
+	public void validate(InputStream inputStream, OperationResult validatorResult, String objectResultOperationName) {
 
-		errors = new ArrayList<ValidationMessage>();
+		// TODO: this needs to be switched to stream parsing
+		
+		// The result should already be initialized here.
 		Unmarshaller u = null;
 
 		try {
 			JAXBContext jc = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
 			u = jc.createUnmarshaller();
 		} catch (JAXBException ex) {
-			errors.add(new ValidationMessage(ValidationMessage.Type.ERROR, "Error initializing JAXB: " + ex));
-			if (verbose) {
-				ex.printStackTrace();
+			validatorResult.recordFatalError("Error initializing JAXB: " + ex.getMessage(),ex);
+			if (handler != null) {
+				handler.handleGlobalError(validatorResult);
 			}
-			return errors;
+			// This is a severe error.
+			throw new SystemException("Error initializing JAXB: " + ex.getMessage(),ex);
 		}
 
 		Objects objects = null;
 
 		try {
-			Object object = u.unmarshal(new InputStreamReader(inputStream, "utf-8"));
+			Object object = u.unmarshal(new InputStreamReader(inputStream, INPUT_STEAM_CHARSET));
 			if (object instanceof Objects) {
 				objects = (Objects) object;
 			} else {
@@ -106,7 +112,12 @@ public class Validator {
 				objects.getObject().add((JAXBElement<? extends ObjectType>) object);
 			}
 		} catch (UnsupportedEncodingException ex) {
-			// TODO: logging
+			validatorResult.recordFatalError("Unsupported encoding " + INPUT_STEAM_CHARSET + ": "+ ex.getMessage(),ex);
+			if (handler != null) {
+				handler.handleGlobalError(validatorResult);
+			}
+			// This is a severe error.
+			throw new SystemException("Unsupported encoding " + INPUT_STEAM_CHARSET + ": "+ ex.getMessage(),ex);
 		} catch (JAXBException ex) {
 			if (verbose) {
 				ex.printStackTrace();
@@ -115,22 +126,24 @@ public class Validator {
 			if (linkedException instanceof SAXParseException) {
 				SAXParseException saxex = (SAXParseException) linkedException;
 
-				errors.add(new ValidationMessage(ValidationMessage.Type.ERROR, "XML Parse error: "
+				validatorResult.recordFatalError("XML Parse error: "
 						+ saxex.getMessage() + " (line " + saxex.getLineNumber() + " col "
-						+ saxex.getColumnNumber() + ")"));
+						+ saxex.getColumnNumber() + ")",ex);
 
 			} else if (ex instanceof UnmarshalException) {
-				errors.add(new ValidationMessage(ValidationMessage.Type.ERROR, "Unmarshalling error: "
-						+ ex.getMessage()));
+				validatorResult.recordFatalError("Unmarshalling error: "
+						+ ex.getMessage());
 			} else {
-				errors.add(new ValidationMessage(ValidationMessage.Type.ERROR, "Unmarshalling error: "
-						+ (linkedException != null ? linkedException.getMessage() : "unknown: " + ex)));
+				validatorResult.recordFatalError("Unmarshalling error: "
+						+ (linkedException != null ? linkedException.getMessage() : "unknown: " + ex),ex);
 			}
-			return errors;
+			if (handler != null) {
+				handler.handleGlobalError(validatorResult);
+			}
+			return;
 		}
 
 		for (JAXBElement<? extends ObjectType> jaxbObject : objects.getObject()) {
-			objectErrors = new ArrayList<ValidationMessage>();
 
 			ObjectType object = jaxbObject.getValue();
 
@@ -138,67 +151,90 @@ public class Validator {
 				System.out.println("Processing OID " + object.getOid());
 			}
 
-			// Check generic object properties
+			OperationResult objectResult = validatorResult.createSubresult(objectResultOperationName);
+			objectResult.addContext(OperationResult.CONTEXT_OBJECT, object);
 
-			checkName(object, object.getName(), "name");
-
-			// Type-specific checks
-
-			if (object instanceof ResourceType) {
-				ResourceType resource = (ResourceType) object;
-				checkResource(resource);
-			}
-
-			// TODO
-			if (handler != null) {
-				handler.handleObject(object, objectErrors);
-			}
+			validate(object, objectResult);
 
 		}
+		
+		validatorResult.computeStatus("Validation failed");
 
-		return errors;
+	}
+	
+	public void validate(ObjectType object, OperationResult objectResult) {
+		// Check generic object properties
+
+		checkBasics(object, objectResult);
+
+		// Type-specific checks
+
+		if (object instanceof ResourceType) {
+			ResourceType resource = (ResourceType) object;
+			checkResource(resource,objectResult);
+		}
+		
+		objectResult.recomputeStatus("Object validation has failed","Validation warning");
+		objectResult.recordSuccessIfUnknown();
+		
+		// TODO
+		if (handler != null) {
+			handler.handleObject(object, objectResult);
+		}
+		
+		objectResult.recomputeStatus("Object processing has failed","Validation warning");
 	}
 
-	void checkName(ObjectType object, String value, String propertyName) {
+	// BIG checks - checks that create subresults
+	
+	void checkBasics(ObjectType object, OperationResult objectResult) {
+		OperationResult subresult = objectResult.createSubresult(OPERATION_RESOURCE_BASICS_CHECK);
+		checkName(object, object.getName(), "name", subresult);
+		subresult.recordSuccessIfUnknown();
+	}
+	
+	void checkResource(ResourceType resource, OperationResult objectResult) {
+		OperationResult subresult = objectResult.createSubresult(OPERATION_RESOURCE_NAMESPACE_CHECK);
+		checkUri(resource, resource.getNamespace(), "namespace", subresult);
+		subresult.recordSuccessIfUnknown();
+	}
+	
+	// Small checks - checks that don't create subresults
+
+	void checkName(ObjectType object, String value, String propertyName, OperationResult subResult) {
 		// TODO: check for all whitespaces
 		// TODO: check for bad characters
 		if (value == null || value.isEmpty()) {
-			error("Empty property", object, propertyName);
+			error("Empty property", object, propertyName, subResult);
 		}
 	}
 
-	void checkUri(ObjectType object, String value, String propertyName) {
+	
+	void checkUri(ObjectType object, String value, String propertyName, OperationResult subResult) {
 		// TODO: check for all whitespaces
 		// TODO: check for bad characters
 		if (value == null || value.isEmpty()) {
-			error("Empty property", object, propertyName);
+			error("Empty property", object, propertyName, subResult);
 		}
 		try {
 			URI uri = new URI(value);
 			if (uri.getScheme() == null) {
-				error("URI is supposed to be absolute", object, propertyName);
+				error("URI is supposed to be absolute", object, propertyName, subResult);
 			}
 		} catch (URISyntaxException ex) {
-			error("Wrong URI syntax: " + ex, object, propertyName);
+			error("Wrong URI syntax: " + ex, object, propertyName, subResult);
 		}
 
 	}
 
-	void checkResource(ResourceType resource) {
-		checkUri(resource, resource.getNamespace(), "namespace");
+	void error(String message, ObjectType object, OperationResult subResult) {
+		subResult.addContext(OperationResult.CONTEXT_OBJECT, object);
+		subResult.recordFatalError(message);
 	}
 
-	void error(String message, ObjectType object) {
-		ValidationMessage vm = new ValidationMessage(ValidationMessage.Type.ERROR, message, object.getOid(),
-				object.getName());
-		errors.add(vm);
-		objectErrors.add(vm);
-	}
-
-	void error(String message, ObjectType object, String propertyName) {
-		ValidationMessage vm = new ValidationMessage(ValidationMessage.Type.ERROR, message, object.getOid(),
-				object.getName(), propertyName);
-		errors.add(vm);
-		objectErrors.add(vm);
+	void error(String message, ObjectType object, String propertyName, OperationResult subResult) {
+		subResult.addContext(OperationResult.CONTEXT_OBJECT, object);
+		subResult.addContext(OperationResult.CONTEXT_PROPERTY, propertyName);
+		subResult.recordFatalError("<" + propertyName + ">: " + message);
 	}
 }

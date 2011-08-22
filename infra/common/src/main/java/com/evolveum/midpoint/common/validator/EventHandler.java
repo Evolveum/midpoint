@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.common.validator;
 
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import java.util.List;
 
@@ -29,8 +30,10 @@ import java.util.List;
  *
  * @author semancik
  */
-public interface ObjectHandler {
+public interface EventHandler {
 
-    public void handleObject(ObjectType object, List<ValidationMessage> objectErrors);
+    public void handleObject(ObjectType object, OperationResult objectResult);
+    
+    public void handleGlobalError(OperationResult currentResult);
 
 }

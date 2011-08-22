@@ -43,7 +43,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.common.validator.ObjectHandler;
+import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.ValidationMessage;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.api.ModelService;

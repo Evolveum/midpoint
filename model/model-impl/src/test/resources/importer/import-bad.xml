@@ -51,5 +51,14 @@
         <givenName>Guybrush</givenName>
         <familyName>Threepwood</familyName>
     </user>
+    
+    <!-- Wrong resource reference -->
+    <account>
+    	<name>Wrong Ref Account</name>
+    	<resourceRef oid="d0e5707e-8157-3333-4444-555511111111"/>
+    	<attributes>
+    		<piracy:bar>foobar</piracy:bar>
+    	</attributes>
+    </account>
 
 </objects>

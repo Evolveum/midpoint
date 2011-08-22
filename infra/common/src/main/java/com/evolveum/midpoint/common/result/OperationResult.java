@@ -39,6 +39,7 @@ import com.evolveum.midpoint.schema.exception.CommonException;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ParamsType;
 
@@ -66,6 +67,8 @@ public class OperationResult implements Serializable, Dumpable {
 	public static final String CONTEXT_IMPLEMENTATION_CLASS = "implementationClass";
 	public static final String CONTEXT_PROGRESS = "progress";
 	public static final String CONTEXT_OID = "oid";
+	public static final String CONTEXT_OBJECT = "object";
+	public static final String CONTEXT_PROPERTY = "property";
 	public static final String PARAM_OID = "oid";
 	public static final String PARAM_TASK = "task";
 	public static final String PARAM_OBJECT = "object";
@@ -313,6 +316,38 @@ public class OperationResult implements Serializable, Dumpable {
 			status = newStatus;
 		}
 	}
+	
+	/**
+	 * 
+	 */
+	public void recomputeStatus(String message) {
+		// Only recompute if there are subresults, otherwise keep original status
+		if (subresults != null && !subresults.isEmpty()) {
+			computeStatus(message);
+		}
+	}
+	
+	/**
+	 * 
+	 */
+	public void recomputeStatus(String errorMessage, String warningMessage) {
+		// Only recompute if there are subresults, otherwise keep original status
+		if (subresults != null && !subresults.isEmpty()) {
+			computeStatus(errorMessage,warningMessage);
+		}
+	}
+
+	
+	/**
+	 * 
+	 */
+	public void recordSuccessIfUnknown() {
+		if (isUnknown()) {
+			recordSuccess();
+		}
+	}
+
+
 
 	/**
 	 * Method returns {@link Map} with operation parameters. Parameters keys are
@@ -337,6 +372,12 @@ public class OperationResult implements Serializable, Dumpable {
 		}
 		return context;
 	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> T getContext(Class<T> type, String contextName) {
+		return (T) getContext().get(contextName);
+	}
+
 
 	public void addContext(String contextName, Object value) {
 		getContext().put(contextName, value);
@@ -522,13 +563,17 @@ public class OperationResult implements Serializable, Dumpable {
 		sb.append(status);
 		sb.append(", msg: ");
 		sb.append(message);
+		sb.append("\n");
 		if (cause != null) {
-			sb.append(", cause: ");
+			for (int i = 0; i < indent + 2; i++) {
+				sb.append(INDENT_STRING);
+			}
+			sb.append("[cause]");
 			sb.append(cause.getClass().getSimpleName());
 			sb.append(":");
 			sb.append(cause.getMessage());
+			sb.append("\n");
 		}
-		sb.append("\n");
 
 		for (Map.Entry<String, Object> entry : getParams().entrySet()) {
 			for (int i = 0; i < indent + 2; i++) {

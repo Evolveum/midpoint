@@ -91,7 +91,7 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 
 	}
 
-	@Test(enabled = false)
+	@Test
 	public void test001BadImport() throws FileNotFoundException, SchemaException {
 		displayTestTile(this,"test001BadImport");
 		// GIVEN
