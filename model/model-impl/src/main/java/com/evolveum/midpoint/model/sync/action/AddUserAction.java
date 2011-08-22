@@ -65,9 +65,7 @@ public class AddUserAction extends BaseAction {
 			if (user == null) {
 				user = new ObjectFactory().createUserType();
 
-				SchemaHandler schemaHandler = new SchemaHandlerImpl();
-				schemaHandler.setModel(getModel());
-				user = schemaHandler.processInboundHandling(user, shadowAfterChange, subResult);
+				user = getSchemaHandler().processInboundHandling(user, shadowAfterChange, subResult);
 
 				UserTemplateType userTemplate = null;
 				String userTemplateOid = getUserTemplateOid();
