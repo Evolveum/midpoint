@@ -172,6 +172,10 @@ public class ObjectTypeUtil {
 		StringBuilder sb = new StringBuilder();
 		sb.append(toShortString(object));
 		sb.append("\n");
+		if (object==null) {
+			//in sb is already serialized null object
+			return sb.toString();
+		}
 		Document doc = DOMUtil.getDocument();
 		ObjectTypes objectTypeType = ObjectTypes.getObjectType(object.getClass());
 		Element element;
