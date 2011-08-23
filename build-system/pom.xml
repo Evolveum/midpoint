@@ -539,7 +539,7 @@
 <!-- 							<threadCount>1</threadCount> -->
 <!-- 							<perCoreThreadCount>false</perCoreThreadCount> -->
 <!-- 							<reportFormat>plain</reportFormat> -->
-<!-- 							<trimStackTrace>false</trimStackTrace> -->
+							<trimStackTrace>false</trimStackTrace>
 							<suiteXmlFiles>
 								<suiteXmlFile>testng.xml</suiteXmlFile>
 							</suiteXmlFiles>
