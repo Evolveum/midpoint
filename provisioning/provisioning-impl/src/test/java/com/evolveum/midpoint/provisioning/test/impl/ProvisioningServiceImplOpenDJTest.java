@@ -108,7 +108,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 	// Let's reuse the resource definition from UCF tests ... for now
-	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String FILENAME_ACCOUNT1 = "src/test/resources/impl/account1.xml";
@@ -253,6 +252,10 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test003Connection");
 		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		assertNotNull("No connector ref",resourceBefore.getConnectorRef());
+		assertNotNull("No connector ref OID",resourceBefore.getConnectorRef().getOid());
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, resourceBefore.getConnectorRef().getOid(), null, result);
+		assertNotNull(connector);
 		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
 		AssertJUnit.assertTrue("Found schema before test connection. Bad test setup?",xmlSchemaTypeBefore.getAny().isEmpty());
 		

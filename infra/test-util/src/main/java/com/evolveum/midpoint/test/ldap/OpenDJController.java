@@ -44,6 +44,9 @@ import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.EmbeddedUtils;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 /**
  * This class controls embedded OpenDJ instance.
  * 
@@ -59,6 +62,7 @@ public class OpenDJController {
     protected File configFile = null;
     protected File templateServerRoot = new File("test-data/opendj.template");
 
+    private static final Trace LOGGER = TraceManager.getTrace(OpenDJController.class);
 
     protected InternalClientConnection internalConnection;
 
@@ -220,7 +224,8 @@ public class OpenDJController {
 		}
 		
 		String templateResourcePath = ClassLoader.getSystemResource(templateServerRoot.getPath()).getPath();
-		System.out.println("Template resource path: "+templateResourcePath);
+
+		LOGGER.trace("Template resource path: {}",templateResourcePath);
 
 		File templateResourceFile = new File(templateResourcePath);
 		// E.g. In case of exploded war
@@ -229,13 +234,13 @@ public class OpenDJController {
 		}
 		
 		// E.g. in case of JAR file
-		System.out.println("Using OpenDJ template from a system resource "+templateResourcePath);
+		LOGGER.debug("Using OpenDJ template from a system resource {}",templateResourcePath);
 		templateResourcePath = templateResourcePath.replace("file:", "").split("!")[0];
 		return new File(templateResourcePath);
     }
     
 	private void extractTemplate(File templateResourceFile, String templatePath) throws IOException {
-		System.out.println("*** Extracting OpenDJ from JAR file "+templateResourceFile+" to "+serverRoot.getPath());
+		LOGGER.debug("Extracting OpenDJ from JAR file {} to {}",templateResourceFile,serverRoot.getPath());
 		JarFile jarfile = null;
 		jarfile = new JarFile(templateResourceFile);
 
@@ -251,7 +256,7 @@ public class OpenDJController {
 				if (dstRelPath.length() < 3)
 					continue;
 				String dstPath = serverRoot.getPath() + dstRelPath;
-				System.out.println("[Copy] JAR:" + srcPath + " --> " + dstPath + "  (" + jarEntry.getSize() + " bytes)");
+				LOGGER.trace("[Copy] JAR: {} --> {} ({}  bytes)",new Object[]{srcPath,dstPath,jarEntry.getSize()});
 				
 				if ( jarEntry.getSize() == 0  && dstPath.endsWith("/") ) {
 					new File(dstPath).mkdirs();
@@ -272,7 +277,7 @@ public class OpenDJController {
 				is.close();
 			}
 		}
-		System.out.println("*** Extracted");
+		LOGGER.debug("OpenDJ Extracted");
 	}
 
     
@@ -296,6 +301,8 @@ public class OpenDJController {
      */
     public InternalClientConnection start() {
 
+    	LOGGER.info("Starting OpenDJ server");
+    	
         DirectoryEnvironmentConfig envConfig = new DirectoryEnvironmentConfig();
         try {
             envConfig.setServerRoot(serverRoot);
@@ -303,7 +310,7 @@ public class OpenDJController {
             //envConfig.setDisableConnectionHandlers(true);
         } catch (InitializationException ex) {
             ex.printStackTrace();
-            throw new RuntimeException("OpenDS initialization failed", ex);
+            throw new RuntimeException("OpenDJ initialization failed", ex);
         }
 
         // Check if the server is already running
@@ -315,20 +322,22 @@ public class OpenDJController {
                 EmbeddedUtils.startServer(envConfig);
 
             } catch (ConfigException ex) {
-            	System.out.println("Possible OpenDJ misconfiguration: "+ex.getMessage());
-                ex.printStackTrace();
-                throw new RuntimeException("OpenDS startup failed", ex);
+            	LOGGER.error("Possible OpenDJ misconfiguration: "+ex.getMessage(),ex);
+                throw new RuntimeException("OpenDJ startup failed", ex);
             } catch (InitializationException ex) {
-                ex.printStackTrace();
-                throw new RuntimeException("OpenDS startup failed", ex);
+            	LOGGER.error("OpenDJ startup failed", ex);
+                throw new RuntimeException("OpenDJ startup failed", ex);
             }
         }
 
         internalConnection = InternalClientConnection.getRootConnection();
         if (internalConnection == null) {
+        	LOGGER.error("OpenDJ cannot get internal connection (null)");
             throw new RuntimeException("OpenDS cannot get internal connection (null)");
         }
 
+        LOGGER.info("OpenDJ server started");
+        
         return internalConnection;
     }
 
@@ -338,12 +347,11 @@ public class OpenDJController {
      */
     public void stop() {
         if (EmbeddedUtils.isRunning()){
-            System.out.println("Stopping OpenDJ server");
+        	LOGGER.debug("Stopping OpenDJ server");
             EmbeddedUtils.stopServer(this.getClass().getName(), Message.EMPTY);
-            System.out.println("OpenDJ server is stopped");
+            LOGGER.info("OpenDJ server is stopped");
         } else {
-
-            System.err.println("Warrning: OpenDJ server is already stopped.");
+            LOGGER.warn("Attempt to stop OpenDJ server that is already stopped.");
         }
     }
 

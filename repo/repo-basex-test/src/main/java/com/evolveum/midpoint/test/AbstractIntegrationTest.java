@@ -20,6 +20,9 @@
  */
 package com.evolveum.midpoint.test;
 
+import static org.testng.AssertJUnit.assertNotNull;
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -98,14 +101,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	// @BeforeClass won't work either.
 	@BeforeMethod
 	public void initSystemConditional() throws Exception {
+		// Check whether we are already initialized
+		assertNotNull("Repository is not wired properly", repositoryService);
+		assertNotNull("Task manager is not wired properly", taskManager);
 		LOGGER.trace("initSystemConditional: systemInitialized={}",systemInitialized);
 		if (!systemInitialized) {
 			LOGGER.trace("initSystemConditional: invoking initSystem");
 			OperationResult result = new OperationResult(this.getClass().getName()
 					+ ".initSystem");
 			initSystem(result);
+			result.computeStatus("initSystem failed");
 			IntegrationTestTools.display("initSystem result",result);
-			// IntegrationTestTools.assertSuccess("initSystem failed (result)",result);
+			// TODO: check result
+			IntegrationTestTools.assertSuccess("initSystem failed (result)",result);
 			systemInitialized = true;
 		}
 	}
@@ -144,8 +152,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected ResourceType addResourceFromFile(String filePath, String connectorType, OperationResult result) throws FileNotFoundException, JAXBException, SchemaException, ObjectAlreadyExistsException {
+		LOGGER.trace("addObjectFromFile: {}, connector type {}",filePath,connectorType);
 		ResourceType resource = unmarshallJaxbFromFile(filePath, ResourceType.class);
 		fillInConnectorRef(resource, connectorType, result);
+		display("Adding resource ",resource);
 		String oid = repositoryService.addObject(resource, result);
 		resource.setOid(oid);
 		return resource;
