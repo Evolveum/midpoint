@@ -28,8 +28,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
-import com.evolveum.midpoint.test.ldap.OpenDJUtil;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -41,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 		"classpath:application-context-task.xml",
 		"classpath:application-context-repository.xml", 
 		"classpath:application-context-configuration-test.xml" })
-public class SynchronizationTest extends OpenDJUnitTestAdapter {
+public class SynchronizationTest extends AbstractIntegrationTest {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
@@ -51,10 +50,6 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 
 	private static final String RESOURCE_OID = "ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
 
-	protected static OpenDJUtil djUtil = new OpenDJUtil();
-
-	private JAXBContext jaxbctx;
-	private Unmarshaller unmarshaller;
 	private ResourceType resource;
 	@Autowired
 	private ConnectorFactory manager;
@@ -62,10 +57,6 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 	// private ShadowCache shadowCache;
 	@Autowired
 	private ProvisioningService provisioningService;
-	@Autowired(required = true)
-	private RepositoryService repositoryService;
-	@Autowired
-	private TaskManager taskManager;
 
 	// @Autowired
 	// ResourceObjectChangeListener syncServiceMock;
@@ -93,59 +84,36 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 
 	@BeforeClass
 	public static void startLdap() throws Exception {
-		startACleanDJ();
+		openDJController.startCleanServer();
 	}
 
 	@AfterClass
 	public static void stopLdap() throws Exception {
-		stopDJ();
+		openDJController.stop();
 
 	}
 
-	@BeforeMethod
-	public void initProvisioning() throws Exception {
-
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem()
+	 */
+	@Override
+	public void initSystem(OperationResult initResult) throws Exception {
 		assertNotNull(manager);
-
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".initProvisioning");
-		// The default repository content is using old format of resource
-		// configuration
-		// We need a sample data in the new format, so we need to set it up
-		// manually.
-
 		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
 		assertNotNull(provisioningService);
-
 	}
 
-	@AfterMethod
-	public void cleadUpRepo() throws ObjectNotFoundException {
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName() + ".cleanUpRepo");
-		repositoryService.deleteObject(ResourceType.class, RESOURCE_OPENDJ_OID, result);
-	}
+//	@AfterMethod
+//	public void cleadUpRepo() throws ObjectNotFoundException {
+//		OperationResult result = new OperationResult(SynchronizationTest.class.getName() + ".cleanUpRepo");
+//		repositoryService.deleteObject(ResourceType.class, RESOURCE_OPENDJ_OID, result);
+//	}
 
-	private ObjectType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException {
-		File file = new File(filePath);
-		FileInputStream fis = new FileInputStream(file);
-		Object object = unmarshaller.unmarshal(fis);
-		ObjectType objectType = ((JAXBElement<ObjectType>) object).getValue();
-		return objectType;
-	}
-
-	private ObjectType addObjectFromFile(String filePath) throws Exception {
-		ObjectType object = createObjectFromFile(filePath);
-		System.out.println("obj: " + object.getName());
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".addObjectFromFile");
-		repositoryService.addObject(object, result);
-		return object;
-	}
-
+	
 	@Test
 	public void testSynchronization() throws Exception {
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+		OperationResult result = new OperationResult(SynchronizationTest.class.getName()
 				+ ".synchronizationTest");
 
 		try {

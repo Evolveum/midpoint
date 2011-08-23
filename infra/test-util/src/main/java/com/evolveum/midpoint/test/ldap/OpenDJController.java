@@ -40,60 +40,52 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.util.EmbeddedUtils;
 
 /**
- * This class controls embedded OpenDS instance.
+ * This class controls embedded OpenDJ instance.
  * 
  * It is used in Unit tests. It configures and starts and stops the instance.
- * It can even manage a "template" configuration of OpenDS and copy it to
+ * It can even manage a "template" configuration of OpenDJ and copy it to
  * working instance configuration.
  *
- * @author semancik
+ * @author Radovan Semancik
  */
 public class OpenDJController {
 
-    protected File serverRoot;
-
+    protected File serverRoot = new File("target/test-data/opendj");
     protected File configFile;
-
-    protected File templateServerRoot;
+    protected File templateServerRoot = new File("test-data/opendj.template");
 
 
     protected InternalClientConnection internalConnection;
 
     public OpenDJController() {
-        init(new File("opends"));
+        init(null,null);
     }
 
 
-    public OpenDJController(File ldapDataDir) {
-        init(ldapDataDir);
-    }
-
-    public OpenDJController(File ldapDataDir,File templateDir) {
-        init(ldapDataDir,templateDir);
-    }
-
-    public OpenDJController(String ldapDataDir) {
-        init(new File(ldapDataDir));
-    }
-
-    private void init(File serverRoot) {
+    public OpenDJController(File serverRoot) {
         init(serverRoot,null);
     }
 
+    public OpenDJController(File serverRoot,File templateServerRoot) {
+        init(serverRoot,templateServerRoot);
+    }
+
+    public OpenDJController(String serverRootDirname) {
+        init(new File(serverRootDirname),null);
+    }
+
     private void init(File serverRoot,File templateDir) {
-        this.serverRoot = serverRoot;
+    	if (serverRoot !=null) {
+    		this.serverRoot = serverRoot;
+    	}
         if (!serverRoot.exists()){
             serverRoot.mkdirs();
-        }
+        } 
         this.configFile = new File(serverRoot, "config/config.ldif");
-        if (templateDir==null){
-        	this.templateServerRoot = new File(serverRoot.getParentFile(), "opendj.template");
-        } else {
+        if (templateDir!=null){
             this.templateServerRoot = templateDir;
         }
     }
-
-
 
     /**
      * Get the value of serverRoot.
@@ -207,9 +199,20 @@ public class OpenDJController {
         deleteDirectory(serverRoot);
         copyDirectory(templateServerRoot,serverRoot);
     }
+    
+    /**
+     * Start the embedded OpenDJ directory server using files coppied from the template.
+     * 
+     * @return
+     * @throws IOException 
+     */
+    public InternalClientConnection startCleanServer() throws IOException {
+    	refreshFromTemplate();
+    	return start();
+    }
 
     /**
-     * Start the embedded OpenDS directory server.
+     * Start the embedded OpenDJ directory server.
      *
      * Configuration and databases from serverRoot location will be used.
      * 

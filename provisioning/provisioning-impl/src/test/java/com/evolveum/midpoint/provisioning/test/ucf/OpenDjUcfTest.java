@@ -25,6 +25,8 @@ import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.AssertJUnit;
+
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -56,8 +58,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.FileInputStream;
 import java.io.File;
-import com.evolveum.midpoint.test.ldap.OpenDJUtil;
-import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
 import java.util.HashSet;
 import javax.xml.namespace.QName;
 
@@ -81,14 +81,12 @@ import org.w3c.dom.Document;
 		"classpath:application-context-provisioning-test.xml",
 		"classpath:application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml" })
-public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
+public class OpenDjUcfTest extends AbstractIntegrationTest {
 	
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/ucf/opendj-resource-bad.xml";
 	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
 	
-    protected static OpenDJUtil djUtil = new OpenDJUtil();
-	private JAXBContext jaxbctx;
 	ResourceType resource;
 	ResourceType badResource;
 	ConnectorType connectorType;
@@ -102,12 +100,12 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 
 	@BeforeClass
     public static void startLdap() throws Exception{
-        startACleanDJ();
+        openDJController.startCleanServer();
     }
     
     @AfterClass
     public static void stopLdap() throws Exception{
-        stopDJ();
+        openDJController.stop();
     }
 
     @BeforeMethod
@@ -336,6 +334,15 @@ public class OpenDjUcfTest extends OpenDJUnitTestAdapter {
 		
 		// THEN
 		
+		
+	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem(com.evolveum.midpoint.common.result.OperationResult)
+	 */
+	@Override
+	public void initSystem(OperationResult initResult) throws Exception {
+		// TODO Auto-generated method stub
 		
 	}
 

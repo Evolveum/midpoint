@@ -172,20 +172,19 @@ public class TestSanity extends AbstractIntegrationTest {
 
 	// This will get called from the superclass to init the repository
 	// It will be called only once
-	public void initSystem() throws Exception {
+	public void initSystem(OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
 		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
 
-		OperationResult result = new OperationResult("initSystem");
 		// This should discover the connectors
 		LOGGER.trace("initSystem: trying modelService.postInit()");
-		modelService.postInit(result);
+		modelService.postInit(initResult);
 		LOGGER.trace("initSystem: modelService.postInit() done");
 
 		// Need to import instead of add, so the (dynamic) connector reference
 		// will be resolved
 		// correctly
-		importObjectFromFile(RESOURCE_OPENDJ_FILENAME, result);
+		importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
 
 		addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME);
 		addObjectFromFile(USER_TEMPLATE_FILENAME);
@@ -196,8 +195,8 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * superclass so individual tests may avoid starting OpenDJ.
 	 */
 	@BeforeClass
-	public static void init() throws Exception {
-		startACleanDJ();
+	public static void startLdap() throws Exception {
+		openDJController.startCleanServer();
 	}
 
 	/**
@@ -205,8 +204,8 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * superclass so individual tests may avoid starting OpenDJ.
 	 */
 	@AfterClass
-	public static void shutdown() throws Exception {
-		stopDJ();
+	public static void stopLdap() throws Exception {
+		openDJController.stop();
 	}
 
 	/**
@@ -389,7 +388,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		// "ds-pwp-account-disabled");
 		// attributes.add(
 		// "givenName");
-		InternalSearchOperation op = controller.getInternalConnection().processSearch("dc=example,dc=com",
+		InternalSearchOperation op = openDJController.getInternalConnection().processSearch("dc=example,dc=com",
 				SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100, 100, false,
 				"(entryUUID=" + uid + ")", null);
 
@@ -511,7 +510,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Check if LDAP account was updated
 
-		InternalSearchOperation op = controller.getInternalConnection().processSearch("dc=example,dc=com",
+		InternalSearchOperation op = openDJController.getInternalConnection().processSearch("dc=example,dc=com",
 				SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100, 100, false,
 				"(entryUUID=" + uid + ")", null);
 
@@ -578,7 +577,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		}
 
 		// Account should be deleted from LDAP
-		InternalSearchOperation op = controller.getInternalConnection().processSearch("dc=example,dc=com",
+		InternalSearchOperation op = openDJController.getInternalConnection().processSearch("dc=example,dc=com",
 				SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100, 100, false,
 				"(uid=" + USER_JACK_LDAP_UID + ")", null);
 
@@ -704,7 +703,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// WHEN
 
-		AddOperation addOperation = controller.getInternalConnection().processAdd(entry);
+		AddOperation addOperation = openDJController.getInternalConnection().processAdd(entry);
 
 		// THEN
 

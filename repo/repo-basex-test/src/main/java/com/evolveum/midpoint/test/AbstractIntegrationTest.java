@@ -32,12 +32,12 @@ import javax.xml.bind.Unmarshaller;
 import org.testng.annotations.*;
 import org.testng.Assert;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
-import com.evolveum.midpoint.test.ldap.OpenDJUtil;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -49,15 +49,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
  * @author Radovan Semancik
  *
  */
-public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
+public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContextTests {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
 	
-	/**
-	 * Utility to control embedded OpenDJ instance (start/stop)
-	 */
-	protected static OpenDJUtil djUtil;
-
 	/**
 	 * Unmarshalled resource definition to reach the embedded OpenDJ instance.
 	 * Used for convenience - the tests method may find it handy.
@@ -72,8 +67,11 @@ public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
 	@Autowired(required = true)
 	protected TaskManager taskManager;
 	
+	// Controller for embedded OpenDJ. The abstract test will configure it, but it will not start
+	// only tests that need OpenDJ should start it
+	protected static OpenDJController openDJController = new OpenDJController();
+	
 	public AbstractIntegrationTest() throws JAXBException {
-		djUtil = new OpenDJUtil();
 		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
 		unmarshaller = jaxbctx.createUnmarshaller();
 	}
@@ -89,12 +87,15 @@ public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
 		LOGGER.trace("initSystemConditional: systemInitialized={}",systemInitialized);
 		if (!systemInitialized) {
 			LOGGER.trace("initSystemConditional: invoking initSystem");
-			initSystem();
+			OperationResult result = new OperationResult(this.getClass().getName()
+					+ ".initSystem");
+			initSystem(result);
+			IntegrationTestTools.assertSuccess("initSystem failed",result);
 			systemInitialized = true;
 		}
 	}
 	
-	abstract public void initSystem() throws Exception;
+	abstract public void initSystem(OperationResult initResult) throws Exception;
 	
 	protected ObjectType addObjectFromFile(String filePath) throws Exception {
 		LOGGER.trace("addObjectFromFile: {}",filePath);
@@ -117,6 +118,10 @@ public abstract class AbstractIntegrationTest extends OpenDJUnitTestAdapter {
 		Object object = unmarshaller.unmarshal(fis);
 		T objectType = ((JAXBElement<T>) object).getValue();
 		return objectType;
+	}
+	
+	protected static ObjectType unmarshallJaxbFromFile(String filePath) throws FileNotFoundException,JAXBException {
+		return unmarshallJaxbFromFile(filePath,ObjectType.class);
 	}
 	
 }

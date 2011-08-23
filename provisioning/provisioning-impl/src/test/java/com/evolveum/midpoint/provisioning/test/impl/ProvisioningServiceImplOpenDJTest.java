@@ -45,6 +45,7 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.DebugUtil;
@@ -67,8 +68,8 @@ import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
-import com.evolveum.midpoint.test.ldap.OpenDJUtil;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -103,7 +104,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 		"classpath:application-context-provisioning-test.xml",
 		"classpath:application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml" })
-public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
+public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 	// Let's reuse the resource definition from UCF tests ... for now
 	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
@@ -127,7 +128,6 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"AccountObjectClass");
 
-	protected static OpenDJUtil djUtil = new OpenDJUtil();
 	private JAXBContext jaxbctx;
 	private ResourceType resource;
 	@Autowired
@@ -136,11 +136,9 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 	private ProvisioningService provisioningService;
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager;
+	
 	private Unmarshaller unmarshaller;
 	private static boolean provisioningInitialized = false;
-
-	@Autowired(required = true)
-	private RepositoryService repositoryService;
 
 	public RepositoryService getRepositoryService() {
 		return repositoryService;
@@ -155,15 +153,19 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		unmarshaller = jaxbctx.createUnmarshaller();
 	}
 
+	@Override
+	public void initSystem(OperationResult initResult) throws Exception {
+		// Nothing to do		
+	}
+	
 	@BeforeClass
 	public static void startLdap() throws Exception {
-		startACleanDJ();
+		openDJController.startCleanServer();
 	}
 
 	@AfterClass
 	public static void stopLdap() throws Exception {
-		stopDJ();
-
+		openDJController.stop();
 	}
 
 	@BeforeMethod
@@ -315,7 +317,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 				+ ".getObjectTest");
 		try {
 
-			ObjectType objectToAdd = createObjectFromFile(FILENAME_ACCOUNT1);
+			ObjectType objectToAdd = unmarshallJaxbFromFile(FILENAME_ACCOUNT1);
 
 			System.out.println(DebugUtil.prettyPrint(objectToAdd));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(objectToAdd,
@@ -456,7 +458,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 				+ ".addObjectTest");
 
 		try {
-			ObjectType object = createObjectFromFile(FILENAME_ACCOUNT_NEW);
+			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_NEW);
 
 			System.out.println(DebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
@@ -537,7 +539,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 				+ ".addObjectTest");
 
 		try {
-			ObjectType object = createObjectFromFile(FILENAME_ACCOUNT_DELETE);
+			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_DELETE);
 
 			System.out.println(DebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
@@ -596,7 +598,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 		try {
 
-			ObjectType object = createObjectFromFile(FILENAME_ACCOUNT_MODIFY);
+			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_MODIFY);
 
 			System.out.println(DebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
@@ -690,7 +692,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
 				+ ".searchObjectsIterativeTest");
 		try {
-			ObjectType object = createObjectFromFile(FILENAME_ACCOUNT_SEARCH_ITERATIVE);
+			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH_ITERATIVE);
 
 			System.out.println(DebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
@@ -750,7 +752,7 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 				+ ".searchObjectsTest");
 
 		try {
-			ObjectType object = createObjectFromFile(FILENAME_ACCOUNT_SEARCH);
+			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_SEARCH);
 
 			System.out.println(DebugUtil.prettyPrint(object));
 			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
@@ -807,21 +809,5 @@ public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 		// TODO: assert something
 	}
 	
-	private ObjectType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException {
-		File file = new File(filePath);
-		FileInputStream fis = new FileInputStream(file);
-		Object object = unmarshaller.unmarshal(fis);
-		ObjectType objectType = ((JAXBElement<ObjectType>) object).getValue();
-		return objectType;
-	}
-
-	private ObjectType addObjectFromFile(String filePath) throws Exception {
-		ObjectType object = createObjectFromFile(filePath);
-		System.out.println("obj: " + object.getName());
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".addObjectFromFile");
-		repositoryService.addObject(object, result);
-		return object;
-	}
-
+	
 }

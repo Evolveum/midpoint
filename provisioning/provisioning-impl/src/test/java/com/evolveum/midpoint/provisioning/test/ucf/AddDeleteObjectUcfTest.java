@@ -61,15 +61,14 @@ import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.test.ldap.OpenDJUnitTestAdapter;
-import com.evolveum.midpoint.test.ldap.OpenDJUtil;
+import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 @ContextConfiguration(locations = { "classpath:dummy-context.xml" })
-public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
+public class AddDeleteObjectUcfTest extends AbstractIntegrationTest {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/ucf/opendj-resource-bad.xml";
@@ -77,7 +76,6 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 
 	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
-	protected static OpenDJUtil djUtil = new OpenDJUtil();
 	private JAXBContext jaxbctx;
 	ResourceType resource;
 	ResourceType badResource;
@@ -89,15 +87,24 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 	public AddDeleteObjectUcfTest() throws JAXBException {
 		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
 	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem(com.evolveum.midpoint.common.result.OperationResult)
+	 */
+	@Override
+	public void initSystem(OperationResult initResult) throws Exception {
+		// TODO Auto-generated method stub
+		
+	}
 
 	@BeforeClass
 	public static void startLdap() throws Exception {
-		startACleanDJ();
+		openDJController.startCleanServer();
 	}
 
 	@AfterClass
 	public static void stopLdap() throws Exception {
-		stopDJ();
+		openDJController.stop();
 	}
 
 	@BeforeMethod
@@ -324,4 +331,5 @@ public class AddDeleteObjectUcfTest extends OpenDJUnitTestAdapter {
 
 		return attributeModification;
 	}
+
 }
