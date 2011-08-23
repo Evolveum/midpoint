@@ -22,7 +22,9 @@
 package com.evolveum.midpoint.repo.xml;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.SocketAddress;
 
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
@@ -30,21 +32,19 @@ import org.basex.BaseXServer;
 import org.basex.core.BaseXException;
 import org.basex.server.ClientQuery;
 import org.basex.server.ClientSession;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-public class XmlRepositoryServiceFactory {
+public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 
 	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryServiceFactory.class);
 
-	@Autowired
-	MidpointConfiguration midpointConfiguration;
-	
 	private boolean dropDatabase = false;
 	private boolean runServer = true;
 	private boolean embedded = true;
@@ -59,10 +59,30 @@ public class XmlRepositoryServiceFactory {
 	private String serverPath;
 	private BaseXServer server;
 
-	public void init() throws RepositoryServiceFactoryException {
-		
-		loadConfiguration();
+	private Configuration config;
 
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.repo.xml.RepositoryServiceFactory#init()
+	 */
+	@Override
+	public void init() throws RepositoryServiceFactoryException {
+		//TODO: if no configuration is set then generate default configuration
+		
+		applyConfiguration(config);
+
+		startServer();
+
+		recreateDatabase();
+
+	}
+
+	/**
+	 * Starts BaseX server. Based on configuration it will start BaseX server in
+	 * daemon or standalone mode or won't start server at all.
+	 * 
+	 * @throws RepositoryServiceFactoryException
+	 */
+	private void startServer() throws RepositoryServiceFactoryException {
 		if (runServer) {
 			// start BaseX server, it registers its own shutdown hook, therefore
 			// no cleanup is required
@@ -93,7 +113,15 @@ public class XmlRepositoryServiceFactory {
 			}
 			TRACE.trace("BaseX Server started");
 		}
+	}
 
+	/**
+	 * (re)create of the database. It will drop old database only if Factory's
+	 * property dropDatabase is set to true.
+	 * 
+	 * @throws RepositoryServiceFactoryException
+	 */
+	private void recreateDatabase() throws RepositoryServiceFactoryException {
 		boolean newDb = false;
 
 		ClientSession session = null;
@@ -142,12 +170,10 @@ public class XmlRepositoryServiceFactory {
 				}
 			}
 		}
-
 	}
 
-	private void loadConfiguration() {
-		
-		Configuration config = midpointConfiguration.getConfiguration("midpoint.repository");
+	private void applyConfiguration(Configuration config) {
+
 		setDatabaseName(config.getString("databaseName"));
 		setDropDatabase(config.getBoolean("dropDatabase"));
 		setEmbedded(config.getBoolean("embedded"));
@@ -159,9 +185,13 @@ public class XmlRepositoryServiceFactory {
 		setServerPath(config.getString("serverPath"));
 		setShutdown(config.getBoolean("shutdown"));
 		setUsername(config.getString("username"));
-		
+
 	}
 
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.repo.xml.RepositoryServiceFactory#destroy()
+	 */
+	@Override
 	public void destroy() {
 		if (shutdown) {
 			if (server != null) {
@@ -170,8 +200,13 @@ public class XmlRepositoryServiceFactory {
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.repo.xml.RepositoryServiceFactory#getRepositoryService()
+	 */
+	@Override
 	public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
-		RepositoryService repositoryService = new XmlRepositoryService(host, port, username, password, databaseName);
+		RepositoryService repositoryService = new XmlRepositoryService(host, port, username, password,
+				databaseName);
 		return repositoryService;
 	}
 
@@ -266,8 +301,10 @@ public class XmlRepositoryServiceFactory {
 	private void checkPort() throws RepositoryServiceFactoryException {
 		ServerSocket ss = null;
 		try {
-			ss = new ServerSocket(this.getPort());
+			ss = new ServerSocket();
 			ss.setReuseAddress(true);
+			SocketAddress endpoint = new InetSocketAddress(this.getPort());
+			ss.bind(endpoint);
 		} catch (IOException e) {
 			throw new RepositoryServiceFactoryException(
 					"BaseX port (" + this.getPort() + ") already in use.", e);
@@ -283,4 +320,21 @@ public class XmlRepositoryServiceFactory {
 			}
 		}
 	}
+
+	@Override
+	public String getComponentId() {
+		throw new UnsupportedOperationException("Operation is not supported on RepositoryServiceFactory implementation class. See RepositoryFactory in component system-init");
+	}
+
+	@Override
+	public Configuration getCurrentConfiguration() {
+		//TODO: generate full configuration also with default values!
+		return config;
+	}
+
+	@Override
+	public void setConfiguration(Configuration config) {
+		this.config = config;
+	}
+	
 }

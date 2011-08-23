@@ -106,7 +106,7 @@ public class XmlRepositoryService implements RepositoryService {
 		// TODO: make pool configuration external
 		Config poolConfig = new Config();
 		poolConfig.lifo = false;
-		poolConfig.maxActive = 10;
+		poolConfig.maxActive = 20;
 		PoolableObjectFactory factory = new BaseXClientSessionPoolableObjectFactory(host, port, username,
 				password, dbName);
 		sessions = new GenericObjectPool(factory, poolConfig);

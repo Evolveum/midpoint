@@ -27,4 +27,8 @@
 	<bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init" >
 		<constructor-arg value="test-config.xml"/>
 	</bean>
+	
+	<bean name="repositoryFactory"
+		class="com.evolveum.midpoint.init.RepositoryFactory"
+		init-method="init" destroy-method="destroy" />
 </beans>

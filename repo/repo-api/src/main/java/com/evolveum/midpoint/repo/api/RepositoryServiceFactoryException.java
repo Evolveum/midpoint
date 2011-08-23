@@ -19,7 +19,7 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  * Portions Copyrighted 2011 Igor Farinic
  */
-package com.evolveum.midpoint.repo.xml;
+package com.evolveum.midpoint.repo.api;
 
 public class RepositoryServiceFactoryException extends Exception {
 

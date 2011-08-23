@@ -19,7 +19,7 @@ public class ConfigurationLoadTest {
 	  assertNotNull(sc);
 	  sc.init();
 	  Configuration c = sc.getConfiguration("midpoint.repository");
-	  assertEquals(c.getString("class") , "com.evolveum.midpoint.repo.xml");
+	  assertEquals(c.getString("repositoryServiceFactoryClass") , "com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory");
 	  System.out.println(c.toString());
 	  
 	  c.getInt("port", 1234);

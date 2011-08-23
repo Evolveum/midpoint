@@ -21,7 +21,7 @@
 <configuration>
 	<midpoint>
 		<repository>
-			<class>com.evolveum.midpoint.repo.xml</class>
+			<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory</repositoryServiceFactoryClass>
 			<runServer>true</runServer>
 			<embedded>true</embedded> <!-- embedded is applicable only if runServer > true -->
 			<shutdown>true</shutdown>

@@ -207,7 +207,12 @@
 			<version>${selenium.version}</version>
 			<scope>test</scope>
 		</dependency>
-		
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>system-init</artifactId>
+			<version>1.9-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
 
         <!-- Dependencies to connectors, just to add to good place in WAR -->
 		<dependency>
