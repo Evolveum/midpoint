@@ -23,6 +23,7 @@ package com.evolveum.midpoint.test;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -31,18 +32,31 @@ import javax.xml.bind.Unmarshaller;
 
 import org.testng.annotations.*;
 import org.testng.Assert;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExclusivityStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
@@ -90,7 +104,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			OperationResult result = new OperationResult(this.getClass().getName()
 					+ ".initSystem");
 			initSystem(result);
-			IntegrationTestTools.assertSuccess("initSystem failed",result);
+			IntegrationTestTools.display("initSystem result",result);
+			// IntegrationTestTools.assertSuccess("initSystem failed (result)",result);
 			systemInitialized = true;
 		}
 	}
@@ -98,8 +113,12 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	abstract public void initSystem(OperationResult initResult) throws Exception;
 	
 	protected ObjectType addObjectFromFile(String filePath) throws Exception {
+		return addObjectFromFile(filePath, ObjectType.class);
+	}
+	
+	protected <T extends ObjectType> T addObjectFromFile(String filePath, Class<T> type) throws Exception {
 		LOGGER.trace("addObjectFromFile: {}",filePath);
-		ObjectType object = unmarshallJaxbFromFile(filePath, ObjectType.class);
+		T object = unmarshallJaxbFromFile(filePath, type);
 		System.out.println("obj: " + object.getName());
 		OperationResult result = new OperationResult(AbstractIntegrationTest.class.getName() + ".addObjectFromFile");
 		if (object instanceof TaskType) {
@@ -122,6 +141,47 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected static ObjectType unmarshallJaxbFromFile(String filePath) throws FileNotFoundException,JAXBException {
 		return unmarshallJaxbFromFile(filePath,ObjectType.class);
+	}
+	
+	protected ResourceType addResourceFromFile(String filePath, String connectorType, OperationResult result) throws FileNotFoundException, JAXBException, SchemaException, ObjectAlreadyExistsException {
+		ResourceType resource = unmarshallJaxbFromFile(filePath, ResourceType.class);
+		fillInConnectorRef(resource, connectorType, result);
+		String oid = repositoryService.addObject(resource, result);
+		resource.setOid(oid);
+		return resource;
+	}
+	
+	protected ConnectorType findConnectorByType(String connectorType, OperationResult result) throws SchemaException {
+		Document doc = DOMUtil.getDocument();
+
+		Element connectorTypeElement = doc.createElementNS(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE.getNamespaceURI(),
+				SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE.getLocalPart());
+		connectorTypeElement.setTextContent(connectorType);
+
+		// We have all the data, we can construct the filter now
+		Element filter = QueryUtil.createAndFilter(
+				doc,
+				// No path needed. The default is OK.
+				QueryUtil.createTypeFilter(doc, ObjectTypes.CONNECTOR.getObjectTypeUri()),
+				QueryUtil.createEqualFilter(doc, null, connectorTypeElement));
+
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+		
+		List<ConnectorType> connectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
+		if (connectors.size()!=1) {
+			throw new IllegalStateException("Cannot find connector type "+connectorType+", got "+connectors);
+		}
+		return connectors.get(0);
+	}
+	
+	protected void fillInConnectorRef(ResourceType resource, String connectorType, OperationResult result) throws SchemaException {
+		ConnectorType connector = findConnectorByType(connectorType, result);
+		if (resource.getConnectorRef()==null) {
+			resource.setConnectorRef(new ObjectReferenceType());
+		}
+		resource.getConnectorRef().setOid(connector.getOid());
+		resource.getConnectorRef().setType(ObjectTypes.CONNECTOR.getTypeQName());
 	}
 	
 }

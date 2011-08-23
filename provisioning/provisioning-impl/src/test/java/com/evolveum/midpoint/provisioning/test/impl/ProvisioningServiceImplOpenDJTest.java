@@ -102,6 +102,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 @ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
 		"classpath:application-context-provisioning-test.xml",
+		"classpath:application-context-task.xml",
 		"classpath:application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml" })
 public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
@@ -127,18 +128,13 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	private static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"AccountObjectClass");
+	private static final String LDAP_CONNECTOR_TYPE = "org.identityconnectors.ldap.LdapConnector";
 
-	private JAXBContext jaxbctx;
-	private ResourceType resource;
-	@Autowired
-	private ConnectorFactory manager;
 	@Autowired
 	private ProvisioningService provisioningService;
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager;
-	
-	private Unmarshaller unmarshaller;
-	private static boolean provisioningInitialized = false;
+
 
 	public RepositoryService getRepositoryService() {
 		return repositoryService;
@@ -155,7 +151,10 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 	@Override
 	public void initSystem(OperationResult initResult) throws Exception {
-		// Nothing to do		
+		provisioningService.postInit(initResult);
+		ResourceType resource = addResourceFromFile(FILENAME_RESOURCE_OPENDJ, LDAP_CONNECTOR_TYPE, initResult);
+//		addObjectFromFile(FILENAME_ACCOUNT1);
+		addObjectFromFile(FILENAME_ACCOUNT_BAD);
 	}
 	
 	@BeforeClass
@@ -166,30 +165,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	@AfterClass
 	public static void stopLdap() throws Exception {
 		openDJController.stop();
-	}
-
-	@BeforeMethod
-	public void initProvisioning() throws Exception {
-
-		assertNotNull(manager);
-
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".initProvisioning");
-		
-		if (!provisioningInitialized) {
-			// Adding this before "postInit" will give us fixed OID of the ConnectorType object
-			addObjectFromFile(FILENAME_CONNECTOR_LDAP);
-			
-			provisioningService.postInit(result);
-			result.computeStatus("Test failed");
-			display("Provisioning initialization",result);
-			assertSuccess("Provisioning initialization failed", result);
-			provisioningInitialized=true;
-		}
-		
-		resource = (ResourceType) addObjectFromFile(FILENAME_RESOURCE_OPENDJ);
-//		addObjectFromFile(FILENAME_ACCOUNT1);
-		addObjectFromFile(FILENAME_ACCOUNT_BAD);
 	}
 	
 	@AfterMethod

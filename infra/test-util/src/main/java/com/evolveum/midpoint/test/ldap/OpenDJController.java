@@ -24,13 +24,18 @@ package com.evolveum.midpoint.test.ldap;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
+
 import org.opends.messages.Message;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -51,39 +56,39 @@ import org.opends.server.util.EmbeddedUtils;
 public class OpenDJController {
 
     protected File serverRoot = new File("target/test-data/opendj");
-    protected File configFile;
+    protected File configFile = null;
     protected File templateServerRoot = new File("test-data/opendj.template");
 
 
     protected InternalClientConnection internalConnection;
 
     public OpenDJController() {
-        init(null,null);
+        init();
     }
 
 
     public OpenDJController(File serverRoot) {
-        init(serverRoot,null);
+    	this.serverRoot = serverRoot;
+        init();
     }
 
     public OpenDJController(File serverRoot,File templateServerRoot) {
-        init(serverRoot,templateServerRoot);
+    	this.serverRoot = serverRoot;
+    	this.templateServerRoot = templateServerRoot;
+        init();
     }
 
     public OpenDJController(String serverRootDirname) {
-        init(new File(serverRootDirname),null);
+        this.serverRoot = new File(serverRootDirname);
+        init();
     }
 
-    private void init(File serverRoot,File templateDir) {
-    	if (serverRoot !=null) {
-    		this.serverRoot = serverRoot;
-    	}
+    private void init() {
         if (!serverRoot.exists()){
             serverRoot.mkdirs();
-        } 
-        this.configFile = new File(serverRoot, "config/config.ldif");
-        if (templateDir!=null){
-            this.templateServerRoot = templateDir;
+        }
+        if (configFile == null) {
+        	configFile = new File(serverRoot, "config/config.ldif");
         }
     }
 
@@ -197,8 +202,79 @@ public class OpenDJController {
      */
     public void refreshFromTemplate() throws IOException {
         deleteDirectory(serverRoot);
-        copyDirectory(templateServerRoot,serverRoot);
+        File template = locateTemplate();
+        if (template.isDirectory()) {
+        	// If the template is already expanded, copy it
+        	copyDirectory(template,serverRoot);
+        } else {
+        	// Otherwise expand it to the destination place
+        	extractTemplate(template,templateServerRoot.getPath());
+        }
     }
+    
+    private File locateTemplate() {
+		
+    	// E.g. if running directly from classes
+		if (templateServerRoot.isDirectory()) {
+			return templateServerRoot;
+		}
+		
+		String templateResourcePath = ClassLoader.getSystemResource(templateServerRoot.getPath()).getPath();
+		System.out.println("Template resource path: "+templateResourcePath);
+
+		File templateResourceFile = new File(templateResourcePath);
+		// E.g. In case of exploded war
+		if (templateResourceFile.isDirectory()) {
+			return templateResourceFile;
+		}
+		
+		// E.g. in case of JAR file
+		System.out.println("Using OpenDJ template from a system resource "+templateResourcePath);
+		templateResourcePath = templateResourcePath.replace("file:", "").split("!")[0];
+		return new File(templateResourcePath);
+    }
+    
+	private void extractTemplate(File templateResourceFile, String templatePath) throws IOException {
+		System.out.println("*** Extracting OpenDJ from JAR file "+templateResourceFile+" to "+serverRoot.getPath());
+		JarFile jarfile = null;
+		jarfile = new JarFile(templateResourceFile);
+
+		if (!serverRoot.exists()) {
+			serverRoot.mkdirs();
+		}
+
+		for (Enumeration<JarEntry> entries = jarfile.entries(); entries.hasMoreElements();) {
+			JarEntry jarEntry = entries.nextElement();
+			if (jarEntry.getName().contains(templatePath)) {
+				String srcPath = jarEntry.getName();
+				String dstRelPath = srcPath.replace(templatePath, "");
+				if (dstRelPath.length() < 3)
+					continue;
+				String dstPath = serverRoot.getPath() + dstRelPath;
+				System.out.println("[Copy] JAR:" + srcPath + " --> " + dstPath + "  (" + jarEntry.getSize() + " bytes)");
+				
+				if ( jarEntry.getSize() == 0  && dstPath.endsWith("/") ) {
+					new File(dstPath).mkdirs();
+					continue;
+				}
+				if (new File(dstPath).exists())
+					continue;
+				
+				InputStream is = null;
+				OutputStream out = new FileOutputStream(dstPath);
+				byte buf[] = new byte[65536];
+				is = jarfile.getInputStream(jarEntry);
+				int len;
+				while ((len = is.read(buf)) > 0) {
+					out.write(buf, 0, len);
+				}
+				out.close();
+				is.close();
+			}
+		}
+		System.out.println("*** Extracted");
+	}
+
     
     /**
      * Start the embedded OpenDJ directory server using files coppied from the template.

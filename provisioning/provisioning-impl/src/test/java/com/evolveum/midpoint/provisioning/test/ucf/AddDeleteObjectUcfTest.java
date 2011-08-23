@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
@@ -62,13 +63,14 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 @ContextConfiguration(locations = { "classpath:dummy-context.xml" })
-public class AddDeleteObjectUcfTest extends AbstractIntegrationTest {
+public class AddDeleteObjectUcfTest extends AbstractTestNGSpringContextTests {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/ucf/opendj-resource-bad.xml";
@@ -76,6 +78,8 @@ public class AddDeleteObjectUcfTest extends AbstractIntegrationTest {
 
 	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
+	protected static OpenDJController openDJController = new OpenDJController();
+	
 	private JAXBContext jaxbctx;
 	ResourceType resource;
 	ResourceType badResource;
@@ -86,15 +90,6 @@ public class AddDeleteObjectUcfTest extends AbstractIntegrationTest {
 
 	public AddDeleteObjectUcfTest() throws JAXBException {
 		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-	}
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem(com.evolveum.midpoint.common.result.OperationResult)
-	 */
-	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@BeforeClass
