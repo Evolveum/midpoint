@@ -1,38 +1,41 @@
 /*
  * Copyright (c) 2011 Evolveum
  * 
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the License). You may not use this file except in
+ * The contents of this file are subject to the terms of the Common Development
+ * and Distribution License (the License). You may not use this file except in
  * compliance with the License.
  * 
  * You can obtain a copy of the License at
- * http://www.opensource.org/licenses/cddl1 or
- * CDDLv1.0.txt file in the source code distribution.
- * See the License for the specific language governing
+ * http://www.opensource.org/licenses/cddl1 or CDDLv1.0.txt file in the source
+ * code distribution. See the License for the specific language governing
  * permission and limitations under the License.
  * 
- * If applicable, add the following below the CDDL Header,
- * with the fields enclosed by brackets [] replaced by
- * your own identifying information:
+ * If applicable, add the following below the CDDL Header, with the fields
+ * enclosed by brackets [] replaced by your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
+
+import net.sf.saxon.expr.instruct.NextMatch;
 
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.ConnectorInfo;
@@ -40,8 +43,10 @@ import org.identityconnectors.framework.api.ConnectorInfoManager;
 import org.identityconnectors.framework.api.ConnectorInfoManagerFactory;
 import org.identityconnectors.framework.api.ConnectorKey;
 import org.identityconnectors.framework.api.RemoteFrameworkConnectionInfo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
@@ -82,10 +87,10 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME = "configuration";
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
-	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(
-			NS_ICF_CONFIGURATION, "connectorPoolConfiguration");
-	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(
-			NS_ICF_CONFIGURATION, "ConnectorPoolConfigurationType");
+	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(NS_ICF_CONFIGURATION,
+			"connectorPoolConfiguration");
+	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(NS_ICF_CONFIGURATION,
+			"ConnectorPoolConfigurationType");
 	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(NS_ICF_CONFIGURATION,
 			"producerBufferSize");
 	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE = DOMUtil.XSD_INTEGER;
@@ -104,6 +109,9 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	private ConnectorInfoManager localConnectorInfoManager;
 	private Set<URL> bundleURLs;
 	private Map<String, ConnectorInfo> connectors;
+
+	@Autowired
+	MidpointConfiguration midpointConfiguration;
 
 	public ConnectorFactoryIcfImpl() {
 	}
@@ -255,8 +263,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	 */
 	private ConnectorInfoManager getLocalConnectorInfoManager() {
 		if (null == localConnectorInfoManager) {
-			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(bundleURLs
-					.toArray(new URL[0]));
+			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(bundleURLs.toArray(new URL[0]));
 		}
 		return localConnectorInfoManager;
 	}
@@ -272,8 +279,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		int port = Integer.parseInt(hostType.getPort());
 		GuardedString key = new GuardedString(hostType.getSharedSecret().toCharArray());
 		// TODO: SSL
-		RemoteFrameworkConnectionInfo remoteFramewrorkInfo = new RemoteFrameworkConnectionInfo(hostname,
-				port, key);
+		RemoteFrameworkConnectionInfo remoteFramewrorkInfo = new RemoteFrameworkConnectionInfo(hostname, port, key);
 		return connectorInfoManagerFactory.getRemoteManager(remoteFramewrorkInfo);
 	}
 
@@ -285,6 +291,40 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	 */
 	private Set<URL> listBundleJars() {
 		Set<URL> bundleURLs = new HashSet<URL>();
+
+		// scan class path for bundles
+		Enumeration<URL> en = null;
+		try {
+			// Search all jars in classpath
+			en = this.getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
+		} catch (IOException ex) {
+			// TODO: handle exception
+		}
+		
+		//Find which one is ICF connector
+		while (en.hasMoreElements()) {
+			URL u = en.nextElement();
+
+			Properties prop = new Properties();
+			LOGGER.trace("Scan classloader resource: " + u.toString());
+			try {
+				// read content of META-INF/MANIFEST.MF
+				InputStream is = u.openStream();
+				// skip if unreadable
+				if (is == null) {
+					continue;
+				}
+				// Convert to properties
+				prop.load(is);
+			} catch (IOException ex) {
+				LOGGER.trace("Unable load: " + u + " [" + ex.getMessage() + "]");
+			}
+
+			if (null != prop.get("ConnectorBundle-Name")) {
+				LOGGER.info("Discovered icf bundle: " + prop.get("ConnectorBundle-Name") + " version: "
+						+ prop.get("ConnectorBundle-Version"));
+			}
+		}
 
 		// Look for connectors in the BUNDLE_PATH folder
 
@@ -336,10 +376,11 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			File[] connectors = icfFolder.listFiles(fileFilter);
 			for (File file : connectors) {
 				try {
+					LOGGER.trace("Add: " + file.toURI().toURL());
 					bundleURLs.add(file.toURI().toURL());
 				} catch (MalformedURLException ex) {
-					LOGGER.debug("Couldn't transform file path " + file.getAbsolutePath()
-							+ " to URL, reason: " + ex.getMessage());
+					LOGGER.debug("Couldn't transform file path " + file.getAbsolutePath() + " to URL, reason: "
+							+ ex.getMessage());
 				}
 			}
 		}
@@ -355,8 +396,8 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 	private ConnectorInfo getConnectorInfo(ConnectorType connectorType) throws ObjectNotFoundException {
 		if (!ICF_FRAMEWORK_URI.equals(connectorType.getFramework())) {
-			throw new ObjectNotFoundException("Requested connector for framework "
-					+ connectorType.getFramework() + " cannot be found in framework " + ICF_FRAMEWORK_URI);
+			throw new ObjectNotFoundException("Requested connector for framework " + connectorType.getFramework()
+					+ " cannot be found in framework " + ICF_FRAMEWORK_URI);
 		}
 		ConnectorKey key = getConnectorKey(connectorType);
 		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() == null) {

@@ -102,6 +102,7 @@ public class SimpleUcfTest {
 	public void testListConnectors() {
 		Set<ConnectorType> listConnectors = manager.listConnectors(null);
 
+		System.out.println("---------------------------------------------------------------------");
 		assertNotNull(listConnectors);
 		assertFalse(listConnectors.isEmpty());
 
@@ -114,6 +115,8 @@ public class SimpleUcfTest {
 			System.out.println("--");
 		}
 
+		System.out.println("---------------------------------------------------------------------");
+		
 	}
 	
 	@Test
