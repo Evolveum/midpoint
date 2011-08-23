@@ -817,7 +817,7 @@ public class TestSanity extends AbstractIntegrationTest {
 						return false;
 					}
 				},
-				30000);
+				45000);
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
 		ObjectType obj = modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), task.getOid(),

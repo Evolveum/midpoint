@@ -102,7 +102,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	public void init() {
-		TRACE.error("Initialize BaseX Client sessions pool");
+		TRACE.info("Initialize BaseX Client sessions pool");
 		// TODO: make pool configuration external
 		Config poolConfig = new Config();
 		poolConfig.lifo = false;
