@@ -24,15 +24,17 @@ package com.evolveum.midpoint.repo.xml;
 import java.io.IOException;
 import java.net.ServerSocket;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.basex.BaseXServer;
 import org.basex.core.BaseXException;
 import org.basex.server.ClientQuery;
 import org.basex.server.ClientSession;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -40,6 +42,9 @@ public class XmlRepositoryServiceFactory {
 
 	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryServiceFactory.class);
 
+	@Autowired
+	MidpointConfiguration midpointConfiguration;
+	
 	private boolean dropDatabase = false;
 	private boolean runServer = true;
 	private boolean embedded = true;
@@ -55,6 +60,8 @@ public class XmlRepositoryServiceFactory {
 	private BaseXServer server;
 
 	public void init() throws RepositoryServiceFactoryException {
+		
+		loadConfiguration();
 
 		if (runServer) {
 			// start BaseX server, it registers its own shutdown hook, therefore
@@ -136,6 +143,23 @@ public class XmlRepositoryServiceFactory {
 			}
 		}
 
+	}
+
+	private void loadConfiguration() {
+		
+		Configuration config = midpointConfiguration.getConfiguration("midpoint.repository");
+		setDatabaseName(config.getString("databaseName"));
+		setDropDatabase(config.getBoolean("dropDatabase"));
+		setEmbedded(config.getBoolean("embedded"));
+		setHost(config.getString("host"));
+		setInitialDataPath(config.getString("initialDataPath"));
+		setPassword(config.getString("password"));
+		setPort(config.getInt("port"));
+		setRunServer(config.getBoolean("runServer"));
+		setServerPath(config.getString("serverPath"));
+		setShutdown(config.getBoolean("shutdown"));
+		setUsername(config.getString("username"));
+		
 	}
 
 	public void destroy() {
