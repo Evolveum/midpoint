@@ -52,8 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 		"classpath:application-context-test.xml",
 //TODO: if these two contexts are initilized then the test fails for unknown reason
 //		"classpath:application-context-provisioning.xml",
-//		"classpath:application-context-repository.xml",
-		"classpath:application-context-repository-test.xml"
+		"classpath:application-context-repository.xml",
+		"classpath:application-context-configuration-test.xml"
 		 })
 public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests  {
 

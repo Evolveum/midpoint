@@ -42,7 +42,8 @@ import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
 		"classpath:application-context-test.xml",
-		"classpath:application-context-repository-test.xml" })
+		"classpath:application-context-repository.xml",
+		"classpath:application-context-configuration-test.xml" })
 public class UserManagerImplTest extends AbstractTestNGSpringContextTests  {
 
 	private static final Trace LOGGER = TraceManager.getTrace(UserManagerImplTest.class);

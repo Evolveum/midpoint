@@ -39,7 +39,8 @@ import org.testng.annotations.Test;
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
 		"classpath:application-context-test.xml",
-		"classpath:application-context-repository-test.xml" })
+		"classpath:application-context-repository.xml",
+		"classpath:application-context-configuration-test.xml" })
 public class LoginControllerTest extends AbstractTestNGSpringContextTests{
 
 	@Autowired(required = true)
