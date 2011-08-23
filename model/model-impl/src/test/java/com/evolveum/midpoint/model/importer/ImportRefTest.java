@@ -56,7 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-repository-test.xml",
+		"classpath:application-context-repository.xml",
+		"classpath:application-context-configuration-test.xml",
 		"classpath:application-context-provisioning.xml",
 		"classpath:application-context-task.xml" })
 public class ImportRefTest extends AbstractTestNGSpringContextTests {
