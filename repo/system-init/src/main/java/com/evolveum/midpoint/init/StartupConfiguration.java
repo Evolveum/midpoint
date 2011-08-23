@@ -21,68 +21,90 @@
  */
 package com.evolveum.midpoint.init;
 
-import java.net.URL;
+
 import java.util.Iterator;
 
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.NotImplementedException;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 
-public class StartupConfiguration {
+public class StartupConfiguration implements MidpointConfiguration{
 
 	private static final Trace logger = TraceManager.getTrace(StartupConfiguration.class);
 
 	private CompositeConfiguration config = null;
 	private String configFilename = null;
 
-	private String getConfigFilename() {
-		if (this.configFilename == null) {
-			configFilename = "config.xml";
-		}
-		return configFilename;
+	/**
+	 * Default constructor 	 
+	 */
+	public StartupConfiguration() {
+		this.configFilename = "config.xml";
 	}
 
+	/**
+	 * Constructor
+	 * @param configFilename alternative configuration file
+	 */
+	public StartupConfiguration(String configFilename) {
+		this.configFilename = configFilename;
+	}
+	
+	/**
+	 * Get current configuration file name
+	 * @return
+	 */
+	public String getConfigFilename() {
+		return this.configFilename;
+	}
+
+	/**
+	 * Set configuration filename
+	 * @param configFilename
+	 */
 	public void setConfigFilename(String configFilename) {
 		this.configFilename = configFilename;
 	}
 
-
-	public StartupConfiguration() {
-		loadConfiguration();
-	}
-
-	public StartupConfiguration(String configFilename) {
-		this.configFilename = configFilename;
-		loadConfiguration();
-	}
-
 	
-	/**
-	 * Read subset of configuration for component
-	 * 
-	 * @param componentName
-	 * @return
-	 */
+	@Override
 	public Configuration getConfiguration( String componentName) {
 		return config.subset(componentName);
 	}
 	
+	/**
+	 * Initialize system configuration
+	 */
+	public void init() {
+		loadConfiguration();
+	}
+	
+	/**
+	 * Load system configuration
+	 */
 	public void load() {
 		loadConfiguration();
 	}
 	
+	
+	/**
+	 * Save system configuration
+	 * @TODO not implement yet
+	 */
 	public void save() {
 		throw new NotImplementedException();
 	}
 	
 	
-	
+	/**
+	 * Loading logic
+	 */
 	private void loadConfiguration() {
 		if (config != null) {
 			config.clear();
@@ -91,10 +113,10 @@ public class StartupConfiguration {
 		}
 		
 		/* loading precednecy and configuration logic */
-		if (null != System.getProperty("midpoint.home") ) {
+//		if (null != System.getProperty("midpoint.home") ) {
 			
 			/* Do default loading */
-		} else {
+	//	} else {
 			try {
 				// system options are priority 1.
 				//config.addConfiguration(new SystemConfiguration());
@@ -112,11 +134,7 @@ public class StartupConfiguration {
 				logger.error("Unable to read configuration file [" + this.getConfigFilename() + "]:" + e.getMessage());
 				System.out.println("Unable to read configuration file [" + this.getConfigFilename() + "]:" + e.getMessage());
 			}
-		}
-		
-		// debug :-)
-		
-		
+		//}
 	}
 	
 	@Override
@@ -129,20 +147,6 @@ public class StartupConfiguration {
 			sb.append(key);
 			sb.append(" = ");
 			sb.append(config.getString(key));
-			sb.append("; ");
-		}
-		return sb.toString();
-	}
-	
-	public String dumpConfig(Configuration c) {
-		@SuppressWarnings("unchecked")
-		Iterator<String> i = c.getKeys();
-		StringBuilder sb = new  StringBuilder();
-		while (i.hasNext() ) {
-			String key = i.next();
-			sb.append(key);
-			sb.append(" = ");
-			sb.append(c.getString(key));
 			sb.append("; ");
 		}
 		return sb.toString();
