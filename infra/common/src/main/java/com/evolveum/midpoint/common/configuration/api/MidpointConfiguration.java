@@ -22,7 +22,7 @@ package com.evolveum.midpoint.common.configuration.api;
  */
 import org.apache.commons.configuration.Configuration;
 
-public interface SystemConfiguration {
+public interface MidpointConfiguration {
 	/**
 	 * get configuration for symbolic name of the component from configuration
 	 * subsytem.
