@@ -19,9 +19,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
+import com.evolveum.midpoint.web.model.dto.ConnectorHostDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -38,7 +40,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 
 	private static final long serialVersionUID = -4183063295869675058L;
 	private static final Trace LOGGER = TraceManager.getTrace(ResourceManagerImpl.class);
-	
+
 	@Override
 	protected Class<? extends ObjectType> getSupportedObjectClass() {
 		return ResourceType.class;
@@ -209,7 +211,11 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get import status from resource {}", ex, resourceOid);
 			result.recordFatalError("Couldn't get import status from resource '" + resourceOid + "'.", ex);
+		} finally {
+			result.computeStatus("", "");
 		}
+
+		printResults(LOGGER, result);
 
 		return collection;
 	}
@@ -231,4 +237,47 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 		return new ConnectorDto(connector);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public Collection<ConnectorHostDto> listConnectorHosts() {
+		Collection<ConnectorHostDto> collection = new ArrayList<ConnectorHostDto>();
+
+		OperationResult result = new OperationResult(ResourceManager.LIST_CONNECTOR_HOSTS);
+		try {
+			Collection<ConnectorHostType> connectors = (Collection<ConnectorHostType>) list(null,
+					ObjectTypes.CONNECTOR_HOST.getClassDefinition());
+			if (connectors != null) {
+				for (ConnectorHostType connector : connectors) {
+					collection.add(new ConnectorHostDto(connector));
+				}
+			}
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't list connector hosts", ex);
+		} finally {
+			result.computeStatus("Couldn't list connector hosts.",
+					"Some problem occured during connector hosts listing.");
+		}
+
+		printResults(LOGGER, result);
+
+		return collection;
+	}
+
+	@Override
+	public void discoverConnectorsOnHost(ConnectorHostDto connectorHost) {
+		Validate.notNull(connectorHost, "Connector host dto must not be null.");
+
+		OperationResult result = new OperationResult(ResourceManager.DISCOVER_CONNECTORS_ON_HOST);
+		try {
+			getModel().discoverConnectors(connectorHost.getXmlObject(), result);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't discover connectors on connector host {}", ex,
+					connectorHost.getName());
+		} finally {
+			result.computeStatus("Couldn't discover connectors on connector host '" + connectorHost.getName()
+					+ "'.");
+		}
+
+		printResults(LOGGER, result);
+	}
 }

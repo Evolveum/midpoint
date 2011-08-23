@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
@@ -43,7 +44,9 @@ public enum ProvisioningTypes {
 
 	RESOURCE(ResourceType.class, SchemaConstants.I_RESOURCE_TYPE),
 
-	CONNECTOR(ConnectorType.class, SchemaConstants.I_CONNECTOR_TYPE);
+	CONNECTOR(ConnectorType.class, SchemaConstants.I_CONNECTOR_TYPE),
+
+	CONNECTOR_HOST(ConnectorHostType.class, SchemaConstants.I_CONNECTOR_HOST_TYPE);
 
 	private Class<? extends ObjectType> clazz;
 	private QName name;
@@ -55,19 +58,19 @@ public enum ProvisioningTypes {
 
 	public static boolean isManagedByProvisioning(ObjectType object) {
 		Validate.notNull(object, "Object must not be null.");
-		
+
 		return isClassManagedByProvisioning(object.getClass());
 	}
-	
-	public static boolean isClassManagedByProvisioning(Class<? extends ObjectType> clazz) {		
+
+	public static boolean isClassManagedByProvisioning(Class<? extends ObjectType> clazz) {
 		Validate.notNull(clazz, "Class must not be null.");
-		
+
 		for (ProvisioningTypes type : ProvisioningTypes.values()) {
 			if (type.clazz.isAssignableFrom(clazz)) {
 				return true;
 			}
 		}
-		
+
 		return false;
 	}
 

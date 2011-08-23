@@ -14,20 +14,18 @@
 	<ui:define name="content">
 		<ice:form>
 			<ice:panelPopup modal="true" autoCentre="true" visible="#{resourceList.showPopup}">
-					<f:facet name="header">
-						<ice:outputText value="#{msg['Confirm delete']}" />
-					</f:facet>
-					<f:facet id="confirm" name="body">
-						<ice:outputText value="#{msg['Delete selected resources?']}" />
-						<div class="button-bar">
-							<ice:commandButton id="deleteResourceYes" value="#{msg['Yes']}"
-								action="#{resourceList.deleteResources}" />
-							<ice:commandButton id="deleteResourceNo" value="#{msg['No']}"
-								action="#{resourceList.hideConfirmDelete}" />
-						</div>
-					</f:facet>
-				</ice:panelPopup>
-				
+				<f:facet name="header">
+					<ice:outputText value="#{msg['Confirm delete']}" />
+				</f:facet>
+				<f:facet id="confirm" name="body">
+					<ice:outputText value="#{msg['Delete selected resources?']}" />
+					<div class="button-bar">
+						<ice:commandButton id="deleteResourceYes" value="#{msg['Yes']}" action="#{resourceList.deleteResources}" />
+						<ice:commandButton id="deleteResourceNo" value="#{msg['No']}" action="#{resourceList.hideConfirmDelete}" />
+					</div>
+				</f:facet>
+			</ice:panelPopup>
+
 			<ice:dataTable id="resourceTable" rows="50" value="#{resourceList.objects}" var="item"
 				sortColumn="#{resourceList.sortColumnName}" sortAscending="#{resourceList.ascending}"
 				columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
@@ -123,6 +121,40 @@
 				<idm:button id="deleteResource" buttonType="negative" value="Delete"
 					img="/resources/images/drive_delete.png" action="#{resourceList.deletePerformed}" />
 			</div>
+
+			<ice:dataTable id="connectorHostTable" rows="10" value="#{resourceList.connectorHosts}" var="item"
+				columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2"
+				columnWidths="300px, 300px, 100px, 200px" resizable="false">
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputText id="nameHeader" value="Name" />
+					</f:facet>
+					<ice:outputText id="nameValue" value="#{item.name}" />
+				</ice:column>
+
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputText id="urlHeader" value="URL" />
+					</f:facet>
+					<ice:outputText id="urlValue" value="#{item.URL}" />
+				</ice:column>
+
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputText id="timeoutHeader" value="Timeout" />
+					</f:facet>
+					<ice:outputText id="timeoutValue" value="#{item.timeout}" />
+				</ice:column>
+
+				<ice:column>
+					<f:facet name="header">
+					</f:facet>
+					<idm:button id="discoverButton" value="Discover" img="/resources/images/database_lightning.png"
+						action="#{resourceList.discoverPerformed}">
+						<f:param name="connectorHostOid" value="#{item.oid}" />
+					</idm:button>
+				</ice:column>
+			</ice:dataTable>
 		</ice:form>
 	</ui:define>
 </ui:composition>

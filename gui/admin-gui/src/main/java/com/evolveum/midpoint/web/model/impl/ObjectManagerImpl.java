@@ -40,7 +40,6 @@ import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -57,7 +56,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectManagerImpl.class);
 	@Autowired(required = true)
 	private transient ModelService model;
-	
+
 	protected ModelService getModel() {
 		return model;
 	}
@@ -169,7 +168,6 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		return oid;
 	}
 
-	@SuppressWarnings("unchecked")
 	protected <O extends ObjectType> Collection<O> list(PagingType paging, Class<O> type) {
 		Validate.notNull(type, "Class object must not be null.");
 

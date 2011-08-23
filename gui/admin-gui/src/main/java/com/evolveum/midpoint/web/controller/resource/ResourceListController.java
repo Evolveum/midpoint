@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.controller.util.SortableListController;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
+import com.evolveum.midpoint.web.model.dto.ConnectorHostDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
@@ -70,6 +71,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 	public static final String PAGE_NAVIGATION = "/resource/index?faces-redirect=true";
 	public static final String NAVIGATION_LEFT = "leftResourceList";
 	private static final String PARAM_RESOURCE_OID = "resourceOid";
+	private static final String PARAM_CONNECTOR_HOST_OID = "connectorHostOid";
 	private static final long serialVersionUID = 8325385127604325633L;
 	private static final Trace TRACE = TraceManager.getTrace(ResourceListController.class);
 	@Autowired(required = true)
@@ -328,5 +330,56 @@ public class ResourceListController extends SortableListController<ResourceListI
 
 		template.setSelectedLeftId(NAVIGATION_LEFT);
 		return PAGE_NAVIGATION;
+	}
+
+	public List<ConnectorHostDto> getConnectorHosts() {
+		List<ConnectorHostDto> connectors = new ArrayList<ConnectorHostDto>();
+		try {
+			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+			Collection<ConnectorHostDto> collection = manager.listConnectorHosts();
+			if (collection != null) {
+				connectors.addAll(collection);
+			}
+		} catch (Exception ex) {
+			final String message = "Unknown error occured while listing connector hosts";
+
+			LoggingUtils.logException(TRACE, message, ex);
+			FacesUtils.addErrorMessage(message);
+		}
+
+		return connectors;
+	}
+
+	public void discoverPerformed() {
+		String connectorHostOid = FacesUtils.getRequestParameter(PARAM_CONNECTOR_HOST_OID);
+		if (StringUtils.isEmpty(connectorHostOid)) {
+			FacesUtils.addErrorMessage("Connector host oid not defined in request.");
+			return;
+		}
+
+		try {
+			List<ConnectorHostDto> hosts = getConnectorHosts();
+			ConnectorHostDto connectorHost = null;
+			for (ConnectorHostDto host : hosts) {
+				if (connectorHostOid.equals(host.getOid())) {
+					connectorHost = host;
+					break;
+				}
+			}
+
+			if (connectorHost == null) {
+				FacesUtils.addErrorMessage("Connector host with oid '" + connectorHostOid
+						+ "' was not found.");
+				return;
+			}
+
+			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+			manager.discoverConnectorsOnHost(connectorHost);
+		} catch (Exception ex) {
+			final String message = "Couldn't discover connectors";
+
+			LoggingUtils.logException(TRACE, message, ex);
+			FacesUtils.addErrorMessage(message);
+		}
 	}
 }

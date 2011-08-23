@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
+import com.evolveum.midpoint.web.model.dto.ConnectorHostDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -47,6 +48,8 @@ public interface ResourceManager extends ObjectManager<GuiResourceDto> {
 	String LIST_RESOURCE_OBJECTS = CLASS_NAME + "listResourceObjects";
 	String GET_IMPORT_STATUS = CLASS_NAME + "getImportStatus";
 	String LIST_CONNECTORS = CLASS_NAME + "listConnectors";
+	String LIST_CONNECTOR_HOSTS = CLASS_NAME + "listConnectorHosts";
+	String DISCOVER_CONNECTORS_ON_HOST = CLASS_NAME + "discoverConnectorsOnHost";
 
 	<T extends ResourceObjectShadowType> List<ResourceObjectShadowDto<T>> listObjectShadows(String oid,
 			Class<T> resourceObjectShadowType);
@@ -63,4 +66,8 @@ public interface ResourceManager extends ObjectManager<GuiResourceDto> {
 	Collection<ConnectorDto> listConnectors();
 
 	ConnectorDto getConnector(String oid);
+	
+	Collection<ConnectorHostDto> listConnectorHosts();
+	
+	void discoverConnectorsOnHost(ConnectorHostDto connectorHost);
 }
