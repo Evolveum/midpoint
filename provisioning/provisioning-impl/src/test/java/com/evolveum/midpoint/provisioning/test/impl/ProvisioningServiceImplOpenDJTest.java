@@ -175,14 +175,14 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
 		} catch (Exception e) {
 		}
-		try {
-			repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
-		} catch (Exception e) {
-		}
-		try {
-			repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
-		} catch (Exception e) {
-		}
+//		try {
+//			repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
+//		} catch (Exception e) {
+//		}
+//		try {
+//			repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
+//		} catch (Exception e) {
+//		}
 	}
 	
 	/**
@@ -324,11 +324,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
-			} catch (Exception ex) {
-			}
-
 		}
 		// TODO: check values
 	}
@@ -371,11 +366,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
-			} catch (Exception ex) {
-			}
-
 		}
 
 	}
@@ -419,11 +409,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
-			} catch (Exception ex) {
-			}
-
 		}
 
 	}
@@ -466,11 +451,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_NEW_OID, result);
 			} catch (Exception ex) {
 			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
-			} catch (Exception ex) {
-			}
-
 		}
 	}
 
@@ -500,11 +480,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
-			} catch (Exception ex) {
-			}
-
 		}
 	}
 
@@ -558,11 +533,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
 			} catch (Exception ex) {
 			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
-			} catch (Exception ex) {
-			}
-
 		}
 
 	}
@@ -616,11 +586,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_MODIFY_OID, result);
 			} catch (Exception ex) {
 			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
-			} catch (Exception ex) {
-			}
-
 		}
 
 	}
@@ -654,11 +619,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_MODIFY_OID, result);
 			} catch (Exception ex) {
 			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
-			} catch (Exception ex) {
-			}
-
 		}
 
 	}
@@ -715,10 +675,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_SEARCH_ITERATIVE_OID, result);
 			} catch (Exception ex) {
 			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
-			} catch (Exception ex) {
-			}
 		}
 	}
 
@@ -761,10 +717,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			}
 			try {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_SEARCH_OID, result);
-			} catch (Exception ex) {
-			}
-			try {
-				repositoryService.deleteObject(AccountShadowType.class, RESOURCE_OPENDJ_OID, result);
 			} catch (Exception ex) {
 			}
 		}
