@@ -114,7 +114,8 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 		"classpath:application-context-provisioning.xml",
 		"classpath:application-context-sanity-test.xml",
 		"classpath:application-context-task.xml" ,
-		"classpath:application-context-repository-test.xml"})
+		"classpath:application-context-repository.xml",
+		"classpath:application-context-configuration-test.xml"})
 
 public class TestSanity extends AbstractIntegrationTest  {
 
