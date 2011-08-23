@@ -221,17 +221,20 @@ public class MidPointFacesMessages extends HtmlMessages {
 		writeMessageDetailBold(FacesUtils.translateKey("operation." + result.getOperation()), writer);
 
 		// message error details
-		writer.startElement("span", null);
+		writer.startElement("img", null);
 		writer.writeAttribute("class", "messages-details-error_button", null);
 		writer.writeAttribute("id", "errorNumber" + errorNum, null);
 		writer.writeAttribute("unselectable", "on", null);
+		Resource show_details = context.getApplication().getResourceHandler()
+				.createResource("star.png", "images");
+		writer.writeAttribute("src", show_details.getRequestPath(), null);
+		writer.writeAttribute("title", "Details", null);
 		StringBuilder script = new StringBuilder();
 		script.append("displayMessageErrorDetails('");
 		script.append("errorNumber" + errorNum);
 		script.append("');");
 		writer.writeAttribute("onclick", script.toString(), null);
-		writer.write("[Details]");
-		writer.endElement("span");
+		writer.endElement("img");
 
 		writer.startElement("div", null);
 		writer.writeAttribute("class", "messages-details-error", null);

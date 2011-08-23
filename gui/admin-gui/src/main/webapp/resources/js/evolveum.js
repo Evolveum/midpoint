@@ -27,11 +27,14 @@ function displayMessageErrorDetails(id) {
 }
 
 function displayMessageCauseDetails(id) {
+	var buttonElement = document.getElementById(id);
 	var blockElement = document.getElementById(id + "_block");
 	var value = blockElement.style.display;
 	if (value == 'none' || value == '') {
 		blockElement.style.display = 'block';
+		buttonElement.innerHTML=" [Less]";
 	} else {
 		blockElement.style.display = 'none';
+		buttonElement.innerHTML=" [More]";
 	}
 }
