@@ -1351,7 +1351,7 @@ public class ModelControllerImpl implements ModelController {
 				String accountOid = addObject(account, subResult);
 				user.getAccountRef().add(ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT));
 			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't process account construction {} for user {}", ex,
+				LoggingUtils.logException(LOGGER, "Couldn't process account construction '{}' for user {}", ex,
 						construction.getType(), user.getName());
 				subResult.recordFatalError("Something went terribly wrong.", ex);
 				result.recordWarning("Couldn't process account construction '" + construction.getType()

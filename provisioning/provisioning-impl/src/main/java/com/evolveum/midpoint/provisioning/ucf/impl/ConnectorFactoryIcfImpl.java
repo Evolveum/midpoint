@@ -35,7 +35,6 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import org.identityconnectors.common.security.GuardedString;
-
 import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.api.ConnectorInfoManager;
 import org.identityconnectors.framework.api.ConnectorInfoManagerFactory;
@@ -43,8 +42,8 @@ import org.identityconnectors.framework.api.ConnectorKey;
 import org.identityconnectors.framework.api.RemoteFrameworkConnectionInfo;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -55,9 +54,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-
 
 /**
  * Currently the only implementation of the UCF Connector Manager API interface.
@@ -71,7 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 @Component
 public class ConnectorFactoryIcfImpl implements ConnectorFactory {
-	
+
 	public static final String ICF_FRAMEWORK_URI = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1";
 	public static final String NS_ICF_CONFIGURATION = ICF_FRAMEWORK_URI + "/connector-schema-1.xsd";
 	// Note! This is also specified in SchemaConstants (MID-356)
@@ -86,13 +82,16 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME = "configuration";
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
-	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(NS_ICF_CONFIGURATION,"connectorPoolConfiguration");
-	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(NS_ICF_CONFIGURATION,"ConnectorPoolConfigurationType");
-	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(NS_ICF_CONFIGURATION,"producerBufferSize");
+	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(
+			NS_ICF_CONFIGURATION, "connectorPoolConfiguration");
+	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(
+			NS_ICF_CONFIGURATION, "ConnectorPoolConfigurationType");
+	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(NS_ICF_CONFIGURATION,
+			"producerBufferSize");
 	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE = DOMUtil.XSD_INTEGER;
-	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(NS_ICF_CONFIGURATION,"timeouts");
-	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_TYPE = new QName(NS_ICF_CONFIGURATION,"TimeoutsType");
-	
+	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(NS_ICF_CONFIGURATION, "timeouts");
+	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_TYPE = new QName(NS_ICF_CONFIGURATION, "TimeoutsType");
+
 	// This usually refers to WEB-INF/lib/icf-connectors
 	private static final String BUNDLE_PATH = "../../lib/icf-connectors";
 	private static final String BUNDLE_PREFIX = "org.identityconnectors";
@@ -100,7 +99,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = ICF_FRAMEWORK_URI + "/bundle/";
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryIcfImpl.class);
 	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
-	
+
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
 	private ConnectorInfoManager localConnectorInfoManager;
 	private Set<URL> bundleURLs;
@@ -110,14 +109,14 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	}
 
 	/**
-	 * Initialize the ICF implementation. Look for all connector bundles,
-	 * get basic information about them and keep that in memory.
+	 * Initialize the ICF implementation. Look for all connector bundles, get
+	 * basic information about them and keep that in memory.
 	 */
 	@PostConstruct
 	public void initialize() {
 		bundleURLs = listBundleJars();
 		connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
-		
+
 		connectors = new HashMap<String, ConnectorInfo>();
 		List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
 		for (ConnectorInfo connectorInfo : connectorInfos) {
@@ -131,25 +130,30 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	 * Creates new connector instance.
 	 * 
 	 * It will initialize the connector by taking the XML Resource definition,
-	 * transforming it to the ICF configuration and applying that to the 
-	 * new connector instance.
-	 * @throws ObjectNotFoundException 
+	 * transforming it to the ICF configuration and applying that to the new
+	 * connector instance.
+	 * 
+	 * @throws ObjectNotFoundException
 	 * 
 	 */
 	@Override
-	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace) throws ObjectNotFoundException {
-		
+	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace)
+			throws ObjectNotFoundException {
+
 		ConnectorInfo cinfo = getConnectorInfo(connectorType);
-		
-		if (cinfo==null) {
-			LOGGER.error("Failed to instantiate {}",ObjectTypeUtil.toShortString(connectorType));
-			LOGGER.debug("Connector key: {}, host: {}",getConnectorKey(connectorType),ObjectTypeUtil.toShortString(connectorType));
-			LOGGER.trace("Connector object: {}",ObjectTypeUtil.dump(connectorType));
-			LOGGER.trace("Connector host object: {}",ObjectTypeUtil.dump(connectorType.getConnectorHost()));
-			throw new ObjectNotFoundException("The connector "+ObjectTypeUtil.toShortString(connectorType)+" was not found");
+
+		if (cinfo == null) {
+			LOGGER.error("Failed to instantiate {}", ObjectTypeUtil.toShortString(connectorType));
+			LOGGER.debug("Connector key: {}, host: {}", getConnectorKey(connectorType),
+					ObjectTypeUtil.toShortString(connectorType));
+			LOGGER.trace("Connector object: {}", ObjectTypeUtil.dump(connectorType));
+			LOGGER.trace("Connector host object: {}", ObjectTypeUtil.dump(connectorType.getConnectorHost()));
+			throw new ObjectNotFoundException("The connector " + ObjectTypeUtil.toShortString(connectorType)
+					+ " was not found");
 		}
-		
-		// Create new midPoint ConnectorInstance and pass it the ICF connector facade
+
+		// Create new midPoint ConnectorInstance and pass it the ICF connector
+		// facade
 		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cinfo, connectorType, namespace);
 
 		return connectorImpl;
@@ -166,34 +170,35 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			return listRemoteConnectors(host);
 		}
 	}
-		
+
 	private Set<ConnectorType> listLocalConnectors() {
 		Set<ConnectorType> connectorTypes = new HashSet<ConnectorType>();
 		for (Map.Entry<String, ConnectorInfo> e : connectors.entrySet()) {
 			ConnectorInfo cinfo = e.getValue();
-			ConnectorType connectorType = convertToConnectorType(cinfo,null);
+			ConnectorType connectorType = convertToConnectorType(cinfo, null);
 			connectorTypes.add(connectorType);
 		}
 		return connectorTypes;
 	}
-	
+
 	private Set<ConnectorType> listRemoteConnectors(ConnectorHostType host) {
 		ConnectorInfoManager remoteConnectorInfoManager = getRemoteConnectorInfoManager(host);
 		Set<ConnectorType> connectorTypes = new HashSet<ConnectorType>();
 		List<ConnectorInfo> connectorInfos = remoteConnectorInfoManager.getConnectorInfos();
 		for (ConnectorInfo connectorInfo : connectorInfos) {
-			ConnectorType connectorType = convertToConnectorType(connectorInfo,host);
+			ConnectorType connectorType = convertToConnectorType(connectorInfo, host);
 			connectorTypes.add(connectorType);
 		}
 		return connectorTypes;
 	}
 
-
 	/**
 	 * Converts ICF ConnectorInfo into a midPoint XML connector representation.
 	 * 
 	 * TODO: schema transformation
-	 * @param hostType host that this connector runs on or null for local connectors
+	 * 
+	 * @param hostType
+	 *            host that this connector runs on or null for local connectors
 	 */
 	private ConnectorType convertToConnectorType(ConnectorInfo cinfo, ConnectorHostType hostType) {
 		ConnectorType connectorType = new ConnectorType();
@@ -201,7 +206,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		String stringID = keyToNamespaceSuffix(key);
 		StringBuilder connectorName = new StringBuilder("ICF ");
 		connectorName.append(key.getConnectorName());
-		if (hostType!=null) {
+		if (hostType != null) {
 			connectorName.append(" @");
 			connectorName.append(hostType.getName());
 		}
@@ -211,8 +216,8 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		connectorType.setNamespace(ICF_CONFIGURATION_NAMESPACE_PREFIX + stringID);
 		connectorType.setConnectorVersion(key.getBundleVersion());
 		connectorType.setConnectorBundle(key.getBundleName());
-		if (hostType!=null) {
-			if (hostType.getOid()!=null) {
+		if (hostType != null) {
+			if (hostType.getOid() != null) {
 				// bind using connectorHostRef and OID
 				ObjectReferenceType ref = new ObjectReferenceType();
 				ref.setOid(hostType.getOid());
@@ -236,29 +241,29 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		sb.append(key.getBundleName());
 		sb.append(CONNECTOR_IDENTIFIER_SEPARATOR);
 		// Don't include version. It is lesser evil.
-//		sb.append(key.getBundleVersion());
-//		sb.append(CONNECTOR_IDENTIFIER_SEPARATOR);
+		// sb.append(key.getBundleVersion());
+		// sb.append(CONNECTOR_IDENTIFIER_SEPARATOR);
 		sb.append(key.getConnectorName());
 		return sb.toString();
 	}
 
-
 	/**
-	 * Returns ICF connector info manager that manages local connectors.
-	 * The manager will be created if it does not exist yet.
+	 * Returns ICF connector info manager that manages local connectors. The
+	 * manager will be created if it does not exist yet.
 	 * 
 	 * @return ICF connector info manager that manages local connectors
 	 */
 	private ConnectorInfoManager getLocalConnectorInfoManager() {
 		if (null == localConnectorInfoManager) {
-			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(bundleURLs.toArray(new URL[0]));
+			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(bundleURLs
+					.toArray(new URL[0]));
 		}
 		return localConnectorInfoManager;
 	}
 
 	/**
-	 * Returns ICF connector info manager that manages local connectors.
-	 * The manager will be created if it does not exist yet.
+	 * Returns ICF connector info manager that manages local connectors. The
+	 * manager will be created if it does not exist yet.
 	 * 
 	 * @return ICF connector info manager that manages local connectors
 	 */
@@ -267,12 +272,14 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		int port = Integer.parseInt(hostType.getPort());
 		GuardedString key = new GuardedString(hostType.getSharedSecret().toCharArray());
 		// TODO: SSL
-		RemoteFrameworkConnectionInfo remoteFramewrorkInfo = new RemoteFrameworkConnectionInfo(hostname, port, key);
+		RemoteFrameworkConnectionInfo remoteFramewrorkInfo = new RemoteFrameworkConnectionInfo(hostname,
+				port, key);
 		return connectorInfoManagerFactory.getRemoteManager(remoteFramewrorkInfo);
 	}
-	
+
 	/**
-	 * Lists all ICF connector bundles, either in BUNDLE_PATH or in current classpath.
+	 * Lists all ICF connector bundles, either in BUNDLE_PATH or in current
+	 * classpath.
 	 * 
 	 * @return set of connector bundle URLs.
 	 */
@@ -284,14 +291,17 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		File icfFolder = null;
 		try {
 			URI uri = this.getClass().getClassLoader().getResource("com").toURI();
-			LOGGER.trace("bundle path uri = {}",uri);
-			icfFolder = new File(new File(uri),
-					BUNDLE_PATH);
+			LOGGER.trace("bundle path uri = {}", uri);
+			icfFolder = new File(new File(uri), BUNDLE_PATH);
+		} catch (IllegalArgumentException ex) {
+			// java.lang.IllegalArgumentException: URI is not hierarchical in
+			// some cases...
 		} catch (URISyntaxException ex) {
 			LOGGER.debug("Couldn't find icf-connectors folder, reason: " + ex.getMessage());
 		}
 
-		// Take only those that start with BUNDLE_PREFIX and end with BUNDLE_SUFFIX
+		// Take only those that start with BUNDLE_PREFIX and end with
+		// BUNDLE_SUFFIX
 
 		final FileFilter fileFilter = new FileFilter() {
 
@@ -345,25 +355,25 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 	private ConnectorInfo getConnectorInfo(ConnectorType connectorType) throws ObjectNotFoundException {
 		if (!ICF_FRAMEWORK_URI.equals(connectorType.getFramework())) {
-			throw new ObjectNotFoundException("Requested connector for framework "+connectorType.getFramework()+" cannot be found in framework "+ICF_FRAMEWORK_URI);
+			throw new ObjectNotFoundException("Requested connector for framework "
+					+ connectorType.getFramework() + " cannot be found in framework " + ICF_FRAMEWORK_URI);
 		}
 		ConnectorKey key = getConnectorKey(connectorType);
-		if (connectorType.getConnectorHost()==null && connectorType.getConnectorHostRef()==null) {
+		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() == null) {
 			// Local connector
 			return getLocalConnectorInfoManager().findConnectorInfo(key);
 		}
 		ConnectorHostType host = connectorType.getConnectorHost();
-		if (host==null) {
-			throw new ObjectNotFoundException("Attempt to use remote connector without ConnectorHostType resolved (there is only ConnectorHostRef");
+		if (host == null) {
+			throw new ObjectNotFoundException(
+					"Attempt to use remote connector without ConnectorHostType resolved (there is only ConnectorHostRef");
 		}
 		return getRemoteConnectorInfoManager(host).findConnectorInfo(key);
 	}
-	
+
 	private ConnectorKey getConnectorKey(ConnectorType connectorType) {
-		return new ConnectorKey(connectorType.getConnectorBundle(),
-				connectorType.getConnectorVersion(),connectorType.getConnectorType());
+		return new ConnectorKey(connectorType.getConnectorBundle(), connectorType.getConnectorVersion(),
+				connectorType.getConnectorType());
 	}
-	
-	
-	
+
 }

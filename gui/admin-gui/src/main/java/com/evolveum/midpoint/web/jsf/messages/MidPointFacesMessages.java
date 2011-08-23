@@ -228,7 +228,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 		Resource show_details = context.getApplication().getResourceHandler()
 				.createResource("star.png", "images");
 		writer.writeAttribute("src", show_details.getRequestPath(), null);
-		writer.writeAttribute("title", "Details", null);
+		writer.writeAttribute("title", FacesUtils.translateKey("Details"), null);
 		StringBuilder script = new StringBuilder();
 		script.append("displayMessageErrorDetails('");
 		script.append("errorNumber" + errorNum);
@@ -274,7 +274,8 @@ public class MidPointFacesMessages extends HtmlMessages {
 			// System.out.println(me.getKey() + " : " + me.getValue());
 			writer.startElement("ul", null);
 			writer.startElement("li", null);
-			writer.write("&raquo; Params &gt;&gt;  " + me.getKey() + " : " + me.getValue());
+			writer.write("&raquo; " + FacesUtils.translateKey("Params") + " &gt;&gt;  " + me.getKey() + " : "
+					+ me.getValue());
 			writer.endElement("li");
 			writer.endElement("ul");
 		}
@@ -290,7 +291,8 @@ public class MidPointFacesMessages extends HtmlMessages {
 			// System.out.println(me.getKey() + " : " + me.getValue());
 			writer.startElement("ul", null);
 			writer.startElement("li", null);
-			writer.write("&raquo; Context &gt;&gt;  " + me.getKey() + " : " + me.getValue());
+			writer.write("&raquo; " + FacesUtils.translateKey("Context") + " &gt;&gt;  " + me.getKey()
+					+ " : " + me.getValue());
 			writer.endElement("li");
 			writer.endElement("ul");
 		}
@@ -307,7 +309,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 			// System.out.println("TEST LIST: " + (String) it.next());
 			writer.startElement("ul", null);
 			writer.startElement("li", null);
-			writer.write("&raquo; Details &gt;&gt;  " + (String) it.next());
+			writer.write("&raquo; " + FacesUtils.translateKey("Details") + " &gt;&gt;  " + (String) it.next());
 			writer.endElement("li");
 			writer.endElement("ul");
 		}
@@ -318,7 +320,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 		if (th != null) {
 			writer.startElement("ul", null);
 			writer.startElement("li", null);
-			writer.write("&raquo; Cause &gt;&gt; ");
+			writer.write("&raquo; " + FacesUtils.translateKey("Cause") + " &gt;&gt; ");
 			if (StringUtils.isNotEmpty(th.getMessage())) {
 				writer.writeText(th.getMessage(), null);
 			} else {

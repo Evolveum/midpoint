@@ -111,13 +111,10 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
  * 
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-provisioning.xml",
-		"classpath:application-context-sanity-test.xml",
-		"classpath:application-context-task.xml" ,
-		"classpath:application-context-repository.xml",
-		"classpath:application-context-configuration-test.xml"})
-
-public class TestSanity extends AbstractIntegrationTest  {
+		"classpath:application-context-provisioning.xml", "classpath:application-context-sanity-test.xml",
+		"classpath:application-context-task.xml", "classpath:application-context-repository.xml",
+		"classpath:application-context-configuration-test.xml" })
+public class TestSanity extends AbstractIntegrationTest {
 
 	private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
 	private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
@@ -137,7 +134,8 @@ public class TestSanity extends AbstractIntegrationTest  {
 	private static final String USER_JACK_FILENAME = "src/test/resources/repo/user-jack.xml";
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	private static final String USER_JACK_LDAP_UID = "jack";
-	private static final String USER_JACK_LDAP_DN = "uid="+USER_JACK_LDAP_UID+",ou=people,dc=example,dc=com";
+	private static final String USER_JACK_LDAP_DN = "uid=" + USER_JACK_LDAP_UID
+			+ ",ou=people,dc=example,dc=com";
 
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
 	private static final String WILL_NAME = "wturner";
@@ -150,7 +148,6 @@ public class TestSanity extends AbstractIntegrationTest  {
 			"AccountObjectClass");
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestSanity.class);
-
 
 	/**
 	 * Unmarshalled resource definition to reach the embedded OpenDJ instance.
@@ -170,7 +167,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 	public TestSanity() throws JAXBException {
 		super();
 		// TODO: fix this
-		IntegrationTestTools.checkResults=false;
+		IntegrationTestTools.checkResults = false;
 	}
 
 	// This will get called from the superclass to init the repository
@@ -178,24 +175,25 @@ public class TestSanity extends AbstractIntegrationTest  {
 	public void initSystem() throws Exception {
 		LOGGER.trace("initSystem");
 		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
-		
+
 		OperationResult result = new OperationResult("initSystem");
 		// This should discover the connectors
 		LOGGER.trace("initSystem: trying modelService.postInit()");
 		modelService.postInit(result);
 		LOGGER.trace("initSystem: modelService.postInit() done");
-		
-		// Need to import instead of add, so the (dynamic) connector reference will be resolved
+
+		// Need to import instead of add, so the (dynamic) connector reference
+		// will be resolved
 		// correctly
-		importObjectFromFile(RESOURCE_OPENDJ_FILENAME,result);
-			
+		importObjectFromFile(RESOURCE_OPENDJ_FILENAME, result);
+
 		addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME);
 		addObjectFromFile(USER_TEMPLATE_FILENAME);
 	}
-	
+
 	/**
-	 * Initialize embedded OpenDJ instance
-	 * Note: this is not in the abstract superclass so individual tests may avoid starting OpenDJ.
+	 * Initialize embedded OpenDJ instance Note: this is not in the abstract
+	 * superclass so individual tests may avoid starting OpenDJ.
 	 */
 	@BeforeClass
 	public static void init() throws Exception {
@@ -203,8 +201,8 @@ public class TestSanity extends AbstractIntegrationTest  {
 	}
 
 	/**
-	 * Shutdown embedded OpenDJ instance
-	 * Note: this is not in the abstract superclass so individual tests may avoid starting OpenDJ.
+	 * Shutdown embedded OpenDJ instance Note: this is not in the abstract
+	 * superclass so individual tests may avoid starting OpenDJ.
 	 */
 	@AfterClass
 	public static void shutdown() throws Exception {
@@ -219,7 +217,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 	 */
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
-		displayTestTile(this,"test000Integrity");
+		displayTestTile(this, "test000Integrity");
 		AssertJUnit.assertNotNull(modelWeb);
 		AssertJUnit.assertNotNull(modelService);
 		AssertJUnit.assertNotNull(repositoryService);
@@ -227,7 +225,8 @@ public class TestSanity extends AbstractIntegrationTest  {
 		AssertJUnit.assertNotNull(taskManager);
 
 		OperationResult result = new OperationResult(TestSanity.class.getName() + ".test000Integrity");
-		ResourceType resource = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
+				result);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, resource.getOid());
 
 		// TODO: test if OpenDJ is running
@@ -241,11 +240,12 @@ public class TestSanity extends AbstractIntegrationTest  {
 	 * 
 	 * @throws FaultMessage
 	 * @throws JAXBException
-	 * @throws SchemaException 
-	 * @throws ObjectNotFoundException 
+	 * @throws SchemaException
+	 * @throws ObjectNotFoundException
 	 */
 	@Test
-	public void test001TestConnection() throws FaultMessage, JAXBException, ObjectNotFoundException, SchemaException {
+	public void test001TestConnection() throws FaultMessage, JAXBException, ObjectNotFoundException,
+			SchemaException {
 		displayTestTile("test001TestConnection");
 
 		// GIVEN
@@ -261,13 +261,13 @@ public class TestSanity extends AbstractIntegrationTest  {
 		displayJaxb(result, SchemaConstants.C_RESULT);
 
 		assertSuccess("testResource has failed", result.getPartialResults().get(0));
-		
+
 		OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnection");
 		resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, resource.getOid());
-		display("Initialized resource",resource);
-		AssertJUnit.assertNotNull("Resource schema was not generated",resource.getSchema());
-		AssertJUnit.assertFalse("Resource schema was not generated",resource.getSchema().getAny().isEmpty());
+		display("Initialized resource", resource);
+		AssertJUnit.assertNotNull("Resource schema was not generated", resource.getSchema());
+		AssertJUnit.assertFalse("Resource schema was not generated", resource.getSchema().getAny().isEmpty());
 	}
 
 	/**
@@ -300,7 +300,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 		UserType repoUser = repositoryService.getObject(UserType.class, oid, resolve, repoResult);
-		
+
 		assertSuccess("getObject has failed", repoResult);
 		AssertJUnit.assertEquals(USER_JACK_OID, repoUser.getOid());
 		AssertJUnit.assertEquals(user.getFullName(), repoUser.getFullName());
@@ -326,7 +326,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
 
 		// WHEN
-		modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(),objectChange, holder);
+		modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange, holder);
 
 		// THEN
 		displayJaxb("modifyObject result", holder.value, SchemaConstants.C_RESULT);
@@ -351,15 +351,17 @@ public class TestSanity extends AbstractIntegrationTest  {
 
 		repoResult = new OperationResult("getObject");
 
-		AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, shadowOid, resolve, repoResult);
+		AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, shadowOid,
+				resolve, repoResult);
 		assertSuccess("addObject has failed", repoResult);
 		displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
 		AssertJUnit.assertNotNull(repoShadow);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
 		// Check the "name" property, it should be set to DN, not entryUUID
-		Assert.assertEquals(repoShadow.getName().toLowerCase(), USER_JACK_LDAP_DN.toLowerCase(), "Wrong name property");
-		
+		Assert.assertEquals(repoShadow.getName().toLowerCase(), USER_JACK_LDAP_DN.toLowerCase(),
+				"Wrong name property");
+
 		// check attributes in the shadow: should be only identifiers (ICF UID)
 		String uid = null;
 		boolean hasOthers = false;
@@ -410,9 +412,8 @@ public class TestSanity extends AbstractIntegrationTest  {
 		holder.value = result;
 
 		// WHEN
-		ObjectType modelObject = modelWeb.getObject(
-				ObjectTypes.ACCOUNT.getObjectTypeUri(),
-				shadowOid, resolve, holder);
+		ObjectType modelObject = modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), shadowOid,
+				resolve, holder);
 
 		// THEN
 		displayJaxb("getObject result", holder.value, SchemaConstants.C_RESULT);
@@ -548,7 +549,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(result);
 
 		// WHEN
-		modelWeb.deleteObject(ObjectTypes.USER.getObjectTypeUri(),USER_JACK_OID, holder);
+		modelWeb.deleteObject(ObjectTypes.USER.getObjectTypeUri(), USER_JACK_OID, holder);
 
 		// THEN
 		System.out.println("deleteObject result:");
@@ -600,29 +601,28 @@ public class TestSanity extends AbstractIntegrationTest  {
 
 		addObjectFromFile(TASK_OPENDJ_SYNC_FILENAME);
 
-		final OperationResult result = new OperationResult(TestSanity.class.getName() + ".test100Synchronization");
-		
+		final OperationResult result = new OperationResult(TestSanity.class.getName()
+				+ ".test100Synchronization");
+
 		// We need to wait for a sync interval, so the task scanner has a chance
 		// to pick up this
 		// task
-		
-		waitFor("Waiting for task manager to pick up the task",
-				new Checker() {
-					public boolean check() throws ObjectNotFoundException, SchemaException {						
-						Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
-						display("Task while waiting for task manager to pick up the task",task);
-						// wait until the task is picked up
-						if (TaskExclusivityStatus.CLAIMED == task.getExclusivityStatus()) {
-							// wait until the first run is finished
-							if (task.getLastRunFinishTimestamp()==null) {
-								return false;
-							}
-							return true;
-						}
+
+		waitFor("Waiting for task manager to pick up the task", new Checker() {
+			public boolean check() throws ObjectNotFoundException, SchemaException {
+				Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+				display("Task while waiting for task manager to pick up the task", task);
+				// wait until the task is picked up
+				if (TaskExclusivityStatus.CLAIMED == task.getExclusivityStatus()) {
+					// wait until the first run is finished
+					if (task.getLastRunFinishTimestamp() == null) {
 						return false;
-					};
-				},
-				20000);
+					}
+					return true;
+				}
+				return false;
+			};
+		}, 20000);
 
 		// Check task status
 
@@ -688,17 +688,18 @@ public class TestSanity extends AbstractIntegrationTest  {
 		LDIFReader ldifReader = new LDIFReader(importConfig);
 		Entry entry = ldifReader.readEntry();
 		display("Entry from LDIF", entry);
-		
-		final OperationResult result = new OperationResult(TestSanity.class.getName() + ".test101LiveSyncCreate");
+
+		final OperationResult result = new OperationResult(TestSanity.class.getName()
+				+ ".test101LiveSyncCreate");
 		final Task syncCycle = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
 		AssertJUnit.assertNotNull(syncCycle);
-		
+
 		final Object tokenBefore;
 		Property tokenProperty = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
-		if (tokenProperty==null) {
-			tokenBefore=null;
+		if (tokenProperty == null) {
+			tokenBefore = null;
 		} else {
-			tokenBefore=tokenProperty.getValue();
+			tokenBefore = tokenProperty.getValue();
 		}
 
 		// WHEN
@@ -707,31 +708,30 @@ public class TestSanity extends AbstractIntegrationTest  {
 
 		// THEN
 
-		AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS, addOperation.getResultCode());
+		AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS,
+				addOperation.getResultCode());
 
 		// Wait a bit to give the sync cycle time to detect the change
 
-		waitFor("Waiting for sync cycle to detect change",
-				new Checker() {
-					@Override
-					public boolean check() throws Exception {
-						syncCycle.refresh(result);
-						display("SyncCycle while waiting for sync cycle to detect change",syncCycle);
-						Object tokenNow = null;
-						Property propertyNow = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
-						if (propertyNow==null) {
-							tokenNow=null;
-						} else {
-							tokenNow=propertyNow.getValue();
-						}
-						if (tokenBefore==null) {
-							return(tokenNow!=null);
-						} else {
-							return(!tokenBefore.equals(tokenNow));
-						}
-					}
-				},
-				30000);
+		waitFor("Waiting for sync cycle to detect change", new Checker() {
+			@Override
+			public boolean check() throws Exception {
+				syncCycle.refresh(result);
+				display("SyncCycle while waiting for sync cycle to detect change", syncCycle);
+				Object tokenNow = null;
+				Property propertyNow = syncCycle.getExtension().findProperty(SchemaConstants.SYNC_TOKEN);
+				if (propertyNow == null) {
+					tokenNow = null;
+				} else {
+					tokenNow = propertyNow.getValue();
+				}
+				if (tokenBefore == null) {
+					return (tokenNow != null);
+				} else {
+					return (!tokenBefore.equals(tokenNow));
+				}
+			}
+		}, 30000);
 
 		// Search for the user that should be created now
 
@@ -749,7 +749,8 @@ public class TestSanity extends AbstractIntegrationTest  {
 		OperationResultType resultType = new OperationResultType();
 		Holder<OperationResultType> holder = new Holder<OperationResultType>(resultType);
 
-		ObjectListType objects = modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null, holder);
+		ObjectListType objects = modelWeb.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query, null,
+				holder);
 
 		assertSuccess("searchObjects has failed", holder.value);
 		AssertJUnit.assertEquals("User not found (or found too many)", 1, objects.getObject().size());
@@ -761,7 +762,7 @@ public class TestSanity extends AbstractIntegrationTest  {
 	}
 
 	// TODO: insert changes in OpenDJ, let the cycle pick them up
-	
+
 	@Test
 	public void test200ImportFromResource() throws Exception {
 		displayTestTile("test200ImportFromResource");
@@ -799,24 +800,21 @@ public class TestSanity extends AbstractIntegrationTest  {
 		assertSuccess("getObject has failed", result);
 
 		final String taskOid = task.getOid();
-		waitFor("Waiting for import to complete",
-				new Checker() {
-					@Override
-					public boolean check() throws Exception {
-						Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-						ObjectType obj = modelWeb.getObject(
-								ObjectTypes.TASK.getObjectTypeUri(),
-								taskOid, new PropertyReferenceListType(), resultHolder);
-						assertSuccess("getObject has failed", resultHolder.value);
-						Task task = taskManager.createTaskInstance((TaskType) obj);
-						return(task.getExecutionStatus() == TaskExecutionStatus.CLOSED);
-					}
-				},
-				30000);
+		waitFor("Waiting for import to complete", new Checker() {
+			@Override
+			public boolean check() throws Exception {
+				Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
+				ObjectType obj = modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
+						new PropertyReferenceListType(), resultHolder);
+				assertSuccess("getObject has failed", resultHolder.value);
+				Task task = taskManager.createTaskInstance((TaskType) obj);
+				return (task.getExecutionStatus() == TaskExecutionStatus.CLOSED);
+			}
+		}, 30000);
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-		ObjectType obj = modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(),
-				task.getOid(), new PropertyReferenceListType(), resultHolder);
+		ObjectType obj = modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), task.getOid(),
+				new PropertyReferenceListType(), resultHolder);
 		assertSuccess("getObject has failed", resultHolder.value);
 		task = taskManager.createTaskInstance((TaskType) obj);
 
@@ -824,10 +822,10 @@ public class TestSanity extends AbstractIntegrationTest  {
 
 		AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
 
-		//Ugly fix to wait until state change success fully on slowmachines.
+		// Ugly fix to wait until state change success fully on slowmachines.
 		try {
 			Thread.sleep(1000);
- 		} catch (Exception e) {
+		} catch (Exception e) {
 		}
 
 		AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
@@ -842,7 +840,8 @@ public class TestSanity extends AbstractIntegrationTest  {
 
 		// Listing of shadows is not supported by the provisioning. So we need
 		// to look directly into repository
-		List<AccountShadowType> sobjects = repositoryService.listObjects(AccountShadowType.class, null, result);
+		List<AccountShadowType> sobjects = repositoryService.listObjects(AccountShadowType.class, null,
+				result);
 		assertSuccess("listObjects has failed", result);
 		AssertJUnit.assertFalse("No shadows created", sobjects.isEmpty());
 
@@ -857,7 +856,8 @@ public class TestSanity extends AbstractIntegrationTest  {
 			AssertJUnit.assertNotNull("Null attributes in shadow", shadow.getAttributes());
 			assertAttributeNotNull("No UID in shadow", shadow, ConnectorFactoryIcfImpl.ICFS_UID);
 		}
-		ObjectListType uobjects = modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), null, resultHolder);
+		ObjectListType uobjects = modelWeb.listObjects(ObjectTypes.USER.getObjectTypeUri(), null,
+				resultHolder);
 		assertSuccess("listObjects has failed", resultHolder.value);
 		AssertJUnit.assertFalse("No users created", uobjects.getObject().isEmpty());
 
@@ -894,14 +894,12 @@ public class TestSanity extends AbstractIntegrationTest  {
 	@Test
 	public void test999Shutdown() throws Exception {
 		taskManager.shutdown();
-		waitFor("waiting for task manager shutdown",
-				new Checker() {
-					@Override
-					public boolean check() throws Exception {
-						return taskManager.getRunningTasks().isEmpty();
-					}
-				},
-				10000);
+		waitFor("waiting for task manager shutdown", new Checker() {
+			@Override
+			public boolean check() throws Exception {
+				return taskManager.getRunningTasks().isEmpty();
+			}
+		}, 10000);
 		AssertJUnit.assertEquals("Some tasks left running after shutdown", new HashSet<Task>(),
 				taskManager.getRunningTasks());
 	}
@@ -913,13 +911,13 @@ public class TestSanity extends AbstractIntegrationTest  {
 	/**
 	 * @param resourceOpendjFilename
 	 * @return
-	 * @throws FileNotFoundException 
+	 * @throws FileNotFoundException
 	 */
-	private void importObjectFromFile(String filename,OperationResult result) throws FileNotFoundException {
-		LOGGER.trace("importObjectFromFile: {}",filename);
+	private void importObjectFromFile(String filename, OperationResult result) throws FileNotFoundException {
+		LOGGER.trace("importObjectFromFile: {}", filename);
 		Task task = taskManager.createTaskInstance();
 		FileInputStream stream = new FileInputStream(filename);
 		modelService.importObjectsFromStream(stream, task, false, result);
 	}
-	
+
 }
