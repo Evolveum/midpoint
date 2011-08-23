@@ -22,6 +22,8 @@ package com.evolveum.midpoint.schema.constants;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
@@ -44,54 +46,56 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public enum ObjectTypes {
 
 	ACCOUNT("schema.objectTypes.account", SchemaConstants.I_ACCOUNT_SHADOW_TYPE, SchemaConstants.I_ACCOUNT,
-			AccountShadowType.class),
+			AccountShadowType.class, true),
 
 	CONNECTOR("schema.objectTypes.connector", SchemaConstants.I_CONNECTOR_TYPE, SchemaConstants.I_CONNECTOR,
-			ConnectorType.class),
-			
-	CONNECTOR_HOST("schema.objectTypes.connectorHost", SchemaConstants.I_CONNECTOR_HOST_TYPE, SchemaConstants.I_CONNECTOR_HOST,
-					ConnectorHostType.class),
-			
+			ConnectorType.class, true),
+
+	CONNECTOR_HOST("schema.objectTypes.connectorHost", SchemaConstants.I_CONNECTOR_HOST_TYPE,
+			SchemaConstants.I_CONNECTOR_HOST, ConnectorHostType.class, true),
+
 	GENERIC_OBJECT("schema.objectTypes.genericObject", SchemaConstants.I_GENERIC_OBJECT_TYPE,
-			SchemaConstants.I_GENERIC_OBJECT, GenericObjectType.class),
+			SchemaConstants.I_GENERIC_OBJECT, GenericObjectType.class, false),
 
 	RESOURCE("schema.objectTypes.resource", SchemaConstants.I_RESOURCE_TYPE, SchemaConstants.I_RESOURCE,
-			ResourceType.class),
+			ResourceType.class, true),
 
 	RESOURCE_STATE("schema.objectTypes.resourceState", SchemaConstants.I_RESOURCE_STATE_TYPE,
-			SchemaConstants.I_RESOURCE_STATE, ResourceStateType.class),
+			SchemaConstants.I_RESOURCE_STATE, ResourceStateType.class, true),
 
-	USER("schema.objectTypes.user", SchemaConstants.I_USER_TYPE, SchemaConstants.I_USER, UserType.class),
+	USER("schema.objectTypes.user", SchemaConstants.I_USER_TYPE, SchemaConstants.I_USER, UserType.class,
+			false),
 
 	USER_TEMPLATE("schema.objectTypes.userTemplate", SchemaConstants.I_USER_TEMPLATE_TYPE,
-			SchemaConstants.I_USER_TEMPLATE, UserTemplateType.class),
+			SchemaConstants.I_USER_TEMPLATE, UserTemplateType.class, false),
 
 	SYSTEM_CONFIGURATION("schema.objectTypes.systemConfiguration",
 			SchemaConstants.I_SYSTEM_CONFIGURATION_TYPE, SchemaConstants.I_SYSTEM_CONFIGURATION,
-			SystemConfigurationType.class),
-	
-	TASK("schema.objectTypes.task", SchemaConstants.C_TASK_TYPE, SchemaConstants.C_TASK,
-			TaskType.class), 
-			
-	RESOURCE_OBJECT_SHADOW("schema.objectTypes.resourceObject", SchemaConstants.I_RESOURCE_OBJECT_SHADOW_TYPE, SchemaConstants.I_RESOURCE_OBJECT_SHADOW,
-			ResourceObjectShadowType.class), 
-			
+			SystemConfigurationType.class, false),
+
+	TASK("schema.objectTypes.task", SchemaConstants.C_TASK_TYPE, SchemaConstants.C_TASK, TaskType.class,
+			false),
+
+	RESOURCE_OBJECT_SHADOW("schema.objectTypes.resourceObject",
+			SchemaConstants.I_RESOURCE_OBJECT_SHADOW_TYPE, SchemaConstants.I_RESOURCE_OBJECT_SHADOW,
+			ResourceObjectShadowType.class, true),
+
 	OBJECT("schema.objectTypes.object", SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT,
-			ObjectType.class);
-	
+			ObjectType.class, false);
 
 	private String localizationKey;
 	private QName type;
 	private QName name;
 	private Class<? extends ObjectType> classDefinition;
 	private boolean managedByProvisioning;
-	
 
-	private ObjectTypes(String key, QName type, QName name, Class<? extends ObjectType> classDefinition) {
+	private ObjectTypes(String key, QName type, QName name, Class<? extends ObjectType> classDefinition,
+			boolean managedByProvisioning) {
 		this.localizationKey = key;
 		this.type = type;
 		this.name = name;
 		this.classDefinition = classDefinition;
+		this.managedByProvisioning = managedByProvisioning;
 	}
 
 	public boolean isManagedByProvisioning() {
@@ -140,7 +144,7 @@ public enum ObjectTypes {
 		}
 		throw new IllegalArgumentException("Unsupported object type uri " + objectTypeUri);
 	}
-	
+
 	public static ObjectTypes getObjectTypeFromTypeQName(QName typeQName) {
 		for (ObjectTypes type : values()) {
 			if (type.getTypeQName().equals(typeQName)) {
@@ -149,7 +153,6 @@ public enum ObjectTypes {
 		}
 		throw new IllegalArgumentException("Unsupported object type qname " + typeQName);
 	}
-
 
 	public static String getObjectTypeUri(String objectType) {
 		return getObjectType(objectType).getObjectTypeUri();
@@ -175,4 +178,45 @@ public enum ObjectTypes {
 		throw new IllegalArgumentException("Unsupported object type " + objectType);
 	}
 
+	public static boolean isManagedByProvisioning(ObjectType object) {
+		Validate.notNull(object, "Object must not be null.");
+
+		return isClassManagedByProvisioning(object.getClass());
+	}
+
+	public static boolean isClassManagedByProvisioning(Class<? extends ObjectType> clazz) {
+		Validate.notNull(clazz, "Class must not be null.");
+
+		for (ObjectTypes type : ObjectTypes.values()) {
+			if (type.getClassDefinition().isAssignableFrom(clazz)) {
+				return type.isManagedByProvisioning();
+			}
+		}
+
+		return false;
+	}
+
+	public static boolean isObjectTypeManagedByProvisioning(Class<? extends ObjectType> objectType) {
+		Validate.notNull(objectType, "Object type must not be null.");
+
+		for (ObjectTypes type : ObjectTypes.values()) {
+			if (type.getClassDefinition().equals(objectType)) {
+				return type.isManagedByProvisioning();
+			}
+		}
+
+		return false;
+	}
+
+	public static boolean isObjectTypeManagedByProvisioning(String objectType) {
+		Validate.notEmpty(objectType, "Object type must not be null.");
+
+		for (ObjectTypes type : ObjectTypes.values()) {
+			if (type.getTypeQName().getLocalPart().equals(objectType)) {
+				return type.isManagedByProvisioning();
+			}
+		}
+
+		return false;
+	}
 }

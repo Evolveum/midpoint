@@ -37,6 +37,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
+import com.evolveum.midpoint.web.model.dto.ConnectorHostDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -141,6 +142,16 @@ public class ResourceManagerImplMock implements ResourceManager {
 
 	@Override
 	public ConnectorDto getConnector(String oid) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public Collection<ConnectorHostDto> listConnectorHosts() {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
+
+	@Override
+	public void discoverConnectorsOnHost(ConnectorHostDto connectorHost) {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 }

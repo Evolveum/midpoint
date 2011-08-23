@@ -142,7 +142,7 @@ public class ModelControllerImpl implements ModelController {
 		try {
 			if (object instanceof TaskType) {
 				oid = addTask((TaskType) object, subResult);
-			} else if (ProvisioningTypes.isManagedByProvisioning(object)) {
+			} else if (ObjectTypes.isManagedByProvisioning(object)) {
 				oid = addProvisioningObject(object, subResult);
 			} else {
 				oid = addRepositoryObject(object, subResult);
@@ -238,7 +238,7 @@ public class ModelControllerImpl implements ModelController {
 			// get object from repository and then update class parameter to
 			// real class. If needed we call provisioning to get object
 			ObjectNotFoundException objectNotFound = null;
-			if (ObjectType.class.equals(clazz) || !ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
+			if (ObjectType.class.equals(clazz) || !ObjectTypes.isClassManagedByProvisioning(clazz)) {
 				try {
 					object = getObjectFromRepository(oid, resolve, subResult, clazz);
 				} catch (ObjectNotFoundException ex) {
@@ -247,7 +247,7 @@ public class ModelControllerImpl implements ModelController {
 			}
 			clazz = object == null ? clazz : (Class<T>) object.getClass();
 
-			if (ProvisioningTypes.isClassManagedByProvisioning(clazz)) {
+			if (ObjectTypes.isClassManagedByProvisioning(clazz)) {
 				object = getObjectFromProvisioning(oid, resolve, subResult, clazz);
 			} else if (objectNotFound != null) {
 				// throw previously caught exception, we don't need to call
@@ -293,7 +293,7 @@ public class ModelControllerImpl implements ModelController {
 		addResultParams(subResult, new String[] { "objectType", "paging" }, objectType, paging);
 		List<T> list = null;
 		try {
-			if (ProvisioningTypes.isObjectTypeManagedByProvisioning(objectType)) {
+			if (ObjectTypes.isObjectTypeManagedByProvisioning(objectType)) {
 				LOGGER.debug("Listing objects from provisioning.");
 				list = provisioning.listObjects(objectType, paging, subResult);
 			} else {
@@ -323,7 +323,7 @@ public class ModelControllerImpl implements ModelController {
 		Validate.notNull(query, "Query must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
 
-		if (ProvisioningTypes.isClassManagedByProvisioning(type)) {
+		if (ObjectTypes.isClassManagedByProvisioning(type)) {
 			return searchObjectsInProvisioning(type, query, paging, result);
 		} else {
 			return searchObjectsInRepository(type, query, paging, result);
@@ -423,7 +423,7 @@ public class ModelControllerImpl implements ModelController {
 					type);
 			if (object instanceof TaskType) {
 				modifyTaskWithExclusion(change, accountOid, subResult, object);
-			} else if (ProvisioningTypes.isManagedByProvisioning(object)) {
+			} else if (ObjectTypes.isManagedByProvisioning(object)) {
 				modifyProvisioningObjectWithExclusion(change, accountOid, subResult, object);
 			} else {
 				modifyRepositoryObjectWithExclusion(change, accountOid, subResult, object);
@@ -464,7 +464,7 @@ public class ModelControllerImpl implements ModelController {
 
 			if (object instanceof TaskType) {
 				taskManager.deleteTask(oid, subResult);
-			} else if (ProvisioningTypes.isManagedByProvisioning(object)) {
+			} else if (ObjectTypes.isManagedByProvisioning(object)) {
 				ScriptsType scripts = getScripts(object, subResult);
 				provisioning.deleteObject(type, oid, scripts, subResult);
 			} else {
