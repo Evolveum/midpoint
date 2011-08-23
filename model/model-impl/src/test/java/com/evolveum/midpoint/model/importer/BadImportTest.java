@@ -20,16 +20,8 @@
  */
 package com.evolveum.midpoint.model.importer;
 
-import org.testng.annotations.Test;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-import org.testng.Assert;
-import org.testng.AssertJUnit;
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,22 +31,16 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -68,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 		"classpath:application-context-configuration-test.xml",
 		"classpath:application-context-provisioning.xml",
 		"classpath:application-context-task.xml" })
+//@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class BadImportTest extends AbstractTestNGSpringContextTests {
 	
 	private static final File BAD_IMPORT_FILE_NAME = new File("src/test/resources/importer/import-bad.xml");
@@ -92,7 +79,8 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 
 	}
 
-	@Test
+	//TODO: this test has to be disabled, till BaseX team provides us fix to support embedded BaseX server restarts. Then we can activate @DirtiesContext annotation and reinitialize spring context when required
+	@Test(enabled=false)
 	public void test001BadImport() throws FileNotFoundException, SchemaException {
 		displayTestTile(this,"test001BadImport");
 		// GIVEN
