@@ -794,23 +794,31 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		display("Import task after launch", task);
 
-		ObjectType o = repositoryService.getObject(task.getOid(), null, result);
-		display("Import task in repo after launch", o);
+		TaskType taskAfter = repositoryService.getObject(TaskType.class, task.getOid(), null, result);
+		display("Import task in repo after launch", taskAfter);
 
 		assertSuccess("getObject has failed", result);
 
 		final String taskOid = task.getOid();
+
 		waitFor("Waiting for import to complete", new Checker() {
-			@Override
-			public boolean check() throws Exception {
-				Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-				ObjectType obj = modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
-						new PropertyReferenceListType(), resultHolder);
-				assertSuccess("getObject has failed", resultHolder.value);
-				Task task = taskManager.createTaskInstance((TaskType) obj);
-				return (task.getExecutionStatus() == TaskExecutionStatus.CLOSED);
-			}
-		}, 30000);
+					@Override
+					public boolean check() throws Exception {
+						Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
+						ObjectType obj = modelWeb.getObject(
+								ObjectTypes.TASK.getObjectTypeUri(),
+								taskOid, new PropertyReferenceListType(), resultHolder);
+						assertSuccess("getObject has failed", resultHolder.value);
+						Task task = taskManager.createTaskInstance((TaskType) obj);
+						if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+							// Task closed, wait finished
+							return true;
+						}
+						IntegrationTestTools.display("Task result while waiting: ",task.getResult());
+						return false;
+					}
+				},
+				30000);
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
 		ObjectType obj = modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), task.getOid(),

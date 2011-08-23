@@ -194,6 +194,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		
 		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".switchToBackground");
 		persist(task,result);
+		result.recordSuccess();
 		
 		// TODO: The task should be released and claimed again here - to let other nodes participate
 		

@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -86,6 +87,8 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 				.getName() + ".handle");
 		result.addParam("object", object);
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
+		
+		logger.trace("Importing {} from {}",ObjectTypeUtil.toShortString(object),ObjectTypeUtil.toShortString(resource));
 
 		if (objectChangeListener == null) {
 			logger.warn("No object change listener set for import task, ending the task");
@@ -126,10 +129,12 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 		if (task.canRun()) {
 			result.computeStatus("Failed to import.");
 			// Everything OK, signal to continue
+			logger.trace("Import of {} finished, result: {}",ObjectTypeUtil.toShortString(object),result.dump());
 			return true;
 		} else {
 			result.recordPartialError("Interrupted");
 			// Signal to stop
+			logger.warn("Import from {} interrupted",ObjectTypeUtil.toShortString(resource));
 			return false;
 		}
 	}

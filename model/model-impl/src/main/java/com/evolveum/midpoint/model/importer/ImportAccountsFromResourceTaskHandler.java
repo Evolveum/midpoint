@@ -161,6 +161,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 		// the run(task) method.
 		// Note: the thread may be actually started on a different node
 		taskManager.switchToBackground(task, result);
+		result.computeStatus("Import launch failed");
 		
 		logger.trace("Import from resource {} switched to background, control thread returning with task {}",ObjectTypeUtil.toShortString(resource),task);
 	}
