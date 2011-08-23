@@ -101,7 +101,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 @ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
 		"classpath:application-context-provisioning-test.xml",
-		"classpath:application-context-repository-test.xml" })
+		"classpath:application-context-repository.xml",
+		"classpath:application-context-configuration-test.xml" })
 public class ProvisioningServiceImplOpenDJTest extends OpenDJUnitTestAdapter {
 
 	// Let's reuse the resource definition from UCF tests ... for now

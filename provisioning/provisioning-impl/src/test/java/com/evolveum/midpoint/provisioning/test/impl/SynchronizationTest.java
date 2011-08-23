@@ -36,21 +36,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
-
-@ContextConfiguration(locations = {
-		"classpath:application-context-provisioning.xml",
-		"classpath:application-context-provisioning-test.xml",
+@ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
+		"classpath:application-context-provisioning-test.xml", 
 		"classpath:application-context-task.xml",
-		"classpath:application-context-repository-test.xml" })
-
+		"classpath:application-context-repository.xml", 
+		"classpath:application-context-configuration-test.xml" })
 public class SynchronizationTest extends OpenDJUnitTestAdapter {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String FILENAME_SYNC_TASK = "src/test/resources/impl/sync-task-example.xml";
-	private static final QName TOKEN_ELEMENT_QNAME = new QName(
-			SchemaConstants.NS_PROVISIONING_LIVE_SYNC, "token");
+	private static final QName TOKEN_ELEMENT_QNAME = new QName(SchemaConstants.NS_PROVISIONING_LIVE_SYNC, "token");
 
 	private static final String RESOURCE_OID = "ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
 
@@ -90,8 +87,7 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 	}
 
 	public SynchronizationTest() throws JAXBException {
-		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage()
-				.getName());
+		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
 		unmarshaller = jaxbctx.createUnmarshaller();
 	}
 
@@ -111,9 +107,8 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 
 		assertNotNull(manager);
 
-		OperationResult result = new OperationResult(
-				ProvisioningServiceImplOpenDJTest.class.getName()
-						+ ".initProvisioning");
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".initProvisioning");
 		// The default repository content is using old format of resource
 		// configuration
 		// We need a sample data in the new format, so we need to set it up
@@ -126,14 +121,11 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 
 	@AfterMethod
 	public void cleadUpRepo() throws ObjectNotFoundException {
-		OperationResult result = new OperationResult(
-				ProvisioningServiceImplOpenDJTest.class.getName()
-						+ ".cleanUpRepo");
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName() + ".cleanUpRepo");
 		repositoryService.deleteObject(ResourceType.class, RESOURCE_OPENDJ_OID, result);
 	}
 
-	private ObjectType createObjectFromFile(String filePath)
-			throws FileNotFoundException, JAXBException {
+	private ObjectType createObjectFromFile(String filePath) throws FileNotFoundException, JAXBException {
 		File file = new File(filePath);
 		FileInputStream fis = new FileInputStream(file);
 		Object object = unmarshaller.unmarshal(fis);
@@ -144,9 +136,8 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 	private ObjectType addObjectFromFile(String filePath) throws Exception {
 		ObjectType object = createObjectFromFile(filePath);
 		System.out.println("obj: " + object.getName());
-		OperationResult result = new OperationResult(
-				ProvisioningServiceImplOpenDJTest.class.getName()
-						+ ".addObjectFromFile");
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".addObjectFromFile");
 		repositoryService.addObject(object, result);
 		return object;
 	}
@@ -154,9 +145,8 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 	@Test
 	public void testSynchronization() throws Exception {
 
-		OperationResult result = new OperationResult(
-				ProvisioningServiceImplOpenDJTest.class.getName()
-						+ ".synchronizationTest");
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".synchronizationTest");
 
 		try {
 
@@ -170,12 +160,10 @@ public class SynchronizationTest extends OpenDJUnitTestAdapter {
 
 			Task task = taskManager.getTask(SYNC_TASK_OID, result);
 
-			Property property = task.getExtension().findProperty(
-					TOKEN_ELEMENT_QNAME);
+			Property property = task.getExtension().findProperty(TOKEN_ELEMENT_QNAME);
 
 			List<Change> changes = new ArrayList<Change>();
-			Change ch = new Change(new HashSet<Property>(),
-					new ObjectChangeAdditionType(), property);
+			Change ch = new Change(new HashSet<Property>(), new ObjectChangeAdditionType(), property);
 			changes.add(ch);
 
 			// when(
