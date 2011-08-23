@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -19,8 +19,12 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2011 Peter Prochazka               -->
 <!--                                                         -->
-<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="none">
-  <test name="repo-basex-test" preserve-order="false" enabled="false">
-  </test>
-</suite>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+	<bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init" >
+		<constructor-arg value="test-config.xml"/>
+	</bean>
+</beans>
