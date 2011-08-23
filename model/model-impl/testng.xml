@@ -66,7 +66,7 @@
 			<class name="com.evolveum.midpoint.model.sync.SynchronizationServiceTest" />
 			<class name="com.evolveum.midpoint.model.sync.SynchronizationSituationTest" />
 			<class name="com.evolveum.midpoint.model.sync.ActionManagerImplTest" />
- 			<class name="com.evolveum.midpoint.model.ModelWebServiceTest" />
+			<class name="com.evolveum.midpoint.model.ModelWebServiceTest" />
 <!-- 			<class name="com.evolveum.midpoint.model.SpringApplicationContextTest" /> -->
 		</classes>
 	</test>
