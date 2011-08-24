@@ -27,6 +27,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.bind.JAXBElement;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,7 +60,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletion
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -296,20 +296,21 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			users = findUserByConfirmationRule(users, objectShadowAfterChange, new ExpressionHolder(
 					synchronization.getConfirmation()), result);
 		}
-		switch (users.size()) {
-			case 0:
-				state = SynchronizationSituationType.UNMATCHED;
-				break;
-			case 1:
-				if (ModificationType.ADD.equals(modification)) {
-					state = SynchronizationSituationType.FOUND;
-				} else {
-					state = SynchronizationSituationType.UNASSIGNED;
-				}
-				user = users.get(0);
-				break;
-			default:
-				state = SynchronizationSituationType.DISPUTED;
+		if (users == null || users.size() == 0) {
+			state = SynchronizationSituationType.UNMATCHED;
+		} else {
+			switch (users.size()) {
+				case 1:
+					if (ModificationType.ADD.equals(modification)) {
+						state = SynchronizationSituationType.FOUND;
+					} else {
+						state = SynchronizationSituationType.UNASSIGNED;
+					}
+					user = users.get(0);
+					break;
+				default:
+					state = SynchronizationSituationType.DISPUTED;
+			}
 		}
 
 		return new SynchronizationSituation(user, state);
@@ -450,6 +451,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			return null;
 		}
 		Element filter = updateFilterWithAccountValues(resourceShadow, element, result);
+		if (filter == null) {
+			LOGGER.debug("Couldn't create search filter from correlation rule.");
+			return null;
+		}
 		List<UserType> users = null;
 		try {
 			query = new ObjectFactory().createQueryType();
@@ -479,6 +484,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			ResourceObjectShadowType resourceObjectShadowType, ExpressionHolder expression,
 			OperationResult result) throws SynchronizationException {
 		List<UserType> list = new ArrayList<UserType>();
+		if (users == null) {
+			LOGGER.debug("Correlation list is null or empty. Returning empty confirmation list.");
+			return list;
+		}
 		for (UserType user : users) {
 			try {
 				boolean confirmedUser = getExpressionHandler().evaluateConfirmationExpression(user,
@@ -534,10 +543,24 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 					Element value = document.createElementNS(SchemaConstants.NS_C, "value");
 					equal.appendChild(value);
 					Element attribute = document.createElementNS(namespace, ref);
-
+					if (resourceObjectShadow.getName().contains("wturner")) {
+						LOGGER.debug("AAAAAAAAAAAAAAAAAAAAAAA");
+						if (resourceObjectShadow.getAttributes() != null) {
+							for (Element element : resourceObjectShadow.getAttributes().getAny()) {
+								LOGGER.debug("{" + element.getNamespaceURI() + "}" + element.getLocalName()
+										+ ": " + element.getTextContent());
+							}
+						}
+						LOGGER.debug("BBBBBBBBBBBBBBBBBBBBBBB");
+					}
 					String expressionResult = getExpressionHandler().evaluateExpression(resourceObjectShadow,
 							new ExpressionHolder(valueExpression), result);
 
+					if (StringUtils.isEmpty(expressionResult)) {
+						LOGGER.debug("Expression result from search filter expression was null or empty (trying "
+								+ "to create filter with empty name attribute, while transforming search filter).");
+						return null;
+					}
 					// TODO: log more context
 					LOGGER.debug("Search filter expression in the rule for OID {} evaluated to {}.",
 							new Object[] { resourceObjectShadow.getOid(), expressionResult });
@@ -551,8 +574,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			filter = and;
 			LOGGER.trace("Transforming filter to:\n{}", DOMUtil.printDom(filter.getOwnerDocument()));
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't update filter.", ex);
-			throw new SynchronizationException("Couldn't update filter, reason: " + ex.getMessage(), ex);
+			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
+			throw new SynchronizationException("Couldn't transform filter, reason: " + ex.getMessage(), ex);
 		}
 
 		LOGGER.trace("updateFilterWithAccountValues::end");
