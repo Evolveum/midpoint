@@ -127,6 +127,12 @@
 			<version>1.9-SNAPSHOT</version>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.repo</groupId>
+			<artifactId>system-init</artifactId>
+			<version>1.9-SNAPSHOT</version>
+			<scope>runtime</scope>
+		</dependency>
 		<!--  External dependecies -->
 		<dependency>
 			<groupId>javax.el</groupId>
@@ -205,12 +211,6 @@
 			<groupId>org.seleniumhq.selenium.client-drivers</groupId>
 			<artifactId>selenium-java-client-driver</artifactId>
 			<version>${selenium.version}</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>system-init</artifactId>
-			<version>1.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
 
