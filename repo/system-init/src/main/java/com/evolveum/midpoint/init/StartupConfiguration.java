@@ -34,7 +34,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 
-public class StartupConfiguration implements MidpointConfiguration{
+public class StartupConfiguration implements MidpointConfiguration {
 
 	private static final Trace logger = TraceManager.getTrace(StartupConfiguration.class);
 

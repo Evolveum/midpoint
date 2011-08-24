@@ -33,7 +33,6 @@ import org.basex.core.BaseXException;
 import org.basex.server.ClientQuery;
 import org.basex.server.ClientSession;
 
-import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
@@ -51,24 +50,26 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 	// shutdown = true for standalone run, shutdown = false for test run
 	private boolean shutdown = false;
 	private String initialDataPath;
-	private String host;
-	private int port;
-	private String username;
-	private String password;
-	private String databaseName;
+	private String host = "localhost";
+	private int port = 1984;
+	private String username = "admin";
+	private String password = "admin";
+	private String databaseName = "midPoint";
 	private String serverPath;
 	private BaseXServer server;
 
 	private Configuration config;
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.evolveum.midpoint.repo.xml.RepositoryServiceFactory#init()
 	 */
 	@Override
 	public void init() throws RepositoryServiceFactoryException {
-		//TODO: if no configuration is set then generate default configuration
-		
-		applyConfiguration(config);
+		// TODO: if no configuration is set then generate default configuration
+
+		applyConfiguration();
 
 		startServer();
 
@@ -172,23 +173,28 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 		}
 	}
 
-	private void applyConfiguration(Configuration config) {
-
-		setDatabaseName(config.getString("databaseName"));
-		setDropDatabase(config.getBoolean("dropDatabase"));
-		setEmbedded(config.getBoolean("embedded"));
-		setHost(config.getString("host"));
-		setInitialDataPath(config.getString("initialDataPath"));
-		setPassword(config.getString("password"));
-		setPort(config.getInt("port"));
-		setRunServer(config.getBoolean("runServer"));
-		setServerPath(config.getString("serverPath"));
-		setShutdown(config.getBoolean("shutdown"));
-		setUsername(config.getString("username"));
-
+	private void applyConfiguration() {
+		if (config != null) {
+			// apply default values, if property not found in configuration
+			setDatabaseName(config.getString("databaseName", databaseName));
+			setDropDatabase(config.getBoolean("dropDatabase", dropDatabase));
+			setEmbedded(config.getBoolean("embedded", embedded));
+			setHost(config.getString("host", host));
+			setInitialDataPath(config.getString("initialDataPath", initialDataPath));
+			setPassword(config.getString("password", password));
+			setPort(config.getInt("port", port));
+			setRunServer(config.getBoolean("runServer", runServer));
+			setServerPath(config.getString("serverPath", serverPath));
+			setShutdown(config.getBoolean("shutdown", shutdown));
+			setUsername(config.getString("username", username));
+		} else {
+			throw new IllegalStateException("Configuration has to be injected prior the initialization.");
+		}
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
+	 * 
 	 * @see com.evolveum.midpoint.repo.xml.RepositoryServiceFactory#destroy()
 	 */
 	@Override
@@ -200,8 +206,12 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.repo.xml.RepositoryServiceFactory#getRepositoryService()
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.evolveum.midpoint.repo.xml.RepositoryServiceFactory#getRepositoryService
+	 * ()
 	 */
 	@Override
 	public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
@@ -323,12 +333,12 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 
 	@Override
 	public String getComponentId() {
-		throw new UnsupportedOperationException("Operation is not supported on RepositoryServiceFactory implementation class. See RepositoryFactory in component system-init");
+		throw new UnsupportedOperationException(
+				"Operation is not supported on RepositoryServiceFactory implementation class. See RepositoryFactory in component system-init");
 	}
 
 	@Override
 	public Configuration getCurrentConfiguration() {
-		//TODO: generate full configuration also with default values!
 		return config;
 	}
 
@@ -336,5 +346,5 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 	public void setConfiguration(Configuration config) {
 		this.config = config;
 	}
-	
+
 }

@@ -55,6 +55,8 @@ public interface RuntimeConfiguration {
 	 * }
 	 * </p>
 	 *  
+	 * Note: current configuration can be obtained only on fully initialized objects. If called on not initialized objects, then it can end with undefined behavior 
+	 *  
 	 * @return	Commons configuration
 	 */
 	public Configuration getCurrentConfiguration();
