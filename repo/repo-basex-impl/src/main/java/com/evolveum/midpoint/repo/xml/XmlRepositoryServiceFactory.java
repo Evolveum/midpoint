@@ -60,11 +60,6 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 
 	private Configuration config;
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.evolveum.midpoint.repo.xml.RepositoryServiceFactory#init()
-	 */
 	@Override
 	public void init() throws RepositoryServiceFactoryException {
 		// TODO: if no configuration is set then generate default configuration
@@ -192,11 +187,6 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see com.evolveum.midpoint.repo.xml.RepositoryServiceFactory#destroy()
-	 */
 	@Override
 	public void destroy() {
 		if (shutdown) {
@@ -206,13 +196,6 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see
-	 * com.evolveum.midpoint.repo.xml.RepositoryServiceFactory#getRepositoryService
-	 * ()
-	 */
 	@Override
 	public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
 		RepositoryService repositoryService = new XmlRepositoryService(host, port, username, password,
