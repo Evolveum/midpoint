@@ -227,7 +227,7 @@ public class OpenDJController {
 			return templateServerRoot;
 		}
 		
-		URL systemResourceUrl = ClassLoader.getSystemResource(templateServerRoot.getPath());
+		URL systemResourceUrl = this.getClass().getClassLoader().getResource(templateServerRoot.getPath());
 		if (systemResourceUrl==null) {
 			LOGGER.warn("Cannot find OpenDJ template, looking for system resource {}", templateServerRoot.getPath());
 			return null;
