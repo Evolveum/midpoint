@@ -388,9 +388,9 @@ public class TestSanity extends AbstractIntegrationTest {
 		// "ds-pwp-account-disabled");
 		// attributes.add(
 		// "givenName");
-		InternalSearchOperation op = openDJController.getInternalConnection().processSearch("dc=example,dc=com",
-				SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100, 100, false,
-				"(entryUUID=" + uid + ")", null);
+		InternalSearchOperation op = openDJController.getInternalConnection().processSearch(
+				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
+				100, false, "(entryUUID=" + uid + ")", null);
 
 		AssertJUnit.assertEquals(1, op.getEntriesSent());
 		SearchResultEntry response = op.getSearchEntries().get(0);
@@ -510,9 +510,9 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Check if LDAP account was updated
 
-		InternalSearchOperation op = openDJController.getInternalConnection().processSearch("dc=example,dc=com",
-				SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100, 100, false,
-				"(entryUUID=" + uid + ")", null);
+		InternalSearchOperation op = openDJController.getInternalConnection().processSearch(
+				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
+				100, false, "(entryUUID=" + uid + ")", null);
 
 		AssertJUnit.assertEquals(1, op.getEntriesSent());
 		SearchResultEntry response = op.getSearchEntries().get(0);
@@ -577,9 +577,9 @@ public class TestSanity extends AbstractIntegrationTest {
 		}
 
 		// Account should be deleted from LDAP
-		InternalSearchOperation op = openDJController.getInternalConnection().processSearch("dc=example,dc=com",
-				SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100, 100, false,
-				"(uid=" + USER_JACK_LDAP_UID + ")", null);
+		InternalSearchOperation op = openDJController.getInternalConnection().processSearch(
+				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
+				100, false, "(uid=" + USER_JACK_LDAP_UID + ")", null);
 
 		AssertJUnit.assertEquals(0, op.getEntriesSent());
 
@@ -801,23 +801,21 @@ public class TestSanity extends AbstractIntegrationTest {
 		final String taskOid = task.getOid();
 
 		waitFor("Waiting for import to complete", new Checker() {
-					@Override
-					public boolean check() throws Exception {
-						Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
-						ObjectType obj = modelWeb.getObject(
-								ObjectTypes.TASK.getObjectTypeUri(),
-								taskOid, new PropertyReferenceListType(), resultHolder);
-						assertSuccess("getObject has failed", resultHolder.value);
-						Task task = taskManager.createTaskInstance((TaskType) obj);
-						if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
-							// Task closed, wait finished
-							return true;
-						}
-						IntegrationTestTools.display("Task result while waiting: ",task.getResult());
-						return false;
-					}
-				},
-				45000);
+			@Override
+			public boolean check() throws Exception {
+				Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
+				ObjectType obj = modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
+						new PropertyReferenceListType(), resultHolder);
+				assertSuccess("getObject has failed", resultHolder.value);
+				Task task = taskManager.createTaskInstance((TaskType) obj);
+				if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
+					// Task closed, wait finished
+					return true;
+				}
+				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
+				return false;
+			}
+		}, 45000);
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
 		ObjectType obj = modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), task.getOid(),

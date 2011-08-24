@@ -60,7 +60,7 @@ public class XPathUtil {
     }
 
     protected Object evaluateExpr(Map<QName, Variable> variables, ExpressionHolder expressionHolder, QName returnType) {
-        logger.trace("Expression '{}' will be evaluated in context: variables = '{}' and namespaces = '{}'", new Object[]{expressionHolder.getExpressionAsString(), variables.values(), expressionHolder.getNamespaceMap()});
+        logger.trace("Expression '{}' will be evaluated in context: variables = \n'{}' and namespaces = \n'{}'", new Object[]{expressionHolder.getExpressionAsString(), variables.values(), expressionHolder.getNamespaceMap()});
 
         Validate.notNull(expressionHolder);
 //        Validate.notNull(variables);

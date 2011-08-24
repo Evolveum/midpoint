@@ -56,6 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 /**
  * 
  * @author katuska
+ * @author lazyman
+ * 
  */
 @Controller("userList")
 @Scope("session")
@@ -143,25 +145,18 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 	protected String listObjects() {
 		UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 
-		OrderDirectionType direction = OrderDirectionType.ASCENDING;
-		if (!isAscending()) {
-			direction = OrderDirectionType.DESCENDING;
-		}
+		OrderDirectionType direction = isAscending() ? OrderDirectionType.ASCENDING
+				: OrderDirectionType.DESCENDING;
 		PagingType paging = PagingTypeFactory.createPaging(getOffset(), getRowsCount(), direction,
 				getSortColumnName());
 
 		getObjects().clear();
 		if (getQuery() == null) {
 			// we're listing objects
-			// try {
 			Collection<GuiUserDto> list = userManager.list(paging);
 			for (UserDto userDto : list) {
 				getObjects().add((GuiUserDto) userDto);
 			}
-			// } catch (WebModelException ex) {
-			// LoggingUtils.logException(TRACE, "List users failed", ex);
-			// // TODO: faces utils error add
-			// }
 		} else {
 			// we're searching for objects
 			List<UserDto> users = userManager.search(getQuery(), paging);

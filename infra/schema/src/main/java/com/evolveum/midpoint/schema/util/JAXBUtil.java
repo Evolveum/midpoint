@@ -41,6 +41,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -192,7 +193,7 @@ public final class JAXBUtil {
 	public static Object unmarshal(String xmlString) throws JAXBException {
 		return unmarshal(Object.class, xmlString);
 	}
-	
+
 	public static <T> JAXBElement<T> unmarshal(Class<T> type, String xmlString) throws JAXBException {
 		if (xmlString == null) {
 			return null;
@@ -221,22 +222,20 @@ public final class JAXBUtil {
 	}
 
 	public static Object unmarshal(InputStream input) throws JAXBException {
-		return unmarshal(Object.class,input);
+		return unmarshal(Object.class, input);
 	}
-	
-	/**
-	 * 
-	 * @param <T>
-	 * @param type
-	 * @param input
-	 * @return
-	 * @throws JAXBException
-	 * @throws ClassCastException
-	 */
+
+	@SuppressWarnings("unchecked")
 	public static <T> JAXBElement<T> unmarshal(Class<T> type, InputStream input) throws JAXBException {
 		Object object = createUnmarshaller().unmarshal(input);
-		@SuppressWarnings("unchecked")
-		JAXBElement<T> jaxbElement = (JAXBElement<T>)object;
+		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
+		return jaxbElement;
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> JAXBElement<T> unmarshal(Node node) throws JAXBException {
+		Object object = createUnmarshaller().unmarshal(node);
+		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
 		return jaxbElement;
 	}
 

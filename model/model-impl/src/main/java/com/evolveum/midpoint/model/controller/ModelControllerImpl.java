@@ -283,7 +283,7 @@ public class ModelControllerImpl implements ModelController {
 			LOGGER.debug("Listing objects of type {} (no paging).", objectType);
 		} else {
 			LOGGER.debug(
-					"Listing objects of type {} from {} to {} ordered {} by {}.",
+					"Listing objects of type {} offset {} count {} ordered {} by {}.",
 					new Object[] { objectType, paging.getOffset(), paging.getMaxSize(),
 							paging.getOrderDirection(), paging.getOrderBy() });
 		}
@@ -666,6 +666,7 @@ public class ModelControllerImpl implements ModelController {
 			OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
 		// TODO: set summarization
+		// TODO: overwrite flag not used!!!!!!!!!!!!!
 		ObjectImporter.importObjects(input, task, result, repository);
 		result.computeStatus("Couldn't import object from input stream.");
 	}
