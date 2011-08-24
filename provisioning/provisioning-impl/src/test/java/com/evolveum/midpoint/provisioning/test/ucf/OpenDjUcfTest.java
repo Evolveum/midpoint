@@ -27,6 +27,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -66,6 +67,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Document;
 
 /**
@@ -81,18 +83,21 @@ import org.w3c.dom.Document;
 		"classpath:application-context-provisioning-test.xml",
 		"classpath:application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml" })
-public class OpenDjUcfTest extends AbstractIntegrationTest {
+public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String FILENAME_RESOURCE_OPENDJ_BAD = "src/test/resources/ucf/opendj-resource-bad.xml";
 	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
 	
+	private JAXBContext jaxbctx;
 	ResourceType resource;
 	ResourceType badResource;
 	ConnectorType connectorType;
 	private ConnectorFactory manager;
 	private ConnectorInstance cc;
 	Schema schema;
+	
+	protected static OpenDJController openDJController = new OpenDJController();
 	
 	public OpenDjUcfTest() throws JAXBException {
 		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
@@ -334,15 +339,6 @@ public class OpenDjUcfTest extends AbstractIntegrationTest {
 		
 		// THEN
 		
-		
-	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.test.AbstractIntegrationTest#initSystem(com.evolveum.midpoint.common.result.OperationResult)
-	 */
-	@Override
-	public void initSystem(OperationResult initResult) throws Exception {
-		// TODO Auto-generated method stub
 		
 	}
 
