@@ -29,6 +29,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
@@ -207,6 +208,9 @@ public class OpenDJController {
     public void refreshFromTemplate() throws IOException {
         deleteDirectory(serverRoot);
         File template = locateTemplate();
+        if (template==null) {
+        	throw new IllegalStateException("Cannot locate OpenDJ template ("+templateServerRoot+")");
+        }
         if (template.isDirectory()) {
         	// If the template is already expanded, copy it
         	copyDirectory(template,serverRoot);
@@ -223,7 +227,12 @@ public class OpenDJController {
 			return templateServerRoot;
 		}
 		
-		String templateResourcePath = ClassLoader.getSystemResource(templateServerRoot.getPath()).getPath();
+		URL systemResourceUrl = ClassLoader.getSystemResource(templateServerRoot.getPath());
+		if (systemResourceUrl==null) {
+			LOGGER.warn("Cannot find OpenDJ template, looking for system resource {}", templateServerRoot.getPath());
+			return null;
+		}
+		String templateResourcePath = systemResourceUrl.getPath();
 
 		LOGGER.trace("Template resource path: {}",templateResourcePath);
 
