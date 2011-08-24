@@ -39,7 +39,6 @@ import com.evolveum.midpoint.schema.exception.CommonException;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.EntryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LocalizedMessageType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ParamsType;
 
@@ -316,28 +315,29 @@ public class OperationResult implements Serializable, Dumpable {
 			status = newStatus;
 		}
 	}
-	
+
 	/**
 	 * 
 	 */
 	public void recomputeStatus(String message) {
-		// Only recompute if there are subresults, otherwise keep original status
+		// Only recompute if there are subresults, otherwise keep original
+		// status
 		if (subresults != null && !subresults.isEmpty()) {
 			computeStatus(message);
 		}
 	}
-	
+
 	/**
 	 * 
 	 */
 	public void recomputeStatus(String errorMessage, String warningMessage) {
-		// Only recompute if there are subresults, otherwise keep original status
+		// Only recompute if there are subresults, otherwise keep original
+		// status
 		if (subresults != null && !subresults.isEmpty()) {
-			computeStatus(errorMessage,warningMessage);
+			computeStatus(errorMessage, warningMessage);
 		}
 	}
 
-	
 	/**
 	 * 
 	 */
@@ -346,8 +346,6 @@ public class OperationResult implements Serializable, Dumpable {
 			recordSuccess();
 		}
 	}
-
-
 
 	/**
 	 * Method returns {@link Map} with operation parameters. Parameters keys are
@@ -366,18 +364,28 @@ public class OperationResult implements Serializable, Dumpable {
 		getParams().put(paramName, paramValue);
 	}
 
+	public void addParams(String[] names, Object... objects) {
+		if (names.length != objects.length) {
+			throw new IllegalArgumentException("Bad result parameters size, names '" + names.length
+					+ "', objects '" + objects.length + "'.");
+		}
+
+		for (int i = 0; i < names.length; i++) {
+			addParam(names[i], objects[i]);
+		}
+	}
+
 	public Map<String, Object> getContext() {
 		if (context == null) {
 			context = new HashMap<String, Object>();
 		}
 		return context;
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public <T> T getContext(Class<T> type, String contextName) {
 		return (T) getContext().get(contextName);
 	}
-
 
 	public void addContext(String contextName, Object value) {
 		getContext().put(contextName, value);
@@ -537,8 +545,8 @@ public class OperationResult implements Serializable, Dumpable {
 		// May be switched to a more structured method later
 		details.add(detailLine);
 	}
-	
-	public List<String> getDetail(){
+
+	public List<String> getDetail() {
 		return details;
 	}
 

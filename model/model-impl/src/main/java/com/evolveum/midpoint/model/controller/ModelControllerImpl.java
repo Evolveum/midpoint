@@ -42,7 +42,6 @@ import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -76,7 +75,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -136,7 +134,7 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		OperationResult subResult = result.createSubresult(ADD_OBJECT);
-		addResultParams(subResult, new String[] { "object" }, object);
+		subResult.addParams(new String[] { "object" }, object);
 		String oid = null;
 		try {
 			if (object instanceof TaskType) {
@@ -193,12 +191,12 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		OperationResult subResult = result.createSubresult(ADD_USER);
-		addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
+		subResult.addParams(new String[] { "user", "userTemplate" }, user, userTemplate);
 
 		String oid = null;
 		try {
 			processAddAccountFromUser(user, subResult);
-			processUserTemplateForUser(user, userTemplate, subResult);
+			user = processUserTemplateForUser(user, userTemplate, subResult);
 			oid = repository.addObject(user, subResult);
 			subResult.recordSuccess();
 		} catch (ObjectAlreadyExistsException ex) {
@@ -229,7 +227,7 @@ public class ModelControllerImpl implements ModelController {
 		LOGGER.debug("Getting object with oid {}.", new Object[] { oid });
 
 		OperationResult subResult = result.createSubresult(GET_OBJECT);
-		addResultParams(subResult, new String[] { "oid", "resolve", "class" }, oid, resolve, clazz);
+		subResult.addParams(new String[] { "oid", "resolve", "class" }, oid, resolve, clazz);
 		T object = null;
 		try {
 			// If class parameter is ObjectType we don't know if real object
@@ -289,7 +287,7 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		OperationResult subResult = result.createSubresult(LIST_OBJECTS);
-		addResultParams(subResult, new String[] { "objectType", "paging" }, objectType, paging);
+		subResult.addParams(new String[] { "objectType", "paging" }, objectType, paging);
 		List<T> list = null;
 		try {
 			if (ObjectTypes.isObjectTypeManagedByProvisioning(objectType)) {
@@ -349,7 +347,7 @@ public class ModelControllerImpl implements ModelController {
 		String operationName = searchInProvisioning ? SEARCH_OBJECTS_IN_PROVISIONING
 				: SEARCH_OBJECTS_IN_REPOSITORY;
 		OperationResult subResult = result.createSubresult(operationName);
-		addResultParams(subResult, new String[] { "query", "paging", "searchInProvisioning" }, query, paging,
+		subResult.addParams(new String[] { "query", "paging", "searchInProvisioning" }, query, paging,
 				searchInProvisioning);
 		List<T> list = null;
 		try {
@@ -415,7 +413,7 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		OperationResult subResult = result.createSubresult(MODIFY_OBJECT_WITH_EXCLUSION);
-		addResultParams(subResult, new String[] { "change", "accountOid" }, change, accountOid);
+		subResult.addParams(new String[] { "change", "accountOid" }, change, accountOid);
 
 		try {
 			T object = getObjectFromRepository(change.getOid(), new PropertyReferenceListType(), subResult,
@@ -449,13 +447,14 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result) throws ObjectNotFoundException, ConsistencyViolationException {
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result)
+			throws ObjectNotFoundException, ConsistencyViolationException {
 		Validate.notEmpty(oid, "Oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		LOGGER.debug("Deleting object with oid {}.", new Object[] { oid });
 
 		OperationResult subResult = result.createSubresult(DELETE_OBJECT);
-		addResultParams(subResult, new String[] { "oid" }, oid);
+		subResult.addParams(new String[] { "oid" }, oid);
 
 		try {
 			ObjectType object = getObjectFromRepository(oid, new PropertyReferenceListType(), subResult,
@@ -479,9 +478,12 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordFatalError("Couldn't find object with oid '" + oid + "'.", ex);
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}, potential consistency violation", ex, oid);
-			subResult.recordFatalError("Couldn't delete object with oid '" + oid + "', potential consistency violation");
-			throw new ConsistencyViolationException("Couldn't delete object with oid '" + oid + "', potential consistency violation", ex);
+			LoggingUtils.logException(LOGGER,
+					"Couldn't delete object with oid {}, potential consistency violation", ex, oid);
+			subResult.recordFatalError("Couldn't delete object with oid '" + oid
+					+ "', potential consistency violation");
+			throw new ConsistencyViolationException("Couldn't delete object with oid '" + oid
+					+ "', potential consistency violation", ex);
 		} finally {
 			LOGGER.debug(subResult.dump());
 		}
@@ -510,7 +512,7 @@ public class ModelControllerImpl implements ModelController {
 		LOGGER.debug("Listing account shadow owner for account with oid {}.", new Object[] { accountOid });
 
 		OperationResult subResult = result.createSubresult(LIST_ACCOUNT_SHADOW_OWNER);
-		addResultParams(subResult, new String[] { "accountOid" }, accountOid);
+		subResult.addParams(new String[] { "accountOid" }, accountOid);
 
 		UserType user = null;
 		try {
@@ -542,7 +544,7 @@ public class ModelControllerImpl implements ModelController {
 				resourceObjectShadowType, resourceOid });
 
 		OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECT_SHADOWS);
-		addResultParams(subResult, new String[] { "resourceOid", "resourceObjectShadowType" }, resourceOid,
+		subResult.addParams(new String[] { "resourceOid", "resourceObjectShadowType" }, resourceOid,
 				resourceObjectShadowType);
 
 		List<T> list = null;
@@ -583,8 +585,8 @@ public class ModelControllerImpl implements ModelController {
 						paging.getOrderDirection(), paging.getOrderDirection() });
 
 		OperationResult subResult = result.createSubresult(LIST_RESOURCE_OBJECTS);
-		addResultParams(subResult, new String[] { "resourceOid", "objectType", "paging" }, resourceOid,
-				objectClass, paging);
+		subResult.addParams(new String[] { "resourceOid", "objectType", "paging" }, resourceOid, objectClass,
+				paging);
 
 		ObjectListType list = null;
 		list = provisioning.listResourceObjects(resourceOid, objectClass, paging, subResult);
@@ -639,8 +641,8 @@ public class ModelControllerImpl implements ModelController {
 				resourceOid, objectClass });
 
 		OperationResult result = task.getResult().createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
-		addResultParams(result, new String[] { "resourceOid", "objectClass", "task" }, resourceOid,
-				objectClass, task);
+		result.addParams(new String[] { "resourceOid", "objectClass", "task" }, resourceOid, objectClass,
+				task);
 		// TODO: add params and context to the result
 
 		// Fetch resource definition from the repo/provisioning
@@ -691,8 +693,8 @@ public class ModelControllerImpl implements ModelController {
 		T object = null;
 
 		OperationResult subResult = result.createSubresult(GET_OBJECT);
-		addResultParams(subResult, new String[] { "oid", "resolve", "class", "fromProvisioning" }, oid,
-				resolve, clazz, fromProvisioning);
+		subResult.addParams(new String[] { "oid", "resolve", "class", "fromProvisioning" }, oid, resolve,
+				clazz, fromProvisioning);
 		try {
 			ObjectType objectType = null;
 			if (fromProvisioning) {
@@ -735,8 +737,7 @@ public class ModelControllerImpl implements ModelController {
 	 */
 	@Override
 	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) {
-		OperationResult result = parentResult.createSubresult(ModelService.class.getName()
-				+ ".discoverConnectors");
+		OperationResult result = parentResult.createSubresult(DISCOVER_CONNECTORS);
 		Set<ConnectorType> discoverConnectors = provisioning.discoverConnectors(hostType, result);
 		result.computeStatus("Connector discovery failed");
 		return discoverConnectors;
@@ -800,7 +801,7 @@ public class ModelControllerImpl implements ModelController {
 			// At first we get default user template from system configuration
 			SystemConfigurationType systemConfiguration = getSystemConfiguration(result);
 			UserTemplateType userTemplate = systemConfiguration.getDefaultUserTemplate();
-			processUserTemplateForUser(user, userTemplate, result);
+			object = processUserTemplateForUser(user, userTemplate, result);
 		}
 
 		try {
@@ -835,7 +836,7 @@ public class ModelControllerImpl implements ModelController {
 		List<ObjectReferenceType> refToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
 			OperationResult subResult = result.createSubresult(RESOLVE_USER_ATTRIBUTES);
-			addResultParams(subResult, new String[] { "user", "accountRef" }, user, accountRef);
+			subResult.addParams(new String[] { "user", "accountRef" }, user, accountRef);
 			try {
 				AccountShadowType account = getObjectFromProvisioning(accountRef.getOid(), resolve,
 						subResult, AccountShadowType.class);
@@ -867,7 +868,7 @@ public class ModelControllerImpl implements ModelController {
 			return;
 		}
 		OperationResult subResult = result.createSubresult(RESOLVE_ACCOUNT_ATTRIBUTES);
-		addResultParams(subResult, new String[] { "account", "resolve" }, account, resolve);
+		subResult.addParams(new String[] { "account", "resolve" }, account, resolve);
 		try {
 			ResourceType resource = getObjectFromProvisioning(account.getResourceRef().getOid(), resolve,
 					result, ResourceType.class);
@@ -916,7 +917,7 @@ public class ModelControllerImpl implements ModelController {
 				accountsToBeDeleted.add(account);
 			} catch (ConsistencyViolationException ex) {
 				// TODO: handle this
-				LOGGER.error("TODO handle ConsistencyViolationException",ex);
+				LOGGER.error("TODO handle ConsistencyViolationException", ex);
 			}
 		}
 
@@ -929,7 +930,7 @@ public class ModelControllerImpl implements ModelController {
 				refsToBeDeleted.add(accountRef);
 			} catch (ConsistencyViolationException ex) {
 				// TODO handle this
-				LOGGER.error("TODO handle ConsistencyViolationException",ex);
+				LOGGER.error("TODO handle ConsistencyViolationException", ex);
 			}
 		}
 		user.getAccountRef().removeAll(refsToBeDeleted);
@@ -1221,8 +1222,8 @@ public class ModelControllerImpl implements ModelController {
 		List<ObjectReferenceType> accountRefs = user.getAccountRef();
 		for (ObjectReferenceType accountRef : accountRefs) {
 			OperationResult subResult = result.createSubresult(UPDATE_ACCOUNT);
-			addResultParams(subResult, new String[] { "change", "accountOid", "object", "accountRef" },
-					change, accountOid, user, accountRef);
+			subResult.addParams(new String[] { "change", "accountOid", "object", "accountRef" }, change,
+					accountOid, user, accountRef);
 			if (StringUtils.isNotEmpty(accountOid) && accountOid.equals(accountRef.getOid())) {
 				subResult.computeStatus("Account excluded during modification, skipped.");
 				// preventing cycles while updating resource object shadows
@@ -1235,7 +1236,6 @@ public class ModelControllerImpl implements ModelController {
 
 				ObjectModificationType accountChange = null;
 				try {
-					schemaHandler.setModel(this);
 					accountChange = schemaHandler.processOutboundHandling(user, account, subResult);
 				} catch (SchemaHandlerException ex) {
 					LoggingUtils.logException(LOGGER, "Couldn't update outbound handling for account {}", ex,
@@ -1292,7 +1292,6 @@ public class ModelControllerImpl implements ModelController {
 		ObjectModificationType change = null;
 		if (user != null) {
 			try {
-				schemaHandler.setModel(this);
 				change = schemaHandler.processOutboundHandling(user, (ResourceObjectShadowType) object,
 						result);
 			} catch (Exception ex) {
@@ -1307,18 +1306,26 @@ public class ModelControllerImpl implements ModelController {
 		return change;
 	}
 
-	private void processUserTemplateForUser(UserType user, UserTemplateType userTemplate,
+	private UserType processUserTemplateForUser(UserType user, UserTemplateType userTemplate,
 			OperationResult result) {
 		OperationResult subResult = result.createSubresult(PROCESS_USER_TEMPLATE);
-		addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
+		subResult.addParams(new String[] { "user", "userTemplate" }, user, userTemplate);
 		if (userTemplate == null) {
 			subResult.recordWarning("No user template defined, skipping.");
-			return;
+			return user;
 		}
 
-		processUserTemplateProperty(user, userTemplate, subResult);
+		try {
+			user = schemaHandler.processPropertyConstruction(user, userTemplate, subResult);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER,
+					"Couldn't process property construction from template {} on user {}", ex,
+					userTemplate.getName(), user.getName());
+		}
 		processUserTemplateAccount(user, userTemplate, subResult);
 		subResult.computeStatus("Couldn't finish process user template.");
+
+		return user;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1326,7 +1333,7 @@ public class ModelControllerImpl implements ModelController {
 			OperationResult result) {
 		for (AccountConstructionType construction : userTemplate.getAccountConstruction()) {
 			OperationResult subResult = result.createSubresult(CREATE_ACCOUNT);
-			addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
+			subResult.addParams(new String[] { "user", "userTemplate" }, user, userTemplate);
 			try {
 				ObjectReferenceType resourceRef = construction.getResourceRef();
 				ResourceType resource = getObject(ResourceType.class, resourceRef.getOid(),
@@ -1352,34 +1359,14 @@ public class ModelControllerImpl implements ModelController {
 				String accountOid = addObject(account, subResult);
 				user.getAccountRef().add(ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT));
 			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't process account construction '{}' for user {}", ex,
-						construction.getType(), user.getName());
+				LoggingUtils.logException(LOGGER, "Couldn't process account construction '{}' for user {}",
+						ex, construction.getType(), user.getName());
 				subResult.recordFatalError("Something went terribly wrong.", ex);
 				result.recordWarning("Couldn't process account construction '" + construction.getType()
 						+ "'.", ex);
 			} finally {
 				subResult.computeStatus("Couldn't process account construction '" + construction.getType()
 						+ "'.");
-			}
-		}
-	}
-
-	private void processUserTemplateProperty(UserType user, UserTemplateType userTemplate,
-			OperationResult result) {
-		for (PropertyConstructionType construction : userTemplate.getPropertyConstruction()) {
-			OperationResult subResult = result.createSubresult("User Property Construction");
-			addResultParams(subResult, new String[] { "user", "userTemplate" }, user, userTemplate);
-			try {
-				// TODO: process user template property construction
-
-			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't process property construction {} for user {}",
-						ex, construction.getProperty().getTextContent(), user.getName());
-				subResult.recordWarning("Couldn't process property construction '"
-						+ construction.getProperty().getTextContent() + "'.", ex);
-			} finally {
-				subResult.computeStatus("Couldn't process property construction '"
-						+ construction.getProperty().getTextContent() + "'.");
 			}
 		}
 	}
@@ -1404,16 +1391,4 @@ public class ModelControllerImpl implements ModelController {
 
 		result.computeStatus("Error occured during post initialization process.");
 	}
-
-	private void addResultParams(OperationResult result, String[] names, Object... objects) {
-		if (names.length != objects.length) {
-			throw new IllegalArgumentException("Bad result parameters size, names '" + names.length
-					+ "', objects '" + objects.length + "'.");
-		}
-
-		for (int i = 0; i < names.length; i++) {
-			result.addParam(names[i], objects[i]);
-		}
-	}
-
 }

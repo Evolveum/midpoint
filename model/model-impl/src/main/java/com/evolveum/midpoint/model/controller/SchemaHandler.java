@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -37,11 +38,12 @@ public interface SchemaHandler {
 	UserType processInboundHandling(UserType user, ResourceObjectShadowType resourceObjectShadow,
 			OperationResult result) throws SchemaHandlerException;
 
+	UserType processPropertyConstruction(UserType user, UserTemplateType template, OperationResult result)
+			throws SchemaHandlerException;
+
 	ObjectModificationType processOutboundHandling(UserType user,
 			ResourceObjectShadowType resourceObjectShadow, OperationResult result)
 			throws SchemaHandlerException;
-
-	void setModel(ModelController controller);
 
 	ExpressionHandler getExpressionHandler();
 }

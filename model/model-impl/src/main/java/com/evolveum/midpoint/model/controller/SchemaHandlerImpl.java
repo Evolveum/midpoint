@@ -69,6 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AttributeDescription
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -76,6 +77,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType.Value;
@@ -97,10 +99,6 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	private transient FilterManager<Filter> filterManager;
 	@Autowired(required = true)
 	private ModelController model;
-
-	public void setModel(ModelController model) {
-		this.model = model;
-	}
 
 	@Override
 	public ExpressionHandler getExpressionHandler() {
@@ -746,5 +744,42 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		}
 
 		return returnNode;
+	}
+
+	@Override
+	public UserType processPropertyConstruction(UserType user, UserTemplateType template,
+			OperationResult result) {
+		UserType templatedUser = user;
+		Document domUser = null;
+		for (PropertyConstructionType construction : template.getPropertyConstruction()) {
+			OperationResult subResult = result.createSubresult("User Property Construction");
+			subResult.addParams(new String[] { "user", "userTemplate" }, user, template);
+			try {
+				// TODO: process user template property construction
+//				Map<QName, Variable> variables = ExpressionHandlerImpl.getDefaultXPathVariables(user,
+//						null,null);
+				
+				
+			} catch (Exception ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't process property construction {} for user {}",
+						ex, construction.getProperty().getTextContent(), user.getName());
+				subResult.recordWarning("Couldn't process property construction '"
+						+ construction.getProperty().getTextContent() + "'.", ex);
+			} finally {
+				subResult.computeStatus("Couldn't process property construction '"
+						+ construction.getProperty().getTextContent() + "'.");
+			}
+		}
+
+		if (domUser != null) {
+			try {
+				templatedUser = (UserType) JAXBUtil.unmarshal(domUser).getValue();
+			} catch (JAXBException ex) {
+				// TODO: error handling
+				ex.printStackTrace();
+			}
+		}
+
+		return templatedUser;
 	}
 }

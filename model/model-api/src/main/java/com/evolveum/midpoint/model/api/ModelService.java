@@ -93,6 +93,7 @@ public interface ModelService {
 	String IMPORT_OBJECTS_FROM_STREAM = CLASS_NAME_WITH_DOT + "importObjectsFromStream";
 	String POST_INIT = CLASS_NAME_WITH_DOT + "postInit";
 	String SEARCH_OBJECTS_IN_REPOSITORY = CLASS_NAME_WITH_DOT + "searchObjectsInRepository";
+	String DISCOVER_CONNECTORS = CLASS_NAME_WITH_DOT + "discoverConnectors";
 
 	/**
 	 * <p>
@@ -229,12 +230,15 @@ public interface ModelService {
 	 *             specified object does not exist
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, described change is not applicable
-	 * @throws ConsistencyViolationException sub-operation failed, cannot delete objects as its deletion would lead to inconsistent state
+	 * @throws ConsistencyViolationException
+	 *             sub-operation failed, cannot delete objects as its deletion
+	 *             would lead to inconsistent state
 	 * @throws SystemException
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	<T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException, ConsistencyViolationException;
+	<T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult)
+			throws ObjectNotFoundException, ConsistencyViolationException;
 
 	/**
 	 * <p>

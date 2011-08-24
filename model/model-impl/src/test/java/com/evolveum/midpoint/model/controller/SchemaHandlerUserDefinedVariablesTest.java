@@ -63,8 +63,6 @@ public class SchemaHandlerUserDefinedVariablesTest extends AbstractTestNGSpringC
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlerUserDefinedVariablesTest.class);
 	@Autowired
-	private ModelController model;
-	@Autowired
 	private SchemaHandler schemaHandler;
 	@Autowired
 	private RepositoryService repositoryService;
@@ -91,7 +89,6 @@ public class SchemaHandlerUserDefinedVariablesTest extends AbstractTestNGSpringC
 
 		OperationResult result = new OperationResult(
 				"testApplyOutboundSchemaHandlingWithUserDefinedVariablesOnAccount");
-		schemaHandler.setModel(model);
 		ObjectModificationType changes = schemaHandler.processOutboundHandling(user, account, result);
 		LOGGER.info(result.dump());
 
