@@ -215,8 +215,8 @@ public class OpenDJController {
 		// sample:
 		// file:/C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar!/test-data/opendj.template
 		// output:
-		// C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar
-		String srcName = srcUrl.getPath().substring(6).split("!/")[0];
+		// /C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar
+		String srcName = srcUrl.getPath().substring(5).split("!/")[0];
 
 		JarFile jar = new JarFile(srcName);
 		LOGGER.debug("Extracting OpenDJ from JAR file {} to {}", srcName, dst.getPath());
