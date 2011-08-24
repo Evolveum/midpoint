@@ -68,7 +68,7 @@ public class ImportController implements Serializable {
 	private static final Trace TRACE = TraceManager
 			.getTrace(ImportController.class);
 	@Autowired(required = true)
-	private ModelService model;
+	private transient ModelService model;
 	private String editor;
 	private boolean showFileUpload = false;
 	private boolean overwrite = false;
