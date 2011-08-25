@@ -28,12 +28,20 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.JAXBIntrospector;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
@@ -61,18 +69,34 @@ public final class JAXBUtil {
 
 	private static final Trace TRACE = TraceManager.getTrace(JAXBUtil.class);
 	private static final JAXBContext context;
+	private static final JAXBIntrospector introspector;
 
 	static {
-		JAXBContext ctx = null;
+		StringBuilder sb = new StringBuilder();
+		Iterator<Entry<String, String>> iterator = SchemaConstants.JAXB_PACKAGES.entrySet().iterator();
+		while(iterator.hasNext()) {
+			sb.append(iterator.next().getKey());
+			if (iterator.hasNext()) {
+				sb.append(":");
+			}
+		}
+		
 		try {
-			ctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
+			context = JAXBContext.newInstance(sb.toString());
+			introspector = context.createJAXBIntrospector();
 		} catch (JAXBException ex) {
 			TRACE.error("Couldn't create JAXBContext for: " + ObjectFactory.class.getPackage().getName(), ex);
 			throw new IllegalStateException("Couldn't create JAXBContext for: "
 					+ ObjectFactory.class.getPackage().getName(), ex);
 		}
-
-		context = ctx;
+	}
+	
+	public static JAXBContext getContext() {
+		return context;
+	}
+	
+	public static JAXBIntrospector getIntrospector() {
+		return introspector;
 	}
 
 	private static Marshaller createMarshaller(Map<String, Object> jaxbProperties) throws JAXBException {
@@ -300,4 +324,6 @@ public final class JAXBUtil {
 		}
 		return jaxbToDom(jaxbObject, qname, doc);
 	}
+		
+	
 }

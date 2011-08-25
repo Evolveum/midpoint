@@ -264,8 +264,7 @@ public class ShadowCache {
 		}
 
 		// Let's get all the identifiers from the Shadow <attributes> part
-		Set<ResourceObjectAttribute> identifiers = rod
-				.parseIdentifiers(repositoryShadow.getAttributes().getAny());
+		Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(repositoryShadow.getAttributes().getAny());
 
 		if (identifiers == null || identifiers.isEmpty()) {
 			// No identifiers found
@@ -637,7 +636,7 @@ public class ShadowCache {
 
 			LOGGER.debug("Getting object identifiers");
 			Set<ResourceObjectAttribute> identifiers = rod
-					.parseIdentifiers(accountShadow.getAttributes().getAny());
+						.parseIdentifiers(accountShadow.getAttributes().getAny());
 			Set<Operation> executeScriptOperations = null;
 
 			executeScriptOperations = createExecuteScriptOperation(
@@ -712,8 +711,7 @@ public class ShadowCache {
 
 			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
 					.findContainerDefinitionByType(accountType.getObjectClass());
-			Set<ResourceObjectAttribute> identifiers = rod
-					.parseIdentifiers(accountType.getAttributes().getAny());
+			Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(accountType.getAttributes().getAny());
 
 			Set<Operation> executeScriptOperation = null;
 
@@ -1629,7 +1627,7 @@ public class ShadowCache {
 	}
 
 	private Set<Operation> getAttributeChanges(
-			ObjectModificationType objectChange, ResourceObjectDefinition rod) {
+			ObjectModificationType objectChange, ResourceObjectDefinition rod) throws SchemaException {
 		Set<Operation> changes = new HashSet<Operation>();
 		for (PropertyModificationType modification : objectChange
 				.getPropertyModification()) {
@@ -1643,7 +1641,7 @@ public class ShadowCache {
 					.contains(SchemaConstants.I_ATTRIBUTES.getLocalPart())) {
 
 				Set<Property> changedProperties = rod
-						.parseProperties(modification.getValue().getAny());
+							.parseProperties(modification.getValue().getAny());
 				for (Property p : changedProperties) {
 
 					AttributeModificationOperation attributeModification = new AttributeModificationOperation();

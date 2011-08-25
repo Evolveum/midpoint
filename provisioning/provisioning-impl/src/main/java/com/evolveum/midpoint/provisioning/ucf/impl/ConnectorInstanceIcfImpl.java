@@ -31,6 +31,7 @@ import java.util.Set;
 
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.directory.SchemaViolationException;
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.codec.binary.Base64;
@@ -109,6 +110,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModifica
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -1434,6 +1436,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			String attrName = convertAttributeNameToIcf(attribute.getName(),
 					parentResult);
+			
+			Set<Object> attributeValues = new HashSet<Object>();
+			for (Object value : attribute.getValues()) {
+				attributeValues.add(convertValueToIcf(value));
+			}
 
 			Attribute connectorAttribute = AttributeBuilder.build(attrName,
 					attribute.getValues());
@@ -1441,6 +1448,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			attributes.add(connectorAttribute);
 		}
 		return attributes;
+	}
+
+	private Object convertValueToIcf(Object value) {
+		if (value instanceof ProtectedStringType) {
+			ProtectedStringType ps = (ProtectedStringType)value;
+			return new GuardedString(ps.getClearValue().toCharArray());
+		}			
+		return value;
 	}
 
 	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result,
@@ -1592,8 +1607,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					"Failed to serialize last token property to dom.");
 		}
 		for (Element e : elements) {
-			obj = XsdTypeConverter.toJavaValue(e, lastToken.getDefinition()
-					.getTypeName());
+			try {
+				obj = XsdTypeConverter.toJavaValue(e, lastToken.getDefinition()
+						.getTypeName());
+			} catch (JAXBException e1) {
+				throw new SchemaException("Unexpected JAXB problem while parsing synchronization token",e1,lastToken.getName());
+			}
 		}
 		SyncToken syncToken = new SyncToken(obj);
 		return syncToken;
@@ -1855,7 +1874,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 	}
 
-	private Object convertToJava(Element configElement, Class type) {
+	private Object convertToJava(Element configElement, Class type) throws SchemaException {
 		if (type.equals(GuardedString.class)) {
 			// Guarded string is a special ICF beast
 			return new GuardedString(configElement.getTextContent().toCharArray());
@@ -1863,7 +1882,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Guarded string is a special ICF beast
 			return new GuardedByteArray(Base64.decodeBase64(configElement.getTextContent()));
 		} else {
-			return XsdTypeConverter.toJavaValue(configElement, type);
+			try {
+				return XsdTypeConverter.toJavaValue(configElement, type);
+			} catch (JAXBException e) {
+				throw new SchemaException("Unexpected JAXB problem while parsing config element "+DOMUtil.getQName(configElement),e,DOMUtil.getQName(configElement));
+			}
 		}
 		
 		

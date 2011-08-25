@@ -26,12 +26,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.exception.SystemException;
 
 
 /**
@@ -333,7 +335,11 @@ public class Property {
 				xsdType = propDef.getTypeName();
 			}
 			
-				XsdTypeConverter.toXsdElement(val,xsdType,element,recordType);
+				try {
+					XsdTypeConverter.toXsdElement(val,xsdType,element,recordType);
+				} catch (JAXBException e) {
+					throw new SystemException("Unexpected JAXB problem while converting "+propDef.getTypeName()+" : "+e.getMessage(),e);
+				}
 				elements.add(element);
 			
 		}			

@@ -22,6 +22,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
@@ -29,6 +30,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.schema.TypedValue;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 
@@ -63,7 +65,12 @@ public class ExtensionProcessor {
 			Property property = new Property(propName);
 			
 			// Convert value
-			TypedValue tval = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, DEFAULT_TYPE);
+			TypedValue tval;
+			try {
+				tval = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, DEFAULT_TYPE);
+			} catch (JAXBException e) {
+				throw new SystemException("Unexpected JAXB problem while parsing element {"+element.getNamespaceURI()+"}"+element.getLocalName()+" : "+e.getMessage(),e);
+			}
 			Object value = tval.getValue();
 			property.setValue(value);
 			

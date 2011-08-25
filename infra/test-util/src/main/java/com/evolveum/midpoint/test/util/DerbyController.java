@@ -11,6 +11,9 @@ import java.sql.Statement;
 
 import org.apache.derby.drda.NetworkServerControl;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 /**
  * 
  * @author Radovan Semancik
@@ -25,6 +28,8 @@ public class DerbyController {
 	private String dbName;
 	private String username = "midpoint";
 	private String password = "secret";
+	
+	private static final Trace LOGGER = TraceManager.getTrace(DerbyController.class);
 	
 	public DerbyController() {
 		super();
@@ -84,6 +89,7 @@ public class DerbyController {
 	}
 
 	public void start() throws Exception {
+		LOGGER.info("Starting Derby embedded network server "+listenHostname+":"+listentPort+", database "+dbName);
 		listenAddress = InetAddress.getByName(listenHostname);
 		jdbcUrl = "jdbc:derby:"+dbName+";create=true;user="+username+";password="+password;
 		server = new NetworkServerControl(listenAddress,listentPort);
@@ -92,6 +98,7 @@ public class DerbyController {
 	}
 	
 	public void stop() throws Exception {
+		LOGGER.info("Stopping Derby embedded network server");
 		server.shutdown();
 	}
 	

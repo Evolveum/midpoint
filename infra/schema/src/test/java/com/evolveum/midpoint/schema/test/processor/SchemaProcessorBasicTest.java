@@ -8,6 +8,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
 import org.testng.AssertJUnit;
+
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
@@ -111,7 +113,7 @@ public class SchemaProcessorBasicTest {
 	}
 	
 	@Test
-	public void valueParseTest() throws SchemaProcessorException {
+	public void valueParseTest() throws SchemaProcessorException, SchemaException {
 		// GIVEN
 		
 		Document schemaDom = DOMUtil.parseFile(SCHEMA1_FILENAME);

@@ -22,12 +22,15 @@
 package com.evolveum.midpoint.schema.processor;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.QNameUtil;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.PropertyAccessException;
@@ -139,8 +142,9 @@ public class PropertyContainerDefinition extends Definition {
 	 * 
 	 * @param elements list of elements with serialized properties
 	 * @return set of deserialized properties
+	 * @throws SchemaProcessorException 
 	 */
-	public Set<Property> parseProperties(List<Element> elements) {
+	public Set<Property> parseProperties(List<Element> elements) throws SchemaException {
 		return parseProperties(elements,Property.class);
 	}
 	
@@ -153,8 +157,9 @@ public class PropertyContainerDefinition extends Definition {
 	 * @param elements elements list of elements with serialized properties
 	 * @param clazz class to return
 	 * @return set of deserialized properties
+	 * @throws SchemaProcessorException 
 	 */
-	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz) {
+	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz) throws SchemaException {
 		return parseProperties(elements,clazz,null);
 	}
 	
@@ -165,8 +170,9 @@ public class PropertyContainerDefinition extends Definition {
 	 * 
 	 * Useful to parse identifiers out of complete object or similar things.
 	 * Used by subclasses.
+	 * @throws SchemaProcessorException 
 	 */
-	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz, Set<? extends PropertyDefinition> selection) {
+	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz, Set<? extends PropertyDefinition> selection) throws SchemaException {
 		
 		// TODO: more robustness in handling schema violations (min/max constraints, etc.)
 		
@@ -197,6 +203,9 @@ public class PropertyContainerDefinition extends Definition {
 			
 			// Find Attribute definition from the schema
 			PropertyDefinition propDef = findPropertyDefinition(elementQName);
+			if (propDef==null) {
+				throw new SchemaException("Property "+elementQName+" has no definition",elementQName);
+			}
 			T prop = (T) propDef.instantiate();
 			Set<Object> propValues = prop.getValues();
 
@@ -206,21 +215,36 @@ public class PropertyContainerDefinition extends Definition {
 				// several times.
 
 				// Convert the first value
-				Object value = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
+				Object value;
+				try {
+					value = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
+				} catch (JAXBException e) {
+					throw new SystemException("Unexpected JAXB problem while parsing element {"+propElement.getNamespaceURI()+"}"+propElement.getLocalName()+" : "+e.getMessage(),e);
+				}
 				propValues.add(value);
 				// Loop over until the elements have the same local name
 				while (i + 1 < elements.size()
 					   && QNameUtil.compareQName(elementQName, elements.get(i + 1))) {
 					i++;
 					propElement = elements.get(i);
-					// Conver all the remaining values
-					Object avalue = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
+					// Convert all the remaining values
+					Object avalue;
+					try {
+						avalue = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
+					} catch (JAXBException e) {
+						throw new SystemException("Unexpected JAXB problem while parsing element {"+propElement.getNamespaceURI()+"}"+propElement.getLocalName()+" : "+e.getMessage(),e);
+					}
 					propValues.add(avalue);
 				}
 
 			} else {
 				// Single-valued properties are easy to convert
-				Object value = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
+				Object value;
+				try {
+					value = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
+				} catch (JAXBException e) {
+					throw new SystemException("Unexpected JAXB problem while parsing element {"+propElement.getNamespaceURI()+"}"+propElement.getLocalName()+" : "+e.getMessage(),e);
+				}
 				propValues.add(value);
 			}
 			props.add(prop);

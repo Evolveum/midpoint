@@ -1005,7 +1005,7 @@
 				the repository. It is using starndard XML Encryption schema.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:sequence>
+		<xsd:choice>
 			<!-- <xsd:element name="alias" type="xsd:string" minOccurs="0" /> -->
 			<xsd:element ref="xenc:EncryptedData">
 				<xsd:annotation>
@@ -1017,7 +1017,15 @@
 					</xsd:appinfo> -->
 				</xsd:annotation>
 			</xsd:element>
-		</xsd:sequence>
+			<xsd:element name="clearValue" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Clear text value of the protedted data. It is useful for imports and tests.
+						This element should never appear in repository or any other long-term storage.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:choice>
 	</xsd:complexType>
 
 	<xsd:complexType name="EmptyType">

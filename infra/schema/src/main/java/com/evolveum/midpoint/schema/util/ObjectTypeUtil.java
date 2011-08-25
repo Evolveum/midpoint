@@ -25,6 +25,7 @@ package com.evolveum.midpoint.schema.util;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
@@ -128,7 +129,11 @@ public class ObjectTypeUtil {
         	// This may be used e.g. for deleting all values (replacing by empty value)
         } else if (XsdTypeConverter.canConvert(value.getClass())) {
         	Element e = doc.createElementNS(property.getNamespaceURI(), property.getLocalPart());
-        	XsdTypeConverter.toXsdElement(value, e);
+        	try {
+				XsdTypeConverter.toXsdElement(value, e);
+			} catch (JAXBException ex) {
+				throw new SystemException("Unexpected JAXB problem while coverting "+property+" : "+ex.getMessage(),ex);
+			}
         	jaxbValue.getAny().add(e);
         	
         } else if (value.getClass().getPackage().equals(ObjectFactory.class.getPackage())) {

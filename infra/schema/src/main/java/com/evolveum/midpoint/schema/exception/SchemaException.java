@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.schema.exception;
 
+import javax.xml.namespace.QName;
+
 /**
  * Error regarding schema.
  * 
@@ -30,30 +32,39 @@ package com.evolveum.midpoint.schema.exception;
  */
 public class SchemaException extends CommonException {
 	private static final long serialVersionUID = -6016220825724355014L;
+	
+	private QName propertyName;
 
 	public SchemaException() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public SchemaException(String message, Throwable cause) {
 		super(message, cause);
-		// TODO Auto-generated constructor stub
 	}
 
+	public SchemaException(String message, Throwable cause, QName propertyName) {
+		super(message, cause);
+		this.propertyName = propertyName;
+	}
+
+	
 	public SchemaException(String message) {
 		super(message);
-		// TODO Auto-generated constructor stub
 	}
 
-	public SchemaException(Throwable cause) {
-		super(cause);
-		// TODO Auto-generated constructor stub
+	public SchemaException(String message, QName propertyName) {
+		super(message);
+		this.propertyName = propertyName;
 	}
-	
+		
 	@Override
 	public String getOperationResultMessage() {
 		return "Schema problem";
+	}
+	
+	public QName getPropertyName() {
+		return propertyName;
 	}
 
 }

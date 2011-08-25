@@ -29,6 +29,8 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.schema.exception.SchemaException;
+
 /**
  * Resource Object Definition (Object Class).
  * 
@@ -306,11 +308,11 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		return new ResourceObject(getNameOrDefaultName(), this);
 	}
 	
-	public Set<ResourceObjectAttribute> parseAttributes(List<Element> elements) {
+	public Set<ResourceObjectAttribute> parseAttributes(List<Element> elements) throws SchemaException {
 		return parseProperties(elements, ResourceObjectAttribute.class);
 	}
 
-	public Set<ResourceObjectAttribute> parseIdentifiers(List<Element> elements) {
+	public Set<ResourceObjectAttribute> parseIdentifiers(List<Element> elements) throws SchemaException {
 		return parseProperties(elements, ResourceObjectAttribute.class,getIdentifiers());
 	}
 

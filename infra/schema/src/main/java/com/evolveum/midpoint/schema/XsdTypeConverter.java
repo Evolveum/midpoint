@@ -20,15 +20,24 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.JAXBIntrospector;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -53,8 +62,10 @@ public class XsdTypeConverter {
 	private static Map<Class,QName> javaToXsdTypeMap;
 	private static Map<QName,Class> xsdToJavaTypeMap;
 	private static DatatypeFactory datatypeFactory = null;
+	
+	private static final Trace LOGGER = TraceManager.getTrace(XsdTypeConverter.class);
 		
-	private static void initTypeMap() {
+	private static void initTypeMap() throws IOException, ClassNotFoundException {
 		
         javaToXsdTypeMap = new HashMap();
 		xsdToJavaTypeMap = new HashMap();
@@ -69,9 +80,22 @@ public class XsdTypeConverter {
 		addMapping(byte[].class, DOMUtil.XSD_BASE64BINARY,true);
 		addMapping(GregorianCalendar.class, DOMUtil.XSD_DATETIME,true);
 		addMapping(QName.class, DOMUtil.XSD_QNAME,true);
+		
+		for (Entry<String,String> entry : SchemaConstants.JAXB_PACKAGES.entrySet()) {
+			String packageName = entry.getKey();
+			String namespace = entry.getValue();
+			Set<Class> classes = ClassPathUtil.listClasses(packageName);
+			if (classes.isEmpty()) {
+				LOGGER.warn("No classes found in the JAXB package "+packageName);
+			}
+			for (Class jaxbClass : classes) {
+				addMapping(jaxbClass, new QName(namespace,jaxbClass.getSimpleName()),true);
+			}
+		}		
     }
 	
 	private static void addMapping(Class javaClass, QName xsdType,boolean both) {
+		LOGGER.trace("Adding XSD type mapping {} {} {} ",new Object[]{javaClass, both ? "<->" : " ->" ,xsdType});
 		javaToXsdTypeMap.put(javaClass, xsdType);
 		if (both) {
 			xsdToJavaTypeMap.put(xsdType, javaClass);
@@ -94,7 +118,7 @@ public class XsdTypeConverter {
         return javaType;
     }
 
-	public static Object toJavaValue(Element xmlElement, Class type) {
+	public static Object toJavaValue(Element xmlElement, Class type) throws JAXBException {
 		String stringContent = xmlElement.getTextContent();
 		if (type.equals(String.class)) {
 			return stringContent;
@@ -119,12 +143,14 @@ public class XsdTypeConverter {
 			return getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
 		} else if (type.equals(QName.class)){
 			return DOMUtil.getQNameValue(xmlElement);
+		} else if (isJaxbClass(type)) {
+			return JAXBUtil.unmarshal(xmlElement).getValue();
 		} else {
 			throw new IllegalArgumentException("Unknown type for conversion: " + type);
 		}
 	}
 
-	public static Object toJavaValue(Element xmlElement, QName type) {
+	public static Object toJavaValue(Element xmlElement, QName type) throws JAXBException {
 		return toJavaValue(xmlElement,toJavaType(type));
 	}
 	
@@ -133,8 +159,9 @@ public class XsdTypeConverter {
 	 * 
 	 * @param xmlElement
 	 * @return
+	 * @throws JAXBException 
 	 */
-	public static Object toJavaValue(Element xmlElement) {
+	public static Object toJavaValue(Element xmlElement) throws JAXBException {
 		return toTypedJavaValueWithDefaultType(xmlElement,null).getValue();
 	}
 
@@ -144,9 +171,10 @@ public class XsdTypeConverter {
 	 * @param xmlElement
 	 * @param defaultType
 	 * @return converted java value
+	 * @throws JAXBException 
 	 * @throws IllegalStateException if no xsi:type or default type specified
 	 */
-	public static TypedValue toTypedJavaValueWithDefaultType(Element xmlElement, QName defaultType) {
+	public static TypedValue toTypedJavaValueWithDefaultType(Element xmlElement, QName defaultType) throws JAXBException {
 		QName xsiType = DOMUtil.resolveXsiType(xmlElement, null);
 		if (xsiType==null) {
 			xsiType = defaultType;
@@ -158,7 +186,7 @@ public class XsdTypeConverter {
 		return new TypedValue(toJavaValue(xmlElement, xsiType),xsiType);
 	}
 	
-	public static void toXsdElement(Object val, QName typeName, Element element, boolean recordType) {
+	public static void toXsdElement(Object val, QName typeName, Element element, boolean recordType) throws JAXBException {
 		// Just ignore the typeName for now. The java type will determine the conversion
 		toXsdElement(val,element,false);
 		// But record the correct type is asked to
@@ -171,11 +199,11 @@ public class XsdTypeConverter {
 		}
 	}
 	
-	public static void toXsdElement(Object val, Element element) {
+	public static void toXsdElement(Object val, Element element) throws JAXBException {
 		toXsdElement(val, element,false);
 	}
 	
-	public static void toXsdElement(Object val, Element element, boolean recordType) {
+	public static void toXsdElement(Object val, Element element, boolean recordType) throws JAXBException {
 		if (val == null){
 			//if no value is specified, do not create element
 			return;
@@ -200,6 +228,8 @@ public class XsdTypeConverter {
 		} else if (type.equals(QName.class)) {
 			QName qname = (QName)val;
 			DOMUtil.setQNameValue(element, qname);
+		} else if (isJaxbClass(type)) {
+			JAXBUtil.marshal(val, element);
 		} else {
 			throw new IllegalArgumentException("Unknown type for conversion: " + type);
 		}
@@ -208,9 +238,13 @@ public class XsdTypeConverter {
 			DOMUtil.setXsiType(element, xsdType);
 		}
 	}
-	
+		
 	public static boolean canConvert(Class clazz) {
 		return javaToXsdTypeMap.get(clazz)!=null;
+	}
+	
+	private static boolean isJaxbClass(Class clazz) {
+		return SchemaConstants.JAXB_PACKAGES.get(clazz.getPackage().getName()) != null;
 	}
 	
 	public static XMLGregorianCalendar toXMLGregorianCalendar(long timeInMillis) {
@@ -239,7 +273,12 @@ public class XsdTypeConverter {
 	}
 	
 	static {
-		initTypeMap();
+		try {
+			initTypeMap();
+		} catch (Exception e) {
+			LOGGER.error("Cannot initialize XSD type mapping: "+e.getMessage(),e);
+			throw new IllegalStateException("Cannot initialize XSD type mapping: "+e.getMessage(),e);
+		}
 	}
 	
 }

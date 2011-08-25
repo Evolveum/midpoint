@@ -82,6 +82,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 /**
@@ -305,15 +306,15 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertEquals(ACCOUNT1_OID, addedObjectOid);
 			PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-			ObjectType object = provisioningService.getObject(ACCOUNT1_OID, resolve, result);
+			UserType user = provisioningService.getObject(UserType.class, ACCOUNT1_OID, resolve, result);
 
-			assertNotNull(object);
+			assertNotNull(user);
 
-			System.out.println(DebugUtil.prettyPrint(object));
-			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
+			System.out.println(DebugUtil.prettyPrint(user));
+			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(user,
 					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 			
-			assertEquals("jbond", object.getName());
+			assertEquals("jbond", user.getName());
 			
 		} finally {
 			try {
@@ -430,14 +431,13 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			String addedObjectOid = provisioningService.addObject(object, null, result);
 			assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
 
-			ObjectType container = repositoryService.getObject(ACCOUNT_NEW_OID,
+			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
 					new PropertyReferenceListType(), result);
-			AccountShadowType accountType = (AccountShadowType) container;
 			assertEquals("will", accountType.getName());
 
-			ObjectType objType = provisioningService.getObject(ACCOUNT_NEW_OID,
+			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
 					new PropertyReferenceListType(), result);
-			assertEquals("will", objType.getName());
+			assertEquals("will", provisioningAccountType.getName());
 		} finally {
 			try {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
@@ -503,10 +503,10 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 			provisioningService.deleteObject(AccountShadowType.class, ACCOUNT_DELETE_OID, null, result);
 
-			ObjectType objType = null;
+			AccountShadowType objType = null;
 
 			try {
-				objType = provisioningService.getObject(ACCOUNT_DELETE_OID, new PropertyReferenceListType(),
+				objType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID, new PropertyReferenceListType(),
 						result);
 				Assert.fail("Expected exception ObjectNotFoundException, but haven't got one.");
 			} catch (ObjectNotFoundException ex) {
@@ -515,7 +515,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			}
 
 			try {
-				objType = repositoryService.getObject(ACCOUNT_DELETE_OID, new PropertyReferenceListType(),
+				objType = repositoryService.getObject(AccountShadowType.class, ACCOUNT_DELETE_OID, new PropertyReferenceListType(),
 						result);
 				// objType = container.getObject();
 				Assert.fail("Expected exception, but haven't got one.");

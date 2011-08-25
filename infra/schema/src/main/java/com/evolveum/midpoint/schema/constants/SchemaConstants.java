@@ -29,6 +29,8 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -149,9 +151,14 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_CHANNEL, "import");
 
 	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";
-
+	
+	public static final Map<String,String> JAXB_PACKAGES = new HashMap<String,String>();
 
 	static {
+
+		JAXB_PACKAGES.put("com.evolveum.midpoint.xml.ns._public.common.common_1",NS_C);
+		JAXB_PACKAGES.put("com.evolveum.midpoint.xml.ns._public.resource.resource_schema_1",NS_RESOURCE);
+		
 		CatalogManager catalogManager = new CatalogManager();
 		catalogManager.setUseStaticCatalog(true);
 		catalogManager.setIgnoreMissingProperties(true);
