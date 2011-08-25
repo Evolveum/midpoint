@@ -1006,15 +1006,15 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="alias" type="xsd:string" minOccurs="0" />
+			<!-- <xsd:element name="alias" type="xsd:string" minOccurs="0" /> -->
 			<xsd:element ref="xenc:EncryptedData">
 				<xsd:annotation>
 					<xsd:documentation>
 						Use of XML Encryption standard EncryptionData element.
 					</xsd:documentation>
-					<xsd:appinfo>
+					<!-- <xsd:appinfo>
 						<jaxb:dom />
-					</xsd:appinfo>
+					</xsd:appinfo> -->
 				</xsd:annotation>
 			</xsd:element>
 		</xsd:sequence>
