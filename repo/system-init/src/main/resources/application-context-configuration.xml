@@ -26,8 +26,11 @@
 	<bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration"
 		init-method="init" />
 
-	<bean name="repositoryFactory"
-		class="com.evolveum.midpoint.init.RepositoryFactory"
+	<bean name="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory"
 		init-method="init" destroy-method="destroy" />
+
+	<bean name="repositoryService" factory-bean="repositoryFactory"
+		factory-method="getRepositoryService" class="com.evolveum.midpoint.repo.api.RepositoryService"
+		depends-on="repositoryFactory" init-method="init" destroy-method="close"></bean>
 
 </beans>

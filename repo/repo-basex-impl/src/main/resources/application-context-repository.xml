@@ -29,12 +29,8 @@
 	default-lazy-init="false" default-autowire="byName">
 
 	<context:annotation-config />
-	<context:component-scan base-package="com.evolveum.midpoint.repo.xml" />
+	<!-- Repository is instantiated and managed through system init component -->
+	<!-- context:component-scan base-package="com.evolveum.midpoint.repo.xml" /-->
 	<context:spring-configured />
-
-	<bean name="repositoryService" factory-bean="repositoryFactory"
-		factory-method="getRepositoryService" class="com.evolveum.midpoint.repo.xml.XmlRepositoryService"
-		depends-on="repositoryFactory" init-method="init"
-		destroy-method="close"></bean>
 
 </beans>
