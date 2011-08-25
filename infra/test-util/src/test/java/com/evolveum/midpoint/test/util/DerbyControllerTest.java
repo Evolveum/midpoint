@@ -1,0 +1,63 @@
+/**
+ * 
+ */
+package com.evolveum.midpoint.test.util;
+
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertFalse;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.Properties;
+
+import org.testng.annotations.Test;
+
+/**
+ * @author Radovan Semancik
+ *
+ */
+public class DerbyControllerTest {
+
+	@Test
+	public void testStartStopDerby() throws Exception {
+		DerbyController controller = new DerbyController();
+		
+		// Start Derby
+		controller.startCleanServer();
+		
+		Connection conn = controller.getConnection();
+		
+		// Check if it empty
+		Statement stmt = conn.createStatement();
+		stmt.execute("select * from users");
+		ResultSet rs = stmt.getResultSet();
+		assertFalse("The \"users\" table is not empty",rs.next());
+		rs.close();
+		stmt.close();
+				
+		// Try insert
+		stmt = conn.createStatement();
+        stmt.execute("insert into users values ('jack','d3adm3nt3lln0t4l3s','cpt. Jack Sparrow',1)");
+        conn.commit();
+        
+		// Try to connect over the "network" (localhost)
+        //Class.forName("org.apache.derby.jdbc.ClientDriver").newInstance();
+		String networkJdbcUrl = "jdbc:derby://"+controller.getListenHostname()+":"+controller.getListentPort()+"/"+controller.getDbName();
+		Properties props = new Properties();
+		props.setProperty("user",controller.getUsername());
+		props.setProperty("password",controller.getPassword());
+		Connection networkConn = DriverManager.getConnection(networkJdbcUrl,props);
+
+		// Check if it empty
+		stmt = networkConn.createStatement();
+		stmt.execute("select * from users");
+		rs = stmt.getResultSet();
+		assertTrue("The \"users\" empty after insert",rs.next());
+		rs.close();
+		stmt.close();
+        
+		// stop derby
+		controller.stop();
+	}
+}

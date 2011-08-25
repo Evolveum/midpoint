@@ -24,6 +24,7 @@
   <test name="test util" preserve-order="false">
     <classes>
       <class name="com.evolveum.midpoint.test.util.TestUtilTest"/>
+      <class name="com.evolveum.midpoint.test.util.DerbyControllerTest"/>
     </classes>
   </test>
 </suite>
