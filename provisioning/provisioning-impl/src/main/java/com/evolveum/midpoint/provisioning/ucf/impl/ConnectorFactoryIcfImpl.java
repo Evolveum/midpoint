@@ -13,16 +13,14 @@
  * If applicable, add the following below the CDDL Header, with the fields
  * enclosed by brackets [] replaced by your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
+ * Portions Copyrighted 2011 Peter Prochazka
  */
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -31,12 +29,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
-import net.sf.saxon.expr.instruct.NextMatch;
-
+import org.apache.commons.configuration.Configuration;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.api.ConnectorInfoManager;
@@ -51,8 +50,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.ClasspathUrlFinder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -97,20 +96,17 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(NS_ICF_CONFIGURATION, "timeouts");
 	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_TYPE = new QName(NS_ICF_CONFIGURATION, "TimeoutsType");
 
-	// This usually refers to WEB-INF/lib/icf-connectors
-	private static final String BUNDLE_PATH = "../../lib/icf-connectors";
-	private static final String BUNDLE_PREFIX = "org.identityconnectors";
-	private static final String BUNDLE_SUFFIX = ".jar";
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = ICF_FRAMEWORK_URI + "/bundle/";
-	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryIcfImpl.class);
 	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
 
+	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryIcfImpl.class);
+	
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
 	private ConnectorInfoManager localConnectorInfoManager;
 	private Set<URL> bundleURLs;
 	private Map<String, ConnectorInfo> connectors;
 
-	@Autowired
+	@Autowired(required=true)
 	MidpointConfiguration midpointConfiguration;
 
 	public ConnectorFactoryIcfImpl() {
@@ -122,7 +118,30 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	 */
 	@PostConstruct
 	public void initialize() {
-		bundleURLs = listBundleJars();
+
+		// OLD
+		// bundleURLs = listBundleJars();
+		bundleURLs = new HashSet<URL>();
+		
+		Configuration config = midpointConfiguration.getConfiguration("midpoint.icf");
+
+		// Is classpath scan enabled
+		if (config.getBoolean("scanClasspath")) {
+			// Scan class path
+			bundleURLs.addAll(scanClassPathForBundles());
+		}
+		
+		//Scan all provided directories
+		@SuppressWarnings("unchecked")
+		List<String> dirs = config.getList("scanDirectory");
+		for (String dir: dirs) {
+			bundleURLs.addAll(scanDirectory(dir));
+		}
+
+		for (URL u : bundleURLs) {
+			LOGGER.debug("ICF bundle URL : {}", u);
+		}
+		
 		connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
 
 		connectors = new HashMap<String, ConnectorInfo>();
@@ -284,24 +303,23 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	}
 
 	/**
-	 * Lists all ICF connector bundles, either in BUNDLE_PATH or in current
-	 * classpath.
+	 * Scan class path for connector bundles
 	 * 
-	 * @return set of connector bundle URLs.
+	 * @return Set of all bundle URL
 	 */
-	private Set<URL> listBundleJars() {
-		Set<URL> bundleURLs = new HashSet<URL>();
+	private Set<URL> scanClassPathForBundles() {
+		Set<URL> bundle = new HashSet<URL>();
 
 		// scan class path for bundles
 		Enumeration<URL> en = null;
 		try {
 			// Search all jars in classpath
-			en = this.getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
+			en = ClassLoader.getSystemResources("META-INF/MANIFEST.MF");
 		} catch (IOException ex) {
-			// TODO: handle exception
+			LOGGER.debug("Error during reding content from class path");
 		}
-		
-		//Find which one is ICF connector
+
+		// Find which one is ICF connector
 		while (en.hasMoreElements()) {
 			URL u = en.nextElement();
 
@@ -321,79 +339,138 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			}
 
 			if (null != prop.get("ConnectorBundle-Name")) {
-				LOGGER.info("Discovered icf bundle: " + prop.get("ConnectorBundle-Name") + " version: "
+				LOGGER.info("Discovered icf bundle on CLASSPATH: " + prop.get("ConnectorBundle-Name") + " version: "
 						+ prop.get("ConnectorBundle-Version"));
-			}
-		}
-
-		// Look for connectors in the BUNDLE_PATH folder
-
-		File icfFolder = null;
-		try {
-			URI uri = this.getClass().getClassLoader().getResource("com").toURI();
-			LOGGER.trace("bundle path uri = {}", uri);
-			icfFolder = new File(new File(uri), BUNDLE_PATH);
-		} catch (IllegalArgumentException ex) {
-			// java.lang.IllegalArgumentException: URI is not hierarchical in
-			// some cases...
-		} catch (URISyntaxException ex) {
-			LOGGER.debug("Couldn't find icf-connectors folder, reason: " + ex.getMessage());
-		}
-
-		// Take only those that start with BUNDLE_PREFIX and end with
-		// BUNDLE_SUFFIX
-
-		final FileFilter fileFilter = new FileFilter() {
-
-			@Override
-			public boolean accept(File file) {
-				if (!file.exists() || file.isDirectory()) {
-					return false;
-				}
-				String fileName = file.getName();
-				if (fileName.startsWith(BUNDLE_PREFIX) && fileName.endsWith(BUNDLE_SUFFIX)) {
-					return true;
-				}
-				return false;
-			}
-		};
-
-		if (icfFolder == null || !icfFolder.exists() || !icfFolder.isDirectory()) {
-			// cannot find icfFolder, therefore we are going to seach classpath
-			// this is useful in tests
-			URL[] resourceURLs = ClasspathUrlFinder.findClassPaths();
-			for (int j = 0; j < resourceURLs.length; j++) {
-				URL bundleUrl = resourceURLs[j];
-				if ("file".equals(bundleUrl.getProtocol())) {
-					File file = new File(bundleUrl.getFile());
-					if (fileFilter.accept(file)) {
-						bundleURLs.add(bundleUrl);
-					}
-				}
-			}
-		} else {
-			// Looking in icfFolder
-			File[] connectors = icfFolder.listFiles(fileFilter);
-			for (File file : connectors) {
+				
+				//hack to split MANIFEST from name
 				try {
-					LOGGER.trace("Add: " + file.toURI().toURL());
-					bundleURLs.add(file.toURI().toURL());
-				} catch (MalformedURLException ex) {
-					LOGGER.debug("Couldn't transform file path " + file.getAbsolutePath() + " to URL, reason: "
-							+ ex.getMessage());
+					URL tmp = new URL(u.getPath().split("!")[0]);
+					bundle.add(tmp);
+				} catch (MalformedURLException e) {
+					LOGGER.error("This never happend we hope. URL:" + u.getPath(), e);
+					throw new SystemException(e);
 				}
 			}
 		}
-
-		if (LOGGER.isDebugEnabled()) {
-			for (URL u : bundleURLs) {
-				LOGGER.debug("Bundle URL: {}", u);
-			}
-		}
-
-		return bundleURLs;
+		return bundle;
 	}
 
+	/**
+	 * Scan directory for bundles only on first lval we do the scan
+	 * 
+	 * @param path
+	 * @return
+	 */
+	private Set<URL> scanDirectory(String path) {
+
+		// Prepare return object
+		Set<URL> bundle = new HashSet<URL>();
+		// COnvert path to object File
+		File dir = new File(path);
+
+		// Test if this path is single jar or need to do deep examination
+		if (isThisJarFileBundle(dir)) {
+			try {
+				bundle.add(dir.toURI().toURL());
+			} catch (MalformedURLException e) {
+				LOGGER.error("This never happend we hope.", e);
+				throw new SystemException(e);
+			}
+			return bundle;
+		}
+
+		// Test if it is a directory
+		if (!dir.isDirectory()) {
+			LOGGER.error("Provided Icf connector path {} is not a directory.", dir.getAbsolutePath());
+		}
+
+		// List directory items
+		File[] dirEntries = dir.listFiles();
+		if (null == dirEntries) {
+			LOGGER.warn("No bundles found in directory {}", dir.getAbsolutePath());
+			return bundle;
+		}
+
+		// test all entires for bundle
+		for (int i = 0; i < dirEntries.length; i++) {
+			if (isThisJarFileBundle(dirEntries[i])) {
+				try {
+					bundle.add(dirEntries[i].toURI().toURL());
+				} catch (MalformedURLException e) {
+					LOGGER.error("This never happend we hope.", e);
+					throw new SystemException(e);
+				}
+			}
+		}
+		return bundle;
+	}
+
+	/**
+	 * Test if provided file is connector bundle
+	 * 
+	 * @param file
+	 *            tested file
+	 * @return boolean
+	 */
+	private Boolean isThisJarFileBundle(File file) {
+		// Startup tests
+		if (null == file) {
+			throw new IllegalArgumentException("No file is providied for bundle test.");
+		}
+
+		// Skip all processing if it is not a file
+		if (!file.isFile()) {
+			LOGGER.debug("This {} is not a file", file.getAbsolutePath());
+			return false;
+		}
+
+		Properties prop = new Properties();
+		JarFile jar = null;
+		// Open jar file
+		try {
+			jar = new JarFile(file);
+		} catch (IOException ex) {
+			LOGGER.debug("Unable to read jar file: " + file.getAbsolutePath() + " [" + ex.getMessage() + "]");
+			return false;
+		}
+
+		// read jar file
+		InputStream is;
+		try {
+			JarEntry entry = new JarEntry("META-INF/MANIFEST.MF");
+			is = jar.getInputStream(entry);
+		} catch (IOException ex) {
+			LOGGER.debug("Unable to fine MANIFEST.MF in jar file: " + file.getAbsolutePath() + " [" + ex.getMessage()
+					+ "]");
+			return false;
+		}
+
+		// Parse jar file
+		try {
+			prop.load(is);
+		} catch (IOException ex) {
+			LOGGER.debug("Unable to parse jar file: " + file.getAbsolutePath() + " [" + ex.getMessage() + "]");
+			return false;
+		}
+
+		// Test if it is a connector
+		if (null != prop.get("ConnectorBundle-Name")) {
+			LOGGER.info("Discovered icf bundle in JAR: " + prop.get("ConnectorBundle-Name") + " version: "
+					+ prop.get("ConnectorBundle-Version"));
+			return true;
+		}
+
+		LOGGER.debug("Provided file {} is not iCF bundle jar", file.getAbsolutePath());
+		return false;
+	}
+	
+	/**
+	 * Get contect informations
+	 * 
+	 * @param connectorType
+	 * @return
+	 * @throws ObjectNotFoundException
+	 */
 	private ConnectorInfo getConnectorInfo(ConnectorType connectorType) throws ObjectNotFoundException {
 		if (!ICF_FRAMEWORK_URI.equals(connectorType.getFramework())) {
 			throw new ObjectNotFoundException("Requested connector for framework " + connectorType.getFramework()

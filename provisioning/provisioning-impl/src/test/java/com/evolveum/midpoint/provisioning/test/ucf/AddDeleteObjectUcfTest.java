@@ -20,6 +20,7 @@ package com.evolveum.midpoint.provisioning.test.ucf;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.AfterClass;
@@ -69,7 +70,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
-@ContextConfiguration(locations = { "classpath:dummy-context.xml" })
+@ContextConfiguration(locations = { "classpath:application-context-provisioning-test.xml",
+		"classpath:application-context-configuration-test.xml" })
 public class AddDeleteObjectUcfTest extends AbstractTestNGSpringContextTests {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
@@ -88,6 +90,9 @@ public class AddDeleteObjectUcfTest extends AbstractTestNGSpringContextTests {
 	ConnectorType connectorType;
 	Schema schema;
 
+	@Autowired(required = true)
+	ConnectorFactory connectorFactoryIcfImpl;
+	
 	public AddDeleteObjectUcfTest() throws JAXBException {
 		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
 	}
@@ -125,9 +130,7 @@ public class AddDeleteObjectUcfTest extends AbstractTestNGSpringContextTests {
 		object = u.unmarshal(fis);
 		connectorType = (ConnectorType) ((JAXBElement) object).getValue();
 
-		ConnectorFactoryIcfImpl managerImpl = new ConnectorFactoryIcfImpl();
-		managerImpl.initialize();
-		manager = managerImpl;
+		manager = connectorFactoryIcfImpl;
 
 		cc = manager.createConnectorInstance(connectorType, resource.getNamespace());
 		assertNotNull(cc);

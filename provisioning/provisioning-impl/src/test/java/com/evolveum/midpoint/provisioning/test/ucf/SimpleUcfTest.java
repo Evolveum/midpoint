@@ -1,30 +1,26 @@
 /*
  * Copyright (c) 2011 Evolveum
  * 
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the License). You may not use this file except in
+ * The contents of this file are subject to the terms of the Common Development
+ * and Distribution License (the License). You may not use this file except in
  * compliance with the License.
  * 
  * You can obtain a copy of the License at
- * http://www.opensource.org/licenses/cddl1 or
- * CDDLv1.0.txt file in the source code distribution.
- * See the License for the specific language governing
+ * http://www.opensource.org/licenses/cddl1 or CDDLv1.0.txt file in the source
+ * code distribution. See the License for the specific language governing
  * permission and limitations under the License.
  * 
- * If applicable, add the following below the CDDL Header,
- * with the fields enclosed by brackets [] replaced by
- * your own identifying information:
- * Portions Copyrighted 2011 [name of copyright owner]
+ * If applicable, add the following below the CDDL Header, with the fields
+ * enclosed by brackets [] replaced by your own identifying information:
+ * Portions Copyrighted 2011 [name of copyright owner] Portions Copyrighted 2011
+ * Peter Prochazka
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
+import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
-import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -36,12 +32,17 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 
-import org.w3c.dom.Element;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -57,23 +58,26 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  * 
  * @author Radovan Semancik
  */
-public class SimpleUcfTest {
+@ContextConfiguration(locations = { "classpath:application-context-provisioning-test.xml",
+		"classpath:application-context-configuration-test.xml" })
+public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
 	private static final String FILENAME_CONNECTOR_LDAP = "src/test/resources/ucf/ldap-connector.xml";
-	
+
 	ConnectorFactory manager;
 	ResourceType resource;
 	ConnectorType connectorType;
+
+	@Autowired(required = true)
+	ConnectorFactory connectorFactoryIcfImpl;
 
 	public SimpleUcfTest() {
 	}
 
 	@BeforeMethod
 	public void setUp() throws FileNotFoundException, JAXBException {
-		ConnectorFactoryIcfImpl managerImpl = new ConnectorFactoryIcfImpl();
-		managerImpl.initialize();
-		manager = managerImpl;
+		manager = connectorFactoryIcfImpl;
 
 		File file = new File(FILENAME_RESOURCE_OPENDJ);
 		FileInputStream fis = new FileInputStream(file);
@@ -108,37 +112,38 @@ public class SimpleUcfTest {
 
 		for (ConnectorType connector : listConnectors) {
 			assertNotNull(connector.getName());
-			System.out.println("CONNECTOR OID=" + connector.getOid() + ", name=" + connector.getName()
-					+ ", version=" + connector.getConnectorVersion());
+			System.out.println("CONNECTOR OID=" + connector.getOid() + ", name=" + connector.getName() + ", version="
+					+ connector.getConnectorVersion());
 			System.out.println("--");
 			System.out.println(ObjectTypeUtil.dump(connector));
 			System.out.println("--");
 		}
 
 		System.out.println("---------------------------------------------------------------------");
-		
+
 	}
-	
+
 	@Test
 	public void testConnectorSchema() throws ObjectNotFoundException {
-		ConnectorInstance cc = manager.createConnectorInstance(connectorType,resource.getNamespace());
-		assertNotNull("Failed to instantiate connector",cc);
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resource.getNamespace());
+		assertNotNull("Failed to instantiate connector", cc);
 		Schema connectorSchema = cc.generateConnectorSchema();
-		assertNotNull("No connector schema",connectorSchema);
-		display("Generated connector schema",connectorSchema);
-		assertFalse("Empty schema returned",connectorSchema.isEmpty());
+		assertNotNull("No connector schema", connectorSchema);
+		display("Generated connector schema", connectorSchema);
+		assertFalse("Empty schema returned", connectorSchema.isEmpty());
 	}
 
 	@Test
 	public void testCreateConfiguredConnector() throws FileNotFoundException, JAXBException,
-			com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException {
+			com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException, CommunicationException,
+			GenericFrameworkException, SchemaException {
 
-		ConnectorInstance cc = manager.createConnectorInstance(connectorType,resource.getNamespace());
-		assertNotNull("Failed to instantiate connector",cc);
-		OperationResult result = new OperationResult(SimpleUcfTest.class.getName()+".testCreateConfiguredConnector");
-		cc.configure(resource.getConfiguration(),result);
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType, resource.getNamespace());
+		assertNotNull("Failed to instantiate connector", cc);
+		OperationResult result = new OperationResult(SimpleUcfTest.class.getName() + ".testCreateConfiguredConnector");
+		cc.configure(resource.getConfiguration(), result);
 		result.computeStatus("test failed");
-		assertSuccess("Connector configuration failed",result);
+		assertSuccess("Connector configuration failed", result);
 		// TODO: assert something
 	}
 
