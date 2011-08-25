@@ -189,8 +189,8 @@ public class OpenDJController {
 	}
 
 	/**
-	 * Extract tepmplate from class
-	 * 
+	 * Extract template from class
+	 *
 	 * @param destination
 	 * @throws IOException
 	 */
