@@ -34,5 +34,13 @@ public interface CountedList<T> extends List<T> {
 	 * 
 	 * @return number of all objects of type T
 	 */
-	int getCount();	
+	int getCount();
+
+	/**
+	 * Method set count of all object of type T, not only size of this list
+	 * 
+	 * @param count
+	 *            positive integer, including zero
+	 */
+	void setCount(int count);
 }

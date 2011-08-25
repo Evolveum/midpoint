@@ -40,4 +40,13 @@ public class CountedArrayList<T> extends ArrayList<T> implements CountedList<T> 
 	public int getCount() {
 		return count;
 	}
+
+	@Override
+	public void setCount(int count) {
+		if (count < 0) {
+			throw new IllegalArgumentException("Count must non negative integer value (" + count + ")");
+		}
+
+		this.count = count;
+	}
 }
