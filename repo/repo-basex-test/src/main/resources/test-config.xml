@@ -36,8 +36,10 @@
 			<username>admin</username>
 			<password>admin</password>
 		</repository>
-		<dir>
-			<icfconnector>icf-connector</icfconnector>
-		</dir>
+		<icf>
+			<scanClasspath>true</scanClasspath>
+			<scanDirectory>/C:/tmp</scanDirectory>
+			<scanDirectory>/var/tmp</scanDirectory>
+		</icf>
 	</midpoint>
 </configuration>
