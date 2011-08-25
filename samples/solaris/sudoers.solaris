@@ -1,0 +1,56 @@
+#
+# Copyright (c) 2011 Evolveum                             
+#                                                         
+# The contents of this file are subject to the terms      
+# of the Common Development and Distribution License      
+# (the License). You may not use this file except in      
+# compliance with the License.                            
+#                                                         
+# You can obtain a copy of the License at                 
+# http://www.opensource.org/licenses/cddl1 or             
+# CDDLv1.0.txt file in the source code distribution.      
+# See the License for the specific language governing     
+# permission and limitations under the License.           
+#                                                         
+# If applicable, add the following below the CDDL Header, 
+# with the fields enclosed by brackets [] replaced by     
+# your own identifying information:                       
+#                                                         
+# Portions Copyrighted 2011 [name of copyright owner]     
+# Portions Copyrighted 2010 Forgerock                 
+#
+# /etc/sudoers
+#
+# This file MUST be edited with the 'visudo' command as root.
+#
+# See the man page for details on how to write a sudoers file.
+
+Defaults:IDM_ADMIN	tty_tickets
+
+# Uncomment to allow members of group sudo to not need a password
+# %sudo ALL=NOPASSWD: ALL
+
+# Host alias specification
+Host_Alias LOCALHOST = localhost
+
+# User alias specification
+User_Alias IDM_ADMIN = idmadmin
+
+# Cmnd alias specification
+Cmnd_Alias IDM_ADMIN_COMMANDS = /usr/bin/auths, /usr/bin/cat, /usr/bin/chown,\
+	/usr/bin/cp, /usr/bin/cut, /usr/bin/diff, /usr/bin/grep,\
+	/usr/sbin/groupadd, /usr/sbin/groupdel, /usr/sbin/groupmod,\
+	/usr/bin/last, /usr/bin/logins, /usr/bin/mv, /usr/bin/passwd,\
+	/usr/bin/profiles,/usr/bin/rm, /usr/bin/roles, /usr/bin/sed,\
+	/usr/sbin/useradd, /usr/sbin/userdel, /usr/sbin/usermod,\
+	/usr/bin/cp, /usr/ccs/bin/make, /usr/bin/which, /usr/sbin/yppasswd
+
+
+Cmnd_Alias INVALID_COMMANDS = !/usr/bin/passwd root, !/usr/bin/rm -rf /*, !/usr/bin/chown root
+
+# User privilege specification
+root    ALL=(ALL) ALL
+
+IDM_ADMIN LOCALHOST = IDM_ADMIN_COMMANDS, INVALID_COMMANDS
+
+# TODO: chmod? ls? sort? tail? echo? touch?
