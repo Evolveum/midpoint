@@ -20,10 +20,16 @@
  */
 package com.evolveum.midpoint.common.crypto;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.util.DOMUtil;
 
 /**
  * 
@@ -52,5 +58,27 @@ public class ProtectorTest {
 	@Test
 	public void encryptNullElement() throws EncryptionException {
 		assertNull(protector.encrypt(null));
+	}
+
+	@Test
+	public void encryptDecryptString() throws EncryptionException {
+		final String plain = "welcome to protector";
+		String decrypted = protector.decryptString(protector.encryptString(plain));
+
+		assertEquals(decrypted, plain);
+	}
+
+	@Test
+	public void encryptDecryptElement() throws EncryptionException {
+		final String plain = "welcome to protector";
+		Document document = DOMUtil.getDocument();
+		Element element = document.createElement("element");
+		element.setTextContent(plain);
+		document.appendChild(element);
+
+		Element decrypted = protector.decrypt(protector.encrypt(element));
+		assertNotNull(decrypted);
+		assertEquals(decrypted.getTextContent(), plain);
+		assertEquals(element.getTagName(), "element");
 	}
 }

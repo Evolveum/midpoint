@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.common.crypto;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.MessageDigest;
@@ -63,6 +64,7 @@ public class Protector {
 	private static final QName QNAME_KEY_NAME = new QName("http://www.w3.org/2000/09/xmldsig#", "KeyName");
 	private static final QName QNAME_ENCRYPTED_DATA = new QName("http://www.w3.org/2001/04/xmlenc#",
 			"EncryptedData");
+	private static final String KEY_DIGEST_TYPE = "SHA1";
 	// THIS SHOULD BE CONFIGURABLE LATER
 	private static final String MASTER_PASSWORD_HASH = "HF6JRsNMeJt6alihT44CXKgpe0c=";
 	private static final String KEYSTORE_PATH = "com/../keystore.jceks"; // "com/../../keystore.jceks"
@@ -75,6 +77,9 @@ public class Protector {
 		Init.init();
 		try {
 			keyStore = KeyStore.getInstance("jceks");
+			URL url = Protector.class.getClassLoader().getResource(KEYSTORE_PATH);
+			LOGGER.debug("Keystore path: " + url);
+
 			InputStream stream = Protector.class.getClassLoader().getResourceAsStream(KEYSTORE_PATH);
 			if (stream == null) {
 				throw new EncryptionException("Couldn't load keystore as resource '" + KEYSTORE_PATH + "'");
@@ -103,7 +108,7 @@ public class Protector {
 
 		Document document;
 		try {
-			String alias = MASTER_PASSWORD_HASH;
+			String digest = MASTER_PASSWORD_HASH;
 			if (encrypted.getKeyInfo() != null) {
 				KeyInfoType keyInfo = encrypted.getKeyInfo();
 				List<Object> infos = keyInfo.getContent();
@@ -113,17 +118,21 @@ public class Protector {
 					}
 					JAXBElement<Object> info = (JAXBElement<Object>) object;
 					if (QNAME_KEY_NAME.equals(info.getName())) {
-						alias = info.getValue().toString();
+						digest = info.getValue().toString();
 						break;
 					}
 				}
 			}
 
-			SecretKey secret = getSecretKey(alias, KEY_PASSWORD);
+			SecretKey secret = getSecretKey(digest, KEY_PASSWORD);
 			XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_256);
 			xmlCipher.init(XMLCipher.DECRYPT_MODE, secret);
 
-			Element element = JAXBUtil.jaxbToDom(encrypted, QNAME_ENCRYPTED_DATA, DOMUtil.getDocument());
+			document = DOMUtil.getDocument();
+			Element element = JAXBUtil.jaxbToDom(encrypted, QNAME_ENCRYPTED_DATA, document);
+			document.appendChild(element);
+			document = null;
+
 			document = xmlCipher.doFinal(element.getOwnerDocument(), element);
 		} catch (EncryptionException ex) {
 			throw ex;
@@ -158,34 +167,37 @@ public class Protector {
 		}
 
 		ProtectedStringType protectedString = new ProtectedStringType();
-		Document document;
 		try {
-			String alias = MASTER_PASSWORD_HASH;
-			SecretKey secret = getSecretKey(alias, KEY_PASSWORD);
-
+			SecretKey secret = getSecretKey(MASTER_PASSWORD_HASH, KEY_PASSWORD);
 			XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_256);
 			xmlCipher.init(XMLCipher.ENCRYPT_MODE, secret);
 
-			MessageDigest sha1 = MessageDigest.getInstance("SHA1");
-			KeyInfo keyInfo = new KeyInfo(plain.getOwnerDocument());
+			MessageDigest sha1 = MessageDigest.getInstance(KEY_DIGEST_TYPE);
+			Document document = plain.getOwnerDocument();
+			if (document == null) {
+				document = DOMUtil.getDocument();
+				document.appendChild(plain);
+			}
+			KeyInfo keyInfo = new KeyInfo(document);
 			keyInfo.addKeyName(Base64.encode(sha1.digest(secret.getEncoded())));
 			xmlCipher.getEncryptedData().setKeyInfo(keyInfo);
 
-			document = xmlCipher.doFinal(plain.getOwnerDocument(), plain);
-
+			document = xmlCipher.doFinal(document, plain);
 			EncryptedDataType data = (EncryptedDataType) JAXBUtil.unmarshal(document.getDocumentElement())
 					.getValue();
 			protectedString.setEncryptedData(data);
+		} catch (EncryptionException ex) {
+			throw ex;
 		} catch (Exception ex) {
 			throw new EncryptionException(ex.getMessage(), ex);
 		}
 
 		return protectedString;
-	}
+	}	
 
-	private static SecretKey getSecretKey(String hash, char[] password) throws EncryptionException {
+	private static SecretKey getSecretKey(String digest, char[] password) throws EncryptionException {
 		try {
-			MessageDigest sha1 = MessageDigest.getInstance("SHA1");
+			MessageDigest sha1 = MessageDigest.getInstance(KEY_DIGEST_TYPE);
 			Enumeration<String> aliases = keyStore.aliases();
 			while (aliases.hasMoreElements()) {
 				String alias = aliases.nextElement();
@@ -200,36 +212,18 @@ public class Protector {
 					}
 
 					String keyHash = Base64.encode(sha1.digest(key.getEncoded()));
-					if (hash.equals(keyHash)) {
+					if (digest.equals(keyHash)) {
 						return (SecretKey) key;
 					}
 				} catch (UnrecoverableKeyException ex) {
-					LOGGER.trace("AAAAAAAAAAAAAAAAAAAAAAAAAAAA: " + ex.getMessage());
+					LOGGER.trace("Couldn't recover key {} from keystore, reason: {}", new Object[] { alias,
+							ex.getMessage() });
 				}
 			}
-
-			throw new IllegalStateException("Key '" + hash + "' is not in keystore.");
 		} catch (Exception ex) {
 			throw new EncryptionException(ex.getMessage(), ex);
 		}
-	}
 
-	@Deprecated
-	public static void main(String... args) throws Exception {
-		String plain = "welcome to protector";
-		Protector protector = new Protector();
-		ProtectedStringType encrypted = protector.encryptString(plain);
-		System.out.println(JAXBUtil.marshalWrap(encrypted));
-		System.out.println("***");
-		System.out.println(protector.decryptString(encrypted));
-		System.out.println("=======");
-		Document document = DOMUtil.getDocument();
-		Element element = document.createElement("element");
-		element.setTextContent(plain);
-		document.appendChild(element);
-		encrypted = protector.encrypt(element);
-		System.out.println(JAXBUtil.marshalWrap(encrypted));
-		System.out.println("***");
-		System.out.println(DOMUtil.printDom(protector.decrypt(encrypted)));
+		throw new EncryptionException("Key '" + digest + "' is not in keystore.");
 	}
 }
