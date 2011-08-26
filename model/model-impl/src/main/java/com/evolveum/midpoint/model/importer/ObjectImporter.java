@@ -31,9 +31,7 @@ import org.w3c.dom.NodeList;
 import com.evolveum.midpoint.common.result.OperationConstants;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.validator.EventHandler;
-import com.evolveum.midpoint.common.validator.ValidationMessage;
 import com.evolveum.midpoint.common.validator.Validator;
-import com.evolveum.midpoint.common.validator.ValidationMessage.Type;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
@@ -45,7 +43,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
@@ -62,7 +59,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 public class ObjectImporter {
 
 	private static final Trace logger = TraceManager.getTrace(ObjectImporter.class);
-	private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName()+".resolveReference";
+	private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName()
+			+ ".resolveReference";
 
 	public static void importObjects(InputStream input, final Task task, final OperationResult parentResult,
 			final RepositoryService repository) {
@@ -111,7 +109,7 @@ public class ObjectImporter {
 
 			@Override
 			public void handleGlobalError(OperationResult currentResult) {
-				// No reaction				
+				// No reaction
 			}
 
 		};
@@ -127,11 +125,11 @@ public class ObjectImporter {
 			OperationResult result) {
 		// We need to look up all object references. Probably the only efficient
 		// way to do it is to use reflection.
-		Class type = object.getClass();
+		Class<?> type = object.getClass();
 		Method[] methods = type.getMethods();
 		for (int i = 0; i < methods.length; i++) {
 			Method method = methods[i];
-			Class returnType = method.getReturnType();
+			Class<?> returnType = method.getReturnType();
 			if (ObjectReferenceType.class.isAssignableFrom(returnType)) {
 				// we have a method that returns ObjectReferenceType, try to
 				// resolve it.
@@ -175,10 +173,10 @@ public class ObjectImporter {
 			// Nothing to do
 			return;
 		}
-		
+
 		OperationResult result = parentResult.createSubresult(OPERATION_RESOLVE_REFERENCE);
 		result.addContext(OperationResult.CONTEXT_PROPERTY, propName);
-		
+
 		Element filter = ref.getFilter();
 		if (ref.getOid() != null && !ref.getOid().isEmpty()) {
 			// We have OID
@@ -191,10 +189,11 @@ public class ObjectImporter {
 			}
 			// Nothing to resolve, but let's check if the OID exists
 			Class<? extends ObjectType> type = ObjectType.class;
-			if (ref.getType()!=null) {
+			if (ref.getType() != null) {
 				ObjectTypes refType = ObjectTypes.getObjectTypeFromTypeQName(ref.getType());
-				if (refType==null) {
-					result.recordWarning("Unknown type specified in reference "+propName+": "+ref.getType());
+				if (refType == null) {
+					result.recordWarning("Unknown type specified in reference " + propName + ": "
+							+ ref.getType());
 				} else {
 					type = refType.getClassDefinition();
 				}
@@ -203,16 +202,21 @@ public class ObjectImporter {
 			try {
 				object = repository.getObject(type, ref.getOid(), null, result);
 			} catch (ObjectNotFoundException e) {
-				result.recordWarning("Reference "+propName+" refers to a non-existing object "+ref.getOid());
+				result.recordWarning("Reference " + propName + " refers to a non-existing object "
+						+ ref.getOid());
 			} catch (SchemaException e) {
-				result.recordPartialError("Schema error while trying to retrieve object "+ref.getOid()+" : "+e.getMessage(),e);
-				logger.error("Schema error while trying to retrieve object "+ref.getOid()+" : "+e.getMessage(),e);
+				result.recordPartialError("Schema error while trying to retrieve object " + ref.getOid()
+						+ " : " + e.getMessage(), e);
+				logger.error(
+						"Schema error while trying to retrieve object " + ref.getOid() + " : "
+								+ e.getMessage(), e);
 				// But continue otherwise
 			}
-			if (object != null && ref.getType()!=null) {
+			if (object != null && ref.getType() != null) {
 				// Check if declared and actual type matches
 				if (!object.getClass().equals(type)) {
-					result.recordWarning("Type mismatch on property "+propName+": declared:"+ref.getType()+", actual: "+object.getClass());
+					result.recordWarning("Type mismatch on property " + propName + ": declared:"
+							+ ref.getType() + ", actual: " + object.getClass());
 				}
 			}
 			result.recordSuccessIfUnknown();

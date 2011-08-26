@@ -87,6 +87,7 @@ public class Validator {
 		this.verbose = verbose;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void validate(InputStream inputStream, OperationResult validatorResult,
 			String objectResultOperationName) {
 

@@ -28,10 +28,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.bind.JAXBElement;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -43,18 +39,11 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.common.validator.EventHandler;
-import com.evolveum.midpoint.common.validator.ValidationMessage;
-import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
 
 /**
  * 
@@ -65,8 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
 public class ImportController implements Serializable {
 
 	private static final long serialVersionUID = -4206532259499809326L;
-	private static final Trace TRACE = TraceManager
-			.getTrace(ImportController.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ImportController.class);
 	@Autowired(required = true)
 	private transient ModelService model;
 	private String editor;
@@ -114,10 +102,8 @@ public class ImportController implements Serializable {
 				clearController();
 			}
 		} catch (IOException ex) {
-			FacesUtils
-					.addErrorMessage("Couldn't load object from xml, reason: "
-							+ ex.getMessage());
-			// TODO: logging
+			FacesUtils.addErrorMessage("Couldn't load object from xml, reason: " + ex.getMessage());
+			LoggingUtils.logException(LOGGER, "Couldn't transform string from editor to input stream", ex);
 		} finally {
 			if (stream != null) {
 				IOUtils.closeQuietly(stream);
@@ -133,8 +119,7 @@ public class ImportController implements Serializable {
 		for (FileEntryResults.FileInfo info : results.getFiles()) {
 			File file = info.getFile();
 			if (file == null || !file.exists() || !file.canRead()) {
-				FacesUtils.addErrorMessage("Can't read file '"
-						+ info.getFileName() + "'.");
+				FacesUtils.addErrorMessage("Can't read file '" + info.getFileName() + "'.");
 				return;
 			}
 
@@ -145,9 +130,9 @@ public class ImportController implements Serializable {
 					clearController();
 				}
 			} catch (IOException ex) {
-				FacesUtils.addErrorMessage("Couldn't load object from file '"
-						+ file.getName() + "'.", ex);
-				// TODO: logging
+				FacesUtils.addErrorMessage("Couldn't load object from file '" + file.getName() + "'.", ex);
+				LoggingUtils.logException(LOGGER, "Couldn't load file {} as input stream", ex,
+						file.getAbsolutePath());
 			} finally {
 				if (stream != null) {
 					IOUtils.closeQuietly(stream);
@@ -156,24 +141,21 @@ public class ImportController implements Serializable {
 		}
 	}
 
-	
-
 	private void clearController() {
 		showFileUpload = false;
 		overwrite = false;
 		editor = null;
 	}
 
-
 	private boolean uploadStream(InputStream input) {
 
-		OperationResult parentResult = new OperationResult(
-				ImportController.class.getName() + ".uploadStream");
+		OperationResult parentResult = new OperationResult(ImportController.class.getName() + ".uploadStream");
 
 		model.importObjectsFromStream(input, null, overwrite, parentResult);
 
 		if (!parentResult.isSuccess()) {
-			parentResult.computeStatus("Failed to import objects form file. Reason: " + parentResult.getMessage());
+			parentResult.computeStatus("Failed to import objects form file. Reason: "
+					+ parentResult.getMessage());
 			FacesUtils.addMessage(parentResult);
 		}
 
