@@ -104,7 +104,7 @@ This resource definition contains also definition to enable synchronization.
                 <objectClass>rAccount</objectClass>
                 <!-- Definition of __NAME__ attribute handling.
                      ICF will put entry DN into __NAME__ attribute.-->
-                <attribute ref="idfs:__NAME__">
+                <attribute ref="idfs:name">
                     <!-- Readable name for the attribute. This will be used in GUI -->
                     <name>Distinguished Name</name>
                     <!-- Access limitation for this attribute.
@@ -138,7 +138,7 @@ This resource definition contains also definition to enable synchronization.
                      other directory servers and it also dependes on connector
                      configuration. Please see connector documentation for
                      more details.-->
-                <attribute ref="idfs:__UID__">
+                <attribute ref="idfs:uid">
                     <!-- Readable name for the attribute. This will be used in GUI -->
                     <name>Entry UUID</name>
                     <!-- Access limitation for this attribute.
@@ -372,7 +372,7 @@ This resource definition contains also definition to enable synchronization.
                     <path>.</path>
                     <valueExpression ref="name">
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                        declare namespace dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ";
+                        declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
                         $account/attributes/dj:uid
                         </valueExpression>
                 </equal>
