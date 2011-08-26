@@ -346,7 +346,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		Enumeration<URL> en = null;
 		try {
 			// Search all jars in classpath
-			en = ClassLoader.getSystemResources("META-INF/MANIFEST.MF");
+			en = this.getClass().getClassLoader().getResources("META-INF/MANIFEST.MF");
 		} catch (IOException ex) {
 			LOGGER.debug("Error during reding content from class path");
 		}
