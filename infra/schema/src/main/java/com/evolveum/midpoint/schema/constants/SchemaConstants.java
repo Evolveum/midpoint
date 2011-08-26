@@ -152,12 +152,12 @@ public abstract class SchemaConstants {
 
 	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";
 	
-	public static final Map<String,String> JAXB_PACKAGES = new HashMap<String,String>();
+	public static final String[] JAXB_PACKAGES = new String[]{
+		"com.evolveum.midpoint.xml.ns._public.common.common_1",
+		"com.evolveum.midpoint.xml.ns._public.resource.resource_schema_1",
+	};
 
 	static {
-
-		JAXB_PACKAGES.put("com.evolveum.midpoint.xml.ns._public.common.common_1",NS_C);
-		JAXB_PACKAGES.put("com.evolveum.midpoint.xml.ns._public.resource.resource_schema_1",NS_RESOURCE);
 		
 		CatalogManager catalogManager = new CatalogManager();
 		catalogManager.setUseStaticCatalog(true);

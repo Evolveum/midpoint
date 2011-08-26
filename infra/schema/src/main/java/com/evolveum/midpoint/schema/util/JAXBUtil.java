@@ -28,6 +28,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.lang.annotation.Annotation;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -44,6 +45,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.JAXBIntrospector;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlSchema;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.io.IOUtils;
@@ -73,10 +76,9 @@ public final class JAXBUtil {
 
 	static {
 		StringBuilder sb = new StringBuilder();
-		Iterator<Entry<String, String>> iterator = SchemaConstants.JAXB_PACKAGES.entrySet().iterator();
-		while(iterator.hasNext()) {
-			sb.append(iterator.next().getKey());
-			if (iterator.hasNext()) {
+		for (int i=0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
+			sb.append(SchemaConstants.JAXB_PACKAGES[i]);
+			if (i != SchemaConstants.JAXB_PACKAGES.length-1) {
 				sb.append(":");
 			}
 		}
@@ -97,6 +99,31 @@ public final class JAXBUtil {
 	
 	public static JAXBIntrospector getIntrospector() {
 		return introspector;
+	}
+	
+	public static String getSchemaNamespace(Package pkg) {
+		XmlSchema xmlSchemaAnn = pkg.getAnnotation(XmlSchema.class);
+		if (xmlSchemaAnn == null) {
+			return null;
+		}
+		return xmlSchemaAnn.namespace();
+	}
+	
+	public static <T> String getTypeLocalName(Class<T> type) {
+		XmlType xmlTypeAnn = type.getAnnotation(XmlType.class);
+		if (xmlTypeAnn == null) {
+			return null;
+		}
+		return xmlTypeAnn.name();
+	}
+	
+	public static <T> QName getTypeQName(Class<T> type) {
+		String namespace = getSchemaNamespace(type.getPackage());
+		String localPart = getTypeLocalName(type);
+		if (localPart==null) {
+			return null;
+		}
+		return new QName(namespace,localPart);
 	}
 
 	private static Marshaller createMarshaller(Map<String, Object> jaxbProperties) throws JAXBException {

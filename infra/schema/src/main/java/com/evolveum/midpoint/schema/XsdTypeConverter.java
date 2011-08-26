@@ -67,8 +67,8 @@ public class XsdTypeConverter {
 		
 	private static void initTypeMap() throws IOException, ClassNotFoundException {
 		
-        javaToXsdTypeMap = new HashMap();
-		xsdToJavaTypeMap = new HashMap();
+        javaToXsdTypeMap = new HashMap<Class,QName>();
+		xsdToJavaTypeMap = new HashMap<QName,Class>();
         addMapping(String.class, DOMUtil.XSD_STRING,true);
         addMapping(char.class, DOMUtil.XSD_STRING,false);
         addMapping(File.class, DOMUtil.XSD_STRING,false);
@@ -81,15 +81,17 @@ public class XsdTypeConverter {
 		addMapping(GregorianCalendar.class, DOMUtil.XSD_DATETIME,true);
 		addMapping(QName.class, DOMUtil.XSD_QNAME,true);
 		
-		for (Entry<String,String> entry : SchemaConstants.JAXB_PACKAGES.entrySet()) {
-			String packageName = entry.getKey();
-			String namespace = entry.getValue();
+		for (int i=0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
+			String packageName = SchemaConstants.JAXB_PACKAGES[i];
 			Set<Class> classes = ClassPathUtil.listClasses(packageName);
 			if (classes.isEmpty()) {
 				LOGGER.warn("No classes found in the JAXB package "+packageName);
 			}
 			for (Class jaxbClass : classes) {
-				addMapping(jaxbClass, new QName(namespace,jaxbClass.getSimpleName()),true);
+				QName typeQName = JAXBUtil.getTypeQName(jaxbClass);
+				if (typeQName!=null) {
+					addMapping(jaxbClass, typeQName ,true);
+				}
 			}
 		}		
     }
@@ -244,7 +246,12 @@ public class XsdTypeConverter {
 	}
 	
 	private static boolean isJaxbClass(Class clazz) {
-		return SchemaConstants.JAXB_PACKAGES.get(clazz.getPackage().getName()) != null;
+		for (int i=0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
+			if (SchemaConstants.JAXB_PACKAGES[i].equals(clazz.getPackage().getName())) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public static XMLGregorianCalendar toXMLGregorianCalendar(long timeInMillis) {
