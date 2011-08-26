@@ -28,7 +28,7 @@
       <class name="com.evolveum.midpoint.schema.test.XPathTest"/>
       <class name="com.evolveum.midpoint.schema.test.processor.SchemaProcessorBasicTest"/>
       <class name="com.evolveum.midpoint.schema.processor.DomToSchemaProcessorTest"/>
-      <class name="com.evolveum.midpoint.schema.util.JAXBUtilTest"/>
+      <class name="com.evolveum.midpoint.schema.util.XsdTypeConverterTest"/>
     </classes>
   </test>
 </suite>
