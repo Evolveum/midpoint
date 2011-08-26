@@ -28,4 +28,9 @@
       <class name="com.evolveum.midpoint.util.DOMUtilTest"/>
     </classes>
   </test>
+  <test name="Classpath Test">
+    <classes>
+      <class name="com.evolveum.midpoint.util.ClassPathTest"/>
+    </classes>
+  </test>
 </suite>
