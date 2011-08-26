@@ -53,8 +53,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  */
 
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-provisioning.xml", "classpath:application-context-systest.xml",
-		"classpath:application-context-task.xml", "classpath:application-context-repository-test.xml" })
+		"classpath:application-context-provisioning.xml", 
+		"classpath:application-context-systest.xml",
+		"classpath:application-context-task.xml",
+		"classpath:application-context-repository.xml",
+		"classpath:application-context-configuration-test.xml" })
 public class TestRemoteConnector extends AbstractIntegrationTest {
 
 	private static final String CONNECTOR_HOST_LOCALHOST_FILENAME = "src/test/resources/repo/connector-host-localhost.xml";
