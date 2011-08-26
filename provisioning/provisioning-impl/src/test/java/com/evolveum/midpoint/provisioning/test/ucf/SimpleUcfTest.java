@@ -35,7 +35,9 @@ import javax.xml.bind.Unmarshaller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -49,6 +51,8 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -71,10 +75,26 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)
 	ConnectorFactory connectorFactoryIcfImpl;
+	
+	private static Trace LOGGER = TraceManager.getTrace(SimpleUcfTest.class);
 
 	public SimpleUcfTest() {
 	}
 
+	@BeforeClass
+	public static void before() throws Exception {
+		LOGGER.info("------------------------------------------------------------------------------");
+		LOGGER.info("START:  SimpleUcfTest  ");
+		LOGGER.info("------------------------------------------------------------------------------");
+	}
+
+	@AfterClass
+	public static void after() throws Exception {
+		LOGGER.info("------------------------------------------------------------------------------");
+		LOGGER.info("STOP:  SimpleUcfTest");
+		LOGGER.info("------------------------------------------------------------------------------");	
+	}
+	
 	@BeforeMethod
 	public void setUp() throws FileNotFoundException, JAXBException {
 		manager = connectorFactoryIcfImpl;

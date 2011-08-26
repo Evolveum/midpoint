@@ -63,6 +63,8 @@ import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -94,6 +96,8 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	private ConnectorInstance cc;
 	Schema schema;
 	
+	private static Trace LOGGER = TraceManager.getTrace(OpenDjUcfTest.class);
+	
 	@Autowired(required = true)
 	ConnectorFactory connectorFactoryIcfImpl;
 	
@@ -105,12 +109,18 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 	@BeforeClass
     public static void startLdap() throws Exception{
+		LOGGER.info("------------------------------------------------------------------------------");
+		LOGGER.info("START:  OpenDjUcfTest");
+		LOGGER.info("------------------------------------------------------------------------------");
         openDJController.startCleanServer();
     }
     
     @AfterClass
     public static void stopLdap() throws Exception{
         openDJController.stop();
+		LOGGER.info("------------------------------------------------------------------------------");
+		LOGGER.info("STOP:  OpenDjUcfTest");
+		LOGGER.info("------------------------------------------------------------------------------");
     }
 
     @BeforeMethod

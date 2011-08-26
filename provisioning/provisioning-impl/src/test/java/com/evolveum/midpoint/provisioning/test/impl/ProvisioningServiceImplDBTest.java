@@ -78,12 +78,18 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 	
 	@BeforeClass
 	public static void startDb() throws Exception {
+		LOGGER.info("------------------------------------------------------------------------------");
+		LOGGER.info("START:  ProvisioningServiceImplDBTest");
+		LOGGER.info("------------------------------------------------------------------------------");
 		derbyController.startCleanServer();
 	}
 
 	@AfterClass
 	public static void stopDb() throws Exception {
 		derbyController.stop();
+		LOGGER.info("------------------------------------------------------------------------------");
+		LOGGER.info("STOP:  ProvisioningServiceImplDBTest");
+		LOGGER.info("------------------------------------------------------------------------------");
 	}
 
 	

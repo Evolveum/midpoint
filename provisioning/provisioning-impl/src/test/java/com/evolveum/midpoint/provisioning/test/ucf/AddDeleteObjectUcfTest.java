@@ -65,6 +65,8 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
@@ -81,6 +83,8 @@ public class AddDeleteObjectUcfTest extends AbstractTestNGSpringContextTests {
 	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
 	protected static OpenDJController openDJController = new OpenDJController();
+	
+	private static Trace LOGGER = TraceManager.getTrace(AddDeleteObjectUcfTest.class);
 	
 	private JAXBContext jaxbctx;
 	ResourceType resource;
@@ -99,12 +103,18 @@ public class AddDeleteObjectUcfTest extends AbstractTestNGSpringContextTests {
 
 	@BeforeClass
 	public static void startLdap() throws Exception {
+		LOGGER.info("------------------------------------------------------------------------------");
+		LOGGER.info("START:  AddDeleteObjectUcfTest");
+		LOGGER.info("------------------------------------------------------------------------------");
 		openDJController.startCleanServer();
 	}
 
 	@AfterClass
 	public static void stopLdap() throws Exception {
 		openDJController.stop();
+		LOGGER.info("------------------------------------------------------------------------------");
+		LOGGER.info("STOP:  AddDeleteObjectUcfTest");
+		LOGGER.info("------------------------------------------------------------------------------");	
 	}
 
 	@BeforeMethod
