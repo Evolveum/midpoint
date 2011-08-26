@@ -34,27 +34,7 @@
 	<!--  small hack to move connectors to good place  -->
 	<build>
 		<finalName>idm</finalName>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>copy-dependencies</id>
-						<phase>prepare-package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${project.build.directory}/${project.build.finalName}/WEB-INF/lib/icf-connectors</outputDirectory>
-							<overWriteReleases>false</overWriteReleases>
-							<overWriteSnapshots>false</overWriteSnapshots>
-							<overWriteIfNewer>true</overWriteIfNewer>
-							<includeGroupIds>org.identityconnectors</includeGroupIds>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+		<plugins>			
 		</plugins>
 		<resources>
 			<resource>
@@ -218,37 +198,37 @@
 		<dependency>
 			<groupId>org.identityconnectors</groupId>
 			<artifactId>org.identityconnectors.ldap</artifactId>
-			<scope>provided</scope>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.identityconnectors</groupId>
 			<artifactId>org.identityconnectors.databasetable</artifactId>
-			<scope>provided</scope>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.identityconnectors</groupId>
 			<artifactId>org.identityconnectors.db2</artifactId>
-			<scope>provided</scope>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.identityconnectors</groupId>
 			<artifactId>org.identityconnectors.flat</artifactId>
-			<scope>provided</scope>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.identityconnectors</groupId>
 			<artifactId>org.identityconnectors.flatfile</artifactId>
-			<scope>provided</scope>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.identityconnectors</groupId>
 			<artifactId>org.identityconnectors.mysqluser</artifactId>
-			<scope>provided</scope>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.identityconnectors</groupId>
 			<artifactId>org.identityconnectors.spml</artifactId>
-			<scope>provided</scope>
+			<scope>runtime</scope>
 		</dependency>
 
 	</dependencies>
