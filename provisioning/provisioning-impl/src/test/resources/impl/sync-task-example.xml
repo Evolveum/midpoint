@@ -33,6 +33,11 @@
 								  
 	<!-- Resource printable name -->
 	<name>Synchronization: Embedded Test OpenDJ</name>
+	
+	<extension>
+		<my:token xsi:type="xsd:integer">0</my:token>
+	</extension>
+	
 	<executionStatus>running</executionStatus>
 	<exclusivityStatus>released</exclusivityStatus>
 	<handlerUri>http://midpoint.evolveum.com/model/sync/handler-1</handlerUri>
@@ -40,7 +45,7 @@
 	<recurrence>recurring</recurrence>
 	<binding>tight</binding>
 	<schedule>
-		<interval>60</interval>
+		<interval>5</interval>
 	</schedule>
 
 </task>

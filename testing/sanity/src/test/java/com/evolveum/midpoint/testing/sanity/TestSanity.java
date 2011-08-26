@@ -174,7 +174,7 @@ public class TestSanity extends AbstractIntegrationTest {
 	// It will be called only once
 	public void initSystem(OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
-		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
+		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, initResult);
 
 		// This should discover the connectors
 		LOGGER.trace("initSystem: trying modelService.postInit()");
@@ -186,8 +186,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		// correctly
 		importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
 
-		addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME);
-		addObjectFromFile(USER_TEMPLATE_FILENAME);
+		addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
+		addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
 	}
 
 	/**
@@ -598,11 +598,12 @@ public class TestSanity extends AbstractIntegrationTest {
 		// We don't want it there any sooner, as it may interfere with the
 		// previous tests
 
-		addObjectFromFile(TASK_OPENDJ_SYNC_FILENAME);
-
 		final OperationResult result = new OperationResult(TestSanity.class.getName()
 				+ ".test100Synchronization");
 
+		addObjectFromFile(TASK_OPENDJ_SYNC_FILENAME, result);
+
+		
 		// We need to wait for a sync interval, so the task scanner has a chance
 		// to pick up this
 		// task

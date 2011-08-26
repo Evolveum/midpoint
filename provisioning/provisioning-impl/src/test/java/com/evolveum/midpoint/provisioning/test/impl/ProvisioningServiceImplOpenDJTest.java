@@ -157,7 +157,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		provisioningService.postInit(initResult);
 		ResourceType resource = addResourceFromFile(FILENAME_RESOURCE_OPENDJ, LDAP_CONNECTOR_TYPE, initResult);
 //		addObjectFromFile(FILENAME_ACCOUNT1);
-		addObjectFromFile(FILENAME_ACCOUNT_BAD);
+		addObjectFromFile(FILENAME_ACCOUNT_BAD,initResult);
 	}
 	
 	@BeforeClass
