@@ -37,6 +37,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
@@ -83,12 +84,12 @@ public class TestRemoteConnector extends AbstractIntegrationTest {
 	
 	// This will get called from the superclass to init the repository
 	// It will be called only once
-	public void initSystem() throws Exception {
-		OperationResult result = new OperationResult("initSystem");
+	@Override
+	public void initSystem(OperationResult initResult) throws Exception {
 //		addObjectFromFile(SYSTEM_CONFIGURATION_FILENAME);
 		
 		// This should discover local connectors
-		modelService.postInit(result);
+		modelService.postInit(initResult);
 			
 		addObjectFromFile(CONNECTOR_HOST_LOCALHOST_FILENAME);
 			
@@ -127,20 +128,29 @@ public class TestRemoteConnector extends AbstractIntegrationTest {
 	/**
 	 * Use the connector host definition to trigger discovery of remote connectors.
 	 * @throws ObjectNotFoundException 
+	 * @throws CommunicationException 
 	 */
 	@Test
-	public void test001Discovery() throws ObjectNotFoundException {
+	public void test001Discovery() throws ObjectNotFoundException, CommunicationException {
 		displayTestTile("test001Discovery");
 		
 		// GIVEN
 		
 		OperationResult result = new OperationResult(TestRemoteConnector.class.getName()+".test001Discovery");
-		ConnectorHostType connectorHost = modelService.getObject(CONNECTOR_HOST_LOCALHOST_OID, null, ConnectorHostType.class, result);
+		ConnectorHostType connectorHost = modelService.getObject(ConnectorHostType.class, CONNECTOR_HOST_LOCALHOST_OID, null, result);
 		assertNotNull(connectorHost);
 		
 		// WHEN
 		
-		Set<ConnectorType> discoveredConnectors = modelService.discoverConnectors(connectorHost, result);
+		Set<ConnectorType> discoveredConnectors;
+		try {
+			
+			discoveredConnectors = modelService.discoverConnectors(connectorHost, result);
+			
+		} catch (CommunicationException e) {
+			display("Failed discovery result:",result);
+			throw e;
+		}
 		
 		// Then
 		
