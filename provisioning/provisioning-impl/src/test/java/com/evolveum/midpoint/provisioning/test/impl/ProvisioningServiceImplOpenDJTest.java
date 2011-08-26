@@ -72,6 +72,8 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
@@ -135,6 +137,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager;
 
+	private static Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplOpenDJTest.class);
 
 	public RepositoryService getRepositoryService() {
 		return repositoryService;
@@ -159,12 +162,18 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	
 	@BeforeClass
 	public static void startLdap() throws Exception {
+		LOGGER.info("------------------------------------------------------------------------------");
+		LOGGER.info("START:  ProvisioningServiceImplOpenDJTest");
+		LOGGER.info("------------------------------------------------------------------------------");
 		openDJController.startCleanServer();
 	}
 
 	@AfterClass
 	public static void stopLdap() throws Exception {
 		openDJController.stop();
+		LOGGER.info("------------------------------------------------------------------------------");
+		LOGGER.info("STOP:  ProvisioningServiceImplOpenDJTest");
+		LOGGER.info("------------------------------------------------------------------------------");
 	}
 	
 	@AfterMethod
@@ -306,15 +315,15 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertEquals(ACCOUNT1_OID, addedObjectOid);
 			PropertyReferenceListType resolve = new PropertyReferenceListType();
 
-			UserType user = provisioningService.getObject(UserType.class, ACCOUNT1_OID, resolve, result);
+			AccountShadowType acct = provisioningService.getObject(AccountShadowType.class, ACCOUNT1_OID, resolve, result);
 
-			assertNotNull(user);
+			assertNotNull(acct);
 
-			System.out.println(DebugUtil.prettyPrint(user));
-			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(user,
+			System.out.println(DebugUtil.prettyPrint(acct));
+			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(acct,
 					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 			
-			assertEquals("jbond", user.getName());
+			assertEquals("jbond", acct.getName());
 			
 		} finally {
 			try {
