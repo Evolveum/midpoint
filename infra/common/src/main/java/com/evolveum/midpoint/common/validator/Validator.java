@@ -41,6 +41,8 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.Unmarshaller;
+
+import org.apache.commons.lang.StringUtils;
 import org.xml.sax.SAXParseException;
 
 /**
@@ -213,8 +215,9 @@ public class Validator {
 	void checkUri(ObjectType object, String value, String propertyName, OperationResult subResult) {
 		// TODO: check for all whitespaces
 		// TODO: check for bad characters
-		if (value == null || value.isEmpty()) {
+		if (StringUtils.isEmpty(value)) {
 			error("Empty property", object, propertyName, subResult);
+			return;
 		}
 		try {
 			URI uri = new URI(value);
