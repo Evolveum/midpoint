@@ -832,12 +832,18 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	 * @see com.evolveum.midpoint.provisioning.api.ProvisioningService#discoverConnectors(com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType, com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
-	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) {
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException {
 		OperationResult result = parentResult.createSubresult(ProvisioningService.class.getName()+".discoverConnectors");
 		result.addParam("host", hostType);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
 		
-		Set<ConnectorType> discoverConnectors = connectorTypeManager.discoverConnectors(hostType, result);
+		Set<ConnectorType> discoverConnectors;
+		try {
+			discoverConnectors = connectorTypeManager.discoverConnectors(hostType, result);
+		} catch (CommunicationException ex) {
+			result.recordFatalError("Discovery failed", ex);
+			throw ex;
+		}
 		
 		result.computeStatus("Connector discovery failed");
 		return discoverConnectors;

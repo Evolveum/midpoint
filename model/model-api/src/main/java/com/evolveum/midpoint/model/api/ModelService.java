@@ -500,8 +500,9 @@ public interface ModelService {
 	 * @param parentResult
 	 *            parentResult parent OperationResult (in/out)
 	 * @return discovered connectors
+	 * @throws CommunicationException error communicating with the connector host
 	 */
-	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult);
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException;
 
 	/**
 	 * <p>

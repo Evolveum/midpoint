@@ -146,8 +146,14 @@ public class TestRemoteConnector extends AbstractIntegrationTest {
 		// WHEN
 
 		Set<ConnectorType> discoveredConnectors;
-
-		discoveredConnectors = modelService.discoverConnectors(connectorHost, result);
+		try {
+			
+			discoveredConnectors = modelService.discoverConnectors(connectorHost, result);
+			
+		} catch (CommunicationException e) {
+			display("Failed discovery result",result);
+			throw e;
+		}
 
 		// Then
 

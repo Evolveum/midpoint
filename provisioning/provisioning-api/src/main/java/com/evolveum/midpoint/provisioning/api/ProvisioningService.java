@@ -415,8 +415,9 @@ public interface ProvisioningService {
 	 * @param hostType definition of a connector host or null
 	 * @param parentResult parentResult parent OperationResult (in/out)
 	 * @return discovered connectors
+	 * @throws CommunicationException error connecting to a remote host
 	 */
-	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult);
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException;
 	
 	/**
 	 * Lists resource objects.

@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -47,6 +48,8 @@ import java.util.Set;
  *
  */
 public interface ConnectorFactory {
+
+	String OPERATION_LIST_CONNECTOR = ConnectorFactory.class+".listConnectors";
 
 	/**
 	 * Creates new unconfigured instance of the connector.
@@ -80,6 +83,6 @@ public interface ConnectorFactory {
 	 * @param host definition of a connector host or null for local connector list
 	 * @return list of all known connectors.
 	 */
-	public Set<ConnectorType> listConnectors(ConnectorHostType host);
+	public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul) throws CommunicationException;
 
 }

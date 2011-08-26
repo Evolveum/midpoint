@@ -736,9 +736,15 @@ public class ModelControllerImpl implements ModelController {
 	 * com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
-	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) {
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException {
 		OperationResult result = parentResult.createSubresult(DISCOVER_CONNECTORS);
-		Set<ConnectorType> discoverConnectors = provisioning.discoverConnectors(hostType, result);
+		Set<ConnectorType> discoverConnectors;
+		try {
+			discoverConnectors = provisioning.discoverConnectors(hostType, result);
+		} catch (CommunicationException e) {
+			result.recordFatalError(e.getMessage(), e);
+			throw e;
+		}
 		result.computeStatus("Connector discovery failed");
 		return discoverConnectors;
 	}

@@ -106,12 +106,19 @@ public class ConnectorTypeManager {
 			throw new ObjectNotFoundException("Connector reference missing in the resource "+ObjectTypeUtil.toShortString(resource));
 		}
 		String connOid = resource.getConnectorRef().getOid();
-		ObjectType object = repositoryService.getObject(connOid, null, result);
-		return (ConnectorType)object;
+		ConnectorType connectorType = repositoryService.getObject(ConnectorType.class, connOid, null, result);
+		return connectorType;
 	}
 	
 	public Set<ConnectorType> discoverLocalConnectors(OperationResult parentResult) {
-		return discoverConnectors(null,parentResult);
+		try {
+			return discoverConnectors(null,parentResult);
+		} catch (CommunicationException e) {
+			// This should never happen as no remote operation is executed
+			// convert to runtime exception and record in result.
+			parentResult.recordFatalError("Unexpected error: "+e.getMessage(), e);
+			throw new SystemException("Unexpected error: "+e.getMessage(), e);
+		}
 	}
 	
 	/**
@@ -121,10 +128,12 @@ public class ConnectorTypeManager {
 	 * temporarily removed, may be present on a different node, manual upgrade may be needed etc.
 	 *  
 	 * @return set of discovered connectors (new connectors found)
+	 * @throws CommunicationException 
 	 */
-	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) {
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException {
 		
-		OperationResult result = parentResult.createSubresult(ConnectorTypeManager.class.getName()+".discoverLocalConnectors");
+		OperationResult result = parentResult.createSubresult(ConnectorTypeManager.class.getName()+".discoverConnectors");
+		result.addParam("host", hostType);
 		
 		// Make sure that the provided host has an OID.
 		// We need the host to have OID, so we can properly link connectors to it
@@ -133,7 +142,13 @@ public class ConnectorTypeManager {
 		}
 		
 		Set<ConnectorType> discoveredConnectors = new HashSet<ConnectorType>();
-		Set<ConnectorType> foundConnectors = connectorFactory.listConnectors(hostType);
+		Set<ConnectorType> foundConnectors;
+		try {
+			foundConnectors = connectorFactory.listConnectors(hostType,result);
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+			result.recordFatalError("Discovery failed: "+ex.getMessage(), ex);
+			throw new CommunicationException("Discovery failed: "+ex.getMessage(), ex);
+		}
 		
 		for (ConnectorType foundConnector : foundConnectors) {
 			

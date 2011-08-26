@@ -20,6 +20,7 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Enumeration;
@@ -33,6 +34,8 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import javax.annotation.PostConstruct;
+import javax.naming.NameAlreadyBoundException;
+import javax.naming.directory.SchemaViolationException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.configuration.Configuration;
@@ -42,14 +45,20 @@ import org.identityconnectors.framework.api.ConnectorInfoManager;
 import org.identityconnectors.framework.api.ConnectorInfoManagerFactory;
 import org.identityconnectors.framework.api.ConnectorKey;
 import org.identityconnectors.framework.api.RemoteFrameworkConnectionInfo;
+import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -58,6 +67,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+
+import static com.evolveum.midpoint.provisioning.ucf.impl.IcfUtil.processIcfException;
 
 /**
  * Currently the only implementation of the UCF Connector Manager API interface.
@@ -188,13 +199,34 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 	/**
 	 * Returns a list XML representation of the ICF connectors.
+	 * @throws CommunicationException 
 	 */
 	@Override
-	public Set<ConnectorType> listConnectors(ConnectorHostType host) {
-		if (host == null) {
-			return listLocalConnectors();
-		} else {
-			return listRemoteConnectors(host);
+	public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul) throws CommunicationException {
+		OperationResult result = parentRestul.createSubresult(ConnectorFactory.OPERATION_LIST_CONNECTOR);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS,ConnectorFactoryIcfImpl.class);
+		result.addParam("host", host);
+		
+		try {
+			if (host == null) {
+				Set<ConnectorType> connectors = listLocalConnectors();
+				result.recordSuccess();
+				return connectors;
+			} else {
+				Set<ConnectorType> connectors =  listRemoteConnectors(host);
+				result.recordSuccess();
+				return connectors;
+			}
+		} catch (Exception icfException) {
+			Exception ex = processIcfException(icfException, result);
+			result.recordFatalError(ex.getMessage(), ex);
+			if (ex instanceof CommunicationException) {
+				throw (CommunicationException)ex;
+			} else if (ex instanceof RuntimeException) {
+				throw (RuntimeException)ex;
+			} else {
+				throw new SystemException("Unexpected ICF exception: "+ex.getMessage(),ex);
+			}
 		}
 	}
 
@@ -493,5 +525,5 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		return new ConnectorKey(connectorType.getConnectorBundle(), connectorType.getConnectorVersion(),
 				connectorType.getConnectorType());
 	}
-
+	
 }

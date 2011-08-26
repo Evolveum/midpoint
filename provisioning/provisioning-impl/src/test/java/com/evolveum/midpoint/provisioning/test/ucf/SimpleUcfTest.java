@@ -121,10 +121,12 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 	/**
 	 * Test listing connectors. Very simple. Just test that the list is
 	 * non-empty and that there are mandatory values filled in.
+	 * @throws CommunicationException 
 	 */
 	@Test
-	public void testListConnectors() {
-		Set<ConnectorType> listConnectors = manager.listConnectors(null);
+	public void testListConnectors() throws CommunicationException {
+		OperationResult result = new OperationResult(SimpleUcfTest.class+".testListConnectors");
+		Set<ConnectorType> listConnectors = manager.listConnectors(null, result);
 
 		System.out.println("---------------------------------------------------------------------");
 		assertNotNull(listConnectors);
