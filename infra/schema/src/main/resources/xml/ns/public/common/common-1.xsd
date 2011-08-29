@@ -2069,19 +2069,7 @@
 			<xsd:element name="password" minOccurs="0" maxOccurs="1">
 				<xsd:complexType>
 					<xsd:sequence>
-						<xsd:any minOccurs="1" maxOccurs="1" processContents="lax">
-							<xsd:annotation>
-								<xsd:documentation>
-									Suitable element holding a password value
-									should
-									be here. It may be encrypted XML element,
-									hashed
-									value
-									or
-									even plaintext context (not recommended).
-								</xsd:documentation>
-							</xsd:annotation>
-						</xsd:any>
+						<xsd:element name="protectedString" type="tns:ProtectedStringType" />						
 						<xsd:element name="failedLogins" type="xsd:integer" minOccurs="0">
 							<xsd:annotation>
 								<xsd:documentation>

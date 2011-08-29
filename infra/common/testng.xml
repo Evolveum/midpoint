@@ -30,7 +30,7 @@
 			<class name="com.evolveum.midpoint.common.test.DiffPatchRegressionTest" />
 			<class name="com.evolveum.midpoint.common.test.DiffPatchTest" />
 			<class name="com.evolveum.midpoint.common.test.JAXBUtilTest" />
-			<class name="com.evolveum.midpoint.common.crypto.ProtectorTest" />
+			<!-- <class name="com.evolveum.midpoint.common.crypto.ProtectorTest" />	 -->		
 		</classes>
 	</test>
 </suite>

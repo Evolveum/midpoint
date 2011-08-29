@@ -20,10 +20,13 @@
  */
 package com.evolveum.midpoint.common.crypto;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.security.Key;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.UnrecoverableKeyException;
 import java.util.Enumeration;
@@ -65,30 +68,85 @@ public class Protector {
 	private static final QName QNAME_ENCRYPTED_DATA = new QName("http://www.w3.org/2001/04/xmlenc#",
 			"EncryptedData");
 	private static final String KEY_DIGEST_TYPE = "SHA1";
-	// THIS SHOULD BE CONFIGURABLE LATER
-	private static final String MASTER_PASSWORD_HASH = "HF6JRsNMeJt6alihT44CXKgpe0c=";
-	private static final String KEYSTORE_PATH = "com/../keystore.jceks"; // "com/../../keystore.jceks"
-	private static final char[] KEY_PASSWORD = "changeit".toCharArray();
-	private static final char[] KEYSTORE_PASSWORD = "changeit".toCharArray();
+
+	private String keyStorePath;
+	private String keyStorePassword;
+	private String encryptionKeyDigest;
 
 	private static final KeyStore keyStore;
 
 	static {
 		Init.init();
+
 		try {
 			keyStore = KeyStore.getInstance("jceks");
-			URL url = Protector.class.getClassLoader().getResource(KEYSTORE_PATH);
-			LOGGER.debug("Keystore path: " + url);
+		} catch (KeyStoreException ex) {
+			throw new SystemException(ex.getMessage(), ex);
+		}
+	}
 
-			InputStream stream = Protector.class.getClassLoader().getResourceAsStream(KEYSTORE_PATH);
-			if (stream == null) {
-				throw new EncryptionException("Couldn't load keystore as resource '" + KEYSTORE_PATH + "'");
+	public void init() {
+		try {
+			Enumeration<URL> urls = Protector.class.getClassLoader().getResources(getKeyStorePath());
+			InputStream stream = null;
+			if (urls != null) {
+				while (urls.hasMoreElements()) {
+					URL url = urls.nextElement();
+					LOGGER.trace("Looking for keystore at url '" + url.toString() + "'.");
+					File file = new File(url.toURI());
+					if (!file.exists() || file.isDirectory()) {
+						continue;
+					}
+					LOGGER.debug("Keystore path: " + url);
+					stream = new FileInputStream(file);
+					break;
+				}
 			}
-			keyStore.load(stream, KEYSTORE_PASSWORD);
+			if (stream == null) {
+				throw new EncryptionException("Couldn't load keystore as resource '" + getKeyStorePath()
+						+ "'");
+			}
+			keyStore.load(stream, keyStorePassword.toCharArray());
 			stream.close();
 		} catch (Exception ex) {
 			throw new SystemException(ex.getMessage(), ex);
 		}
+	}
+
+	public void setEncryptionKeyDigest(String encryptionKeyDigest) {
+		Validate.notEmpty(encryptionKeyDigest, "Encryption key digest must not be null or empty.");
+		this.encryptionKeyDigest = encryptionKeyDigest;
+	}
+
+	private String getEncryptionKeyDigest() {
+		if (StringUtils.isEmpty(encryptionKeyDigest)) {
+			throw new IllegalStateException("Encryption key digest was not defined (is null or empty).");
+		}
+		return encryptionKeyDigest;
+	}
+
+	public void setKeyStorePassword(String keyStorePassword) {
+		Validate.notNull(keyStorePassword, "Keystore password must not be null.");
+		this.keyStorePassword = keyStorePassword;
+	}
+
+	private String getKeyStorePassword() {
+		if (keyStorePassword == null) {
+			throw new IllegalStateException("Keystore password was not defined (null).");
+		}
+		return keyStorePassword;
+	}
+
+	public void setKeyStorePath(String keyStorePath) {
+		Validate.notEmpty(keyStorePath, "Key store path must not be null.");
+		this.keyStorePath = keyStorePath;
+	}
+
+	private String getKeyStorePath() {
+		if (StringUtils.isEmpty(keyStorePath)) {
+			throw new IllegalStateException("Keystore path was not defined (is null or empty).");
+		}
+		return keyStorePath;
 	}
 
 	public String decryptString(ProtectedStringType protectedString) throws EncryptionException {
@@ -108,7 +166,7 @@ public class Protector {
 
 		Document document;
 		try {
-			String digest = MASTER_PASSWORD_HASH;
+			String digest = getEncryptionKeyDigest();
 			if (encrypted.getKeyInfo() != null) {
 				KeyInfoType keyInfo = encrypted.getKeyInfo();
 				List<Object> infos = keyInfo.getContent();
@@ -124,7 +182,7 @@ public class Protector {
 				}
 			}
 
-			SecretKey secret = getSecretKey(digest, KEY_PASSWORD);
+			SecretKey secret = getSecretKey(digest, getKeyStorePassword().toCharArray());
 			XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_256);
 			xmlCipher.init(XMLCipher.DECRYPT_MODE, secret);
 
@@ -168,7 +226,7 @@ public class Protector {
 
 		ProtectedStringType protectedString = new ProtectedStringType();
 		try {
-			SecretKey secret = getSecretKey(MASTER_PASSWORD_HASH, KEY_PASSWORD);
+			SecretKey secret = getSecretKey(getEncryptionKeyDigest(), getKeyStorePassword().toCharArray());
 			XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_256);
 			xmlCipher.init(XMLCipher.ENCRYPT_MODE, secret);
 
@@ -193,7 +251,7 @@ public class Protector {
 		}
 
 		return protectedString;
-	}	
+	}
 
 	private static SecretKey getSecretKey(String digest, char[] password) throws EncryptionException {
 		try {
