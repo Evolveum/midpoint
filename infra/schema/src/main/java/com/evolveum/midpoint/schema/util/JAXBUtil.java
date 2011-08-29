@@ -28,16 +28,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
-import java.lang.annotation.Annotation;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -76,13 +68,13 @@ public final class JAXBUtil {
 
 	static {
 		StringBuilder sb = new StringBuilder();
-		for (int i=0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
+		for (int i = 0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
 			sb.append(SchemaConstants.JAXB_PACKAGES[i]);
-			if (i != SchemaConstants.JAXB_PACKAGES.length-1) {
+			if (i != SchemaConstants.JAXB_PACKAGES.length - 1) {
 				sb.append(":");
 			}
 		}
-		
+
 		try {
 			context = JAXBContext.newInstance(sb.toString());
 			introspector = context.createJAXBIntrospector();
@@ -92,15 +84,15 @@ public final class JAXBUtil {
 					+ ObjectFactory.class.getPackage().getName(), ex);
 		}
 	}
-	
+
 	public static JAXBContext getContext() {
 		return context;
 	}
-	
+
 	public static JAXBIntrospector getIntrospector() {
 		return introspector;
 	}
-	
+
 	public static String getSchemaNamespace(Package pkg) {
 		XmlSchema xmlSchemaAnn = pkg.getAnnotation(XmlSchema.class);
 		if (xmlSchemaAnn == null) {
@@ -108,7 +100,7 @@ public final class JAXBUtil {
 		}
 		return xmlSchemaAnn.namespace();
 	}
-	
+
 	public static <T> String getTypeLocalName(Class<T> type) {
 		XmlType xmlTypeAnn = type.getAnnotation(XmlType.class);
 		if (xmlTypeAnn == null) {
@@ -116,14 +108,14 @@ public final class JAXBUtil {
 		}
 		return xmlTypeAnn.name();
 	}
-	
+
 	public static <T> QName getTypeQName(Class<T> type) {
 		String namespace = getSchemaNamespace(type.getPackage());
 		String localPart = getTypeLocalName(type);
-		if (localPart==null) {
+		if (localPart == null) {
 			return null;
 		}
-		return new QName(namespace,localPart);
+		return new QName(namespace, localPart);
 	}
 
 	private static Marshaller createMarshaller(Map<String, Object> jaxbProperties) throws JAXBException {
@@ -351,6 +343,5 @@ public final class JAXBUtil {
 		}
 		return jaxbToDom(jaxbObject, qname, doc);
 	}
-		
-	
+
 }
