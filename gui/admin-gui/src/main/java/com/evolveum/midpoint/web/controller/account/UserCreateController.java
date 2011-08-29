@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -54,6 +55,8 @@ public class UserCreateController implements Serializable {
 	private transient ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
 	private transient UserListController userListController;
+	@Autowired(required = true)
+	private transient Protector protector;
 	private GuiUserDto user;
 
 	public GuiUserDto getUser() {
@@ -66,6 +69,8 @@ public class UserCreateController implements Serializable {
 	public String create() {
 		String oid = null;
 		try {
+			user.encryptCredentials(protector);
+
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 			oid = userManager.add(user);
 		} catch (Exception ex) {

@@ -36,16 +36,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
+import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
-import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.web.model.RepositoryException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
@@ -100,10 +99,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		query.setFilter(createQuery(username));
 		TRACE.trace("Looking for user, query:\n" + DOMUtil.printDom(query.getFilter()));
 
-		ObjectListType list = modelService.searchObjects(
-				ObjectTypes.USER.getObjectTypeUri(),
-				query, new PagingType(),
-				new Holder<OperationResultType>(new OperationResultType()));
+		ObjectListType list = modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query,
+				new PagingType(), new Holder<OperationResultType>(new OperationResultType()));
 		if (list == null) {
 			return null;
 		}
@@ -132,8 +129,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			CredentialsType.Password password = credentialsType.getPassword();
 
 			Credentials credentials = user.getCredentials();
-			Element pwd = getValue(password.getAny());
-			credentials.setPassword(pwd.getTextContent(), pwd.getLocalName());
+			credentials.setPassword(password.getProtectedString());
 			if (password.getFailedLogins() == null || password.getFailedLogins().intValue() < 0) {
 				credentials.setFailedLogins(0);
 			} else {
@@ -148,21 +144,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		}
 
 		return user;
-	}
-
-	private Element getValue(Object object) {
-		if (object == null) {
-			return null;
-		}
-
-		if (object instanceof Node) {
-			Node node = (Node) object;
-			if (node.getNodeType() == Node.ELEMENT_NODE) {
-				return (Element) node;
-			}
-		}
-
-		return null;
 	}
 
 	private Element createQuery(String username) {
@@ -198,10 +179,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 			ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
 			if (modification != null && modification.getOid() != null) {
-				modelService.modifyObject(
-						ObjectTypes.USER.getObjectTypeUri(),
-						modification, new Holder<OperationResultType>(
-						new OperationResultType()));
+				modelService.modifyObject(ObjectTypes.USER.getObjectTypeUri(), modification,
+						new Holder<OperationResultType>(new OperationResultType()));
 			}
 		} catch (com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage ex) {
 			StringBuilder message = new StringBuilder();
@@ -223,10 +202,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	}
 
 	private UserType getUserByOid(String oid) throws FaultMessage {
-		ObjectType object = modelService.getObject(
-				ObjectTypes.USER.getObjectTypeUri(),
-				oid, new PropertyReferenceListType(),
-				new Holder<OperationResultType>(new OperationResultType()));
+		ObjectType object = modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), oid,
+				new PropertyReferenceListType(), new Holder<OperationResultType>(new OperationResultType()));
 		if (object != null && (object instanceof UserType)) {
 			return (UserType) object;
 		}

@@ -26,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -37,10 +36,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.GrantedAuthorityImpl;
-//import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 
 /**
  * 
@@ -49,8 +50,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 	private static final Trace TRACE = TraceManager.getTrace(MidPointAuthenticationProvider.class);
-	@Autowired
-	UserDetailsService userManagerService;
+	@Autowired(required = true)
+	private transient UserDetailsService userManagerService;
+	@Autowired(required = true)
+	private transient Protector protector;
 	private int loginTimeout;
 	private int maxFailedLogins;
 
@@ -147,28 +150,26 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 			}
 		}
 
-		String pwd = credentials.getPassword();
-		if (pwd == null) {
+		ProtectedStringType protectedString = credentials.getPassword();
+		if (protectedString == null) {
 			throw new BadCredentialsException("web.security.provider.password.bad");
 		}
 
-		String encodedPwd = null;
-		if ("hash".equals(credentials.getEncoding())) {
-			encodedPwd = Credentials.hashWithSHA2(password);
-		} else if ("base64".equals(credentials.getEncoding())) {
-			encodedPwd = Base64.encodeBase64String(password.getBytes());
-		}
-
-		if (encodedPwd == null || encodedPwd.isEmpty()) {
+		if (StringUtils.isEmpty(password)) {
 			throw new BadCredentialsException("web.security.provider.password.encoding");
 		}
 
-		if (encodedPwd.equals(pwd)) {
-			if (credentials.getFailedLogins() > 0) {
-				credentials.clearFailedLogin();
-				userManagerService.updateUser(user);
+		try {
+			String decoded = protector.decryptString(protectedString);
+			if (password.equals(decoded)) {
+				if (credentials.getFailedLogins() > 0) {
+					credentials.clearFailedLogin();
+					userManagerService.updateUser(user);
+				}
+				return;
 			}
-			return;
+		} catch (EncryptionException ex) {
+			throw new AuthenticationServiceException("web.security.provider.unavailable");
 		}
 
 		throw new BadCredentialsException("web.security.provider.invalid");

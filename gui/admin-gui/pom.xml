@@ -31,11 +31,9 @@
 		<groupId>com.evolveum.midpoint</groupId>
 		<version>1.9-SNAPSHOT</version>
 	</parent>
-	<!--  small hack to move connectors to good place  -->
 	<build>
 		<finalName>idm</finalName>
-		<plugins>			
-		</plugins>
+		<plugins />			
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>

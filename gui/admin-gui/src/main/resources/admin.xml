@@ -19,18 +19,26 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 <c:user oid="00000000-0000-0000-0000-000000000002" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-    <c:name>administrator</c:name>
-    <c:fullName>midPoint Administrator</c:fullName>
-    <c:givenName>midPoint</c:givenName>
-    <c:familyName>Administrator</c:familyName>
-    <c:eMailAddress>administrator@example.com</c:eMailAddress>
-    <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+	<c:name>administrator</c:name>
+	<c:fullName>midPoint Administrator</c:fullName>
+	<c:givenName>midPoint</c:givenName>
+	<c:familyName>Administrator</c:familyName>
+	<c:eMailAddress>administrator@example.com</c:eMailAddress>
+	<c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 		<c:password>
-		    <c:hash xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-				xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">2bb80d537b1da3e38bd30361aa855686bde0eacd7162fef6a25fe97bf527a25b</c:hash>
+			<c:protectedString xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+				<enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+					<enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc" />
+					<ds:KeyInfo>
+						<ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
+					</ds:KeyInfo>
+					<enc:CipherData>
+						<enc:CipherValue>LZ4QxLrHPrNz/VbNXm6tJU+fHverLrpLFaRudVOaIMAJEGJtpRu7gkgGqRlOJQEH</enc:CipherValue>
+					</enc:CipherData>
+				</enc:EncryptedData>
+			</c:protectedString>
 		</c:password>
 		<c:allowedIdmGuiAccess>true</c:allowedIdmGuiAccess>
 	</c:credentials>
 </c:user>
-

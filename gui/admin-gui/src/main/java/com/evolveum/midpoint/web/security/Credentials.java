@@ -27,6 +27,8 @@ import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
+
 /**
  * 
  * @author lazyman
@@ -35,8 +37,7 @@ public class Credentials implements Serializable {
 
 	private static final long serialVersionUID = 8374377136310413930L;
 	public static final String MESSAGE_DIGEST_TYPE = "SHA-256";
-	private String password;
-	private String encoding;
+	private ProtectedStringType password;
 	private int failedLogins = 0;
 	private long lastFailedLoginAttempt;
 
@@ -56,19 +57,14 @@ public class Credentials implements Serializable {
 		this.failedLogins = failedLogins;
 	}
 
-	public String getPassword() {
+	public ProtectedStringType getPassword() {
 		return password;
 	}
-
-	public void setPassword(String password, String encoding) {
+	
+	public void setPassword(ProtectedStringType password) {
 		this.password = password;
-		this.encoding = encoding;
 	}
-
-	public String getEncoding() {
-		return encoding;
-	}
-
+	
 	public void addFailedLogin() {
 		failedLogins++;
 	}

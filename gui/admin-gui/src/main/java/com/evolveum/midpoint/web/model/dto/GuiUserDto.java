@@ -22,12 +22,10 @@
 
 package com.evolveum.midpoint.web.model.dto;
 
-import org.apache.commons.codec.binary.Base64;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.Selectable;
@@ -42,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class GuiUserDto extends UserDto implements Selectable {
 
 	private static final long serialVersionUID = -8265669830268114388L;
-	private static final Trace TRACE = TraceManager.getTrace(GuiUserDto.class);
+	private static final Trace LOGGER = TraceManager.getTrace(GuiUserDto.class);
 	private boolean selected;
 	private String password1;
 	private String password2;
@@ -86,24 +84,29 @@ public class GuiUserDto extends UserDto implements Selectable {
 
 	public void setPassword1(String password1) {
 		this.password1 = password1;
+	}
 
-		if (password1 != null) {
-			UserType user = (UserType) this.getXmlObject();
-			CredentialsType credentials = user.getCredentials();
-			if (credentials == null) {
-				credentials = new CredentialsType();
-				user.setCredentials(credentials);
-			}
-			CredentialsType.Password password = credentials.getPassword();
-			if (password == null) {
-				password = new CredentialsType.Password();
-				credentials.setPassword(password);
-			}
+	public void encryptCredentials(Protector protector) throws EncryptionException {
+		if (password1 == null) {
+			return;
+		}
 
-			Document document = DOMUtil.getDocument();
-			Element hash = document.createElementNS(SchemaConstants.NS_C, "c:base64");
-			hash.setTextContent(Base64.encodeBase64String(password1.getBytes()));
-			password.setAny(hash);
+		CredentialsType credentials = getXmlObject().getCredentials();
+		if (credentials == null) {
+			credentials = new CredentialsType();
+			getXmlObject().setCredentials(credentials);
+		}
+		CredentialsType.Password password = credentials.getPassword();
+		if (password == null) {
+			password = new CredentialsType.Password();
+			credentials.setPassword(password);
+		}
+
+		try {
+			password.setProtectedString(protector.encryptString(password1));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't encrypt credentials", ex);
+			throw new SystemException(ex.getMessage(), ex);
 		}
 	}
 
