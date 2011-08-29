@@ -36,4 +36,9 @@
 		factory-method="getRepositoryService" class="com.evolveum.midpoint.repo.api.RepositoryService"
 		depends-on="repositoryFactory" init-method="init" destroy-method="close"></bean>
 
+	<bean name="protector" class="com.evolveum.midpoint.common.crypto.Protector" scope="singleton" init-method="init">
+		<property name="keyStorePath" value="com/../keystore.jceks" />
+		<property name="keyStorePassword" value="changeit" />
+		<property name="encryptionKeyDigest" value="HF6JRsNMeJt6alihT44CXKgpe0c=" />		
+	</bean> 
 </beans>
