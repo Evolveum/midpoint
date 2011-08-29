@@ -58,7 +58,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * @author Radovan Semancik
  * 
  */
-@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",		
 		"classpath:application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml",
 		"classpath:application-context-provisioning.xml",

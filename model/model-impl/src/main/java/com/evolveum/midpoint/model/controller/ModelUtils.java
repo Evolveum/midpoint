@@ -22,16 +22,13 @@ package com.evolveum.midpoint.model.controller;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -79,7 +76,7 @@ public class ModelUtils {
 	}
 
 	public static void validatePaging(PagingType paging) {
-		if (paging==null) {
+		if (paging == null) {
 			return;
 		}
 
@@ -90,7 +87,7 @@ public class ModelUtils {
 			throw new IllegalArgumentException("Paging offset index must be more than 0.");
 		}
 	}
-	
+
 	public static AccountType getAccountTypeFromHandling(ResourceObjectShadowType accountShadow,
 			ResourceType resource) {
 		Validate.notNull(accountShadow, "Resource object shadow must not be null.");
@@ -114,13 +111,15 @@ public class ModelUtils {
 				return accountType;
 			}
 		}
-		
+
 		return null;
 	}
 
-	public static void generatePassword(AccountShadowType account, int length) {
+	public static void generatePassword(AccountShadowType account, int length, Protector protector)
+			throws EncryptionException {
 		Validate.notNull(account, "Account shadow must not be null.");
 		Validate.isTrue(length > 0, "Password length must be more than zero.");
+		Validate.notNull(protector, "Protector instance must not be null.");
 
 		String pwd = "";
 		if (length > 0) {
@@ -128,11 +127,7 @@ public class ModelUtils {
 		}
 
 		CredentialsType.Password password = getPassword(account);
-
-		Document document = DOMUtil.getDocument();
-		Element hash = document.createElementNS(SchemaConstants.NS_C, "c:base64");
-		hash.setTextContent(Base64.encodeBase64String(pwd.getBytes()));
-		password.setAny(hash);
+		password.setProtectedString(protector.encryptString(pwd));
 	}
 
 	public static CredentialsType.Password getPassword(AccountShadowType account) {
@@ -194,6 +189,7 @@ public class ModelUtils {
 			}
 		}
 
-		throw new IllegalArgumentException("No schema handlig account type for name '" + accountTypeName + "' found.");
+		throw new IllegalArgumentException("No schema handlig account type for name '" + accountTypeName
+				+ "' found.");
 	}
 }

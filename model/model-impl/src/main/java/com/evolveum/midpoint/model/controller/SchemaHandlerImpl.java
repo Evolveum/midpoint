@@ -749,37 +749,51 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	@Override
 	public UserType processPropertyConstruction(UserType user, UserTemplateType template,
 			OperationResult result) {
+		OperationResult subResult = result.createSubresult("User Property Constructions");
 		UserType templatedUser = user;
-		Document domUser = null;
+		Element domUser = null;
 		for (PropertyConstructionType construction : template.getPropertyConstruction()) {
-			OperationResult subResult = result.createSubresult("User Property Construction");
-			subResult.addParams(new String[] { "user", "userTemplate" }, user, template);
+			OperationResult constrResult = subResult.createSubresult("User Property Construction");
+			constrResult.addParams(new String[] { "user", "userTemplate" }, user, template);
 			try {
+				domUser = JAXBUtil.objectTypeToDom(user, null);
 				// TODO: process user template property construction
-//				Map<QName, Variable> variables = ExpressionHandlerImpl.getDefaultXPathVariables(user,
-//						null,null);
-				
-				
+				Map<QName, Variable> variables = ExpressionHandlerImpl.getDefaultXPathVariables(user, null,
+						null);
+
+				domUser = processPropertyConstruction(construction, variables, domUser);
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't process property construction {} for user {}",
 						ex, construction.getProperty().getTextContent(), user.getName());
-				subResult.recordWarning("Couldn't process property construction '"
+				constrResult.recordWarning("Couldn't process property construction '"
 						+ construction.getProperty().getTextContent() + "'.", ex);
 			} finally {
-				subResult.computeStatus("Couldn't process property construction '"
+				constrResult.computeStatus("Couldn't process property construction '"
 						+ construction.getProperty().getTextContent() + "'.");
 			}
 		}
 
-		if (domUser != null) {
-			try {
+		try {
+			if (domUser != null) {
 				templatedUser = (UserType) JAXBUtil.unmarshal(domUser).getValue();
-			} catch (JAXBException ex) {
-				// TODO: error handling
-				ex.printStackTrace();
 			}
+			subResult.computeStatus("Couldn't process property constructions.");
+		} catch (JAXBException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't unmarshall user {} after property "
+					+ "constructions from template {} was applied", ex, user.getName(), template.getName());
+			subResult.recordFatalError("");
 		}
 
 		return templatedUser;
+	}
+
+	private Element processPropertyConstruction(PropertyConstructionType construction,
+			Map<QName, Variable> variables, Element user) {
+
+		Element property = construction.getProperty();
+		ValueConstructionType valueConstruction = construction.getValueConstruction();
+		
+		
+		return user;
 	}
 }

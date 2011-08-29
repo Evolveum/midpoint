@@ -20,18 +20,22 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.assertNull;
+
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
-import org.apache.commons.codec.binary.Base64;
-import org.w3c.dom.Element;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -49,9 +53,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
  * @author lazyman
  * 
  */
-public class ModelUtilsTest {
+@ContextConfiguration(locations = { "classpath:application-context-model.xml",
+		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
+public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller");
+	@Autowired(required = true)
+	private Protector protector;
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void createReferenceNullOid() {
@@ -125,8 +133,8 @@ public class ModelUtilsTest {
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void generatePasswordNullAccount() {
-		ModelUtils.generatePassword(null, 5);
+	public void generatePasswordNullAccount() throws EncryptionException {
+		ModelUtils.generatePassword(null, 5, protector);
 	}
 
 	@Test
@@ -135,21 +143,20 @@ public class ModelUtilsTest {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "account-with-pwd.xml"))).getValue();
 		int length = 5;
-		ModelUtils.generatePassword(account, length);
+		ModelUtils.generatePassword(account, length, protector);
 
 		CredentialsType.Password password = ModelUtils.getPassword(account);
 		assertNotNull(password);
-		assertNotNull(password.getAny());
-		assertEquals(true, password.getAny() instanceof Element);
+		assertNotNull(password.getProtectedString());
+		assertNotNull(password.getProtectedString().getEncryptedData());
 
-		Element element = (Element) password.getAny();
-		assertNotNull(element.getTextContent());
-		assertEquals(length, new String(Base64.decodeBase64(element.getTextContent())).length());
+		String decrypted = protector.decryptString(password.getProtectedString());
+		assertEquals(length, decrypted.length());
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void getAccountTypeDefinitionFromSchemaHandlingNullAccount() {
-		ModelUtils.getAccountTypeFromHandling((ResourceObjectShadowType)null, null);
+		ModelUtils.getAccountTypeFromHandling((ResourceObjectShadowType) null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
@@ -193,25 +200,25 @@ public class ModelUtilsTest {
 
 		XmlAsserts.assertPatch(new File(TEST_FOLDER, "property-list-type.xml"), JAXBUtil.marshalWrap(list));
 	}
-	
+
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void unresolveResourceObjectNull() {
 		ModelUtils.unresolveResourceObjectShadow(null);
 	}
-	
+
 	@Test
 	@SuppressWarnings("unchecked")
 	public void unresolveResourceObject() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER, "account-schema-handling.xml"))).getValue();
-		
+
 		assertNotNull(account.getResource());
 		String resourceOid = account.getResource().getOid();
-		
+
 		ModelUtils.unresolveResourceObjectShadow(account);
 		assertNull(account.getResource());
 		assertNotNull(account.getResourceRef());
-		
+
 		ObjectReferenceType ref = account.getResourceRef();
 		assertEquals(resourceOid, ref.getOid());
 		assertEquals(ObjectTypes.RESOURCE.getTypeQName(), ref.getType());

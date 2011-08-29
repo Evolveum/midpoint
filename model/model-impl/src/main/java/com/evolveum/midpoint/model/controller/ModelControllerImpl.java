@@ -40,6 +40,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
@@ -112,7 +113,8 @@ public class ModelControllerImpl implements ModelController {
 	private transient RepositoryService repository;
 	@Autowired(required = true)
 	private transient SchemaHandler schemaHandler;
-
+	@Autowired(required = true)
+	private transient Protector protector;
 	@Autowired(required = true)
 	private transient TaskManager taskManager;
 
@@ -736,7 +738,8 @@ public class ModelControllerImpl implements ModelController {
 	 * com.evolveum.midpoint.common.result.OperationResult)
 	 */
 	@Override
-	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException {
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult)
+			throws CommunicationException {
 		OperationResult result = parentResult.createSubresult(DISCOVER_CONNECTORS);
 		Set<ConnectorType> discoverConnectors;
 		try {
@@ -1005,8 +1008,12 @@ public class ModelControllerImpl implements ModelController {
 			randomPasswordLength = credentials.getRandomPasswordLength().intValue();
 		}
 
-		if (randomPasswordLength != -1 && ModelUtils.getPassword(account).getAny() == null) {
-			ModelUtils.generatePassword(account, randomPasswordLength);
+		if (randomPasswordLength != -1 && ModelUtils.getPassword(account).getProtectedString() == null) {
+			try {
+				ModelUtils.generatePassword(account, randomPasswordLength, protector);
+			} catch (Exception ex) {
+				throw new SystemException(ex.getMessage(), ex);
+			}
 		}
 	}
 
