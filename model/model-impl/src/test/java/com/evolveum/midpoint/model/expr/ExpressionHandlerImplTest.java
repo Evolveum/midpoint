@@ -80,7 +80,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 								+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
 								+ "<code>declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\";\n"
 								+ "declare namespace dj=\"http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ\";\n"
-								+ "$c:user/givenName = $c:account/c:attributes/dj:givenName</code></object>")
+								+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code></object>")
 				.getValue();
 
 		OperationResult result = new OperationResult("testConfirmUserWithoutModel");
@@ -107,7 +107,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 								+ "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">\n"
 								+ "<code>declare namespace c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\";\n"
 								+ "declare namespace dj=\"http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ\";\n"
-								+ "$c:user/givenName = $c:account/c:attributes/dj:givenName</code></object>")
+								+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code></object>")
 				.getValue();
 
 		OperationResult result = new OperationResult("testConfirmUser");
