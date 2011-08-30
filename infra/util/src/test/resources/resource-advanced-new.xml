@@ -305,10 +305,13 @@
         <correlation>
             <c:equal xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
                 <i:path>.</i:path>
-                <i:valueExpression ref="c:name">
+                <i:valueExpression>
+			<i:ref>c:name</i:ref>
+			<i:code>
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                         declare namespace dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ";
                         $i:account/i:attributes/dj:uid
+			</i:code>
                         </i:valueExpression>
                 </c:equal>
         </correlation>

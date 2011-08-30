@@ -575,9 +575,9 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
 					ACCOUNT_MODIFY_OID, new PropertyReferenceListType(), result);
 			String changedSn = null;
-			for (Element e : accountType.getAttributes().getAny()) {
-				if (QNameUtil.compareQName(new QName(RESOURCE_NS, "sn"), e)) {
-					changedSn = e.getTextContent();
+			for (Object e : accountType.getAttributes().getAny()) {
+				if (new QName(RESOURCE_NS, "sn").equals(JAXBUtil.getElementQName(e))) {
+					changedSn = ((Element)e).getTextContent();
 				}
 			}
 

@@ -25,7 +25,9 @@ package com.evolveum.midpoint.schema.test;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.ExpressionHolder;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
 import java.io.File;
@@ -66,10 +68,10 @@ public class ExpressionHolderTest {
 
         @SuppressWarnings("rawtypes")
 		ValueConstructionType valueConstruction = (ValueConstructionType) ((JAXBElement) object).getValue();
+        	
+        ExpressionType valueExpression = valueConstruction.getValueExpression();
 
-        Element element = valueConstruction.getValueExpression();
-
-        ExpressionHolder ex = new ExpressionHolder(element);
+        ExpressionHolder ex = new ExpressionHolder(valueExpression.getCode());
 
         AssertJUnit.assertEquals("$c:user/c:extension/foo:something/bar:somethingElse", ex.getExpressionAsString().trim());
         
@@ -81,7 +83,7 @@ public class ExpressionHolderTest {
         }
 
         AssertJUnit.assertEquals("http://midpoint.evolveum.com/xml/ns/samples/piracy", namespaceMap.get("piracy"));
-        AssertJUnit.assertEquals("http://default.com/whatever", namespaceMap.get(""));
+        AssertJUnit.assertEquals(SchemaConstants.NS_C, namespaceMap.get(""));
 
     }
 
@@ -101,9 +103,9 @@ public class ExpressionHolderTest {
 		@SuppressWarnings("rawtypes")
 		ValueConstructionType valueConstruction = (ValueConstructionType) ((JAXBElement) object).getValue();
 
-        Element element = valueConstruction.getValueExpression();
+        ExpressionType valueExpression = valueConstruction.getValueExpression();
 
-        ExpressionHolder ex = new ExpressionHolder(element);
+        ExpressionHolder ex = new ExpressionHolder(valueExpression.getCode());
 
         AssertJUnit.assertEquals("$c:user/c:extension/foo:something/bar:somethingElse", ex.getExpressionAsString().trim());
 
@@ -116,7 +118,7 @@ public class ExpressionHolderTest {
 
         AssertJUnit.assertEquals("http://midpoint.evolveum.com/xml/ns/samples/piracy", namespaceMap.get("piracy"));
         AssertJUnit.assertEquals("http://midpoint.evolveum.com/xml/ns/samples/bar", namespaceMap.get("bar"));
-        AssertJUnit.assertEquals("http://default.com/whatever", namespaceMap.get(""));
+        AssertJUnit.assertEquals(SchemaConstants.NS_C, namespaceMap.get(""));
 
     }
 

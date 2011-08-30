@@ -117,14 +117,14 @@ public class SchemaHandlerImplTest extends AbstractTestNGSpringContextTests {
 		assertAttribute("description", NS, "Created by IDM", appliedAccountShadow.getAttributes().getAny());
 	}
 
-	private void assertAttribute(String name, String namespace, String value, List<Element> attributes) {
+	private void assertAttribute(String name, String namespace, String value, List<Object> attributes) {
 		boolean found = false;
-		for (Element element : attributes) {
-			if (!element.getLocalName().equals(name) || !element.getNamespaceURI().equals(namespace)) {
+		for (Object element : attributes) {
+			if (!name.equals(JAXBUtil.getElementQName(element))) {
 				continue;
 			}
 
-			if (value.equals(element.getTextContent())) {
+			if (value.equals(((Element)element).getTextContent())) {
 				found = true;
 				break;
 			}
@@ -173,10 +173,12 @@ public class SchemaHandlerImplTest extends AbstractTestNGSpringContextTests {
 	public void testApplyInboundSchemaHandlingOnUserAddWithFilter() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				"src/test/resources/account-xpath-evaluation-filter.xml"))).getValue();
-		List<Element> domAttrs = account.getAttributes().getAny();
-		for (Element e : domAttrs) {
-			if ("cn".equals(e.getLocalName())) {
-				e.setTextContent("jan\u0007 prvy");
+		List<Object> domAttrs = account.getAttributes().getAny();
+		for (Object e : domAttrs) {
+			if (e instanceof Element) {
+				if ("cn".equals(((Element)e).getLocalName())) {
+					((Element)e).setTextContent("jan\u0007 prvy");
+				}
 			}
 		}
 
@@ -199,8 +201,8 @@ public class SchemaHandlerImplTest extends AbstractTestNGSpringContextTests {
 		LOGGER.info(result.dump());
 
 		assertNotNull(appliedUser.getExtension());
-		assertEquals("MikeFromExtension", appliedUser.getExtension().getAny().get(0).getTextContent());
-		assertEquals("DudikoffFromExtension", appliedUser.getExtension().getAny().get(1).getTextContent());
+		assertEquals("MikeFromExtension", ((Element)appliedUser.getExtension().getAny().get(0)).getTextContent());
+		assertEquals("DudikoffFromExtension", ((Element)appliedUser.getExtension().getAny().get(1)).getTextContent());
 	}
 
 	//

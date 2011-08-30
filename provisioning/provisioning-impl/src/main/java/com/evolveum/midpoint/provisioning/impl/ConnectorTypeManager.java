@@ -154,7 +154,15 @@ public class ConnectorTypeManager {
 			
 			LOGGER.trace("Found connector "+ObjectTypeUtil.toShortString(foundConnector));
 		
-			if (!isInRepo(foundConnector,result)) {
+			boolean inRepo = true;
+			try {
+				inRepo = isInRepo(foundConnector,result);
+			} catch (SchemaException e1) {
+				LOGGER.error("Unexpected schema problem while checking existence of "+ObjectTypeUtil.toShortString(foundConnector),e1);
+				result.recordPartialError("Unexpected schema problem while checking existence of "+ObjectTypeUtil.toShortString(foundConnector),e1);
+				// But continue otherwise ...
+			}
+			if (!inRepo) {
 				
 				LOGGER.trace("Connector "+ObjectTypeUtil.toShortString(foundConnector)+" not in the repository, \"dicovering\" it");
 				
@@ -236,7 +244,7 @@ public class ConnectorTypeManager {
 	 * @return
 	 * @throws SchemaException 
 	 */
-	private boolean isInRepo(ConnectorType connector, OperationResult result) {
+	private boolean isInRepo(ConnectorType connector, OperationResult result) throws SchemaException {
 		Document doc = DOMUtil.getDocument();
         Element filter =
                 QueryUtil.createAndFilter(doc,

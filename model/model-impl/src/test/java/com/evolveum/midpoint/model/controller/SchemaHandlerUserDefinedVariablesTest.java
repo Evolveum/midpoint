@@ -37,6 +37,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
@@ -97,7 +98,7 @@ public class SchemaHandlerUserDefinedVariablesTest extends AbstractTestNGSpringC
 				AccountShadowType.class);
 
 		assertEquals(2, appliedAccountShadow.getAttributes().getAny().size());
-		assertEquals("l", appliedAccountShadow.getAttributes().getAny().get(1).getLocalName());
-		assertEquals("Here", appliedAccountShadow.getAttributes().getAny().get(1).getTextContent());
+		assertEquals("l", ((Element)appliedAccountShadow.getAttributes().getAny().get(1)).getLocalName());
+		assertEquals("Here", ((Element)appliedAccountShadow.getAttributes().getAny().get(1)).getTextContent());
 	}
 }

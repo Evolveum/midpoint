@@ -326,12 +326,15 @@
 				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
 				xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
 				<c:path>.</c:path>
-				<c:valueExpression ref="c:name">
+				<c:valueExpression>
+					<c:ref>c:name</c:ref>
+					<c:code>
 					declare namespace
 					i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 					declare namespace
 					dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 					$i:account/i:attributes/dj:uid
+					</c:code>
                         </c:valueExpression>
 			</c:equal>
 		</correlation>

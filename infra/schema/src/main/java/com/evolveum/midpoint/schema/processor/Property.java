@@ -270,7 +270,7 @@ public class Property {
 	}
 
 	/**
-	 * Serializes property to DOM element(s).
+	 * Serializes property to DOM or JAXB element(s).
 	 * 
 	 * The property name will be used as an element QName.
 	 * The values will be in the element content. Single-value
@@ -282,10 +282,10 @@ public class Property {
 	 * return null).
 	 * 
 	 * @param doc DOM Document
-	 * @return property serialized to DOM
+	 * @return property serialized to DOM Element or JAXBElement
 	 * @throws SchemaProcessorException No definition or inconsistent definition 
 	 */
-	public List<Element> serializeToDom(Document doc) throws SchemaProcessorException {
+	public List<Object> serializeToDom(Document doc) throws SchemaProcessorException {
 		return serializeToDom(doc,null,null,false);
 	}
 	
@@ -294,7 +294,7 @@ public class Property {
 	 * 
 	 * Package-private. Useful for some internal calls inside schema processor.
 	 */
-	List<Element> serializeToDom(Document doc,PropertyDefinition propDef) throws SchemaProcessorException {
+	List<Object> serializeToDom(Document doc,PropertyDefinition propDef) throws SchemaProcessorException {
 		// No need to record types, we have schema definition here
 		return serializeToDom(doc,propDef,null,false);
 	}
@@ -307,11 +307,11 @@ public class Property {
 	 * 
 	 * Package-private. Useful for some internal calls inside schema processor.
 	 */
-	List<Element> serializeToDom(Document doc,PropertyDefinition propDef, Set<Object> alternateValues, boolean recordType) throws SchemaProcessorException {
+	List<Object> serializeToDom(Document doc,PropertyDefinition propDef, Set<Object> alternateValues, boolean recordType) throws SchemaProcessorException {
 		
 		
 		// Try to locate definition
-		List<Element> elements = new ArrayList<Element>();
+		List<Object> elements = new ArrayList<Object>();
 		
 		//check if the property has value..if not, return empty elemnts list..
 		
@@ -327,7 +327,6 @@ public class Property {
 		
 		
 		for (Object val : serializeValues) {
-			Element element = doc.createElementNS(getName().getNamespaceURI(), getName().getLocalPart());
 			// If we have a definition then try to use it. The conversion may be more realiable
 			// Otherwise the conversion will be governed by Java type
 			QName xsdType = null;
@@ -336,11 +335,10 @@ public class Property {
 			}
 			
 				try {
-					XsdTypeConverter.toXsdElement(val,xsdType,element,recordType);
+					elements.add(XsdTypeConverter.toXsdElement(val,xsdType,getName(),doc,recordType));
 				} catch (JAXBException e) {
 					throw new SystemException("Unexpected JAXB problem while converting "+propDef.getTypeName()+" : "+e.getMessage(),e);
 				}
-				elements.add(element);
 			
 		}			
 		return elements;

@@ -146,7 +146,7 @@ public class LinkAccountActionTest extends BaseActionTest {
 				assertEquals(1, modification.getValue().getAny().size());
 				assertEquals(modification.getModificationType(), PropertyModificationTypeType.add);
 
-				Element element = modification.getValue().getAny().get(0);
+				Element element = ((Element)modification.getValue().getAny().get(0));
 
 				ObjectReferenceType accountRef = new ObjectReferenceType();
 				accountRef.setOid(shadowOid);

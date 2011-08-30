@@ -27,6 +27,7 @@ import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.JAXBIntrospector;
 import javax.xml.namespace.QName;
 
@@ -336,8 +337,8 @@ public class ShadowCache {
 		Document doc;
 		if (repositoryShadow!=null) {
 			resultShadow = repositoryShadow;
-			Element firstElement = resultShadow.getAttributes().getAny().get(0);
-			doc = firstElement.getOwnerDocument();
+			Object firstElement = resultShadow.getAttributes().getAny().get(0);
+			doc = JAXBUtil.getDocument(firstElement);
 		} else {
 			// TODO: create specific subtypes
 			resultShadow = new ResourceObjectShadowType();
@@ -350,7 +351,7 @@ public class ShadowCache {
 		// fresh and the attributes more complete.
 		// TODO: Discovery
 		// TODO: Optimize the use of XML namespaces
-		List<Element> xmlAttributes;
+		List<Object> xmlAttributes;
 		try {
 			xmlAttributes = resourceObject.serializePropertiesToDom(doc);
 
@@ -1132,7 +1133,7 @@ public class ShadowCache {
 		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
 		xpathSegments.add(xpathSegment);
 		XPathHolder xpath = new XPathHolder(xpathSegments);
-		List<Element> values = new ArrayList<Element>();
+		List<Object> values = new ArrayList<Object>();
 		try {
 			for (Property identifier : identifiers) {
 				values.addAll(identifier.serializeToDom(doc));
@@ -1142,10 +1143,16 @@ public class ShadowCache {
 					"Error serializing identifiers to dom. Reason: "
 							+ ex.getMessage(), ex);
 		}
-		Element filter = QueryUtil.createAndFilter(doc, QueryUtil
-				.createTypeFilter(doc, QNameUtil
-						.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
-				QueryUtil.createEqualFilter(doc, xpath, values));
+		Element filter;
+		try {
+			filter = QueryUtil.createAndFilter(doc, QueryUtil
+					.createTypeFilter(doc, QNameUtil
+							.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
+					QueryUtil.createEqualFilter(doc, xpath, values));
+		} catch (SchemaException e) {
+			parentResult.recordFatalError(e);
+			throw e;
+		}
 
 		QueryType query = new QueryType();
 		query.setFilter(filter);
@@ -1299,7 +1306,7 @@ public class ShadowCache {
 	}
 
 	private QueryType createSearchShadowQuery(ResourceObject resourceObject)
-			throws SchemaProcessorException {
+			throws SchemaException {
 
 		// We are going to query for attributes, so setup appropriate
 		// XPath for the filter
@@ -1309,7 +1316,7 @@ public class ShadowCache {
 		xpathSegments.add(xpathSegment);
 		XPathHolder xpath = new XPathHolder(xpathSegments);
 
-		// Now we need to determine what is the identifer and set corrent
+		// Now we need to determine what is the identifier and set correct
 		// value for it in the filter
 		Property identifier = resourceObject.getIdentifier();
 
@@ -1327,15 +1334,21 @@ public class ShadowCache {
 
 		// We have all the data, we can construct the filter now
 		Document doc = DOMUtil.getDocument();
-		Element filter = QueryUtil.createAndFilter(
-				doc,
-				// TODO: The account type is hardcoded now, it should determined
-				// from the shcema later, or maybe we can make it entirelly
-				// generic (use ResourceObjectShadowType instead).
-				QueryUtil.createTypeFilter(doc, QNameUtil
-						.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
-				QueryUtil.createEqualFilter(doc, xpath,
-						identifier.serializeToDom(doc)));
+		Element filter;
+		try {
+			filter = QueryUtil.createAndFilter(
+					doc,
+					// TODO: The account type is hardcoded now, it should determined
+					// from the schema later, or maybe we can make it entirely
+					// generic (use ResourceObjectShadowType instead).
+					QueryUtil.createTypeFilter(doc, QNameUtil
+							.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
+					QueryUtil.createEqualFilter(doc, xpath,
+							identifier.serializeToDom(doc)));
+		} catch (SchemaProcessorException e) {
+			LOGGER.error("Schema error while creating search filter: {}",e.getMessage(),e);
+			throw new SchemaException("Schema error while creating search filter: "+e.getMessage(),e);
+		}
 
 		QueryType query = new QueryType();
 		query.setFilter(filter);
@@ -1441,7 +1454,7 @@ public class ShadowCache {
 		}
 		ResourceObject resourceObject = rod.instantiate();
 
-		List<Element> attributes = resourceObjectShadow.getAttributes()
+		List<Object> attributes = resourceObjectShadow.getAttributes()
 				.getAny();
 
 		if (attributes == null) {
@@ -1469,11 +1482,11 @@ public class ShadowCache {
 			ResourceObjectShadowType resourceObjectShadow)
 			throws SchemaException {
 
-		List<Element> identifierElements = new ArrayList<Element>();
+		List<Object> identifierElements = new ArrayList<Object>();
 		Document doc = DOMUtil.getDocument();
 		for (Property p : identifiers) {
 			try {
-				List<Element> eList = p.serializeToDom(doc);
+				List<Object> eList = p.serializeToDom(doc);
 				identifierElements.addAll(eList);
 			} catch (SchemaProcessorException e) {
 				throw new SchemaException(
@@ -1536,7 +1549,7 @@ public class ShadowCache {
 		shadow.getAttributes().getAny().clear();
 		for (ResourceObjectAttribute attr : resourceObject.getAttributes()) {
 			try {
-				List<Element> eList = attr.serializeToDom(doc);
+				List<Object> eList = attr.serializeToDom(doc);
 				shadow.getAttributes().getAny().addAll(eList);
 			} catch (SchemaProcessorException e) {
 				throw new SchemaException(
@@ -1570,7 +1583,7 @@ public class ShadowCache {
 		Set<Property> identifiers = resourceObject.getIdentifiers();
 		for (Property p : identifiers) {
 			try {
-				List<Element> eList = p.serializeToDom(doc);
+				List<Object> eList = p.serializeToDom(doc);
 				shadow.getAttributes().getAny().addAll(eList);
 			} catch (SchemaProcessorException e) {
 				throw new SchemaException(
@@ -1666,7 +1679,7 @@ public class ShadowCache {
 		List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
 		xpathSegments.add(xpathSegment);
 		XPathHolder xpath = new XPathHolder(xpathSegments);
-		List<Element> values = new ArrayList<Element>();
+		List<Object> values = new ArrayList<Object>();
 		try {
 			for (Property identifier : identifiers) {
 				values.addAll(identifier.serializeToDom(doc));
@@ -1677,9 +1690,9 @@ public class ShadowCache {
 							+ ex.getMessage(), ex);
 		}
 		Element filter = QueryUtil.createAndFilter(doc, QueryUtil
-				.createTypeFilter(doc, QNameUtil
-						.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
-				QueryUtil.createEqualFilter(doc, xpath, values));
+					.createTypeFilter(doc, QNameUtil
+							.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
+					QueryUtil.createEqualFilter(doc, xpath, values));
 
 		QueryType query = new QueryType();
 		query.setFilter(filter);

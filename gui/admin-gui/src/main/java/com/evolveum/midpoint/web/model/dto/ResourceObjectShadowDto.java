@@ -75,7 +75,7 @@ public class ResourceObjectShadowDto<T extends ResourceObjectShadowType> extends
 			return Collections.emptyList();
 		}
 
-		List<Element> any = getXmlObject().getAttributes().getAny();
+		List<Object> any = getXmlObject().getAttributes().getAny();
 		for (Object o : any) {
 			elements.add((Element) o);
 		}

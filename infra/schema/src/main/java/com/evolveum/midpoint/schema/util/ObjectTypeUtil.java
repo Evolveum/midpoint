@@ -88,12 +88,12 @@ public class ObjectTypeUtil {
     }
 
 //    TODO: refactor to use one code base for the method
-    public static PropertyModificationType createPropertyModificationType(PropertyModificationTypeType changeType, XPathHolder xpathType, Node node) {
+    public static PropertyModificationType createPropertyModificationType(PropertyModificationTypeType changeType, XPathHolder xpathType, Object element) {
         PropertyModificationType change = new PropertyModificationType();
         change.setValue(new Value());
         change.setModificationType(changeType);
         change.setPath(xpathType.toElement(SchemaConstants.NS_C, "path"));
-        change.getValue().getAny().add((Element) node);
+        change.getValue().getAny().add(element);
 
         return change;
     }
@@ -128,25 +128,15 @@ public class ObjectTypeUtil {
         	// Emtpy value, that means empty element set. Nothing to do.
         	// This may be used e.g. for deleting all values (replacing by empty value)
         } else if (XsdTypeConverter.canConvert(value.getClass())) {
-        	Element e = doc.createElementNS(property.getNamespaceURI(), property.getLocalPart());
+        	
         	try {
-				XsdTypeConverter.toXsdElement(value, e);
+        		Object e = XsdTypeConverter.toXsdElement(value, property, doc);
+        		jaxbValue.getAny().add(e);
 			} catch (JAXBException ex) {
 				throw new SystemException("Unexpected JAXB problem while coverting "+property+" : "+ex.getMessage(),ex);
 			}
-        	jaxbValue.getAny().add(e);
-        	
-        } else if (value.getClass().getPackage().equals(ObjectFactory.class.getPackage())) {
-            // JAXB Object from a common schema
-            Element e;
-            try {
-                e = JAXBUtil.jaxbToDom(value, property, doc);
-            } catch (JAXBException ex) {
-                // This should not happen
-                throw new IllegalStateException(ex);
-            }
-            jaxbValue.getAny().add(e);
         } else if (value instanceof Element){
+        	// This may not be needed any more
         	jaxbValue.getAny().add((Element) value);
         } else {
             throw new IllegalArgumentException("Unsupported value type " + value.getClass().getName());
@@ -228,8 +218,15 @@ public class ObjectTypeUtil {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder();
-		for (Element e : extension.getAny()) {
-			sb.append(DOMUtil.serializeDOMToString(e));
+		for (Object e : extension.getAny()) {
+			try {
+				sb.append(JAXBUtil.serializeElementToString(e));
+			} catch (JAXBException e1) {
+				sb.append("[Unexpected exception: ");
+				sb.append(e1);
+				sb.append("]: ");
+				sb.append(e);
+			}
 			sb.append("\n");
 		}
 		return sb.toString();

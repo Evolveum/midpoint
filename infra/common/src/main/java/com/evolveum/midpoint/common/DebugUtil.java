@@ -192,17 +192,6 @@ public class DebugUtil implements ObjectFormatter {
 		return sb.toString();
 	}
 
-	public static String prettyPrint(AccountShadowType.Attributes attrs) {
-		if (attrs == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder();
-		for (Element el : attrs.getAny()) {
-			sb.append(prettyPrint(el));
-		}
-		return sb.toString();
-	}
-
 	public static String prettyPrint(ObjectContainerType container) {
 		if (container == null) {
 			return "null";

@@ -22,6 +22,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -45,12 +46,12 @@ public class ExtensionProcessor {
 	public static PropertyContainer parseExtension(Extension xmlExtension) {
 		// Extension is optional, so don't die on null
 		if (xmlExtension==null) {
-			return parseExtension((List<Element>)null);
+			return null;
 		}
 		return parseExtension(xmlExtension.getAny());
 	}
 	
-	public static PropertyContainer parseExtension(List<Element> xmlExtension) {
+	public static PropertyContainer parseExtension(List<Object> xmlExtension) {
 		PropertyContainer container = new PropertyContainer(SchemaConstants.C_EXTENSION);
 		
 		// Extension is optional, so don't die on null
@@ -60,22 +61,22 @@ public class ExtensionProcessor {
 		
 		// There is no extension schema at the moment. Therefore assume that all properties are strings unless there is an
 		// explicit xsi:type specification
-		for (Element element : xmlExtension) {
-			QName propName = DOMUtil.getQName(element);
-			Property property = new Property(propName);
-			
-			// Convert value
+		for (Object element : xmlExtension) {
 			TypedValue tval;
 			try {
 				tval = XsdTypeConverter.toTypedJavaValueWithDefaultType(element, DEFAULT_TYPE);
 			} catch (JAXBException e) {
-				throw new SystemException("Unexpected JAXB problem while parsing element {"+element.getNamespaceURI()+"}"+element.getLocalName()+" : "+e.getMessage(),e);
+				throw new SystemException("Unexpected JAXB problem while parsing element "+element+" : "+e.getMessage(),e);
 			}
 			Object value = tval.getValue();
+			QName propName = tval.getElementName();
+			QName xsdType = tval.getXsdType();
+			
+			Property property = new Property(propName);
 			property.setValue(value);
 			
 			// create appropriate definition for the property - not to lose type information in serializations
-			PropertyDefinition def = new PropertyDefinition(propName, tval.getXsdType());
+			PropertyDefinition def = new PropertyDefinition(propName, xsdType);
 			property.setDefinition(def);
 			
 			container.getProperties().add(property);
@@ -85,7 +86,7 @@ public class ExtensionProcessor {
 
 	public static Extension createExtension(PropertyContainer extension) {
 		Extension xmlExtension = new Extension();
-		List<Element> elements;
+		List<Object> elements;
 		try {
 			elements = extension.serializePropertiesToDom(DOMUtil.getDocument());
 		} catch (SchemaProcessorException e) {

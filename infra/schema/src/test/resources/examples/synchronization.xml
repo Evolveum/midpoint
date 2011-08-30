@@ -236,10 +236,13 @@
             <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#UserType"/> is implicit in correlation rules -->
                 <c:equal>
                     <c:path>.</c:path>
-                    <c:valueExpression ref="c:familyName">
+                    <c:valueExpression>
+			<c:ref>c:familyName</c:ref>
+			<c:code>
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                         declare namespace dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ";
                         $i:account/i:attributes/dj:sn
+			</c:code>
                         </c:valueExpression>
                 </c:equal>
             </m:correlation>

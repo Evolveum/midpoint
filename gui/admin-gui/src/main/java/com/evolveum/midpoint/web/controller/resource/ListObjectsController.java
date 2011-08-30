@@ -43,6 +43,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -138,7 +139,7 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 
 			Map<String, String> attributes = new HashMap<String, String>();
 			ResourceObjectShadowType account = (ResourceObjectShadowType) objectType;
-			List<Element> elements = account.getAttributes().getAny();
+			List<Object> elements = account.getAttributes().getAny();
 			for (QName qname : columnHeaders) {
 				attributes.put(qname.getLocalPart(), getElementValue(elements, qname));
 			}
@@ -219,18 +220,17 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 		return qnames;
 	}
 
-	private String getElementValue(List<Element> elements, QName qname) {
-		List<Element> elementList = new ArrayList<Element>();
-		for (Element element : elements) {
-			if (element.getLocalName().equals(qname.getLocalPart())
-					&& element.getNamespaceURI().equals(qname.getNamespaceURI())) {
+	private String getElementValue(List<Object> elements, QName qname) {
+		List<Object> elementList = new ArrayList<Object>();
+		for (Object element : elements) {
+			if (qname.equals(JAXBUtil.getElementQName(element))) {
 				elementList.add(element);
 			}
 		}
 
 		StringBuilder builder = new StringBuilder();
-		for (Element element : elementList) {
-			builder.append(element.getTextContent());
+		for (Object element : elementList) {
+			builder.append(JAXBUtil.getTextContentDump(element));
 			if (elementList.indexOf(element) != elementList.size() - 1) {
 				builder.append("\n");
 			}

@@ -24,6 +24,8 @@ package com.evolveum.midpoint.model.controller;
 
 import static org.testng.AssertJUnit.assertEquals;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
+
 import java.io.File;
 
 import javax.xml.bind.JAXBElement;
@@ -70,7 +72,7 @@ public class SchemaHandlerXPath2Test extends AbstractTestNGSpringContextTests {
 		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, account,
 				AccountShadowType.class);
 
-		assertEquals("name", appliedAccountShadow.getAttributes().getAny().get(0).getLocalName());
-		assertEquals("James Bond 007", appliedAccountShadow.getAttributes().getAny().get(0).getTextContent());
+		assertEquals("name", ((Element)appliedAccountShadow.getAttributes().getAny().get(0)).getLocalName());
+		assertEquals("James Bond 007", ((Element)appliedAccountShadow.getAttributes().getAny().get(0)).getTextContent());
 	}
 }

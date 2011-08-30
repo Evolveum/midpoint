@@ -98,8 +98,8 @@ public class XPathTest {
                 Node n = attributes.item(i);
 //                System.out.println("   A: " + n.getClass().getName() + " " + n.getNodeName() + "(" + n.getPrefix() + " : " + n.getLocalName() + ") = " + n.getNodeValue());
             }
-            List<Element> any = change.getValue().getAny();
-            for (Element e : any) {
+            List<Object> any = change.getValue().getAny();
+            for (Object e : any) {
 //                System.out.println("  E: " + e.getLocalName());
             }
 

@@ -15,9 +15,11 @@
 		<i:property>i:fullName</i:property>
 		<i:valueConstruction default="true">
 			<i:valueExpression>
+				<i:code>
 				declare namespace
 				i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 				concat($i:user/i:givenName,' ',$i:user/i:familyName)
+				</i:code>
 			</i:valueExpression>
 		</i:valueConstruction>
 	</i:propertyConstruction>

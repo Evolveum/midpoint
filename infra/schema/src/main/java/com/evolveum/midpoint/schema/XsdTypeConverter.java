@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -33,7 +34,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.codec.binary.Base64;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -118,39 +121,46 @@ public class XsdTypeConverter {
 		return javaType;
 	}
 
-	public static Object toJavaValue(Element xmlElement, Class type) throws JAXBException {
-		String stringContent = xmlElement.getTextContent();
-		if (type.equals(String.class)) {
-			return stringContent;
-		} else if (type.equals(char.class)) {
-			return stringContent.charAt(0);
-		} else if (type.equals(File.class)) {
-			return new File(stringContent);
-		} else if (type.equals(Integer.class)) {
-			return Integer.valueOf(stringContent);
-		} else if (type.equals(int.class)) {
-			return Integer.parseInt(stringContent);
-		} else if (type.equals(Long.class)) {
-			return Long.valueOf(stringContent);
-		} else if (type.equals(long.class)) {
-			return Long.parseLong(stringContent);
-		} else if (type.equals(byte[].class)) {
-			byte[] decodedData = Base64.decodeBase64(xmlElement.getTextContent());
-			return decodedData;
-		} else if (type.equals(boolean.class) || Boolean.class.isAssignableFrom(type)) {
-			return Boolean.parseBoolean(stringContent);
-		} else if (type.equals(GregorianCalendar.class)) {
-			return getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
-		} else if (type.equals(QName.class)) {
-			return DOMUtil.getQNameValue(xmlElement);
-		} else if (isJaxbClass(type)) {
-			return JAXBUtil.unmarshal(xmlElement).getValue();
+	public static <T> T toJavaValue(Object element, Class<T> type) throws JAXBException {
+		if (element instanceof Element) {
+			Element xmlElement = (Element)element;
+			String stringContent = xmlElement.getTextContent();
+			if (type.equals(String.class)) {
+				return (T) stringContent;
+			} else if (type.equals(char.class)) {
+				return (T)(new Character(stringContent.charAt(0)));
+			} else if (type.equals(File.class)) {
+				return (T) new File(stringContent);
+			} else if (type.equals(Integer.class)) {
+				return (T) Integer.valueOf(stringContent);
+			} else if (type.equals(int.class)) {
+				return (T) Integer.valueOf(stringContent);
+			} else if (type.equals(Long.class)) {
+				return (T) Long.valueOf(stringContent);
+			} else if (type.equals(long.class)) {
+				return (T) Long.valueOf(stringContent);
+			} else if (type.equals(byte[].class)) {
+				byte[] decodedData = Base64.decodeBase64(xmlElement.getTextContent());
+				return (T) decodedData;
+			} else if (type.equals(boolean.class) || Boolean.class.isAssignableFrom(type)) {
+				return (T) Boolean.valueOf(stringContent);
+			} else if (type.equals(GregorianCalendar.class)) {
+				return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
+			} else if (type.equals(QName.class)) {
+				return (T) DOMUtil.getQNameValue(xmlElement);
+			} else if (isJaxbClass(type)) {
+				return (T) JAXBUtil.unmarshal(xmlElement).getValue();
+			} else {
+				throw new IllegalArgumentException("Unknown type for conversion: " + type);
+			}
+		} else if (element instanceof JAXBElement) {
+			return ((JAXBElement<T>)element).getValue();
 		} else {
-			throw new IllegalArgumentException("Unknown type for conversion: " + type);
+			throw new IllegalArgumentException("Unsupported element type: " + element.getClass().getName() + ": "+element);
 		}
 	}
 
-	public static Object toJavaValue(Element xmlElement, QName type) throws JAXBException {
+	public static Object toJavaValue(Object xmlElement, QName type) throws JAXBException {
 		return toJavaValue(xmlElement, toJavaType(type));
 	}
 
@@ -161,7 +171,7 @@ public class XsdTypeConverter {
 	 * @return
 	 * @throws JAXBException
 	 */
-	public static Object toJavaValue(Element xmlElement) throws JAXBException {
+	public static Object toJavaValue(Object xmlElement) throws JAXBException {
 		return toTypedJavaValueWithDefaultType(xmlElement, null).getValue();
 	}
 
@@ -176,73 +186,98 @@ public class XsdTypeConverter {
 	 * @throws IllegalStateException
 	 *             if no xsi:type or default type specified
 	 */
-	public static TypedValue toTypedJavaValueWithDefaultType(Element xmlElement, QName defaultType)
-			throws JAXBException {
-		QName xsiType = DOMUtil.resolveXsiType(xmlElement, null);
-		if (xsiType == null) {
-			xsiType = defaultType;
-			if (xsiType == null) {
-				throw new IllegalStateException("Cannot conver element " + xmlElement
-						+ " to java, no type information available");
+	public static TypedValue toTypedJavaValueWithDefaultType(Object element, QName defaultType) throws JAXBException {
+		if (element instanceof Element) {
+			// DOM Element
+			Element xmlElement = (Element)element;
+			QName xsiType = DOMUtil.resolveXsiType(xmlElement, null);
+			if (xsiType==null) {
+				xsiType = defaultType;
+				if (xsiType==null) {
+					throw new IllegalStateException("Cannot conver element "+xmlElement+" to java, no type information available");
+				}
 			}
-		}
-
-		return new TypedValue(toJavaValue(xmlElement, xsiType), xsiType);
-	}
-
-	public static void toXsdElement(Object val, QName typeName, Element element, boolean recordType)
-			throws JAXBException {
-		// Just ignore the typeName for now. The java type will determine the
-		// conversion
-		toXsdElement(val, element, false);
-		// But record the correct type is asked to
-		if (recordType) {
-			if (typeName == null) {
-				// if no type was specified, just record the one that was used
-				// for automatic conversion
-				typeName = toXsdType(val.getClass());
-			}
-			DOMUtil.setXsiType(element, typeName);
+			return new TypedValue(toJavaValue(xmlElement, xsiType),xsiType,DOMUtil.getQName(xmlElement));
+		} else if (element instanceof JAXBElement) {
+			// JAXB Element
+			JAXBElement jaxbElement = (JAXBElement)element;
+			return new TypedValue(jaxbElement.getValue(),toXsdType(jaxbElement.getDeclaredType()),jaxbElement.getName());
+		} else {
+			throw new IllegalArgumentException("Unsupported element type "+element.getClass().getName()+" in "+XsdTypeConverter.class.getSimpleName());
 		}
 	}
-
-	public static void toXsdElement(Object val, Element element) throws JAXBException {
-		toXsdElement(val, element, false);
+	
+	public static Object toXsdElement(Object val, QName typeName, QName elementName, Document doc, boolean recordType) throws JAXBException {
+		// Just ignore the typeName for now. The java type will determine the conversion
+		Object createdObject = toXsdElement(val, elementName, doc, false);
+		if (createdObject instanceof Element) {
+			Element createdElement = (Element)createdObject;
+			// But record the correct type is asked to
+			if (recordType) {
+				if (typeName==null) {
+					// if no type was specified, just record the one that was used for automatic conversion
+					typeName=toXsdType(val.getClass());
+				}
+				DOMUtil.setXsiType(createdElement, typeName);
+			}
+		}
+		return createdObject;
 	}
 
-	public static void toXsdElement(Object val, Element element, boolean recordType) throws JAXBException {
+	public static Object toXsdElement(Object val, QName elementName, Document doc) throws JAXBException {
+		return toXsdElement(val, elementName, doc, false);
+	}
+
+	/**
+	 * 
+	 * @param val
+	 * @param elementName
+	 * @param parentNode
+	 * @param recordType
+	 * @return created element
+	 * @throws JAXBException
+	 */
+	public static Object toXsdElement(Object val, QName elementName, Document doc, boolean recordType) throws JAXBException {
 		if (val == null) {
 			// if no value is specified, do not create element
-			return;
+			return null;
 		}
 		Class type = val.getClass();
-		if (type.equals(String.class)) {
-			element.setTextContent((String) val);
-		} else if (type.equals(char.class) || type.equals(Character.class)) {
-			element.setTextContent(((Character) val).toString());
-		} else if (type.equals(File.class)) {
-			element.setTextContent(((File) val).getPath());
-		} else if (type.equals(int.class) || type.equals(Integer.class)) {
-			element.setTextContent(((Integer) val).toString());
-		} else if (type.equals(long.class) || type.equals(Long.class)) {
-			element.setTextContent(((Long) val).toString());
-		} else if (type.equals(byte[].class)) {
-			byte[] binaryData = (byte[]) val;
-			element.setTextContent(Base64.encodeBase64String(binaryData));
-		} else if (type.equals(GregorianCalendar.class)) {
-			XMLGregorianCalendar xmlCal = toXMLGregorianCalendar((GregorianCalendar) val);
-			element.setTextContent(xmlCal.toXMLFormat());
-		} else if (type.equals(QName.class)) {
-			QName qname = (QName) val;
-			DOMUtil.setQNameValue(element, qname);
-		} else if (isJaxbClass(type)) {
-			JAXBUtil.marshal(val, element);
+		if (isJaxbClass(type)) {
+			JAXBElement jaxbElement = new JAXBElement(elementName, type, val);
+			return jaxbElement;
 		} else {
-			throw new IllegalArgumentException("Unknown type for conversion: " + type);
-		}
-		if (recordType) {
-			QName xsdType = toXsdType(val.getClass());
-			DOMUtil.setXsiType(element, xsdType);
+			if (doc == null) {
+				doc = DOMUtil.getDocument();
+			}
+			Element element = doc.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
+			if (type.equals(String.class)) {
+				element.setTextContent((String)val);
+			} else if (type.equals(char.class) || type.equals(Character.class)) {
+				element.setTextContent(((Character)val).toString());
+			} else if (type.equals(File.class)) {
+				element.setTextContent(((File)val).getPath());
+			} else if (type.equals(int.class) || type.equals(Integer.class)) {
+				element.setTextContent(((Integer)val).toString());
+			} else if (type.equals(long.class) || type.equals(Long.class)) {
+				element.setTextContent(((Long)val).toString());
+			} else if (type.equals(byte[].class)) {
+				byte[] binaryData = (byte[]) val;
+				element.setTextContent(Base64.encodeBase64String(binaryData));
+			} else if (type.equals(GregorianCalendar.class)) {
+				XMLGregorianCalendar xmlCal = toXMLGregorianCalendar((GregorianCalendar)val);
+				element.setTextContent(xmlCal.toXMLFormat());
+			} else if (type.equals(QName.class)) {
+				QName qname = (QName)val;
+				DOMUtil.setQNameValue(element, qname);
+			} else {
+				throw new IllegalArgumentException("Unknown type for conversion: " + type);
+			}
+			if (recordType) {
+				QName xsdType = toXsdType(val.getClass());
+				DOMUtil.setXsiType(element, xsdType);
+			}
+			return element;
 		}
 	}
 
@@ -251,7 +286,17 @@ public class XsdTypeConverter {
 	}
 
 	private static boolean isJaxbClass(Class clazz) {
+		if (clazz == null) {
+			throw new IllegalArgumentException("No class, no fun");
+		}
+		if (clazz.getPackage()==null) {
+			// No package: this is most likely a primitive type and definitely not a JAXB class
+			return false;
+		}
 		for (int i = 0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
+			if (SchemaConstants.JAXB_PACKAGES[i]==null) {
+				throw new IllegalStateException("Entry #"+i+" in SchemaConstants.JAXB_PACKAGES is null");
+			}
 			if (SchemaConstants.JAXB_PACKAGES[i].equals(clazz.getPackage().getName())) {
 				return true;
 			}

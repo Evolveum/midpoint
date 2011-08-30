@@ -345,11 +345,6 @@
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<xjc:dom />
-						</xsd:appinfo>
-					</xsd:annotation>
 				</xsd:any>
 			</xsd:sequence>
 		</xsd:complexType>
@@ -753,9 +748,6 @@
 											PropertyChangeType element must
 											be repeated.
 										</xsd:documentation>
-										<xsd:appinfo>
-											<xjc:dom />
-										</xsd:appinfo>
 									</xsd:annotation>
 								</xsd:any>
 							</xsd:sequence>
@@ -3412,7 +3404,7 @@
 										different values of course).
 									</xsd:documentation>
 									<xsd:appinfo>
-										<xjc:dom />
+										<jaxb:dom />
 									</xsd:appinfo>
 								</xsd:annotation>
 							</xsd:any>
@@ -4630,11 +4622,6 @@
 								<xsd:complexType>
 									<xsd:sequence>
 										<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
-											<xsd:annotation>
-												<xsd:appinfo>
-													<xjc:dom />
-												</xsd:appinfo>
-											</xsd:annotation>
 										</xsd:any>
 									</xsd:sequence>
 								</xsd:complexType>
@@ -5195,7 +5182,7 @@
 		</xsd:documentation>
 	</xsd:annotation>
 
-	<xsd:complexType name="ExpressionType" mixed="true">
+	<xsd:complexType name="ExpressionType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Generic expression. The purpose of the expression
@@ -5207,14 +5194,6 @@
 				XML node or a list of XML
 				nodes.
 
-				The
-				expression code is supposed to be
-				in the contect of this type.
-				The content ix "mixed" which allows both
-				XML
-				and non-XML
-				languages.
-
 				The expression may use variables or
 				arguments. However, such
 				variables or arguments passed to
@@ -5225,61 +5204,68 @@
 				documented in each case this
 				type is used.
 			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="ref" type="xsd:QName" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						QName of the XML node that the expression is
+						supposed to produce. This attribute is optional.
+	
+						If this attribute is used and the expression produces a string output, the output
+						should be considered as the content of a XML element defined by the contect of this
+						attribute.
+	
+						If the expression produces a XML node or a set of nodes, the node(s) should match the
+						content of this attribute.
+	
+						However, the exact interpretation of this attribute is not defined here, it may be
+						different for each use of this type.
+					</xsd:documentation>
+				</xsd:annotation>			
+			</xsd:element>
+			<xsd:element name="language" type="xsd:anyURI" minOccurs="0" default="http://www.w3.org/TR/xpath/">
+				<xsd:annotation>
+					<xsd:documentation>
+						Language of the expression.
+						The expressions in
+						multiple languages may be supported in
+						later
+						versions of
+						midPoint.
+						Now the only supported language
+						is XPath 1.0, which is also the
+						default language.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="code" type="tns:ExpressionCodeType">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:element name="expression" type="tns:ExpressionType" />
+
+	<xsd:complexType name="ExpressionCodeType" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>
+				The expression code is supposed to be in the contect of this type. The content ix "mixed"
+				which allows both XML and non-XML languages.
+
+				The expression may use variables or arguments. However, such variables or arguments passed
+				to the expression will be different for each invocation. It should be documented in each
+				case this type is used.
+			</xsd:documentation>
 			<xsd:appinfo>
 				<jaxb:dom />
 			</xsd:appinfo>
 		</xsd:annotation>
-		<xsd:attribute name="language" type="xsd:anyURI" use="optional" default="http://www.w3.org/TR/xpath/">
-			<xsd:annotation>
-				<xsd:documentation>
-					Language of the expression.
-					The expressions in
-					multiple languages may be supported in
-					later
-					versions of
-					midPoint.
-					Now the only supported language
-					is XPath 1.0, which is also the
-					default language.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
-		<xsd:attribute name="ref" type="xsd:QName" use="optional">
-			<xsd:annotation>
-				<xsd:documentation>
-					QName of the XML node that the expression is
-					supposed to
-					produce. This attribute is optional.
-
-					If
-					this
-					attribute is
-					used and the expression produces a
-					string output, the output should
-					be considered as the
-					content of
-					a XML element
-					defined by the contect
-					of this
-					attribute.
-
-					If the expression produces a XML node or a set of
-					nodes, the
-					node(s) should match the
-					content of this attribute.
-
-					However, the exact interpretation of this attribute is
-					not
-					defined
-					here, it may be different for
-					each use of this
-					type.
-				</xsd:documentation>
-			</xsd:annotation>
-		</xsd:attribute>
 	</xsd:complexType>
-
-	<xsd:element name="expression" type="tns:ExpressionType" />
 
 	<xsd:element name="condition" type="tns:ExpressionType">
 		<xsd:annotation>

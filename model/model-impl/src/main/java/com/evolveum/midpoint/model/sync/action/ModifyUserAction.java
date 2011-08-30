@@ -29,6 +29,7 @@ import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.controller.SchemaHandlerException;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -95,7 +96,7 @@ public class ModifyUserAction extends BaseAction {
 				LOGGER.warn("Diff returned null for changes of user {}, caused by shadow {}",
 						userType.getOid(), shadowAfterChange.getOid());
 			}
-		} catch (SchemaHandlerException ex) {
+		} catch (SchemaException ex) {
 			throw new SynchronizationException("Can't handle inbound section in schema handling", ex);
 		} catch (DiffException ex) {
 			throw new SynchronizationException("Can't save user. Unexpected error: "

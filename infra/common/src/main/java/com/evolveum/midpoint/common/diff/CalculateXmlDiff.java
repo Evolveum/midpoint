@@ -249,7 +249,8 @@ public class CalculateXmlDiff {
 				XPathHolder registeredXPath = new XPathHolder(change.getPath());
 				if (xpathType.getXPath().equals(registeredXPath.getXPath())) {
 					// TODO: supported is list with only one element
-					if (replacePropertyName.equals(change.getValue().getAny().get(0).getLocalName())) {
+					String elementLocalName = JAXBUtil.getElementLocalName(change.getValue().getAny().get(0));
+					if (replacePropertyName.equals(elementLocalName)) {
 						return true;
 					}
 				}
@@ -362,8 +363,13 @@ public class CalculateXmlDiff {
 						"Finished processing of difference {}. Relative change for difference is change = {}",
 						diff.getDescription(), DebugUtil.prettyPrint(change));
 				if (null != change.getValue()) {
-					logger.trace("Relative change value= {}",
-							DOMUtil.serializeDOMToString(change.getValue().getAny().get(0)));
+					try {
+						logger.trace("Relative change value= {}",
+								JAXBUtil.serializeElementToString(change.getValue().getAny().get(0)));
+					} catch (JAXBException e) {
+						logger.error("Unexpected JAXB exception while serializing "+change.getValue().getAny().get(0)+": "+e.getMessage(),e);
+						throw new IllegalStateException("Unexpected JAXB exception while serializing "+change.getValue().getAny().get(0)+": "+e.getMessage(),e);
+					}
 				} else {
 					logger.trace("Relative change value was null");
 				}

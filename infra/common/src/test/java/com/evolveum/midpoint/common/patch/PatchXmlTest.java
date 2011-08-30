@@ -44,6 +44,8 @@ public class PatchXmlTest {
 
 		String patchedXml = (new PatchXml()).applyDifferences(changes, new File(
 				"src/test/resources/patch/account-shadow.xml"));
+		System.out.println("Patched XML: ");
+		System.out.println(patchedXml);
 		XmlAsserts.assertPatch(new File("src/test/resources/patch/result.xml"), patchedXml);
 	}
 }

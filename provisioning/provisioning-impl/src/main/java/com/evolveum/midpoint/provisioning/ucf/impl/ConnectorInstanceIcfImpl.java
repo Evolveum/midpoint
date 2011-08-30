@@ -1538,7 +1538,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Set<Property> identifiers = resourceObject.getIdentifiers();
 		for (Property p : identifiers) {
 			try {
-				List<Element> eList = p.serializeToDom(doc);
+				List<Object> eList = p.serializeToDom(doc);
 				shadow.getAttributes().getAny().addAll(eList);
 			} catch (SchemaProcessorException e) {
 				throw new SchemaException(
@@ -1561,12 +1561,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			propertyModification
 					.setModificationType(PropertyModificationTypeType.add);
 			Document doc = DOMUtil.getDocument();
-			List<Element> elements;
+			List<Object> elements;
 			try {
 				elements = attr.serializeToDom(doc);
-				for (Element e : elements) {
+				for (Object e : elements) {
 					LOGGER.debug("Atribute to modify value: {}",
-							e.getTextContent());
+							JAXBUtil.getTextContentDump(e));
 				}
 				PropertyModificationType.Value value = new PropertyModificationType.Value();
 				value.getAny().addAll(elements);
@@ -1601,14 +1601,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private SyncToken getSyncToken(Property lastToken) throws SchemaException {
 		Object obj = null;
 		Document doc = DOMUtil.getDocument();
-		List<Element> elements = null;
+		List<Object> elements = null;
 		try {
 			elements = lastToken.serializeToDom(doc);
 		} catch (SchemaProcessorException ex) {
 			throw new SchemaException(
 					"Failed to serialize last token property to dom.");
 		}
-		for (Element e : elements) {
+		for (Object e : elements) {
 			try {
 				obj = XsdTypeConverter.toJavaValue(e, lastToken.getDefinition()
 						.getTypeName());

@@ -152,12 +152,11 @@ public class IntegrationTestTools {
 
 	public static List<String> getAttributeValues(ResourceObjectShadowType repoShadow, QName name) {
 		List<String> values = new ArrayList<String>();
-		List<Element> xmlAttributes = repoShadow.getAttributes().getAny();
-		for (Element element : xmlAttributes) {
-			if (element.getNamespaceURI().equals(name.getNamespaceURI())
-					&& element.getLocalName().equals(name.getLocalPart())) {
-				values.add(element.getTextContent());
-			}
+		List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
+		for (Object element : xmlAttributes) {
+			if (name.equals(JAXBUtil.getElementQName(element))) {
+				values.add(((Element)element).getTextContent());
+			}			
 		}
 		return values;
 	}

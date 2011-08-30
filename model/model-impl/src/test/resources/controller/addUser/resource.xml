@@ -198,8 +198,10 @@
                 <c:access>read</c:access>
                 <i:outbound default="true">
                     <i:valueExpression>
+                    <c:code>
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                         concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
+                        </c:code>
                         </i:valueExpression>
                 </i:outbound>                    
             </i:attribute>
@@ -214,8 +216,10 @@
                 <c:access>update</c:access>
                 <i:outbound>
                     <i:valueExpression>
+                    <c:code>
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                         $i:user/i:fullName
+                        </c:code>
                     </i:valueExpression>
                 </i:outbound>
             </i:attribute>
@@ -226,8 +230,10 @@
                 <c:access>update</c:access>
                 <i:outbound>
                     <i:valueExpression>
+                    <c:code>
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                         $i:user/i:familyName
+                        </c:code>
                     </i:valueExpression>
                 </i:outbound>
             </i:attribute>
@@ -238,8 +244,10 @@
                 <c:access>update</c:access>
                 <i:outbound>
                     <i:valueExpression>
+                    <c:code>
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                         $i:user/i:givenName
+                        </c:code>
                     </i:valueExpression>
                 </i:outbound>
             </i:attribute>

@@ -39,6 +39,7 @@ import org.w3c.dom.NodeList;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.ExpressionHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -73,12 +75,10 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "./user-new.xml")))
 				.getValue();
 
-		Document doc = DOMUtil.parseDocument("<confirmation "
+		ExpressionType expression = JAXBUtil.unmarshal(ExpressionType.class, "<confirmation "
 				+ "xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' "
 				+ "xmlns:dj='http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ'>"
-				+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</confirmation>");
-		Element element = (Element) doc.getFirstChild();
-		ExpressionHolder expression = new ExpressionHolder(element);
+				+ "<c:code>$c:user/c:givenName = $c:account/c:attributes/dj:givenName</c:code></confirmation>").getValue();
 
 		OperationResult result = new OperationResult("testConfirmUserWithoutModel");
 		try {
@@ -97,12 +97,10 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "./user-new.xml")))
 				.getValue();
 
-		Document doc = DOMUtil.parseDocument("<confirmation "
+		ExpressionType expression = JAXBUtil.unmarshal(ExpressionType.class, "<confirmation "
 				+ "xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' "
 				+ "xmlns:dj='http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ'>"
-				+ "$c:user/c:givenName = $c:account/c:attributes/dj:givenName</confirmation>");
-		Element element = (Element) doc.getFirstChild();
-		ExpressionHolder expression = new ExpressionHolder(element);
+				+ "<c:code>$c:user/c:givenName = $c:account/c:attributes/dj:givenName</c:code></confirmation>").getValue();
 
 		OperationResult result = new OperationResult("testConfirmUser");
 		boolean confirmed = expressionHandler.evaluateConfirmationExpression(user, account, expression,
@@ -122,11 +120,11 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		account.setResource(resource);
 		account.setResourceRef(null);
 
-		Element valueExpression = findChildElement(
+		Element valueExpressionElement = findChildElement(
 				resource.getSynchronization().getCorrelation().getFilter(), SchemaConstants.NS_C,
 				"valueExpression");
-		ExpressionHolder expression = new ExpressionHolder(valueExpression);
-		LOGGER.debug(DebugUtil.prettyPrint(valueExpression));
+		ExpressionType expression = XsdTypeConverter.toJavaValue(valueExpressionElement, ExpressionType.class);
+		LOGGER.debug(DebugUtil.prettyPrint(expression));
 
 		OperationResult result = new OperationResult("testCorrelationRule");
 		expressionHandler.setModel(model);

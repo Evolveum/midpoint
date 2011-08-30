@@ -189,7 +189,7 @@ public abstract class Definition implements Serializable {
 	
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + ":" + getName();
+		return getClass().getSimpleName() + ":" + getName() + " ("+getTypeName()+")";
 	}
 	
 	public String dump(int indent) {

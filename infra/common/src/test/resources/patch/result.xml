@@ -182,8 +182,9 @@
 					<outbound default="true">
 						<valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 							xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
-							xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">concat('uid=', $c:user/c:name,
-							',ou=people,dc=example,dc=com')</valueExpression>
+							xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+							<code>concat('uid=', $c:user/c:name, ', ou=people,dc=example,dc=com')</code>
+						</valueExpression>
 					</outbound>
 				</attribute>
 				<attribute ref="ids:__UID__" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
@@ -197,7 +198,9 @@
 					<access>read</access>
 					<access>update</access>
 					<outbound>
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">$i:user/i:fullName</valueExpression>
+						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+							<code>$i:user/i:fullName</code>
+						</valueExpression>
 					</outbound>
 					<inbound>
 						<valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#emptyFilter" />
@@ -215,7 +218,9 @@
 					<access>read</access>
 					<access>update</access>
 					<outbound>
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">$i:user/i:familyName</valueExpression>
+						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+							<code>$i:user/i:familyName</code>
+						</valueExpression>
 					</outbound>
 				</attribute>
 				<attribute ref="ri:givenName"
@@ -225,7 +230,9 @@
 					<access>read</access>
 					<access>update</access>
 					<outbound>
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">$i:user/i:givenName</valueExpression>
+						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+							<code>$i:user/i:givenName</code>
+						</valueExpression>
 					</outbound>
 				</attribute>
 				<attribute ref="ri:description"

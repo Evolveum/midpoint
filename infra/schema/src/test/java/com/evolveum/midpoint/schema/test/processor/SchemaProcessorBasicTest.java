@@ -4,6 +4,8 @@
  */
 package com.evolveum.midpoint.schema.test.processor;
 
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertEquals;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 import org.testng.annotations.BeforeMethod;
@@ -16,9 +18,12 @@ import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import java.util.List;
 import java.util.Set;
+
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -67,7 +72,7 @@ public class SchemaProcessorBasicTest {
 	}
 
 	@Test
-	public void instantiationTest() throws SchemaProcessorException {
+	public void instantiationTest() throws SchemaProcessorException, JAXBException {
 		// GIVEN
 		
 		Document schemaDom = DOMUtil.parseFile(SCHEMA1_FILENAME);
@@ -104,12 +109,21 @@ public class SchemaProcessorBasicTest {
 		System.out.println("FirstType INST: "+type1Inst);
 		// Serialize to DOM
 		
-		Element xmlObject = type1Inst.serializeToDom(DOMUtil.getDocument());
+		List<Object> elements = type1Inst.serializePropertiesToDom(DOMUtil.getDocument());
 
 		// TODO: Serialize to XML and check
 		
 		System.out.println("Serialized: ");
-		System.out.println(DOMUtil.serializeDOMToString(xmlObject));
+		for (Object o : elements) {
+			System.out.println(JAXBUtil.serializeElementToString(o));
+			assertTrue(o instanceof Element);
+			Element e = (Element)o;
+			if (e.getLocalName().equals("prop1")) {
+				assertEquals("FOOBAR",e.getTextContent());
+			} else if (e.getLocalName().equals("prop2")) {
+				assertEquals("321",e.getTextContent());
+			}
+		}
 	}
 	
 	@Test

@@ -21,9 +21,12 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.IOException;
 import java.text.MessageFormat;
 
+import org.xml.sax.EntityResolver;
 import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -35,9 +38,16 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * 
  * @author Vilo Repan
  */
-public class SchemaErrorHandler implements ErrorHandler {
+public class SchemaErrorHandler implements ErrorHandler, EntityResolver {
 
 	private static final Trace TRACE = TraceManager.getTrace(SchemaErrorHandler.class);
+	
+	private EntityResolver entityResolver;
+
+	public SchemaErrorHandler(EntityResolver entityResolver) {
+		super();
+		this.entityResolver = entityResolver;
+	}
 
 	@Override
 	public void warning(SAXParseException e) throws SAXException {
@@ -61,12 +71,30 @@ public class SchemaErrorHandler implements ErrorHandler {
 		builder.append("Error occured during schema parsing: ");
 		builder.append(header);
 		builder.append(" ");
-		builder.append(MessageFormat.format("on line {0} at {1}",
-				new Object[] { Integer.toString(e.getLineNumber()), e.getSystemId() }));
+		builder.append(MessageFormat.format("on line {0} at {1}, {2}",
+				new Object[] { Integer.toString(e.getLineNumber()), e.getSystemId(), e.getPublicId() }));
 		builder.append(" ");
 		builder.append(e.getMessage());
 
 		TRACE.error(builder.toString());
 		TRACE.trace(builder.toString(), e);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.xml.sax.EntityResolver#resolveEntity(java.lang.String, java.lang.String)
+	 */
+	@Override
+	public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+		try {
+			InputSource source = entityResolver.resolveEntity(publicId, systemId);
+			TRACE.trace("Resolved entity {}, {}: {}",new Object[]{publicId,systemId,source});
+			return source;
+		} catch (SAXException e) {
+			TRACE.error("Error resolving entity {}, {}: {}",new Object[]{publicId,systemId,e.getMessage(),e});
+			throw e;
+		} catch (IOException e) {
+			TRACE.error("Error resolving entity {}, {}: {}",new Object[]{publicId,systemId,e.getMessage(),e});
+			throw e;
+		}
 	}
 }

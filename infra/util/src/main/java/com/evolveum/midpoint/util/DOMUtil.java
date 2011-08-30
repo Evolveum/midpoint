@@ -272,6 +272,23 @@ public class DOMUtil {
 		return null;
 	}
 	
+	public static Element getLastChildElement(Node parent) {
+		if (parent == null || parent.getChildNodes() == null) {
+			return null;
+		}
+
+		NodeList nodes = parent.getChildNodes();
+		for (int i = nodes.getLength()-1; i >= 0; i--) {
+			Node child = nodes.item(i);
+			if (child.getNodeType() == Node.ELEMENT_NODE) {
+				return (Element) child;
+			}
+		}
+
+		return null;
+	}
+
+	
 	public static List<Element> getSubelementList(Node node) {
 		List<Element> subelements = new ArrayList<Element>();
 		NodeList childNodes = node.getChildNodes();
@@ -282,6 +299,10 @@ public class DOMUtil {
 			}
 		}
 		return subelements;
+	}
+	
+	public static QName resolveQName(Element element) {
+		return resolveQName(element, element.getTextContent());
 	}
 	
 	public static QName resolveQName(Node domNode, String prefixNotation) {
@@ -328,6 +349,10 @@ public class DOMUtil {
         return ns;
     }
 
+    public static QName resolveXsiType(Element element) {
+    	return resolveXsiType(element,null);
+    }
+    
 	public static QName resolveXsiType(Element element, String defaultNamespacePrefix) {
 		String xsiType = element.getAttributeNS(XSI_TYPE.getNamespaceURI(), XSI_TYPE.getLocalPart());
 		if (xsiType == null || xsiType.isEmpty()) {
@@ -446,4 +471,17 @@ public class DOMUtil {
 		return resolveQName(element, element.getTextContent());
 	}
 
+	public static void copyContent(Element source, Element destination) {
+		NamedNodeMap attributes = source.getAttributes();
+		for (int i=0; i<attributes.getLength(); i++) {
+			Attr attr = (Attr) attributes.item(i);
+			destination.setAttributeNode(attr);
+		}
+		NodeList childNodes = source.getChildNodes();
+		for(int i=0; i<childNodes.getLength(); i++) {
+			Node item = childNodes.item(i);
+			destination.appendChild(item);
+		}
+	}
+	
 }

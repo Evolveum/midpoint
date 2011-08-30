@@ -207,7 +207,7 @@ public class PropertyContainer implements Serializable, Dumpable {
 	}
 
 	/**
-	 * Serialize properties to DOM.
+	 * Serialize properties to DOM or JAXB Elements.
 	 * 
 	 * The properties are serialized to DOM and returned as a list.
 	 * The property container element is not serialized. 
@@ -216,13 +216,13 @@ public class PropertyContainer implements Serializable, Dumpable {
 	 * @return list of serialized properties
 	 * @throws SchemaProcessorException the schema definition is missing or is inconsistent
 	 */
-	public List<Element> serializePropertiesToDom(Document doc) throws SchemaProcessorException {
+	public List<Object> serializePropertiesToDom(Document doc) throws SchemaProcessorException {
 		if (getDefinition() == null) {
 			// No definition. Therefore serialize properties one by one using a schema-less serialization
 			// Although schema-full serialization is strogly preferred, this is needed for "extension" and
 			// other schema-less parts.
 			for (Property property : properties) {
-				List<Element> elements = new ArrayList<Element>();
+				List<Object> elements = new ArrayList<Object>();
 				elements.addAll(property.serializeToDom(doc));
 				return elements;
 			}
@@ -231,7 +231,7 @@ public class PropertyContainer implements Serializable, Dumpable {
 	}
 
 	/**
-	 * Serialize entire property container to DOM.
+	 * Serialize entire property container to DOM or JAXB Element.
 	 * 
 	 * Entire property container is returned wrapped in a
 	 * single DOM element. The properties are serialized
@@ -244,15 +244,15 @@ public class PropertyContainer implements Serializable, Dumpable {
 	 * @return serialized property container as DOM element
 	 * @throws SchemaProcessorException the schema definition is missing or is inconsistent
 	 */
-	public Element serializeToDom(Document doc) throws SchemaProcessorException {
-		List<Element> elements = serializePropertiesToDom(doc);
-		Element container = doc.createElementNS(getName().getNamespaceURI(),
-				getName().getLocalPart());
-		for (Element el : elements) {
-			container.appendChild(el);
-		}
-		return container;
-	}
+//	public Element serializeToDom(Document doc) throws SchemaProcessorException {
+//		List<Element> elements = serializePropertiesToDom(doc);
+//		Element container = doc.createElementNS(getName().getNamespaceURI(),
+//				getName().getLocalPart());
+//		for (Element el : elements) {
+//			container.appendChild(el);
+//		}
+//		return container;
+//	}
 
 	@Override
 	public String toString() {

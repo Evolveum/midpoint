@@ -26,6 +26,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.model.expr.ExpressionException;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SystemException;
@@ -55,6 +57,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
@@ -293,8 +296,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 		} else {
 			LOGGER.debug("CONFIRMATION: Checking users from correlation with confirmation rule.");
-			users = findUserByConfirmationRule(users, objectShadowAfterChange, new ExpressionHolder(
-					synchronization.getConfirmation()), result);
+			users = findUserByConfirmationRule(users, objectShadowAfterChange,
+					synchronization.getConfirmation(), result);
 		}
 		if (users == null || users.size() == 0) {
 			state = SynchronizationSituationType.UNMATCHED;
@@ -481,7 +484,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	}
 
 	private List<UserType> findUserByConfirmationRule(List<UserType> users,
-			ResourceObjectShadowType resourceObjectShadowType, ExpressionHolder expression,
+			ResourceObjectShadowType resourceObjectShadowType, ExpressionType expression,
 			OperationResult result) throws SynchronizationException {
 		List<UserType> list = new ArrayList<UserType>();
 		if (users == null) {
@@ -530,31 +533,27 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 					equal.removeChild(path);
 				}
 
-				Element valueExpression = findChildElement(equal, SchemaConstants.NS_C, "valueExpression");
-				if (valueExpression != null) {
-					equal.removeChild(valueExpression);
-					String ref = valueExpression.getAttribute("ref");
-					String namespace = filter.getOwnerDocument().getNamespaceURI();
-					if (ref.contains(":")) {
-						String pref = ref.substring(0, ref.indexOf(":"));
-						namespace = filter.lookupNamespaceURI(pref);
-					}
+				Element valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C, "valueExpression");
+				if (valueExpressionElement != null) {
+					equal.removeChild(valueExpressionElement);
+					Element refElement = findChildElement(valueExpressionElement, SchemaConstants.NS_C, "ref");
+					QName ref = DOMUtil.resolveQName(refElement);
 
 					Element value = document.createElementNS(SchemaConstants.NS_C, "value");
 					equal.appendChild(value);
-					Element attribute = document.createElementNS(namespace, ref);
+					Element attribute = document.createElementNS(ref.getNamespaceURI(), ref.getLocalPart());
 					if (resourceObjectShadow.getName().contains("wturner")) {
 						LOGGER.debug("AAAAAAAAAAAAAAAAAAAAAAA");
 						if (resourceObjectShadow.getAttributes() != null) {
-							for (Element element : resourceObjectShadow.getAttributes().getAny()) {
-								LOGGER.debug("{" + element.getNamespaceURI() + "}" + element.getLocalName()
-										+ ": " + element.getTextContent());
+							for (Object element : resourceObjectShadow.getAttributes().getAny()) {
+								LOGGER.debug(JAXBUtil.getElementQName(element)
+										+ ": " + JAXBUtil.getTextContentDump(element));
 							}
 						}
 						LOGGER.debug("BBBBBBBBBBBBBBBBBBBBBBB");
 					}
-					String expressionResult = getExpressionHandler().evaluateExpression(resourceObjectShadow,
-							new ExpressionHolder(valueExpression), result);
+					ExpressionType valueExpression = XsdTypeConverter.toJavaValue(valueExpressionElement, ExpressionType.class);
+					String expressionResult = getExpressionHandler().evaluateExpression(resourceObjectShadow, valueExpression, result);
 
 					if (StringUtils.isEmpty(expressionResult)) {
 						LOGGER.debug("Expression result from search filter expression was null or empty (trying "

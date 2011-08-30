@@ -176,6 +176,23 @@ public class Schema implements Dumpable {
 		}
 		return null;
 	}
+	
+	/**
+	 * Finds a definition by name.
+	 * 
+	 */
+	public <T extends Definition> T findDefinition(QName definitionName, Class<T> definitionType) {
+		if (definitionName == null) {
+			throw new IllegalArgumentException("definitionName must be supplied");
+		}
+		// TODO: check for multiple definition with the same type
+		for (Definition definition : definitions) {
+			if (definitionName.equals(definition.getName())) {
+				return (T) definition;
+			}
+		}
+		return null;
+	}
 
 	public String dump() {
 		StringBuilder sb = new StringBuilder();

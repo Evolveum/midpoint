@@ -150,7 +150,7 @@ public class TaskItem implements Serializable {
 		if (getExtension() != null) {
 			try {
 				Extension extension = new Extension();
-				List<Element> extensionProperties = getExtension()
+				List<Object> extensionProperties = getExtension()
 						.serializePropertiesToDom(DOMUtil.getDocument());
 				extension.getAny().addAll(extensionProperties);
 				taskType.setExtension(extension);

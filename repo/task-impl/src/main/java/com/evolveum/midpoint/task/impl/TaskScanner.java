@@ -236,7 +236,7 @@ public class TaskScanner extends Thread {
 	}
 
 	// Look for runnable tasks that are not claimed
-	private QueryType createQuery() {
+	private QueryType createQuery() throws SchemaException {
 
 		Document doc = DOMUtil.getDocument();
 

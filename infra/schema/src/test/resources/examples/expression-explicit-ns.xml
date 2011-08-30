@@ -22,10 +22,10 @@
 
 
 
-<c:valueConstruction xsi:type="c:ValueConstructionType"
+<valueConstruction xsi:type="c:ValueConstructionType"
    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
    xmlns:i='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
-   xmlns='http://default.com/whatever'
+   xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:m='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd'
    xmlns:r='http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd'
@@ -35,9 +35,12 @@
    http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/common/common-1.xsd
    http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd ../../../main/resources/META-INF/wsdl/xml/ns/public/resource/resource-schema-1.xsd'>
 
-   <c:valueExpression ref="piracy:flag">
-       declare namespace bar='http://midpoint.evolveum.com/xml/ns/samples/bar';
-        $c:user/c:extension/foo:something/bar:somethingElse
-   </c:valueExpression>
+	<valueExpression>
+		<ref>piracy:flag</ref>
+		<code>
+			declare namespace bar='http://midpoint.evolveum.com/xml/ns/samples/bar';
+			$c:user/c:extension/foo:something/bar:somethingElse
+        </code>
+	</valueExpression>
 
-</c:valueConstruction>
+</valueConstruction>

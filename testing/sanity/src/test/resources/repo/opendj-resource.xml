@@ -137,10 +137,12 @@
                          It is an XPath expression, similar to BPEL assignment expressions. -->
 				<c:outbound default="true">
 					<c:valueExpression>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						concat('uid=',
-						$i:user/c:name, ',ou=people,dc=example,dc=com')
-                        </c:valueExpression>
+						<c:code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							concat('uid=',
+							$i:user/c:name, ',ou=people,dc=example,dc=com')
+						</c:code>
+					</c:valueExpression>
 				</c:outbound>
 
                     <!-- No inbound expression here. We cannot sync changes in DN yet -->
@@ -189,9 +191,11 @@
                      -->
 				<c:outbound>
 					<c:valueExpression>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						$i:user/i:fullName
-                        </c:valueExpression>
+						<c:code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:fullName
+						</c:code>
+					</c:valueExpression>
 				</c:outbound>
 
                     <!-- Inbound expression. It is used to synchronize changes
@@ -201,9 +205,9 @@
                      -->
 				<c:inbound>
 					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						$i:user/i:fullName
-						</c:target>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:fullName
+					</c:target>
 				</c:inbound>
 
 			</c:attribute>
@@ -216,9 +220,11 @@
 				<c:access>update</c:access>
 				<c:outbound>
 					<c:valueExpression>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						$i:user/i:familyName
-                        </c:valueExpression>
+						<c:code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:familyName
+						</c:code>
+					</c:valueExpression>
 				</c:outbound>
                     <!-- sn will be synchronized to user's familyName -->
 				<c:inbound>
@@ -237,9 +243,11 @@
 				<c:access>update</c:access>
 				<c:outbound>
 					<c:valueExpression>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						$i:user/i:givenName
-                        </c:valueExpression>
+						<c:code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:givenName
+						</c:code>
+					</c:valueExpression>
 				</c:outbound>
                     <!-- givenName will be synchronized to user's givenName -->
 				<c:inbound>
@@ -260,9 +268,11 @@
                         <!-- It is mapped from (and also to) "name" property of
                              user. It is essentially a login name -->
 					<c:valueExpression>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						$i:user/i:name
-						</c:valueExpression>
+						<c:code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:name
+						</c:code>
+					</c:valueExpression>
 				</c:outbound>
                         <!-- It is mapped to (and also from) "name" property of
                              user. It is essentially a login name -->
@@ -328,14 +338,16 @@
                              using a lookup table defined in the configuration object
                              in the $my:config variable specified above. -->
 					<c:valueExpression>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						declare namespace
-						my="http://myself.me/schemas/whatever";
-						if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
-						$my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]
-						else
-						$my:defaultLocation
-                        </c:valueExpression>
+						<c:code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							declare namespace my="http://myself.me/schemas/whatever";
+							
+							if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
+								$my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]
+							else
+								$my:defaultLocation
+						</c:code>
+					</c:valueExpression>
 				</c:outbound>
 			</c:attribute>
 
@@ -363,13 +375,14 @@
                      it will look for match in usernames in the IDM and the resource. -->
 				<c:equal>
 					<c:path>.</c:path>
-					<c:valueExpression ref="c:name">
-						declare namespace
-						i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						declare namespace
-						dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
-						$i:account/i:attributes/dj:uid
-                        </c:valueExpression>
+					<c:valueExpression>
+						<ref>c:name</ref>
+						<c:code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+							$i:account/i:attributes/dj:uid
+						</c:code>
+					</c:valueExpression>
 				</c:equal>
 			</c:correlation>
 

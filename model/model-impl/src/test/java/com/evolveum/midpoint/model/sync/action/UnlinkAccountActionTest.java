@@ -148,7 +148,7 @@ public class UnlinkAccountActionTest extends BaseActionTest {
 						assertEquals(1, modification.getValue().getAny().size());
 						assertEquals(modification.getModificationType(), PropertyModificationTypeType.delete);
 
-						Element element = modification.getValue().getAny().get(0);
+						Element element = ((Element)modification.getValue().getAny().get(0));
 
 						ObjectReferenceType accountRef = new ObjectReferenceType();
 						accountRef.setOid(shadowOid);

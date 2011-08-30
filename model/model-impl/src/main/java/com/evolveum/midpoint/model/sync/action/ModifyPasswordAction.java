@@ -33,6 +33,7 @@ import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
@@ -106,10 +107,9 @@ public class ModifyPasswordAction extends BaseAction {
 			if (value == null) {
 				continue;
 			}
-			List<Element> elements = value.getAny();
-			for (Element element : elements) {
-				if (SchemaConstants.I_PASSWORD.equals(new QName(element.getNamespaceURI(), element
-						.getLocalName()))) {
+			List<Object> elements = value.getAny();
+			for (Object element : elements) {
+				if (SchemaConstants.I_PASSWORD.equals(JAXBUtil.getElementQName(element))) {
 					return propModification;
 				}
 			}

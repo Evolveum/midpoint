@@ -41,6 +41,7 @@ import com.evolveum.midpoint.schema.holder.ExpressionHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -73,7 +74,7 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 	}
 
 	@Override
-	public String evaluateExpression(ResourceObjectShadowType shadow, ExpressionHolder expression,
+	public String evaluateExpression(ResourceObjectShadowType shadow, ExpressionType expression,
 			OperationResult result) throws ExpressionException {
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
 		Validate.notNull(expression, "Expression must not be null.");
@@ -81,12 +82,13 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 
 		ResourceType resource = resolveResource(shadow, result);
 		Map<QName, Variable> variables = getDefaultXPathVariables(null, shadow, resource);
-
-		return (String) XPathUtil.evaluateExpression(variables, expression, XPathConstants.STRING);
+		ExpressionHolder expressionCode = new ExpressionHolder(expression.getCode());
+		
+		return (String) XPathUtil.evaluateExpression(variables, expressionCode, XPathConstants.STRING);
 	}
 
 	public boolean evaluateConfirmationExpression(UserType user, ResourceObjectShadowType shadow,
-			ExpressionHolder expression, OperationResult result) throws ExpressionException {
+			ExpressionType expression, OperationResult result) throws ExpressionException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
 		Validate.notNull(expression, "Expression must not be null.");
@@ -94,8 +96,10 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 
 		ResourceType resource = resolveResource(shadow, result);
 		Map<QName, Variable> variables = getDefaultXPathVariables(user, shadow, resource);
+		ExpressionHolder expressionCode = new ExpressionHolder(expression.getCode());
+		
 		String confirmed = (String) XPathUtil
-				.evaluateExpression(variables, expression, XPathConstants.STRING);
+				.evaluateExpression(variables, expressionCode, XPathConstants.STRING);
 
 		return Boolean.valueOf(confirmed);
 	}

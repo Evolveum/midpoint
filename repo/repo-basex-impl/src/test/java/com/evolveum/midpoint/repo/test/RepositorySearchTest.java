@@ -168,10 +168,10 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			accountShadow = objectList.get(0);
 			assertNotNull(accountShadow.getAttributes().getAny());
-			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", accountShadow.getAttributes().getAny()
-					.get(0).getTextContent());
+			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element)accountShadow.getAttributes().getAny()
+					.get(0)).getTextContent());
 			assertEquals("uid=jbond,ou=People,dc=example,dc=com",
-					accountShadow.getAttributes().getAny().get(1).getTextContent());
+					((Element)accountShadow.getAttributes().getAny().get(1)).getTextContent());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
@@ -200,10 +200,10 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			accountShadow = objectList.get(0);
 			assertNotNull(accountShadow.getAttributes().getAny());
-			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", accountShadow.getAttributes().getAny()
-					.get(0).getTextContent());
+			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element)accountShadow.getAttributes().getAny()
+					.get(0)).getTextContent());
 			assertEquals("uid=jbond,ou=People,dc=example,dc=com",
-					accountShadow.getAttributes().getAny().get(1).getTextContent());
+					((Element)accountShadow.getAttributes().getAny().get(1)).getTextContent());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
@@ -252,7 +252,7 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 			List<XPathSegment> xpathSegments = new ArrayList<XPathSegment>();
 			xpathSegments.add(xpathSegment);
 			XPathHolder xpath = new XPathHolder(xpathSegments);
-			List<Element> values = new ArrayList<Element>();
+			List<Object> values = new ArrayList<Object>();
 			values.add((Element) DOMUtil
 					.parseDocument(
 							"<s:__NAME__ xmlns:s=\"http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd\">uid=jbond,ou=People,dc=example,dc=com</s:__NAME__>")
@@ -274,10 +274,10 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			accountShadow = objectList.get(0);
 			assertNotNull(accountShadow.getAttributes().getAny());
-			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", accountShadow.getAttributes().getAny()
-					.get(0).getTextContent());
+			assertEquals("4d6cfc84-ef47-395d-906d-efd3c79e74b1", ((Element)accountShadow.getAttributes().getAny()
+					.get(0)).getTextContent());
 			assertEquals("uid=jbond,ou=People,dc=example,dc=com",
-					accountShadow.getAttributes().getAny().get(1).getTextContent());
+					((Element)accountShadow.getAttributes().getAny().get(1)).getTextContent());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {

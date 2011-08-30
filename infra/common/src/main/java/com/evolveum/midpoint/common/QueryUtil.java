@@ -23,11 +23,14 @@
 package com.evolveum.midpoint.common;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
@@ -57,16 +60,23 @@ public class QueryUtil {
      * @param xpath property container xpath. may be null.
      * @param values
      * @return "equal" filter segment (as DOM)
+     * @throws JAXBException 
      */
-    public static Element createEqualFilter(Document doc, XPathHolder xpath, List<Element> values) {
+    public static Element createEqualFilter(Document doc, XPathHolder xpath, List<? extends Object> values) throws SchemaException {
         Validate.notNull(doc);
         Validate.notNull(values);
         Validate.notEmpty(values);
 
         Element equal = doc.createElementNS(SchemaConstants.C_FILTER_EQUAL.getNamespaceURI(), SchemaConstants.C_FILTER_EQUAL.getLocalPart());
         Element value = doc.createElementNS(SchemaConstants.C_FILTER_VALUE.getNamespaceURI(), SchemaConstants.C_FILTER_VALUE.getLocalPart());
-        for (Element val : values) {
-            value.appendChild(doc.importNode(val, true));
+        for (Object val : values) {
+        	Element domElement;
+			try {
+				domElement = JAXBUtil.toDomElement(val);
+			} catch (JAXBException e) {
+				throw new SchemaException("Unexpected JAXB problem while creating search filer for value "+val,e);
+			}
+            value.appendChild(doc.importNode(domElement, true));
         }
         if (xpath != null) {
             Element path = xpath.toElement(SchemaConstants.C_FILTER_PATH, doc);
@@ -83,12 +93,13 @@ public class QueryUtil {
      * @param xpath property container xpath. may be null.
      * @param value
      * @return "equal" filter segment (as DOM)
+     * @throws JAXBException 
      */
-    public static Element createEqualFilter(Document doc, XPathHolder xpath, Element value) {
+    public static Element createEqualFilter(Document doc, XPathHolder xpath, Object value) throws SchemaException {
         Validate.notNull(doc);
         Validate.notNull(value);
 
-        List<Element> values = new ArrayList<Element>();
+        List<Object> values = new ArrayList<Object>();
         values.add(value);
         return createEqualFilter(doc, xpath, values);
     }
@@ -100,8 +111,9 @@ public class QueryUtil {
      * @param xpath property container xpath. may be null.
      * @param value
      * @return "equal" filter segment (as DOM)
+     * @throws JAXBException 
      */
-    public static Element createEqualFilter(Document doc, XPathHolder xpath, QName properyName, String value) {
+    public static Element createEqualFilter(Document doc, XPathHolder xpath, QName properyName, String value) throws SchemaException {
         Validate.notNull(doc);
         Validate.notNull(properyName);
         Validate.notNull(value);
@@ -120,8 +132,9 @@ public class QueryUtil {
      * @param xpath property container xpath. may be null.
      * @param value
      * @return "equal" filter segment (as DOM)
+     * @throws JAXBException 
      */
-    public static Element createEqualFilter(Document doc, XPathHolder xpath, QName properyName, QName value) {
+    public static Element createEqualFilter(Document doc, XPathHolder xpath, QName properyName, QName value) throws SchemaException {
         Validate.notNull(doc);
         Validate.notNull(properyName);
         Validate.notNull(value);
@@ -141,8 +154,9 @@ public class QueryUtil {
      * @param propertyName name of the reference property (e.g. "resourceRef")
      * @param oid OID of the referenced object
      * @return "equal" filter segment (as DOM)
+     * @throws JAXBException 
      */
-    public static Element createEqualRefFilter(Document doc, XPathHolder xpath, QName propertyName, String oid) {
+    public static Element createEqualRefFilter(Document doc, XPathHolder xpath, QName propertyName, String oid) throws SchemaException {
     	Element value = doc.createElementNS(propertyName.getNamespaceURI(), propertyName.getLocalPart());
     	value.setAttributeNS(SchemaConstants.C_OID_ATTRIBUTE.getNamespaceURI(), SchemaConstants.C_OID_ATTRIBUTE.getLocalPart(), oid);
     	return createEqualFilter(doc,xpath,value);

@@ -24,6 +24,7 @@ package com.evolveum.midpoint.schema.processor;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -144,7 +145,7 @@ public class PropertyContainerDefinition extends Definition {
 	 * @return set of deserialized properties
 	 * @throws SchemaProcessorException 
 	 */
-	public Set<Property> parseProperties(List<Element> elements) throws SchemaException {
+	public Set<Property> parseProperties(List<? extends Object> elements) throws SchemaException {
 		return parseProperties(elements,Property.class);
 	}
 	
@@ -159,7 +160,7 @@ public class PropertyContainerDefinition extends Definition {
 	 * @return set of deserialized properties
 	 * @throws SchemaProcessorException 
 	 */
-	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz) throws SchemaException {
+	protected <T extends Property> Set<T> parseProperties(List<? extends Object> elements, Class<T> clazz) throws SchemaException {
 		return parseProperties(elements,clazz,null);
 	}
 	
@@ -172,7 +173,7 @@ public class PropertyContainerDefinition extends Definition {
 	 * Used by subclasses.
 	 * @throws SchemaProcessorException 
 	 */
-	protected <T extends Property> Set<T> parseProperties(List<Element> elements, Class<T> clazz, Set<? extends PropertyDefinition> selection) throws SchemaException {
+	protected <T extends Property> Set<T> parseProperties(List<? extends Object> elements, Class<T> clazz, Set<? extends PropertyDefinition> selection) throws SchemaException {
 		
 		// TODO: more robustness in handling schema violations (min/max constraints, etc.)
 		
@@ -181,9 +182,9 @@ public class PropertyContainerDefinition extends Definition {
 		// Iterate over all the XML elements there. Each element is
 		// an attribute.
 		for(int i=0;i<elements.size();i++) {
-			Element propElement = elements.get(i);
+			Object propElement = elements.get(i);
 
-			QName elementQName =  QNameUtil.getNodeQName(propElement);
+			QName elementQName = JAXBUtil.getElementQName(propElement);
 			
 			// If there was a selection filter specified, filter out the
 			// properties that are not in the filter.
@@ -219,12 +220,12 @@ public class PropertyContainerDefinition extends Definition {
 				try {
 					value = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
 				} catch (JAXBException e) {
-					throw new SystemException("Unexpected JAXB problem while parsing element {"+propElement.getNamespaceURI()+"}"+propElement.getLocalName()+" : "+e.getMessage(),e);
+					throw new SystemException("Unexpected JAXB problem while parsing element "+elementQName+" : "+e.getMessage(),e);
 				}
 				propValues.add(value);
 				// Loop over until the elements have the same local name
 				while (i + 1 < elements.size()
-					   && QNameUtil.compareQName(elementQName, elements.get(i + 1))) {
+					   && elementQName.equals(JAXBUtil.getElementQName(elements.get(i + 1)))) {
 					i++;
 					propElement = elements.get(i);
 					// Convert all the remaining values
@@ -232,7 +233,7 @@ public class PropertyContainerDefinition extends Definition {
 					try {
 						avalue = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
 					} catch (JAXBException e) {
-						throw new SystemException("Unexpected JAXB problem while parsing element {"+propElement.getNamespaceURI()+"}"+propElement.getLocalName()+" : "+e.getMessage(),e);
+						throw new SystemException("Unexpected JAXB problem while parsing element "+elementQName+" : "+e.getMessage(),e);
 					}
 					propValues.add(avalue);
 				}
@@ -243,7 +244,7 @@ public class PropertyContainerDefinition extends Definition {
 				try {
 					value = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
 				} catch (JAXBException e) {
-					throw new SystemException("Unexpected JAXB problem while parsing element {"+propElement.getNamespaceURI()+"}"+propElement.getLocalName()+" : "+e.getMessage(),e);
+					throw new SystemException("Unexpected JAXB problem while parsing element "+elementQName+" : "+e.getMessage(),e);
 				}
 				propValues.add(value);
 			}
@@ -253,7 +254,7 @@ public class PropertyContainerDefinition extends Definition {
 	}
 	
 	/**
-	 * Serializes provided properties to DOM.
+	 * Serializes provided properties to DOM or JAXB Elements.
 	 * 
 	 * The method assumes that the provided properties are part of the property container
 	 * that this definition defines. It will produce a list of DOM elements containing
@@ -266,8 +267,8 @@ public class PropertyContainerDefinition extends Definition {
 	 * @return serialized properties
 	 * @throws SchemaProcessorException in case property definition is not found or is inconsistent
 	 */
-	public List<Element> serializePropertiesToDom(Set<Property> properties, Document doc) throws SchemaProcessorException {
-		List<Element> elements = new ArrayList<Element>();
+	public List<Object> serializePropertiesToDom(Set<Property> properties, Document doc) throws SchemaProcessorException {
+		List<Object> elements = new ArrayList<Object>();
 		// This is not really correct. We should follow the ordering of elements
 		// in the schema so we produce valid XML
 		// TODO: FIXME
@@ -308,6 +309,11 @@ public class PropertyContainerDefinition extends Definition {
 		PropertyDefinition propDef = new PropertyDefinition(name);
 		propertyDefinitions.add(propDef);
 		return propDef;
+	}
+
+	public PropertyDefinition createPropertyDefinition(String localName, QName typeName) {
+		QName name = new QName(getSchemaNamespace(),localName);
+		return createPropertyDefinifion(name,typeName);
 	}
 
 	

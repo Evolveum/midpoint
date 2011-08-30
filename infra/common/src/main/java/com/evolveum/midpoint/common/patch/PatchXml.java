@@ -75,9 +75,14 @@ public class PatchXml extends XPathUtil {
 
         XPathHolder xpathUtil = new XPathHolder(change.getPath());
         //String xpathString = xpathUtil.getXPath();
-        List<Element> values = change.getValue().getAny();
+        List<Object> values = change.getValue().getAny();
         //Note: for now supported is only one existingValue in the list
-        Element newOrOldNode = values.get(0);
+        Element newOrOldNode;
+		try {
+			newOrOldNode = JAXBUtil.toDomElement(values.get(0));
+		} catch (JAXBException e) {
+			throw new PatchException("Unexpected JAXB problem: "+e.getMessage(),e);
+		}
 
         NodeList nodes = null;
         switch (change.getModificationType()) {
@@ -201,7 +206,12 @@ public class PatchXml extends XPathUtil {
                 logger.warn("Skipping property modification, empty value list or undefined modification type.");
                 continue;
             }
-            logger.trace("Value of the relative change = {}", DOMUtil.serializeDOMToString(change.getValue().getAny().get(0)));
+            try {
+				logger.trace("Value of the relative change = {}", JAXBUtil.serializeElementToString(change.getValue().getAny().get(0)));
+			} catch (JAXBException e) {
+				logger.error("Unexpected JAXB problem: "+e.getMessage(),e);
+				throw new IllegalStateException("Unexpected JAXB problem: "+e.getMessage(),e);
+			}
             applyDifference(objectDoc, change);
             logger.debug("Finished application of change: changeType = {}, changePath = {}", new Object[]{change.getModificationType(), (null == change.getPath()) ? null : change.getPath().getTextContent()});
         }

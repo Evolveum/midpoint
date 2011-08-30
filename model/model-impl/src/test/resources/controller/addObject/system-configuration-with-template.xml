@@ -7,8 +7,10 @@
 			<property>i:fullName</property>
 			<valueConstruction default="true">
 				<valueExpression>
-					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-					concat($i:user/i:givenName,' ',$i:user/i:familyName)
+					<code>
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+						concat($i:user/i:givenName,' ',$i:user/i:familyName)
+					</code>
             </valueExpression>
 			</valueConstruction>
 		</propertyConstruction>

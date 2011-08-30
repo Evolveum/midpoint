@@ -308,11 +308,11 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		return new ResourceObject(getNameOrDefaultName(), this);
 	}
 	
-	public Set<ResourceObjectAttribute> parseAttributes(List<Element> elements) throws SchemaException {
+	public Set<ResourceObjectAttribute> parseAttributes(List<Object> elements) throws SchemaException {
 		return parseProperties(elements, ResourceObjectAttribute.class);
 	}
 
-	public Set<ResourceObjectAttribute> parseIdentifiers(List<Element> elements) throws SchemaException {
+	public Set<ResourceObjectAttribute> parseIdentifiers(List<Object> elements) throws SchemaException {
 		return parseProperties(elements, ResourceObjectAttribute.class,getIdentifiers());
 	}
 

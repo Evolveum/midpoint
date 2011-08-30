@@ -43,6 +43,9 @@ public class ExpressionHolder {
     public static final String DEFAULT_LANGUAGE = LANGUAGE_XPATH_1;
 
     public ExpressionHolder(Element domElement) {
+    	if (domElement==null) {
+    		throw new IllegalArgumentException("Attempt to create "+ExpressionHolder.class.getSimpleName()+" with null DOM element");
+    	}
         dom = domElement;
     }
 

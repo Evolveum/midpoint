@@ -108,11 +108,11 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 		if (object.getExtension() != null && retrievedObject.getExtension() != null) {
 			assertEquals(object.getExtension().getAny().size(), retrievedObject.getExtension().getAny()
 					.size());
-			List<Element> extensionElements = object.getExtension().getAny();
+			List<Object> extensionElements = object.getExtension().getAny();
 			int i = 0;
-			for (Element element : extensionElements) {
-				XmlAsserts.assertPatch(DOMUtil.serializeDOMToString(element),
-						DOMUtil.serializeDOMToString(retrievedObject.getExtension().getAny().get(i)));
+			for (Object element : extensionElements) {
+				XmlAsserts.assertPatch(JAXBUtil.serializeElementToString(element),
+						JAXBUtil.serializeElementToString(retrievedObject.getExtension().getAny().get(i)));
 				i++;
 			}
 		} else if ((object.getExtension() != null && retrievedObject.getExtension() == null)

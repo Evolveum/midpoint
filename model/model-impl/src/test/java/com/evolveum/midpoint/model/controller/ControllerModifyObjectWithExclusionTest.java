@@ -177,7 +177,7 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 				continue;
 			}
 
-			Element element = property.getValue().getAny().get(0);
+			Element element = ((Element)property.getValue().getAny().get(0));
 			assertEquals("false", element.getTextContent());
 			foundActivation = true;
 			break;

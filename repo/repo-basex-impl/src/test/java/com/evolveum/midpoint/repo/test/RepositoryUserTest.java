@@ -155,10 +155,10 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			System.out.println("Extension");
 			System.out.println(ObjectTypeUtil.dump(user.getExtension()));
 			assertEquals(2,user.getExtension().getAny().size());
-			Element ext1 = user.getExtension().getAny().get(0);
+			Element ext1 = (Element)user.getExtension().getAny().get(0);
 			assertTrue(QNameUtil.compareQName(PIRACY_SHIP, ext1));
 			assertEquals("Black Pearl",ext1.getTextContent());
-			Element ext2 = user.getExtension().getAny().get(1);
+			Element ext2 = (Element)user.getExtension().getAny().get(1);
 			assertTrue(QNameUtil.compareQName(PIRACY_LOOT, ext2));
 			// assert correct xsi:type attribute
 			QName xsiType = DOMUtil.resolveXsiType(ext2,"default");
@@ -222,8 +222,8 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			retrievedObject = repositoryService.getObject(oid, new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(user.getOid(), retrievedObject.getOid());
 			assertNotNull(((UserType)retrievedObject).getExtension().getAny());
-			assertEquals("ship", ((UserType)retrievedObject).getExtension().getAny().get(0).getLocalName());
-			assertEquals("Black Pearl", ((UserType)retrievedObject).getExtension().getAny().get(0).getTextContent());
+			assertEquals("ship", ((Element)((UserType)retrievedObject).getExtension().getAny().get(0)).getLocalName());
+			assertEquals("Black Pearl", ((Element)((UserType)retrievedObject).getExtension().getAny().get(0)).getTextContent());
 
 		} finally {
 			// to be sure try to delete the object as part of cleanup

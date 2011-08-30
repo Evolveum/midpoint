@@ -293,7 +293,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 		return runResult;
 	}
 	
-	private QueryType createAccountShadowTypeQuery(ResourceType resource, QName objectClass) {
+	private QueryType createAccountShadowTypeQuery(ResourceType resource, QName objectClass) throws SchemaException {
 		
 		Document doc = DOMUtil.getDocument();
         Element filter =

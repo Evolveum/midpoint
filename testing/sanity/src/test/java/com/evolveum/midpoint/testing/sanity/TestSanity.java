@@ -68,6 +68,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -364,14 +365,13 @@ public class TestSanity extends AbstractIntegrationTest {
 		// check attributes in the shadow: should be only identifiers (ICF UID)
 		String uid = null;
 		boolean hasOthers = false;
-		List<Element> xmlAttributes = repoShadow.getAttributes().getAny();
-		for (Element element : xmlAttributes) {
-			if (element.getNamespaceURI().equals(ConnectorFactoryIcfImpl.ICFS_UID.getNamespaceURI())
-					&& element.getLocalName().equals(ConnectorFactoryIcfImpl.ICFS_UID.getLocalPart())) {
+		List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
+		for (Object element : xmlAttributes) {
+			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
 				if (uid != null) {
 					Assert.fail("Multiple values for ICF UID in shadow attributes");
 				} else {
-					uid = element.getTextContent();
+					uid = ((Element)element).getTextContent();
 				}
 			} else {
 				hasOthers = true;
@@ -491,14 +491,13 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		String uid = null;
 		boolean hasOthers = false;
-		List<Element> xmlAttributes = repoShadow.getAttributes().getAny();
-		for (Element element : xmlAttributes) {
-			if (element.getNamespaceURI().equals(ConnectorFactoryIcfImpl.ICFS_UID.getNamespaceURI())
-					&& element.getLocalName().equals(ConnectorFactoryIcfImpl.ICFS_UID.getLocalPart())) {
+		List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
+		for (Object element : xmlAttributes) {
+			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
 				if (uid != null) {
 					Assert.fail("Multiple values for ICF UID in shadow attributes");
 				} else {
-					uid = element.getTextContent();
+					uid = ((Element)element).getTextContent();
 				}
 			} else {
 				hasOthers = true;

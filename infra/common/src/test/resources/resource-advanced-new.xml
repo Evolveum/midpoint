@@ -199,10 +199,12 @@
                 <access>create</access>
                 <access>read</access>
                 <outbound default="true">
-                    <i:valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    <valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    	<code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
-                            </i:valueExpression>
+                        </code>
+                    </valueExpression>
                 </outbound>
             </attribute>
             <attribute ref="ids:__UID__" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">
@@ -215,10 +217,12 @@
                 <access>read</access>
                 <access>update</access>
                 <outbound>
-                    <i:valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    <valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    	<code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:fullName
-                        </i:valueExpression>
+                        </code>
+                    </valueExpression>
                 </outbound>
                 <i:inbound xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
                     <c:target>
@@ -233,10 +237,12 @@
                 <access>read</access>
                 <access>update</access>
                 <outbound>
-                    <i:valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    <valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    	<code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:familyName
-                        </i:valueExpression>
+                        </code>
+                    </valueExpression>
                 </outbound>
                 <i:inbound xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
                     <c:target>
@@ -251,10 +257,12 @@
                 <access>read</access>
                 <access>update</access>
                 <outbound>
-                    <i:valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    <valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    	<code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:givenName
-                        </i:valueExpression>
+                        </code>
+                    </valueExpression>
                 </outbound>
                 <i:inbound xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
                     <c:target>
@@ -268,10 +276,12 @@
                 <access>create</access>
                 <access>read</access>
                 <outbound>
-                    <i:valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    <valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    	<code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:name
-                        </i:valueExpression>
+                        </code>
+                    </valueExpression>
                 </outbound>
                 <i:inbound xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
                     <c:target>
@@ -293,10 +303,12 @@
                     <variable name="my:whatever" xmlns:my="http://myself.me/schemas/whatever">
                         <value>WhaTEvEr</value>
                     </variable>
-                    <i:valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    <valueExpression xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+                    	<code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $my:config/c:extension/my:locations/my:location[@key=$i:user/i:locality]
-                        </i:valueExpression>
+                        </code>
+                    </valueExpression>
                 </outbound>
             </attribute>
         </accountType>
@@ -307,11 +319,14 @@
         <correlation>
             <c:equal xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:my="http://myself.me/schemas/whatever" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
                 <i:path>.</i:path>
-                <i:valueExpression ref="c:name">
+                <valueExpression>
+			<ref>name</ref>
+                	<code>
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                         declare namespace dj="http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ";
                         $i:account/i:attributes/dj:uid
-                        </i:valueExpression>
+                    </code>
+                </valueExpression>
                 </c:equal>
         </correlation>
         <reaction>

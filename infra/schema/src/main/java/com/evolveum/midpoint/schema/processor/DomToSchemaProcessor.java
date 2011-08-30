@@ -384,9 +384,10 @@ class DomToSchemaProcessor {
 
 	private XSOMParser createSchemaParser() {
 		XSOMParser parser = new XSOMParser();
-		parser.setErrorHandler(new SchemaErrorHandler());
+		SchemaErrorHandler errorHandler = new SchemaErrorHandler(SchemaConstants.getEntityResolver());
+		parser.setErrorHandler(errorHandler);
 		parser.setAnnotationParser(new DomAnnotationParserFactory());
-		parser.setEntityResolver(SchemaConstants.getEntityResolver());
+		parser.setEntityResolver(errorHandler);
 
 		return parser;
 	}

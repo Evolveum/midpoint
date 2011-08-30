@@ -47,6 +47,7 @@ import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandle
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
@@ -1090,11 +1091,10 @@ public class ModelControllerImpl implements ModelController {
 		return false;
 	}
 
-	private boolean existPropertyModification(List<Element> newChangeValues, List<Element> oldChangeValues) {
-		for (Element newValue : newChangeValues) {
-			for (Element oldValue : oldChangeValues) {
-				if (newValue.getLocalName().equals(oldValue.getLocalName())
-						&& newValue.getNamespaceURI().equals(oldValue.getNamespaceURI())) {
+	private boolean existPropertyModification(List<Object> newChangeValues, List<Object> oldChangeValues) {
+		for (Object newValue : newChangeValues) {
+			for (Object oldValue : oldChangeValues) {
+				if (JAXBUtil.getElementQName(oldValue).equals(JAXBUtil.getElementQName(newValue))) {
 					return true;
 				}
 			}
@@ -1116,11 +1116,12 @@ public class ModelControllerImpl implements ModelController {
 				continue;
 			}
 
-			Node node = propertyChange.getValue().getAny().get(0);
-			if ("account".equals(node.getLocalName()) && SchemaConstants.NS_C.equals(node.getNamespaceURI())) {
+			Object node = propertyChange.getValue().getAny().get(0);
+			if (SchemaConstants.I_ACCOUNT.equals(JAXBUtil.getElementQName(node))) {
 				try {
-					AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(DOMUtil
-							.serializeDOMToString(node))).getValue();
+					AccountShadowType account = XsdTypeConverter.toJavaValue(node, AccountShadowType.class); 
+//						((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(DOMUtil
+//							.serializeDOMToString(node))).getValue();
 
 					ObjectModificationType accountChange = processOutboundSchemaHandling(userBeforeChange,
 							account, result);
@@ -1252,7 +1253,7 @@ public class ModelControllerImpl implements ModelController {
 				ObjectModificationType accountChange = null;
 				try {
 					accountChange = schemaHandler.processOutboundHandling(user, account, subResult);
-				} catch (SchemaHandlerException ex) {
+				} catch (SchemaException ex) {
 					LoggingUtils.logException(LOGGER, "Couldn't update outbound handling for account {}", ex,
 							accountRef.getOid());
 					subResult.recordFatalError(ex);

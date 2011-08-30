@@ -48,7 +48,9 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.xpath.XPathUtil;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.model.expr.ExpressionHandlerImpl;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.ExpressionHolder;
 import com.evolveum.midpoint.schema.holder.ValueAssignmentHolder;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -57,6 +59,7 @@ import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.util.ExpressionUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -66,6 +69,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AttributeDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -108,7 +112,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	@SuppressWarnings("unchecked")
 	@Override
 	public UserType processInboundHandling(UserType user, ResourceObjectShadowType resourceObjectShadow,
-			OperationResult result) throws SchemaHandlerException {
+			OperationResult result) throws SchemaException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(resourceObjectShadow, "Resource object shadow must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -119,7 +123,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		try {
 			domUser = JAXBUtil.objectTypeToDom(user, null);
 		} catch (JAXBException ex) {
-			throw new SchemaHandlerException(ex.getMessage(), ex);
+			throw new SchemaException(ex.getMessage(), ex);
 		}
 
 		OperationResult subResult = new OperationResult("Process Inbound Handling");
@@ -165,7 +169,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 					.serializeDOMToString(domUser));
 			user = jaxbUser.getValue();
 		} catch (JAXBException ex) {
-			throw new SchemaHandlerException(ex.getMessage(), ex);
+			throw new SchemaException(ex.getMessage(), ex);
 		}
 
 		subResult.recordSuccess();
@@ -176,7 +180,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	@Override
 	public ObjectModificationType processOutboundHandling(UserType user,
 			ResourceObjectShadowType resourceObjectShadow, OperationResult result)
-			throws SchemaHandlerException {
+			throws SchemaException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(resourceObjectShadow, "Resource object shadow must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -186,7 +190,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		try {
 			resourceObjectShadow = (ResourceObjectShadowType) JAXBUtil.clone(resourceObjectShadow);
 		} catch (JAXBException ex) {
-			throw new SchemaHandlerException(ex.getMessage(), ex);
+			throw new SchemaException(ex.getMessage(), ex);
 		}
 
 		OperationResult subResult = new OperationResult("Process Outbound Handling");
@@ -234,14 +238,14 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	}
 
 	private ResourceType resolveResource(ResourceObjectShadowType shadow, OperationResult result)
-			throws SchemaHandlerException {
+			throws SchemaException {
 		if (shadow.getResource() != null) {
 			return shadow.getResource();
 		}
 
 		ObjectReferenceType ref = shadow.getResourceRef();
 		if (ref == null) {
-			throw new SchemaHandlerException("Resource shadow object '" + shadow.getName() + "', oid '"
+			throw new SchemaException("Resource shadow object '" + shadow.getName() + "', oid '"
 					+ shadow.getOid() + "' doesn't have defined resource.");
 		}
 
@@ -249,18 +253,18 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			return model.getObject(ResourceType.class, ref.getOid(), new PropertyReferenceListType(), result,
 					true);
 		} catch (Exception ex) {
-			throw new SchemaHandlerException("Couldn't get resource object.", ex);
+			throw new SchemaException("Couldn't get resource object.", ex);
 		}
 	}
 
 	private ResourceObjectDefinition getResourceObjectDefinition(ResourceType resource,
-			ResourceObjectShadowType shadow) throws SchemaHandlerException {
+			ResourceObjectShadowType shadow) throws SchemaException {
 		PropertyContainerDefinition objectDefinition = null;
 		try {
 			Schema schema = Schema.parse(resource.getSchema().getAny().get(0));
 			objectDefinition = schema.findContainerDefinitionByType(shadow.getObjectClass());
 		} catch (Exception ex) {
-			throw new SchemaHandlerException(ex.getMessage(), ex);
+			throw new SchemaException(ex.getMessage(), ex);
 		}
 
 		return (ResourceObjectDefinition) objectDefinition;
@@ -324,7 +328,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 	private List<PropertyModificationType> processOutboundAttribute(AttributeDescriptionType attribute,
 			Map<QName, Variable> variables, ResourceObjectShadowType resourceObjectShadow)
-			throws SchemaHandlerException {
+			throws SchemaException {
 		List<PropertyModificationType> modifications = new ArrayList<PropertyModificationType>();
 
 		QName attributeName = attribute.getRef();
@@ -336,8 +340,8 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			return modifications;
 		}
 
-		ExpressionHolder expression = outbound.getValueExpression() == null ? null : new ExpressionHolder(
-				outbound.getValueExpression());
+		ExpressionType expression = outbound.getValueExpression() == null ? null :
+				outbound.getValueExpression();
 		XPathHolder xpathType = getXPathForAttribute(attributeName);
 
 		String attributeValue;
@@ -351,12 +355,12 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		// }
 		// TODO: refactor this if clausule
 		if (isApplicablePropertyConstruction(outbound.isDefault(), xpathType, variables, resourceObjectShadow)) {
-			if (null != expression && !StringUtils.isEmpty(expression.getExpressionAsString())) {
+			if (null != expression && !ExpressionUtil.isEmpty(expression)) {
 				attributeValue = evaluateExpression(variables, expression);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace(
 							"Outbound: expression {} for attribute {}, resource {}, was evaluated to {}",
-							new Object[] { expression.getExpressionAsString(), attributeName,
+							new Object[] { ExpressionUtil.getCodeAsString(expression), attributeName,
 									DebugUtil.resourceFromShadow(resourceObjectShadow), attributeValue });
 					if (variables != null) {
 						for (Entry<QName, Variable> entry : variables.entrySet()) {
@@ -377,7 +381,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	}
 
 	private boolean isApplicablePropertyConstruction(boolean isDefault, XPathHolder xpathType,
-			Map<QName, Variable> variables, ObjectType objectType) throws SchemaHandlerException {
+			Map<QName, Variable> variables, ObjectType objectType) throws SchemaException {
 		if (isDefault) {
 			QName elementQName = null;
 			if (objectType instanceof UserType) {
@@ -385,7 +389,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			} else if (objectType instanceof AccountShadowType) {
 				elementQName = SchemaConstants.I_ACCOUNT_TYPE;
 			} else {
-				throw new SchemaHandlerException("Provided unsupported object type: " + objectType.getClass());
+				throw new SchemaException("Provided unsupported object type: " + objectType.getClass());
 			}
 
 			try {
@@ -395,13 +399,13 @@ public class SchemaHandlerImpl implements SchemaHandler {
 					XPathUtil xpathUtil = new XPathUtil();
 					nodes = xpathUtil.matchedNodesByXPath(xpathType, variables, domObject);
 				} catch (XPathExpressionException ex) {
-					throw new SchemaHandlerException(ex.getMessage(), ex);
+					throw new SchemaException(ex.getMessage(), ex);
 				}
 				if (null != nodes && nodes.getLength() > 0) {
 					return false;
 				}
 			} catch (JAXBException ex) {
-				throw new SchemaHandlerException("Couldn't transform jaxb object '" + objectType
+				throw new SchemaException("Couldn't transform jaxb object '" + objectType
 						+ "' to dom.", ex);
 			}
 		}
@@ -439,12 +443,13 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		return builder.toString();
 	}
 
-	private String evaluateExpression(Map<QName, Variable> variables, ExpressionHolder expressionHolder) {
-		return (String) XPathUtil.evaluateExpression(variables, expressionHolder, XPathConstants.STRING);
+	private String evaluateExpression(Map<QName, Variable> variables, ExpressionType expression) {
+		ExpressionHolder expressionCode = new ExpressionHolder(expression.getCode());
+		return (String) XPathUtil.evaluateExpression(variables, expressionCode, XPathConstants.STRING);
 	}
 
 	private List<PropertyModificationType> applyValue(ResourceObjectShadowType resourceObjectShadow,
-			QName attributeName, String attributeValue) {
+			QName attributeName, String attributeValue) throws SchemaException {
 		List<PropertyModificationType> modifications = new ArrayList<PropertyModificationType>();
 
 		// TODO: multi value attributes are not supported, yet
@@ -467,21 +472,32 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		segments.add(new XPathSegment(SchemaConstants.I_ATTRIBUTES));
 		XPathHolder xpathType = new XPathHolder(segments);
 
-		List<Element> attributes = attrs.getAny();
-		for (Element attribute : attributes) {
-			LOGGER.trace("attribute: {}, name {}",
-					new Object[] { attribute.getNamespaceURI(), attribute.getLocalName() });
-			if (localName.equals(attribute.getLocalName()) && namespace.equals(attribute.getNamespaceURI())) {
-				attribute.setTextContent(attributeValue);
+		List<Object> attributes = attrs.getAny();
+		int index = 0;
+		for (Object attribute : attributes) {
+			LOGGER.trace("attribute({}): {}",
+					new Object[] { index, JAXBUtil.getElementQName(attribute) });
+			if (attributeName.equals(JAXBUtil.getElementQName(attribute))) {
+				Object newAttribute;
+				try {
+					newAttribute = XsdTypeConverter.toXsdElement(attributeValue, attributeName, null);
+				} catch (JAXBException e) {
+					LOGGER.error("Unexpected JAXB problem while applying value of element {}: {} ",
+							new Object[]{attributeName,e.getMessage(),e});
+					throw new SchemaException("Unexpected JAXB problem while applying value of element " + 
+							attributeName+": "+e.getMessage(),e);
+				}
+				attributes.set(index, newAttribute);
 				LOGGER.trace("Changed account's attribute {} value to {}", new Object[] { attributeName,
 						attributeValue });
 
 				PropertyModificationType modification = ObjectTypeUtil.createPropertyModificationType(
-						PropertyModificationTypeType.replace, xpathType, attribute);
+						PropertyModificationTypeType.replace, xpathType, newAttribute);
 				modifications.add(modification);
 
 				return modifications;
 			}
+			index++;
 		}
 
 		// no value was set for the attribute, create new attribute with value
@@ -526,7 +542,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 	private Node processInboundAttribute(AttributeDescriptionType attribute, Map<QName, Variable> variables,
 			ResourceObjectShadowType resourceObjectShadow, Node domUser, UserType user, OperationResult result)
-			throws SchemaHandlerException {
+			throws DOMException, SchemaException {
 
 		QName attributeName = attribute.getRef();
 		LOGGER.trace("Start inbound processing of attribute handling for attribute {}",
@@ -553,12 +569,12 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			try {
 				matchedNodes = new XPathUtil().matchedNodesByXPath(xpathType, variables, domUser);
 			} catch (XPathExpressionException ex) {
-				throw new SchemaHandlerException(ex.getMessage(), ex);
+				throw new SchemaException(ex.getMessage(), ex);
 			}
 
 			// I. extract new nodesAttributesFromAccountShadow with values from
 			// accountShadow
-			List<Element> nodesAttributesFromAccountShadow = extractAttributeValuesFromShadow(
+			List<Object> nodesAttributesFromAccountShadow = extractAttributeValuesFromShadow(
 					resourceObjectShadow, attribute);
 
 			Node parentNode;
@@ -600,7 +616,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 						}
 					}
 				} catch (XPathExpressionException ex) {
-					throw new SchemaHandlerException(ex.getMessage(), ex);
+					throw new SchemaException(ex.getMessage(), ex);
 				}
 				parentNode = matchedNodes.item(0);
 				// TODO: reimplement
@@ -667,18 +683,17 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		return parentXpath;
 	}
 
-	private List<Element> extractAttributeValuesFromShadow(ResourceObjectShadowType resourceObjectShadow,
+	private List<Object> extractAttributeValuesFromShadow(ResourceObjectShadowType resourceObjectShadow,
 			AttributeDescriptionType attribute) {
-		List<Element> values = new ArrayList<Element>();
+		List<Object> values = new ArrayList<Object>();
 		QName attributeName = attribute.getRef();
 		Attributes attributes = resourceObjectShadow.getAttributes();
 		if (attributes == null) {
 			return values;
 		}
 
-		for (Element attrElement : attributes.getAny()) {
-			if (StringUtils.equals(attributeName.getNamespaceURI(), attrElement.getNamespaceURI())
-					&& StringUtils.equals(attributeName.getLocalPart(), attrElement.getLocalName())) {
+		for (Object attrElement : attributes.getAny()) {
+			if (attributeName.equals(JAXBUtil.getElementQName(attrElement))) {
 				values.add(attrElement);
 			}
 		}
@@ -686,14 +701,14 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		return values;
 	}
 
-	private List<Element> transformAccountAttributeToUserProperty(List<Element> nodes, QName propertyQName,
-			List<ValueFilterType> filters) throws DOMException {
+	private List<Element> transformAccountAttributeToUserProperty(List<Object> nodes, QName propertyQName,
+			List<ValueFilterType> filters) throws DOMException, SchemaException {
 		Validate.notNull(nodes, "nodes are null");
 		Validate.notNull(propertyQName, "propertyQName are null");
 
 		List<Element> newNodes = new ArrayList<Element>();
 		Document doc = DOMUtil.getDocument();
-		for (Element element : nodes) {
+		for (Object element : nodes) {
 			Element transformedElement = doc.createElementNS(propertyQName.getNamespaceURI(),
 					propertyQName.getLocalPart());
 			// transformedElement.setPrefix("attr" + (new
@@ -704,7 +719,13 @@ public class SchemaHandlerImpl implements SchemaHandler {
 				transformedElement.setPrefix(propertyQName.getLocalPart());
 			}
 
-			Node valueNode = applyFilters(filters, element.getFirstChild());
+			Node valueNode;
+			try {
+				valueNode = applyFilters(filters, JAXBUtil.toDomElement(element).getFirstChild());
+			} catch (JAXBException e) {
+				LOGGER.error("Unexpected JAXB problem while transforming "+element+": "+e.getMessage(),e);
+				throw new SchemaException("Unexpected JAXB problem while transforming "+element+": "+e.getMessage(),e);
+			}
 			if (null != valueNode) {
 				transformedElement.getOwnerDocument().adoptNode(valueNode);
 				transformedElement.appendChild(valueNode);
