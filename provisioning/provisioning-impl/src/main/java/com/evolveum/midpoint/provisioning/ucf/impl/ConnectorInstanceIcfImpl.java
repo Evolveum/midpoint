@@ -1421,8 +1421,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// ResourceObjectAttribute roa = road.instantiate();
 			ResourceObjectAttribute roa = new ResourceObjectAttribute(qname);
 			List<Object> icfValues = icfAttr.getValue();
-			roa.getValues().addAll(icfValues);
-			// ro.getProperties().add(roa);
+			if (icfValues!=null) {
+				roa.getValues().addAll(icfValues);
+			}
 			ro.getAttributes().add(roa);
 		}
 

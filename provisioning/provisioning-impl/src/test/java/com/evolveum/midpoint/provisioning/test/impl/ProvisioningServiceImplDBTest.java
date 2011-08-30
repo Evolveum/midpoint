@@ -3,9 +3,15 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
+
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 import javax.xml.bind.JAXBException;
 
@@ -123,7 +129,7 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 	@Test
 	public void test002AddAccount() throws Exception {
 		displayTestTile("test002AddAccount");
-
+		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDBTest.class.getName()
 				+ ".test002AddAccount");
 
@@ -133,8 +139,10 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(account,
 				SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
 
+		// WHEN
 		String addedObjectOid = provisioningService.addObject(account, null, result);
 		
+		// THEN
 		display("add object result",result);
 		assertSuccess("addObject has failed (result)",result);
 		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
@@ -146,5 +154,22 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
 				new PropertyReferenceListType(), result);
 		assertEquals("will", provisioningAccountType.getName());
+		
+		// Check database content
+		
+		Connection conn = derbyController.getConnection();
+		// Check if it empty
+		Statement stmt = conn.createStatement();
+		stmt.execute("select * from users");
+		ResultSet rs = stmt.getResultSet();
+		
+		assertTrue("The \"users\" table is empty",rs.next());
+		assertEquals("will",rs.getString(DerbyController.COLUMN_LOGIN));
+		assertEquals("3lizab3th",rs.getString(DerbyController.COLUMN_PASSWORD));
+		assertEquals("Will Turner",rs.getString(DerbyController.COLUMN_FULL_NAME));
+		
+		assertFalse("The \"users\" table has more than one record",rs.next());
+		rs.close();
+		stmt.close();
 	}
 }

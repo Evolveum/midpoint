@@ -4,6 +4,7 @@
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import java.net.ConnectException;
+import java.sql.SQLSyntaxErrorException;
 
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.directory.SchemaViolationException;
@@ -91,6 +92,13 @@ class IcfUtil {
 			parentResult.recordFatalError("Connect error: " + ex.getMessage(),
 					ex);
 			return new CommunicationException("Connect error: "
+					+ ex.getMessage(), ex);
+		} else if (ex instanceof SQLSyntaxErrorException) {
+			// Buried deep in many exceptions, usually DB schema problems of
+			// DB-based connectors
+			parentResult.recordFatalError("DB error: " + ex.getMessage(),
+					ex);
+			return new SchemaException("DB error: "
 					+ ex.getMessage(), ex);
 		}
 		if (ex.getCause() == null) {

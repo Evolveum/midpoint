@@ -29,7 +29,7 @@
 	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-999902d3abab" />
 	<c:objectClass>ri:AccountObjectClass</c:objectClass>
 	<c:attributes>
-		<icfs:uid>will</icfs:uid>
+		<icfs:name>will</icfs:name>
 		<icfs:password><c:clearValue>3lizab3th</c:clearValue></icfs:password>
 		<ri:FULL_NAME>Will Turner</ri:FULL_NAME>
 	</c:attributes>

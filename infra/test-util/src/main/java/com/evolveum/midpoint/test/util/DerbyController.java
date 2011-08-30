@@ -20,6 +20,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  */
 public class DerbyController {
+	
+	public static String COLUMN_LOGIN = "login";
+	public static String COLUMN_PASSWORD = "password";
+	public static String COLUMN_FULL_NAME = "full_name";
+	public static String COLUMN_CHANGELOG = "changelog";
+	
 	private NetworkServerControl server;
 	private String listenHostname;
 	private InetAddress listenAddress;
@@ -83,7 +89,11 @@ public class DerbyController {
 		} catch (SQLException ex) {
 			// Ignore. The table may not exist
 		}
-		stmt.execute("create table users(login varchar(50),password varchar(50),full_name varchar(51),changelog int)");
+		stmt.execute("create table users(" +
+				COLUMN_LOGIN + " varchar(50),"+
+				COLUMN_PASSWORD + " varchar(50), "+
+				COLUMN_FULL_NAME + " varchar(51), "+
+				COLUMN_CHANGELOG + " int)");
         //stmt.execute("insert into account values ('1','1','value1',3)");
         conn.commit();
 	}
