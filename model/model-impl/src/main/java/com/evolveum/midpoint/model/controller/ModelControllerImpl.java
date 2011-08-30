@@ -125,6 +125,7 @@ public class ModelControllerImpl implements ModelController {
 	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException,
 			ObjectNotFoundException {
 		Validate.notNull(object, "Object must not be null.");
+		Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		if (!(object instanceof ResourceObjectShadowType)) {
 			Validate.notEmpty(object.getName(), "Object name must not be null or empty.");
@@ -173,6 +174,7 @@ public class ModelControllerImpl implements ModelController {
 	public String addUser(UserType user, UserTemplateType userTemplate, OperationResult result)
 			throws ObjectAlreadyExistsException, ObjectNotFoundException {
 		Validate.notNull(user, "User must not be null.");
+		Validate.notEmpty(user.getName(), "User name must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace(JAXBUtil.silentMarshalWrap(user));

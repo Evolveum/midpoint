@@ -87,21 +87,22 @@ public class Protector {
 
 	public void init() {
 		try {
-			Enumeration<URL> urls = Protector.class.getClassLoader().getResources(getKeyStorePath());
-			InputStream stream = null;
-			if (urls != null) {
-				while (urls.hasMoreElements()) {
-					URL url = urls.nextElement();
-					LOGGER.trace("Looking for keystore at url '" + url.toString() + "'.");
-					File file = new File(url.toURI());
-					if (!file.exists() || file.isDirectory()) {
-						continue;
-					}
-					LOGGER.debug("Keystore path: " + url);
-					stream = new FileInputStream(file);
-					break;
-				}
-			}
+//			Enumeration<URL> urls = Protector.class.getClassLoader().getResources(getKeyStorePath());
+//			InputStream stream = null;
+//			if (urls != null) {
+//				while (urls.hasMoreElements()) {
+//					URL url = urls.nextElement();
+//					LOGGER.trace("Looking for keystore at url '" + url.toString() + "'.");
+//					File file = new File(url.toURI());
+//					if (!file.exists() || file.isDirectory()) {
+//						continue;
+//					}
+//					LOGGER.debug("Keystore path: " + url);
+//					stream = new FileInputStream(file);
+//					break;
+//				}
+//			}
+			InputStream stream = Protector.class.getClassLoader().getResourceAsStream(getKeyStorePath());			
 			if (stream == null) {
 				throw new EncryptionException("Couldn't load keystore as resource '" + getKeyStorePath()
 						+ "'");
