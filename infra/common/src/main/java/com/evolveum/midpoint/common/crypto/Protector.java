@@ -20,10 +20,7 @@
  */
 package com.evolveum.midpoint.common.crypto;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
-import java.net.URL;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -55,7 +52,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 
 /**
- * Class that manages encrypted string values.
+ * Class that manages encrypted string values. Java Cryptography Extension is
+ * needed because this class is using AES-256 for encrypting/decrypting xml
+ * data.
  * 
  * @author Radovan Semancik
  * @author lazyman
@@ -85,24 +84,13 @@ public class Protector {
 		}
 	}
 
+	/**
+	 * @throws SystemException
+	 *             if jceks keystore is not available on {@link getKeyStorePath}
+	 */
 	public void init() {
 		try {
-//			Enumeration<URL> urls = Protector.class.getClassLoader().getResources(getKeyStorePath());
-//			InputStream stream = null;
-//			if (urls != null) {
-//				while (urls.hasMoreElements()) {
-//					URL url = urls.nextElement();
-//					LOGGER.trace("Looking for keystore at url '" + url.toString() + "'.");
-//					File file = new File(url.toURI());
-//					if (!file.exists() || file.isDirectory()) {
-//						continue;
-//					}
-//					LOGGER.debug("Keystore path: " + url);
-//					stream = new FileInputStream(file);
-//					break;
-//				}
-//			}
-			InputStream stream = Protector.class.getClassLoader().getResourceAsStream(getKeyStorePath());			
+			InputStream stream = Protector.class.getClassLoader().getResourceAsStream(getKeyStorePath());
 			if (stream == null) {
 				throw new EncryptionException("Couldn't load keystore as resource '" + getKeyStorePath()
 						+ "'");
@@ -114,6 +102,13 @@ public class Protector {
 		}
 	}
 
+	/**
+	 * 
+	 * @param encryptionKeyDigest
+	 *            SHA1 digest of encryption key {@link SecretKey} from keystore
+	 * @throws IllegalArgumentException
+	 *             if encryption key digest is null or empty string
+	 */
 	public void setEncryptionKeyDigest(String encryptionKeyDigest) {
 		Validate.notEmpty(encryptionKeyDigest, "Encryption key digest must not be null or empty.");
 		this.encryptionKeyDigest = encryptionKeyDigest;
@@ -126,6 +121,12 @@ public class Protector {
 		return encryptionKeyDigest;
 	}
 
+	/**
+	 * 
+	 * @param keyStorePassword
+	 * @throws IllegalArgumentException
+	 *             if keystore password is null string
+	 */
 	public void setKeyStorePassword(String keyStorePassword) {
 		Validate.notNull(keyStorePassword, "Keystore password must not be null.");
 		this.keyStorePassword = keyStorePassword;
@@ -138,6 +139,12 @@ public class Protector {
 		return keyStorePassword;
 	}
 
+	/**
+	 * 
+	 * @param keyStorePath
+	 * @throws IllegalArgumentException
+	 *             if keystore path is null string
+	 */
 	public void setKeyStorePath(String keyStorePath) {
 		Validate.notEmpty(keyStorePath, "Key store path must not be null.");
 		this.keyStorePath = keyStorePath;
@@ -150,6 +157,17 @@ public class Protector {
 		return keyStorePath;
 	}
 
+	/**
+	 * 
+	 * @param protectedString
+	 * @return decrypted String from protectedString object
+	 * @throws EncryptionException
+	 *             this is thrown probably in case JRE/JDK doesn't have JCE
+	 *             installed
+	 * @throws IllegalArgumentException
+	 *             if protectedString argument is null or EncryptedData in
+	 *             protectedString argument is null
+	 */
 	public String decryptString(ProtectedStringType protectedString) throws EncryptionException {
 		Element plain = decrypt(protectedString);
 		if (plain == null) {
@@ -159,6 +177,17 @@ public class Protector {
 		return plain.getTextContent();
 	}
 
+	/**
+	 * 
+	 * @param protectedString
+	 * @return decrypted DOM {@link Element}
+	 * @throws EncryptionException
+	 *             this is thrown probably in case JRE/JDK doesn't have JCE
+	 *             installed
+	 * @throws IllegalArgumentException
+	 *             if protectedString argument is null or EncryptedData in
+	 *             protectedString argument is null
+	 */
 	@SuppressWarnings("unchecked")
 	public Element decrypt(ProtectedStringType protectedString) throws EncryptionException {
 		Validate.notNull(protectedString, "Protected stringmust not be null.");
@@ -206,6 +235,15 @@ public class Protector {
 		return document.getDocumentElement();
 	}
 
+	/**
+	 * 
+	 * @param text
+	 * @return {@link ProtectedStringType} with encrypted string inside it. If
+	 *         input argument is null or empty, method returns null.
+	 * @throws EncryptionException
+	 *             this is thrown probably in case JRE/JDK doesn't have JCE
+	 *             installed
+	 */
 	public ProtectedStringType encryptString(String text) throws EncryptionException {
 		if (StringUtils.isEmpty(text)) {
 			return null;
@@ -220,6 +258,15 @@ public class Protector {
 		return encrypt(plain);
 	}
 
+	/**
+	 * 
+	 * @param plain
+	 * @return {@link ProtectedStringType} with encrypted element inside it. If
+	 *         input argument is null, method returns null.
+	 * @throws EncryptionException
+	 *             this is thrown probably in case JRE/JDK doesn't have JCE
+	 *             installed
+	 */
 	public ProtectedStringType encrypt(Element plain) throws EncryptionException {
 		if (plain == null) {
 			return null;
