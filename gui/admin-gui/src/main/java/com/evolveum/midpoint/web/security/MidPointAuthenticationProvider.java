@@ -51,7 +51,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 	private static final Trace TRACE = TraceManager.getTrace(MidPointAuthenticationProvider.class);
 	@Autowired(required = true)
-	private transient UserDetailsService userManagerService;
+	transient UserDetailsService userManagerService;
 	@Autowired(required = true)
 	private transient Protector protector;
 	private int loginTimeout;
@@ -169,7 +169,7 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 				return;
 			}
 		} catch (EncryptionException ex) {
-			throw new AuthenticationServiceException("web.security.provider.unavailable");
+			throw new AuthenticationServiceException("web.security.provider.unavailable", ex);
 		}
 
 		throw new BadCredentialsException("web.security.provider.invalid");
