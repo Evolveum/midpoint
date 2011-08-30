@@ -36,15 +36,15 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
  *
  * @author semancik
  */
-public class ExpressionHolder {
+public class ExpressionCodeHolder {
 
     private Element dom;
     public static final String LANGUAGE_XPATH_1 = "http://www.w3.org/TR/xpath/";
     public static final String DEFAULT_LANGUAGE = LANGUAGE_XPATH_1;
 
-    public ExpressionHolder(Element domElement) {
+    public ExpressionCodeHolder(Element domElement) {
     	if (domElement==null) {
-    		throw new IllegalArgumentException("Attempt to create "+ExpressionHolder.class.getSimpleName()+" with null DOM element");
+    		throw new IllegalArgumentException("Attempt to create "+ExpressionCodeHolder.class.getSimpleName()+" with null DOM element");
     	}
         dom = domElement;
     }

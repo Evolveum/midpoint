@@ -51,7 +51,7 @@ import com.evolveum.midpoint.model.expr.ExpressionHandlerImpl;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.holder.ExpressionHolder;
+import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
 import com.evolveum.midpoint.schema.holder.ValueAssignmentHolder;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
@@ -444,7 +444,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	}
 
 	private String evaluateExpression(Map<QName, Variable> variables, ExpressionType expression) {
-		ExpressionHolder expressionCode = new ExpressionHolder(expression.getCode());
+		ExpressionCodeHolder expressionCode = new ExpressionCodeHolder(expression.getCode());
 		return (String) XPathUtil.evaluateExpression(variables, expressionCode, XPathConstants.STRING);
 	}
 

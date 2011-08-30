@@ -37,7 +37,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.xpath.XPathUtil;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.ExpressionHolder;
+import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
@@ -82,7 +82,7 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 
 		ResourceType resource = resolveResource(shadow, result);
 		Map<QName, Variable> variables = getDefaultXPathVariables(null, shadow, resource);
-		ExpressionHolder expressionCode = new ExpressionHolder(expression.getCode());
+		ExpressionCodeHolder expressionCode = new ExpressionCodeHolder(expression.getCode());
 		
 		return (String) XPathUtil.evaluateExpression(variables, expressionCode, XPathConstants.STRING);
 	}
@@ -96,7 +96,7 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 
 		ResourceType resource = resolveResource(shadow, result);
 		Map<QName, Variable> variables = getDefaultXPathVariables(user, shadow, resource);
-		ExpressionHolder expressionCode = new ExpressionHolder(expression.getCode());
+		ExpressionCodeHolder expressionCode = new ExpressionCodeHolder(expression.getCode());
 		
 		String confirmed = (String) XPathUtil
 				.evaluateExpression(variables, expressionCode, XPathConstants.STRING);

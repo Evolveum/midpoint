@@ -46,7 +46,7 @@ import org.w3c.dom.NodeList;
 import com.evolveum.midpoint.common.xpath.XPathUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.ExpressionHolder;
+import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
@@ -110,13 +110,13 @@ public class XPathDebugController implements Serializable {
 		return PAGE_NAVIGATION_XPATH_DEBUG;
 	}
 
-	private ExpressionHolder getExpressionHolderFromExpresion() {
+	private ExpressionCodeHolder getExpressionHolderFromExpresion() {
 		TRACE.debug("getExpressionHolder start");
 
 		Document doc = DOMUtil.getDocument();
 		Element element = doc.createElement("valueExpresion");
 		element.setTextContent(expression);
-		ExpressionHolder expressionHolder = new ExpressionHolder(element);
+		ExpressionCodeHolder expressionHolder = new ExpressionCodeHolder(element);
 		TRACE.debug("expression holder: {}", expressionHolder.getFullExpressionAsString());
 		TRACE.debug("getExpressionHolder end");
 		return expressionHolder;
@@ -124,7 +124,7 @@ public class XPathDebugController implements Serializable {
 
 	private QName getQNameForVariable(String variable) {
 		TRACE.debug("getQNameForVariable start");
-		ExpressionHolder expressionHolder = getExpressionHolderFromExpresion();
+		ExpressionCodeHolder expressionHolder = getExpressionHolderFromExpresion();
 		Map<String, String> namespaceMap = expressionHolder.getNamespaceMap();
 
 		if (variable.contains(":")) {
@@ -180,7 +180,7 @@ public class XPathDebugController implements Serializable {
 		}
 
 		try {
-			ExpressionHolder expressionHolder = getExpressionHolderFromExpresion();
+			ExpressionCodeHolder expressionHolder = getExpressionHolderFromExpresion();
 			if (returnType.equals("Boolean")) {
 				Boolean boolResult = (Boolean) XPathUtil.evaluateExpression(getVariableValue(),
 						expressionHolder, XPathConstants.BOOLEAN);

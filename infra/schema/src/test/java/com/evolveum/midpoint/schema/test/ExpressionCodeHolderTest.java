@@ -26,7 +26,7 @@ import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.ExpressionHolder;
+import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueConstructionType;
@@ -45,12 +45,12 @@ import org.w3c.dom.Element;
  *
  * @author semancik
  */
-public class ExpressionHolderTest {
+public class ExpressionCodeHolderTest {
 
     private static final String FILENAME_EXPRESSION_1 = "src/test/resources/examples/expression-1.xml";
     private static final String FILENAME_EXPRESSION_EXPLICIT_NS = "src/test/resources/examples/expression-explicit-ns.xml";
 
-    public ExpressionHolderTest() {
+    public ExpressionCodeHolderTest() {
     }
 
     @Test
@@ -71,7 +71,7 @@ public class ExpressionHolderTest {
         	
         ExpressionType valueExpression = valueConstruction.getValueExpression();
 
-        ExpressionHolder ex = new ExpressionHolder(valueExpression.getCode());
+        ExpressionCodeHolder ex = new ExpressionCodeHolder(valueExpression.getCode());
 
         AssertJUnit.assertEquals("$c:user/c:extension/foo:something/bar:somethingElse", ex.getExpressionAsString().trim());
         
@@ -105,7 +105,7 @@ public class ExpressionHolderTest {
 
         ExpressionType valueExpression = valueConstruction.getValueExpression();
 
-        ExpressionHolder ex = new ExpressionHolder(valueExpression.getCode());
+        ExpressionCodeHolder ex = new ExpressionCodeHolder(valueExpression.getCode());
 
         AssertJUnit.assertEquals("$c:user/c:extension/foo:something/bar:somethingElse", ex.getExpressionAsString().trim());
 

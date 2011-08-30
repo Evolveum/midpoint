@@ -23,7 +23,7 @@
 package com.evolveum.midpoint.common.xpath;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.ExpressionHolder;
+import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.util.MapXPathVariableResolver;
@@ -55,11 +55,11 @@ public class XPathUtil {
 
     private static final Trace logger = TraceManager.getTrace(XPathUtil.class);
 
-    public static Object evaluateExpression(Map<QName, Variable> variables, ExpressionHolder expressionHolder, QName returnType) {
+    public static Object evaluateExpression(Map<QName, Variable> variables, ExpressionCodeHolder expressionHolder, QName returnType) {
         return new XPathUtil().evaluateExpr(variables, expressionHolder, returnType);
     }
 
-    protected Object evaluateExpr(Map<QName, Variable> variables, ExpressionHolder expressionHolder, QName returnType) {
+    protected Object evaluateExpr(Map<QName, Variable> variables, ExpressionCodeHolder expressionHolder, QName returnType) {
         logger.trace("Expression '{}' will be evaluated in context: variables = \n'{}' and namespaces = \n'{}'", new Object[]{expressionHolder.getExpressionAsString(), variables.values(), expressionHolder.getNamespaceMap()});
 
         Validate.notNull(expressionHolder);

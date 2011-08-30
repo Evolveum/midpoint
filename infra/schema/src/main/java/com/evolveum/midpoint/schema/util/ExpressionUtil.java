@@ -3,7 +3,7 @@
  */
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.schema.holder.ExpressionHolder;
+import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 
 /**
@@ -21,7 +21,7 @@ public class ExpressionUtil {
 		if (expression.getCode()==null) {
 			return null;
 		}
-		ExpressionHolder codeHolder = new ExpressionHolder(expression.getCode());
+		ExpressionCodeHolder codeHolder = new ExpressionCodeHolder(expression.getCode());
 		return codeHolder.getExpressionAsString();
 	}
 	

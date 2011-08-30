@@ -41,7 +41,7 @@ import org.w3c.dom.NodeList;
 public class ValueAssignmentHolder {
 
     private Element dom;
-    private ExpressionHolder source;
+    private ExpressionCodeHolder source;
     private XPathHolder target;
     private List<ValueFilterType> filters;
 
@@ -52,7 +52,7 @@ public class ValueAssignmentHolder {
         filters = null;
     }
 
-    public ExpressionHolder getSource() {
+    public ExpressionCodeHolder getSource() {
         if (source != null) {
             return source;
         }
@@ -64,7 +64,7 @@ public class ValueAssignmentHolder {
             throw new IllegalArgumentException("Value assignment has more than one elements <source>");
         }
         Element element = (Element) elements.item(0);
-        source = new ExpressionHolder(element);
+        source = new ExpressionCodeHolder(element);
         return source;
     }
 
