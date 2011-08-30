@@ -24,7 +24,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertNull;
 
-import org.testng.annotations.BeforeTest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -36,14 +38,11 @@ import com.evolveum.midpoint.util.DOMUtil;
  * @author lazyman
  * 
  */
-public class ProtectorTest {
+@ContextConfiguration(locations = "classpath:application-context-configuration-test.xml")
+public class ProtectorTest extends AbstractTestNGSpringContextTests {
 
+	@Autowired(required = true)
 	private Protector protector;
-
-	@BeforeTest
-	public void before() {
-		protector = new Protector();
-	}
 
 	@Test
 	public void encryptNullString() throws EncryptionException {

@@ -25,7 +25,17 @@
     <c:objectClass xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">dj:Account</c:objectClass>
     <c:credentials>
         <c:password>
-            <c:base64>Yi===</c:base64>
+            <c:protectedString xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+				<enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+					<enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc" />
+					<ds:KeyInfo>
+						<ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
+					</ds:KeyInfo>
+					<enc:CipherData>
+						<enc:CipherValue>LZ4QxLrHPrNz/VbNXm6tJU+fHverLrpLFaRudVOaIMAJEGJtpRu7gkgGqRlOJQEH</enc:CipherValue>
+					</enc:CipherData>
+				</enc:EncryptedData>
+			</c:protectedString>
         </c:password>
     </c:credentials>
     <c:attributes>
