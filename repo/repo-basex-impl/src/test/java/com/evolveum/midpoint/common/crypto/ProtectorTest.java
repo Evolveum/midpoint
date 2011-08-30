@@ -38,7 +38,8 @@ import com.evolveum.midpoint.util.DOMUtil;
  * @author lazyman
  * 
  */
-@ContextConfiguration(locations = "classpath:application-context-configuration-test.xml")
+@ContextConfiguration(locations =  { "../../../../../application-context-repository.xml",
+	"classpath:application-context-configuration-test.xml" } )
 public class ProtectorTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)
