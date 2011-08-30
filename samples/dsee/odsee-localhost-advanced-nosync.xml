@@ -153,9 +153,10 @@ object.
                          It is an XPath expression, similar to BPEL assignment expressions. -->
 					<c:outbound default="true">
 						<c:valueExpression>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							concat('uid=',
-							$i:user/c:name, ',ou=people,dc=example,dc=com')
+							<c:code>
+								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+								concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
+							</c:code>
                         </c:valueExpression>
 					</c:outbound>
 
@@ -195,8 +196,10 @@ object.
                         <!-- It is mapped from (and also to) "name" property of
                              user. It is essentially a login name -->
 						<c:valueExpression>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:name
+							<c:code>
+								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+								$i:user/i:name
+							</c:code>
 						</c:valueExpression>
 					</c:outbound>
 				</c:attribute>
@@ -219,8 +222,10 @@ object.
                      -->
 					<c:outbound>
 						<c:valueExpression>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:fullName
+							<c:code>
+								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+								$i:user/i:fullName
+							</c:code>
                         </c:valueExpression>
 					</c:outbound>
 
@@ -234,8 +239,10 @@ object.
 					<c:access>update</c:access>
 					<c:outbound>
 						<c:valueExpression>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:familyName
+							<c:code>
+								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+								$i:user/i:familyName
+							</c:code>
                         </c:valueExpression>
 					</c:outbound>
                     <!-- sn will be synchronized to user's familyName -->
@@ -249,8 +256,10 @@ object.
 					<c:access>update</c:access>
 					<c:outbound>
 						<c:valueExpression>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:givenName
+							<c:code>
+								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+								$i:user/i:givenName
+							</c:code>
                         </c:valueExpression>
 					</c:outbound>
 				</c:attribute>
