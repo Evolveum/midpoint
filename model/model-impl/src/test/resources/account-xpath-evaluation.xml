@@ -203,7 +203,7 @@
 					<access>create</access>
 					<access>read</access>
 					<outbound default="true" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-						<valueExpression>concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')</valueExpression>
+						<valueExpression><code>concat('uid=', $c:user/c:name, ',ou=people,dc=example,dc=com')</code></valueExpression>
 					</outbound>
 				</attribute>
 				<attribute ref="ids:uid" xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
@@ -219,7 +219,7 @@
 					<access>read</access>
 					<access>update</access>
 					<outbound>
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">$i:user/i:fullName</valueExpression>
+						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"><code>$i:user/i:fullName</code></valueExpression>
 					</outbound>
 					<inbound>
 						<valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#emptyFilter" />
@@ -237,7 +237,7 @@
 					<access>read</access>
 					<access>update</access>
 					<outbound>
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">$i:user/i:familyName</valueExpression>
+						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"><code>$i:user/i:familyName</code></valueExpression>
 					</outbound>
 					<inbound>
 						<valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
@@ -261,7 +261,7 @@
 					<access>read</access>
 					<access>update</access>
 					<outbound default="true">
-						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">$i:user/i:givenName</valueExpression>
+						<valueExpression xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"><code>$i:user/i:givenName</code></valueExpression>
 					</outbound>
 				</attribute>
 				<attribute ref="ri:description"

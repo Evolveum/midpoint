@@ -813,7 +813,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 		Element property = construction.getProperty();
 		ValueConstructionType valueConstruction = construction.getValueConstruction();
-		
+		//TODO: process property construction
 		
 		return user;
 	}

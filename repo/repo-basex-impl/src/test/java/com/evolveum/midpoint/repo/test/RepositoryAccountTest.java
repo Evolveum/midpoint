@@ -39,7 +39,6 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
@@ -48,7 +47,6 @@ import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
@@ -131,7 +129,7 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"))).getValue();
 			repositoryService.addObject(resource, new OperationResult("test"));
-			ObjectType retrievedObject = repositoryService.getObject(resourceOid,
+			ObjectType retrievedObject = repositoryService.getObject(ResourceType.class, resourceOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(resource.getOid(), retrievedObject.getOid());
 
@@ -141,8 +139,8 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject(accountShadow, new OperationResult("test"));
 
 			// get account object
-			retrievedObject = repositoryService.getObject(accountOid, new PropertyReferenceListType(),
-					new OperationResult("test"));
+			retrievedObject = repositoryService.getObject(AccountShadowType.class, accountOid,
+					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(accountShadow, (AccountShadowType) retrievedObject);
 
 			// list account objects with simple paging
@@ -156,8 +154,8 @@ public class RepositoryAccountTest extends AbstractTestNGSpringContextTests {
 			// delete object
 			repositoryService.deleteObject(AccountShadowType.class, accountOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(accountOid, new PropertyReferenceListType(), new OperationResult(
-						"test"));
+				repositoryService.getObject(AccountShadowType.class, accountOid,
+						new PropertyReferenceListType(), new OperationResult("test"));
 				Assert.fail("Object with oid " + accountOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				// ignore

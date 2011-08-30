@@ -52,7 +52,6 @@ import com.evolveum.midpoint.schema.namespace.PrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
@@ -268,7 +267,7 @@ public final class JAXBUtil {
 	public static Object unmarshal(InputStream input) throws JAXBException {
 		return unmarshal(Object.class, input);
 	}
-	
+
 	@SuppressWarnings("unchecked")
 	public static <T> JAXBElement<T> unmarshal(Class<T> type, InputStream input) throws JAXBException {
 		Object object = createUnmarshaller().unmarshal(input);
@@ -289,7 +288,7 @@ public final class JAXBUtil {
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
 		return jaxbElement;
 	}
-	
+
 	public static Object silentUnmarshal(String xmlString) {
 		try {
 			return unmarshal(xmlString);
@@ -339,14 +338,14 @@ public final class JAXBUtil {
 
 		return (Element) element.getFirstChild();
 	}
-	
-	@SuppressWarnings("unchecked")
+
 	public static <T> Element jaxbToDom(JAXBElement<T> jaxbElement, Document doc) throws JAXBException {
 		if (doc == null) {
 			doc = DOMUtil.getDocument();
 		}
 
-		Element element = doc.createElementNS(jaxbElement.getName().getNamespaceURI(), jaxbElement.getName().getLocalPart());
+		Element element = doc.createElementNS(jaxbElement.getName().getNamespaceURI(), jaxbElement.getName()
+				.getLocalPart());
 		marshal(jaxbElement, element);
 
 		return (Element) element.getFirstChild();
@@ -366,74 +365,81 @@ public final class JAXBUtil {
 
 	/**
 	 * Serializes DOM or JAXB element to string
+	 * 
 	 * @param element
 	 * @return
-	 * @throws JAXBException 
+	 * @throws JAXBException
 	 */
 	public static String serializeElementToString(Object element) throws JAXBException {
-		if (element==null) {
+		if (element == null) {
 			return null;
 		}
 		if (element instanceof Element) {
-			return DOMUtil.serializeDOMToString((Element)element);
+			return DOMUtil.serializeDOMToString((Element) element);
 		} else {
 			return marshal(element);
 		}
 	}
-	
+
+	@SuppressWarnings("rawtypes")
 	public static QName getElementQName(Object element) {
-		if (element==null) {
+		if (element == null) {
 			return null;
 		}
 		if (element instanceof Element) {
-			return DOMUtil.getQName((Element)element);
-		} else if (element instanceof JAXBElement){
-			return ((JAXBElement)element).getName();
+			return DOMUtil.getQName((Element) element);
+		} else if (element instanceof JAXBElement) {
+			return ((JAXBElement) element).getName();
 		} else {
-			throw new IllegalArgumentException("Not an element: "+element);
+			throw new IllegalArgumentException("Not an element: " + element);
 		}
 	}
 
+	@SuppressWarnings("rawtypes")
 	public static String getElementLocalName(Object element) {
-		if (element==null) {
+		if (element == null) {
 			return null;
 		}
 		if (element instanceof Element) {
-			return ((Element)element).getLocalName();
-		} else if (element instanceof JAXBElement){
-			return ((JAXBElement)element).getName().getLocalPart();
+			return ((Element) element).getLocalName();
+		} else if (element instanceof JAXBElement) {
+			return ((JAXBElement) element).getName().getLocalPart();
 		} else {
-			throw new IllegalArgumentException("Not an element: "+element);
+			throw new IllegalArgumentException("Not an element: " + element);
 		}
 	}
-	
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Element toDomElement(Object element) throws JAXBException {
-		if (element==null) {
+		if (element == null) {
 			return null;
 		}
 		if (element instanceof Element) {
-			return ((Element)element);
-		} else if (element instanceof JAXBElement){
-			return jaxbToDom((JAXBElement)element, null);
+			return ((Element) element);
+		} else if (element instanceof JAXBElement) {
+			return jaxbToDom((JAXBElement) element, null);
 		} else {
-			throw new IllegalArgumentException("Not an element: "+element+" ("+element.getClass().getName()+")");
+			throw new IllegalArgumentException("Not an element: " + element + " ("
+					+ element.getClass().getName() + ")");
 		}
 	}
 
 	/**
-	 * Returns short description of element content for diagnostics use (logs, dumps).
+	 * Returns short description of element content for diagnostics use (logs,
+	 * dumps).
 	 * 
 	 * Works with DOM and JAXB elements.
 	 * 
-	 * @param element DOM or JAXB element
+	 * @param element
+	 *            DOM or JAXB element
 	 * @return short description of element content
 	 */
 	public static String getTextContentDump(Object element) {
-		if (element==null) {
+		if (element == null) {
 			return null;
 		}
 		if (element instanceof Element) {
-			return ((Element)element).getTextContent();
+			return ((Element) element).getTextContent();
 		} else {
 			return element.toString();
 		}
@@ -445,10 +451,10 @@ public final class JAXBUtil {
 	 */
 	public static Document getDocument(Object element) {
 		if (element instanceof Element) {
-			return ((Element)element).getOwnerDocument();
+			return ((Element) element).getOwnerDocument();
 		} else {
 			return DOMUtil.getDocument();
 		}
 	}
-	
+
 }
