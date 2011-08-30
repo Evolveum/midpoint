@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -73,13 +74,26 @@ public class ClassPathUtil {
 		// file:/C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar!/test-data/opendj.template
 		// output:
 		// /C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar
-		String srcName = srcUrl.getPath().substring(5).split("!/")[0];
+		String srcName = srcUrl.getPath().split("!/")[0];
 
+		//Probaly hepls fix error in windows with URI
+		File jarTmp = null;
+		try {
+			 jarTmp = new File(new URI(srcName));
+		} catch (URISyntaxException ex) {
+			LOGGER.error("Error converting jar " + srcName + " name to URI:",ex);
+			return classes;
+		}
+		
+		if (! jarTmp.isFile()) {
+			LOGGER.error("Is {} not a file." , srcName);
+		}
+		
 		JarFile jar = null;
 		try {
-			jar = new JarFile(srcName);
+			jar = new JarFile(jarTmp);
 		} catch (IOException ex) {
-			LOGGER.error("Error during open JAR {} " + srcName, ex);
+			LOGGER.error("Error during open JAR " + srcName, ex);
 			return classes;
 		}
 		String path = packageName.replace('.', '/');
