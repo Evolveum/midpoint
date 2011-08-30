@@ -61,14 +61,13 @@ import org.xml.sax.SAXException;
  * @since 0.1
  */
 public class DOMUtil {
-	
+
 	public static final String W3C_XML_SCHEMA_XMLNS_URI = "http://www.w3.org/2000/xmlns/";
 	public static final String W3C_XML_SCHEMA_XMLNS_PREFIX = "xmlns";
-	
+
 	public static final String NS_W3C_XSI_PREFIX = "xsi";
-	public static final QName XSI_TYPE = new QName(W3C_XML_SCHEMA_INSTANCE_NS_URI, "type",
-			NS_W3C_XSI_PREFIX);
-	
+	public static final QName XSI_TYPE = new QName(W3C_XML_SCHEMA_INSTANCE_NS_URI, "type", NS_W3C_XSI_PREFIX);
+
 	public static final String NS_W3C_XML_SCHEMA_PREFIX = "xsd";
 	public static final QName XSD_SCHEMA_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "schema",
 			NS_W3C_XML_SCHEMA_PREFIX);
@@ -82,9 +81,8 @@ public class DOMUtil {
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_DATETIME = new QName(W3C_XML_SCHEMA_NS_URI, "dateTime",
 			NS_W3C_XML_SCHEMA_PREFIX);
-	public static final QName XSD_QNAME = new QName(W3C_XML_SCHEMA_NS_URI, "QName",
-			NS_W3C_XML_SCHEMA_PREFIX);
-	
+	public static final QName XSD_QNAME = new QName(W3C_XML_SCHEMA_NS_URI, "QName", NS_W3C_XML_SCHEMA_PREFIX);
+
 	private static final String RANDOM_ATTR_PREFIX_PREFIX = "qn";
 	private static final int RANDOM_ATTR_PREFIX_RND = 1000;
 	// To generate random namespace prefixes
@@ -105,56 +103,46 @@ public class DOMUtil {
 	//
 	public static Document getDocument() {
 		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory
-					.newInstance();
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);
 			DocumentBuilder loader = factory.newDocumentBuilder();
 			return loader.newDocument();
 		} catch (ParserConfigurationException ex) {
-			throw new IllegalStateException("Error creating XML document "
-					+ ex.getMessage());
+			throw new IllegalStateException("Error creating XML document " + ex.getMessage());
 		}
 	}
 
 	public static Document parseDocument(String doc) {
 		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory
-					.newInstance();
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);
 			DocumentBuilder loader = factory.newDocumentBuilder();
 			return loader.parse(IOUtils.toInputStream(doc, "utf-8"));
 		} catch (SAXException ex) {
-			throw new IllegalStateException("Error parsing XML document "
-					+ ex.getMessage());
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
 		} catch (IOException ex) {
-			throw new IllegalStateException("Error parsing XML document "
-					+ ex.getMessage());
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
 		} catch (ParserConfigurationException ex) {
-			throw new IllegalStateException("Error parsing XML document "
-					+ ex.getMessage());
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
 		}
 	}
 
 	public static Document parseFile(String filePath) {
-		
+
 		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory
-					.newInstance();
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			factory.setNamespaceAware(true);
 			DocumentBuilder loader = factory.newDocumentBuilder();
 			return loader.parse(new File(filePath));
 		} catch (SAXException ex) {
-			throw new IllegalStateException("Error parsing XML document "
-					+ ex.getMessage());
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
 		} catch (IOException ex) {
-			throw new IllegalStateException("Error parsing XML document "
-					+ ex.getMessage());
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
 		} catch (ParserConfigurationException ex) {
-			throw new IllegalStateException("Error parsing XML document "
-					+ ex.getMessage());
+			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
 		}
 	}
-	
+
 	public static String showDom(List<Element> elements) {
 		StringBuilder sb = new StringBuilder();
 		for (Element element : elements) {
@@ -171,9 +159,9 @@ public class DOMUtil {
 			Transformer trans = transfac.newTransformer();
 			trans.setOutputProperty(OutputKeys.INDENT, "yes");
 			trans.setParameter(OutputKeys.ENCODING, "utf-8");
-			//Note: serialized XML does not contain xml declaration
+			// Note: serialized XML does not contain xml declaration
 			trans.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
-			
+
 			DOMSource source = new DOMSource(node);
 			trans.transform(source, new StreamResult(writer));
 		} catch (Exception ex) {
@@ -209,10 +197,8 @@ public class DOMUtil {
 					sb.append("='");
 					sb.append(attribute.getNodeValue());
 					sb.append("',");
-					if (attribute.getPrefix() == null
-							&& attribute.getLocalName().equals("xmlns")
-							&& (attribute.getNodeValue() == null || attribute
-									.getNodeValue().isEmpty())) {
+					if (attribute.getPrefix() == null && attribute.getLocalName().equals("xmlns")
+							&& (attribute.getNodeValue() == null || attribute.getNodeValue().isEmpty())) {
 						broken = true;
 					}
 				}
@@ -230,7 +216,6 @@ public class DOMUtil {
 		}
 
 	}
-
 
 	public static Node getNextSiblingElement(Node node) {
 		if (node == null || node.getParentNode() == null) {
@@ -271,14 +256,14 @@ public class DOMUtil {
 
 		return null;
 	}
-	
+
 	public static Element getLastChildElement(Node parent) {
 		if (parent == null || parent.getChildNodes() == null) {
 			return null;
 		}
 
 		NodeList nodes = parent.getChildNodes();
-		for (int i = nodes.getLength()-1; i >= 0; i--) {
+		for (int i = nodes.getLength() - 1; i >= 0; i--) {
 			Node child = nodes.item(i);
 			if (child.getNodeType() == Node.ELEMENT_NODE) {
 				return (Element) child;
@@ -288,71 +273,71 @@ public class DOMUtil {
 		return null;
 	}
 
-	
 	public static List<Element> getSubelementList(Node node) {
 		List<Element> subelements = new ArrayList<Element>();
 		NodeList childNodes = node.getChildNodes();
-		for(int i=0;i<childNodes.getLength();i++) {
+		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node childNode = childNodes.item(i);
 			if (childNode.getNodeType() == Node.ELEMENT_NODE) {
-				subelements.add((Element)childNode);
+				subelements.add((Element) childNode);
 			}
 		}
 		return subelements;
 	}
-	
+
 	public static QName resolveQName(Element element) {
 		return resolveQName(element, element.getTextContent());
 	}
-	
+
 	public static QName resolveQName(Node domNode, String prefixNotation) {
 		return resolveQName(domNode, prefixNotation, null);
 	}
-	
+
 	public static QName resolveQName(Node domNode, String prefixNotation, String defaultNamespacePrefix) {
-		if (prefixNotation==null) {
+		if (prefixNotation == null) {
 			// No QName
 			return null;
 		}
-        String[] qnameArray = prefixNotation.split(":");
-        if (qnameArray.length > 2) {
-            throw new IllegalArgumentException("Unsupported format: more than one colon in Qname: " + prefixNotation);
-        }
-        QName qname;
-        if (qnameArray.length == 1 || qnameArray[1] == null || qnameArray[1].isEmpty()) {
-            // default namespace <= empty prefix
-            String namespace = findNamespace(domNode, null);
-            if (defaultNamespacePrefix!=null) {
-            	qname = new QName(namespace, qnameArray[0], defaultNamespacePrefix);
-            } else {
-            	qname = new QName(namespace, qnameArray[0]);
-            }
-        } else {
-            String namespace = findNamespace(domNode, qnameArray[0]);
-            qname = new QName(namespace, qnameArray[1], qnameArray[0]);
-        }
-        return qname;
+		String[] qnameArray = prefixNotation.split(":");
+		if (qnameArray.length > 2) {
+			throw new IllegalArgumentException("Unsupported format: more than one colon in Qname: "
+					+ prefixNotation);
+		}
+		QName qname;
+		if (qnameArray.length == 1 || qnameArray[1] == null || qnameArray[1].isEmpty()) {
+			// default namespace <= empty prefix
+			String namespace = findNamespace(domNode, null);
+			if (defaultNamespacePrefix != null) {
+				qname = new QName(namespace, qnameArray[0], defaultNamespacePrefix);
+			} else {
+				qname = new QName(namespace, qnameArray[0]);
+			}
+		} else {
+			String namespace = findNamespace(domNode, qnameArray[0]);
+			qname = new QName(namespace, qnameArray[1], qnameArray[0]);
+		}
+		return qname;
 	}
 
-    public static String findNamespace(Node domNode, String prefix) {
-        String ns = null;
-        if (domNode != null) {
-            if (prefix == null || prefix.isEmpty()) {
-                ns = domNode.lookupNamespaceURI(null);
-            } else {
-                ns = domNode.lookupNamespaceURI(prefix);
-            }
-            if (ns != null) {
-                return ns;
-            }
-        }
-        return ns;
-    }
+	public static String findNamespace(Node domNode, String prefix) {
+		String ns = null;
+		if (domNode != null) {
+			if (prefix == null || prefix.isEmpty()) {
+				ns = domNode.lookupNamespaceURI(null);
+			} else {
+				ns = domNode.lookupNamespaceURI(prefix);
+			}
+			if (ns != null) {
+				return ns;
+			}
+		}
+		return ns;
+	}
 
-    public static QName resolveXsiType(Element element) {
-    	return resolveXsiType(element,null);
-    }
-    
+	public static QName resolveXsiType(Element element) {
+		return resolveXsiType(element, null);
+	}
+
 	public static QName resolveXsiType(Element element, String defaultNamespacePrefix) {
 		String xsiType = element.getAttributeNS(XSI_TYPE.getNamespaceURI(), XSI_TYPE.getLocalPart());
 		if (xsiType == null || xsiType.isEmpty()) {
@@ -368,18 +353,19 @@ public class DOMUtil {
 		}
 		return true;
 	}
-	
+
 	public static void setXsiType(Element element, QName type) {
 		if (hasXsiType(element)) {
 			throw new IllegalArgumentException("Element already has a type");
 		}
 		setQNameAttribute(element, XSI_TYPE, type);
 	}
-		
+
 	public static void setQNameAttribute(Element element, QName attributeName, QName attributeValue) {
-		String valuePrefix = lookupOrCreateNamespaceDeclaration(element,attributeValue.getNamespaceURI(),attributeValue.getPrefix());
+		String valuePrefix = lookupOrCreateNamespaceDeclaration(element, attributeValue.getNamespaceURI(),
+				attributeValue.getPrefix());
 		String attrValue = null;
-		if (valuePrefix==null || valuePrefix.isEmpty()) {
+		if (valuePrefix == null || valuePrefix.isEmpty()) {
 			// default namespace
 			attrValue = attributeValue.getLocalPart();
 		} else {
@@ -387,17 +373,19 @@ public class DOMUtil {
 		}
 		Document doc = element.getOwnerDocument();
 		NamedNodeMap attributes = element.getAttributes();
-        Attr attr = doc.createAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
-        String namePrefix = lookupOrCreateNamespaceDeclaration(element,attributeName.getNamespaceURI(),attributeName.getPrefix());
-        attr.setPrefix(namePrefix);
-        attr.setValue(attrValue);
-        attributes.setNamedItem(attr);
+		Attr attr = doc.createAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
+		String namePrefix = lookupOrCreateNamespaceDeclaration(element, attributeName.getNamespaceURI(),
+				attributeName.getPrefix());
+		attr.setPrefix(namePrefix);
+		attr.setValue(attrValue);
+		attributes.setNamedItem(attr);
 	}
-	
+
 	public static void setQNameValue(Element element, QName elementValue) {
-		String valuePrefix = lookupOrCreateNamespaceDeclaration(element,elementValue.getNamespaceURI(),elementValue.getPrefix());
+		String valuePrefix = lookupOrCreateNamespaceDeclaration(element, elementValue.getNamespaceURI(),
+				elementValue.getPrefix());
 		String stringValue = null;
-		if (valuePrefix==null || valuePrefix.isEmpty()) {
+		if (valuePrefix == null || valuePrefix.isEmpty()) {
 			// default namespace
 			stringValue = elementValue.getLocalPart();
 		} else {
@@ -405,9 +393,11 @@ public class DOMUtil {
 		}
 		element.setTextContent(stringValue);
 	}
-	
-	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri, String preferredPrefix) {
-		// We need to figure out correct prefix. We have namespace URI, but we need a prefix to specify in the xsi:type
+
+	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri,
+			String preferredPrefix) {
+		// We need to figure out correct prefix. We have namespace URI, but we
+		// need a prefix to specify in the xsi:type
 		if (element.isDefaultNamespace(namespaceUri)) {
 			// Namespace URI is a default namespace. Return empty prefix;
 			return "";
@@ -419,52 +409,59 @@ public class DOMUtil {
 			if (prefix != null) {
 				// check if a declaration for it exists
 				String namespaceDefinedForPreferredPrefix = element.lookupNamespaceURI(prefix);
-				if (namespaceDefinedForPreferredPrefix==null || namespaceDefinedForPreferredPrefix.isEmpty()) {
-					// No namespace definition for preferred prefix. So let's use it .. unless is is default namespace
+				if (namespaceDefinedForPreferredPrefix == null
+						|| namespaceDefinedForPreferredPrefix.isEmpty()) {
+					// No namespace definition for preferred prefix. So let's
+					// use it .. unless is is default namespace
 					if (prefix.isEmpty()) {
-						// Default namespace. Never generate definition for default namespace unless there is already one.
+						// Default namespace. Never generate definition for
+						// default namespace unless there is already one.
 						// This will trigger auto-generated prefix later
 						prefix = null;
 					} else {
-						setNamespaceDeclaration(element,prefix,namespaceUri);
+						setNamespaceDeclaration(element, prefix, namespaceUri);
 					}
 				} else if (namespaceUri.equals(namespaceDefinedForPreferredPrefix)) {
-					// Nothing to do, prefix already defined and the definition matches.
-					// The question is how this could happen. Why has element.lookupPrefix() haven't found it?
+					// Nothing to do, prefix already defined and the definition
+					// matches.
+					// The question is how this could happen. Why has
+					// element.lookupPrefix() haven't found it?
 				} else {
-					// prefix already defined, but the URI is different. Fallback to a random prefix.
+					// prefix already defined, but the URI is different.
+					// Fallback to a random prefix.
 					prefix = null;
-				} 
+				}
 			}
 			// Empty prefix means default namespace
 			if (prefix == null) {
 				// generate random prefix
 				prefix = RANDOM_ATTR_PREFIX_PREFIX + rnd.nextInt(RANDOM_ATTR_PREFIX_RND);
-				setNamespaceDeclaration(element,prefix,namespaceUri);
+				setNamespaceDeclaration(element, prefix, namespaceUri);
 			}
 		}
 		return prefix;
 	}
-	
-	public static void setNamespaceDeclaration(Element element,String prefix, String namespaceUri) {
+
+	public static void setNamespaceDeclaration(Element element, String prefix, String namespaceUri) {
 		Document doc = element.getOwnerDocument();
 		NamedNodeMap attributes = element.getAttributes();
-        Attr attr;
-        if (prefix == null || prefix.isEmpty()) {
-        	// default namespace
-            attr = doc.createAttributeNS(W3C_XML_SCHEMA_XMLNS_URI, W3C_XML_SCHEMA_XMLNS_PREFIX);
-       } else {
-            attr = doc.createAttributeNS(W3C_XML_SCHEMA_XMLNS_URI, W3C_XML_SCHEMA_XMLNS_PREFIX + ":" + prefix);
-       }
-       attr.setValue(namespaceUri);
-       attributes.setNamedItem(attr);
+		Attr attr;
+		if (prefix == null || prefix.isEmpty()) {
+			// default namespace
+			attr = doc.createAttributeNS(W3C_XML_SCHEMA_XMLNS_URI, W3C_XML_SCHEMA_XMLNS_PREFIX);
+		} else {
+			attr = doc
+					.createAttributeNS(W3C_XML_SCHEMA_XMLNS_URI, W3C_XML_SCHEMA_XMLNS_PREFIX + ":" + prefix);
+		}
+		attr.setValue(namespaceUri);
+		attributes.setNamedItem(attr);
 	}
 
 	public static QName getQName(Element element) {
-		if (element.getPrefix()==null) {
-			return new QName(element.getNamespaceURI(),element.getLocalName());
+		if (element.getPrefix() == null) {
+			return new QName(element.getNamespaceURI(), element.getLocalName());
 		}
-		return new QName(element.getNamespaceURI(),element.getLocalName(),element.getPrefix());
+		return new QName(element.getNamespaceURI(), element.getLocalName(), element.getPrefix());
 	}
 
 	public static QName getQNameValue(Element element) {
@@ -473,15 +470,15 @@ public class DOMUtil {
 
 	public static void copyContent(Element source, Element destination) {
 		NamedNodeMap attributes = source.getAttributes();
-		for (int i=0; i<attributes.getLength(); i++) {
+		for (int i = 0; i < attributes.getLength(); i++) {
 			Attr attr = (Attr) attributes.item(i);
 			destination.setAttributeNode(attr);
 		}
 		NodeList childNodes = source.getChildNodes();
-		for(int i=0; i<childNodes.getLength(); i++) {
+		for (int i = 0; i < childNodes.getLength(); i++) {
 			Node item = childNodes.item(i);
 			destination.appendChild(item);
 		}
 	}
-	
+
 }

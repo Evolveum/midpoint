@@ -192,14 +192,16 @@
                         <!-- The expression itself. It translates the value of
                              user's attribute "locality" (expressed as $i:user/i:locality)
                              using a lookup table defined in the configuration object
-                             in the $my:config variable specified above. -->
+                             in the $my:config variable specified above. -->                             
                         <i:valueExpression>
+                        <i:code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             declare namespace my="http://myself.me/schemas/whatever";
                             if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
                                 $my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]
                             else
                                 $my:defaultLocation
+                                </i:code>
                         </i:valueExpression>
                     </i:outbound>
                 </i:attribute>

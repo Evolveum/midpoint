@@ -70,7 +70,7 @@
                     <access>create</access>
                     <access>read</access>
                     <outbound default="true" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-                        <valueExpression xmlns:custom="http://midpoint.evolveum.com/custom">custom:capitalize($i:user/i:name)</valueExpression>
+                        <valueExpression xmlns:custom="http://midpoint.evolveum.com/custom"><code>custom:capitalize($i:user/i:name)</code></valueExpression>
                     </outbound>
                 </attribute>
         </accountType>

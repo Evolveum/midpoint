@@ -78,7 +78,7 @@
                     <access>create</access>
                     <access>read</access>
                     <outbound default="true" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-                        <valueExpression xmlns:custom="http://midpoint.evolveum.com/custom">if (2 &lt; 1) then $i:user/i:givenName else $i:user/i:fullName</valueExpression>
+                        <valueExpression xmlns:custom="http://midpoint.evolveum.com/custom"><code>if (2 &lt; 1) then $i:user/i:givenName else $i:user/i:fullName</code></valueExpression>
                     </outbound>
                 </attribute>
             </accountType>

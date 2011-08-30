@@ -100,7 +100,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		ExpressionType expression = JAXBUtil.unmarshal(ExpressionType.class, "<confirmation "
 				+ "xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' "
 				+ "xmlns:dj='http://midpoint.evolveum.com/xml/ns/samples/localhostOpenDJ'>"
-				+ "<c:code>$c:user/c:givenName = $c:account/c:attributes/dj:givenName</c:code></confirmation>").getValue();
+				+ "<code>$c:user/c:givenName = $c:account/c:attributes/dj:givenName</code></confirmation>").getValue();
 
 		OperationResult result = new OperationResult("testConfirmUser");
 		boolean confirmed = expressionHandler.evaluateConfirmationExpression(user, account, expression,
