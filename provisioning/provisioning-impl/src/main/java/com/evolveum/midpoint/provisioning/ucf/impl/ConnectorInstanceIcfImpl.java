@@ -1439,13 +1439,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			String attrName = convertAttributeNameToIcf(attribute.getName(),
 					parentResult);
 			
-			Set<Object> attributeValues = new HashSet<Object>();
+			Set<Object> convertedAttributeValues = new HashSet<Object>();
 			for (Object value : attribute.getValues()) {
-				attributeValues.add(convertValueToIcf(value));
+				convertedAttributeValues.add(convertValueToIcf(value));
 			}
 
 			Attribute connectorAttribute = AttributeBuilder.build(attrName,
-					attribute.getValues());
+					convertedAttributeValues);
 
 			attributes.add(connectorAttribute);
 		}

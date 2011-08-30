@@ -37,8 +37,8 @@
 			<icfi:jdbcUrlTemplate>jdbc:derby://%h:%p/%d</icfi:jdbcUrlTemplate>
 			<icfi:keyColumn>login</icfi:keyColumn>
 			<icfi:passwordColumn>password</icfi:passwordColumn>
+			<icfi:password><clearValue>secret</clearValue></icfi:password>
 			<icfi:table>users</icfi:table>
-			<icfi:password>secret</icfi:password>
 			<icfi:user>midpoint</icfi:user>
 			<icfi:database>target/derbyMidPointTest</icfi:database>
 			<icfi:host>localhost</icfi:host>

@@ -283,6 +283,13 @@ public final class JAXBUtil {
 		return jaxbElement;
 	}
 
+	@SuppressWarnings("unchecked")
+	public static <T> JAXBElement<T> unmarshal(Node node, Class<T> declaredType) throws JAXBException {
+		Object object = createUnmarshaller().unmarshal(node, declaredType);
+		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
+		return jaxbElement;
+	}
+	
 	public static Object silentUnmarshal(String xmlString) {
 		try {
 			return unmarshal(xmlString);

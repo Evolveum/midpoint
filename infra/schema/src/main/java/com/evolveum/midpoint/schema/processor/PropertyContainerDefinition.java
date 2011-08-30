@@ -220,7 +220,7 @@ public class PropertyContainerDefinition extends Definition {
 				try {
 					value = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
 				} catch (JAXBException e) {
-					throw new SystemException("Unexpected JAXB problem while parsing element "+elementQName+" : "+e.getMessage(),e);
+					throw new SchemaException("Schema error in property "+elementQName+" : "+e.getMessage(),e);
 				}
 				propValues.add(value);
 				// Loop over until the elements have the same local name
@@ -233,7 +233,7 @@ public class PropertyContainerDefinition extends Definition {
 					try {
 						avalue = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
 					} catch (JAXBException e) {
-						throw new SystemException("Unexpected JAXB problem while parsing element "+elementQName+" : "+e.getMessage(),e);
+						throw new SchemaException("Schema error in property "+elementQName+" : "+e.getMessage(),e);
 					}
 					propValues.add(avalue);
 				}
@@ -244,7 +244,7 @@ public class PropertyContainerDefinition extends Definition {
 				try {
 					value = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
 				} catch (JAXBException e) {
-					throw new SystemException("Unexpected JAXB problem while parsing element "+elementQName+" : "+e.getMessage(),e);
+					throw new SchemaException("Schema error in property "+elementQName+" : "+e.getMessage(),e);
 				}
 				propValues.add(value);
 			}

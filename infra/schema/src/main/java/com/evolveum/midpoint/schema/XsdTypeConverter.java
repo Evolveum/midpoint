@@ -149,7 +149,7 @@ public class XsdTypeConverter {
 			} else if (type.equals(QName.class)) {
 				return (T) DOMUtil.getQNameValue(xmlElement);
 			} else if (isJaxbClass(type)) {
-				return (T) JAXBUtil.unmarshal(xmlElement).getValue();
+				return JAXBUtil.unmarshal(xmlElement, type).getValue();
 			} else {
 				throw new IllegalArgumentException("Unknown type for conversion: " + type);
 			}
