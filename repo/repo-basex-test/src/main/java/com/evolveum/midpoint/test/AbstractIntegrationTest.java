@@ -26,7 +26,9 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -79,7 +81,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	@Autowired(required = true)
 	protected RepositoryService repositoryService;
-	protected static boolean systemInitialized = false;
+	protected static Set<Class> initializedClasses = new HashSet<Class>();
 
 	@Autowired(required = true)
 	protected TaskManager taskManager;
@@ -105,8 +107,8 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		// Check whether we are already initialized
 		assertNotNull("Repository is not wired properly", repositoryService);
 		assertNotNull("Task manager is not wired properly", taskManager);
-		LOGGER.trace("initSystemConditional: systemInitialized={}", systemInitialized);
-		if (!systemInitialized) {
+		LOGGER.trace("initSystemConditional: systemInitialized={}", isSystemInitialized());
+		if (!isSystemInitialized()) {
 			LOGGER.trace("initSystemConditional: invoking initSystem");
 			OperationResult result = new OperationResult(this.getClass().getName() + ".initSystem");
 			initSystem(result);
@@ -114,8 +116,19 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			IntegrationTestTools.display("initSystem result", result);
 			// TODO: check result
 			IntegrationTestTools.assertSuccess("initSystem failed (result)", result);
-			systemInitialized = true;
+			setSystemInitialized();
 		}
+	}
+
+	/**
+	 * @return
+	 */
+	protected boolean isSystemInitialized() {
+		return initializedClasses.contains(this.getClass());
+	}
+	
+	private void setSystemInitialized() {
+		initializedClasses.add(this.getClass());
 	}
 
 	abstract public void initSystem(OperationResult initResult) throws Exception;

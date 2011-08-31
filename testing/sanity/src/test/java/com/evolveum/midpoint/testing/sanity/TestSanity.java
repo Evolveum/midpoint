@@ -221,7 +221,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		AssertJUnit.assertNotNull(modelWeb);
 		AssertJUnit.assertNotNull(modelService);
 		AssertJUnit.assertNotNull(repositoryService);
-		AssertJUnit.assertTrue(systemInitialized);
+		AssertJUnit.assertTrue(isSystemInitialized());
 		AssertJUnit.assertNotNull(taskManager);
 
 		OperationResult result = new OperationResult(TestSanity.class.getName() + ".test000Integrity");
