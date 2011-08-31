@@ -61,8 +61,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  * Simple UCF tests. No real resource, just basic setup and sanity.
  * 
  * @author Radovan Semancik
+ * 
+ * This is an UCF test. It shold not need repository or other things from the midPoint spring context
+ * except from the provisioning beans. But due to a general issue with spring context initialization
+ * this is a lesser evil for now (MID-392)
  */
-@ContextConfiguration(locations = { "classpath:application-context-provisioning-test.xml",
+@ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
+		"classpath:application-context-provisioning-test.xml",
+		"classpath:application-context-task.xml",
+		"classpath:application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml" })
 public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 
