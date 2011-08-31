@@ -21,40 +21,101 @@
 <!--                                                         -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
 <suite name="unit" parallel="false">
-	<test name="model" preserve-order="true" parallel="false" verbose="10">
+	<test name="Spring Context" preserve-order="true" parallel="false" verbose="10" enabled="false">
+		<classes>
+			<class name="com.evolveum.midpoint.model.SpringApplicationContextTest" />
+		</classes>
+	</test>
+	<test name="Controller add" preserve-order="true" parallel="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.model.controller.ControllerAddObjectTest" />
 			<class name="com.evolveum.midpoint.model.controller.ControllerAddUserTest" />
+		</classes>
+	</test>
+	<test name="Controler delete" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.controller.ControllerDeleteObjectTest" />
+		</classes>
+	</test>
+	<test name="Controler get" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.controller.ControllerGetObjectTest" />
+		</classes>
+	</test>
+	<test name="Cotroler import" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.controller.ControllerLaunchImportTest" />
+		</classes>
+	</test>
+	<test name="Controler List" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.controller.ControllerListAccountShadowOwnerTest" />
 			<class name="com.evolveum.midpoint.model.controller.ControllerListObjectsTest" />
 			<class name="com.evolveum.midpoint.model.controller.ControllerListResourceObjectShadowsTest" />
 			<class name="com.evolveum.midpoint.model.controller.ControllerListResourceObjectsTest" />
+		</classes>
+	</test>
+	<test name="Controle modify" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.controller.ControllerModifyObjectTest" />
 			<class name="com.evolveum.midpoint.model.controller.ControllerModifyObjectWithExclusionTest" />
+		</classes>
+	</test>
+	<test name="Controler Search" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.controller.ControllerSearchObjectsInProvisioningTest" />
 			<class name="com.evolveum.midpoint.model.controller.ControllerSearchObjectsInRepositoryTest" />
+		</classes>
+	</test>
+	<test name="Controler Test Resource" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.controller.ControllerTestResourceTest" />
+		</classes>
+	</test>
+	<test name="Controler Utils" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.controller.FilterManagerImplTest" />
 			<class name="com.evolveum.midpoint.model.controller.ModelUtilsTest" />
+		</classes>
+	</test>
+	<test name="Controler Schema" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.controller.SchemaHandlerImplTest" />
 			<class name="com.evolveum.midpoint.model.controller.SchemaHandlerXPath2Test" />
 			<class name="com.evolveum.midpoint.model.controller.SchemaHandlerXPathCustomFunctionTest" />
 			<class name="com.evolveum.midpoint.model.controller.SchemaHandlerUserDefinedVariablesTest" />
+		</classes>
+	</test>
+	<test name="Expresions" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.expr.ExpressionHandlerImplTest" />
+		</classes>
+	</test>
+	<test name="Filters" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.filter.DiacriticsFilterTest" />
 			<class name="com.evolveum.midpoint.model.filter.EmptyFilterTest" />
 			<class name="com.evolveum.midpoint.model.filter.PatternFilterTest" />
+		</classes>
+	</test>
+	<test name="Importer" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.importer.ImportRefTest" />
 			<class name="com.evolveum.midpoint.model.importer.ImportTest" />
 			<class name="com.evolveum.midpoint.model.importer.BadImportTest" />
+		</classes>
+	</test>
+	<test name="Integration" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.integration.AddUserActionTest" />
 			<class name="com.evolveum.midpoint.model.integration.DeleteAccountActionTest" />
 			<class name="com.evolveum.midpoint.model.integration.LinkAccountActionTest" />
 			<class name="com.evolveum.midpoint.model.integration.ModifyUserActionTest" />
 			<class name="com.evolveum.midpoint.model.integration.UnlinkAccountActionTest" />
+		</classes>
+	</test>
+	<test name="Sync actions" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.sync.action.AddAccountActionTest" />
 			<class name="com.evolveum.midpoint.model.sync.action.AddUserActionTest" />
 			<class name="com.evolveum.midpoint.model.sync.action.BaseActionTest" />
@@ -63,11 +124,18 @@
 			<class name="com.evolveum.midpoint.model.sync.action.LinkAccountActionTest" />
 			<class name="com.evolveum.midpoint.model.sync.action.ModifyUserActionTest" />
 			<class name="com.evolveum.midpoint.model.sync.action.UnlinkAccountActionTest" />
+		</classes>
+	</test>
+	<test name="Synchronization" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.sync.SynchronizationServiceTest" />
 			<class name="com.evolveum.midpoint.model.sync.SynchronizationSituationTest" />
 			<class name="com.evolveum.midpoint.model.sync.ActionManagerImplTest" />
+		</classes>
+	</test>
+	<test name="Model Web service" preserve-order="true" parallel="false" verbose="10">
+		<classes>
 			<class name="com.evolveum.midpoint.model.ModelWebServiceTest" />
-<!-- 			<class name="com.evolveum.midpoint.model.SpringApplicationContextTest" /> -->
 		</classes>
 	</test>
 </suite>
