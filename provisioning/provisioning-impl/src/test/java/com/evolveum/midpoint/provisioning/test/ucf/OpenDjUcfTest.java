@@ -82,11 +82,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  * except from the provisioning beans. But due to a general issue with spring context initialization
  * this is a lesser evil for now (MID-392)
  */
-@ContextConfiguration(locations = { "classpath:application-context-provisioning.xml",
+@ContextConfiguration(locations = { 
 		"classpath:application-context-provisioning-test.xml",
-		"classpath:application-context-task.xml",
-		"classpath:application-context-repository.xml",
-		"classpath:application-context-configuration-test.xml" })
+		"classpath:application-context-configuration-test-no-repo.xml" })
 public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	
 	private static final String FILENAME_RESOURCE_OPENDJ = "src/test/resources/ucf/opendj-resource.xml";
