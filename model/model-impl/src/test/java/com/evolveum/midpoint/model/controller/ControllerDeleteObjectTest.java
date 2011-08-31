@@ -1,21 +1,18 @@
 /*
  * Copyright (c) 2011 Evolveum
- *
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the License). You may not use this file except in
+ * 
+ * The contents of this file are subject to the terms of the Common Development
+ * and Distribution License (the License). You may not use this file except in
  * compliance with the License.
- *
+ * 
  * You can obtain a copy of the License at
- * http://www.opensource.org/licenses/cddl1 or
- * CDDLv1.0.txt file in the source code distribution.
- * See the License for the specific language governing
+ * http://www.opensource.org/licenses/cddl1 or CDDLv1.0.txt file in the source
+ * code distribution. See the License for the specific language governing
  * permission and limitations under the License.
- *
- * If applicable, add the following below the CDDL Header,
- * with the fields enclosed by brackets [] replaced by
- * your own identifying information:
- *
+ * 
+ * If applicable, add the following below the CDDL Header, with the fields
+ * enclosed by brackets [] replaced by your own identifying information:
+ * 
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 package com.evolveum.midpoint.model.controller;
@@ -61,7 +58,9 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
  * 
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
+		"classpath:application-context-model-unit-test.xml",
+		"classpath:application-context-configuration-test-no-repo.xml", 
+		"classpath:application-context-task.xml" })
 public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/deleteObject");
@@ -95,8 +94,8 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 
 	@Test
 	@SuppressWarnings("unchecked")
-	public void testDeleteCorrectRepo() throws FaultMessage, JAXBException, ObjectNotFoundException,
-			SchemaException, ConsistencyViolationException {
+	public void testDeleteCorrectRepo() throws FaultMessage, JAXBException, ObjectNotFoundException, SchemaException,
+			ConsistencyViolationException {
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"delete-user.xml"))).getValue();
 
@@ -110,8 +109,8 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 		} finally {
 			LOGGER.debug(result.dump());
 		}
-		verify(repository, atLeastOnce()).getObject(any(Class.class), eq(oid),
-				any(PropertyReferenceListType.class), any(OperationResult.class));
+		verify(repository, atLeastOnce()).getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
+				any(OperationResult.class));
 		verify(repository, times(1)).deleteObject(any(Class.class), eq(oid), any(OperationResult.class));
 	}
 
@@ -119,8 +118,8 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectProvisioning() throws FaultMessage, JAXBException, ObjectNotFoundException,
 			SchemaException, CommunicationException, ConsistencyViolationException {
-		final ResourceType expectedUser = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "delete-resource.xml"))).getValue();
+		final ResourceType expectedUser = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"delete-resource.xml"))).getValue();
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(
@@ -133,8 +132,8 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 			LOGGER.debug(result.dump());
 		}
 
-		verify(repository, atLeastOnce()).getObject(any(Class.class), eq(oid),
-				any(PropertyReferenceListType.class), any(OperationResult.class));
+		verify(repository, atLeastOnce()).getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
+				any(OperationResult.class));
 		verify(provisioning, times(1)).deleteObject(any(Class.class), eq(oid), any(ScriptsType.class),
 				any(OperationResult.class));
 	}

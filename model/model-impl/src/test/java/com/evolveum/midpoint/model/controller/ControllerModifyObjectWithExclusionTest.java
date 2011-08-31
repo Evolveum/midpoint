@@ -1,21 +1,18 @@
 /*
  * Copyright (c) 2011 Evolveum
- *
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the License). You may not use this file except in
+ * 
+ * The contents of this file are subject to the terms of the Common Development
+ * and Distribution License (the License). You may not use this file except in
  * compliance with the License.
- *
+ * 
  * You can obtain a copy of the License at
- * http://www.opensource.org/licenses/cddl1 or
- * CDDLv1.0.txt file in the source code distribution.
- * See the License for the specific language governing
+ * http://www.opensource.org/licenses/cddl1 or CDDLv1.0.txt file in the source
+ * code distribution. See the License for the specific language governing
  * permission and limitations under the License.
- *
- * If applicable, add the following below the CDDL Header,
- * with the fields enclosed by brackets [] replaced by
- * your own identifying information:
- *
+ * 
+ * If applicable, add the following below the CDDL Header, with the fields
+ * enclosed by brackets [] replaced by your own identifying information:
+ * 
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 package com.evolveum.midpoint.model.controller;
@@ -67,7 +64,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
+		"classpath:application-context-model-unit-test.xml",
+		"classpath:application-context-configuration-test-no-repo.xml", 
+		"classpath:application-context-task.xml" })
 public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/modify");
@@ -111,30 +110,27 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 	@SuppressWarnings("unchecked")
 	@Test
 	public void disableUser() throws Exception {
-		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "user.xml")))
-				.getValue();
-		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "account.xml"))).getValue();
+		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "user.xml"))).getValue();
+		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"account.xml"))).getValue();
 		GenericObjectType object = ((JAXBElement<GenericObjectType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"../../generic-object-my-config.xml"))).getValue();
 
-		ObjectModificationType change = ((JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(new File(
-				TEST_FOLDER, "change.xml"))).getValue();
+		ObjectModificationType change = ((JAXBElement<ObjectModificationType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"change.xml"))).getValue();
 
 		when(
-				repository.getObject(eq(UserType.class), eq(user.getOid()),
-						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(user);
+				repository.getObject(eq(UserType.class), eq(user.getOid()), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(user);
 		when(
-				repository.getObject(any(Class.class), eq(object.getOid()),
-						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(object);
+				repository.getObject(any(Class.class), eq(object.getOid()), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(object);
 		when(
-				repository.getObject(any(Class.class), eq(account.getOid()),
-						any(PropertyReferenceListType.class), any(OperationResult.class)))
-				.thenReturn(account);
+				repository.getObject(any(Class.class), eq(account.getOid()), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(account);
 		when(
-				provisioning.getObject(any(Class.class), eq(account.getOid()),
-						any(PropertyReferenceListType.class), any(OperationResult.class)))
-				.thenReturn(account);
+				provisioning.getObject(any(Class.class), eq(account.getOid()), any(PropertyReferenceListType.class),
+						any(OperationResult.class))).thenReturn(account);
 		when(
 				provisioning.getObject(eq(ResourceType.class), eq(account.getResource().getOid()),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
@@ -150,8 +146,8 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 
 				return null;
 			}
-		}).when(provisioning).modifyObject(any(Class.class), any(ObjectModificationType.class),
-				any(ScriptsType.class), any(OperationResult.class));
+		}).when(provisioning).modifyObject(any(Class.class), any(ObjectModificationType.class), any(ScriptsType.class),
+				any(OperationResult.class));
 
 		OperationResult result = new OperationResult("disableUser");
 		try {
@@ -160,8 +156,8 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 			LOGGER.debug(result.dump());
 		}
 
-		verify(provisioning).modifyObject(any(Class.class), any(ObjectModificationType.class),
-				any(ScriptsType.class), any(OperationResult.class));
+		verify(provisioning).modifyObject(any(Class.class), any(ObjectModificationType.class), any(ScriptsType.class),
+				any(OperationResult.class));
 	}
 
 	private void assertActivation(ObjectModificationType modification) {
@@ -177,7 +173,7 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 				continue;
 			}
 
-			Element element = ((Element)property.getValue().getAny().get(0));
+			Element element = ((Element) property.getValue().getAny().get(0));
 			assertEquals("false", element.getTextContent());
 			foundActivation = true;
 			break;

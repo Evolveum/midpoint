@@ -69,7 +69,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
+		"classpath:application-context-model-unit-test.xml", 
+		"classpath:application-context-configuration-test-no-repo.xml",
+		"classpath:application-context-task.xml" })
+
 public class UnlinkAccountActionTest extends BaseActionTest {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/sync/action/account");

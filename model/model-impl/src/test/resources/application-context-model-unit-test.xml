@@ -41,9 +41,4 @@
 	<bean name="repositoryService" class="com.evolveum.midpoint.model.test.util.mock.MockFactory" factory-method="createRepositoryPortType" />
 	<bean name="changeNotificationDispatcher" class="com.evolveum.midpoint.model.test.util.mock.MockFactory" factory-method="createChangeNotificationDispatcher" />
 	
-	<bean name="protector" class="com.evolveum.midpoint.common.crypto.Protector" scope="singleton" init-method="init">
-		<property name="keyStorePath" value="keystore.jceks" />
-		<property name="keyStorePassword" value="changeit" />
-		<property name="encryptionKeyDigest" value="HF6JRsNMeJt6alihT44CXKgpe0c=" />		
-	</bean> 
 </beans>

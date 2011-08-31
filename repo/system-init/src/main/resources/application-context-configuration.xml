@@ -19,23 +19,28 @@
 <!-- Portions Copyrighted 2010 Peter Prochazka -->
 <!-- -->
 
-<beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
-
-	<bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration"
-		init-method="init" />
-
-	<bean name="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory"
-		init-method="init" destroy-method="destroy" />
-
-	<bean name="repositoryService" factory-bean="repositoryFactory"
-		factory-method="getRepositoryService" class="com.evolveum.midpoint.repo.api.RepositoryService"
-		depends-on="repositoryFactory" init-method="init" destroy-method="close"></bean>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+     http://www.springframework.org/schema/beans
+     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+     http://www.springframework.org/schema/context
+     http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+	default-lazy-init="false" default-autowire="byName">
 	
-	<bean name="protector" class="com.evolveum.midpoint.common.crypto.Protector" scope="singleton" init-method="init">
-		<property name="keyStorePath" value="com/../../keystore.jceks" />
-		<property name="keyStorePassword" value="changeit" />
-		<property name="encryptionKeyDigest" value="HF6JRsNMeJt6alihT44CXKgpe0c=" />		
-	</bean>
+	<bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init" />
+
+	<bean name="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory" init-method="init"
+		destroy-method="destroy" />
+
+	<bean name="repositoryService" factory-bean="repositoryFactory" factory-method="getRepositoryService"
+		class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory" init-method="init"
+		destroy-method="close"></bean>
+
+	<!--  Scan for components:
+		 	- protector (KeyStoreConfigurator)
+	 -->
+	<context:component-scan base-package="com.evolveum.midpoint.init" />
+	<context:annotation-config />
+
 </beans>

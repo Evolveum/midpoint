@@ -1,22 +1,19 @@
 /*
  * Copyright (c) 2011 Evolveum
- *
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
- * (the License). You may not use this file except in
+ * 
+ * The contents of this file are subject to the terms of the Common Development
+ * and Distribution License (the License). You may not use this file except in
  * compliance with the License.
- *
+ * 
  * You can obtain a copy of the License at
- * http://www.opensource.org/licenses/cddl1 or
- * CDDLv1.0.txt file in the source code distribution.
- * See the License for the specific language governing
+ * http://www.opensource.org/licenses/cddl1 or CDDLv1.0.txt file in the source
+ * code distribution. See the License for the specific language governing
  * permission and limitations under the License.
- *
- * If applicable, add the following below the CDDL Header,
- * with the fields enclosed by brackets [] replaced by
- * your own identifying information:
- *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * 
+ * If applicable, add the following below the CDDL Header, with the fields
+ * enclosed by brackets [] replaced by your own identifying information:
+ * 
+ * Portions Copyrighted 2011 [name of copyright owner] 
  * Portions Copyrighted 2010 Forgerock
  */
 
@@ -50,7 +47,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * @author lazyman
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
+		"classpath:application-context-model-unit-test.xml",
+		"classpath:application-context-configuration-test-no-repo.xml",
+		"classpath:application-context-task.xml" })
 public class SchemaHandlerXPath2Test extends AbstractTestNGSpringContextTests {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlerXPath2Test.class);
@@ -62,17 +61,17 @@ public class SchemaHandlerXPath2Test extends AbstractTestNGSpringContextTests {
 	public void testIfThenElseSupportInOutboundSection() throws Exception {
 		AccountShadowType account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(new File(
 				"src/test/resources/account-xpath2.xml"))).getValue();
-		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-				"src/test/resources/user-xpath2.xml"))).getValue();
+		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File("src/test/resources/user-xpath2.xml")))
+				.getValue();
 
 		OperationResult result = new OperationResult("testIfThenElseSupportInOutboundSection");
 		ObjectModificationType changes = schemaHandler.processOutboundHandling(user, account, result);
 		LOGGER.info(result.dump());
 
-		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, account,
-				AccountShadowType.class);
+		ResourceObjectShadowType appliedAccountShadow = ModelTUtil.patchXml(changes, account, AccountShadowType.class);
 
-		assertEquals("name", ((Element)appliedAccountShadow.getAttributes().getAny().get(0)).getLocalName());
-		assertEquals("James Bond 007", ((Element)appliedAccountShadow.getAttributes().getAny().get(0)).getTextContent());
+		assertEquals("name", ((Element) appliedAccountShadow.getAttributes().getAny().get(0)).getLocalName());
+		assertEquals("James Bond 007",
+				((Element) appliedAccountShadow.getAttributes().getAny().get(0)).getTextContent());
 	}
 }

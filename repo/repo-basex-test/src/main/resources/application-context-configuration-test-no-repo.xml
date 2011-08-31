@@ -18,34 +18,24 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2011 Peter Prochazka               -->
-<!--                                                         -->
-<configuration>
-	<midpoint>
-		<repository>
-			<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory
-			</repositoryServiceFactoryClass>
-			<runServer>true</runServer>
-			<embedded>true</embedded> <!-- embedded is applicable only if runServer > true -->
-			<shutdown>true</shutdown>
-			<dropDatabase>false</dropDatabase>
-			<initialDataPath></initialDataPath> <!-- initialDataPath - path containing xmls that should be loaded into DB -->
-			<databaseName>midPoint</databaseName> <!-- database name -->
-			<!-- client connection properties -->
-			<host>localhost</host>
-			<port>1984</port>
-			<username>admin</username>
-			<password>admin</password>
-		</repository>
-		<icf>
-			<scanClasspath>true</scanClasspath>
-			<scanDirectory>/C:/tmp</scanDirectory>
-			<scanDirectory>/var/tmp</scanDirectory>
-		</icf>
-		<keystore>
-			<keyStorePath>keystore.jceks</keyStorePath>
-			<keyStorePassword>changeit</keyStorePassword>
-			<defaultKeyAlias>default</defaultKeyAlias>
-			<encryptionKeyDigest>HF6JRsNMeJt6alihT44CXKgpe0c=</encryptionKeyDigest>
-		</keystore>
-	</midpoint>
-</configuration>
+<!-- -->
+
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="
+     http://www.springframework.org/schema/beans
+     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+     http://www.springframework.org/schema/context
+     http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+	default-lazy-init="false" default-autowire="byName">
+	
+	<bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init">
+		<constructor-arg value="test-config.xml" />
+	</bean>
+
+	<!--  Scan for components:
+		 	- protector (KeyStoreConfigurator)
+	 -->
+	<context:component-scan base-package="com.evolveum.midpoint.init" />
+	<context:annotation-config />
+</beans>

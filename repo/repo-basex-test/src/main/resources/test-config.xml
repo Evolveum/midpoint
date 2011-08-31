@@ -41,5 +41,11 @@
 			<scanDirectory>/C:/tmp</scanDirectory>
 			<scanDirectory>/var/tmp</scanDirectory>
 		</icf>
+		<keystore>
+			<keyStorePath>test-keystore.jceks</keyStorePath>
+			<keyStorePassword>changeit</keyStorePassword>
+			<defaultKeyAlias>default</defaultKeyAlias>
+			<encryptionKeyDigest>HF6JRsNMeJt6alihT44CXKgpe0c=</encryptionKeyDigest>
+		</keystore>
 	</midpoint>
 </configuration>

@@ -55,7 +55,9 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
  * 
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
+		"classpath:application-context-model-unit-test.xml",
+		"classpath:application-context-configuration-test-no-repo.xml",
+		"classpath:application-context-task.xml" })
 public class ControllerListAccountShadowOwnerTest extends AbstractTestNGSpringContextTests {
 
 	private static final File TEST_FOLDER = new File("./src/test/resources/controller/listObjects");

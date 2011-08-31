@@ -59,7 +59,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml", "classpath:application-context-task.xml" })
+		"classpath:application-context-model-unit-test.xml", 
+		"classpath:application-context-configuration-test-no-repo.xml",
+		"classpath:application-context-task.xml" })
 public class SchemaHandlerUserDefinedVariablesTest extends AbstractTestNGSpringContextTests {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandlerUserDefinedVariablesTest.class);
