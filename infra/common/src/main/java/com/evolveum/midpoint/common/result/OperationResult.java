@@ -581,6 +581,8 @@ public class OperationResult implements Serializable, Dumpable {
 			sb.append(":");
 			sb.append(cause.getMessage());
 			sb.append("\n");
+			dumpStackTrace(sb,cause.getStackTrace(),indent+4);
+			dumpInnerCauses(sb,cause.getCause(),indent+3);
 		}
 
 		for (Map.Entry<String, Object> entry : getParams().entrySet()) {
@@ -625,6 +627,33 @@ public class OperationResult implements Serializable, Dumpable {
 
 		for (OperationResult sub : getSubresults()) {
 			sub.dumpIndent(sb, indent + 1);
+		}
+	}
+	
+	private void dumpInnerCauses(StringBuilder sb, Throwable innerCause, int indent) {
+		if (innerCause==null) {
+			return;
+		}
+		for (int i = 0; i < indent; i++) {
+			sb.append(INDENT_STRING);
+		}
+		sb.append("Caused by ");
+		sb.append(cause.getClass().getName());
+		sb.append(": ");
+		sb.append(cause.getMessage());
+		sb.append("\n");
+		dumpStackTrace(sb, innerCause.getStackTrace(), indent+1);
+		dumpInnerCauses(sb,innerCause.getCause(),indent);
+	}
+
+	private static void dumpStackTrace(StringBuilder sb, StackTraceElement[] stackTrace, int indent) {
+		for (int i = 0; i < stackTrace.length; i++) {
+			for (int j = 0; j < indent; j++) {
+				sb.append(INDENT_STRING);
+			}
+			StackTraceElement element = stackTrace[i];
+			sb.append(element.toString());
+			sb.append("\n");
 		}
 	}
 

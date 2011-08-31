@@ -31,7 +31,10 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -456,6 +459,13 @@ public class DOMUtil {
 		attr.setValue(namespaceUri);
 		attributes.setNamedItem(attr);
 	}
+	
+	public static void setNamespaceDeclarations(Element element, Map<String, String> rootNamespaceDeclarations) {
+		for (Entry<String, String> entry : rootNamespaceDeclarations.entrySet()) {
+			setNamespaceDeclaration(element, entry.getKey(), entry.getValue());
+		}
+	}
+
 
 	public static QName getQName(Element element) {
 		if (element.getPrefix() == null) {

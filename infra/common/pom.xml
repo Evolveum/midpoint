@@ -92,6 +92,11 @@
 			<artifactId>xmlsec</artifactId>
 			<version>1.4.5</version>
 		</dependency>
+		<dependency>
+			<groupId>org.codehaus.staxmate</groupId>
+			<artifactId>staxmate</artifactId>
+			<version>2.0.1</version>
+		</dependency>
 		<!-- this dependency probably can be removed after protector 
 		class is implemented (just for development purposes only) -->
 		<dependency>

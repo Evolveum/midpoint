@@ -29,6 +29,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.ValidationMessage;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import java.io.File;
 import java.io.FileInputStream;
@@ -72,17 +73,21 @@ public class BasicValidatorTest {
 
             @Override
             public void handleObject(ObjectType object, OperationResult objectResult) {
+            	System.out.println("Handler processing "+ObjectTypeUtil.toShortString(object)+", result:");
+				System.out.println(objectResult.dump());
                 handledOids.add(object.getOid());
             }
 
 			@Override
 			public void handleGlobalError(OperationResult currentResult) {
-				// No reaction
+				System.out.println("Handler got global error:");
+				System.out.println(currentResult.dump());
 			}
         };
 
         validateFile("three-objects.xml",handler,result);
 
+        System.out.println(result.dump());
         AssertJUnit.assertTrue(result.isSuccess());
         AssertJUnit.assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
         AssertJUnit.assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111112"));
@@ -97,10 +102,11 @@ public class BasicValidatorTest {
     	
         validateFile("not-well-formed.xml",result);
         
+        System.out.println(result.dump());
         AssertJUnit.assertFalse(result.isSuccess());
-        AssertJUnit.assertTrue(result.getMessage().contains("terminated by the matching"));
+        AssertJUnit.assertTrue(result.getMessage().contains("Unexpected close tag"));
         // Check if line number is in the error
-        AssertJUnit.assertTrue(result.getMessage().contains("line 48"));
+        AssertJUnit.assertTrue(result.getMessage().contains("48"));
 
     }
 
@@ -112,10 +118,11 @@ public class BasicValidatorTest {
         
         validateFile("undeclared-prefix.xml",result);
         
+        System.out.println(result.dump());
         AssertJUnit.assertFalse(result.isSuccess());
-        AssertJUnit.assertTrue(result.getMessage().contains("not bound"));
+        AssertJUnit.assertTrue(result.getMessage().contains("Undeclared namespace prefix"));
         // Check if line number is in the error
-        AssertJUnit.assertTrue(result.getMessage().contains("line 43"));
+        AssertJUnit.assertTrue(result.getMessage().contains("43"));
 
     }
 
@@ -128,6 +135,7 @@ public class BasicValidatorTest {
         
         validateFile("no-name.xml",result);
 
+        System.out.println(result.dump());
         AssertJUnit.assertFalse(result.isSuccess());
         AssertJUnit.assertTrue(result.getSubresults().get(0).getSubresults().get(0).getMessage().contains("Empty property"));
         AssertJUnit.assertTrue(result.getSubresults().get(0).getSubresults().get(0).getMessage().contains("name"));
