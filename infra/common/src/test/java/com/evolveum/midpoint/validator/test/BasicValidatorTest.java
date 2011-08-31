@@ -106,7 +106,7 @@ public class BasicValidatorTest {
         AssertJUnit.assertFalse(result.isSuccess());
         AssertJUnit.assertTrue(result.getMessage().contains("Unexpected close tag"));
         // Check if line number is in the error
-        AssertJUnit.assertTrue(result.getMessage().contains("48"));
+        AssertJUnit.assertTrue(result.getMessage().contains("49"));
 
     }
 

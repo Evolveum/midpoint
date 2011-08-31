@@ -82,6 +82,8 @@ public class ObjectImporter {
 				if (objectResult.isAcceptable()) {
 
 					resolveReferences(object, repository, objectResult);
+					
+					encryptValues(object, repository, objectResult);
 
 					if (objectResult.isAcceptable()) {
 						try {
@@ -269,4 +271,10 @@ public class ObjectImporter {
 		result.recordSuccessIfUnknown();
 	}
 
+	private static void encryptValues(ObjectType object, RepositoryService repository,
+			OperationResult objectResult) {
+		// TODO Auto-generated method stub
+		
+	}
+	
 }

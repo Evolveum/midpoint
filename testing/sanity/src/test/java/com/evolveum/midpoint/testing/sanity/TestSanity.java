@@ -79,6 +79,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -228,6 +229,10 @@ public class TestSanity extends AbstractIntegrationTest {
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
 				result);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, resource.getOid());
+		
+		String connectorOid = resource.getConnectorRef().getOid();
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, result);
+		display("LDAP Connector: ",connector);
 
 		// TODO: test if OpenDJ is running
 	}

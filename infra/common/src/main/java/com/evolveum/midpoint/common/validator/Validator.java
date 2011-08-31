@@ -49,6 +49,7 @@ import org.xml.sax.SAXParseException;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -73,6 +74,8 @@ public class Validator {
 	private static final String OPERATION_RESOURCE_BASICS_CHECK = OPERATION_PREFIX + "objectBasicsCheck";;
 	private boolean verbose = false;
 	EventHandler handler;
+	DOMConverter domConverter = new DOMConverter();
+	Unmarshaller unmarshaller = null;
 
 	public Validator() {
 		handler = null;
@@ -97,19 +100,14 @@ public class Validator {
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
 	}
-
-	@SuppressWarnings("unchecked")
-	public void validate(InputStream inputStream, OperationResult validatorResult,
-			String objectResultOperationName) {
-
-		// TODO: this needs to be switched to stream parsing
-
-		// The result should already be initialized here.
-		Unmarshaller u = null;
-
+	
+	private Unmarshaller createUnmarshaller(OperationResult validatorResult) {
+		if (unmarshaller!=null) {
+			return unmarshaller;
+		}
 		try {
-			JAXBContext jc = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
-			u = jc.createUnmarshaller();
+			JAXBContext jc = JAXBUtil.getContext();
+			unmarshaller = jc.createUnmarshaller();
 		} catch (JAXBException ex) {
 			validatorResult.recordFatalError("Error initializing JAXB: " + ex.getMessage(), ex);
 			if (handler != null) {
@@ -118,7 +116,13 @@ public class Validator {
 			// This is a severe error.
 			throw new SystemException("Error initializing JAXB: " + ex.getMessage(), ex);
 		}
-		
+		return unmarshaller;
+	}
+
+	@SuppressWarnings("unchecked")
+	public void validate(InputStream inputStream, OperationResult validatorResult,
+			String objectResultOperationName) {
+
 		XMLStreamReader stream = null;
 		try {
 			
@@ -129,8 +133,10 @@ public class Validator {
 			int eventType = stream.nextTag();
 			if (eventType == XMLStreamConstants.START_ELEMENT) {
 				if (!stream.getName().equals(SchemaConstants.C_OBJECTS)) {
-					validatorResult.recordFatalError("Invalid root element, expected "+SchemaConstants.C_OBJECTS+" but found "+stream.getName());
-					handler.handleGlobalError(validatorResult);
+					// This has to be an import file with a single objects. Try to process it.
+					readFromStreamAndValidate(stream, objectResultOperationName, rootNamespaceDeclarations, validatorResult);
+					// and return to avoid processing objects in loop
+					validatorResult.recordSuccessIfUnknown();
 					return;
 				}
 				// Extract root namespace declarations
@@ -140,59 +146,16 @@ public class Validator {
 			} else {
 				throw new SystemException("StAX Malfunction?");
 			}
-			DOMConverter domConverter = new DOMConverter();
 			while (stream.hasNext()) { 
 			    eventType = stream.next();
 			    if (eventType == XMLStreamConstants.START_ELEMENT) {
-			    	Document objectDoc = domConverter.buildDocument(stream);
-			    	Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
-			    	DOMUtil.setNamespaceDeclarations(objectElement,rootNamespaceDeclarations);
-			    	System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-			    	System.out.println(DOMUtil.serializeDOMToString(objectDoc));
-			    	System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$");
-			    	try {
-			    		
-						JAXBElement jaxbElement = (JAXBElement) u.unmarshal(objectDoc);
-						ObjectType object = (ObjectType) jaxbElement.getValue();
-						
-						if (verbose) {
-							LOGGER.debug("Processing OID " + object.getOid());
-						}
-
-						OperationResult objectResult = validatorResult.createSubresult(objectResultOperationName);
-						objectResult.addContext(OperationResult.CONTEXT_OBJECT, object);
-
-						validate(object, objectResult);
-						
-					} catch (JAXBException ex) {
-						if (verbose) {
-							ex.printStackTrace();
-						}
-						Throwable linkedException = ex.getLinkedException();
-						if (linkedException instanceof SAXParseException) {
-							SAXParseException saxex = (SAXParseException) linkedException;
-
-							validatorResult.recordFatalError(
-									"XML Parse error: " + saxex.getMessage() + " (line " + saxex.getLineNumber()
-											+ " col " + saxex.getColumnNumber() + ")", ex);
-
-						} else if (ex instanceof UnmarshalException) {
-							validatorResult.recordFatalError("Unmarshalling error: " + ex.getMessage(),ex);
-						} else {
-							validatorResult.recordFatalError("Unmarshalling error: "
-									+ (linkedException != null ? linkedException.getMessage() : "unknown: " + ex), ex);
-						}
-						if (handler != null) {
-							handler.handleGlobalError(validatorResult);
-						}
-						return;
-					}
+			    	readFromStreamAndValidate(stream, objectResultOperationName, rootNamespaceDeclarations, validatorResult);
 			    }
 			}
 
 		} catch (XMLStreamException ex) {
 			//validatorResult.recordFatalError("XML parsing error: " + ex.getMessage()+" on line "+stream.getLocation().getLineNumber(),ex);
-			validatorResult.recordFatalError("XML parsing error: " + ex.getMessage()+" on line "+stream.getLocation().getLineNumber(),ex);
+			validatorResult.recordFatalError("XML parsing error: " + ex.getMessage(),ex);
 			if (handler != null) {
 				handler.handleGlobalError(validatorResult);
 			}
@@ -266,6 +229,63 @@ public class Validator {
 
 
 	}
+
+	private ObjectType readFromStreamAndValidate(XMLStreamReader stream, String objectResultOperationName, Map<String,String> rootNamespaceDeclarations, OperationResult validatorResult) {
+		
+		try {
+	    	Document objectDoc = domConverter.buildDocument(stream);
+	    	Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
+	    	DOMUtil.setNamespaceDeclarations(objectElement,rootNamespaceDeclarations);
+//	    	System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+//	    	System.out.println(DOMUtil.serializeDOMToString(objectDoc));
+//	    	System.out.println("$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+    	
+    		
+			JAXBElement jaxbElement = (JAXBElement) createUnmarshaller(validatorResult).unmarshal(objectDoc);
+			ObjectType object = (ObjectType) jaxbElement.getValue();
+			
+			if (verbose) {
+				LOGGER.debug("Processing OID " + object.getOid());
+			}
+
+			OperationResult objectResult = validatorResult.createSubresult(objectResultOperationName);
+			objectResult.addContext(OperationResult.CONTEXT_OBJECT, object);
+
+			validate(object, objectResult);
+
+			return object;
+			
+		} catch (JAXBException ex) {
+			if (verbose) {
+				ex.printStackTrace();
+			}
+			Throwable linkedException = ex.getLinkedException();
+			if (linkedException instanceof SAXParseException) {
+				SAXParseException saxex = (SAXParseException) linkedException;
+
+				validatorResult.recordFatalError(
+						"XML Parse error: " + saxex.getMessage() + " (line " + saxex.getLineNumber()
+								+ " col " + saxex.getColumnNumber() + ")", ex);
+
+			} else if (ex instanceof UnmarshalException) {
+				validatorResult.recordFatalError("Unmarshalling error: " + ex.getMessage(),ex);
+			} else {
+				validatorResult.recordFatalError("Unmarshalling error: "
+						+ (linkedException != null ? linkedException.getMessage() : "unknown: " + ex), ex);
+			}
+			if (handler != null) {
+				handler.handleGlobalError(validatorResult);
+			}
+			return null;
+			
+		} catch (XMLStreamException ex) {
+			validatorResult.recordFatalError("XML parsing error: " + ex.getMessage(),ex);
+			if (handler != null) {
+				handler.handleGlobalError(validatorResult);
+			}
+			return null;
+		}
+    }
 
 	public void validate(ObjectType object, OperationResult objectResult) {
 		// Check generic object properties
