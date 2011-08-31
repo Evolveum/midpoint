@@ -1019,6 +1019,35 @@
 			</xsd:element>
 		</xsd:choice>
 	</xsd:complexType>
+	
+	<xsd:complexType name="ProtectedByteArrayType">
+		<xsd:annotation>
+			<xsd:documentation>
+				ONLY COPIED AND PASTED FROM ProtectedStringType, please update if needed later
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:choice>
+			<!-- <xsd:element name="alias" type="xsd:string" minOccurs="0" /> -->
+			<xsd:element ref="xenc:EncryptedData">
+				<xsd:annotation>
+					<xsd:documentation>
+						Use of XML Encryption standard EncryptionData element.
+					</xsd:documentation>
+					<!-- <xsd:appinfo>
+						<jaxb:dom />
+					</xsd:appinfo> -->
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="clearValue" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						Clear text value of the protedted data. It is useful for imports and tests.
+						This element should never appear in repository or any other long-term storage.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:choice>
+	</xsd:complexType>
 
 	<xsd:complexType name="EmptyType">
 		<xsd:annotation>

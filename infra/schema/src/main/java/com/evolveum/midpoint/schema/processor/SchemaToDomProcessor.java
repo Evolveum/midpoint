@@ -25,18 +25,16 @@ import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ACCOUN
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ATTRIBUTE_DISPLAY_NAME;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ATTR_DEFAULT;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_DESCRIPTION_ATTRIBUTE;
-import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_NAMING_ATTRIBUTE;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_DISPLAY_NAME;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_HELP;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_IDENTIFIER;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_NAMING_ATTRIBUTE;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_NATIVE_ATTRIBUTE_NAME;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_NATIVE_OBJECT_CLASS;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_SECONDARY_IDENTIFIER;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
-import java.io.StringWriter;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -45,17 +43,10 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -96,51 +87,54 @@ class SchemaToDomProcessor {
 			Set<Definition> definitions = schema.getDefinitions();
 			for (Definition definition : definitions) {
 				if (definition instanceof PropertyContainerDefinition) {
-						addPropertyContainerDefinition(schema, (PropertyContainerDefinition) definition,
-								document.getDocumentElement());
+					addPropertyContainerDefinition(schema, (PropertyContainerDefinition) definition,
+							document.getDocumentElement());
 				} else if (definition instanceof PropertyDefinition) {
 					addPropertyDefinition(schema, (PropertyDefinition) definition,
 							document.getDocumentElement());
 				} else {
-					throw new IllegalArgumentException("Encountered unsupported definition in schema: "+definition);
+					throw new IllegalArgumentException("Encountered unsupported definition in schema: "
+							+ definition);
 				}
 			}
-			// } catch (SchemaProcessorException ex) {
-			// throw ex;
 
-			Set<String> usedNamespaces = updatePrefixes(document);
-			addNamespaces(document.getDocumentElement(), usedNamespaces);
+			Set<Entry<String, String>> set = prefixMap.entrySet();
+			for (Entry<String, String> entry : set) {
+				document.getDocumentElement().setAttribute("xmlns:" + entry.getValue(), entry.getKey());
+			}
 		} catch (Exception ex) {
 			throw new SchemaProcessorException("Couldn't parse schema, reason: " + ex.getMessage(), ex);
 		}
 		return document;
 	}
-	
+
 	private void addPropertyContainerDefinition(Schema schema, PropertyContainerDefinition definition,
-				Element parent) {
+			Element parent) {
 		Document document = parent.getOwnerDocument();
-		Element container = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "complexType");
+		Element container = createElementNS(document, new QName(W3C_XML_SCHEMA_NS_URI, "complexType"));
 		// "typeName" should be used instead of "name" when defining a XSD type
 		setAttribute(container, "name", definition.getTypeName().getLocalPart());
 
 		Element definitionHomeElement = container;
 		if (definition instanceof ResourceObjectDefinition) {
-			Element annotation = createResourceObjectAnnotations((ResourceObjectDefinition)definition, document);
+			Element annotation = createResourceObjectAnnotations((ResourceObjectDefinition) definition,
+					document);
 			if (annotation != null) {
 				container.appendChild(annotation);
 			}
-			Element complexContent = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "complexContent");
+			Element complexContent = createElementNS(document, new QName(W3C_XML_SCHEMA_NS_URI,
+					"complexContent"));
 			container.appendChild(complexContent);
-			Element extension = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "extension");
-			setAttribute(extension, "base", prefixMap.get(SchemaConstants.NS_RESOURCE) + ":"
-					+ RESOURCE_OBJECT_CLASS);
+			Element extension = createElementNS(document, new QName(W3C_XML_SCHEMA_NS_URI, "extension"));
+			setAttribute(extension, "base", createPrefixedValue(new QName(SchemaConstants.NS_RESOURCE,
+					RESOURCE_OBJECT_CLASS)));
 			complexContent.appendChild(extension);
 			definitionHomeElement = extension;
 		}
 
 		definitionHomeElement.setAttribute("xmlns:" + prefixMap.get(SchemaConstants.NS_RESOURCE),
 				SchemaConstants.NS_RESOURCE);
-		Element sequence = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "sequence");
+		Element sequence = createElementNS(document, new QName(W3C_XML_SCHEMA_NS_URI, "sequence"));
 		definitionHomeElement.appendChild(sequence);
 
 		Set<PropertyDefinition> definitions = definition.getDefinitions();
@@ -152,7 +146,8 @@ class SchemaToDomProcessor {
 	}
 
 	private void addPropertyDefinition(Schema schema, PropertyDefinition definition, Element parent) {
-		Element property = parent.getOwnerDocument().createElementNS(W3C_XML_SCHEMA_NS_URI, "element");
+		Element property = createElementNS(parent.getOwnerDocument(), new QName(W3C_XML_SCHEMA_NS_URI,
+				"element"));
 
 		String attrNamespace = definition.getName().getNamespaceURI();
 		if (attrNamespace != null && attrNamespace.equals(schema.getNamespace())) {
@@ -181,8 +176,8 @@ class SchemaToDomProcessor {
 	}
 
 	private Element createResourceObjectAnnotations(ResourceObjectDefinition definition, Document document) {
-		Element annotation = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "annotation");
-		Element appinfo = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "appinfo");
+		Element annotation = createElementNS(document, new QName(W3C_XML_SCHEMA_NS_URI, "annotation"));
+		Element appinfo = createElementNS(document, new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
 		annotation.appendChild(appinfo);
 
 		// displayName, identifier, secondaryIdentifier
@@ -233,7 +228,7 @@ class SchemaToDomProcessor {
 	}
 
 	private Element createPropertyAnnotation(PropertyDefinition definition, Document document) {
-		Element appinfo = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "appinfo");
+		Element appinfo = createElementNS(document, new QName(W3C_XML_SCHEMA_NS_URI, "appinfo"));
 
 		// flagList annotation
 		// StringBuilder builder = new StringBuilder();
@@ -293,7 +288,7 @@ class SchemaToDomProcessor {
 			}
 		}
 
-		Element annotation = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "annotation");
+		Element annotation = createElementNS(document, new QName(W3C_XML_SCHEMA_NS_URI, "annotation"));
 		if (appinfo.hasChildNodes()) {
 			annotation.appendChild(appinfo);
 		} else {
@@ -304,14 +299,14 @@ class SchemaToDomProcessor {
 	}
 
 	private Element createAnnotation(QName qname, String value, Document document) {
-		Element annotation = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
+		Element annotation = createElementNS(document, qname);
 		annotation.setTextContent(value);
 
 		return annotation;
 	}
 
 	private Element createRefAnnotation(QName qname, String value, Document document) {
-		Element access = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
+		Element access = createElementNS(document, qname);
 		setAttribute(access, new QName(SchemaConstants.NS_RESOURCE, "ref"), value);
 
 		return access;
@@ -330,8 +325,6 @@ class SchemaToDomProcessor {
 	}
 
 	private Document init(Schema schema) throws ParserConfigurationException {
-		Document document = createSchemaDocument(schema.getNamespace());
-
 		if (prefixMap == null) {
 			prefixMap = new HashMap<String, String>();
 		}
@@ -340,7 +333,8 @@ class SchemaToDomProcessor {
 		}
 		if (!prefixMap.containsKey(SchemaConstants.NS_C)) {
 			prefixMap.put(SchemaConstants.NS_C, "c");
-			document.getDocumentElement().appendChild(createImport(document, SchemaConstants.NS_C));
+			// document.getDocumentElement().appendChild(createImport(document,
+			// SchemaConstants.NS_C));
 		}
 		if (!prefixMap.containsKey(SchemaConstants.NS_RESOURCE)) {
 			prefixMap.put(SchemaConstants.NS_RESOURCE, "r");
@@ -357,18 +351,25 @@ class SchemaToDomProcessor {
 		prefixMap.put(schema.getNamespace(), "tns");
 
 		int index = 0;
-		Set<Definition> definitions = schema.getDefinitions();
-		Set<String> alreadyImportedNamespaces = new HashSet<String>();
-		for (Definition definition : definitions) {
-			index += addImportFromDefinition(definition, document, index, alreadyImportedNamespaces);
+		for (Definition definition : schema.getDefinitions()) {
+			index += updatePrefixMapFromDefinition(definition, index);
+		}
+
+		Document document = createSchemaDocument(schema.getNamespace());
+		for (Entry<String, String> entry : prefixMap.entrySet()) {
+			if (W3C_XML_SCHEMA_NS_URI.equals(entry.getKey())) {
+				continue;
+			}
+
+			Element root = document.getDocumentElement();
+			root.insertBefore(createImport(document, entry.getKey()), root.getFirstChild());
 		}
 
 		return document;
 	}
 
-	private int addImportFromDefinition(Definition definition, Document document, int index,
-			Set<String> alreadyImportedNamespaces) {
-		// Add appropriate import if a definition is in different namespace
+	private int updatePrefixMapFromDefinition(Definition definition, int index) {
+		// Add appropriate namespace if a definition is in different namespace
 		// e.g. <element ref="foo:bar">
 		String namespace = definition.getName().getNamespaceURI();
 		final String generatedPrefix = "vr";
@@ -376,51 +377,43 @@ class SchemaToDomProcessor {
 			prefixMap.put(namespace, generatedPrefix + index);
 			index++;
 		}
-		addImportIfNotYetAdded(document, namespace, alreadyImportedNamespaces);
 
-		// Add appropriate import if the type of the definition is in a different namespace
-		// e.g. <element type="foo:BarType">
+		// Add appropriate namespace if the type of the definition is in a
+		// different namespace e.g. <element type="foo:BarType">
 		String typeNamespace = definition.getTypeName().getNamespaceURI();
 		if (!prefixMap.containsKey(typeNamespace)) {
 			prefixMap.put(typeNamespace, generatedPrefix + index);
 			index++;
 		}
-		addImportIfNotYetAdded(document, typeNamespace, alreadyImportedNamespaces);
-		
+
 		if (definition instanceof ResourceObjectDefinition) {
-			// We need to add the "r" namespace. This is not in the definitions but it in supertype definition
-			// therefore it will not be discovered 
-			addImportIfNotYetAdded(document, SchemaConstants.NS_RESOURCE, alreadyImportedNamespaces);
+			// We need to add the "r" namespace. This is not in the definitions
+			// but it in supertype definition
+			// therefore it will not be discovered
+			// addImportIfNotYetAdded(document, SchemaConstants.NS_RESOURCE,
+			// alreadyImportedNamespaces);
 		}
-		
+
 		if (definition instanceof PropertyContainerDefinition) {
 			PropertyContainerDefinition container = (PropertyContainerDefinition) definition;
 			Set<PropertyDefinition> definitions = container.getDefinitions();
 			for (PropertyDefinition property : definitions) {
-				index += addImportFromDefinition(property, document, index, alreadyImportedNamespaces);
+				index += updatePrefixMapFromDefinition(property, index);
 			}
 		}
 
 		return index;
 	}
-	
-	private void addImportIfNotYetAdded(Document document, String namespace, Set<String> alreadyImportedNamespaces) {
-		if (!alreadyImportedNamespaces.contains(namespace) || SchemaConstants.NS_C.equals(namespace)) {
-			document.getDocumentElement().appendChild(createImport(document, namespace));
-			alreadyImportedNamespaces.add(namespace);
-		}
-	}
 
 	private Element createImport(Document document, String namespace) {
-		Element element = document.createElementNS(W3C_XML_SCHEMA_NS_URI, "import");
+		Element element = createElementNS(document, new QName(W3C_XML_SCHEMA_NS_URI, "import"));
 		setAttribute(element, "namespace", namespace);
 
 		return element;
 	}
 
 	private Document createSchemaDocument(String targetNamespace) throws ParserConfigurationException {
-		QName name = new QName(W3C_XML_SCHEMA_NS_URI, "schema");
-		Document doc = createDocument(name);
+		Document doc = createDocument(new QName(W3C_XML_SCHEMA_NS_URI, "schema"));
 		Element root = doc.getDocumentElement();
 		setAttribute(root, "targetNamespace", targetNamespace);
 		setAttribute(root, "elementFormDefault", "qualified");
@@ -437,41 +430,18 @@ class SchemaToDomProcessor {
 		dbf.setValidating(false);
 		DocumentBuilder db = dbf.newDocumentBuilder();
 
-		Document doc = db.newDocument();
-		Element root = doc.createElementNS(name.getNamespaceURI(), name.getLocalPart());
-		doc.appendChild(root);
+		Document document = db.newDocument();
+		Element root = createElementNS(document, name);
+		document.appendChild(root);
 
-		return doc;
+		return document;
 	}
 
-	private void addNamespaces(Element schema, Set<String> usedNamespaces) {
-		Set<Entry<String, String>> set = prefixMap.entrySet();
-		for (Entry<String, String> entry : set) {
-			if (schema.hasAttribute("xmlns:" + entry.getValue()) || usedNamespaces.contains(entry.getKey())) {
-				continue;
-			}
-			schema.setAttribute("xmlns:" + entry.getValue(), entry.getKey());
-		}
-	}
+	private Element createElementNS(Document document, QName qname) {
+		Element element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
+		element.setPrefix(prefixMap.get(qname.getNamespaceURI()));
 
-	private Set<String> updatePrefixes(Node parent) {
-		Set<String> usedNamespaces = new HashSet<String>();
-		if (parent.getNamespaceURI() != null) {
-			usedNamespaces.add(parent.getNamespaceURI());
-			parent.setPrefix(prefixMap.get(parent.getNamespaceURI()));
-		}
-
-		if (parent.hasChildNodes()) {
-			NodeList children = parent.getChildNodes();
-			for (int i = 0; i < children.getLength(); i++) {
-				Node child = children.item(i);
-				if (child.getNodeType() == Node.ELEMENT_NODE) {
-					usedNamespaces.addAll(updatePrefixes(child));
-				}
-			}
-		}
-
-		return usedNamespaces;
+		return element;
 	}
 
 	private void setAttribute(Element element, String attrName, String attrValue) {
@@ -484,37 +454,5 @@ class SchemaToDomProcessor {
 		} else {
 			element.setAttribute(attr.getLocalPart(), attrValue);
 		}
-	}
-
-	@Deprecated
-	public static void main(String[] args) throws SchemaProcessorException {
-		String ns1 = "http://a.sk";
-		Schema schema = new Schema(ns1);
-		PropertyContainerDefinition cont1 = new PropertyContainerDefinition(null, new QName(ns1, "account"),
-				new QName(W3C_XML_SCHEMA_NS_URI, "string"));
-		cont1.setDisplayName("display name");
-		cont1.setHelp("help");
-		schema.getDefinitions().add(cont1);
-
-		Document document = Schema.serializeToXsd(schema);
-		System.out.println(printDom(document));
-	}
-
-	@Deprecated
-	static StringBuffer printDom(Node node) {
-		StringWriter writer = new StringWriter();
-		try {
-			TransformerFactory transfac = TransformerFactory.newInstance();
-			Transformer trans = transfac.newTransformer();
-			trans.setOutputProperty(OutputKeys.INDENT, "yes");
-			trans.setParameter(OutputKeys.ENCODING, "utf-8");
-
-			DOMSource source = new DOMSource(node);
-			trans.transform(source, new StreamResult(writer));
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-
-		return writer.getBuffer();
 	}
 }

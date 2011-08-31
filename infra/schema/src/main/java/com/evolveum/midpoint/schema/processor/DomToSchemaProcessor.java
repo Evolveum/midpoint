@@ -25,10 +25,10 @@ import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ACCESS
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ACCOUNT_TYPE;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_ATTRIBUTE_DISPLAY_NAME;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_DESCRIPTION_ATTRIBUTE;
-import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_NAMING_ATTRIBUTE;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_DISPLAY_NAME;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_HELP;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_IDENTIFIER;
+import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_NAMING_ATTRIBUTE;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_NATIVE_ATTRIBUTE_NAME;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_NATIVE_OBJECT_CLASS;
 import static com.evolveum.midpoint.schema.processor.ProcessorConstants.A_SECONDARY_IDENTIFIER;
@@ -36,19 +36,12 @@ import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -56,13 +49,15 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Document;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.sun.xml.xsom.XSAnnotation;
 import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSContentType;
@@ -80,7 +75,10 @@ import com.sun.xml.xsom.util.DomAnnotationParserFactory;
  */
 class DomToSchemaProcessor {
 
+	private static final Trace LOGGER = TraceManager.getTrace(DomToSchemaProcessor.class);
+
 	Schema parseDom(Element xsdSchema) throws SchemaProcessorException {
+		Validate.notNull(xsdSchema, "XSD schema element must not be null.");		
 		Schema schema = initSchema(xsdSchema);
 
 		XSSchemaSet set = parseSchema(xsdSchema);
@@ -248,7 +246,7 @@ class DomToSchemaProcessor {
 		}
 
 		// access
-		List<Element> accessList = getAnnotationElements(annotation, A_ACCESS);		
+		List<Element> accessList = getAnnotationElements(annotation, A_ACCESS);
 		if (accessList != null && !accessList.isEmpty()) {
 			attribute.setCreate(containsAccessFlag("create", accessList));
 			attribute.setRead(containsAccessFlag("read", accessList));
@@ -408,8 +406,9 @@ class DomToSchemaProcessor {
 
 			XSOMParser parser = createSchemaParser();
 			InputSource inSource = new InputSource(new ByteArrayInputStream(out.toByteArray()));
-			inSource.setSystemId("SystemId"); // HACK: it's here to make entity
-												// resolver work...
+			// XXX: hack: it's here to make entity resolver work...
+			inSource.setSystemId("SystemId"); 
+			// XXX: end hack
 			inSource.setEncoding("utf-8");
 			parser.parse(inSource);
 			xss = parser.getResult();
@@ -419,38 +418,5 @@ class DomToSchemaProcessor {
 		}
 
 		return xss;
-	}
-
-	@Deprecated
-	public static void main(String[] args) throws SchemaProcessorException, IOException {
-		File file = new File("./src/main/java/a.xsd");
-
-		InputStream stream = new FileInputStream(file);
-		Schema schema = Schema.parse(parseDocument(stream));
-		Document document = Schema.serializeToXsd(schema);
-		String str = SchemaToDomProcessor.printDom(document).toString();
-		System.out.println(str);
-		System.out.println("---------------------------");
-		stream = new ByteArrayInputStream(str.getBytes("utf-8"));
-		schema = Schema.parse(parseDocument(stream));
-		document = Schema.serializeToXsd(schema);
-		str = SchemaToDomProcessor.printDom(document).toString();
-		System.out.println(str);
-	}
-
-	@Deprecated
-	private static Element parseDocument(InputStream doc) {
-		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware(true);
-			DocumentBuilder loader = factory.newDocumentBuilder();
-			return loader.parse(doc).getDocumentElement();
-		} catch (SAXException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
-		} catch (IOException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
-		} catch (ParserConfigurationException ex) {
-			throw new IllegalStateException("Error parsing XML document " + ex.getMessage());
-		}
 	}
 }

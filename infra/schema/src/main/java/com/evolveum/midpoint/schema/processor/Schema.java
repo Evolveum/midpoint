@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,8 +56,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.A
  * @author Radovan Semancik
  * 
  */
-public class Schema implements Dumpable {
+public class Schema implements Dumpable, Serializable {
 
+	private static final long serialVersionUID = 5068618465625931984L;
 	private static final Trace LOGGER = TraceManager.getTrace(Schema.class);
 	private String namespace;
 	private Set<Definition> definitions;
