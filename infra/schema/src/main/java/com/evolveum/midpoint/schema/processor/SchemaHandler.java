@@ -34,17 +34,19 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * ErrorHandler that reports sax errors to log.
+ * Implements {@link EntityResolver} and {@link ErrorHandler} that reports sax
+ * errors to log.
  * 
  * @author Vilo Repan
+ * 
  */
-public class SchemaErrorHandler implements ErrorHandler, EntityResolver {
+public class SchemaHandler implements ErrorHandler, EntityResolver {
 
-	private static final Trace TRACE = TraceManager.getTrace(SchemaErrorHandler.class);
-	
+	private static final Trace TRACE = TraceManager.getTrace(SchemaHandler.class);
+
 	private EntityResolver entityResolver;
 
-	public SchemaErrorHandler(EntityResolver entityResolver) {
+	public SchemaHandler(EntityResolver entityResolver) {
 		super();
 		this.entityResolver = entityResolver;
 	}
@@ -80,20 +82,25 @@ public class SchemaErrorHandler implements ErrorHandler, EntityResolver {
 		TRACE.trace(builder.toString(), e);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.xml.sax.EntityResolver#resolveEntity(java.lang.String, java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see org.xml.sax.EntityResolver#resolveEntity(java.lang.String,
+	 * java.lang.String)
 	 */
 	@Override
 	public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
 		try {
 			InputSource source = entityResolver.resolveEntity(publicId, systemId);
-			TRACE.trace("Resolved entity {}, {}: {}",new Object[]{publicId,systemId,source});
+			TRACE.trace("Resolved entity '{}', '{}': '{}'", new Object[] { publicId, systemId, source });
 			return source;
 		} catch (SAXException e) {
-			TRACE.error("Error resolving entity {}, {}: {}",new Object[]{publicId,systemId,e.getMessage(),e});
+			TRACE.error("Error resolving entity '{}', '{}': '{}'",
+					new Object[] { publicId, systemId, e.getMessage(), e });
 			throw e;
 		} catch (IOException e) {
-			TRACE.error("Error resolving entity {}, {}: {}",new Object[]{publicId,systemId,e.getMessage(),e});
+			TRACE.error("Error resolving entity '{}', '{}': '{}'",
+					new Object[] { publicId, systemId, e.getMessage(), e });
 			throw e;
 		}
 	}

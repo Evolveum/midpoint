@@ -55,7 +55,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.sun.xml.xsom.XSAnnotation;
@@ -78,7 +77,7 @@ class DomToSchemaProcessor {
 	private static final Trace LOGGER = TraceManager.getTrace(DomToSchemaProcessor.class);
 
 	Schema parseDom(Element xsdSchema) throws SchemaProcessorException {
-		Validate.notNull(xsdSchema, "XSD schema element must not be null.");		
+		Validate.notNull(xsdSchema, "XSD schema element must not be null.");
 		Schema schema = initSchema(xsdSchema);
 
 		XSSchemaSet set = parseSchema(xsdSchema);
@@ -382,7 +381,7 @@ class DomToSchemaProcessor {
 
 	private XSOMParser createSchemaParser() {
 		XSOMParser parser = new XSOMParser();
-		SchemaErrorHandler errorHandler = new SchemaErrorHandler(SchemaConstants.getEntityResolver());
+		SchemaHandler errorHandler = new SchemaHandler(SchemaConstants.getEntityResolver());
 		parser.setErrorHandler(errorHandler);
 		parser.setAnnotationParser(new DomAnnotationParserFactory());
 		parser.setEntityResolver(errorHandler);
@@ -407,7 +406,7 @@ class DomToSchemaProcessor {
 			XSOMParser parser = createSchemaParser();
 			InputSource inSource = new InputSource(new ByteArrayInputStream(out.toByteArray()));
 			// XXX: hack: it's here to make entity resolver work...
-			inSource.setSystemId("SystemId"); 
+			inSource.setSystemId("SystemId");
 			// XXX: end hack
 			inSource.setEncoding("utf-8");
 			parser.parse(inSource);
