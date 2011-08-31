@@ -19,7 +19,10 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2010 Forgerock                     -->
 <!--                                                         -->
-<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog" prefer="public">	
+	<public publicId="datatypes" uri="../xml/ns/standard/datatypes.dtd" />
+	<public publicId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
+
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" uri="../xml/ns/public/common/common-1.xsd"/>
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/common/identity-1.xsd" uri="../xml/ns/public/common/identity-1.xsd"/>
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/repository/repository-1.wsdl" uri="../xml/ns/public/repository/repository-1.wsdl"/>
@@ -35,6 +38,9 @@
 
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd"/>
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/ldap-resource-1.xsd" uri="../xml/ns/experimental/ldap-resource-1.xsd"/>
+    
+    <system systemId="datatypes" uri="../xml/ns/standard/datatypes.dtd" />
+	<system systemId="-//W3C//DTD XMLSCHEMA 200102//EN" uri="../xml/ns/standard/XMLSchema.dtd" />
 
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" uri="../xml/ns/public/common/common-1.xsd"/>
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/common/identity-1.xsd" uri="../xml/ns/public/common/identity-1.xsd"/>
