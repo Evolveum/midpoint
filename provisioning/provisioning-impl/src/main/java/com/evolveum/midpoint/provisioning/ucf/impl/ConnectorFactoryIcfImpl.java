@@ -480,6 +480,9 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		} catch (IOException ex) {
 			LOGGER.debug("Unable to parse jar file: " + file.getAbsolutePath() + " [" + ex.getMessage() + "]");
 			return false;
+		} catch (NullPointerException ex) {
+			LOGGER.debug("Unable to parse jar file: " + file.getAbsolutePath() + " [" + ex.getMessage() + "]");
+			return false;
 		}
 
 		// Test if it is a connector
