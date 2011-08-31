@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.nio.channels.FileChannel;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
@@ -190,7 +191,7 @@ public class OpenDJController {
 
 	/**
 	 * Extract template from class
-	 *
+	 * 
 	 * @param destination
 	 * @throws IOException
 	 */
@@ -216,50 +217,87 @@ public class OpenDJController {
 		// file:/C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar!/test-data/opendj.template
 		// output:
 		// /C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar
-		String srcName = srcUrl.getPath().substring(5).split("!/")[0];
+		if (srcUrl.getPath().contains("!/")) {
+			String srcName = srcUrl.getPath().substring(5).split("!/")[0];
 
-		JarFile jar = new JarFile(srcName);
-		LOGGER.debug("Extracting OpenDJ from JAR file {} to {}", srcName, dst.getPath());
+			JarFile jar = new JarFile(srcName);
+			LOGGER.debug("Extracting OpenDJ from JAR file {} to {}", srcName, dst.getPath());
 
-		Enumeration<JarEntry> entries = jar.entries();
+			Enumeration<JarEntry> entries = jar.entries();
 
-		JarEntry e;
-		byte buf[] = new byte[655360];
-		while (entries.hasMoreElements()) {
-			e = entries.nextElement();
+			JarEntry e;
+			byte buf[] = new byte[655360];
+			while (entries.hasMoreElements()) {
+				e = entries.nextElement();
 
-			// skip other files
-			if (!e.getName().contains(DATA_TEMPLATE)) {
-				continue;
+				// skip other files
+				if (!e.getName().contains(DATA_TEMPLATE)) {
+					continue;
+				}
+
+				// prepare destination file
+				String filepath = e.getName().substring(DATA_TEMPLATE.length());
+				File dstFile = new File(dst, filepath);
+
+				// test if directory
+				if (e.isDirectory()) {
+					LOGGER.debug("Create directory: {}", dstFile.getAbsolutePath());
+					dstFile.mkdirs();
+					continue;
+				}
+
+				LOGGER.debug("Extract {} to {}", filepath, dstFile.getAbsolutePath());
+				// Find file on classpath
+				InputStream is = ClassLoader.getSystemResourceAsStream(e.getName());
+				// InputStream is = jar.getInputStream(e); //old way
+
+				// Copy content
+				OutputStream out = new FileOutputStream(dstFile);
+				int len;
+				while ((len = is.read(buf)) > 0) {
+					out.write(buf, 0, len);
+				}
+				out.close();
+				is.close();
 			}
-
-			// prepare destination file
-			String filepath = e.getName().substring(DATA_TEMPLATE.length());
-			File dstFile = new File(dst, filepath);
-			
-			//test if directory
-			if (e.isDirectory()) {
-				LOGGER.debug("Create directory: {}",dstFile.getAbsolutePath());
-				dstFile.mkdirs();
-				continue;
+			jar.close();
+		} else {
+			try {
+				File file = new File(srcUrl.toURI());
+				File[] files = file.listFiles();
+				for (File subFile : files) {
+					if (subFile.isDirectory()) {
+						copyDirectory(subFile, new File(dst, subFile.getName()));
+					} else {
+						copyFile(subFile, new File(dst, subFile.getName()));
+					}
+				}
+			} catch (Exception ex) {
+				throw new IOException(ex);
 			}
-			
-			LOGGER.debug("Extract {} to {}", filepath, dstFile.getAbsolutePath());
-			// Find file on classpath
-			InputStream is = ClassLoader.getSystemResourceAsStream(e.getName());
-			//InputStream is = jar.getInputStream(e);	//old way
-			
-			//Copy content
-			OutputStream out = new FileOutputStream(dstFile);
-			int len;
-			while ((len = is.read(buf)) > 0) {
-				out.write(buf, 0, len);
-			}
-			out.close();
-			is.close();
 		}
-		jar.close();
 		LOGGER.debug("OpenDJ Extracted");
+	}
+
+	public static void copyFile(File sourceFile, File destFile) throws IOException {
+		if (!destFile.exists()) {
+			destFile.createNewFile();
+		}
+
+		FileChannel source = null;
+		FileChannel destination = null;
+		try {
+			source = new FileInputStream(sourceFile).getChannel();
+			destination = new FileOutputStream(destFile).getChannel();
+			destination.transferFrom(source, 0, source.size());
+		} finally {
+			if (source != null) {
+				source.close();
+			}
+			if (destination != null) {
+				destination.close();
+			}
+		}
 	}
 
 	/**
@@ -380,30 +418,6 @@ public class OpenDJController {
 		}
 
 		dir.delete();
-	}
-
-	/**
-	 * Copy a file.
-	 * 
-	 * @param src
-	 *            The name of the source file.
-	 * @param dst
-	 *            The name of the destination file.
-	 * @throws IOException
-	 *             If the file could not be copied.
-	 */
-	public static void copyFile(File src, File dst) throws IOException {
-		InputStream in = new FileInputStream(src);
-		OutputStream out = new FileOutputStream(dst);
-
-		// Transfer bytes from in to out
-		byte[] buf = new byte[8192];
-		int len;
-		while ((len = in.read(buf)) > 0) {
-			out.write(buf, 0, len);
-		}
-		in.close();
-		out.close();
 	}
 
 	public Set<String> asSet(List<Attribute> attributes) {

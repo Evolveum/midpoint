@@ -22,15 +22,11 @@
 
 package com.evolveum.midpoint.schema.constants;
 
-//import com.evolveum.midpoint.api.logging.Trace;
-//import com.evolveum.midpoint.logging.TraceManager;
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Map;
 
 import javax.xml.namespace.QName;
 

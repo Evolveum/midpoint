@@ -35,6 +35,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -165,7 +166,12 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		LOGGER.info("------------------------------------------------------------------------------");
 		LOGGER.info("START:  ProvisioningServiceImplOpenDJTest");
 		LOGGER.info("------------------------------------------------------------------------------");
+		try {
 		openDJController.startCleanServer();
+		} catch (IOException ex) {
+			LOGGER.error("Couldn't start LDAP.", ex);
+			throw ex;
+		}
 	}
 
 	@AfterClass

@@ -104,7 +104,7 @@ public class Schema implements Dumpable {
 		DomToSchemaProcessor processor = new DomToSchemaProcessor();
 		return processor.parseDom(schema);
 	}
-	
+
 	public Document serializeToXsd() throws SchemaProcessorException {
 		return serializeToXsd(this);
 	}
@@ -176,11 +176,12 @@ public class Schema implements Dumpable {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Finds a definition by name.
 	 * 
 	 */
+	@SuppressWarnings("unchecked")
 	public <T extends Definition> T findDefinition(QName definitionName, Class<T> definitionType) {
 		if (definitionName == null) {
 			throw new IllegalArgumentException("definitionName must be supplied");
@@ -212,29 +213,31 @@ public class Schema implements Dumpable {
 	/**
 	 * Creates a new property container definition and adds it to the schema.
 	 * 
-	 * @param localTypeName type name "relative" to schema namespace
+	 * @param localTypeName
+	 *            type name "relative" to schema namespace
 	 * @return new property container definition
 	 */
 	public PropertyContainerDefinition createPropertyContainerDefinition(String localTypeName) {
-		QName typeName = new QName(getNamespace(),localTypeName);
-		QName name = new QName(getNamespace(),toElementName(localTypeName));
-		PropertyContainerDefinition def = new PropertyContainerDefinition(name, name, typeName, getNamespace());
+		QName typeName = new QName(getNamespace(), localTypeName);
+		QName name = new QName(getNamespace(), toElementName(localTypeName));
+		PropertyContainerDefinition def = new PropertyContainerDefinition(name, name, typeName,
+				getNamespace());
 		definitions.add(def);
 		return def;
 	}
-	
-	public PropertyDefinition createPropertyDefinition(String localName,QName typeName) {
-		QName name = new QName(getNamespace(),localName);
-		return createPropertyDefinition(name, typeName);
-	}
-	
-	public PropertyDefinition createPropertyDefinition(String localName,String localTypeName) {
-		QName name = new QName(getNamespace(),localName);
-		QName typeName = new QName(getNamespace(),localTypeName);
+
+	public PropertyDefinition createPropertyDefinition(String localName, QName typeName) {
+		QName name = new QName(getNamespace(), localName);
 		return createPropertyDefinition(name, typeName);
 	}
 
-	public PropertyDefinition createPropertyDefinition(QName name,QName typeName) {
+	public PropertyDefinition createPropertyDefinition(String localName, String localTypeName) {
+		QName name = new QName(getNamespace(), localName);
+		QName typeName = new QName(getNamespace(), localTypeName);
+		return createPropertyDefinition(name, typeName);
+	}
+
+	public PropertyDefinition createPropertyDefinition(QName name, QName typeName) {
 		PropertyDefinition def = new PropertyDefinition(name, typeName);
 		definitions.add(def);
 		return def;
@@ -247,7 +250,7 @@ public class Schema implements Dumpable {
 	private String toElementName(String localTypeName) {
 		String elementName = StringUtils.uncapitalize(localTypeName);
 		if (elementName.endsWith("Type")) {
-			return elementName.substring(0,elementName.length()-4);
+			return elementName.substring(0, elementName.length() - 4);
 		}
 		return elementName;
 	}
