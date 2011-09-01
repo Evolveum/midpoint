@@ -280,8 +280,10 @@ basic provisioning.
                          It is an XPath expression, similar to BPEL assignment expressions. -->
                     <i:outbound default="true">
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
+                        	<i:code>
+	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                            concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
+                            </i:code>
                             </i:valueExpression>
                     </i:outbound>
                     
@@ -327,8 +329,10 @@ basic provisioning.
                          -->
                     <i:outbound>
                         <i:valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $i:user/i:fullName
+                        	<i:code>
+	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                            $i:user/i:fullName
+                            </i:code>
                         </i:valueExpression>
                     </i:outbound>
 
@@ -342,8 +346,10 @@ basic provisioning.
                     <c:access>update</c:access>
                     <i:outbound>
                         <i:valueExpression>
+                        	<i:code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:familyName
+                            </i:code>
                         </i:valueExpression>
                     </i:outbound>
                 </i:attribute>
@@ -356,8 +362,10 @@ basic provisioning.
                     <c:access>update</c:access>
                     <i:outbound>
                         <i:valueExpression>
+                        	<i:code>
                             declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
                             $i:user/i:givenName
+                            </i:code>
                         </i:valueExpression>
                     </i:outbound>
                 </i:attribute>

@@ -30,6 +30,7 @@
       <class name="com.evolveum.midpoint.schema.processor.DomToSchemaProcessorTest"/>
       <class name="com.evolveum.midpoint.schema.util.XsdTypeConverterTest"/>
       <class name="com.evolveum.midpoint.schema.processor.SerializedDomToSchemaProcessorTest"/>
+      <class name="com.evolveum.midpoint.schema.TestSchemaRegistry"/>
     </classes>
   </test>
 </suite>

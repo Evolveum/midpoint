@@ -21,30 +21,39 @@
 <!--                                                         -->
 
 
+<!--
 
-<!-- The object has no name -->
+File that contains three simple valid objects
+
+-->
 
 <c:objects xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-	xmlns:ri="http://somewhere.com/something">
-               
-    <c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
-        <c:type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</c:type>
+           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-        <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:namespace>
+    <i:user oid="c0c010c0-d34d-b33f-f00d-111111111111">
+        <c:name>jack</c:name>
+        <i:fullName>Cpt. Jack Sparrow</i:fullName>
+        <!-- "foo" is not a valid element in the schema -->
+        <i:foo>Jack</i:foo>
+        <i:familyName>Sparrow</i:familyName>
+        <i:honorificPrefix>Cpt.</i:honorificPrefix>
+    </i:user>
 
-        <c:configuration>
-        </c:configuration>
+    <i:user oid="c0c010c0-d34d-b33f-f00d-111111111112">
+        <c:name>will</c:name>
+        <i:fullName>Will Turner</i:fullName>
+        <!-- Wrong order -->
+        <i:familyName>Turner</i:familyName>
+        <i:givenName>William</i:givenName>
+    </i:user>
 
-        <c:schema>
-        </c:schema>
+    <i:user oid="c0c010c0-d34d-b33f-f00d-111111111113">
+        <c:name>barbossa</c:name>
+        <i:fullName>Captain Barbossa</i:fullName>
+        <!-- Missing given name -->
+        <i:familyName>Barbossa</i:familyName>
+        <i:honorificPrefix>Cpt.</i:honorificPrefix>
+    </i:user>
 
-        <c:schemaHandling>
-
-            <c:accountType default="true">
-                <c:name>Default Account</c:name>
-                <c:objectClass>ri:Account</c:objectClass>
-
-            </c:accountType>
-        </c:schemaHandling>
-    </c:resource>
 </c:objects>

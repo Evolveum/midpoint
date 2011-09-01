@@ -22,8 +22,12 @@
 
 package com.evolveum.midpoint.validator.test;
 
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertFalse;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.validator.EventHandler;
@@ -40,7 +44,7 @@ import java.util.List;
 
 /**
  *
- * @author semancik
+ * @author Radovan Semancik
  */
 public class BasicValidatorTest {
 
@@ -67,15 +71,22 @@ public class BasicValidatorTest {
 
     	OperationResult result = new OperationResult(this.getClass().getName()+".handlerTest");
     	
-        final List<String> handledOids = new ArrayList<String>();
+        final List<String> postMarshallHandledOids = new ArrayList<String>();
+        final List<String> preMarshallHandledOids = new ArrayList<String>();
 
         EventHandler handler = new EventHandler() {
 
+			@Override
+			public boolean preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
+				preMarshallHandledOids.add(objectElement.getAttribute("oid"));
+				return true;
+			}
+
             @Override
-            public void handleObject(ObjectType object, OperationResult objectResult) {
+            public void postMarshall(ObjectType object, OperationResult objectResult) {
             	System.out.println("Handler processing "+ObjectTypeUtil.toShortString(object)+", result:");
 				System.out.println(objectResult.dump());
-                handledOids.add(object.getOid());
+                postMarshallHandledOids.add(object.getOid());
             }
 
 			@Override
@@ -83,15 +94,19 @@ public class BasicValidatorTest {
 				System.out.println("Handler got global error:");
 				System.out.println(currentResult.dump());
 			}
+
         };
 
         validateFile("three-objects.xml",handler,result);
 
         System.out.println(result.dump());
         AssertJUnit.assertTrue(result.isSuccess());
-        AssertJUnit.assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
-        AssertJUnit.assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111112"));
-        AssertJUnit.assertTrue(handledOids.contains("c0c010c0-d34d-b33f-f00d-111111111113"));
+        AssertJUnit.assertTrue(postMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
+        AssertJUnit.assertTrue(preMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
+        AssertJUnit.assertTrue(postMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111112"));
+        AssertJUnit.assertTrue(preMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111112"));
+        AssertJUnit.assertTrue(postMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111113"));
+        AssertJUnit.assertTrue(preMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111113"));
     }
 
     @Test
@@ -126,6 +141,20 @@ public class BasicValidatorTest {
 
     }
 
+    @Test
+    public void schemaViolation() throws Exception {
+    	System.out.println("\n===[ schemaViolation ]=====");
+    	
+        OperationResult result = new OperationResult(this.getClass().getName()+".schemaViolation");
+        
+        validateFile("three-users-schema-violation.xml",result);
+        
+        System.out.println(result.dump());
+        assertFalse(result.isSuccess());
+        assertTrue(result.getSubresults().get(0).getMessage().contains("Invalid content was found starting with element 'i:foo'"));
+        assertTrue(result.getSubresults().get(1).getMessage().contains("Invalid content was found starting with element 'i:familyName'"));
+        assertTrue(result.getSubresults().get(2).getMessage().contains("Invalid content was found starting with element 'i:familyName'"));
+    }
 
     @Test
     public void noName() throws Exception {

@@ -26,13 +26,18 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import java.util.List;
 
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
 /**
  *
  * @author semancik
  */
 public interface EventHandler {
 
-    public void handleObject(ObjectType object, OperationResult objectResult);
+	public boolean preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult);
+	
+    public void postMarshall(ObjectType object, OperationResult objectResult);
     
     public void handleGlobalError(OperationResult currentResult);
 

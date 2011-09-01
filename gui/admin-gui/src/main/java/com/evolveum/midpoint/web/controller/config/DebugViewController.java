@@ -32,6 +32,8 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.validator.EventHandler;
@@ -225,7 +227,7 @@ public class DebugViewController implements Serializable {
 		Validator validator = new Validator(new EventHandler() {
 
 			@Override
-			public void handleObject(ObjectType object, OperationResult objectResult) {
+			public void postMarshall(ObjectType object, OperationResult objectResult) {
 				if (objects.isEmpty()) {
 					objects.add(object);
 				}
@@ -234,6 +236,13 @@ public class DebugViewController implements Serializable {
 			@Override
 			public void handleGlobalError(OperationResult currentResult) {
 				// no reaction
+			}
+
+			@Override
+			public boolean preMarshall(Element objectElement, Node postValidationTree,
+					OperationResult objectResult) {
+				// no reaction
+				return true;
 			}
 		});
 		// TODO: fix operation names

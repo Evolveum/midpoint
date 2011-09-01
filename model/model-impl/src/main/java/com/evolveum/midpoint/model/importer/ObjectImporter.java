@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.result.OperationConstants;
@@ -70,7 +71,15 @@ public class ObjectImporter {
 			long progress = 0;
 
 			@Override
-			public void handleObject(ObjectType object, OperationResult objectResult) {
+			public boolean preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
+				
+				encryptValues(objectElement, repository, objectResult);
+				
+				return true;
+			}
+			
+			@Override
+			public void postMarshall(ObjectType object, OperationResult objectResult) {
 
 				progress++;
 
@@ -82,8 +91,6 @@ public class ObjectImporter {
 				if (objectResult.isAcceptable()) {
 
 					resolveReferences(object, repository, objectResult);
-					
-					encryptValues(object, repository, objectResult);
 
 					if (objectResult.isAcceptable()) {
 						try {
@@ -271,7 +278,7 @@ public class ObjectImporter {
 		result.recordSuccessIfUnknown();
 	}
 
-	private static void encryptValues(ObjectType object, RepositoryService repository,
+	private static void encryptValues(Element objectElement, RepositoryService repository,
 			OperationResult objectResult) {
 		// TODO Auto-generated method stub
 		
