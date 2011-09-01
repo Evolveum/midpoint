@@ -179,8 +179,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 	@Override
 	public ObjectModificationType processOutboundHandling(UserType user,
-			ResourceObjectShadowType resourceObjectShadow, OperationResult result)
-			throws SchemaException {
+			ResourceObjectShadowType resourceObjectShadow, OperationResult result) throws SchemaException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(resourceObjectShadow, "Resource object shadow must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -340,8 +339,8 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			return modifications;
 		}
 
-		ExpressionType expression = outbound.getValueExpression() == null ? null :
-				outbound.getValueExpression();
+		ExpressionType expression = outbound.getValueExpression() == null ? null : outbound
+				.getValueExpression();
 		XPathHolder xpathType = getXPathForAttribute(attributeName);
 
 		String attributeValue;
@@ -405,8 +404,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 					return false;
 				}
 			} catch (JAXBException ex) {
-				throw new SchemaException("Couldn't transform jaxb object '" + objectType
-						+ "' to dom.", ex);
+				throw new SchemaException("Couldn't transform jaxb object '" + objectType + "' to dom.", ex);
 			}
 		}
 
@@ -475,17 +473,16 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		List<Object> attributes = attrs.getAny();
 		int index = 0;
 		for (Object attribute : attributes) {
-			LOGGER.trace("attribute({}): {}",
-					new Object[] { index, JAXBUtil.getElementQName(attribute) });
+			LOGGER.trace("attribute({}): {}", new Object[] { index, JAXBUtil.getElementQName(attribute) });
 			if (attributeName.equals(JAXBUtil.getElementQName(attribute))) {
 				Object newAttribute;
 				try {
 					newAttribute = XsdTypeConverter.toXsdElement(attributeValue, attributeName, null);
 				} catch (JAXBException e) {
 					LOGGER.error("Unexpected JAXB problem while applying value of element {}: {} ",
-							new Object[]{attributeName,e.getMessage(),e});
-					throw new SchemaException("Unexpected JAXB problem while applying value of element " + 
-							attributeName+": "+e.getMessage(),e);
+							new Object[] { attributeName, e.getMessage(), e });
+					throw new SchemaException("Unexpected JAXB problem while applying value of element "
+							+ attributeName + ": " + e.getMessage(), e);
 				}
 				attributes.set(index, newAttribute);
 				LOGGER.trace("Changed account's attribute {} value to {}", new Object[] { attributeName,
@@ -723,8 +720,10 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			try {
 				valueNode = applyFilters(filters, JAXBUtil.toDomElement(element).getFirstChild());
 			} catch (JAXBException e) {
-				LOGGER.error("Unexpected JAXB problem while transforming "+element+": "+e.getMessage(),e);
-				throw new SchemaException("Unexpected JAXB problem while transforming "+element+": "+e.getMessage(),e);
+				LOGGER.error("Unexpected JAXB problem while transforming " + element + ": " + e.getMessage(),
+						e);
+				throw new SchemaException("Unexpected JAXB problem while transforming " + element + ": "
+						+ e.getMessage(), e);
 			}
 			if (null != valueNode) {
 				transformedElement.getOwnerDocument().adoptNode(valueNode);
@@ -770,6 +769,10 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	@Override
 	public UserType processPropertyConstruction(UserType user, UserTemplateType template,
 			OperationResult result) {
+		Validate.notNull(user, "User must not be null.");
+		Validate.notNull(template, "User template must not be null.");
+		Validate.notNull(result, "Operation result must not be null.");
+
 		OperationResult subResult = result.createSubresult("User Property Constructions");
 		UserType templatedUser = user;
 		Element domUser = null;
@@ -809,12 +812,30 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	}
 
 	private Element processPropertyConstruction(PropertyConstructionType construction,
-			Map<QName, Variable> variables, Element user) {
+			Map<QName, Variable> variables, Element user) throws SchemaException {
 
-		Element property = construction.getProperty();
 		ValueConstructionType valueConstruction = construction.getValueConstruction();
-		//TODO: process property construction
-		
+		// TODO: process property construction
+
+		valueConstruction.getValueExpression();
+
+		XPathHolder xpathType = new XPathHolder(construction.getProperty());
+		NodeList matchedNodes;
+		try {
+			matchedNodes = new XPathUtil().matchedNodesByXPath(xpathType, variables, user);
+		} catch (XPathExpressionException ex) {
+			throw new SchemaException(ex.getMessage(), ex);
+		}
+
+		if (matchedNodes.getLength() == 0) {
+			LOGGER.debug("No nodes matches given xpath {} in context of namespaces\n{} and variables\n{}",
+					new Object[] { xpathType.toString(), xpathType.getNamespaceMap(), variables });
+
+		} else {
+			LOGGER.debug("Found nodes that matches given xpath {}", new Object[] { xpathType.toString() });
+
+		}
+
 		return user;
 	}
 }
