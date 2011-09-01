@@ -26,4 +26,5 @@
 	<name>james bond</name>
 	<givenName>James</givenName>
 	<familyName>Bond</familyName>
+	<fullName>James Bond</fullName>
 </object>

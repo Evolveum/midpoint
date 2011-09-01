@@ -17,12 +17,19 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import java.io.File;
+
+import javax.xml.bind.JAXBElement;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
@@ -40,6 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class SchemaPropertyConstructionTest extends AbstractTestNGSpringContextTests {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaPropertyConstructionTest.class);
+	private static final File TEST_FOLDER = new File("./src/test/resources/controller/schema");
 	@Autowired(required = true)
 	private transient SchemaHandler handler;
 
@@ -56,5 +64,41 @@ public class SchemaPropertyConstructionTest extends AbstractTestNGSpringContextT
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullOperationResult() throws SchemaException {
 		handler.processPropertyConstruction(new UserType(), new UserTemplateType(), null);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test(enabled = false)
+	public void userWithoutAttribute() throws Exception {
+		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"user-without-fullname.xml"))).getValue();
+		UserTemplateType template = ((JAXBElement<UserTemplateType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"template.xml"))).getValue();
+
+		OperationResult result = new OperationResult("User without fullname (property construction test)");
+		try {
+			user = handler.processPropertyConstruction(user, template, result);
+		} finally {
+			LOGGER.debug(result.dump());
+		}
+
+		XmlAsserts.assertPatch(new File(TEST_FOLDER, "expected-user.xml"), JAXBUtil.silentMarshalWrap(user));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test(enabled = false)
+	public void userWithAttribute() throws Exception {
+		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"user-with-fullname.xml"))).getValue();
+		UserTemplateType template = ((JAXBElement<UserTemplateType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"template.xml"))).getValue();
+
+		OperationResult result = new OperationResult("User with fullname (property construction test)");
+		try {
+			user = handler.processPropertyConstruction(user, template, result);
+		} finally {
+			LOGGER.debug(result.dump());
+		}
+
+		XmlAsserts.assertPatch(new File(TEST_FOLDER, "expected-user.xml"), JAXBUtil.silentMarshalWrap(user));
 	}
 }
