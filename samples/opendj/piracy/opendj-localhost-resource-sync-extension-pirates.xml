@@ -126,9 +126,11 @@ This resource definition contains also definition to enable synchronization.
                          It is an XPath expression, similar to BPEL assignment expressions. -->
                     <outbound default="true">
                         <valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            concat('uid=', $user/name, ',ou=people,dc=example,dc=com')
-                            </valueExpression>
+                        	<code>
+	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                            concat('uid=', $user/name, ',ou=people,dc=example,dc=com')
+                            </code>
+                        </valueExpression>
                     </outbound>
                     <!-- No inbound expression here. We cannot sync changes in DN yet -->
                 </attribute>
@@ -166,8 +168,10 @@ This resource definition contains also definition to enable synchronization.
                      -->
                     <outbound>
                         <valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $user/fullName
+                        	<code>
+	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                            $user/fullName
+	                        </code>
                         </valueExpression>
                     </outbound>
                     <!-- Inbound expression. It is used to synchronize changes
@@ -190,8 +194,10 @@ This resource definition contains also definition to enable synchronization.
                     <access>update</access>
                     <outbound>
                         <valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $user/familyName
+                        	<code>
+	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                            $user/familyName
+                            </code>
                         </valueExpression>
                     </outbound>
                     <!-- sn will be synchronized to user's familyName -->
@@ -210,8 +216,10 @@ This resource definition contains also definition to enable synchronization.
                     <access>update</access>
                     <outbound>
                         <valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $user/givenName
+                        	<code>
+	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                            $user/givenName
+                            </code>
                         </valueExpression>
                     </outbound>
                     <!-- givenName will be synchronized to user's givenName -->
@@ -232,8 +240,10 @@ This resource definition contains also definition to enable synchronization.
                         <!-- It is mapped from (and also to) "name" property of
                              user. It is essentially a login name -->
                         <valueExpression>
-                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                            $user/name
+                        	<code>
+	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                            $user/name
+                            </code>
                         </valueExpression>
                     </outbound>
                     <!-- It is mapped to (and also from) "name" property of
@@ -371,12 +381,12 @@ This resource definition contains also definition to enable synchronization.
                 <equal>
                     <path>.</path>
                     <valueExpression>
-			<ref>name</ref>
-			<code>
-                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                        declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
-                        $account/attributes/dj:uid
-			</code>
+						<ref>name</ref>
+						<code>
+	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                        declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
+	                        $account/attributes/dj:uid
+						</code>
                     </valueExpression>
                 </equal>
             </correlation>
@@ -433,8 +443,10 @@ This resource definition contains also definition to enable synchronization.
             <property>fullName</property>
             <valueConstruction default="true">
                 <valueExpression>
-                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-                    concat($user/givenName,' ',$user/familyName)
+                	<code>
+	                    declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	                    concat($user/givenName,' ',$user/familyName)
+                    </code>
                 </valueExpression>
             </valueConstruction>
         </propertyConstruction>

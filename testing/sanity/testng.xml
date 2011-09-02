@@ -25,6 +25,7 @@
   <test name="Sanity" preserve-order="false">
     <classes>
       <class name="com.evolveum.midpoint.testing.sanity.TestSanity"/>
+      <class name="com.evolveum.midpoint.testing.sanity.TestSamples"/>
     </classes>
   </test>
 </suite>
