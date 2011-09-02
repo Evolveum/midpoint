@@ -97,6 +97,9 @@ public class SchemaRegistry implements LSResourceResolver {
 		int i = 0;
 		for (i = 0; i < builtinSchemaResourceNames.length; i++) {
 			InputStream inputStream = ClassLoader.getSystemResourceAsStream(builtinSchemaResourceNames[i]);
+			if (inputStream==null) {
+				throw new IllegalStateException("Cannot fetch system resource for built-in schema "+builtinSchemaResourceNames[i]);
+			}
 			sources[i] = new StreamSource(inputStream);
 		}
 		for (Source s : extraSchemas) {

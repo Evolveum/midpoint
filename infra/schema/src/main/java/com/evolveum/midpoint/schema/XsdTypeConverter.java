@@ -148,7 +148,7 @@ public class XsdTypeConverter {
 				return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
 			} else if (type.equals(QName.class)) {
 				return (T) DOMUtil.getQNameValue(xmlElement);
-			} else if (isJaxbClass(type)) {
+			} else if (JAXBUtil.isJaxbClass(type)) {
 				return JAXBUtil.unmarshal(xmlElement, type).getValue();
 			} else {
 				throw new IllegalArgumentException("Unknown type for conversion: " + type);
@@ -243,7 +243,7 @@ public class XsdTypeConverter {
 			return null;
 		}
 		Class type = val.getClass();
-		if (isJaxbClass(type)) {
+		if (JAXBUtil.isJaxbClass(type)) {
 			JAXBElement jaxbElement = new JAXBElement(elementName, type, val);
 			return jaxbElement;
 		} else {
@@ -283,25 +283,6 @@ public class XsdTypeConverter {
 
 	public static boolean canConvert(Class clazz) {
 		return javaToXsdTypeMap.get(clazz) != null;
-	}
-
-	private static boolean isJaxbClass(Class clazz) {
-		if (clazz == null) {
-			throw new IllegalArgumentException("No class, no fun");
-		}
-		if (clazz.getPackage()==null) {
-			// No package: this is most likely a primitive type and definitely not a JAXB class
-			return false;
-		}
-		for (int i = 0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
-			if (SchemaConstants.JAXB_PACKAGES[i]==null) {
-				throw new IllegalStateException("Entry #"+i+" in SchemaConstants.JAXB_PACKAGES is null");
-			}
-			if (SchemaConstants.JAXB_PACKAGES[i].equals(clazz.getPackage().getName())) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	public static XMLGregorianCalendar toXMLGregorianCalendar(long timeInMillis) {

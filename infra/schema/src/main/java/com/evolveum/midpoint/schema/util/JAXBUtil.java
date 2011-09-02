@@ -92,6 +92,25 @@ public final class JAXBUtil {
 	public static JAXBIntrospector getIntrospector() {
 		return introspector;
 	}
+	
+	public static boolean isJaxbClass(Class clazz) {
+		if (clazz == null) {
+			throw new IllegalArgumentException("No class, no fun");
+		}
+		if (clazz.getPackage()==null) {
+			// No package: this is most likely a primitive type and definitely not a JAXB class
+			return false;
+		}
+		for (int i = 0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
+			if (SchemaConstants.JAXB_PACKAGES[i]==null) {
+				throw new IllegalStateException("Entry #"+i+" in SchemaConstants.JAXB_PACKAGES is null");
+			}
+			if (SchemaConstants.JAXB_PACKAGES[i].equals(clazz.getPackage().getName())) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public static String getSchemaNamespace(Package pkg) {
 		XmlSchema xmlSchemaAnn = pkg.getAnnotation(XmlSchema.class);

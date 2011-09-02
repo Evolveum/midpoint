@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model.importer;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
@@ -32,18 +33,23 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
 
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.result.OperationConstants;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
@@ -52,6 +58,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -62,6 +69,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -76,13 +84,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
  * @author Radovan Semancik
  * 
  */
+@Component
 public class ObjectImporter {
 
 	private static final Trace logger = TraceManager.getTrace(ObjectImporter.class);
 	private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName()
 			+ ".resolveReference";
+	
+	@Autowired(required=true)
+	private Protector protector;
 
-	public static void importObjects(InputStream input, final Task task, final OperationResult parentResult,
+	public void importObjects(InputStream input, final Task task, final OperationResult parentResult,
 			final RepositoryService repository) {
 
 		EventHandler handler = new EventHandler() {
@@ -91,8 +103,6 @@ public class ObjectImporter {
 
 			@Override
 			public boolean preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
-				
-				encryptValues(objectElement, repository, objectResult);
 				
 				return true;
 			}
@@ -114,8 +124,11 @@ public class ObjectImporter {
 				if (objectResult.isAcceptable()) {
 					validateWithDynamicSchemas(object, objectElement, repository, objectResult);
 				}
-					
-
+				
+				if (objectResult.isAcceptable()) {
+					encryptValues(object, objectResult);
+				}
+				
 				if (objectResult.isAcceptable()) {
 					try {
 
@@ -153,7 +166,7 @@ public class ObjectImporter {
 
 	}
 
-	protected static void validateWithDynamicSchemas(ObjectType object, Element objectElement,
+	protected void validateWithDynamicSchemas(ObjectType object, Element objectElement,
 			RepositoryService repository, OperationResult objectResult) {
 		
 		if (object instanceof ExtensibleObjectType) {
@@ -231,7 +244,7 @@ public class ObjectImporter {
 	 * @param schema
 	 * @param objectResult
 	 */
-	private static void checkSchema(XmlSchemaType dynamicSchema, String schemaName, OperationResult objectResult) {
+	private void checkSchema(XmlSchemaType dynamicSchema, String schemaName, OperationResult objectResult) {
 		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
 		// Disabling this now a while ... until the BaseX namespace problem is resolved
 		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
@@ -257,7 +270,7 @@ public class ObjectImporter {
 	 * @param dynamicSchema dynamic schema
 	 * @param objectResult
 	 */
-	private static void validateDynamicSchema(Element element, QName elementRef,
+	private void validateDynamicSchema(Element element, QName elementRef,
 			XmlSchemaType dynamicSchema, String schemaName, OperationResult objectResult) {
 
 		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
@@ -293,7 +306,7 @@ public class ObjectImporter {
 //		result.recordSuccess();
 	}
 
-	protected static void resolveReferences(ObjectType object, RepositoryService repository,
+	protected void resolveReferences(ObjectType object, RepositoryService repository,
 			OperationResult result) {
 		// We need to look up all object references. Probably the only efficient
 		// way to do it is to use reflection.
@@ -305,9 +318,8 @@ public class ObjectImporter {
 			if (ObjectReferenceType.class.isAssignableFrom(returnType)) {
 				// we have a method that returns ObjectReferenceType, try to
 				// resolve it.
-				if (method.getName().startsWith("get")) {
-					String suffix = method.getName().substring(3);
-					String propName = suffix.substring(0, 1).toLowerCase() + suffix.substring(1);
+				String propName = parseGetterPropName(method);
+				if (propName!=null) {
 					logger.debug("Found reference property {}, method {}", propName, method.getName());
 					try {
 						Object returnVal = method.invoke(object);
@@ -339,7 +351,7 @@ public class ObjectImporter {
 		}
 	}
 
-	private static void resolveRef(ObjectReferenceType ref, String propName, RepositoryService repository,
+	private void resolveRef(ObjectReferenceType ref, String propName, RepositoryService repository,
 			OperationResult parentResult) {
 		if (ref == null) {
 			// Nothing to do
@@ -441,10 +453,84 @@ public class ObjectImporter {
 		result.recordSuccessIfUnknown();
 	}
 
-	private static void encryptValues(Element objectElement, RepositoryService repository,
-			OperationResult objectResult) {
-		// TODO Auto-generated method stub
+	private void encryptValues(ObjectType object, OperationResult objectResult) {
+		OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName()+".encryptValues");
+		encryptValuesRecursive(object,object,result);
+		result.recordSuccessIfUnknown();
+	}
 		
+	private void encryptValuesRecursive(Object object, ObjectType objectType, OperationResult result) {
+		// We need to look up all object references. Probably the only efficient
+		// way to do it is to use reflection.
+		Class<?> type = object.getClass();
+		Method[] methods = type.getMethods();
+		for (int i = 0; i < methods.length; i++) {
+			Method method= methods[i];
+			String propName = parseGetterPropName(method);
+			if (propName !=null) {
+				// It has to return a value in JAXB package or List to be interesting
+				Class<?> returnType = method.getReturnType();
+				if (JAXBUtil.isJaxbClass(returnType) || returnType.equals(List.class)) {
+					Object fieldValue;
+					try {
+						fieldValue = method.invoke(object);
+					} catch (IllegalArgumentException e) {
+						result.recordFatalError("Access to field "+propName+" failed (illegal argument): "+e.getMessage(),e);
+						return;
+					} catch (IllegalAccessException e) {
+						result.recordFatalError("Access to field "+propName+" failed (illegal access): "+e.getMessage(),e);
+						return;
+					} catch (InvocationTargetException e) {
+						result.recordFatalError("Access to field "+propName+" failed (invocation target): "+e.getMessage(),e);
+						return;
+					}
+					if (fieldValue==null) {
+						continue;
+					}
+					if (returnType.equals(List.class)) {
+						List valueList = (List) fieldValue;
+						for (Object value : valueList) {
+							if (value != null && JAXBUtil.isJaxbClass(value.getClass())) {
+								encryptValueAndRecurse(value,propName,objectType,result);
+							}
+						}
+					} else {
+						encryptValueAndRecurse(fieldValue,propName,objectType,result);
+					}
+				}
+			}
+		}
+	}
+
+	private void encryptValueAndRecurse(Object value, String propName, ObjectType objectType, OperationResult result) {
+		if (value instanceof ProtectedStringType) {
+			ProtectedStringType ps = (ProtectedStringType) value;
+			if (ps.getClearValue()!=null) {
+				try {
+					logger.info("Encrypting cleartext value for field "+propName+" while importing "+ObjectTypeUtil.toShortString(objectType));
+					protector.encrypt(ps);
+				} catch (EncryptionException e) {
+					logger.info("Faild to encrypt cleartext value for field "+propName+" while importing "+ObjectTypeUtil.toShortString(objectType));
+					result.recordFatalError("Faild to encrypt value for field "+propName+": "+e.getMessage(), e);
+					return;
+				}
+			}
+		}
+		encryptValuesRecursive(value,objectType,result);
+	}
+	
+	private String parseGetterPropName(Method method) {
+		if (method.getParameterTypes().length!=0) {
+			// Has parameters -> not getter
+			return null;
+		}
+		String methodName = method.getName();
+		if (methodName.startsWith("get") && methodName.length() > 3 && Character.isUpperCase(methodName.charAt(3))) {
+			String suffix = methodName.substring(3);
+			String propName = suffix.substring(0, 1).toLowerCase() + suffix.substring(1);
+			return propName;
+		}
+		return null;
 	}
 	
 }

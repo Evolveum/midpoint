@@ -121,6 +121,8 @@ public class ModelControllerImpl implements ModelController {
 
 	@Autowired(required = true)
 	private transient ImportAccountsFromResourceTaskHandler importAccountsFromResourceTaskHandler;
+	private @Autowired(required = true)
+	ObjectImporter objectImporter;
 
 	@Override
 	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException,
@@ -672,7 +674,7 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
 		// TODO: set summarization
 		// TODO: overwrite flag not used!!!!!!!!!!!!!
-		ObjectImporter.importObjects(input, task, result, repository);
+		objectImporter.importObjects(input, task, result, repository);
 		result.computeStatus("Couldn't import object from input stream.");
 	}
 

@@ -57,7 +57,7 @@ public class ProtectorTest extends AbstractTestNGSpringContextTests {
 
 	@Test
 	public void encryptNullElement() throws EncryptionException {
-		assertNull(protector.encrypt(null));
+		assertNull(protector.encrypt((Element)null));
 	}
 
 	@Test

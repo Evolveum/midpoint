@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.model.importer;
 
+import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -137,10 +139,15 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 
 		// Check import with fixed OID
 		UserType jack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+		display("Jack",jack);
 		assertNotNull(jack);
 		assertEquals("Jack", jack.getGivenName());
 		assertEquals("Sparrow", jack.getFamilyName());
 		assertEquals("Cpt. Jack Sparrow", jack.getFullName());
+		// Jack has a password. Check if it was encrypted
+		ProtectedStringType protectedString = jack.getCredentials().getPassword().getProtectedString();
+		assertNull("Arrgh! Pirate sectrets were revealed!",protectedString.getClearValue());
+		assertNotNull("Er? The pirate sectrets were lost!",protectedString.getEncryptedData());
 
 		// Check import with generated OID
 		Document doc = DOMUtil.getDocument();

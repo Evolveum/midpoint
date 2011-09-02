@@ -69,6 +69,7 @@ public class AESProtector implements Protector {
 	private String encryptionKeyDigest;
 
 	private static final KeyStore keyStore;
+	private static final String ENCRYPTED_ELEMENT_NAME = "value";
 
 	static {
 		Init.init();
@@ -225,13 +226,15 @@ public class AESProtector implements Protector {
 			return null;
 		}
 
+		return encrypt(stringToElement(text));
+	}
+	
+	private Element stringToElement(String text) {
 		Document document = DOMUtil.getDocument();
-		Element plain = document.createElement("value");
+		Element plain = document.createElement(ENCRYPTED_ELEMENT_NAME);
 		plain.setTextContent(text);
-
 		document.appendChild(plain);
-
-		return encrypt(plain);
+		return plain;
 	}
 
 	/* (non-Javadoc)
@@ -239,11 +242,14 @@ public class AESProtector implements Protector {
 	 */
 	@Override
 	public ProtectedStringType encrypt(Element plain) throws EncryptionException {
+		return encrypt(plain, new ProtectedStringType());
+	}
+	
+	private ProtectedStringType encrypt(Element plain, ProtectedStringType protectedString) throws EncryptionException {
 		if (plain == null) {
 			return null;
 		}
 
-		ProtectedStringType protectedString = new ProtectedStringType();
 		try {
 			SecretKey secret = getSecretKey(getEncryptionKeyDigest(), getKeyStorePassword().toCharArray());
 			XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_256);
@@ -269,6 +275,20 @@ public class AESProtector implements Protector {
 		}
 
 		return protectedString;
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.common.crypto.Protector#encrypt(com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType)
+	 */
+	@Override
+	public void encrypt(ProtectedStringType ps) throws EncryptionException {
+		String clearValue = ps.getClearValue();
+		if (clearValue==null) {
+			// nothing to do
+			return;
+		}
+		ps.setClearValue(null);
+		encrypt(stringToElement(clearValue),ps);
 	}
 
 	private static SecretKey getSecretKey(String digest, char[] password) throws EncryptionException {
@@ -302,4 +322,5 @@ public class AESProtector implements Protector {
 
 		throw new EncryptionException("Key '" + digest + "' is not in keystore.");
 	}
+
 }

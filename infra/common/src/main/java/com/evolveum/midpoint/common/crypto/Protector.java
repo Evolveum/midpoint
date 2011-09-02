@@ -55,4 +55,11 @@ public interface Protector {
 	 */
 	public abstract ProtectedStringType encrypt(Element plain) throws EncryptionException;
 
+	/**
+	 * Encrypts the ProtectedStringType "in place".
+	 * @param ps
+	 * @throws EncryptionException 
+	 */
+	public abstract void encrypt(ProtectedStringType ps) throws EncryptionException;
+
 }

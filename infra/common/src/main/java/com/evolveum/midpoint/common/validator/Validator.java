@@ -202,8 +202,10 @@ public class Validator {
 		
 		try {
 			objectResult.addContext(START_LINE_NUMBER, stream.getLocation().getLineNumber());
+			
 			// Parse the object from stream to DOM
 	    	Document objectDoc = domConverter.buildDocument(stream);
+	    	
 	    	objectResult.addContext(END_LINE_NUMBER, stream.getLocation().getLineNumber());
 	    	
 	    	// This element may not have complete namespace definitions for a stand-alone
@@ -277,16 +279,20 @@ public class Validator {
     }
 
 	private Node validateSchema(Document objectDoc, OperationResult objectResult) {
+		OperationResult result = objectResult.createSubresult(Validator.class.getName()+".validateSchema");
 		DOMResult validationResult = new DOMResult();
 		try {
 			xsdValidator.validate(new DOMSource(objectDoc),validationResult);
 		} catch (SAXException e) {
-			objectResult.recordFatalError("Validation error: "+e.getMessage(), e);
+			result.recordFatalError("Validation error: "+e.getMessage(), e);
+			objectResult.computeStatus("Validation error: "+e.getMessage());
 			return null;
 		} catch (IOException e) {
-			objectResult.recordFatalError("OI error during validation: "+e.getMessage(), e);
+			result.recordFatalError("OI error during validation: "+e.getMessage(), e);
+			objectResult.computeStatus("OI error during validation: "+e.getMessage());
 			return null;
 		}
+		result.recordSuccess();
 		return validationResult.getNode(); 
 	}
 
