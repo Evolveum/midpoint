@@ -48,6 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
@@ -111,6 +112,9 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 	@Autowired(required = true)
 	MidpointConfiguration midpointConfiguration;
+	
+	@Autowired(required=true)
+	Protector protector;
 
 	public ConnectorFactoryIcfImpl() {
 	}
@@ -184,7 +188,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 		// Create new midPoint ConnectorInstance and pass it the ICF connector
 		// facade
-		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cinfo, connectorType, namespace);
+		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cinfo, connectorType, namespace, protector);
 
 		return connectorImpl;
 	}

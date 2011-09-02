@@ -67,6 +67,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
@@ -144,11 +146,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	ConnectorType connectorType;
 	ConnectorFacade icfConnectorFacade;
 	String schemaNamespace;
+	Protector protector;
 
-	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType, String schemaNamespace) {
+	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType, String schemaNamespace, Protector protector) {
 		this.cinfo = connectorInfo;
 		this.connectorType = connectorType;
 		this.schemaNamespace = schemaNamespace;
+		this.protector = protector;
 	}
 	
 	public String getSchemaNamespace() {
@@ -1442,7 +1446,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 			Set<Object> convertedAttributeValues = new HashSet<Object>();
 			for (Object value : attribute.getValues()) {
-				convertedAttributeValues.add(convertValueToIcf(value));
+				convertedAttributeValues.add(convertValueToIcf(value, attribute.getName(), parentResult));
 			}
 
 			Attribute connectorAttribute = AttributeBuilder.build(attrName,
@@ -1453,10 +1457,25 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return attributes;
 	}
 
-	private Object convertValueToIcf(Object value) {
+	private Object convertValueToIcf(Object value, QName propName, OperationResult parentResult) throws SchemaException {
+		if (value==null) {
+			return null;
+		}
 		if (value instanceof ProtectedStringType) {
 			ProtectedStringType ps = (ProtectedStringType)value;
-			return new GuardedString(ps.getClearValue().toCharArray());
+			if (ps.getClearValue()!=null) {
+				LOGGER.warn("Got cleartext value for attribute {} while expected encrypted value",propName);
+				parentResult.recordFatalError("Got cleartext value for attribute "+propName+" while expected encrypted value");
+				return new GuardedString(ps.getClearValue().toCharArray());
+			} else {
+				try {
+					return new GuardedString(protector.decryptString(ps).toCharArray());
+				} catch (EncryptionException e) {
+					LOGGER.error("Unable to decrypt value of attribute {}: {}",e.getMessage(),e);
+					parentResult.recordFatalError("Unable to decrypt value of attribute "+propName+": "+e.getMessage(), e);
+					throw new SchemaException("Unable to decrypt value of attribute "+propName+": "+e.getMessage(), e);
+				}
+			}
 		}			
 		return value;
 	}
