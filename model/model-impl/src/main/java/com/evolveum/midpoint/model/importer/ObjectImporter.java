@@ -20,33 +20,52 @@
  */
 package com.evolveum.midpoint.model.importer;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.Schema;
+
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.result.OperationConstants;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 /**
  * Extension of validator used to import objects to the repository.
@@ -79,7 +98,7 @@ public class ObjectImporter {
 			}
 			
 			@Override
-			public void postMarshall(ObjectType object, OperationResult objectResult) {
+			public void postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
 
 				progress++;
 
@@ -88,28 +107,32 @@ public class ObjectImporter {
 				objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 				// TODO: params, context
 
-				if (objectResult.isAcceptable()) {
-
+				if (objectResult.isAcceptable()) {					
 					resolveReferences(object, repository, objectResult);
+				}
+				
+				if (objectResult.isAcceptable()) {
+					validateWithDynamicSchemas(object, objectElement, repository, objectResult);
+				}
+					
 
-					if (objectResult.isAcceptable()) {
-						try {
+				if (objectResult.isAcceptable()) {
+					try {
 
-							repository.addObject(object, objectResult);
-							objectResult.recordSuccess();
+						repository.addObject(object, objectResult);
+						objectResult.recordSuccess();
 
-						} catch (ObjectAlreadyExistsException e) {
-							objectResult.recordFatalError("Object already exists", e);
-							logger.error("Object already exists", e);
-						} catch (SchemaException e) {
-							objectResult.recordFatalError("Schema violation", e);
-							logger.error("Schema violation", e);
-						} catch (RuntimeException e) {
-							objectResult.recordFatalError("Unexpected problem", e);
-							logger.error("Unexpected problem", e);
-						}
-
+					} catch (ObjectAlreadyExistsException e) {
+						objectResult.recordFatalError("Object already exists", e);
+						logger.error("Object already exists", e);
+					} catch (SchemaException e) {
+						objectResult.recordFatalError("Schema violation", e);
+						logger.error("Schema violation", e);
+					} catch (RuntimeException e) {
+						objectResult.recordFatalError("Unexpected problem", e);
+						logger.error("Unexpected problem", e);
 					}
+
 				}
 
 				// TODO check if there are too many errors
@@ -128,6 +151,146 @@ public class ObjectImporter {
 
 		validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
 
+	}
+
+	protected static void validateWithDynamicSchemas(ObjectType object, Element objectElement,
+			RepositoryService repository, OperationResult objectResult) {
+		
+		if (object instanceof ExtensibleObjectType) {
+			// TODO: check extension schema (later)
+			//objectResult.computeStatus("Extension schema error");
+		}
+		
+		if (object instanceof ConnectorType) {
+			ConnectorType connector = (ConnectorType)object;
+			checkSchema(connector.getSchema(), "connector", objectResult);
+			objectResult.computeStatus("Connector schema error");
+			
+		} else if (object instanceof ResourceType) {
+			
+			
+			// Only two object types have XML snippets that conform to the dynamic schema
+			
+			
+			ResourceType resource = (ResourceType)object;
+			// Use DOM representation of the object, so we get the "real" namespace prefixes from the import file
+			// This will provide better information to system admin attempting import
+			NodeList configurationElements = objectElement.getElementsByTagNameNS(SchemaConstants.C_RESOURCE_CONFIGURATION.getNamespaceURI(), SchemaConstants.C_RESOURCE_CONFIGURATION.getLocalPart());
+			if (configurationElements.getLength()==0) {
+				// Nothing to check
+				objectResult.recordWarning("The resource has no configuration");
+				return;
+			}
+			if (configurationElements.getLength()>1) {
+				// Nothing to check
+				objectResult.recordFatalError("The resource has multiple configuration elements");
+				return;
+			}
+			Element configurationElement = (Element) configurationElements.item(0);
+			
+			// Check the resource configuration. The schema is in connector, so fetch the connector first
+			String connectorOid = resource.getConnectorRef().getOid();
+			if (connectorOid==null) {
+				objectResult.recordFatalError("The connector reference (connectorRef) is null");
+				return;
+			}
+			
+			ConnectorType connector = null;
+			try {
+				connector = repository.getObject(ConnectorType.class, connectorOid, null, objectResult);
+			} catch (ObjectNotFoundException e) {
+				// No connector, no fun. We can't check the schema. But this is referential integrity problem.
+				// Mark the error ... there is nothing more to do
+				objectResult.recordFatalError("Connector (OID:"+connectorOid+") referenced from the resource is not in the repository", e);
+				return;
+			} catch (SchemaException e) {
+				// Probably a malformed connector. To be kind of robust, lets allow the import. 
+				// Mark the error ... there is nothing more to do
+				objectResult.recordPartialError("Connector (OID:"+connectorOid+") referenced from the resource has schema problems: "+e.getMessage(), e);
+				logger.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}",new Object[]{connectorOid,resource.getName(),e.getMessage(), e});
+				return;
+			}
+			QName configurationElementRef = new QName(connector.getNamespace(),SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME);
+			validateDynamicSchema(configurationElement, configurationElementRef, connector.getSchema(), "resourceConfiguration", objectResult);
+			
+			// Also check integrity of the resource schema
+			checkSchema(resource.getSchema(), "resource", objectResult);
+			
+			objectResult.computeStatus("Dynamic schema error");
+			
+		} else if (object instanceof ResourceObjectShadowType) {
+			// TODO
+			
+			//objectResult.computeStatus("Dynamic schema error");
+		}
+	}
+
+	/**
+	 * Try to parse the schema using schema processor. Report errors.
+	 * 
+	 * @param schema
+	 * @param objectResult
+	 */
+	private static void checkSchema(XmlSchemaType dynamicSchema, String schemaName, OperationResult objectResult) {
+		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
+		// Disabling this now a while ... until the BaseX namespace problem is resolved
+		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
+		
+//		OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName()+".check"+StringUtils.capitalize(schemaName)+"Schema");
+//		
+//		Element xsdElement = ObjectTypeUtil.findXsdElement(dynamicSchema);
+//		
+//		try {
+//			com.evolveum.midpoint.schema.processor.Schema.parse(xsdElement);
+//		} catch (SchemaProcessorException e) {
+//			result.recordFatalError("Error during " + schemaName + " schema integrity check: " + e.getMessage(), e);
+//			return;
+//		}
+//		result.recordSuccess();
+	}
+
+	/**
+	 * Validate the provided XML snippet with schema definition fetched in runtime.
+	 * 
+	 * @param element DOM tree to validate
+	 * @param elementRef the "correct" name of the root element
+	 * @param dynamicSchema dynamic schema
+	 * @param objectResult
+	 */
+	private static void validateDynamicSchema(Element element, QName elementRef,
+			XmlSchemaType dynamicSchema, String schemaName, OperationResult objectResult) {
+
+		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
+		// Disabling this now a while ... until the BaseX namespace problem is resolved
+		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO 
+
+//		OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName()+".validate"+StringUtils.capitalize(schemaName)+"Schema");
+//	
+//		// Shallow clone the tree under a correct element name 
+//		Document doc = element.getOwnerDocument();
+//		Element clonedElement = doc.createElementNS(elementRef.getNamespaceURI(), elementRef.getLocalPart());
+//		NodeList childNodes = element.getChildNodes();
+//		for (int i = 0; i < childNodes.getLength(); i++) {
+//			clonedElement.appendChild(childNodes.item(i));
+//		}
+//		
+//		Element xsdElement = ObjectTypeUtil.findXsdElement(dynamicSchema);
+//		
+//		try {
+//			SchemaRegistry reg = new SchemaRegistry();
+//			reg.addExtraSchema(xsdElement);
+//			reg.initialize();
+//			Schema midPointSchema = reg.getMidPointSchema();		
+//			javax.xml.validation.Validator xsdValidator = midPointSchema.newValidator();		
+//			xsdValidator.validate(new DOMSource(clonedElement));
+//		} catch (SAXException e) {
+//			result.recordFatalError("Error during " + schemaName + " schema validation: " + e.getMessage(), e);
+//			return;
+//		} catch (IOException e) {
+//			result.recordFatalError("OI error during " + schemaName + " schema validation: " + e.getMessage(), e);
+//			return;
+//		}
+//		result.recordSuccess();
 	}
 
 	protected static void resolveReferences(ObjectType object, RepositoryService repository,

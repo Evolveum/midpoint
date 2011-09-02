@@ -39,10 +39,10 @@ This resource definition contains only the very basic definitions for midPoint t
 	xmlns:my="http://myself.me/schemas/whatever"
 	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
 
-	<resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+	<resource>
     
     	<!-- Resource name. It will be displayed in GUI.  -->
-		<name>Localhost OpenDJ</name>
+		<name>Basic Localhost OpenDJ</name>
      
      	<!-- Reference to the ICF LDAP connector. OID is "virtual" for now. -->
 		<connectorRef type="ConnectorType">

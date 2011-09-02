@@ -20,6 +20,8 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 
 /**
@@ -37,5 +39,5 @@ public class ConnectorTypeUtil {
 			return null;
 		}
 	}
-
+	
 }

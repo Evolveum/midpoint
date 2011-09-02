@@ -83,7 +83,7 @@ public class BasicValidatorTest {
 			}
 
             @Override
-            public void postMarshall(ObjectType object, OperationResult objectResult) {
+            public void postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
             	System.out.println("Handler processing "+ObjectTypeUtil.toShortString(object)+", result:");
 				System.out.println(objectResult.dump());
                 postMarshallHandledOids.add(object.getOid());

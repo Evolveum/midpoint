@@ -41,4 +41,22 @@ public class TestSchemaRegistry {
 		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
 	}
 	
+	@Test
+	public void testExtraSchema() throws SAXException, IOException {
+		Document extraSchemaDoc = DOMUtil.parseFile("src/test/resources/schema-registry/extra-schema.xsd");
+		Document dataDoc = DOMUtil.parseFile("src/test/resources/schema-registry/data.xml");
+
+		SchemaRegistry reg = new SchemaRegistry();
+		reg.addExtraSchema(extraSchemaDoc);
+		reg.initialize();
+		Schema midPointSchema = reg.getMidPointSchema();
+		assertNotNull(midPointSchema);
+		
+		Validator validator = midPointSchema.newValidator();
+		DOMResult validationResult = new DOMResult();
+		validator.validate(new DOMSource(dataDoc),validationResult);
+		System.out.println("Validation result:");
+		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
+	}
+	
 }

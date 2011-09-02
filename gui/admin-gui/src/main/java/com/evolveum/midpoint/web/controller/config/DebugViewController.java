@@ -227,7 +227,7 @@ public class DebugViewController implements Serializable {
 		Validator validator = new Validator(new EventHandler() {
 
 			@Override
-			public void postMarshall(ObjectType object, OperationResult objectResult) {
+			public void postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
 				if (objects.isEmpty()) {
 					objects.add(object);
 				}

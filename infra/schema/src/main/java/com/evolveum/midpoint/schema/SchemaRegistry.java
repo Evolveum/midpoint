@@ -24,10 +24,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
+import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -35,6 +38,7 @@ import javax.xml.validation.SchemaFactory;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
+import org.w3c.dom.Node;
 import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.EntityResolver;
@@ -58,23 +62,46 @@ public class SchemaRegistry implements LSResourceResolver {
 			"xml/ns/public/resource/resource-schema-1.xsd",
 			"xml/ns/public/connector/icf-1/connector-schema-1.xsd",
 			"xml/ns/public/connector/icf-1/resource-schema-1.xsd",
-			// Also include XSD definition, as this has no place o be explicitly included
-			"xml/ns/standard/XMLSchema.xsd"
 	};
 	
 	private SchemaFactory schemaFactory;
 	private Schema midPointSchema;
 	private EntityResolver builtinSchemaResolver;
 	
+	private List<Source> extraSchemas;
+	
 	private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistry.class);
 	
+	public SchemaRegistry() {
+		super();
+		this.extraSchemas = new ArrayList<Source>();
+	}
+
+	public SchemaRegistry(List<Source> extraSchemas) {
+		super();
+		this.extraSchemas = extraSchemas;
+	}
+	
+	/**
+	 * Must be called before call to initialize()
+	 * @param node
+	 */
+	public void addExtraSchema(Node node) {
+		extraSchemas.add(new DOMSource(node));
+	}
+
 	public void initialize() throws SAXException, IOException {
 		initResolver();
 		schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-		Source[] sources = new Source[builtinSchemaResourceNames.length];
-		for (int i = 0; i < builtinSchemaResourceNames.length; i++) {
-			InputStream inputStream = ClassLoader.getSystemResourceAsStream("xml/ns/public/common/common-1.xsd");
+		Source[] sources = new Source[builtinSchemaResourceNames.length + extraSchemas.size()];
+		int i = 0;
+		for (i = 0; i < builtinSchemaResourceNames.length; i++) {
+			InputStream inputStream = ClassLoader.getSystemResourceAsStream(builtinSchemaResourceNames[i]);
 			sources[i] = new StreamSource(inputStream);
+		}
+		for (Source s : extraSchemas) {
+			sources[i] = s;
+			i++;
 		}
 		schemaFactory.setResourceResolver(this);
 		midPointSchema = schemaFactory.newSchema(sources);

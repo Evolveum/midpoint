@@ -28,12 +28,14 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import java.util.ArrayList;
@@ -231,4 +233,19 @@ public class ObjectTypeUtil {
 		}
 		return sb.toString();
 	}
+
+	/**
+	 * Returns the &lt;xsd:schema&gt; element from the XmlSchemaType.
+	 * 
+	 */
+	public static Element findXsdElement(XmlSchemaType xmlSchemaType) {
+		List<Element> schemaElements = xmlSchemaType.getAny();
+		for (Element e : schemaElements) {
+			if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
+				return e;
+			}
+		}
+		return null;
+	}
+
 }

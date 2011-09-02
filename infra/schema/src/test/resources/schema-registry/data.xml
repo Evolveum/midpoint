@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<root xmlns="http://example.com/xml/ns/extra-schema"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+		xsi:schemaLocation="http://example.com/xml/ns/extra-schema extra-schema.xsd">
+	<foo>FOOO!</foo>
+	<bar>
+		<barfoo>42</barfoo>
+		<barbar>Connan</barbar>
+		<barbar>Hogun</barbar>
+	</bar>
+	<password><c:clearValue>supersecret</c:clearValue></password>
+</root>

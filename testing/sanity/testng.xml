@@ -26,6 +26,7 @@
     <classes>
       <class name="com.evolveum.midpoint.testing.sanity.TestSanity"/>
       <class name="com.evolveum.midpoint.testing.sanity.TestSamples"/>
+      <class name="com.evolveum.midpoint.testing.sanity.TestSampleImport"/>
     </classes>
   </test>
 </suite>

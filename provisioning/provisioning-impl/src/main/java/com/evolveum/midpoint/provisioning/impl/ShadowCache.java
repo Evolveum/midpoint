@@ -1740,7 +1740,7 @@ public class ShadowCache {
 			xmlSchemaType = new XmlSchemaType();
 			resource.setSchema(xmlSchemaType);
 		}
-		Element xsdElement = findXsdElement(xmlSchemaType);
+		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaType);
 
 		if (xsdElement == null) {
 			// There is no schema, we need to pull it from the resource
@@ -1795,13 +1795,4 @@ public class ShadowCache {
 		return resource;
 	}
 
-	private Element findXsdElement(XmlSchemaType xmlSchemaType) {
-		List<Element> schemaElements = xmlSchemaType.getAny();
-		for (Element e : schemaElements) {
-			if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
-				return e;
-			}
-		}
-		return null;
-	}
 }

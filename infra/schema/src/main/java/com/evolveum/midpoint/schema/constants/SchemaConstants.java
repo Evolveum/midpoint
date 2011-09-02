@@ -36,6 +36,7 @@ import org.apache.xml.resolver.tools.CatalogResolver;
 
 /**
  * @author Vilo Repan
+ * @author Radovan Semancik
  */
 public abstract class SchemaConstants {
 
@@ -79,6 +80,7 @@ public abstract class SchemaConstants {
 	public static final QName C_TASK_RESULT = new QName(NS_C,"result");
 	public static final QName C_TASK_PROGRESS = new QName(NS_C,"progress");
 	public static final QName I_RESOURCE = new QName(NS_C, "resource");
+	public static final QName C_RESOURCE_CONFIGURATION = new QName(NS_C, "configuration");
 	public static final QName I_RESOURCE_STATE = new QName(NS_C, "resourceState");
 	public static final QName C_RESULT = new QName(NS_C, "result");
 	public static final QName I_TYPE = new QName(NS_C, "type");
@@ -131,6 +133,8 @@ public abstract class SchemaConstants {
 
 	public static final QName R_PROTECTED_STRING_TYPE = new QName(NS_C, "ProtectedStringType");
 	public static final QName R_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C, "ProtectedByteArrayType");
+	
+	public static final String CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME = "configuration";
 	
 	// This constant should not be here. It is used by schema processor to supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)

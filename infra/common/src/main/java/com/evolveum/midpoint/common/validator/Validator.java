@@ -237,7 +237,7 @@ public class Validator {
 			validateObject(object, objectResult);
 			
 			if (handler != null) {
-				handler.postMarshall(object, objectResult);
+				handler.postMarshall(object, objectElement, objectResult);
 			}
 
 			objectResult.recomputeStatus("Object processing has failed", "Validation warning");

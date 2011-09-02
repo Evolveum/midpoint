@@ -225,7 +225,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Schema mpSchema = new Schema(connectorType.getNamespace());
 
 		// Create definition of "configuration" element. midPoint will look for this.
-		mpSchema.createPropertyDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME,
+		mpSchema.createPropertyDefinition(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME,
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 
 		// Create configuration type - the type used by the "configuration" element

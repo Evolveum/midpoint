@@ -53,6 +53,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -68,8 +69,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 //@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class ImportTest extends AbstractTestNGSpringContextTests {
 
-	private static final File IMPORT_FILE_NAME = new File("src/test/resources/importer/import.xml");
+	private static final String TEST_FILE_DIRECTORY = "src/test/resources/importer/";
+	private static final File IMPORT_USERS_FILE = new File(TEST_FILE_DIRECTORY, "import-users.xml");
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	private static final File IMPORT_CONNECTOR_FILE = new File(TEST_FILE_DIRECTORY, "import-connector.xml");
+	private static final String CONNECOTR_LDAP_OID = "7d3ebd6f-6113-4833-8a6a-596b73a5e434";
 	
 	@Autowired(required = true)
 	ModelService modelService;
@@ -91,12 +95,37 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void test001GoodImport() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
-		displayTestTile(this,"test001GoodImport");
+	public void test001ImportConnector() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
+		displayTestTile(this,"test001ImportConnector");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
-		OperationResult result = new OperationResult(ImportTest.class.getName() + "test001GoodImport");
-		FileInputStream stream = new FileInputStream(IMPORT_FILE_NAME);
+		OperationResult result = new OperationResult(ImportTest.class.getName() + "test001ImportConnector");
+		FileInputStream stream = new FileInputStream(IMPORT_CONNECTOR_FILE);
+
+		// WHEN
+		modelService.importObjectsFromStream(stream, task, false, result);
+
+		// THEN
+		result.computeStatus("Failed import.");
+		display("Result after good import", result);
+		assertSuccess("Import has failed (result)", result);
+
+		// Check import with fixed OID
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_LDAP_OID, null, result);
+		assertNotNull(connector);
+		assertEquals("ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
+		assertEquals("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector", connector.getNamespace());
+		assertEquals("org.identityconnectors.databasetable.DatabaseTableConnector", connector.getConnectorType());
+	}
+
+	
+	@Test
+	public void test003ImportUsers() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
+		displayTestTile(this,"test003ImportUsers");
+		// GIVEN
+		Task task = taskManager.createTaskInstance();
+		OperationResult result = new OperationResult(ImportTest.class.getName() + "test003ImportUsers");
+		FileInputStream stream = new FileInputStream(IMPORT_USERS_FILE);
 
 		// WHEN
 		modelService.importObjectsFromStream(stream, task, false, result);
@@ -136,13 +165,13 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 
 	// Import the same thing again. Watch how it burns :-)
 	@Test
-	public void test002DuplicateImport() throws FileNotFoundException, ObjectNotFoundException,
+	public void test004DuplicateImportUsers() throws FileNotFoundException, ObjectNotFoundException,
 			SchemaException {
-		displayTestTile(this,"test002DupicateImport");
+		displayTestTile(this,"test004DuplicateImportUsers");
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
-		OperationResult result = new OperationResult(ImportTest.class.getName() + "test002DupicateImport");
-		FileInputStream stream = new FileInputStream(IMPORT_FILE_NAME);
+		OperationResult result = new OperationResult(ImportTest.class.getName() + "test004DuplicateImportUsers");
+		FileInputStream stream = new FileInputStream(IMPORT_USERS_FILE);
 
 		// WHEN
 		modelService.importObjectsFromStream(stream, task, false, result);
