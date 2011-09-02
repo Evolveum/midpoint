@@ -58,7 +58,7 @@ import com.sun.xml.xsom.XSParticle;
  */
 class SchemaToDomProcessor {
 
-	private static final Trace TRACE = TraceManager.getTrace(SchemaToDomProcessor.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SchemaToDomProcessor.class);
 	public static final String RESOURCE_OBJECT_CLASS = "ResourceObjectClass";
 	private static final String MAX_OCCURS_UNBOUNDED = "unbounded";
 	private Map<String, String> prefixMap = null;
@@ -361,6 +361,11 @@ class SchemaToDomProcessor {
 				continue;
 			}
 
+			if (schema.getNamespace().equals(entry.getKey())) {
+				//we don't want to import target namespace
+				continue;
+			}
+			
 			Element root = document.getDocumentElement();
 			root.insertBefore(createImport(document, entry.getKey()), root.getFirstChild());
 		}
