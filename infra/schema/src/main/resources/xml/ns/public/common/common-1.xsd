@@ -51,6 +51,15 @@
 		</xsd:appinfo>
 	</xsd:annotation>
 	
+	<xsd:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="../../standard/XMLSchema.xsd">
+		<xsd:annotation>
+			<xsd:documentation>
+				Importing the schema of XSD schema definition explicitly. This causes that we can use "strict" matching
+				for the xsd:schema elements used in runtime.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:import>
+	
 	<xsd:import namespace="http://www.w3.org/2001/04/xmlenc#" schemaLocation="../../standard/xenc-schema.xsd">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -2655,7 +2664,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<xjc:dom />
