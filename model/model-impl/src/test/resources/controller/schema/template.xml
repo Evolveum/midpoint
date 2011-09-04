@@ -27,14 +27,17 @@
 	<!-- Property construction. Defines how properties of user object are set up. This specific definition sets a full name 
 		as a concatenation of givenName and familyName. -->
 	<propertyConstruction>
-		<property>i:fullName</property>
+		<property>
+			declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+			i:fullName
+		</property>
 		<valueConstruction default="true">
 			<valueExpression>
 				<code>
 					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 					concat($i:user/i:givenName,' ',$i:user/i:familyName)
 					</code>
-			</valueExpression>
+			</valueExpression>			
 		</valueConstruction>
 	</propertyConstruction>
 </object>

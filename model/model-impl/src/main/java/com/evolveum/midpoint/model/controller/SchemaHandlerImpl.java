@@ -126,19 +126,13 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			throw new SchemaException(ex.getMessage(), ex);
 		}
 
-		OperationResult subResult = new OperationResult("Process Inbound Handling");
-		result.addSubresult(subResult);
-
-		// ObjectModificationType changes = new ObjectModificationType();
-		// changes.setOid(user.getOid());
-
+		OperationResult subResult = result.createSubresult("Process Inbound Handling");
 		ResourceType resource = resolveResource(resourceObjectShadow, subResult);
 		AccountType accountType = ModelUtils.getAccountTypeFromHandling(resourceObjectShadow, resource);
 		if (accountType == null) {
 			subResult.recordWarning("Account type in schema handling was not found for shadow type '"
 					+ resourceObjectShadow.getObjectClass() + "'.");
 			return user;
-			// return changes;
 		}
 		ResourceObjectDefinition objectDefinition = getResourceObjectDefinition(resource,
 				resourceObjectShadow);
@@ -146,7 +140,6 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			subResult.recordWarning("Resource object definition was not found for shadow type '"
 					+ resourceObjectShadow.getObjectClass() + "'");
 			return user;
-			// return changes;
 		}
 
 		Map<QName, Variable> variables = ExpressionHandlerImpl.getDefaultXPathVariables(user,
@@ -174,7 +167,6 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 		subResult.recordSuccess();
 		return user;
-		// return changes;
 	}
 
 	@Override
@@ -192,9 +184,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			throw new SchemaException(ex.getMessage(), ex);
 		}
 
-		OperationResult subResult = new OperationResult("Process Outbound Handling");
-		result.addSubresult(subResult);
-
+		OperationResult subResult = result.createSubresult("Process Outbound Handling");
 		ObjectModificationType changes = new ObjectModificationType();
 		changes.setOid(resourceObjectShadow.getOid());
 
@@ -344,14 +334,6 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		XPathHolder xpathType = getXPathForAttribute(attributeName);
 
 		String attributeValue;
-		// if (expression != null
-		// && StringUtils.isNotEmpty(expression.getExpressionAsString())
-		// &&
-		// isApplicablePropertyConstruction(attribute.getOutbound().isDefault(),
-		// xpathType,
-		// variables, resourceObjectShadow)) {
-		//
-		// }
 		// TODO: refactor this if clausule
 		if (isApplicablePropertyConstruction(outbound.isDefault(), xpathType, variables, resourceObjectShadow)) {
 			if (null != expression && !ExpressionUtil.isEmpty(expression)) {
@@ -779,21 +761,24 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		for (PropertyConstructionType construction : template.getPropertyConstruction()) {
 			OperationResult constrResult = subResult.createSubresult("User Property Construction");
 			constrResult.addParams(new String[] { "user", "userTemplate" }, user, template);
+
+			// string variable property are used here only for logging purposes
+			Element propertyNode = construction.getProperty();
+			String property = (propertyNode != null && StringUtils.isNotEmpty(propertyNode.getTextContent())) ? new XPathHolder(
+					propertyNode).getXPath() : "null";
 			try {
 				domUser = JAXBUtil.objectTypeToDom(user, null);
-				// TODO: process user template property construction
 				Map<QName, Variable> variables = ExpressionHandlerImpl.getDefaultXPathVariables(user, null,
 						null);
 
 				domUser = processPropertyConstruction(construction, variables, domUser);
+				constrResult.recordSuccess();
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't process property construction {} for user {}",
-						ex, construction.getProperty().getTextContent(), user.getName());
-				constrResult.recordWarning("Couldn't process property construction '"
-						+ construction.getProperty().getTextContent() + "'.", ex);
+						ex, property, user.getName());
+				constrResult.recordWarning("Couldn't process property construction '" + property + "'.", ex);
 			} finally {
-				constrResult.computeStatus("Couldn't process property construction '"
-						+ construction.getProperty().getTextContent() + "'.");
+				constrResult.computeStatus("Couldn't process property construction '" + property + "'.");
 			}
 		}
 
@@ -801,11 +786,12 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			if (domUser != null) {
 				templatedUser = (UserType) JAXBUtil.unmarshal(domUser).getValue();
 			}
-			subResult.computeStatus("Couldn't process property constructions.");
+			subResult.recordSuccess();
 		} catch (JAXBException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't unmarshall user {} after property "
 					+ "constructions from template {} was applied", ex, user.getName(), template.getName());
-			subResult.recordFatalError("");
+		} finally {
+			subResult.computeStatus("Couldn't process property constructions.");
 		}
 
 		return templatedUser;
@@ -813,27 +799,66 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 	private Element processPropertyConstruction(PropertyConstructionType construction,
 			Map<QName, Variable> variables, Element user) throws SchemaException {
+		if (construction == null) {
+			return user;
+		}
 
+		Element property = construction.getProperty();
+		if (construction.getProperty() == null || StringUtils.isEmpty(property.getTextContent())) {
+			return user;
+		}
+
+		List<Object> values = new ArrayList<Object>();
 		ValueConstructionType valueConstruction = construction.getValueConstruction();
-		// TODO: process property construction
+		if (valueConstruction.getValue() != null) {
+			// we have value already evaluated in construction
+			LOGGER.debug("Using defined value for property construction.");
+			JAXBElement<Value> jaxbValue = valueConstruction.getValue();
+			List<Object> newValues = jaxbValue.getValue().getContent();
+			if (newValues != null) {
+				values.addAll(newValues);
+			}
+		} else {
+			// we have to evaluate value from value construction
+			LOGGER.debug("Using expression for value construction.");
+			ExpressionType expressionType = valueConstruction.getValueExpression();
+			if (expressionType == null) {
+				LOGGER.debug("No expression was defined for property construction.");
+				return user;
+			}
 
-		valueConstruction.getValueExpression();
+			String newValue = evaluateExpression(variables, valueConstruction.getValueExpression());
+			LOGGER.debug("New value for attribute '{}' is '{}'.",
+					new Object[] { new XPathHolder(property).getXPath(), newValue });
+			if (newValue != null) {
+				values.add(newValue);
+			}
+		}
 
-		XPathHolder xpathType = new XPathHolder(construction.getProperty());
+		return updateUserAttribute(property, variables, user, values);
+	}
+
+	// TODO: process property construction: finish this !!!!!!!!!!!!!!!!!!!!
+	private Element updateUserAttribute(Element property, Map<QName, Variable> variables, Element user,
+			List<Object> values) throws SchemaException {
+		XPathHolder propertyXPath = new XPathHolder(property);
+		XPathSegment segment = propertyXPath.toSegments().get(0);
+		segment.setQName(new QName(SchemaConstants.NS_C, segment.getQName().getLocalPart(), "i"));
 		NodeList matchedNodes;
 		try {
-			matchedNodes = new XPathUtil().matchedNodesByXPath(xpathType, variables, user);
+			matchedNodes = new XPathUtil().matchedNodesByXPath(propertyXPath, variables, user);
 		} catch (XPathExpressionException ex) {
 			throw new SchemaException(ex.getMessage(), ex);
 		}
 
 		if (matchedNodes.getLength() == 0) {
 			LOGGER.debug("No nodes matches given xpath {} in context of namespaces\n{} and variables\n{}",
-					new Object[] { xpathType.toString(), xpathType.getNamespaceMap(), variables });
+					new Object[] { propertyXPath.toString(), propertyXPath.getNamespaceMap(), variables });
 
 		} else {
-			LOGGER.debug("Found nodes that matches given xpath {}", new Object[] { xpathType.toString() });
+			LOGGER.debug("Found nodes that matches given xpath {}", new Object[] { propertyXPath.toString() });
 
+//			matchedNodes.item(0).setTextContent(values.get(0).toString());
 		}
 
 		return user;
