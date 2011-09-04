@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.model.controller;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -604,7 +605,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 					parentNode = domUser;
 					wasEmpty = true;
 				}
-				userPropertyQName = getUserPropertyQNameFromXPathHolder(xpathType);
+				userPropertyQName = getLastSegmentQNameQNameFromXPathHolder(xpathType);
 				// II. transform tag names from account's attribute to user tags
 				List<Element> newNodes = transformAccountAttributeToUserProperty(
 						nodesAttributesFromAccountShadow, userPropertyQName, filters);
@@ -716,8 +717,12 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		return newNodes;
 	}
 
-	private QName getUserPropertyQNameFromXPathHolder(XPathHolder xpathType) {
+	private QName getLastSegmentQNameQNameFromXPathHolder(XPathHolder xpathType) {
 		List<XPathSegment> segments = xpathType.toSegments();
+		if (segments.isEmpty()) {
+			return null;
+		}
+
 		XPathSegment lastSegment = segments.get(segments.size() - 1);
 		return lastSegment.getQName();
 	}
@@ -750,7 +755,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 	@Override
 	public UserType processPropertyConstruction(UserType user, UserTemplateType template,
-			OperationResult result) {
+			OperationResult result) throws SchemaException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(template, "User template must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
@@ -758,6 +763,12 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		OperationResult subResult = result.createSubresult("User Property Constructions");
 		UserType templatedUser = user;
 		Element domUser = null;
+		try {
+			domUser = JAXBUtil.objectTypeToDom(user, null);
+		} catch (JAXBException ex) {
+			throw new SchemaException(ex.getMessage(), ex);
+		}
+
 		for (PropertyConstructionType construction : template.getPropertyConstruction()) {
 			OperationResult constrResult = subResult.createSubresult("User Property Construction");
 			constrResult.addParams(new String[] { "user", "userTemplate" }, user, template);
@@ -766,12 +777,16 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			Element propertyNode = construction.getProperty();
 			String property = (propertyNode != null && StringUtils.isNotEmpty(propertyNode.getTextContent())) ? new XPathHolder(
 					propertyNode).getXPath() : "null";
+
+			LOGGER.debug("Processing property {}.", new Object[] { property });
 			try {
+				// TODO: improve this !!!
 				domUser = JAXBUtil.objectTypeToDom(user, null);
 				Map<QName, Variable> variables = ExpressionHandlerImpl.getDefaultXPathVariables(user, null,
 						null);
 
 				domUser = processPropertyConstruction(construction, variables, domUser);
+				user = (UserType) JAXBUtil.unmarshal(domUser).getValue();
 				constrResult.recordSuccess();
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't process property construction {} for user {}",
@@ -784,12 +799,13 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 		try {
 			if (domUser != null) {
-				templatedUser = (UserType) JAXBUtil.unmarshal(domUser).getValue();
+				//TODO: uncomment!!!
+//				templatedUser = (UserType) JAXBUtil.unmarshal(domUser).getValue();
 			}
 			subResult.recordSuccess();
-		} catch (JAXBException ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't unmarshall user {} after property "
-					+ "constructions from template {} was applied", ex, user.getName(), template.getName());
+//		} catch (JAXBException ex) {
+//			LoggingUtils.logException(LOGGER, "Couldn't unmarshall user {} after property "
+//					+ "constructions from template {} was applied", ex, user.getName(), template.getName());
 		} finally {
 			subResult.computeStatus("Couldn't process property constructions.");
 		}
@@ -798,7 +814,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	}
 
 	private Element processPropertyConstruction(PropertyConstructionType construction,
-			Map<QName, Variable> variables, Element user) throws SchemaException {
+			Map<QName, Variable> variables, Element user) throws SchemaException, XPathExpressionException {
 		if (construction == null) {
 			return user;
 		}
@@ -838,12 +854,9 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		return updateUserAttribute(property, variables, user, values);
 	}
 
-	// TODO: process property construction: finish this !!!!!!!!!!!!!!!!!!!!
 	private Element updateUserAttribute(Element property, Map<QName, Variable> variables, Element user,
-			List<Object> values) throws SchemaException {
+			List<Object> values) throws SchemaException, XPathExpressionException {
 		XPathHolder propertyXPath = new XPathHolder(property);
-		XPathSegment segment = propertyXPath.toSegments().get(0);
-		segment.setQName(new QName(SchemaConstants.NS_C, segment.getQName().getLocalPart(), "i"));
 		NodeList matchedNodes;
 		try {
 			matchedNodes = new XPathUtil().matchedNodesByXPath(propertyXPath, variables, user);
@@ -851,16 +864,60 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			throw new SchemaException(ex.getMessage(), ex);
 		}
 
+		Node parent = null;
 		if (matchedNodes.getLength() == 0) {
 			LOGGER.debug("No nodes matches given xpath {} in context of namespaces\n{} and variables\n{}",
 					new Object[] { propertyXPath.toString(), propertyXPath.getNamespaceMap(), variables });
-
+			parent = createAndReturnParentNode(propertyXPath, variables, user, null);
 		} else {
 			LOGGER.debug("Found nodes that matches given xpath {}", new Object[] { propertyXPath.toString() });
-
-//			matchedNodes.item(0).setTextContent(values.get(0).toString());
+			parent = matchedNodes.item(0).getParentNode();
 		}
 
+		QName propertyName = getLastSegmentQNameQNameFromXPathHolder(propertyXPath);
+		List<Element> valueElements = createElementList(values, propertyName, user.getOwnerDocument());
+		XmlUtil.replaceChildNodes(parent, valueElements);
+
 		return user;
+	}
+
+	private List<Element> createElementList(List<Object> values, QName qname, Document document) {
+		List<Element> elements = new ArrayList<Element>();
+		for (Object value : values) {
+			Element element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
+			if (value != null && StringUtils.isNotEmpty(value.toString())) {
+				element.setTextContent(value.toString());
+			}
+			elements.add(element);
+		}
+
+		return elements;
+	}
+
+	private Node createAndReturnParentNode(XPathHolder xpath, Map<QName, Variable> variables, Element user,
+			List<QName> parentToCreate) throws XPathExpressionException {
+		if (parentToCreate == null) {
+			parentToCreate = new ArrayList<QName>();
+		}
+
+		XPathHolder parentPropertyXPath = constructParentXpath(xpath);
+		NodeList matchedNodes = new XPathUtil().matchedNodesByXPath(parentPropertyXPath, variables, user);
+		if (matchedNodes.getLength() == 0) {
+			parentToCreate.add(getLastSegmentQNameQNameFromXPathHolder(parentPropertyXPath));
+
+			return createAndReturnParentNode(parentPropertyXPath, variables, user, parentToCreate);
+		}
+
+		Node parent = matchedNodes.item(0);
+		Document document = parent.getOwnerDocument();
+		Collections.reverse(parentToCreate);
+		for (QName qname : parentToCreate) {
+			Element child = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
+			parent.appendChild(child);
+
+			parent = child;
+		}
+
+		return parent;
 	}
 }
