@@ -51,7 +51,6 @@ import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -493,7 +492,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 		for (UserType user : users) {
 			try {
-				boolean confirmedUser = getExpressionHandler().evaluateConfirmationExpression(user,
+				boolean confirmedUser = expressionHandler.evaluateConfirmationExpression(user,
 						resourceObjectShadowType, expression, result);
 				if (user != null && confirmedUser) {
 					list.add(user);
@@ -533,7 +532,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 					equal.removeChild(path);
 				}
 
-				Element valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C, "valueExpression");
+				Element valueExpressionElement = findChildElement(equal, SchemaConstants.NS_C,
+						"valueExpression");
 				if (valueExpressionElement != null) {
 					equal.removeChild(valueExpressionElement);
 					Element refElement = findChildElement(valueExpressionElement, SchemaConstants.NS_C, "ref");
@@ -546,14 +546,16 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 						LOGGER.debug("AAAAAAAAAAAAAAAAAAAAAAA");
 						if (resourceObjectShadow.getAttributes() != null) {
 							for (Object element : resourceObjectShadow.getAttributes().getAny()) {
-								LOGGER.debug(JAXBUtil.getElementQName(element)
-										+ ": " + JAXBUtil.getTextContentDump(element));
+								LOGGER.debug(JAXBUtil.getElementQName(element) + ": "
+										+ JAXBUtil.getTextContentDump(element));
 							}
 						}
 						LOGGER.debug("BBBBBBBBBBBBBBBBBBBBBBB");
 					}
-					ExpressionType valueExpression = XsdTypeConverter.toJavaValue(valueExpressionElement, ExpressionType.class);
-					String expressionResult = getExpressionHandler().evaluateExpression(resourceObjectShadow, valueExpression, result);
+					ExpressionType valueExpression = XsdTypeConverter.toJavaValue(valueExpressionElement,
+							ExpressionType.class);
+					String expressionResult = expressionHandler.evaluateExpression(resourceObjectShadow,
+							valueExpression, result);
 
 					if (StringUtils.isEmpty(expressionResult)) {
 						LOGGER.debug("Expression result from search filter expression was null or empty (trying "
@@ -591,10 +593,5 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 		}
 		return null;
-	}
-
-	private ExpressionHandler getExpressionHandler() {
-		expressionHandler.setModel(controller);
-		return expressionHandler;
 	}
 }

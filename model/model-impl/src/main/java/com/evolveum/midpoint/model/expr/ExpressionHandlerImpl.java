@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathConstants;
 
 import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -58,12 +59,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 @Component
 public class ExpressionHandlerImpl implements ExpressionHandler {
 
+	@Autowired(required = true)
 	private ModelController model;
-
-	@Override
-	public void setModel(ModelController model) {
-		this.model = model;
-	}
 
 	private ModelController getModel() {
 		if (model == null) {

@@ -38,7 +38,6 @@ import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -55,15 +54,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml", 
+		"classpath:application-context-model-unit-test.xml",
 		"classpath:application-context-configuration-test-no-repo.xml",
 		"classpath:application-context-task.xml" })
 public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ExpressionHandlerImplTest.class);
 	private static final File TEST_FOLDER = new File("./src/test/resources");
-	@Autowired
-	private ModelController model;
 	@Autowired
 	private ExpressionHandler expressionHandler;
 
@@ -137,7 +134,6 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		LOGGER.debug(DebugUtil.prettyPrint(expression));
 
 		OperationResult result = new OperationResult("testCorrelationRule");
-		expressionHandler.setModel(model);
 		String name = expressionHandler.evaluateExpression(account, expression, result);
 		LOGGER.info(result.dump());
 
