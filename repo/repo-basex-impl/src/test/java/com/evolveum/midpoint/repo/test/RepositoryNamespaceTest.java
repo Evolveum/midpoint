@@ -97,7 +97,10 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 				// connector object just for testing...
 				ConnectorType connector = new ConnectorType();
 				XmlSchemaType xmlSchema = new XmlSchemaType();
+				
+				document = DOMUtil.parseDocument(xml);				
 				xmlSchema.getAny().add(document.getDocumentElement());
+				
 				connector.setSchema(xmlSchema);
 				connector.setName(file.getName());
 				connector.setNamespace("http://" + file.getName());
@@ -110,8 +113,12 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 				xmlSchema = connector.getSchema();
 				LOGGER.debug("Parsing dom schema to object");
 				schema = Schema.parse(xmlSchema.getAny().get(0));
-
 				LOGGER.debug("Schema parsed {}", schema);
+				document = schema.serializeToXsd();
+				xml = DOMUtil.printDom(document).toString();
+				LOGGER.trace("Schema parsed to dom:\n{}", xml);
+				document = DOMUtil.parseDocument(xml);
+				schema = Schema.parse(document.getDocumentElement());
 			} catch (Exception ex) {
 				Assert.fail(ex.getMessage(), ex);
 			} finally {
