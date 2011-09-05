@@ -23,6 +23,9 @@
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xsi:type="UserType"
 	xsi:schemaLocation="http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../ns/public/common/common-1.xsd">
+    <extension>
+        <ns0:mackoUsko xmlns:ns0="http://example.com">James Bond</ns0:mackoUsko>
+    </extension>
 	<name>james bond</name>
 	<givenName>James</givenName>
 	<familyName>Bond</familyName>

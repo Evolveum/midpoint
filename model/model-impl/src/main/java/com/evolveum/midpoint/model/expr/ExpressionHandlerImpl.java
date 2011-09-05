@@ -83,7 +83,7 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 		ResourceType resource = resolveResource(shadow, result);
 		Map<QName, Variable> variables = getDefaultXPathVariables(null, shadow, resource);
 		ExpressionCodeHolder expressionCode = new ExpressionCodeHolder(expression.getCode());
-		
+
 		return (String) XPathUtil.evaluateExpression(variables, expressionCode, XPathConstants.STRING);
 	}
 
@@ -97,9 +97,9 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 		ResourceType resource = resolveResource(shadow, result);
 		Map<QName, Variable> variables = getDefaultXPathVariables(user, shadow, resource);
 		ExpressionCodeHolder expressionCode = new ExpressionCodeHolder(expression.getCode());
-		
-		String confirmed = (String) XPathUtil
-				.evaluateExpression(variables, expressionCode, XPathConstants.STRING);
+
+		String confirmed = (String) XPathUtil.evaluateExpression(variables, expressionCode,
+				XPathConstants.STRING);
 
 		return Boolean.valueOf(confirmed);
 	}
@@ -117,23 +117,43 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 		}
 
 		try {
-			return getModel().getObject(ResourceType.class, ref.getOid(), new PropertyReferenceListType(), result,
-					true);
+			return getModel().getObject(ResourceType.class, ref.getOid(), new PropertyReferenceListType(),
+					result, true);
 		} catch (Exception ex) {
 			throw new ExpressionException("Couldn't get resource object, reason: " + ex.getMessage(), ex);
 		}
 	}
 
+	public static Map<QName, Variable> getDefaultXPathVariables(Element user, Element shadow, Element resource) {
+		Map<QName, Variable> variables = new HashMap<QName, Variable>();
+		if (user != null) {
+			variables.put(SchemaConstants.I_USER, new Variable(user, false));
+		}
+
+		if (shadow != null) {
+			variables.put(SchemaConstants.I_ACCOUNT, new Variable(shadow, false));
+		}
+
+		if (resource != null) {
+			variables.put(SchemaConstants.I_RESOURCE, new Variable(resource, false));
+		}
+
+		return variables;
+	}
+
 	public static Map<QName, Variable> getDefaultXPathVariables(UserType user,
 			ResourceObjectShadowType shadow, ResourceType resource) {
-		Map<QName, Variable> variables = new HashMap<QName, Variable>();
 		try {
+			Element userElement = null;
+			Element shadowElement = null;
+			Element resourceElement = null;
+
 			ObjectFactory of = new ObjectFactory();
 			if (user != null) {
 				// Following code is wrong, but it works
 				JAXBElement<ObjectType> userJaxb = of.createObject(user);
 				Document userDoc = DOMUtil.parseDocument(JAXBUtil.marshal(userJaxb));
-				variables.put(SchemaConstants.I_USER, new Variable(userDoc.getFirstChild(), false));
+				userElement = (Element) userDoc.getFirstChild();
 
 				// JAXBElement<ObjectType> userJaxb = of.createObject(user);
 				// Element userEl =
@@ -144,19 +164,17 @@ public class ExpressionHandlerImpl implements ExpressionHandler {
 
 			if (shadow != null) {
 				JAXBElement<ObjectType> accountJaxb = of.createObject(shadow);
-				Element accountEl = JAXBUtil.objectTypeToDom(accountJaxb.getValue(), null);
-				variables.put(SchemaConstants.I_ACCOUNT, new Variable(accountEl, false));
+				shadowElement = JAXBUtil.objectTypeToDom(accountJaxb.getValue(), null);
 			}
 
 			if (resource != null) {
 				JAXBElement<ObjectType> resourceJaxb = of.createObject(resource);
-				Element resourceEl = JAXBUtil.objectTypeToDom(resourceJaxb.getValue(), null);
-				variables.put(SchemaConstants.I_RESOURCE, new Variable(resourceEl, false));
+				resourceElement = JAXBUtil.objectTypeToDom(resourceJaxb.getValue(), null);
 			}
+
+			return getDefaultXPathVariables(userElement, shadowElement, resourceElement);
 		} catch (JAXBException ex) {
 			throw new IllegalArgumentException(ex);
 		}
-
-		return variables;
 	}
 }

@@ -24,8 +24,6 @@
 	xsi:schemaLocation="http://www.w3.org/2001/XMLSchema ../standard/XMLSchema.xsd
    http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../ns/public/common/common-1.xsd">
 	<name>Default User Template2</name>
-	<!-- Property construction. Defines how properties of user object are set up. This specific definition sets a full name 
-		as a concatenation of givenName and familyName. -->
 	<propertyConstruction>
 		<property>
 			declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
@@ -36,7 +34,22 @@
 				<code>
 					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 					concat($i:user/i:givenName,' ',$i:user/i:familyName)
-					</code>
+				</code>
+			</valueExpression>			
+		</valueConstruction>
+	</propertyConstruction>
+	<propertyConstruction>
+		<property>
+			declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+			declare namespace e="http://example.com";
+			i:extension/e:mackoUsko
+		</property>
+		<valueConstruction default="true">
+			<valueExpression>
+				<code>
+					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+					concat($i:user/i:givenName,' ',$i:user/i:familyName)
+				</code>
 			</valueExpression>			
 		</valueConstruction>
 	</propertyConstruction>

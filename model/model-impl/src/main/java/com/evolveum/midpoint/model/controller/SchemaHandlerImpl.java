@@ -780,13 +780,10 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 			LOGGER.debug("Processing property {}.", new Object[] { property });
 			try {
-				// TODO: improve this !!!
-				domUser = JAXBUtil.objectTypeToDom(user, null);
-				Map<QName, Variable> variables = ExpressionHandlerImpl.getDefaultXPathVariables(user, null,
-						null);
+				Map<QName, Variable> variables = ExpressionHandlerImpl.getDefaultXPathVariables(domUser,
+						null, null);
 
 				domUser = processPropertyConstruction(construction, variables, domUser);
-				user = (UserType) JAXBUtil.unmarshal(domUser).getValue();
 				constrResult.recordSuccess();
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't process property construction {} for user {}",
@@ -799,13 +796,12 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 		try {
 			if (domUser != null) {
-				//TODO: uncomment!!!
-//				templatedUser = (UserType) JAXBUtil.unmarshal(domUser).getValue();
+				templatedUser = (UserType) JAXBUtil.unmarshal(domUser).getValue();
 			}
 			subResult.recordSuccess();
-//		} catch (JAXBException ex) {
-//			LoggingUtils.logException(LOGGER, "Couldn't unmarshall user {} after property "
-//					+ "constructions from template {} was applied", ex, user.getName(), template.getName());
+		} catch (JAXBException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't unmarshall user {} after property "
+					+ "constructions from template {} was applied", ex, user.getName(), template.getName());
 		} finally {
 			subResult.computeStatus("Couldn't process property constructions.");
 		}
@@ -875,16 +871,33 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		}
 
 		QName propertyName = getLastSegmentQNameQNameFromXPathHolder(propertyXPath);
-		List<Element> valueElements = createElementList(values, propertyName, user.getOwnerDocument());
-		XmlUtil.replaceChildNodes(parent, valueElements);
+		List<Element> valueElements = createElementList(values, propertyName, user);
+		// XmlUtil.replaceChildNodes(parent, valueElements);
+		for (Element child : valueElements) {
+			parent.appendChild(child);
+		}
 
 		return user;
 	}
 
-	private List<Element> createElementList(List<Object> values, QName qname, Document document) {
+	private List<Element> createElementList(List<Object> values, QName qname, Element user) {
+		// prepare prefix
+		String prefix = user.lookupPrefix(qname.getNamespaceURI());
+		int prefixIndex = 0;
+		if (prefix == null) {
+			prefix = "ns" + prefixIndex;
+			while (user.lookupNamespaceURI(prefix) != null) {
+				prefixIndex++;
+				prefix = "ns" + prefixIndex;
+			}
+		}
+
 		List<Element> elements = new ArrayList<Element>();
 		for (Object value : values) {
-			Element element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
+			LOGGER.trace("Creating new element for value {}.", new Object[] { qname });
+			Element element = user.getOwnerDocument().createElementNS(qname.getNamespaceURI(),
+					qname.getLocalPart());
+			element.setPrefix(prefix);
 			if (value != null && StringUtils.isNotEmpty(value.toString())) {
 				element.setTextContent(value.toString());
 			}
@@ -912,6 +925,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		Document document = parent.getOwnerDocument();
 		Collections.reverse(parentToCreate);
 		for (QName qname : parentToCreate) {
+			LOGGER.debug("Creating sub element {}.", new Object[] { qname });
 			Element child = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
 			parent.appendChild(child);
 

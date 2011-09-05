@@ -24,6 +24,8 @@ import javax.xml.bind.JAXBElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -51,6 +53,16 @@ public class SchemaPropertyConstructionTest extends AbstractTestNGSpringContextT
 	@Autowired(required = true)
 	private transient SchemaHandler handler;
 
+	@BeforeMethod
+	public void beforeMethod() {
+		LOGGER.debug("***************** TEST METHOD START *****************");
+	}
+
+	@AfterMethod
+	public void afterMethod() {
+		LOGGER.debug("***************** TEST METHOD END *****************");
+	}
+
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullUser() throws SchemaException {
 		handler.processPropertyConstruction(null, null, null);
@@ -67,7 +79,7 @@ public class SchemaPropertyConstructionTest extends AbstractTestNGSpringContextT
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test(enabled = false)
+	@Test
 	public void userWithoutAttribute() throws Exception {
 		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"user-without-fullname.xml"))).getValue();
@@ -77,6 +89,8 @@ public class SchemaPropertyConstructionTest extends AbstractTestNGSpringContextT
 		OperationResult result = new OperationResult("User without fullname (property construction test)");
 		try {
 			user = handler.processPropertyConstruction(user, template, result);
+		} catch (Exception ex) {
+			LOGGER.debug("Error occured, reason: " + ex.getMessage(), ex);
 		} finally {
 			LOGGER.debug(result.dump());
 		}
@@ -85,7 +99,7 @@ public class SchemaPropertyConstructionTest extends AbstractTestNGSpringContextT
 	}
 
 	@SuppressWarnings("unchecked")
-	@Test(enabled = false)
+	@Test
 	public void userWithAttribute() throws Exception {
 		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"user-with-fullname.xml"))).getValue();
@@ -95,6 +109,9 @@ public class SchemaPropertyConstructionTest extends AbstractTestNGSpringContextT
 		OperationResult result = new OperationResult("User with fullname (property construction test)");
 		try {
 			user = handler.processPropertyConstruction(user, template, result);
+			LOGGER.trace("Updated user:\n{}", JAXBUtil.silentMarshalWrap(user));
+		} catch (Exception ex) {
+			LOGGER.debug("Error occured, reason: " + ex.getMessage(), ex);
 		} finally {
 			LOGGER.debug(result.dump());
 		}
