@@ -62,6 +62,7 @@
       
 <!--       <class name="com.evolveum.midpoint.repo.test.RepositoryResourceStateTest"/> -->
 			<class name="com.evolveum.midpoint.repo.test.RepositoryResourceTest" />
+			<class name="com.evolveum.midpoint.repo.test.RepositoryNamespaceTest" />
 		</classes>
 	</test>	
 </suite>
