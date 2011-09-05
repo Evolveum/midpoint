@@ -1101,7 +1101,6 @@ public class ModelControllerImpl implements ModelController {
 		return false;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void processAddDeleteAccountFromChanges(ObjectModificationType change, UserType userBeforeChange,
 			OperationResult result) {
 		// MID-72, MID-73 password push from user to account
@@ -1124,8 +1123,7 @@ public class ModelControllerImpl implements ModelController {
 						processAddAccountFromChanges(propertyChange, node, userBeforeChange, result);
 						break;
 					case delete:
-						processDeleteAccountFromChanges(change, propertyChange, node, userBeforeChange,
-								result);
+						processDeleteAccountFromChanges(propertyChange, node, userBeforeChange, result);
 						break;
 				}
 			} catch (SystemException ex) {
@@ -1138,18 +1136,16 @@ public class ModelControllerImpl implements ModelController {
 		}
 	}
 
-	private void processDeleteAccountFromChanges(ObjectModificationType change,
-			PropertyModificationType propertyChange, Object node, UserType userBeforeChange,
-			OperationResult result) throws JAXBException {
+	private void processDeleteAccountFromChanges(PropertyModificationType propertyChange, Object node,
+			UserType userBeforeChange, OperationResult result) throws JAXBException {
 		AccountShadowType account = XsdTypeConverter.toJavaValue(node, AccountShadowType.class);
-
-		List<PropertyModificationType> modifications = change.getPropertyModification();
-		modifications.remove(propertyChange);
 
 		ObjectReferenceType accountRef = ModelUtils.createReference(account.getOid(), ObjectTypes.ACCOUNT);
 		PropertyModificationType deleteAccountRefChange = ObjectTypeUtil.createPropertyModificationType(
 				PropertyModificationTypeType.delete, null, SchemaConstants.I_ACCOUNT_REF, accountRef);
-		modifications.add(deleteAccountRefChange);
+
+		propertyChange.setPath(deleteAccountRefChange.getPath());
+		propertyChange.setValue(deleteAccountRefChange.getValue());
 	}
 
 	@SuppressWarnings("unchecked")
