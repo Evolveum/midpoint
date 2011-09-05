@@ -32,6 +32,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -63,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
  *
  */
 @Service(value = "taskManager")
+@DependsOn(value="repositoryService")
 public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	
 	private static final String THREAD_NAME = "midpoint-task-scanner";

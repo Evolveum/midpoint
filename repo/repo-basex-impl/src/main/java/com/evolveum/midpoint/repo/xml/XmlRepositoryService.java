@@ -114,8 +114,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 	public void close() {
 		try {
-			TRACE.error("Releasing and closing BaseX Client sessions pool");
-			// TODO:
+			TRACE.info("Releasing and closing BaseX Client sessions pool");
 			sessions.close();
 		} catch (Exception ex) {
 			TRACE.error("Reported exception while closing BaseX client session pool", ex);
