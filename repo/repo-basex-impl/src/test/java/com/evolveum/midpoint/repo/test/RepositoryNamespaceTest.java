@@ -56,10 +56,22 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 	@Autowired(required = true)
 	private RepositoryService repository;
 
+	/**
+	 * This test deserialize schema object from files located in serialized
+	 * folder. Than we create sample connector type object which we try to save
+	 * in repository. Save is successful but, namespaces in there are messed up.
+	 * They were moved from xsd:schema element (not root c:connector) to root
+	 * c:connector. XSD schema in connector object contains attributes with
+	 * QName value. But when we get connector object from repository, BaseX or
+	 * JAXB doesn't know that it have to create namespace definition in
+	 * xsd:schema element for that QName attributes. Therefore prefixes in
+	 * QNames in attributes can't be resolved.
+	 * 
+	 * @throws Exception
+	 */
 	@Test
 	public void serializedTest() throws Exception {
-		URL url = RepositoryNamespaceTest.class.getClassLoader().getResource(
-				"serialized");
+		URL url = RepositoryNamespaceTest.class.getClassLoader().getResource("serialized");
 		File folder = new File(url.toURI());
 		if (!folder.exists() || !folder.isDirectory()) {
 			return;
@@ -76,29 +88,30 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 				ObjectInputStream in = new ObjectInputStream(new FileInputStream(file));
 				Schema schema = (Schema) in.readObject();
 				in.close();
-				
+
 				LOGGER.debug("Parsing schema to dom (dom in trace).");
 				Document document = schema.serializeToXsd();
 				String xml = DOMUtil.printDom(document).toString();
 				LOGGER.trace("Schema parsed to dom:\n{}", xml);
-				
-				//connector object just for testing...
+
+				// connector object just for testing...
 				ConnectorType connector = new ConnectorType();
 				XmlSchemaType xmlSchema = new XmlSchemaType();
 				xmlSchema.getAny().add(document.getDocumentElement());
 				connector.setSchema(xmlSchema);
 				connector.setName(file.getName());
 				connector.setNamespace("http://" + file.getName());
-				
+
 				LOGGER.debug("Adding connector to repository");
 				String oid = repository.addObject(connector, result);
-				
-				connector = repository.getObject(ConnectorType.class, oid, new PropertyReferenceListType(), result);
+
+				connector = repository.getObject(ConnectorType.class, oid, new PropertyReferenceListType(),
+						result);
 				xmlSchema = connector.getSchema();
 				LOGGER.debug("Parsing dom schema to object");
 				schema = Schema.parse(xmlSchema.getAny().get(0));
-				
-				LOGGER.debug("Schema parsed {}", schema);							
+
+				LOGGER.debug("Schema parsed {}", schema);
 			} catch (Exception ex) {
 				Assert.fail(ex.getMessage(), ex);
 			} finally {
