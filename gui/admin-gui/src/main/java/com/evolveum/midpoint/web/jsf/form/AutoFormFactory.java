@@ -286,10 +286,12 @@ public final class AutoFormFactory {
 		} else {
 			text = (HtmlInputSecret) application.createComponent(HtmlInputSecret.COMPONENT_TYPE);
 		}
-		text.setPartialSubmit(true);
+		//////////////////// Execute submit after lose focus ///////////////
+		//text.setPartialSubmit(true);
+		////////////////////////////////////////////////////////////////////
+		
 		text.setStyle("width: 95%;");
 		text.setReadonly(isOnlyReadable(definition));
-
 		ValueExpression valueExpression = createValueExpression(beanExpression, attributeIndex, valueIndex);
 		text.setValueExpression("value", valueExpression);
 
