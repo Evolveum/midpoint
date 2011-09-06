@@ -98,15 +98,32 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	public void init() {
 		logger.info("Task Manager initialization");
 		startScannerThread();
+		logger.info("Task Manager initialized");
 	}
 	
 	@PreDestroy
 	public void shutdown() {
 		logger.info("Task Manager shutdown");
 		stopScannerThread();
+		finishAllTasks();
+		logger.info("Task Manager shutdown finished");
+	}
+
+	private void finishAllTasks() {
+		//we will wait for all tasks to finish correctly till we proceed with shutdown procedure
+		logger.info("Wait for Task Manager's tasks finish");
 		for (TaskRunner runner : runners) {
 			runner.shutdown();
 		}
+		for (TaskRunner runner : runners) {
+			try {
+				runner.thread.join();
+			} catch (InterruptedException e) {
+				// Safe to ignore. 
+				logger.trace("TaskManager waiting for join task threads got InterruptedException: " + e);
+			}
+		}
+		logger.info("All Task Manager's tasks finished");
 	}
 	
 	/* (non-Javadoc)
