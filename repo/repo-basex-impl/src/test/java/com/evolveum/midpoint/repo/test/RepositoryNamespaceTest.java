@@ -67,6 +67,8 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 	 * xsd:schema element for that QName attributes. Therefore prefixes in
 	 * QNames in attributes can't be resolved.
 	 * 
+	 * Note: Test maintainability is very difficult, because if we change classes definition we have to regenerate files in serialized folder
+	 * 
 	 * @throws Exception
 	 */
 	@Test
