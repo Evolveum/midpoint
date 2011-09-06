@@ -131,7 +131,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.repo</groupId>
-			<artifactId>repo-basex-test</artifactId>
+			<artifactId>repo-test-util</artifactId>
 			<version>1.9-SNAPSHOT</version>
 			<scope>test</scope>
 		</dependency>
