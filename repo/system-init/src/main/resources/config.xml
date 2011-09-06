@@ -44,7 +44,6 @@
 			<keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
 			<keyStorePassword>changeit</keyStorePassword>
 			<encryptionKeyAlias>default</encryptionKeyAlias>
-			<encryptionKeyDigest>HF6JRsNMeJt6alihT44CXKgpe0c=</encryptionKeyDigest>
 		</keystore>
 	</midpoint>
 </configuration>
