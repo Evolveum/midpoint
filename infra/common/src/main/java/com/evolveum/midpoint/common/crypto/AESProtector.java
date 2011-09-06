@@ -70,6 +70,7 @@ public class AESProtector implements Protector {
 	private String keyStorePath;
 	private String keyStorePassword;
 	private String encryptionKeyDigest;
+	private String encryptionKeyAlias;
 
 	private static final KeyStore keyStore;
 	private static final String ENCRYPTED_ELEMENT_NAME = "value";
@@ -143,6 +144,28 @@ public class AESProtector implements Protector {
 			throw new IllegalStateException("Encryption key digest was not defined (is null or empty).");
 		}
 		return encryptionKeyDigest;
+	}
+	
+	
+
+	/**
+	 * @return the encryptionKeyAlias
+	 */
+	private String getEncryptionKeyAlias() {
+		return encryptionKeyAlias;
+	}
+
+	/**
+	 * @param encryptionKeyAlias 
+	 * 			Alias of the encryption key {@link SecretKey} which is used for encryption
+	 * @throws IllegalArgumentException
+	 *             if encryption key digest is null or empty string
+	 */
+	public  void setEncryptionKeyAlias(String encryptionKeyAlias) {
+		if (StringUtils.isEmpty(encryptionKeyAlias)) {
+			throw new IllegalStateException("Encryption key alias was not defined (is null or empty).");
+		}
+		this.encryptionKeyAlias = encryptionKeyAlias;
 	}
 
 	/**
