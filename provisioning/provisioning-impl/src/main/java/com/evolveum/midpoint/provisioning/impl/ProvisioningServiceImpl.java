@@ -29,37 +29,29 @@ import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.DebugUtil;
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.common.xpath.XPathUtil;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -67,9 +59,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -81,7 +70,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 /**
  * Implementation of provisioning service.
@@ -142,13 +130,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	 */
 	public void setRepositoryService(RepositoryService repositoryService) {
 		this.repositoryService = repositoryService;
-	}
-	
-	@Override
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve,
-			OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException {
-		return getObject(ObjectType.class,oid,resolve,parentResult);
 	}
 	
 	@Override
@@ -320,7 +301,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		int processedChanges = 0;
 
 		// Resolve resource
-		ObjectType resourceObjectType = getObject(resourceOid,
+		ObjectType resourceObjectType = getObject(ObjectType.class, resourceOid,
 				new PropertyReferenceListType(), result);
 
 		//try if the object with the specified oid is resource
@@ -568,7 +549,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		ObjectType objectType = null;
 		try {
-			objectType = getRepositoryService().getObject(oid,
+			objectType = getRepositoryService().getObject(ObjectType.class, oid,
 					new PropertyReferenceListType(), parentResult);
 			LOGGER.debug(
 					"**PROVISIONING: Object from repository to delete: {}",

@@ -96,6 +96,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 				new OperationResult("Get Object"));
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test(expectedExceptions = ObjectNotFoundException.class)
 	public void getNonExistingObject() throws ObjectNotFoundException, SchemaException {
 		final String oid = "abababab-abab-abab-abab-000000000001";

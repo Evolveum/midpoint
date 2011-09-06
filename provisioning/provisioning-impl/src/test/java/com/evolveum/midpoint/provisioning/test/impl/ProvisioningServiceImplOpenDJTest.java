@@ -26,27 +26,21 @@ import static org.testng.AssertJUnit.assertNotNull;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.DebugUtil;
@@ -58,7 +52,6 @@ import java.util.Set;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
@@ -70,9 +63,8 @@ import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
-import com.evolveum.midpoint.test.ldap.OpenDJController;
+
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -85,7 +77,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 /**
@@ -356,7 +347,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 		try {
-			ObjectType object = provisioningService.getObject(NON_EXISTENT_OID, resolve, result);
+			ObjectType object = provisioningService.getObject(ObjectType.class, NON_EXISTENT_OID, resolve, result);
 			Assert.fail("Expected exception, but haven't got one");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -399,7 +390,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 		try {
-			ObjectType object = provisioningService.getObject(ACCOUNT_BAD_OID, resolve, result);
+			ObjectType object = provisioningService.getObject(ObjectType.class, ACCOUNT_BAD_OID, resolve, result);
 			Assert.fail("Expected exception, but haven't got one");
 		} catch (ObjectNotFoundException e) {
 			// This is expected

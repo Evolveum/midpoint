@@ -163,7 +163,7 @@ public class AddUserActionTest extends AbstractTestNGSpringContextTests {
 			List<ObjectReferenceType> accountRefs = addedUser.getAccountRef();
 			assertEquals(accountOid, accountRefs.get(0).getOid());
 
-			AccountShadowType addedAccount = (AccountShadowType) repositoryService.getObject(accountOid,
+			AccountShadowType addedAccount = repositoryService.getObject(AccountShadowType.class, accountOid,
 					new PropertyReferenceListType(), result);
 
 			assertNotNull(addedAccount);

@@ -38,17 +38,13 @@ import javax.xml.bind.JAXBElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -125,7 +121,7 @@ public class RepositoryGenericObjectTest extends AbstractTestNGSpringContextTest
 			repositoryService.addObject(genericObject, new OperationResult("test"));
 
 			// get object
-			ObjectType retrievedObject = repositoryService.getObject(genericObjectOid,
+			ObjectType retrievedObject = repositoryService.getObject(ObjectType.class, genericObjectOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(genericObject, (GenericObjectType) retrievedObject);
 
@@ -139,7 +135,7 @@ public class RepositoryGenericObjectTest extends AbstractTestNGSpringContextTest
 			// delete object
 			repositoryService.deleteObject(GenericObjectType.class, genericObjectOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(genericObjectOid, new PropertyReferenceListType(), new OperationResult("test"));
+				repositoryService.getObject(ObjectType.class, genericObjectOid, new PropertyReferenceListType(), new OperationResult("test"));
 				Assert.fail("Object with oid " + genericObjectOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore

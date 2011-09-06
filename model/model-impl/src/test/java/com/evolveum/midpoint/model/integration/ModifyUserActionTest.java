@@ -118,7 +118,7 @@ public class ModifyUserActionTest extends AbstractTestNGSpringContextTests {
 
 			resourceObjectChangeListener.notifyChange(change, new OperationResult("testModifyUserAction"));
 
-			UserType changedUser = (UserType) repositoryService.getObject(userOid,
+			UserType changedUser = repositoryService.getObject(UserType.class, userOid,
 					new PropertyReferenceListType(), new OperationResult("Get Object"));
 			List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
 			assertNotNull(changedUser);

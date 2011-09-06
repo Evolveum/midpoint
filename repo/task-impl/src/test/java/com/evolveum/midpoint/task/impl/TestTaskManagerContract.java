@@ -161,7 +161,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertNotNull(task);
 		System.out.println(task.dump());
 
-		ObjectType o = repositoryService.getObject(TASK_SINGLE_OID, null, result);
+		ObjectType o = repositoryService.getObject(ObjectType.class, TASK_SINGLE_OID, null, result);
 		System.out.println(ObjectTypeUtil.dump(o));
 
 		// .. it should be closed
@@ -284,7 +284,7 @@ public class TestTaskManagerContract extends AbstractTestNGSpringContextTests {
 		task.modifyExtension(mods, result);
 
 		// Debug: display the real repository state
-		ObjectType o = repositoryService.getObject(TASK_CYCLE_OID, null, result);
+		ObjectType o = repositoryService.getObject(ObjectType.class, TASK_CYCLE_OID, null, result);
 		System.out.println(ObjectTypeUtil.dump(o));
 
 		// Refresh the task

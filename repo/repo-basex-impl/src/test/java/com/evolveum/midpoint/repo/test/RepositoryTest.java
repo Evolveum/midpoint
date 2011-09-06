@@ -35,18 +35,16 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.ExpectedException;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
@@ -86,6 +84,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 	public void tearDown() {
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test(expectedExceptions = ObjectAlreadyExistsException.class)
 	public void addObjectThatAlreadyExists() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111111";
@@ -108,6 +107,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 
 	}
 
+	@SuppressWarnings("unchecked")
 	@Test(expectedExceptions = ObjectAlreadyExistsException.class)
 	public void addObjectWithTheSameName() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111111";
@@ -136,7 +136,7 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 	public void getNotExistingObject() throws Exception {
 		String oid = "c0c010c0-d34d-b33f-f00d-111111111234";
 		//try to get not existing object, exception is expected
-		repositoryService.getObject(oid, null, new OperationResult("test"));
+		repositoryService.getObject(ObjectType.class, oid, null, new OperationResult("test"));
 	}
 	
 	@Test

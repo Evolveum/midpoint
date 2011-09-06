@@ -38,17 +38,13 @@ import javax.xml.bind.JAXBElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -135,7 +131,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject(resource, new OperationResult("test"));
 
 			// get resource
-			ObjectType retrievedObject = repositoryService.getObject(resourceOid,
+			ObjectType retrievedObject = repositoryService.getObject(ObjectType.class, resourceOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(resource, (ResourceType) retrievedObject);
 
@@ -149,7 +145,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			// delete resource
 			repositoryService.deleteObject(ResourceType.class, resourceOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(resourceOid, new PropertyReferenceListType(), new OperationResult("test"));
+				repositoryService.getObject(ObjectType.class, resourceOid, new PropertyReferenceListType(), new OperationResult("test"));
 				Assert.fail("Object with oid " + resourceOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
@@ -175,7 +171,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject(resource, new OperationResult("test"));
 
 			// get object
-			ObjectType retrievedObject = repositoryService.getObject(resourceOid,
+			ObjectType retrievedObject = repositoryService.getObject(ObjectType.class, resourceOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(resource, (ResourceType) retrievedObject);
 
@@ -186,7 +182,7 @@ public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 					"src/test/resources/aae7be60-df56-11df-8608-0002a5d5c51b.xml"), new File(
 					"src/test/resources/resource-modified-removed-tags.xml"));
 			repositoryService.modifyObject(ResourceType.class, objectModificationType, new OperationResult("test"));
-			retrievedObject = repositoryService.getObject(resourceOid,
+			retrievedObject = repositoryService.getObject(ObjectType.class, resourceOid,
 					new PropertyReferenceListType(), new OperationResult("test"));
 			compareObjects(modifiedResource, (ResourceType) retrievedObject);
 			compareNullObjects(modifiedResource, (ResourceType) retrievedObject);

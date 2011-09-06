@@ -127,7 +127,7 @@ public class AddUserActionTest extends BaseActionTest {
 
 		String templateOid = "c0c010c0-d34d-b55f-f22d-777666111111";
 		when(
-				repository.getObject(eq(templateOid), any(PropertyReferenceListType.class),
+				repository.getObject(any(Class.class), eq(templateOid), any(PropertyReferenceListType.class),
 						any(OperationResult.class))).thenThrow(
 				new ObjectNotFoundException("user template not found"));
 

@@ -122,7 +122,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		OperationResult result = new OperationResult(GET_OBJECT);
 		ObjectType object = null;
 		try {
-			object = repositoryService.getObject(oid, new PropertyReferenceListType(), result);
+			object = repositoryService.getObject(ObjectType.class, oid, new PropertyReferenceListType(), result);
 			result.recordSuccess();
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {}", ex, oid);
@@ -145,7 +145,7 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		OperationResult result = new OperationResult(SAVE_OBJECT);
 		boolean saved = false;
 		try {
-			ObjectType oldObject = repositoryService.getObject(object.getOid(),
+			ObjectType oldObject = repositoryService.getObject(ObjectType.class, object.getOid(),
 					new PropertyReferenceListType(), result);
 			if (oldObject != null) {
 				ObjectModificationType objectChange = CalculateXmlDiff.calculateChanges(oldObject, object);

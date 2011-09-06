@@ -241,7 +241,7 @@ public class TaskImpl implements Task {
 		if (objectRef != null) {
 			// There is object reference. Let's try to resolve it
 			try {
-				ObjectType object = repositoryService.getObject(objectRef.getOid(), null, result);
+				ObjectType object = repositoryService.getObject(ObjectType.class, objectRef.getOid(), null, result);
 				result.recordSuccess();
 				return object;
 			} catch (ObjectNotFoundException ex) {
@@ -524,7 +524,7 @@ public class TaskImpl implements Task {
 		
 		ObjectType repoObj = null;
 		try {
-			repoObj = repositoryService.getObject(getOid(), null, result);
+			repoObj = repositoryService.getObject(ObjectType.class, getOid(), null, result);
 		} catch (ObjectNotFoundException ex) {
 			result.recordFatalError("Object not found", ex);
 			throw ex;

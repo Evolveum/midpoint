@@ -126,7 +126,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			repositoryService.addObject(user, new OperationResult("test"));
 
 			//get the object
-			ObjectType retrievedObject = repositoryService.getObject(oid,
+			ObjectType retrievedObject = repositoryService.getObject(ObjectType.class, oid,
 					new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(user.getOid(), retrievedObject.getOid());
 			assertEquals(1, ((UserType) retrievedObject).getAdditionalNames().size());
@@ -184,7 +184,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			// delete object
 			repositoryService.deleteObject(UserType.class, oid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(oid, new PropertyReferenceListType(), new OperationResult("test"));
+				repositoryService.getObject(ObjectType.class, oid, new PropertyReferenceListType(), new OperationResult("test"));
 				Assert.fail("Object with oid " + oid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
@@ -208,7 +208,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user-without-extension.xml"))).getValue();
 			repositoryService.addObject(user, new OperationResult("test"));
-			ObjectType retrievedObject = repositoryService.getObject(oid,
+			ObjectType retrievedObject = repositoryService.getObject(ObjectType.class, oid,
 					new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(user.getOid(), ((UserType) (retrievedObject)).getOid());
 
@@ -219,7 +219,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			repositoryService.modifyObject(UserType.class, objectModificationType, new OperationResult("test"));
 
 			//check the extension in the object
-			retrievedObject = repositoryService.getObject(oid, new PropertyReferenceListType(), new OperationResult("test"));
+			retrievedObject = repositoryService.getObject(ObjectType.class, oid, new PropertyReferenceListType(), new OperationResult("test"));
 			assertEquals(user.getOid(), retrievedObject.getOid());
 			assertNotNull(((UserType)retrievedObject).getExtension().getAny());
 			assertEquals("ship", ((Element)((UserType)retrievedObject).getExtension().getAny().get(0)).getLocalName());
@@ -240,12 +240,11 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 	public void testUserAddWithoutOid() throws Exception {
 		String oid = null;
 		try {
-			//store new user object without oid
-			ObjectContainerType objectContainer = new ObjectContainerType();
+			//store new user object without oid			
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 					"src/test/resources/user-without-oid.xml"))).getValue();	
 			oid = repositoryService.addObject(user, new OperationResult("test"));
-			ObjectType retrievedObject = repositoryService.getObject(oid,
+			ObjectType retrievedObject = repositoryService.getObject(ObjectType.class, oid,
 					new PropertyReferenceListType(), new OperationResult("test"));
 			//check if oid was generated for the object
 			final UserType retrievedUser = (UserType) retrievedObject;
@@ -308,7 +307,7 @@ public class RepositoryUserTest extends AbstractTestNGSpringContextTests {
 			repositoryService.modifyObject(UserType.class, modifications, new OperationResult("test"));
 
 			//check if account ref was removed from the object
-			ObjectType retrievedObject = repositoryService.getObject(oid,
+			ObjectType retrievedObject = repositoryService.getObject(ObjectType.class, oid,
 					new PropertyReferenceListType(), new OperationResult("test"));
 			UserType retrievedUser = (UserType) retrievedObject;
 			assertEquals(oid, retrievedUser.getOid());

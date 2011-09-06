@@ -649,7 +649,7 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult result = task.getResult().createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
 		result.addParams(new String[] { "resourceOid", "objectClass", "task" }, resourceOid, objectClass,
 				task);
-		// TODO: add params and context to the result
+		// TODO: add context to the result
 
 		// Fetch resource definition from the repo/provisioning
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
@@ -930,7 +930,7 @@ public class ModelControllerImpl implements ModelController {
 				accountsToBeDeleted.add(account);
 			} catch (ConsistencyViolationException ex) {
 				// TODO: handle this
-				LOGGER.error("TODO handle ConsistencyViolationException", ex);
+				LoggingUtils.logException(LOGGER, "TODO handle ConsistencyViolationException", ex);
 			}
 		}
 
@@ -943,7 +943,7 @@ public class ModelControllerImpl implements ModelController {
 				refsToBeDeleted.add(accountRef);
 			} catch (ConsistencyViolationException ex) {
 				// TODO handle this
-				LOGGER.error("TODO handle ConsistencyViolationException", ex);
+				LoggingUtils.logException(LOGGER, "TODO handle ConsistencyViolationException", ex);
 			}
 		}
 		user.getAccountRef().removeAll(refsToBeDeleted);
@@ -1180,7 +1180,7 @@ public class ModelControllerImpl implements ModelController {
 				if (account.getActivation() == null) {
 					account.setActivation(user.getActivation());
 				}
-				// MID-73
+				// MID-72
 				pushPasswordFromUserToAccount(user, account, result);
 
 				String newAccountOid = addObject(account, result);
@@ -1349,7 +1349,7 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult subResult = result.createSubresult(PROCESS_USER_TEMPLATE);
 		subResult.addParams(new String[] { "user", "userTemplate" }, user, userTemplate);
 		if (userTemplate == null) {
-			subResult.recordWarning("No user template defined, skipping.");
+			subResult.recordSuccess();
 			return user;
 		}
 

@@ -39,7 +39,6 @@ import javax.xml.ws.Holder;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -51,6 +50,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
@@ -157,7 +157,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 		try {
 			final String oid = "abababab-abab-abab-abab-000000000001";
 			when(
-					repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class),
+					repositoryService.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
 							any(OperationResult.class))).thenThrow(
 					new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
@@ -204,7 +204,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 		try {
 			final String oid = "abababab-abab-abab-abab-000000000001";
 			when(
-					repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class),
+					repositoryService.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
 							any(OperationResult.class))).thenThrow(
 					new ObjectNotFoundException("Object with oid '' not found."));
 
@@ -341,7 +341,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 		modification.setOid(oid);
 
 		when(
-				repositoryService.getObject(eq(oid), any(PropertyReferenceListType.class),
+				repositoryService.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
 						any(OperationResult.class))).thenThrow(
 				new ObjectNotFoundException("Oid '" + oid + "' not found."));
 

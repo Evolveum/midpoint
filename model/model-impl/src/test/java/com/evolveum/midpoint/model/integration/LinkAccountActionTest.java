@@ -53,8 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml",
-		"classpath:application-context-provisioning.xml",
-		"classpath:application-context-task.xml" })
+		"classpath:application-context-provisioning.xml", "classpath:application-context-task.xml" })
 public class LinkAccountActionTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)
@@ -79,7 +78,6 @@ public class LinkAccountActionTest extends AbstractTestNGSpringContextTests {
 	// ObjectValueWriter valueWriter = ObjectValueWriter.getInstance();
 	// return valueWriter.buildResourceObject(shadow, schema);
 	// }
-
 
 	// FIXME: fix test
 	@Test(enabled = false)
@@ -111,7 +109,7 @@ public class LinkAccountActionTest extends AbstractTestNGSpringContextTests {
 
 			resourceObjectChangeListener.notifyChange(change, new OperationResult("testLinkAccountAction"));
 
-			UserType changedUser = (UserType) repositoryService.getObject(userOid,
+			UserType changedUser = repositoryService.getObject(UserType.class, userOid,
 					new PropertyReferenceListType(), new OperationResult("Get Object"));
 			List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
 
@@ -119,8 +117,8 @@ public class LinkAccountActionTest extends AbstractTestNGSpringContextTests {
 			assertEquals(1, accountRefs.size());
 			assertEquals(accountOid, accountRefs.get(0).getOid());
 
-			AccountShadowType linkedAccount = (AccountShadowType) repositoryService.getObject(accountOid,
-					new PropertyReferenceListType(), new OperationResult("Get Object"));
+			AccountShadowType linkedAccount = repositoryService.getObject(AccountShadowType.class,
+					accountOid, new PropertyReferenceListType(), new OperationResult("Get Object"));
 
 			assertNotNull(linkedAccount);
 			assertEquals(changedUser.getName(), linkedAccount.getName());

@@ -27,7 +27,6 @@ import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
@@ -141,10 +140,6 @@ public interface RepositoryService {
 	 */
 	public <T extends ObjectType> T getObject(Class<T> type,String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
-	
-	@Deprecated
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
-	throws ObjectNotFoundException, SchemaException;
 
 	/**
 	 * <p>Add new object.</p>

@@ -113,7 +113,7 @@ public class UnlinkAccountActionTest extends AbstractTestNGSpringContextTests {
 
 			resourceObjectChangeListener.notifyChange(change, new OperationResult("testUnlinkAccountAction"));
 
-			UserType changedUser = (UserType) repositoryService.getObject(userOid,
+			UserType changedUser = repositoryService.getObject(UserType.class, userOid,
 					new PropertyReferenceListType(), new OperationResult("Get Object"));
 			List<ObjectReferenceType> accountRefs = changedUser.getAccountRef();
 

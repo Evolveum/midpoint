@@ -17,16 +17,14 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,6 +36,8 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.test.util.equal.UserTypeComparator;
@@ -98,48 +98,29 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 	@SuppressWarnings("unchecked")
 	public void userList() throws Exception {
 		final List<UserType> expectedUserList = MiscUtil.toList(UserType.class,
-				((JAXBElement<ObjectListType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "user-list.xml"))).getValue());
+				((JAXBElement<ObjectListType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "user-list.xml")))
+						.getValue());
 
-		when(repository.listObjects(eq(UserType.class), any(PagingType.class), any(OperationResult.class))).thenReturn(
-				expectedUserList);
+		when(repository.listObjects(eq(UserType.class), any(PagingType.class), any(OperationResult.class)))
+				.thenReturn(expectedUserList);
 
 		OperationResult result = new OperationResult("List Users");
 		try {
-			final List<UserType> returnedUserList = controller.listObjects(UserType.class, new PagingType(), result);
+			final List<UserType> returnedUserList = controller.listObjects(UserType.class, new PagingType(),
+					result);
 
-			verify(repository, times(1)).listObjects(eq(ObjectTypes.USER.getClassDefinition()), any(PagingType.class),
-					any(OperationResult.class));
+			verify(repository, times(1)).listObjects(eq(ObjectTypes.USER.getClassDefinition()),
+					any(PagingType.class), any(OperationResult.class));
 			testObjectList(expectedUserList, returnedUserList);
 		} finally {
 			LOGGER.debug(result.dump());
 		}
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test(enabled = false)
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private void testObjectListTypes(ObjectListType expected, ObjectListType returned) {
-		assertNotNull(expected);
-		assertNotNull(returned);
-
-		List<ObjectType> expectedList = expected.getObject();
-		List<ObjectType> returnedList = returned.getObject();
-
-		assertTrue(expectedList == null ? returnedList == null : returnedList != null);
-		if (expectedList == null) {
-			return;
-		}
-		assertEquals(expectedList.size(), returnedList.size());
-		if (expectedList.size() == 0) {
-			return;
-		}
-
-		if (expectedList.get(0) instanceof UserType) {
-			testUserLists(new ArrayList(expectedList), new ArrayList(returnedList));
-		}
-	}
-
-	@Test(enabled = false)
-	private void testObjectList(List<? extends ObjectType> expectedList, List<? extends ObjectType> returnedList) {
+	private void testObjectList(List<? extends ObjectType> expectedList,
+			List<? extends ObjectType> returnedList) {
 		assertNotNull(expectedList);
 		assertNotNull(returnedList);
 

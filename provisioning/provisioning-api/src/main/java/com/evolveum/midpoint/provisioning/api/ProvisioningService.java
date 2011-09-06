@@ -39,7 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 
 /**
@@ -135,10 +134,6 @@ public interface ProvisioningService {
 	 */
 	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException;
-
-	@Deprecated
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
-		throws ObjectNotFoundException, CommunicationException, SchemaException;
 	
 	/**
 	 * Add new object.

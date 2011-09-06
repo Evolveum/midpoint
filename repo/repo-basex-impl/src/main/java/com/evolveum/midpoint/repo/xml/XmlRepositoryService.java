@@ -169,12 +169,6 @@ public class XmlRepositoryService implements RepositoryService {
 		return oid;
 	}
 
-	@Override
-	public ObjectType getObject(String oid, PropertyReferenceListType resolve, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
-		return getObject(ObjectType.class, oid, resolve, parentResult);
-	}
-
 	/*
 	 * (non-Javadoc)
 	 * 
@@ -358,7 +352,7 @@ public class XmlRepositoryService implements RepositoryService {
 			// get object from repo
 			// FIXME: possible problems with resolving property reference before
 			// xml patching
-			ObjectType objectType = this.getObject(objectChange.getOid(), new PropertyReferenceListType(),
+			ObjectType objectType = this.getObject(ObjectType.class, objectChange.getOid(), new PropertyReferenceListType(),
 					result);
 
 			// modify the object
@@ -399,7 +393,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 		// TODO: check has to be atomic
 		try {
-			ObjectType retrievedObject = getObject(oid, null, result);
+			ObjectType retrievedObject = getObject(ObjectType.class, oid, null, result);
 		} catch (SchemaException ex) {
 			LoggingUtils
 					.logException(
@@ -500,7 +494,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 		// Check whether the task is claimed
 
-		ObjectType object = getObject(oid, null, result);
+		ObjectType object = getObject(ObjectType.class, oid, null, result);
 		// TODO: check
 		TaskType task = (TaskType) object;
 

@@ -117,7 +117,7 @@ public class DeleteAccountActionTest extends AbstractTestNGSpringContextTests {
 			resourceObjectChangeListener.notifyChange(change, new OperationResult("testDeleteAccountAction"));
 
 			try {
-				AccountShadowType accountShadow = (AccountShadowType) repositoryService.getObject(accountOid,
+				AccountShadowType accountShadow = repositoryService.getObject(AccountShadowType.class, accountOid,
 						new PropertyReferenceListType(), new OperationResult("Get Object"));
 				fail();
 			} catch (Exception ex) {

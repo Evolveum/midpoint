@@ -92,7 +92,7 @@ public class LinkAccountActionTest extends BaseActionTest {
 
 		String userOid = "1";
 		when(
-				repository.getObject(eq(userOid), any(PropertyReferenceListType.class),
+				repository.getObject(any(Class.class), eq(userOid), any(PropertyReferenceListType.class),
 						any(OperationResult.class))).thenThrow(new ObjectNotFoundException("user not found"));
 
 		try {

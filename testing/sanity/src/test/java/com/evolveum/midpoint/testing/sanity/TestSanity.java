@@ -467,7 +467,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		OperationResult repoResult = new OperationResult("getObject");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
-		ObjectType repoObject = repositoryService.getObject(USER_JACK_OID, resolve, repoResult);
+		ObjectType repoObject = repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
 		UserType repoUser = (UserType) repoObject;
 		displayJaxb(repoUser, new QName("user"));
 
@@ -485,7 +485,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		// Check if shadow is still in the repo and that it is untouched
 
 		repoResult = new OperationResult("getObject");
-		repoObject = repositoryService.getObject(shadowOid, resolve, repoResult);
+		repoObject = repositoryService.getObject(ObjectType.class, shadowOid, resolve, repoResult);
 		assertSuccess("getObject(repo) has failed", repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
 		displayJaxb(repoShadow, new QName("shadow"));
@@ -563,7 +563,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		OperationResult repoResult = new OperationResult("getObject");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		try {
-			repositoryService.getObject(USER_JACK_OID, resolve, repoResult);
+			repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
 			Assert.fail("User still exists in repo after delete");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
@@ -572,7 +572,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		// Account shadow should be gone from the repository
 		repoResult = new OperationResult("getObject");
 		try {
-			repositoryService.getObject(shadowOid, resolve, repoResult);
+			repositoryService.getObject(ObjectType.class, shadowOid, resolve, repoResult);
 			Assert.fail("Shadow still exists in repo after delete");
 		} catch (ObjectNotFoundException e) {
 			// This is expected, but check also the result
@@ -635,7 +635,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		AssertJUnit.assertNotNull(task);
 		display("Task after pickup", task);
 
-		ObjectType o = repositoryService.getObject(TASK_OPENDJ_SYNC_OID, null, result);
+		ObjectType o = repositoryService.getObject(ObjectType.class, TASK_OPENDJ_SYNC_OID, null, result);
 		display("Task after pickup in the repository", o);
 
 		// .. it should be running

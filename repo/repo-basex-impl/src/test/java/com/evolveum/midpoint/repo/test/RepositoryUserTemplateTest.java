@@ -87,7 +87,8 @@ public class RepositoryUserTemplateTest extends AbstractTestNGSpringContextTests
 	public void tearDown() {
     }
 
-    @Test
+    @SuppressWarnings("unchecked")
+	@Test
     public void testUserTemplate() throws Exception {
     	String userTemplateOid = "c0c010c0-d34d-b33f-f00d-777111111111";
         try {
@@ -96,7 +97,7 @@ public class RepositoryUserTemplateTest extends AbstractTestNGSpringContextTests
             repositoryService.addObject(userTemplate, new OperationResult("test"));
             
             //get object
-            ObjectType retrievedObject = repositoryService.getObject(userTemplateOid, new PropertyReferenceListType(), new OperationResult("test"));
+            ObjectType retrievedObject = repositoryService.getObject(ObjectType.class, userTemplateOid, new PropertyReferenceListType(), new OperationResult("test"));
             assertEquals(userTemplate.getPropertyConstruction().get(0).getProperty().getTextContent(), ((UserTemplateType) retrievedObject).getPropertyConstruction().get(0).getProperty().getTextContent());
             assertEquals(userTemplate.getAccountConstruction().get(0).getResourceRef().getOid(), ((UserTemplateType) retrievedObject).getAccountConstruction().get(0).getResourceRef().getOid());
             
@@ -108,7 +109,7 @@ public class RepositoryUserTemplateTest extends AbstractTestNGSpringContextTests
 			// delete object
 			repositoryService.deleteObject(UserTemplateType.class, userTemplateOid, new OperationResult("test"));
 			try {
-				repositoryService.getObject(userTemplateOid, new PropertyReferenceListType(), new OperationResult("test"));
+				repositoryService.getObject(ObjectType.class, userTemplateOid, new PropertyReferenceListType(), new OperationResult("test"));
 				Assert.fail("Object with oid " + userTemplateOid + " was not deleted");
 			} catch (ObjectNotFoundException ex) {
 				//ignore
