@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.model.api.ModelPort;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -64,10 +65,9 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
  * 
  */
 @Service
-public class ModelWebService implements ModelPortType {
+public class ModelWebService implements ModelPortType, ModelPort {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ModelWebService.class);
-	private static final String DEFAULT_RI_PREFIX = null;
 	@Autowired(required = true)
 	private ModelController model;
 	@Autowired(required = true)
@@ -78,7 +78,7 @@ public class ModelWebService implements ModelPortType {
 		notNullArgument(object, "Object must not be null.");
 		notNullResultHolder(result);
 
-		OperationResult operationResult = new OperationResult("Model Service Add Object");
+		OperationResult operationResult = new OperationResult(ADD_OBJECT);
 		try {
 			String oid = model.addObject(object, operationResult);
 			handleOperationResult(operationResult, result);
@@ -97,9 +97,10 @@ public class ModelWebService implements ModelPortType {
 		notNullArgument(resolve, "Property reference list  must not be null.");
 		notNullResultHolder(result);
 
-		OperationResult operationResult = new OperationResult("Model Service Get Object");
+		OperationResult operationResult = new OperationResult(GET_OBJECT);
 		try {
-			ObjectType object = model.getObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid, resolve, operationResult);
+			ObjectType object = model.getObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri)
+					.getClassDefinition(), oid, resolve, operationResult);
 			handleOperationResult(operationResult, result);
 
 			return object;
@@ -115,7 +116,7 @@ public class ModelWebService implements ModelPortType {
 		notEmptyArgument(objectType, "Object type must not be null or empty.");
 		notNullResultHolder(result);
 
-		OperationResult operationResult = new OperationResult("Model Service List Objects");
+		OperationResult operationResult = new OperationResult(LIST_OBJECTS);
 		try {
 			List<? extends ObjectType> list = model.listObjects(ObjectTypes.getObjectTypeFromUri(objectType)
 					.getClassDefinition(), paging, operationResult);
@@ -134,14 +135,16 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	@Override
-	public ObjectListType searchObjects(String objectTypeUri, QueryType query, PagingType paging, Holder<OperationResultType> result)
-			throws FaultMessage {
+	public ObjectListType searchObjects(String objectTypeUri, QueryType query, PagingType paging,
+			Holder<OperationResultType> result) throws FaultMessage {
 		notNullArgument(query, "Query must not be null.");
 		notNullResultHolder(result);
 
-		OperationResult operationResult = new OperationResult("Model Service Search Objects");
+		OperationResult operationResult = new OperationResult(SEARCH_OBJECTS);
 		try {
-			List<? extends ObjectType> list = model.searchObjectsInRepository(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, paging, operationResult);
+			List<? extends ObjectType> list = model
+					.searchObjectsInRepository(ObjectTypes.getObjectTypeFromUri(objectTypeUri)
+							.getClassDefinition(), query, paging, operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
 			for (ObjectType o : list) {
@@ -156,14 +159,15 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	@Override
-	public void modifyObject(String objectTypeUri, ObjectModificationType change, Holder<OperationResultType> result)
-			throws FaultMessage {
+	public void modifyObject(String objectTypeUri, ObjectModificationType change,
+			Holder<OperationResultType> result) throws FaultMessage {
 		notNullArgument(change, "Object modification must not be null.");
 		notNullResultHolder(result);
 
-		OperationResult operationResult = new OperationResult("Model Service Modify Object");
+		OperationResult operationResult = new OperationResult(MODIFY_OBJECT);
 		try {
-			model.modifyObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), change, operationResult);
+			model.modifyObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), change,
+					operationResult);
 			handleOperationResult(operationResult, result);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL modifyObject() failed", ex);
@@ -172,15 +176,16 @@ public class ModelWebService implements ModelPortType {
 	}
 
 	@Override
-	public void deleteObject(String objectTypeUri, String oid, Holder<OperationResultType> result) throws FaultMessage {
+	public void deleteObject(String objectTypeUri, String oid, Holder<OperationResultType> result)
+			throws FaultMessage {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
 		notEmptyArgument(objectTypeUri, "objectType must not be null or empty.");
 		notNullResultHolder(result);
 
-		OperationResult operationResult = new OperationResult("Model Service Delete Object");
+		OperationResult operationResult = new OperationResult(DELETE_OBJECT);
 		try {
-			model.deleteObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(),
-					oid, operationResult);
+			model.deleteObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid,
+					operationResult);
 			handleOperationResult(operationResult, result);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL deleteObject() failed", ex);
@@ -195,7 +200,7 @@ public class ModelWebService implements ModelPortType {
 		notNullArgument(properties, "Property reference list must not be null.");
 		notNullResultHolder(result);
 
-		OperationResult operationResult = new OperationResult("Model Service Get Property Available Values");
+		OperationResult operationResult = new OperationResult(GET_PROPERTY_AVAILABLE_VALUES);
 		try {
 			PropertyAvailableValuesListType list = model.getPropertyAvailableValues(oid, properties,
 					operationResult);
@@ -214,7 +219,7 @@ public class ModelWebService implements ModelPortType {
 		notEmptyArgument(accountOid, "Account oid must not be null or empty.");
 		notNullResultHolder(result);
 
-		OperationResult operationResult = new OperationResult("Model Service List Account Shadow Owner");
+		OperationResult operationResult = new OperationResult(LIST_ACCOUNT_SHADOW_OWNER);
 		try {
 			UserType user = model.listAccountShadowOwner(accountOid, operationResult);
 			handleOperationResult(operationResult, result);
@@ -234,7 +239,7 @@ public class ModelWebService implements ModelPortType {
 		notEmptyArgument(resourceObjectShadowType, "Resource object shadow type must not be null or empty.");
 		notNullResultHolder(result);
 
-		OperationResult operationResult = new OperationResult("Model Service List Resource Object Shadows");
+		OperationResult operationResult = new OperationResult(LIST_RESOURCE_OBJECT_SHADOWS);
 		try {
 			List<ResourceObjectShadowType> list = model.listResourceObjectShadows(
 					resourceOid,
@@ -260,7 +265,7 @@ public class ModelWebService implements ModelPortType {
 		notNullArgument(paging, "Paging  must not be null.");
 		notNullResultHolder(result);
 
-		OperationResult operationResult = new OperationResult("Model Service List Resource Objects");
+		OperationResult operationResult = new OperationResult(LIST_RESOURCE_OBJECTS);
 		try {
 			ObjectListType list = model.listResourceObjects(resourceOid, objectType, paging, operationResult);
 			handleOperationResult(operationResult, result);
@@ -349,8 +354,7 @@ public class ModelWebService implements ModelPortType {
 		notNullHolder(taskHolder);
 
 		Task task = taskManager.createTaskInstance(taskHolder.value);
-		OperationResult operationResult = task.getCurrentResult().createSubresult(
-				ModelPortType.class.getName() + ".importFromResource");
+		OperationResult operationResult = task.getCurrentResult().createSubresult(IMPORT_FROM_RESOURCE);
 
 		try {
 			model.importAccountsFromResource(resourceOid, objectClass, task);
