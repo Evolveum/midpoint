@@ -139,6 +139,7 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 	 */
 	public void setEncryptionKeyAlias(String keyAlias) {
 		this.encryptionKeyAlias = keyAlias;
+		super.setEncryptionKeyAlias(keyAlias);
 	}
 
 	/**
