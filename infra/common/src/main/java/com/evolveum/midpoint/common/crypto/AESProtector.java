@@ -108,12 +108,12 @@ public class AESProtector implements Protector {
 				LOGGER.warn("Using default keystore from classpath ({}).", getKeyStorePath());
 				// Read from class path
 
-				stream = this.getClass().getClassLoader().getResourceAsStream(getKeyStorePath());
+				stream = AESProtector.class.getClassLoader().getResourceAsStream(getKeyStorePath());
 				// ugly dirty hack to have second chance to find keystore on
 				// class path
 				if (stream == null) {
-					stream = this.getClass().getClassLoader()
-							.getResourceAsStream("com/../../" + getKeyStorePath());
+					stream = AESProtector.class.getClassLoader().getResourceAsStream(
+							"com/../../" + getKeyStorePath());
 				}
 			}
 			// Test if we have valid stream

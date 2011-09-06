@@ -109,8 +109,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		Validate.notNull(change.getResource(), "Resource in change must not be null.");
 		Validate.notNull(parentResult, "Parent operation result must not be null.");
 
-		OperationResult subResult = new OperationResult("Notify Change");
-		parentResult.addSubresult(subResult);
+		OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
 		try {
 			ResourceType resource = change.getResource();
 			if (resource == null) {
@@ -132,9 +131,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			ResourceObjectShadowType objectShadow = change.getShadow();
 			if (objectShadow == null && (change.getObjectChange() instanceof ObjectChangeAdditionType)) {
 				// There may not be a previous shadow in addition. But in that
-				// case
-				// we have (almost) everything in the ObjectChangeType - almost
-				// everything except OID. But we can live with that.
+				// case we have (almost) everything in the ObjectChangeType -
+				// almost everything except OID. But we can live with that.
 				objectShadow = (ResourceObjectShadowType) ((ObjectChangeAdditionType) change
 						.getObjectChange()).getObject();
 			}
@@ -210,8 +208,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	// otherwise we can't check SynchronizationSituationType.CONFLICT situation
 	private SynchronizationSituation checkSituation(ResourceObjectShadowChangeDescriptionType change,
 			ResourceObjectShadowType objectShadowAfterChange, OperationResult result) {
-		OperationResult subResult = new OperationResult("Check Synchronization Situation");
-		result.addSubresult(subResult);
+		OperationResult subResult = result.createSubresult(CHECK_SITUATION);
 
 		if (change.getShadow() != null) {
 			LOGGER.trace("Determining situation for OID {}.", new Object[] { change.getShadow().getOid() });
@@ -365,9 +362,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			for (Action action : actions) {
 				LOGGER.debug("ACTION: Executing: {}.", new Object[] { action.getClass() });
 
-				// TODO: fix operation result type
 				userOid = action.executeChanges(userOid, change, situation.getSituation(),
-						objectShadowAfterChange, new OperationResult("Resource Object Change Service"));
+						objectShadowAfterChange, parentResult);
 			}
 			LOGGER.trace("Updating user finished.");
 		} catch (SynchronizationException ex) {
@@ -542,16 +538,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 					Element value = document.createElementNS(SchemaConstants.NS_C, "value");
 					equal.appendChild(value);
 					Element attribute = document.createElementNS(ref.getNamespaceURI(), ref.getLocalPart());
-					if (resourceObjectShadow.getName().contains("wturner")) {
-						LOGGER.debug("AAAAAAAAAAAAAAAAAAAAAAA");
-						if (resourceObjectShadow.getAttributes() != null) {
-							for (Object element : resourceObjectShadow.getAttributes().getAny()) {
-								LOGGER.debug(JAXBUtil.getElementQName(element) + ": "
-										+ JAXBUtil.getTextContentDump(element));
-							}
-						}
-						LOGGER.debug("BBBBBBBBBBBBBBBBBBBBBBB");
-					}
 					ExpressionType valueExpression = XsdTypeConverter.toJavaValue(valueExpressionElement,
 							ExpressionType.class);
 					String expressionResult = expressionHandler.evaluateExpression(resourceObjectShadow,
