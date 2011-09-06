@@ -42,7 +42,7 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 	
 	private String keyStorePath;
 	private String keyStorePassword;
-	private String defaultKeyAlias;
+	private String encryptionKeyAlias;
 	private String encryptionKeyDigest;
 		
 	@Autowired(required=true)
@@ -59,7 +59,7 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 		Configuration c = midpointConfiguration.getConfiguration(COMPONENT_NAME);
 		this.setKeyStorePath(c.getString("keyStorePath"));
 		this.setKeyStorePassword(c.getString("keyStorePassword"));
-		this.setDefaultKeyAlias(c.getString("defaultKeyAlias"));
+		this.setEncryptionKeyAlias(c.getString("encryptionKeyAlias"));
 		this.setEncryptionKeyDigest(c.getString("encryptionKeyDigest"));
 		//Extract file if not exists
 		if (c.getString("midpoint.home") != null) {
@@ -90,7 +90,7 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 		Configuration config =  new BaseConfiguration(); 
 		 config.setProperty("keyStorePath", this.getKeyStorePath());
 		 config.setProperty("keyStorePassword" , this.getKeyStorePassword());
-		 config.setProperty("defaultKeyAlias", this.getDefaultKeyAlias());
+		 config.setProperty("defaultKeyAlias", this.getEncryptionKeyAlias());
 		 config.setProperty("encryptionKeyDigest", this.getEncryptionKeyDigest());
 		 return config;
 	}
@@ -130,15 +130,15 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 	/**
 	 * @return the defaultKeyAlias
 	 */
-	public String getDefaultKeyAlias() {
-		return defaultKeyAlias;
+	public String getEncryptionKeyAlias() {
+		return encryptionKeyAlias;
 	}
 
 	/**
 	 * @param defaultKeyAlias the defaultKeyAlias to set
 	 */
-	public void setDefaultKeyAlias(String defaultKeyAlias) {
-		this.defaultKeyAlias = defaultKeyAlias;
+	public void setEncryptionKeyAlias(String keyAlias) {
+		this.encryptionKeyAlias = keyAlias;
 	}
 
 	/**
