@@ -65,17 +65,17 @@ public class SchemaPropertyConstructionTest extends AbstractTestNGSpringContextT
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullUser() throws SchemaException {
-		handler.processPropertyConstruction(null, null, null);
+		handler.processPropertyConstructions(null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullUserTemplate() throws SchemaException {
-		handler.processPropertyConstruction(new UserType(), null, null);
+		handler.processPropertyConstructions(new UserType(), null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullOperationResult() throws SchemaException {
-		handler.processPropertyConstruction(new UserType(), new UserTemplateType(), null);
+		handler.processPropertyConstructions(new UserType(), new UserTemplateType(), null);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -88,7 +88,7 @@ public class SchemaPropertyConstructionTest extends AbstractTestNGSpringContextT
 
 		OperationResult result = new OperationResult("User without fullname (property construction test)");
 		try {
-			user = handler.processPropertyConstruction(user, template, result);
+			user = handler.processPropertyConstructions(user, template, result);
 		} catch (Exception ex) {
 			LOGGER.debug("Error occured, reason: " + ex.getMessage(), ex);
 		} finally {
@@ -108,7 +108,7 @@ public class SchemaPropertyConstructionTest extends AbstractTestNGSpringContextT
 
 		OperationResult result = new OperationResult("User with fullname (property construction test)");
 		try {
-			user = handler.processPropertyConstruction(user, template, result);
+			user = handler.processPropertyConstructions(user, template, result);
 			LOGGER.trace("Updated user:\n{}", JAXBUtil.silentMarshalWrap(user));
 		} catch (Exception ex) {
 			LOGGER.debug("Error occured, reason: " + ex.getMessage(), ex);

@@ -35,16 +35,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 public interface SchemaHandler {
 
-	// XXX: probably change return value to ObjectModificationType
+	String CLASS_NAME_WITH_DOT = SchemaHandler.class.getName() + ".";
+	String PROCESS_INBOUND_HANDLING = CLASS_NAME_WITH_DOT + "processInboundHandling";
+	String PROCESS_OUTBOUND_HANDLING = CLASS_NAME_WITH_DOT + "processOutboundHandling";
+	String INSERT_USER_DEFINED_VARIABLES = CLASS_NAME_WITH_DOT + "insertUserDefinedVariables";
+	String PROCESS_ATTRIBUTE_INBOUND = CLASS_NAME_WITH_DOT + "processAttributeInbound";
+	String PROCESS_PROPERTY_CONSTRUCTIONS = CLASS_NAME_WITH_DOT + "processPropertyConstructions";
+	String PROCESS_PROPERTY_CONSTRUCTION = CLASS_NAME_WITH_DOT + "processPropertyConstruction";
+
 	UserType processInboundHandling(UserType user, ResourceObjectShadowType resourceObjectShadow,
 			OperationResult result) throws SchemaException;
 
-	UserType processPropertyConstruction(UserType user, UserTemplateType template, OperationResult result)
+	UserType processPropertyConstructions(UserType user, UserTemplateType template, OperationResult result)
 			throws SchemaException;
 
 	ObjectModificationType processOutboundHandling(UserType user,
-			ResourceObjectShadowType resourceObjectShadow, OperationResult result)
-			throws SchemaException;
+			ResourceObjectShadowType resourceObjectShadow, OperationResult result) throws SchemaException;
 
 	ExpressionHandler getExpressionHandler();
 }

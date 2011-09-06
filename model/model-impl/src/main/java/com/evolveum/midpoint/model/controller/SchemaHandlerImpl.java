@@ -127,7 +127,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			throw new SchemaException(ex.getMessage(), ex);
 		}
 
-		OperationResult subResult = result.createSubresult("Process Inbound Handling");
+		OperationResult subResult = result.createSubresult(PROCESS_INBOUND_HANDLING);
 		ResourceType resource = resolveResource(resourceObjectShadow, subResult);
 		AccountType accountType = ModelUtils.getAccountTypeFromHandling(resourceObjectShadow, resource);
 		if (accountType == null) {
@@ -149,7 +149,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			ResourceObjectAttributeDefinition definition = objectDefinition.findAttributeDefinition(attribute
 					.getRef());
 			if (definition != null) {
-				domUser = (Element) processInboundAttribute(attribute, variables, resourceObjectShadow,
+				domUser = (Element) processAttributeInbound(attribute, variables, resourceObjectShadow,
 						domUser, user, subResult);
 			} else {
 				LOGGER.debug("Attribute {} defined in schema handling is not defined in the resource {}. "
@@ -185,7 +185,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			throw new SchemaException(ex.getMessage(), ex);
 		}
 
-		OperationResult subResult = result.createSubresult("Process Outbound Handling");
+		OperationResult subResult = result.createSubresult(PROCESS_OUTBOUND_HANDLING);
 		ObjectModificationType changes = new ObjectModificationType();
 		changes.setOid(resourceObjectShadow.getOid());
 
@@ -276,7 +276,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 		List<VariableDefinitionType> variableDefinitions = attributeHandling.getOutbound().getVariable();
 		for (VariableDefinitionType varDef : variableDefinitions) {
-			OperationResult subResult = new OperationResult("Insert User Variable");
+			OperationResult subResult = new OperationResult(INSERT_USER_DEFINED_VARIABLES);
 			result.addSubresult(subResult);
 
 			Object object = varDef.getValue();
@@ -520,7 +520,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		return holders;
 	}
 
-	private Node processInboundAttribute(AttributeDescriptionType attribute, Map<QName, Variable> variables,
+	private Node processAttributeInbound(AttributeDescriptionType attribute, Map<QName, Variable> variables,
 			ResourceObjectShadowType resourceObjectShadow, Node domUser, UserType user, OperationResult result)
 			throws DOMException, SchemaException {
 
@@ -537,7 +537,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 		OperationResult subResult;
 		for (ValueAssignmentHolder inbound : inbounds) {
-			subResult = result.createSubresult("Process Inbound");
+			subResult = result.createSubresult(PROCESS_ATTRIBUTE_INBOUND);
 			if (null != inbound.getSource()) {
 				subResult.recordWarning("Inbound attribute where source is not null is not supported yet.");
 				continue;
@@ -754,13 +754,13 @@ public class SchemaHandlerImpl implements SchemaHandler {
 	}
 
 	@Override
-	public UserType processPropertyConstruction(UserType user, UserTemplateType template,
+	public UserType processPropertyConstructions(UserType user, UserTemplateType template,
 			OperationResult result) throws SchemaException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(template, "User template must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
-		OperationResult subResult = result.createSubresult("User Property Constructions");
+		OperationResult subResult = result.createSubresult(PROCESS_PROPERTY_CONSTRUCTIONS);
 		UserType templatedUser = user;
 		Element domUser = null;
 		try {
@@ -770,7 +770,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		}
 
 		for (PropertyConstructionType construction : template.getPropertyConstruction()) {
-			OperationResult constrResult = subResult.createSubresult("User Property Construction");
+			OperationResult constrResult = subResult.createSubresult(PROCESS_PROPERTY_CONSTRUCTION);
 			constrResult.addParams(new String[] { "user", "userTemplate" }, user, template);
 
 			// string variable property are used here only for logging purposes

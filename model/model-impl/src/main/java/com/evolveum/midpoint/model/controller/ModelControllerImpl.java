@@ -1354,7 +1354,7 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		try {
-			user = schemaHandler.processPropertyConstruction(user, userTemplate, subResult);
+			user = schemaHandler.processPropertyConstructions(user, userTemplate, subResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER,
 					"Couldn't process property construction from template {} on user {}", ex,
