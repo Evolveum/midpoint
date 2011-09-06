@@ -4,6 +4,7 @@
 package com.evolveum.midpoint.util;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,12 +12,9 @@ import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -32,13 +30,18 @@ public class ClassPathUtil {
 
 	public static Trace LOGGER = TraceManager.getTrace(ClassPathUtil.class);
 
+	/**
+	 * 
+	 * @param packageName
+	 * @return
+	 */
 	public static Set<Class> listClasses(String packageName) {
 
 		Set<Class> classes = new HashSet<Class>();
 
 		String path = packageName.replace('.', '/');
 		Enumeration<URL> resources = null;
-		try {//HACK this is not available use LOGGER
+		try {// HACK this is not available use LOGGER
 			resources = LOGGER.getClass().getClassLoader().getResources(path);
 		} catch (IOException e) {
 			LOGGER.error("Classloader scaning error for " + path, e);
@@ -62,13 +65,70 @@ public class ClassPathUtil {
 	}
 
 	/**
+	 * Extract specified source on class path to file system dst
+	 * 
+	 * @param src
+	 *            source
+	 * @param dst
+	 *            destination
+	 * @return successful extraction
+	 */
+	public static Boolean extractFileFromClassPath(String src, String dst) {
+		InputStream is = ClassPathUtil.class.getClassLoader().getResourceAsStream(src);
+		if (null == is) {
+			LOGGER.error("Unable to find file {} for extraction to {}", src, dst);
+			return false;
+		}
+
+		// Copy content
+		OutputStream out = null;
+		try {
+			out = new FileOutputStream(dst);
+		} catch (FileNotFoundException e) {
+			LOGGER.error("Unable to open destination file " + dst + ":", e);
+			return false;
+		}
+		byte buf[] = new byte[655360];
+		int len;
+		try {
+			while ((len = is.read(buf)) > 0) {
+				try {
+					out.write(buf, 0, len);
+				} catch (IOException e) {
+					LOGGER.error("Unable to write file " + dst + ":", e);
+					return false;
+				}
+			}
+		} catch (IOException e) {
+			LOGGER.error("Unable to read file " + src + " from classpath", e);
+			return false;
+		}
+		try {
+			out.close();
+		} catch (IOException e) {
+			LOGGER.error("Unable to close file " + dst + ":", e);
+			return false;
+		}
+		try {
+			is.close();
+		} catch (IOException e) {
+			LOGGER.error("This never happend:", e);
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Get clasess from JAR
 	 * 
 	 * @param candidateUrl
 	 * @param packageName
 	 * @return
 	 */
+	@SuppressWarnings("rawtypes")
 	private static Collection<? extends Class> getFromJar(URL srcUrl, String packageName) {
+		@SuppressWarnings("rawtypes")
 		Set<Class> classes = new HashSet<Class>();
 		// sample:
 		// file:/C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar!/test-data/opendj.template
@@ -76,19 +136,19 @@ public class ClassPathUtil {
 		// /C:/.m2/repository/test-util/1.9-SNAPSHOT/test-util-1.9-SNAPSHOT.jar
 		String srcName = srcUrl.getPath().split("!/")[0];
 
-		//Probaly hepls fix error in windows with URI
+		// Probaly hepls fix error in windows with URI
 		File jarTmp = null;
 		try {
-			 jarTmp = new File(new URI(srcName));
+			jarTmp = new File(new URI(srcName));
 		} catch (URISyntaxException ex) {
-			LOGGER.error("Error converting jar " + srcName + " name to URI:",ex);
+			LOGGER.error("Error converting jar " + srcName + " name to URI:", ex);
 			return classes;
 		}
-		
-		if (! jarTmp.isFile()) {
-			LOGGER.error("Is {} not a file." , srcName);
+
+		if (!jarTmp.isFile()) {
+			LOGGER.error("Is {} not a file.", srcName);
 		}
-		
+
 		JarFile jar = null;
 		try {
 			jar = new JarFile(jarTmp);
@@ -99,40 +159,41 @@ public class ClassPathUtil {
 		String path = packageName.replace('.', '/');
 		Enumeration<JarEntry> entries = jar.entries();
 		LOGGER.debug("PATH:" + path);
-		
+
 		JarEntry e;
 		while (entries.hasMoreElements()) {
 			e = entries.nextElement();
-			//get name and replace inner class
+			// get name and replace inner class
 			String name = e.getName().replace('$', '/');
-			//NOTICE: inner class are seperated and anonymous are part of the listing !! 
-			
+			// NOTICE: inner class are seperated and anonymous are part of the
+			// listing !!
+
 			// skip other files in other packas and skip non class files
-			if (! name.contains(path) || ! name.contains(".class")) {
+			if (!name.contains(path) || !name.contains(".class")) {
 				continue;
 			}
-			//Skip all that are not in package
-			if ( name.matches(path +"/.+/.*.class")) {
+			// Skip all that are not in package
+			if (name.matches(path + "/.+/.*.class")) {
 				continue;
 			}
-			
+
 			LOGGER.info("JAR Candidate: {}", name);
 			try {// to create class
-				
-				//Convert name back to package
+
+				// Convert name back to package
 				classes.add(Class.forName(name.replace('/', '.').replace(".class", "")));
 			} catch (ClassNotFoundException ex) {
 				LOGGER.error("Error during loading class {} from {}. ", name, jar.getName());
 			}
 		}
-		
+
 		try {
 			jar.close();
 		} catch (IOException ex) {
 			LOGGER.error("Error during close JAR {} " + srcName, ex);
 			return classes;
 		}
-		
+
 		return classes;
 	}
 
@@ -143,7 +204,10 @@ public class ClassPathUtil {
 	 * @param packageName
 	 * @return
 	 */
+	@SuppressWarnings("rawtypes")
 	private static Collection<Class> getFromDirectory(URL candidateUrl, String packageName) {
+
+		@SuppressWarnings("rawtypes")
 		Set<Class> classes = new HashSet<Class>();
 
 		// Directory preparation
