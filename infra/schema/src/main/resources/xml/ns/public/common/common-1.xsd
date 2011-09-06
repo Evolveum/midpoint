@@ -25,6 +25,7 @@
 			xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+            xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:xenc="http://www.w3.org/2001/04/xmlenc#"
@@ -68,6 +69,15 @@
 		</xsd:annotation>
 	</xsd:import>
 
+
+	<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" schemaLocation="annotation-1.xsd">
+		<xsd:annotation>
+			<xsd:documentation>
+				Common midPoint annotations used in various XSD schemas.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:import>
+
 	<!-- ################################## -->
 	<!-- ##      Common Schema Layer     ## -->
 	<!-- ################################## -->
@@ -80,18 +90,6 @@
 				Human-readable name for object, property, attribute or whatever.
 
 				TODO: Any special reason this is top-level element?
-			</xsd:documentation>
-		</xsd:annotation>
-	</xsd:element>
-
-	<xsd:element name="propertyContainer">
-		<xsd:annotation>
-			<xsd:documentation>
-				This is XSD annotation. It marks XSD type that is a property
-				container.
-
-				Every first-level element in a property container is either a
-				property or another property container.
 			</xsd:documentation>
 		</xsd:annotation>
 	</xsd:element>
@@ -229,7 +227,7 @@
 
 			</xsd:documentation>
 			<xsd:appinfo>
-				<tns:propertyContainer />
+				<a:propertyContainer />
 			</xsd:appinfo>
 		</xsd:annotation>
 
@@ -348,7 +346,7 @@
 				It must NOT contain standard elements.
 			</xsd:documentation>
 			<xsd:appinfo>
-				<tns:propertyContainer />
+				<a:propertyContainer />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:complexType>
@@ -2010,6 +2008,16 @@
 						</xsd:annotation>
 					</xsd:element>
 
+					<xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
+						<xsd:annotation>
+							<xsd:documentation>
+								Set of user's assignments.
+								Represents objects (such as roles) or accounts directly assigned to
+								a user.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+
 					<!-- xsd:choice minOccurs="0" maxOccurs="unbounded" -->
 					<xsd:element name="account" type="tns:AccountShadowType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
@@ -2068,16 +2076,7 @@
 						</xsd:annotation>
 					</xsd:element>
 					<!-- /xsd:choice -->
-
-					<xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
-						<xsd:annotation>
-							<xsd:documentation>
-								Set of user's assignments.
-
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-
+					
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
@@ -2092,7 +2091,7 @@
 				This is not perfect.
 			</xsd:documentation>
 			<xsd:appinfo>
-				<tns:propertyContainer />
+				<a:propertyContainer />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -2157,25 +2156,22 @@
 	<xsd:complexType name="AssignmentType">
 		<xsd:annotation>
 			<xsd:documentation>
-				TODO: UPDATE THIS
-				Generic assignments of a user.
-				These may be assignment of
-				a role, assignment to an
-				organizational
-				unit, team or whatever.
+				Generic assignments of one object to another object.
+				This will usually be assignment of a role to a user, assignment of an
+				organizational unit, team or whatever. It may also be used to assing
+				role to another role, creating a role hierarchy.
 
-				Assignment is an abstract concept. It can be
-				anything that
-				gives user
-				additional access
-				rights, privileges,
-				capabilities
-				or similar ability or right. But it may also constraint
-				the user
-				with policy, e.g. to impelemt
-				separation of duties. Roles,
-				organizations and privileges in IDM system are examples of
-				assignments.
+				Assignment is an abstract concept. It can be anything that
+				gives the "receptor" object additional access rights, privileges,
+				capabilities or similar ability or right. But it may also constraint
+				the object with policy, e.g. to impelemt separation of duties. Roles,
+				organizations and privileges in IDM system are examples of assignments.
+				
+				The assignemtn may target either existing IDM object (such as a role)
+				or abstract resource account that may or may not exist. In case of resource
+				objects it is constrained to accounts, as accoutns are the only resource objects
+				that can be assigned to a user. Other resource objects (entitlements) can
+				be assigned to accounts, but not to users.
 
 				TODO: constraints
 
@@ -2196,6 +2192,14 @@
 					<xsd:annotation>
 						<xsd:documentation>
 							TODO: target ref
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+
+				<xsd:element name="accountConstruction" type="tns:AccountConstructionType">
+					<xsd:annotation>
+						<xsd:documentation>
+							TODO
 						</xsd:documentation>
 					</xsd:annotation>
 				</xsd:element>
@@ -2231,7 +2235,7 @@
 				should not be assigned, etc.
 			</xsd:documentation>
 			<xsd:appinfo>
-				<tns:propertyContainer />
+				<a:propertyContainer />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -3165,11 +3169,6 @@
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<xjc:dom />
-						</xsd:appinfo>
-					</xsd:annotation>
 				</xsd:any>
 			</xsd:sequence>
 		</xsd:complexType>
@@ -4654,7 +4653,7 @@
 										objects.
 									</xsd:documentation>
 									<xsd:appinfo>
-										<tns:propertyContainer />
+										<a:propertyContainer />
 									</xsd:appinfo>
 								</xsd:annotation>
 								<xsd:complexType>
@@ -5125,7 +5124,7 @@
 	<xsd:complexType name="ResourceObjectType">
 		<xsd:annotation>
 			<xsd:appinfo>
-				<tns:propertyContainer />
+				<a:propertyContainer />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -5142,7 +5141,7 @@
 	<xsd:complexType name="ResourceObjectIdentificationType">
 		<xsd:annotation>
 			<xsd:appinfo>
-				<tns:propertyContainer />
+				<a:propertyContainer />
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -5167,7 +5166,7 @@
 					examples.
 				</xsd:documentation>
 				<xsd:appinfo>
-					<tns:propertyContainer />
+					<a:propertyContainer />
 				</xsd:appinfo>
 			</xsd:annotation>
 			<xsd:sequence>
@@ -5432,55 +5431,43 @@
 	<xsd:complexType name="RoleType">
 		<xsd:annotation>
 			<xsd:documentation>
-				A role that implies accounts on resources,
-				attributes and
-				assignments for such accounts. Also
-				called
-				technical
-				role or
-				IT role.
+				A role that implies assignments.
+				The role may "grant" accounts on resources, attributes and
+				entitlements for such accounts. The role can also assign
+				organizational units, other roles or various IDM objects
+				that can be assigned directly to user. Role is in fact just
+				a named set of assignments.
+				
+				The speicific roles are also called technical role or IT role,
+				however this definition is an abstract definition of concept
+				that can span wide area of intepretation.
 
 				This is the basic building blog of role-based access
-				contol (RBAC)
-				in the
-				provisioning system. It
-				defines what accounts
-				should be
-				created, how they should look like (attributes) and what
-				groups
-				or native roles to assign to
-				them (assignments).
+				contol (RBAC) in the provisioning system. It defines what
+				rights (e.g. accounts) should be given to user, how they
+				should look like (attributes) and what groups or native
+				roles to assign to them (entitlements).
 
-				This role
-				definition is quite simplistic now. It does not
-				support
-				rule-derived
-				values or any other advanced
-				dynamics. Yet. It will
-				be extended or
-				replaced later in the
-				development.
+				This role definition is quite simplistic now. It does not
+				support rule-derived values or any other advanced dynamics.
+				Yet. It will be extended later in the development.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexContent>
-			<xsd:extension base="tns:ProtoStructureType">
+			<xsd:extension base="tns:ExtensibleObjectType">
 				<xsd:sequence>
-					<xsd:element name="impliedAccount" type="tns:AccountConstructionType">
+					<xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
 						<xsd:annotation>
 							<xsd:documentation>
-								Resource account that is implied by this role.
-
-								The account specified by this element should be
-								created
-								when the
-								role is assigned (unless such
-								account already exists). The
-								account should be
-								set up according to
-								the definitions
-								contained
-								in
-								this element.
+								Set of roles's assignments.
+								Represents objects (such as roles) or accounts assigned to the
+								role and therefore implied by the role.
+								
+								The assignment may contain account construction. Such element
+								specified the account specified by this element should be
+								created when the role is assigned (unless such account already
+								exists). The account should be set up according to the definitions
+								contained in this element.
 
 								TODO: variables in the expressions:
 								$user
@@ -5489,16 +5476,13 @@
 								$account
 								$resource
 
-								If the role implying
-								this account is
-								unassigned
-								and no other role implies the account, the
-								account
-								should
-								be removed.
+								If the role implying this account is unassigned
+								and no other role or assignment implies the account, the
+								account should be removed.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
+				
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
