@@ -85,7 +85,7 @@ public class UserDetailsController implements Serializable {
 
 	public static final String PAGE_NAVIGATION = "/account/userDetails?faces-redirect=true";
 	private static final long serialVersionUID = -4537350724118181063L;
-	private static final Trace TRACE = TraceManager.getTrace(UserDetailsController.class);
+	private static final Trace LOGGER = TraceManager.getTrace(UserDetailsController.class);
 	private static final String TAB_USER = "0";
 	@Autowired(required = true)
 	private transient TemplateController template;
@@ -95,6 +95,7 @@ public class UserDetailsController implements Serializable {
 	private GuiUserDto user;
 	private List<AccountFormBean> accountList;
 	private List<AccountFormBean> accountListDeleted = new ArrayList<AccountFormBean>();
+	private List<AccountFormBean> accountListUnlinked = new ArrayList<AccountFormBean>();
 	private List<SelectItem> availableResourceList;
 	private List<String> selectedResourceList;
 	private String selectedTab = TAB_USER;
@@ -170,7 +171,7 @@ public class UserDetailsController implements Serializable {
 				availableResourceList = createResourceList(this.user.getAccount());
 			}
 		} catch (Exception ex) {
-			LoggingUtils.logException(TRACE, "Couldn't create account list for user {}", ex, user.getName());
+			LoggingUtils.logException(LOGGER, "Couldn't create account list for user {}", ex, user.getName());
 			FacesUtils.addErrorMessage("Couldn't create account list for user.", ex);
 		}
 	}
@@ -194,6 +195,9 @@ public class UserDetailsController implements Serializable {
 		if (accountListDeleted != null) {
 			accountListDeleted.clear();
 		}
+		if (accountListUnlinked != null) {
+			accountListUnlinked.clear();
+		}
 		getAvailableResourceList().clear();
 		getSelectedResourceList().clear();
 	}
@@ -214,74 +218,38 @@ public class UserDetailsController implements Serializable {
 			UserManager userManager = getUserManager();
 			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 
-			// new accounts are processed as modification of user in one
-			// operation
-			TRACE.debug("Start processing of new accounts");
-			for (AccountFormBean formBean : accountList) {
-				if (formBean.isNew()) {
-					// Note: we have to add new account directly to xmlObject
-					// add and delete of accounts will be process later by call
-					// to userManager.submit(user);
-					AccountShadowType newAccountShadowType = (AccountShadowType) updateAccountAttributes(
-							formBean).getXmlObject();
-					TRACE.debug("Found new account in GUI: {}", DebugUtil.prettyPrint(newAccountShadowType));
-					((UserType) user.getXmlObject()).getAccount().add(newAccountShadowType);
-					// ((UserType)
-					// user.getXmlObject()).getAccountRef().add(ObjectTypeUtil.createObjectRef(newAccountShadowType));
-				}
-			}
+			processNewAccounts();
+			List<AccountShadowType> accountsToDelete = processDeletedAccounts();
+			processUnlinkedAccounts();
 
-			TRACE.debug("Finished processing of new accounts");
-
-			// delete accounts are also processed as modification of user in one
-			// operation
-			// deleted account are removed from the current user
-			TRACE.debug("Start processing of deleted accounts");
-			List<AccountShadowType> accountsToDelete = new ArrayList<AccountShadowType>();
-			for (AccountFormBean formBean : accountListDeleted) {
-				String oidToDelete = formBean.getAccount().getOid();
-				TRACE.debug("Following account is marked as candidate for delete in GUI: {}",
-						DebugUtil.prettyPrint(formBean.getAccount().getXmlObject()));
-				List<AccountShadowType> accounts = ((UserType) user.getXmlObject()).getAccount();
-				for (Iterator<AccountShadowType> i = accounts.iterator(); i.hasNext();) {
-					AccountShadowType account = i.next();
-					if (StringUtils.equals(oidToDelete, account.getOid())) {
-						i.remove();
-						accountsToDelete.add(account);
-						break;
-					}
-				}
-			}
-			TRACE.debug("Finished processing of deleted accounts");
-
-			TRACE.debug("Submit user modified in GUI");
+			LOGGER.debug("Submit user modified in GUI");
 			Set<PropertyChange> userChanges = userManager.submit(user);
-			TRACE.debug("Modified user in GUI submitted ");
+			LOGGER.debug("Modified user in GUI submitted ");
 
 			// now we need to delete accounts from repository and also from
 			// external systems..
-			TRACE.debug("Start processing of deleted accounts");
+			LOGGER.debug("Start processing of deleted accounts");
 			for (AccountShadowType account : accountsToDelete) {
 				accountManager.delete(account.getOid());
 			}
-			TRACE.debug("Finished processing of deleted accounts");
+			LOGGER.debug("Finished processing of deleted accounts");
 
 			if (userChanges != null) {
 				if (userChanges.isEmpty()) {
 					// account changes are processed as modification of account,
 					// every account is processed separately
-					TRACE.debug("Start processing of modified accounts");
+					LOGGER.debug("Start processing of modified accounts");
 					for (AccountFormBean formBean : accountList) {
 						if (!formBean.isNew()) {
 							AccountShadowDto modifiedAccountShadowDto = updateAccountAttributes(formBean);
-							TRACE.debug("Found modified account in GUI: {}",
+							LOGGER.debug("Found modified account in GUI: {}",
 									DebugUtil.prettyPrint(modifiedAccountShadowDto.getXmlObject()));
-							TRACE.debug("Submit account modified in GUI");
+							LOGGER.debug("Submit account modified in GUI");
 							accountManager.submit(modifiedAccountShadowDto);
-							TRACE.debug("Modified account in GUI submitted");
+							LOGGER.debug("Modified account in GUI submitted");
 						}
 					}
-					TRACE.debug("Finished processing of modified accounts");
+					LOGGER.debug("Finished processing of modified accounts");
 				} else {
 					updateAccounts(accountList);
 				}
@@ -296,25 +264,78 @@ public class UserDetailsController implements Serializable {
 				FacesUtils.addWarnMessage("Errors occured during save operation.");
 			}
 		} catch (SchemaProcessorException ex) {
-			TRACE.error("Dynamic form generator error", ex);
+			LOGGER.error("Dynamic form generator error", ex);
 			// TODO: What action should we fire in GUI if error occurs ???
 			String loginFailedMessage = FacesUtils.translateKey("save.failed");
 			FacesUtils.addErrorMessage(loginFailedMessage + " " + ex.toString());
-
-			return;
 		} catch (Exception ex) {
-			// should not be here, it's only because bad error handling
-			TRACE.error("Unknown error occured during save operation, reason: {}.", ex.getMessage());
-			TRACE.trace("Unknown error occured during save operation.", ex);
+			LoggingUtils.logException(LOGGER, "Unknown error occured during save operation", ex);
 			FacesUtils.addErrorMessage("Unknown error occured during save operation, reason: "
 					+ ex.getMessage());
 		}
+	}
 
-		return;
+	private void processNewAccounts() throws SchemaProcessorException {
+		// new accounts are processed as modification of user in one operation
+		LOGGER.debug("Start processing of new accounts");
+		for (AccountFormBean formBean : accountList) {
+			if (formBean.isNew()) {
+				// Note: we have to add new account directly to xmlObject
+				// add and delete of accounts will be process later by call
+				// to userManager.submit(user);
+				AccountShadowType newAccountShadowType = updateAccountAttributes(formBean).getXmlObject();
+				LOGGER.debug("Found new account in GUI: {}", DebugUtil.prettyPrint(newAccountShadowType));
+				((UserType) user.getXmlObject()).getAccount().add(newAccountShadowType);
+				// user.getXmlObject().getAccountRef().add(ObjectTypeUtil.createObjectRef(newAccountShadowType));
+			}
+		}
+		LOGGER.debug("Finished processing of new accounts");
+	}
+
+	private List<AccountShadowType> processDeletedAccounts() {
+		// delete accounts are also processed as modification of user in one
+		// operation deleted account are removed from the current user
+
+		LOGGER.debug("Start processing of deleted accounts");
+		List<AccountShadowType> accountsToDelete = new ArrayList<AccountShadowType>();
+		for (AccountFormBean formBean : accountListDeleted) {
+			String oidToDelete = formBean.getAccount().getOid();
+			LOGGER.debug("Following account is marked as candidate for delete in GUI: {}",
+					DebugUtil.prettyPrint(formBean.getAccount().getXmlObject()));
+			List<AccountShadowType> accounts = user.getXmlObject().getAccount();
+			for (Iterator<AccountShadowType> i = accounts.iterator(); i.hasNext();) {
+				AccountShadowType account = i.next();
+				if (StringUtils.equals(oidToDelete, account.getOid())) {
+					i.remove();
+					accountsToDelete.add(account);
+					break;
+				}
+			}
+		}
+		LOGGER.debug("Finished processing of deleted accounts");
+
+		return accountsToDelete;
+	}
+
+	private void processUnlinkedAccounts() {
+		LOGGER.debug("Start processing of unlinked accounts");
+		for (AccountFormBean formBean : accountListUnlinked) {
+			String oidToDelete = formBean.getAccount().getOid();
+			LOGGER.debug("Following account is marked as candidate for unlink in GUI: {}",
+					DebugUtil.prettyPrint(formBean.getAccount().getXmlObject()));
+			List<AccountShadowType> accounts = user.getXmlObject().getAccount();
+			for (Iterator<AccountShadowType> i = accounts.iterator(); i.hasNext();) {
+				AccountShadowType account = i.next();
+				if (StringUtils.equals(oidToDelete, account.getOid())) {
+					i.remove();
+				}
+			}
+		}
+		LOGGER.debug("Finished processing of deleted accounts");
 	}
 
 	private void updateAccounts(List<AccountFormBean> accountBeans) throws WebModelException {
-		TRACE.debug("Start processing accounts with outbound schema handling");
+		LOGGER.debug("Start processing accounts with outbound schema handling");
 		for (AccountFormBean bean : accountBeans) {
 			if (bean.isNew()) {
 				continue;
@@ -331,7 +352,7 @@ public class UserDetailsController implements Serializable {
 			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 			accountManager.submit(account);
 		}
-		TRACE.debug("Finished processing accounts with outbound schema handling");
+		LOGGER.debug("Finished processing accounts with outbound schema handling");
 	}
 
 	public void addResourcePerformed(ActionEvent evt) {
@@ -382,10 +403,10 @@ public class UserDetailsController implements Serializable {
 		availableResourceList = createResourceList(existingAccounts);
 	}
 
-	public void removeResourcePerformed(ActionEvent evt) {
+	private AccountFormBean getAccountFormBean(ActionEvent evt) {
 		Integer formBeanId = (Integer) evt.getComponent().getAttributes().get("beanId");
 		if (formBeanId == null) {
-			return;
+			return null;
 		}
 
 		AccountFormBean formBean = null;
@@ -396,6 +417,11 @@ public class UserDetailsController implements Serializable {
 			}
 		}
 
+		return formBean;
+	}
+
+	public void removeResourcePerformed(ActionEvent evt) {
+		AccountFormBean formBean = getAccountFormBean(evt);
 		if (formBean == null) {
 			return;
 		}
@@ -426,7 +452,7 @@ public class UserDetailsController implements Serializable {
 				resources.addAll(list);
 			}
 		} catch (Exception ex) {
-			LoggingUtils.logException(TRACE, "Couldn't list resources", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't list resources", ex);
 			FacesUtils.addErrorMessage("Couldn't list resources.", ex);
 		}
 
@@ -491,7 +517,7 @@ public class UserDetailsController implements Serializable {
 						list.add(generateForm(account, account.getObjectClass(), maxId++, createNew));
 					}
 				} catch (SchemaProcessorException ex) {
-					LoggingUtils.logException(TRACE, "Can't parse schema for account {}", ex,
+					LoggingUtils.logException(LOGGER, "Can't parse schema for account {}", ex,
 							new Object[] { account.getName() });
 					FacesUtils.addErrorMessage("Can't parse schema for account '" + account.getName() + "'.",
 							ex);
@@ -572,9 +598,9 @@ public class UserDetailsController implements Serializable {
 	}
 
 	private AccountShadowDto updateAccountAttributes(AccountFormBean bean) throws SchemaProcessorException {
-		TRACE.trace("updateAccountAttributes::begin");
+		LOGGER.trace("updateAccountAttributes::begin");
 		AccountShadowDto account = bean.getAccount();
-		TRACE.trace("Account " + account);
+		LOGGER.trace("Account " + account);
 
 		List<Element> attrList = new ArrayList<Element>();
 		try {
@@ -597,7 +623,7 @@ public class UserDetailsController implements Serializable {
 				String name = definition.getElementName().getLocalPart();
 
 				for (Object object : attribute.getValues()) {
-					TRACE.trace("Creating element: {" + namespace + "}" + name + ": " + object.toString());
+					LOGGER.trace("Creating element: {" + namespace + "}" + name + ": " + object.toString());
 
 					Element element = doc.createElementNS(namespace, name);
 					element.setPrefix(buildElementName(namespace, prefixMap));
@@ -615,7 +641,7 @@ public class UserDetailsController implements Serializable {
 		}
 		account.setAttributes(attrList);
 
-		TRACE.trace("updateAccountAttributes::end");
+		LOGGER.trace("updateAccountAttributes::end");
 		return account;
 	}
 
@@ -627,5 +653,15 @@ public class UserDetailsController implements Serializable {
 		}
 
 		return prefix;
+	}
+
+	public void unlinkResourcePerformed(ActionEvent evt) {
+		AccountFormBean formBean = getAccountFormBean(evt);
+		if (formBean == null) {
+			return;
+		}
+
+		accountList.remove(formBean);
+		accountListUnlinked.add(formBean);
 	}
 }

@@ -103,7 +103,7 @@
 					</div>
 
 					<c:forEach items="#{userDetails.accountList}" var="item" varStatus="status">
-						<ice:panelGrid columns="2" style="width: 100%;"
+						<ice:panelGrid columns="3" style="width: 100%;"
 							columnClasses="userDetailsResourceTableRow1, userDetailsResourceTableRow2">
 							<ice:panelCollapsible expanded="#{item.expanded}">
 								<f:facet name="header">
@@ -116,6 +116,11 @@
 							<idm:button action="/account/userDetails" actionListener="#{userDetails.removeResourcePerformed}"
 								value="#{msg['page.account.detail.tab.accounts.button.delete']}" buttonType="negative"
 								immediate="true" img="/resources/images/drive_delete.png" rendered="#{userDetails.editMode}">
+								<f:attribute name="beanId" value="#{item.id}" />
+							</idm:button>
+							<idm:button action="/account/userDetails" actionListener="#{userDetails.unlinkResourcePerformed}"
+								value="#{msg['page.account.detail.tab.accounts.button.unlink']}" buttonType="negative"
+								immediate="true" img="/resources/images/drive_go.png" rendered="#{userDetails.editMode}">
 								<f:attribute name="beanId" value="#{item.id}" />
 							</idm:button>
 						</ice:panelGrid>
