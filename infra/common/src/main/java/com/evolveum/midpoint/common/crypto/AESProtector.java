@@ -17,7 +17,10 @@
  */
 package com.evolveum.midpoint.common.crypto;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -73,7 +76,6 @@ public class AESProtector implements Protector {
 
 	static {
 		Init.init();
-
 		try {
 			keyStore = KeyStore.getInstance("jceks");
 		} catch (KeyStoreException ex) {
@@ -86,14 +88,40 @@ public class AESProtector implements Protector {
 	 *             if jceks keystore is not available on {@link getKeyStorePath}
 	 */
 	public void init() {
+		InputStream stream = null;
 		try {
-			InputStream stream = AESProtector.class.getClassLoader().getResourceAsStream(getKeyStorePath());
+			// Test if use file or classpath resource
+			File f = new File(getKeyStorePath());
+			if (f.exists()) {
+				LOGGER.info("Using file keystore at {}", getKeyStorePath());
+				if (!f.canRead()) {
+					LOGGER.error("Provided keystore file {} is unreadable.", getKeyStorePath());
+					throw new EncryptionException("Provided keystore file " + getKeyStorePath() + " is unreadable.");
+				}
+				stream = new FileInputStream(f);
+
+			// Use class path keystore
+			} else {
+				LOGGER.warn("Using default keystore from classpath ({}).", getKeyStorePath());
+				// Read from class path
+
+				stream = this.getClass().getClassLoader().getResourceAsStream(getKeyStorePath());
+				// ugly dirty hack to have second chance to find keystore on
+				// class path
+				if (stream == null) {
+					stream = this.getClass().getClassLoader().getResourceAsStream("com/../../" + getKeyStorePath());
+				}
+			}
+			// Test if we have valid stream
 			if (stream == null) {
 				throw new EncryptionException("Couldn't load keystore as resource '" + getKeyStorePath() + "'");
 			}
+			// Load keystore
 			keyStore.load(stream, keyStorePassword.toCharArray());
 			stream.close();
+
 		} catch (Exception ex) {
+			LOGGER.error("Unable to work with heystore " + getKeyStorePath() + ":" + ex.getMessage(), ex);
 			throw new SystemException(ex.getMessage(), ex);
 		}
 	}
@@ -153,8 +181,12 @@ public class AESProtector implements Protector {
 		return keyStorePath;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.crypto.Protector#decryptString(com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.evolveum.midpoint.common.crypto.Protector#decryptString(com.evolveum
+	 * .midpoint.xml.ns._public.common.common_1.ProtectedStringType)
 	 */
 	@Override
 	public String decryptString(ProtectedStringType protectedString) throws EncryptionException {
@@ -166,8 +198,12 @@ public class AESProtector implements Protector {
 		return plain.getTextContent();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.crypto.Protector#decrypt(com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.evolveum.midpoint.common.crypto.Protector#decrypt(com.evolveum.midpoint
+	 * .xml.ns._public.common.common_1.ProtectedStringType)
 	 */
 	@Override
 	@SuppressWarnings("unchecked")
@@ -217,8 +253,12 @@ public class AESProtector implements Protector {
 		return document.getDocumentElement();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.crypto.Protector#encryptString(java.lang.String)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.evolveum.midpoint.common.crypto.Protector#encryptString(java.lang
+	 * .String)
 	 */
 	@Override
 	public ProtectedStringType encryptString(String text) throws EncryptionException {
@@ -228,7 +268,7 @@ public class AESProtector implements Protector {
 
 		return encrypt(stringToElement(text));
 	}
-	
+
 	private Element stringToElement(String text) {
 		Document document = DOMUtil.getDocument();
 		Element plain = document.createElement(ENCRYPTED_ELEMENT_NAME);
@@ -237,14 +277,18 @@ public class AESProtector implements Protector {
 		return plain;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.crypto.Protector#encrypt(org.w3c.dom.Element)
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.evolveum.midpoint.common.crypto.Protector#encrypt(org.w3c.dom.Element
+	 * )
 	 */
 	@Override
 	public ProtectedStringType encrypt(Element plain) throws EncryptionException {
 		return encrypt(plain, new ProtectedStringType());
 	}
-	
+
 	private ProtectedStringType encrypt(Element plain, ProtectedStringType protectedString) throws EncryptionException {
 		if (plain == null) {
 			return null;
@@ -276,19 +320,23 @@ public class AESProtector implements Protector {
 
 		return protectedString;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.common.crypto.Protector#encrypt(com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType)
+
+	/*
+	 * (non-Javadoc)
+	 * 
+	 * @see
+	 * com.evolveum.midpoint.common.crypto.Protector#encrypt(com.evolveum.midpoint
+	 * .xml.ns._public.common.common_1.ProtectedStringType)
 	 */
 	@Override
 	public void encrypt(ProtectedStringType ps) throws EncryptionException {
 		String clearValue = ps.getClearValue();
-		if (clearValue==null) {
+		if (clearValue == null) {
 			// nothing to do
 			return;
 		}
 		ps.setClearValue(null);
-		encrypt(stringToElement(clearValue),ps);
+		encrypt(stringToElement(clearValue), ps);
 	}
 
 	private static SecretKey getSecretKey(String digest, char[] password) throws EncryptionException {

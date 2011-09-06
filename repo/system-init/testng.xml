@@ -19,8 +19,8 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2010 Peter Prochazka               -->
 <!--                                                         -->
-<suite name="Suite" parallel="true">
-  <test name="Test">
+<suite name="Suite" parallel="none">
+  <test name="Test" parallel="none">
     <classes>
       <class name="com.evolveum.midpoint.init.ConfigurationLoadTest"/>
     </classes>

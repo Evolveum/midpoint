@@ -27,25 +27,28 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class ApplicationHomeSetup {
 
 	private static final transient Trace logger = TraceManager.getTrace(ApplicationHomeSetup.class);
+	private String MIDPOINT_HOME;
 
-	public void init() {
+	public void init(String midpointHome) {
 
-		if (System.getProperty("midpoint.home") == null || System.getProperty("midpoint.home").isEmpty()) {
+		MIDPOINT_HOME = midpointHome;
+		
+		if (System.getProperty(MIDPOINT_HOME) == null || System.getProperty(MIDPOINT_HOME).isEmpty()) {
 			logger.warn("*****************************************************************************************");
-			logger.warn("midpoint.home is not set !!! using default configuration, form more information see http://wiki.evolveum.com/display/midPoint/");
+			logger.warn(MIDPOINT_HOME + " is not set ! Using default configuration, for more information see http://wiki.evolveum.com/display/midPoint/");
 			logger.warn("*****************************************************************************************");
 
 			System.out.println("*******************************************************************************");
-			System.out.println("midpoint.home is not set !!! using default configuration, form more information");
+			System.out.println(MIDPOINT_HOME + " is not set ! Using default configuration, for more information");
 			System.out.println("                 see http://wiki.evolveum.com/display/midPoint/");
 			System.out.println("*******************************************************************************");
 			return;
 		}
 
-		logger.info("midpoint.home = " + System.getProperty("midpoint.home"));
-		System.out.println("midpoint.home = " + System.getProperty("midpoint.home"));
+		logger.info(MIDPOINT_HOME +" = " + System.getProperty(MIDPOINT_HOME));
+		System.out.println(MIDPOINT_HOME + " = " + System.getProperty(MIDPOINT_HOME));
 
-		String mh = System.getProperty("midpoint.home");
+		String mh = System.getProperty(MIDPOINT_HOME);
 
 		if (!checkDirectoryExistence(mh)) {
 			createDir(mh);
@@ -70,14 +73,12 @@ public class ApplicationHomeSetup {
 		 */
 
 		if (!checkDirectoryExistence(dir + "/icf-connectors")) {
-			// TODO what now ?
 			logger.warn("Missing directory " + dir + "/icf-connectors/. Regeneration in progress...");
 			createDir(dir + "/icf-connectors");
 			System.setProperty("midpoint.dir.icf", dir + "/icf-connectors");
 		}
 
 		if (!checkDirectoryExistence(dir + "/idm-legacy")) {
-			// TODO what now ?
 			logger.warn("Missing directory " + dir + "/idm-legacy/. Regeneration in progress...");
 			createDir(dir + "/idm-legacy");
 			System.setProperty("midpoint.dir.legacy", dir + "/idm-legacy");
@@ -118,11 +119,16 @@ public class ApplicationHomeSetup {
 	 */
 	private void createDir(String dir) {
 		File d = new File(dir);
+		if ( d.exists() && d.isDirectory()) {
+			return;
+		}
 		Boolean st = d.mkdirs();
 		if (!st) {
 			logger.error("Unable to create directory " + dir + " as user " + System.getProperty("user.name"));
-			throw new SystemException("Unable to create directory " + dir + " as user "
-					+ System.getProperty("user.name"));
+			//throw new SystemException("Unable to create directory " + dir + " as user "
+			//		+ System.getProperty("user.name"));
 		}
 	}
+
+	
 }

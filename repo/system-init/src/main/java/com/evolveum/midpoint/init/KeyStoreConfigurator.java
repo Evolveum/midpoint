@@ -18,6 +18,8 @@
  */
 package com.evolveum.midpoint.init;
 
+import java.io.File;
+
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.configuration.BaseConfiguration;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.crypto.AESProtector;
+import com.evolveum.midpoint.util.ClassPathUtil;
 
 /**
  * @author mamut
@@ -58,6 +61,17 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 		this.setKeyStorePassword(c.getString("keyStorePassword"));
 		this.setDefaultKeyAlias(c.getString("defaultKeyAlias"));
 		this.setEncryptionKeyDigest(c.getString("encryptionKeyDigest"));
+		//Extract file if not exists
+		if (c.getString("midpoint.home") != null) {
+			File ks = new File(this.getKeyStorePath());
+			if (!ks.exists()) {
+				//hack to try 2 class paths
+				if ( !ClassPathUtil.extractFileFromClassPath("com/../../keystore.jceks", this.getKeyStorePath())) {
+					ClassPathUtil.extractFileFromClassPath("keystore.jceks", this.getKeyStorePath());
+				}
+			}
+		}
+		
 		super.init();
 	}
 	/* (non-Javadoc)

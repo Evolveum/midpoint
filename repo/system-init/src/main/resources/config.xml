@@ -28,7 +28,7 @@
 			<embedded>true</embedded> <!-- embedded is applicable only if runServer > true -->
 			<shutdown>true</shutdown>
 			<dropDatabase>false</dropDatabase>
-			<initialDataPath></initialDataPath> <!-- initialDataPath - path containing xmls that should be loaded into DB -->
+			<initialDataPath>${midpoint.home}</initialDataPath> <!-- initialDataPath - path containing xmls that should be loaded into DB -->
 			<databaseName>midPoint</databaseName> <!-- database name -->
 			<!-- client connection properties -->
 			<host>localhost</host>
@@ -38,11 +38,10 @@
 		</repository>
 		<icf>
 			<scanClasspath>true</scanClasspath>
-			<scanDirectory>/C:/tmp</scanDirectory>
-			<scanDirectory>/var/tmp</scanDirectory>
+			<scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
 		</icf>
 		<keystore>
-			<keyStorePath>com/../../keystore.jceks</keyStorePath>
+			<keyStorePath>${midpoint.home}/keystore.jceks</keyStorePath>
 			<keyStorePassword>changeit</keyStorePassword>
 			<defaultKeyAlias>default</defaultKeyAlias>
 			<encryptionKeyDigest>HF6JRsNMeJt6alihT44CXKgpe0c=</encryptionKeyDigest>
