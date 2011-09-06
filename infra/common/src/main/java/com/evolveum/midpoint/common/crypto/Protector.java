@@ -17,7 +17,7 @@ public interface Protector {
 	 *             if protectedString argument is null or EncryptedData in
 	 *             protectedString argument is null
 	 */
-	public abstract String decryptString(ProtectedStringType protectedString) throws EncryptionException;
+	String decryptString(ProtectedStringType protectedString) throws EncryptionException;
 
 	/**
 	 * 
@@ -30,8 +30,7 @@ public interface Protector {
 	 *             if protectedString argument is null or EncryptedData in
 	 *             protectedString argument is null
 	 */
-	@SuppressWarnings("unchecked")
-	public abstract Element decrypt(ProtectedStringType protectedString) throws EncryptionException;
+	Element decrypt(ProtectedStringType protectedString) throws EncryptionException;
 
 	/**
 	 * 
@@ -42,7 +41,7 @@ public interface Protector {
 	 *             this is thrown probably in case JRE/JDK doesn't have JCE
 	 *             installed
 	 */
-	public abstract ProtectedStringType encryptString(String text) throws EncryptionException;
+	ProtectedStringType encryptString(String text) throws EncryptionException;
 
 	/**
 	 * 
@@ -53,13 +52,13 @@ public interface Protector {
 	 *             this is thrown probably in case JRE/JDK doesn't have JCE
 	 *             installed
 	 */
-	public abstract ProtectedStringType encrypt(Element plain) throws EncryptionException;
+	ProtectedStringType encrypt(Element plain) throws EncryptionException;
 
 	/**
 	 * Encrypts the ProtectedStringType "in place".
 	 * @param ps
 	 * @throws EncryptionException 
 	 */
-	public abstract void encrypt(ProtectedStringType ps) throws EncryptionException;
+	void encrypt(ProtectedStringType ps) throws EncryptionException;
 
 }

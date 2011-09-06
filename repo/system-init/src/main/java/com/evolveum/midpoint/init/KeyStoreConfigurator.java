@@ -43,7 +43,6 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 	private String keyStorePath;
 	private String keyStorePassword;
 	private String encryptionKeyAlias;
-	private String encryptionKeyDigest;
 		
 	@Autowired(required=true)
 	private MidpointConfiguration midpointConfiguration;
@@ -60,7 +59,6 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 		this.setKeyStorePath(c.getString("keyStorePath"));
 		this.setKeyStorePassword(c.getString("keyStorePassword"));
 		this.setEncryptionKeyAlias(c.getString("encryptionKeyAlias"));
-		this.setEncryptionKeyDigest(c.getString("encryptionKeyDigest"));
 		//Extract file if not exists
 		if (c.getString("midpoint.home") != null) {
 			File ks = new File(this.getKeyStorePath());
@@ -91,7 +89,6 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 		 config.setProperty("keyStorePath", this.getKeyStorePath());
 		 config.setProperty("keyStorePassword" , this.getKeyStorePassword());
 		 config.setProperty("defaultKeyAlias", this.getEncryptionKeyAlias());
-		 config.setProperty("encryptionKeyDigest", this.getEncryptionKeyDigest());
 		 return config;
 	}
 
@@ -137,24 +134,9 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 	/**
 	 * @param defaultKeyAlias the defaultKeyAlias to set
 	 */
+	@Override
 	public void setEncryptionKeyAlias(String keyAlias) {
 		this.encryptionKeyAlias = keyAlias;
 		super.setEncryptionKeyAlias(keyAlias);
-	}
-
-	/**
-	 * @return the encryptionKeyDigest
-	 */
-	public String getEncryptionKeyDigest() {
-		return encryptionKeyDigest;
-	}
-
-	/**
-	 * @param encryptionKeyDigest the encryptionKeyDigest to set
-	 */
-	@Override
-	public void setEncryptionKeyDigest(String encryptionKeyDigest) {
-		this.encryptionKeyDigest = encryptionKeyDigest;
-		super.setEncryptionKeyDigest(encryptionKeyDigest);
 	}
 }

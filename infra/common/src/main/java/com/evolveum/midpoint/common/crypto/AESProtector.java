@@ -20,11 +20,11 @@ package com.evolveum.midpoint.common.crypto;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.net.URL;
 import java.security.Key;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
 import java.util.Enumeration;
 import java.util.List;
@@ -64,16 +64,17 @@ public class AESProtector implements Protector {
 
 	private static final Trace LOGGER = TraceManager.getTrace(AESProtector.class);
 	private static final QName QNAME_KEY_NAME = new QName("http://www.w3.org/2000/09/xmldsig#", "KeyName");
-	private static final QName QNAME_ENCRYPTED_DATA = new QName("http://www.w3.org/2001/04/xmlenc#", "EncryptedData");
+	private static final QName QNAME_ENCRYPTED_DATA = new QName("http://www.w3.org/2001/04/xmlenc#",
+			"EncryptedData");
 	private static final String KEY_DIGEST_TYPE = "SHA1";
+	private static final char[] KEY_PASSWORD = "midpoint".toCharArray();
+	private static final String ENCRYPTED_ELEMENT_NAME = "value";
 
 	private String keyStorePath;
 	private String keyStorePassword;
-	private String encryptionKeyDigest;
-	private String encryptionKeyAlias;
+	private String encryptionKeyAlias = "default";
 
 	private static final KeyStore keyStore;
-	private static final String ENCRYPTED_ELEMENT_NAME = "value";
 
 	static {
 		Init.init();
@@ -97,11 +98,12 @@ public class AESProtector implements Protector {
 				LOGGER.info("Using file keystore at {}", getKeyStorePath());
 				if (!f.canRead()) {
 					LOGGER.error("Provided keystore file {} is unreadable.", getKeyStorePath());
-					throw new EncryptionException("Provided keystore file " + getKeyStorePath() + " is unreadable.");
+					throw new EncryptionException("Provided keystore file " + getKeyStorePath()
+							+ " is unreadable.");
 				}
 				stream = new FileInputStream(f);
 
-			// Use class path keystore
+				// Use class path keystore
 			} else {
 				LOGGER.warn("Using default keystore from classpath ({}).", getKeyStorePath());
 				// Read from class path
@@ -110,61 +112,48 @@ public class AESProtector implements Protector {
 				// ugly dirty hack to have second chance to find keystore on
 				// class path
 				if (stream == null) {
-					stream = this.getClass().getClassLoader().getResourceAsStream("com/../../" + getKeyStorePath());
+					stream = this.getClass().getClassLoader()
+							.getResourceAsStream("com/../../" + getKeyStorePath());
 				}
 			}
 			// Test if we have valid stream
 			if (stream == null) {
-				throw new EncryptionException("Couldn't load keystore as resource '" + getKeyStorePath() + "'");
+				throw new EncryptionException("Couldn't load keystore as resource '" + getKeyStorePath()
+						+ "'");
 			}
 			// Load keystore
-			keyStore.load(stream, keyStorePassword.toCharArray());
+			keyStore.load(stream, getKeyStorePassword().toCharArray());
 			stream.close();
 
 		} catch (Exception ex) {
-			LOGGER.error("Unable to work with heystore " + getKeyStorePath() + ":" + ex.getMessage(), ex);
+			LOGGER.error("Unable to work with heystore {}, reason {}.",
+					new Object[] { getKeyStorePath(), ex.getMessage() }, ex);
 			throw new SystemException(ex.getMessage(), ex);
 		}
 	}
 
 	/**
+	 * @return the encryptionKeyAlias
 	 * 
-	 * @param encryptionKeyDigest
-	 *            SHA1 digest of encryption key {@link SecretKey} from keystore
-	 * @throws IllegalArgumentException
+	 * @throws IllegalStateException
 	 *             if encryption key digest is null or empty string
 	 */
-	public void setEncryptionKeyDigest(String encryptionKeyDigest) {
-		Validate.notEmpty(encryptionKeyDigest, "Encryption key digest must not be null or empty.");
-		this.encryptionKeyDigest = encryptionKeyDigest;
-	}
-
-	private String getEncryptionKeyDigest() {
-		if (StringUtils.isEmpty(encryptionKeyDigest)) {
-			throw new IllegalStateException("Encryption key digest was not defined (is null or empty).");
-		}
-		return encryptionKeyDigest;
-	}
-	
-	
-
-	/**
-	 * @return the encryptionKeyAlias
-	 */
 	private String getEncryptionKeyAlias() {
+		if (StringUtils.isEmpty(encryptionKeyAlias)) {
+			throw new IllegalStateException("Encryption key alias was not defined (is null or empty).");
+		}
 		return encryptionKeyAlias;
 	}
 
 	/**
-	 * @param encryptionKeyAlias 
-	 * 			Alias of the encryption key {@link SecretKey} which is used for encryption
+	 * @param encryptionKeyAlias
+	 *            Alias of the encryption key {@link SecretKey} which is used
+	 *            for encryption
 	 * @throws IllegalArgumentException
 	 *             if encryption key digest is null or empty string
 	 */
-	public  void setEncryptionKeyAlias(String encryptionKeyAlias) {
-		if (StringUtils.isEmpty(encryptionKeyAlias)) {
-			throw new IllegalStateException("Encryption key alias was not defined (is null or empty).");
-		}
+	public void setEncryptionKeyAlias(String encryptionKeyAlias) {
+		Validate.notEmpty(encryptionKeyAlias, "Encryption key alias must not be null or empty.");
 		this.encryptionKeyAlias = encryptionKeyAlias;
 	}
 
@@ -237,7 +226,7 @@ public class AESProtector implements Protector {
 
 		Document document;
 		try {
-			String digest = getEncryptionKeyDigest();
+			String digest = getDefaultSecretKeyDigest();
 			if (encrypted.getKeyInfo() != null) {
 				KeyInfoType keyInfo = encrypted.getKeyInfo();
 				List<Object> infos = keyInfo.getContent();
@@ -253,7 +242,7 @@ public class AESProtector implements Protector {
 				}
 			}
 
-			SecretKey secret = getSecretKey(digest, getKeyStorePassword().toCharArray());
+			SecretKey secret = getSecretKeyByDigest(digest);
 			XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_256);
 			xmlCipher.init(XMLCipher.DECRYPT_MODE, secret);
 
@@ -312,28 +301,29 @@ public class AESProtector implements Protector {
 		return encrypt(plain, new ProtectedStringType());
 	}
 
-	private ProtectedStringType encrypt(Element plain, ProtectedStringType protectedString) throws EncryptionException {
+	private ProtectedStringType encrypt(Element plain, ProtectedStringType protectedString)
+			throws EncryptionException {
 		if (plain == null) {
 			return null;
 		}
 
 		try {
-			SecretKey secret = getSecretKey(getEncryptionKeyDigest(), getKeyStorePassword().toCharArray());
+			SecretKey secret = getSecretKeyByAlias(getEncryptionKeyAlias());
 			XMLCipher xmlCipher = XMLCipher.getInstance(XMLCipher.AES_256);
 			xmlCipher.init(XMLCipher.ENCRYPT_MODE, secret);
 
-			MessageDigest sha1 = MessageDigest.getInstance(KEY_DIGEST_TYPE);
 			Document document = plain.getOwnerDocument();
 			if (document == null) {
 				document = DOMUtil.getDocument();
 				document.appendChild(plain);
 			}
 			KeyInfo keyInfo = new KeyInfo(document);
-			keyInfo.addKeyName(Base64.encode(sha1.digest(secret.getEncoded())));
+			keyInfo.addKeyName(getSecretKeyDigest(secret));
 			xmlCipher.getEncryptedData().setKeyInfo(keyInfo);
 
 			document = xmlCipher.doFinal(document, plain);
-			EncryptedDataType data = (EncryptedDataType) JAXBUtil.unmarshal(document.getDocumentElement()).getValue();
+			EncryptedDataType data = (EncryptedDataType) JAXBUtil.unmarshal(document.getDocumentElement())
+					.getValue();
 			protectedString.setEncryptedData(data);
 		} catch (EncryptionException ex) {
 			throw ex;
@@ -362,9 +352,40 @@ public class AESProtector implements Protector {
 		encrypt(stringToElement(clearValue), ps);
 	}
 
-	private static SecretKey getSecretKey(String digest, char[] password) throws EncryptionException {
+	private String getSecretKeyDigest(SecretKey key) throws EncryptionException {
+		MessageDigest sha1 = null;
 		try {
-			MessageDigest sha1 = MessageDigest.getInstance(KEY_DIGEST_TYPE);
+			sha1 = MessageDigest.getInstance(KEY_DIGEST_TYPE);
+		} catch (NoSuchAlgorithmException ex) {
+			throw new EncryptionException(ex.getMessage(), ex);
+		}
+
+		return Base64.encode(sha1.digest(key.getEncoded()));
+	}
+
+	private String getDefaultSecretKeyDigest() throws EncryptionException {
+		return getSecretKeyDigest(getSecretKeyByAlias(getEncryptionKeyAlias()));
+	}
+
+	private SecretKey getSecretKeyByAlias(String alias) throws EncryptionException {
+		Key key = null;
+		try {
+			key = keyStore.getKey(alias, KEY_PASSWORD);
+		} catch (Exception ex) {
+			throw new EncryptionException("Couldn't obtain key '" + alias + "' from keystore, reason: "
+					+ ex.getMessage(), ex);
+		}
+
+		if (key == null || !(key instanceof SecretKey)) {
+			throw new EncryptionException("Key with alias '" + alias
+					+ "' is not instance of SecretKey, but '" + key + "'.");
+		}
+
+		return (SecretKey) key;
+	}
+
+	private SecretKey getSecretKeyByDigest(String digest) throws EncryptionException {
+		try {
 			Enumeration<String> aliases = keyStore.aliases();
 			while (aliases.hasMoreElements()) {
 				String alias = aliases.nextElement();
@@ -373,18 +394,18 @@ public class AESProtector implements Protector {
 				}
 
 				try {
-					Key key = keyStore.getKey(alias, password);
+					Key key = keyStore.getKey(alias, KEY_PASSWORD);
 					if (!(key instanceof SecretKey)) {
 						continue;
 					}
 
-					String keyHash = Base64.encode(sha1.digest(key.getEncoded()));
+					String keyHash = getSecretKeyDigest((SecretKey) key);
 					if (digest.equals(keyHash)) {
 						return (SecretKey) key;
 					}
 				} catch (UnrecoverableKeyException ex) {
-					LOGGER.trace("Couldn't recover key {} from keystore, reason: {}",
-							new Object[] { alias, ex.getMessage() });
+					LOGGER.trace("Couldn't recover key {} from keystore, reason: {}", new Object[] { alias,
+							ex.getMessage() });
 				}
 			}
 		} catch (Exception ex) {
@@ -393,5 +414,4 @@ public class AESProtector implements Protector {
 
 		throw new EncryptionException("Key '" + digest + "' is not in keystore.");
 	}
-
 }
