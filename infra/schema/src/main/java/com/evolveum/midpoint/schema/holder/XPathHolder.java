@@ -47,11 +47,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 /**
  *
  * TODO: documentation
- *
- * TODO: This should be refactored to XPathHolder to avoid confusing with
- * generated XPathType
- *
- * Assumes relative XPath, but somhow can also work with absolute XPaths.
+ * 
+ * Assumes relative XPath, but somehow can also work with absolute XPaths.
  *
  * @author semancik
  */
