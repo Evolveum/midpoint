@@ -33,6 +33,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 final class ProcessorConstants {
 
 	// Annotations
+	
+	static final QName A_RESOURCE_OBJECT = new QName(SchemaConstants.NS_RESOURCE, "resourceObject");
+
 	static final QName A_IDENTIFIER = new QName(SchemaConstants.NS_RESOURCE, "identifier");
 
 	static final QName A_SECONDARY_IDENTIFIER = new QName(SchemaConstants.NS_RESOURCE, "secondaryIdentifier");
@@ -78,4 +81,6 @@ final class ProcessorConstants {
 
 	// Annotation attributes
 	static final QName A_ATTR_DEFAULT = new QName(SchemaConstants.NS_RESOURCE, "default");
+	
+	static final QName A_PROPERTY_CONTAINER = new QName(SchemaConstants.NS_ANNOTATION,"propertyContainer");
 }

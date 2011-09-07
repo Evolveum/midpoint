@@ -25,6 +25,7 @@ import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -61,25 +62,46 @@ import org.w3c.dom.Element;
  * @author Radovan Semancik
  * 
  */
-public class PropertyContainerDefinition extends Definition {
+public class PropertyContainerDefinition extends ItemDefinition {
 
 	private static final long serialVersionUID = -5068923696147960699L;
-	private Set<PropertyDefinition> propertyDefinitions;
-	private String schemaNamespace;
+	protected String schemaNamespace;
+	protected ComplexTypeDefinition complexTypeDefinition;
+	protected Schema schema;
 
-	PropertyContainerDefinition(QName name, QName defaultName, QName typeName) {
-		super(name, defaultName, typeName);
-		propertyDefinitions = new HashSet<PropertyDefinition>();
+	PropertyContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition) {
+		super(name, complexTypeDefinition.getDefaultName(), complexTypeDefinition.getTypeName());
+		this.complexTypeDefinition = complexTypeDefinition;
 	}
 
-	PropertyContainerDefinition(QName name, QName defaultName, QName typeName, String schemaNamespace) {
-		super(name, defaultName, typeName);
-		propertyDefinitions = new HashSet<PropertyDefinition>();
-		this.schemaNamespace = schemaNamespace;
+	PropertyContainerDefinition(Schema schema, QName name, ComplexTypeDefinition complexTypeDefinition) {
+		super(name, complexTypeDefinition.getDefaultName(), complexTypeDefinition.getTypeName());
+		this.complexTypeDefinition = complexTypeDefinition;
+		if (schema == null) {
+			throw new IllegalArgumentException("Schema can't be null.");
+		}
+		this.schema = schema;
 	}
 
 	protected String getSchemaNamespace() {
-		return schemaNamespace;
+		return schema.getNamespace();
+	}
+	
+	ComplexTypeDefinition getComplexTypeDefinition() {
+		return complexTypeDefinition;
+	}
+	
+	protected <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
+		for (ItemDefinition def : getDefinitions()) {
+			if (clazz.isAssignableFrom(def.getClass()) && name.equals(def.getName())) {
+				return (T) def;
+			}
+		}
+		return null;
+	}
+	
+	public ItemDefinition findItemDefinition(QName name) {
+		return findItemDefinition(name,ItemDefinition.class);
 	}
 	
 	/**
@@ -92,18 +114,22 @@ public class PropertyContainerDefinition extends Definition {
 	 * @return found property definition of null
 	 */
 	public PropertyDefinition findPropertyDefinition(QName name) {
-		return findPropertyDefinition(name,PropertyDefinition.class);
-	}
-
-	protected <T extends PropertyDefinition> T findPropertyDefinition(QName name, Class<T> clazz) {
-		for (PropertyDefinition def : propertyDefinitions) {
-			if (name.equals(def.getName())) {
-				return (T) def;
-			}
-		}
-		return null;
+		return findItemDefinition(name,PropertyDefinition.class);
 	}
 	
+	/**
+	 * TODO
+	 * Returns set of property definitions.
+	 * 
+	 * The set contains all property definitions of all types that were parsed.
+	 * Order of definitions is insignificant.
+	 * 
+	 * @return set of definitions
+	 */
+	public Set<ItemDefinition> getDefinitions() {
+		return complexTypeDefinition.getDefinitions();
+	}
+
 	/**
 	 * Returns set of property definitions.
 	 * 
@@ -112,17 +138,16 @@ public class PropertyContainerDefinition extends Definition {
 	 * 
 	 * @return set of definitions
 	 */
-	public Set<PropertyDefinition> getDefinitions() {
-		if (propertyDefinitions == null) {
-			propertyDefinitions = new HashSet<PropertyDefinition>();
+	public Set<PropertyDefinition> getPropertyDefinitions() {
+		Set<PropertyDefinition> props = new HashSet<PropertyDefinition>();
+		for (ItemDefinition def: complexTypeDefinition.getDefinitions()) {
+			if (def instanceof PropertyDefinition) {
+				props.add((PropertyDefinition)def);
+			}
 		}
-		return propertyDefinitions;
+		return props;
 	}
-	
-	void setPropertyDefinitions(Set<PropertyDefinition> propertyDefinitions) {
-		this.propertyDefinitions = propertyDefinitions;
-	}
-	
+
 	public PropertyContainer instantiate() {
 		return new PropertyContainer(getNameOrDefaultName(), this);
 	}
@@ -131,6 +156,51 @@ public class PropertyContainerDefinition extends Definition {
 		return new PropertyContainer(name, this);
 	}
 	
+	/**
+	 * @param domElement
+	 * @return
+	 * @throws SchemaException 
+	 */
+	public PropertyContainer parsePropertyContainer(Element domElement) throws SchemaException {
+		QName domElementName = DOMUtil.getQName(domElement);
+		PropertyContainer container = instantiate(domElementName);
+		List<Object> elements = JAXBUtil.listChildElements(domElement);
+		Set<Item> newItems = parseItems(elements);
+		container.getItems().addAll(newItems);
+		return container;
+	}
+
+	public PropertyContainer parseItem(Object element) throws SchemaException {
+		List<Object> elements = new ArrayList<Object>();
+		elements.add(element);
+		return parseItem(elements);
+	}
+	
+	@Override
+	public PropertyContainer parseItem(List<Object> elements) throws SchemaException {
+		if (elements == null || elements.isEmpty()) {
+			return null;
+		}
+		if (elements.size()>1) {
+			throw new IllegalArgumentException("Cannot parse container from more than one element");
+		}
+		return parseItem(elements.get(0),PropertyContainer.class);
+	}
+	
+	/**
+	 * @param element
+	 * @param class1
+	 * @return
+	 * @throws SchemaException 
+	 */
+	protected <T extends PropertyContainer> T parseItem(Object element, Class<T> type) throws SchemaException {
+		QName elementQName = JAXBUtil.getElementQName(element);
+		T container = (T) this.instantiate(elementQName);
+		List<Object> childElements = JAXBUtil.listChildElements(element);
+		container.getItems().addAll(parseItems(childElements));
+		return container;
+	}
+
 	/**
 	 * Parses properties from a list of elements.
 	 * 
@@ -145,25 +215,10 @@ public class PropertyContainerDefinition extends Definition {
 	 * @return set of deserialized properties
 	 * @throws SchemaProcessorException 
 	 */
-	public Set<Property> parseProperties(List<? extends Object> elements) throws SchemaException {
-		return parseProperties(elements,Property.class);
+	public Set<Item> parseItems(List<Object> elements) throws SchemaException {
+		return parseItems(elements,null);
 	}
-	
-	/**
-	 * Same as parseProperties(List<Element> elements), but casts returned
-	 * properties to a specific type. It is used by subclasses, such as
-	 * ResourceObjectDefinition that return Attribute instead of Property.
-	 * 
-	 * @param <T> class to return
-	 * @param elements elements list of elements with serialized properties
-	 * @param clazz class to return
-	 * @return set of deserialized properties
-	 * @throws SchemaProcessorException 
-	 */
-	protected <T extends Property> Set<T> parseProperties(List<? extends Object> elements, Class<T> clazz) throws SchemaException {
-		return parseProperties(elements,clazz,null);
-	}
-	
+		
 	/**
 	 * Same as parseProperties(List<Element> elements, Class<T> clazz), but
 	 * selects only some of the properties to parse. Other properties are
@@ -173,18 +228,25 @@ public class PropertyContainerDefinition extends Definition {
 	 * Used by subclasses.
 	 * @throws SchemaProcessorException 
 	 */
-	protected <T extends Property> Set<T> parseProperties(List<? extends Object> elements, Class<T> clazz, Set<? extends PropertyDefinition> selection) throws SchemaException {
+	protected Set<Item> parseItems(List<Object> elements, Set<? extends ItemDefinition> selection) throws SchemaException {
 		
 		// TODO: more robustness in handling schema violations (min/max constraints, etc.)
 		
-		Set<T> props = new HashSet<T>();
+		Set<Item> props = new HashSet<Item>();
 		
 		// Iterate over all the XML elements there. Each element is
 		// an attribute.
-		for(int i=0;i<elements.size();i++) {
+		for(int i = 0; i < elements.size(); i++) {
 			Object propElement = elements.get(i);
-
 			QName elementQName = JAXBUtil.getElementQName(propElement);
+			// Collect all elements with the same QName
+			List<Object> valueElements = new ArrayList<Object>();
+			valueElements.add(propElement);
+			while (i + 1 < elements.size()
+					   && elementQName.equals(JAXBUtil.getElementQName(elements.get(i + 1)))) {
+					i++;
+					valueElements.add(elements.get(i));
+			}
 			
 			// If there was a selection filter specified, filter out the
 			// properties that are not in the filter.
@@ -192,7 +254,7 @@ public class PropertyContainerDefinition extends Definition {
 			// Quite an ugly code. TODO: clean it up
 			if (selection!=null) {
 				boolean selected=false;
-				for (PropertyDefinition selProdDef : selection) {
+				for (ItemDefinition selProdDef : selection) {
 					if (selProdDef.getNameOrDefaultName().equals(elementQName)) {
 						selected = true;
 					}
@@ -202,86 +264,18 @@ public class PropertyContainerDefinition extends Definition {
 				}
 			}
 			
-			// Find Attribute definition from the schema
-			PropertyDefinition propDef = findPropertyDefinition(elementQName);
-			if (propDef==null) {
-				throw new SchemaException("Property "+elementQName+" has no definition",elementQName);
+			// Find item definition from the schema
+			ItemDefinition def = findItemDefinition(elementQName);
+			if (def==null) {
+				throw new SchemaException("Item "+elementQName+" has no definition",elementQName);
 			}
-			T prop = (T) propDef.instantiate();
-			Set<Object> propValues = prop.getValues();
-
-			if (propDef.isMultiValue()) {
-				// Special handling for multivalue attributes. If the type
-				// of the property is multivalued, the XML element may appear
-				// several times.
-
-				// Convert the first value
-				Object value;
-				try {
-					value = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
-				} catch (JAXBException e) {
-					throw new SchemaException("Schema error in property "+elementQName+" : "+e.getMessage(),e);
-				}
-				propValues.add(value);
-				// Loop over until the elements have the same local name
-				while (i + 1 < elements.size()
-					   && elementQName.equals(JAXBUtil.getElementQName(elements.get(i + 1)))) {
-					i++;
-					propElement = elements.get(i);
-					// Convert all the remaining values
-					Object avalue;
-					try {
-						avalue = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
-					} catch (JAXBException e) {
-						throw new SchemaException("Schema error in property "+elementQName+" : "+e.getMessage(),e);
-					}
-					propValues.add(avalue);
-				}
-
-			} else {
-				// Single-valued properties are easy to convert
-				Object value;
-				try {
-					value = XsdTypeConverter.toJavaValue(propElement, propDef.getTypeName());
-				} catch (JAXBException e) {
-					throw new SchemaException("Schema error in property "+elementQName+" : "+e.getMessage(),e);
-				}
-				propValues.add(value);
-			}
-			props.add(prop);
+			
+			Item item = def.parseItem(valueElements);	
+			props.add(item);
 		}
 		return props;
 	}
 	
-	/**
-	 * Serializes provided properties to DOM or JAXB Elements.
-	 * 
-	 * The method assumes that the provided properties are part of the property container
-	 * that this definition defines. It will produce a list of DOM elements containing
-	 * all the properties serialized to DOM.
-	 * 
-	 * @see Property
-	 * 
-	 * @param properties set of properties to serialize
-	 * @param doc DOM document
-	 * @return serialized properties
-	 * @throws SchemaProcessorException in case property definition is not found or is inconsistent
-	 */
-	public List<Object> serializePropertiesToDom(Set<Property> properties, Document doc) throws SchemaProcessorException {
-		List<Object> elements = new ArrayList<Object>();
-		// This is not really correct. We should follow the ordering of elements
-		// in the schema so we produce valid XML
-		// TODO: FIXME
-		for (Property prop : properties) {
-			if (prop.getDefinition()!=null) {
-				elements.addAll(prop.serializeToDom(doc));
-			} else {
-				elements.addAll(prop.serializeToDom(doc,findPropertyDefinition(prop.getName())));
-			}
-		}
-		return elements;
-	}
-
 	@Override
 	public String dump(int indent) {
 		StringBuilder sb = new StringBuilder();
@@ -290,37 +284,37 @@ public class PropertyContainerDefinition extends Definition {
 		}
 		sb.append(toString());
 		sb.append("\n");
-		for (PropertyDefinition def : getDefinitions()) {
+		for (Definition def : getDefinitions()) {
 			sb.append(def.dump(indent+1));
 		}
 		return sb.toString();
 	}
 
-	public PropertyDefinition createPropertyDefinifion(QName name, QName typeName) {
+	public PropertyDefinition createPropertyDefinition(QName name, QName typeName) {
 		PropertyDefinition propDef = new PropertyDefinition(name, typeName);
-		propertyDefinitions.add(propDef);
+		getDefinitions().add(propDef);
 		return propDef;
 	}
 	
 	// Creates reference to other schema
 	// TODO: maybe check if the name is in different namespace
 	// TODO: maybe create entirely new concept of property reference?
-	public PropertyDefinition createPropertyDefinifion(QName name) {
+	public PropertyDefinition createPropertyDefinition(QName name) {
 		PropertyDefinition propDef = new PropertyDefinition(name);
-		propertyDefinitions.add(propDef);
+		getDefinitions().add(propDef);
 		return propDef;
 	}
 
 	public PropertyDefinition createPropertyDefinition(String localName, QName typeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
-		return createPropertyDefinifion(name,typeName);
+		return createPropertyDefinition(name,typeName);
 	}
 
 	
-	public PropertyDefinition createPropertyDefinifion(String localName, String localTypeName) {
+	public PropertyDefinition createPropertyDefinition(String localName, String localTypeName) {
 		QName name = new QName(getSchemaNamespace(),localName);
 		QName typeName = new QName(getSchemaNamespace(),localTypeName);
-		return createPropertyDefinifion(name,typeName);
+		return createPropertyDefinition(name,typeName);
 	}
 
 
@@ -328,7 +322,7 @@ public class PropertyContainerDefinition extends Definition {
 	 * @return
 	 */
 	public boolean isEmpty() {
-		return propertyDefinitions.isEmpty();
+		return complexTypeDefinition.isEmpty();
 	}
 
 }

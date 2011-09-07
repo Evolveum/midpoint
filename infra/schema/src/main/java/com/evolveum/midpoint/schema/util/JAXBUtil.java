@@ -28,6 +28,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -45,6 +47,7 @@ import org.apache.commons.io.IOUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -476,4 +479,50 @@ public final class JAXBUtil {
 		}
 	}
 
+	/**
+	 * Looks for an element with specified name. Considers both DOM and JAXB elements.
+	 * Assumes single element instance in the list.
+	 * @param elements
+	 * @param elementName
+	 */
+	public static Object findElement(List<Object> elements, QName elementName) {
+		if (elements==null) {
+			return null;
+		}
+		for (Object element : elements) {
+			if (elementName.equals(getElementQName(element))) {
+				return element;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * @param configurationPropertiesElement
+	 * @return
+	 */
+	public static List<Object> listChildElements(Object parentElement) {
+		if (parentElement==null) {
+			return null;
+		}
+		List<Object> childElements = new ArrayList<Object>();
+		if (parentElement instanceof Element) {
+			Element parentEl = (Element) parentElement;
+			NodeList childNodes = parentEl.getChildNodes();
+			for (int i = 0; i < childNodes.getLength(); i++) {
+				Node item = childNodes.item(i);
+				if (item.getNodeType() == Node.ELEMENT_NODE) {
+					childElements.add(item);
+				}
+			}
+		} else if (parentElement instanceof JAXBElement) {
+			// TODO: implement this
+			// Look for @XsdAnyElement annotation and return the list
+			throw new UnsupportedOperationException("Not implemented yet");
+		} else {
+		throw new IllegalArgumentException("Not an element: " + parentElement + " ("
+				+ parentElement.getClass().getName() + ")");
+		}
+		return childElements;
+	}
 }

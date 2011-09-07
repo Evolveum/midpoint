@@ -31,8 +31,10 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 
 
@@ -60,10 +62,8 @@ import com.evolveum.midpoint.schema.exception.SystemException;
  * @author Radovan Semancik
  * 
  */
-public class Property {
+public class Property extends Item {
 
-	private QName name;
-	private PropertyDefinition definition;
 	private Set<Object> values;
 
 	public Property() {
@@ -71,23 +71,17 @@ public class Property {
 	}
 
 	public Property(QName name) {
-		super();
-		this.name = name;
-		this.definition = null;
+		super(name);
 		this.values = new HashSet<Object>();
 	}
 
 	public Property(QName name, PropertyDefinition definition) {
-		super();
-		this.name = name;
-		this.definition = definition;
+		super(name,definition);
 		this.values = new HashSet<Object>();
 	}
 
 	public Property(QName name, PropertyDefinition definition, Set<Object> values) {
-		super();
-		this.name = name;
-		this.definition = definition;
+		super(name,definition);
 		this.values = values;
 	}
 
@@ -100,38 +94,7 @@ public class Property {
 	 * @return applicable property definition
 	 */
 	public PropertyDefinition getDefinition() {
-		return definition;
-	}
-
-	/**
-	 * Returns the name of the property.
-	 * 
-	 * The name is a QName. It uniquely defines a property.
-	 * 
-	 * The name may be null, but such a property will not work.
-	 * 
-	 * The name is the QName of XML element in the XML representation.
-	 * 
-	 * @return property name
-	 */
-	public QName getName() {
-		return name;
-	}
-
-	/**
-	 * Sets the name of the property.
-	 * 
-	 * The name is a QName. It uniquely defines a property.
-	 * 
-	 * The name may be null, but such a property will not work.
-	 * 
-	 * The name is the QName of XML element in the XML representation.
-	 * 
-	 * @param name
-	 *            the name to set
-	 */
-	public void setName(QName name) {
-		this.name = name;
+		return (PropertyDefinition) definition;
 	}
 
 	/**
@@ -229,34 +192,6 @@ public class Property {
 		values.clear();
 		values.add(value);
 	}
-
-	/**
-	 * Returns a display name for the property type.
-	 * 
-	 * Returns null if the display name cannot be determined.
-	 * 
-	 * The display name is fetched from the definition. If no definition
-	 * (schema) is available, the display name will not be returned.
-	 * 
-	 * @return display name for the property type
-	 */
-	public String getDisplayName() {
-		return getDefinition() == null ? null : getDefinition().getDisplayName();
-	}
-
-	/**
-	 * Returns help message defined for the property type.
-	 * 
-	 * Returns null if the help message cannot be determined.
-	 * 
-	 * The help message is fetched from the definition. If no definition
-	 * (schema) is available, the help message will not be returned.
-	 * 
-	 * @return help message for the property type
-	 */
-	public String getHelp() {
-		return getDefinition() == null ? null : getDefinition().getHelp();
-	}
 	
 	public PropertyModification createModification(PropertyModification.ModificationType modificationType, Set<Object> modifyValues) {
 
@@ -269,6 +204,37 @@ public class Property {
 		return new PropertyModification(this,modificationType,modifyValues);
 	}
 
+	@Override
+	public void serializeToDom(Node parentNode) throws SchemaException {
+		serializeToDom(parentNode,null,null,false);
+	}
+				
+	public void serializeToDom(Node parentNode, PropertyDefinition propDef, Set<Object> alternateValues, boolean recordType) throws SchemaException {
+	
+		if (propDef==null) {
+			propDef = getDefinition();
+		}
+		
+		Set<Object> serializeValues = getValues();
+		if (alternateValues!=null) {
+			serializeValues = alternateValues;
+		}
+		
+		for (Object val : serializeValues) {
+			// If we have a definition then try to use it. The conversion may be more realiable
+			// Otherwise the conversion will be governed by Java type
+			QName xsdType = null;
+			if (propDef!=null) {
+				xsdType = propDef.getTypeName();
+			}
+				try {
+					XsdTypeConverter.appendBelowNode(val,xsdType,getName(),parentNode,recordType);
+				} catch (JAXBException e) {
+					throw new SystemException("Unexpected JAXB problem while converting "+propDef.getTypeName()+" : "+e.getMessage(),e);
+				}
+		}			
+	}
+	
 	/**
 	 * Serializes property to DOM or JAXB element(s).
 	 * 
@@ -285,8 +251,8 @@ public class Property {
 	 * @return property serialized to DOM Element or JAXBElement
 	 * @throws SchemaProcessorException No definition or inconsistent definition 
 	 */
-	public List<Object> serializeToDom(Document doc) throws SchemaProcessorException {
-		return serializeToDom(doc,null,null,false);
+	public List<Object> serializeToJaxb(Document doc) throws SchemaException {
+		return serializeToJaxb(doc,null,null,false);
 	}
 	
 	/**
@@ -294,9 +260,9 @@ public class Property {
 	 * 
 	 * Package-private. Useful for some internal calls inside schema processor.
 	 */
-	List<Object> serializeToDom(Document doc,PropertyDefinition propDef) throws SchemaProcessorException {
+	List<Object> serializeToJaxb(Document doc,PropertyDefinition propDef) throws SchemaException {
 		// No need to record types, we have schema definition here
-		return serializeToDom(doc,propDef,null,false);
+		return serializeToJaxb(doc,propDef,null,false);
 	}
 	
 	/**
@@ -307,7 +273,7 @@ public class Property {
 	 * 
 	 * Package-private. Useful for some internal calls inside schema processor.
 	 */
-	List<Object> serializeToDom(Document doc,PropertyDefinition propDef, Set<Object> alternateValues, boolean recordType) throws SchemaProcessorException {
+	List<Object> serializeToJaxb(Document doc,PropertyDefinition propDef, Set<Object> alternateValues, boolean recordType) throws SchemaException {
 		
 		
 		// Try to locate definition
@@ -347,10 +313,6 @@ public class Property {
 	@Override
 	public String toString() {
 		return getClass().getSimpleName()+"("+getName()+"):"+getValues();
-	}
-
-	public String dump() {
-		return toString();
 	}
 
 }

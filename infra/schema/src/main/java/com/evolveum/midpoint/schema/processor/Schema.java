@@ -32,6 +32,9 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -60,9 +63,10 @@ public class Schema implements Dumpable, Serializable {
 
 	private static final long serialVersionUID = 5068618465625931984L;
 	private static final Trace LOGGER = TraceManager.getTrace(Schema.class);
+	static final String INDENT = "  ";
+	
 	private String namespace;
 	private Set<Definition> definitions;
-	static final String INDENT = "  ";
 
 	public Schema(String namespace) {
 		if (StringUtils.isEmpty(namespace)) {
@@ -71,7 +75,7 @@ public class Schema implements Dumpable, Serializable {
 		this.namespace = namespace;
 		definitions = new HashSet<Definition>();
 	}
-
+			
 	/**
 	 * Returns schema namespace.
 	 * 
@@ -98,7 +102,7 @@ public class Schema implements Dumpable, Serializable {
 		return definitions;
 	}
 
-	public static Schema parse(Element schema) throws SchemaProcessorException {
+	public static Schema parse(Element schema) throws SchemaException {
 		if (schema == null) {
 			throw new IllegalArgumentException("Input stream must not be null.");
 		}
@@ -107,17 +111,27 @@ public class Schema implements Dumpable, Serializable {
 		return processor.parseDom(schema);
 	}
 
-	public Document serializeToXsd() throws SchemaProcessorException {
+	public Document serializeToXsd() throws SchemaException {
 		return serializeToXsd(this);
 	}
 
-	public static Document serializeToXsd(Schema schema) throws SchemaProcessorException {
+	public static Document serializeToXsd(Schema schema) throws SchemaException {
 		if (schema == null) {
 			throw new IllegalArgumentException("Schema can't be null.");
 		}
 
 		SchemaToDomProcessor processor = new SchemaToDomProcessor();
 		return processor.parseSchema(schema);
+	}
+	
+	public PropertyContainer parsePropertyContainer(Element domElement) throws SchemaException {
+		// locate appropriate definition based on the element name
+		QName domElementName = DOMUtil.getQName(domElement);
+		PropertyContainerDefinition propertyContainerDefinition = findItemDefinition(domElementName, PropertyContainerDefinition.class);
+		if (propertyContainerDefinition==null) {
+			throw new SchemaException("No definition for element "+domElementName);
+		}
+		return propertyContainerDefinition.parseItem(domElement);
 	}
 
 	public void updateSchemaAccess(SchemaHandlingType schemaHandling) {
@@ -178,20 +192,56 @@ public class Schema implements Dumpable, Serializable {
 		}
 		return null;
 	}
+	
+	public ComplexTypeDefinition findComplexTypeDefinition(QName typeName) {
+		if (typeName == null) {
+			throw new IllegalArgumentException("typeName must be supplied");
+		}
+		// TODO: check for multiple definition with the same type
+		for (Definition definition : definitions) {
+			if (definition instanceof ComplexTypeDefinition
+					&& typeName.equals(definition.getTypeName())) {
+				return (ComplexTypeDefinition) definition;
+			}
+		}
+		return null;
+	}
 
 	/**
-	 * Finds a definition by name.
+	 * Finds item definition by name.
 	 * 
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends Definition> T findDefinition(QName definitionName, Class<T> definitionType) {
+	public <T extends ItemDefinition> T findItemDefinition(QName definitionName, Class<T> definitionType) {
 		if (definitionName == null) {
 			throw new IllegalArgumentException("definitionName must be supplied");
 		}
 		// TODO: check for multiple definition with the same type
 		for (Definition definition : definitions) {
-			if (definitionName.equals(definition.getName())) {
-				return (T) definition;
+			if (definitionType.isAssignableFrom(definition.getClass())) {
+				ItemDefinition idef = (ItemDefinition) definition;
+				if (definitionName.equals(idef.getName())) {
+					return (T) idef;
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Finds item definition by local name
+	 */
+	public <T extends ItemDefinition> T findItemDefinition(String localName, Class<T> definitionType) {
+		if (localName == null) {
+			throw new IllegalArgumentException("localName must be supplied");
+		}
+		// TODO: check for multiple definition with the same type
+		for (Definition definition : definitions) {
+			if (definitionType.isAssignableFrom(definition.getClass())) {
+				ItemDefinition idef = (ItemDefinition) definition;
+				if (localName.equals(idef.getName().getLocalPart())) {
+					return (T) idef;
+				}
 			}
 		}
 		return null;
@@ -222,12 +272,30 @@ public class Schema implements Dumpable, Serializable {
 	public PropertyContainerDefinition createPropertyContainerDefinition(String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
 		QName name = new QName(getNamespace(), toElementName(localTypeName));
-		PropertyContainerDefinition def = new PropertyContainerDefinition(name, name, typeName,
+		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName,
 				getNamespace());
+		PropertyContainerDefinition def = new PropertyContainerDefinition(this, name, cTypeDef);
+		definitions.add(cTypeDef);
 		definitions.add(def);
 		return def;
 	}
 
+	public ResourceObjectDefinition createResourceObjectDefinition(String localTypeName) {
+		QName typeName = new QName(getNamespace(), localTypeName);
+		return createResourceObjectDefinition(typeName);
+	}
+
+	public ResourceObjectDefinition createResourceObjectDefinition(QName typeName) {
+		QName name = new QName(getNamespace(), toElementName(typeName.getLocalPart()));
+		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName,
+				getNamespace());
+		ResourceObjectDefinition def = new ResourceObjectDefinition(this,name, cTypeDef);
+		definitions.add(cTypeDef);
+		definitions.add(def);
+		return def;
+	}
+
+	
 	public PropertyDefinition createPropertyDefinition(String localName, QName typeName) {
 		QName name = new QName(getNamespace(), localName);
 		return createPropertyDefinition(name, typeName);
@@ -249,12 +317,14 @@ public class Schema implements Dumpable, Serializable {
 	 * @param localTypeName
 	 * @return
 	 */
-	private String toElementName(String localTypeName) {
+	String toElementName(String localTypeName) {
 		String elementName = StringUtils.uncapitalize(localTypeName);
 		if (elementName.endsWith("Type")) {
 			return elementName.substring(0, elementName.length() - 4);
 		}
 		return elementName;
 	}
+
+
 
 }

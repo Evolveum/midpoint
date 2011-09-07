@@ -22,10 +22,16 @@
 package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.Dumpable;
 
 /**
  * Abstract definition in the schema.
@@ -49,54 +55,27 @@ import org.apache.commons.lang.StringUtils;
  * @author Radovan Semancik
  * 
  */
-public abstract class Definition implements Serializable {
+public abstract class Definition implements Serializable, Dumpable {
 
 	private static final long serialVersionUID = -2643332934312107274L;
-	private QName name;
-	private QName defaultName;
-	private QName typeName;
-	private String displayName;
-	private String help;
+	protected QName defaultName;
+	protected QName typeName;
+	protected String displayName;
+	protected String help;
 
 	// TODO: annotations
 	
-	Definition(){
-		
+	Definition() {
 	}
 
-	Definition(QName name, QName defaultName, QName typeName) {
-		if (name == null) {
-			throw new IllegalArgumentException("Name can't be null.");
-		}
+	Definition(QName defaultName, QName typeName) {
 		if (typeName == null) {
 			throw new IllegalArgumentException("Type name can't be null.");
 		}
-		this.name = name;
 		this.defaultName = defaultName;
 		this.typeName = typeName;
 	}
 
-	
-	
-	/**
-	 * Returns name of the defined entity.
-	 * 
-	 * The name is a name of the entity instance if it is fixed by the schema.
-	 * E.g. it may be a name of the property in the container that cannot be
-	 * changed.
-	 * 
-	 * The name corresponds to the XML element name in the XML representation of
-	 * the schema. It does NOT correspond to a XSD type name.
-	 * 
-	 * If name is not set the null value is returned.
-	 * 
-	 * @return the name name of the entity or null.
-	 */
-	public QName getName() {
-		return name;
-	}
-
-	
 	/**
 	 * Returns default name for the defined entity.
 	 * 
@@ -131,21 +110,6 @@ public abstract class Definition implements Serializable {
 		return typeName;
 	}
 	
-
-	/**
-	 * Returns either name (if specified) or default name.
-	 * 
-	 * Convenience method.
-	 * 
-	 * @return name or default name
-	 */
-	public QName getNameOrDefaultName() {
-		if (name != null) {
-			return name;
-		}
-		return defaultName;
-	}
-
 	/**
 	 * Returns display name.
 	 * 
@@ -186,10 +150,15 @@ public abstract class Definition implements Serializable {
 	public void setHelp(String help) {
 		this.help = help;
 	}
-	
+		
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + ":" + getName() + " ("+getTypeName()+")";
+		return getClass().getSimpleName() + " ("+getTypeName()+")";
+	}
+	
+	@Override
+	public String dump() {
+		return dump(0);
 	}
 	
 	public String dump(int indent) {

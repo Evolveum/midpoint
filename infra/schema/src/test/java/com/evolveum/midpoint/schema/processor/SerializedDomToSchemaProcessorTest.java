@@ -39,7 +39,7 @@ public class SerializedDomToSchemaProcessorTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(SerializedDomToSchemaProcessorTest.class);
 
-	@Test
+	@Test(enabled=false)
 	public void serializedTest() throws Exception {
 		URL url = SerializedDomToSchemaProcessorTest.class.getClassLoader().getResource(
 				"processor/serialized");

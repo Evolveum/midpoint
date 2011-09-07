@@ -86,25 +86,5 @@ public class ResourceObjectAttribute extends Property {
 		return getDefinition() == null ? null : getDefinition()
 				.getNativeAttributeName();
 	}
-	
-	/**
-	 * Returns resource object reference target Qname.
-	 * 
-	 * Contains specification (QName) of a XSD type that is the type of
-	 * reference target objects.
-	 * 
-	 * Returns null if resource object reference is not set or unknown.
-	 * 
-	 * It is used as an annotation for attribute types that point to resource
-	 * objects, such as group members lists, role lists, etc. The clients can
-	 * use this annotation to detect that the attribute points to a different
-	 * object and follow the reference or display it appropriately.
-	 * 
-	 * @return resource object reference target Qname
-	 */
-	public QName getResourceObjectReference() {
-		return getDefinition() == null ? null : getDefinition()
-				.getResourceObjectReference();
-	}
-	
+		
 }

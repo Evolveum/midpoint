@@ -3,12 +3,48 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			targetNamespace="http://schema.foo.com/bar"
 			xmlns:tns="http://schema.foo.com/bar"
+			xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+			xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
             elementFormDefault="qualified">
             
-			<xsd:complexType name="FirstType">
+			<xsd:complexType name="AccountObjectClass">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<r:resourceObject/>
+						<r:accountType default="true"/>
+						<r:identifier ref="tns:login"/>
+						<r:nativeObjectClass>account</r:nativeObjectClass>
+					</xsd:appinfo>
+				</xsd:annotation>
 				<xsd:sequence>
-					<xsd:element name="prop1" type="xsd:string"/>
-					<xsd:element name="prop2" type="xsd:integer"/>
+					<xsd:element name="login" type="xsd:string">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<r:nativeAttributeName>LOGIN</r:nativeAttributeName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="group" type="xsd:integer" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:complexType>
+
+			<xsd:complexType name="GroupObjectClass">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<r:resourceObject/>
+						<r:identifier ref="tns:name"/>
+						<r:nativeObjectClass>group</r:nativeObjectClass>
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element name="groupId" type="xsd:integer">
+						<xsd:annotation>
+							<xsd:appinfo>
+								<r:nativeAttributeName>GID</r:nativeAttributeName>
+							</xsd:appinfo>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="description" type="xsd:string"/>
 				</xsd:sequence>
 			</xsd:complexType>
 			

@@ -60,6 +60,7 @@ import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
@@ -173,30 +174,28 @@ public class AddDeleteObjectUcfTest extends AbstractTestNGSpringContextTests {
 
 		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema
 				.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
-		System.out.println(accountDefinition.getTypeName().getNamespaceURI());
 		ResourceObject resourceObject = accountDefinition.instantiate();
-		resourceObject.getProperties();
 
 		PropertyDefinition propertyDefinition = accountDefinition
 				.findPropertyDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		Property property = propertyDefinition.instantiate();
 		property.setValue("uid=" + name + ",ou=people,dc=example,dc=com");
-		resourceObject.getProperties().add(property);
+		resourceObject.add(property);
 
 		propertyDefinition = accountDefinition.findPropertyDefinition(new QName(RESOURCE_NS, "sn"));
 		property = propertyDefinition.instantiate();
 		property.setValue(familyName);
-		resourceObject.getProperties().add(property);
+		resourceObject.add(property);
 
 		propertyDefinition = accountDefinition.findPropertyDefinition(new QName(RESOURCE_NS, "cn"));
 		property = propertyDefinition.instantiate();
 		property.setValue(givenName + " " + familyName);
-		resourceObject.getProperties().add(property);
+		resourceObject.add(property);
 
 		propertyDefinition = accountDefinition.findPropertyDefinition(new QName(RESOURCE_NS, "givenName"));
 		property = propertyDefinition.instantiate();
 		property.setValue(givenName);
-		resourceObject.getProperties().add(property);
+		resourceObject.add(property);
 
 		Set<Operation> operation = new HashSet<Operation>();
 		Set<ResourceObjectAttribute> resourceAttributes = cc.addObject(resourceObject, operation, result);
@@ -256,12 +255,12 @@ public class AddDeleteObjectUcfTest extends AbstractTestNGSpringContextTests {
 
 		ResourceObject resObj = cc.fetchObject(objectClass, identifiers, result);
 
-		AssertJUnit.assertNull(resObj.findAttribute(new QName(RESOURCE_NS, "givenName")));
+		AssertJUnit.assertNull(resObj.findAttribute(new QName(resource.getNamespace(), "givenName")));
 
-		String addedEmployeeNumber = resObj.findAttribute(new QName(RESOURCE_NS, "employeeNumber")).getValue(
+		String addedEmployeeNumber = resObj.findAttribute(new QName(resource.getNamespace(), "employeeNumber")).getValue(
 				String.class);
-		String changedSn = resObj.findAttribute(new QName(RESOURCE_NS, "sn")).getValue(String.class);
-		String addedStreet = resObj.findAttribute(new QName(RESOURCE_NS, "street")).getValue(String.class);
+		String changedSn = resObj.findAttribute(new QName(resource.getNamespace(), "sn")).getValue(String.class);
+		String addedStreet = resObj.findAttribute(new QName(resource.getNamespace(), "street")).getValue(String.class);
 
 		System.out.println("changed employee number: " + addedEmployeeNumber);
 		System.out.println("changed sn: " + changedSn);
@@ -293,9 +292,9 @@ public class AddDeleteObjectUcfTest extends AbstractTestNGSpringContextTests {
 	private Property createProperty(String propertyName, String propertyValue) {
 		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema
 				.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
-		PropertyDefinition propertyDef = accountDefinition.findPropertyDefinition(new QName(resource.getNamespace(),
+		ResourceObjectAttributeDefinition propertyDef = accountDefinition.findAttributeDefinition(new QName(resource.getNamespace(),
 				propertyName));
-		Property property = propertyDef.instantiate();
+		ResourceObjectAttribute property = propertyDef.instantiate();
 		property.setValue(propertyValue);
 		return property;
 	}

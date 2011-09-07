@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<propertyContainer xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+		xmlns="http://schema.foo.com/bar"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            
+		<prop1>Barbar</prop1>
+		<prop2>123456</prop2>
+		<subContainer>
+			<sub1>subsub1</sub1>
+			<sub2>raz</sub2>
+			<sub2>dva</sub2>
+			<sub2>tri</sub2>
+		</subContainer>
+				
+</propertyContainer>
+            

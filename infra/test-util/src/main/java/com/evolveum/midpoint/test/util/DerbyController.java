@@ -21,6 +21,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class DerbyController {
 	
+	public static final int DEFAULT_LISTEN_PORT = 11527;
+	
 	public static String COLUMN_LOGIN = "login";
 	public static String COLUMN_PASSWORD = "password";
 	public static String COLUMN_FULL_NAME = "full_name";
@@ -40,7 +42,7 @@ public class DerbyController {
 	public DerbyController() {
 		super();
 		listenHostname = "localhost";
-		this.listentPort = 1527;
+		this.listentPort = DEFAULT_LISTEN_PORT;
 		dbName = "target/derbyMidPointTest";
 	}	
 	

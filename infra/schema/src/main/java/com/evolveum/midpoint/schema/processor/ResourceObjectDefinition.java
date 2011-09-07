@@ -52,7 +52,6 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 public class ResourceObjectDefinition extends PropertyContainerDefinition {
 
 	private static final long serialVersionUID = 3943909626639924429L;
-	private Schema schema;
 	private Set<ResourceObjectAttributeDefinition> idenitifiers;
 	private Set<ResourceObjectAttributeDefinition> secondaryIdenitifiers;
 	private ResourceObjectAttributeDefinition descriptionAttribute;
@@ -62,12 +61,8 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	private boolean accountType = false;
 	private String nativeObjectClass;
 
-	public ResourceObjectDefinition(Schema schema, QName name, QName defaultName, QName typeName) {
-		super(name, defaultName, typeName);
-		if (schema == null) {
-			throw new IllegalArgumentException("Schema can't be null.");
-		}
-		this.schema = schema;
+	public ResourceObjectDefinition(Schema schema, QName name, ComplexTypeDefinition complexTypeDefinition) {
+		super(schema, name, complexTypeDefinition);
 	}
 
 	/**
@@ -309,14 +304,78 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	}
 	
 	public Set<ResourceObjectAttribute> parseAttributes(List<Object> elements) throws SchemaException {
-		return parseProperties(elements, ResourceObjectAttribute.class);
+		return (Set) parseItems(elements);
 	}
 
 	public Set<ResourceObjectAttribute> parseIdentifiers(List<Object> elements) throws SchemaException {
-		return parseProperties(elements, ResourceObjectAttribute.class,getIdentifiers());
+		return (Set) parseItems(elements, getIdentifiers());
 	}
 
 	public ResourceObjectAttributeDefinition findAttributeDefinition(QName elementQName) {
-		return findPropertyDefinition(elementQName,ResourceObjectAttributeDefinition.class);
+		return findItemDefinition(elementQName,ResourceObjectAttributeDefinition.class);
+	}
+	
+	public ResourceObjectAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
+		ResourceObjectAttributeDefinition propDef = new ResourceObjectAttributeDefinition(name, typeName);
+		getDefinitions().add(propDef);
+		return propDef;
+	}
+	
+	public ResourceObjectAttributeDefinition createAttributeDefinition(String localName, QName typeName) {
+		QName name = new QName(getSchemaNamespace(),localName);
+		return createAttributeDefinition(name,typeName);
+	}
+
+	
+	public ResourceObjectAttributeDefinition createAttributeDefinition(String localName, String localTypeName) {
+		QName name = new QName(getSchemaNamespace(),localName);
+		QName typeName = new QName(getSchemaNamespace(),localTypeName);
+		return createAttributeDefinition(name,typeName);
+	}
+
+	@Override
+	public PropertyContainer instantiate(QName name) {
+		return new ResourceObject(name, this);
+	}
+
+	@Override
+	public String dump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		for (int i=0; i<indent; i++) {
+			sb.append(Schema.INDENT);
+		}
+		sb.append(toString());
+		sb.append("\n");
+		for (Definition def : getDefinitions()) {
+			if (def instanceof ResourceObjectAttributeDefinition) {
+				ResourceObjectAttributeDefinition attrDef = (ResourceObjectAttributeDefinition)def;
+				sb.append(attrDef.dump(indent+1));
+				if (attrDef.isIdentifier(this)) {
+					sb.deleteCharAt(sb.length()-1);
+					sb.append(" id");
+					sb.append("\n");
+				}
+			} else {
+				sb.append(def.dump(indent+1));
+			}
+		}
+		return sb.toString();
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getClass().getSimpleName()).append(":").append(getName()).append(" (").append(getTypeName()).append(")");
+		if (isDefaultAccountType()) {
+			sb.append(" def");
+		}
+		if (isAccountType()) {
+			sb.append(" acct");
+		}
+		if (getNativeObjectClass()!=null) {
+			sb.append(" native=");
+			sb.append(getNativeObjectClass());
+		}
+		return sb.toString();
 	}
 }

@@ -319,4 +319,27 @@ public class XsdTypeConverter {
 		}
 	}
 
+	/**
+	 * @param val
+	 * @param xsdType
+	 * @param name
+	 * @param parentElement
+	 * @param recordType
+	 * @throws JAXBException 
+	 */
+	public static void appendBelowNode(Object val, QName xsdType, QName name, Node parentNode,
+			boolean recordType) throws JAXBException {
+		Object xsdElement = toXsdElement(val, xsdType, name, parentNode.getOwnerDocument(), recordType);
+		if (xsdElement==null) {
+			return;
+		}
+		if (xsdElement instanceof Element) {
+			parentNode.appendChild((Element)xsdElement);
+		} else if (xsdElement instanceof JAXBElement) {
+			JAXBUtil.marshal(xsdElement, parentNode);
+		} else {
+			throw new IllegalStateException("The XSD type converter returned unknown element type: "+xsdElement+" ("+xsdElement.getClass().getName()+")");
+		}
+	}
+
 }

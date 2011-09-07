@@ -31,6 +31,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
@@ -124,7 +125,7 @@ public class PropertyModification {
 		return modificationType;
 	}
 	
-	public PropertyModificationType toPropertyModificationType() throws SchemaProcessorException {
+	public PropertyModificationType toPropertyModificationType() throws SchemaException {
 		return toPropertyModificationType(null,false);
 	}
 	
@@ -134,7 +135,7 @@ public class PropertyModification {
 	 * @return
 	 * @throws SchemaProcessorException 
 	 */
-	public PropertyModificationType toPropertyModificationType(QName parentPath, boolean recordType) throws SchemaProcessorException {
+	public PropertyModificationType toPropertyModificationType(QName parentPath, boolean recordType) throws SchemaException {
 		XPathHolder absolutePath = path;
 		if (parentPath!=null) {
 			absolutePath = path.transposedPath(parentPath);
@@ -144,7 +145,7 @@ public class PropertyModification {
 		pmt.setPath(absolutePath.toElement(SchemaConstants.I_PROPERTY_CONTAINER_REFERENCE_PATH, doc));
 		pmt.setModificationType(modificationType.getPropertyModificationTypeType());
 		Value value = new Value();
-		value.getAny().addAll(property.serializeToDom(doc,null,modifyValues,recordType));
+		value.getAny().addAll(property.serializeToJaxb(doc,null,modifyValues,recordType));
 		pmt.setValue(value);
 		return pmt;
 	}

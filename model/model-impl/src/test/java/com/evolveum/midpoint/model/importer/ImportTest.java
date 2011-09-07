@@ -57,6 +57,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -76,6 +77,8 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	private static final File IMPORT_CONNECTOR_FILE = new File(TEST_FILE_DIRECTORY, "import-connector.xml");
 	private static final String CONNECOTR_LDAP_OID = "7d3ebd6f-6113-4833-8a6a-596b73a5e434";
+	private static final File IMPORT_RESOURCE_FILE = new File(TEST_FILE_DIRECTORY, "import-resource.xml");
+	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
 	
 	@Autowired(required = true)
 	ModelService modelService;
@@ -120,6 +123,29 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		assertEquals("org.identityconnectors.databasetable.DatabaseTableConnector", connector.getConnectorType());
 	}
 
+	@Test
+	public void test002ImportResource() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
+		displayTestTile(this,"test002ImportResource");
+		// GIVEN
+		Task task = taskManager.createTaskInstance();
+		OperationResult result = new OperationResult(ImportTest.class.getName() + "test002ImportResource");
+		FileInputStream stream = new FileInputStream(IMPORT_RESOURCE_FILE);
+
+		// WHEN
+		modelService.importObjectsFromStream(stream, task, false, result);
+
+		// THEN
+		result.computeStatus("Failed import.");
+		display("Result after good import", result);
+		assertSuccess("Import has failed (result)", result);
+
+		// Check import with fixed OID
+		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
+		assertNotNull(resource);
+		assertEquals("Embedded Test Derby", resource.getName());
+		assertEquals("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab", resource.getNamespace());
+		assertEquals(CONNECOTR_LDAP_OID,resource.getConnectorRef().getOid());
+	}
 	
 	@Test
 	public void test003ImportUsers() throws FileNotFoundException, ObjectNotFoundException, SchemaException {

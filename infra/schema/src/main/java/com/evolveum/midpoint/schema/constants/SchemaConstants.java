@@ -48,6 +48,7 @@ public abstract class SchemaConstants {
 	// W3C_XML_SCHEMA_NS_URI public static final String NS_XSD =
 	// "http://www.w3.org/2001/XMLSchema";
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+	public static final String NS_ANNOTATION = "http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd";
 	public static final String NS_C_PREFIX = "c";
 	public static final String NS_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd";
 	public static final String NS_FILTER = "http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd";

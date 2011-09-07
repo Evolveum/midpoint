@@ -31,6 +31,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.schema.TypedValue;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
@@ -79,7 +80,7 @@ public class ExtensionProcessor {
 			PropertyDefinition def = new PropertyDefinition(propName, xsdType);
 			property.setDefinition(def);
 			
-			container.getProperties().add(property);
+			container.add(property);
 		}
 		return container;
 	}
@@ -88,8 +89,8 @@ public class ExtensionProcessor {
 		Extension xmlExtension = new Extension();
 		List<Object> elements;
 		try {
-			elements = extension.serializePropertiesToDom(DOMUtil.getDocument());
-		} catch (SchemaProcessorException e) {
+			elements = extension.serializePropertiesToJaxb(DOMUtil.getDocument());
+		} catch (SchemaException e) {
 			// There is no extension schema, so getting this exception means probably a bug
 			// Change to a runtime exception instead
 			throw new IllegalStateException("Strange. Got schema error where no schema should appear.",e);

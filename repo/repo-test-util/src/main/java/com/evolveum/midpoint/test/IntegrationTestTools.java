@@ -283,4 +283,12 @@ public class IntegrationTestTools {
 		logger.debug(OBJECT_TITLE_LOG_PREFIX + title);
 		logger.debug(dumpable.dump());
 	}
+	
+	public static void display(String title, String value) {
+		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
+		System.out.println(value);
+		logger.debug(OBJECT_TITLE_LOG_PREFIX + title);
+		logger.debug(value);
+	}
+
 }

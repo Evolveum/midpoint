@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			targetNamespace="http://schema.foo.com/bar"
+			xmlns:tns="http://schema.foo.com/bar"
+			xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
+            elementFormDefault="qualified">
+            
+			<xsd:complexType name="PropertyContainerType">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:propertyContainer/>
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element name="prop1" type="xsd:string"/>
+					<xsd:element name="prop2" type="xsd:integer"/>
+					<xsd:element name="subContainer" type="tns:SubContainerType"/>
+					<xsd:element name="prop3" type="xsd:string" minOccurs="0"/>
+					<xsd:element name="prop4" type="xsd:string"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			
+			<xsd:element name="propertyContainer" type="tns:PropertyContainerType"/>
+			
+			<xsd:complexType name="SubContainerType">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:propertyContainer/>
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element name="sub1" type="xsd:string"/>
+					<xsd:element name="sub2" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			
+</xsd:schema>
+            

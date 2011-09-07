@@ -3169,11 +3169,6 @@
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<xjc:dom />
-						</xsd:appinfo>
-					</xsd:annotation>
 				</xsd:any>
 			</xsd:sequence>
 		</xsd:complexType>

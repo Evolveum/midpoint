@@ -21,7 +21,6 @@ import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ExtensionProcessor;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -151,10 +150,10 @@ public class TaskItem implements Serializable {
 			try {
 				Extension extension = new Extension();
 				List<Object> extensionProperties = getExtension()
-						.serializePropertiesToDom(DOMUtil.getDocument());
+						.serializePropertiesToJaxb(DOMUtil.getDocument());
 				extension.getAny().addAll(extensionProperties);
 				taskType.setExtension(extension);
-			} catch (SchemaProcessorException ex) {
+			} catch (SchemaException ex) {
 				// TODO: error handling
 			}
 		}

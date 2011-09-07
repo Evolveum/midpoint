@@ -36,7 +36,6 @@ import com.evolveum.midpoint.schema.processor.ExtensionProcessor;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.PropertyModification;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
@@ -351,7 +350,7 @@ public class TaskImpl implements Task {
 			PropertyModificationType propertyModificationType = null;
 			try {
 				propertyModificationType = modification.toPropertyModificationType(SchemaConstants.C_EXTENSION,true);
-			} catch (SchemaProcessorException e) {
+			} catch (SchemaException e) {
 				// This is unlikely now, almost impossible. But may happen in the future.
 				SchemaException ex = new SchemaException("Error dealing with extension schema, task OID "+oid,e);
 				opResult.recordFatalError("Error dealing with extension schema",e);

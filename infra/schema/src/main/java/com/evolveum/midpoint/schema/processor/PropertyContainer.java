@@ -23,6 +23,7 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,95 +33,102 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.NotImplementedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
 
 /**
- * Property container groups properties into logical blocks. The reason for
+ * <p>
+ * Property container groups properties into logical blocks.The reason for
  * grouping may be as simple as better understandability of data structure. But
  * the group usually means different meaning, source or structure of the data.
  * For example, the property container is frequently used to hold properties
  * that are dynamic, not fixed by a static schema. Such grouping also naturally
  * translates to XML and helps to "quarantine" such properties to avoid Unique
  * Particle Attribute problems.
- * 
- * Property Container contains a set of (potentially multi-valued) properties.
+ * </p><p>
+ * Property Container contains a set of (potentially multi-valued) properties or inner property containers.
  * The order of properties is not significant, regardless of the fact that it
  * may be fixed in the XML representation. In the XML representation, each
  * element inside Property Container must be either Property or a Property
  * Container.
- * 
+ * </p><p>
  * Property Container is mutable.
- * 
+ * </p>
  * @author Radovan Semancik
  * 
  */
-public class PropertyContainer implements Serializable, Dumpable {
-
+public class PropertyContainer extends Item implements Serializable {
 	private static final long serialVersionUID = 5206821250098051028L;
-	private QName name;
-	private Set<Property> properties = new HashSet<Property>();
-	private PropertyContainerDefinition definition;
+	
+	private Set<Item> items = new HashSet<Item>();
 
 	public PropertyContainer() {
+		super();
 	}
 
 	public PropertyContainer(QName name, PropertyContainerDefinition definition) {
-		this.name = name;
-		this.definition = definition;
+		super(name,definition);
 	}
 
 	public PropertyContainer(QName name) {
-		this.name = name;
+		super(name);
 	}
 
 	/**
-	 * Returns the name of the property container.
+	 * Returns a set of items that the property container contains. The items may be properties or inner property containers.
 	 * 
-	 * The name is a QName. It uniquely defines a property container.
+	 * The set must not be null. In case there are no properties an empty set is
+	 * returned.
 	 * 
-	 * The name may be null, but such a property container will not work.
+	 * Returned set is mutable. Live object is returned.
 	 * 
-	 * The name is the QName of XML element in the XML representation.
-	 * 
-	 * @return property container name
+	 * @return set of items that the property container contains.
 	 */
-	public QName getName() {
-		return name;
+	public Set<Item> getItems() {
+		return items;
 	}
-
-	/**
-	 * Sets the name of the property container.
-	 * 
-	 * The name is a QName. It uniquely defines a property container.
-	 * 
-	 * The name may be null, but such a property container will not work.
-	 * 
-	 * The name is the QName of XML element in the XML representation.
-	 * 
-	 * @param name
-	 *            the name to set
-	 */
-	public void setName(QName name) {
-		this.name = name;
-	}
-
+	
 	/**
 	 * Returns a set of properties that the property container contains.
 	 * 
 	 * The set must not be null. In case there are no properties an empty set is
 	 * returned.
 	 * 
-	 * Returned set is mutable. Life instance of the set is returned, therefore
-	 * changing the set means changing the contents of property container.
+	 * Returned set is immutable! Any change to it will be ignored.
 	 * 
 	 * @return set of properties that the property container contains.
 	 */
 	public Set<Property> getProperties() {
+		Set<Property> properties = new HashSet<Property>();
+		for (Item item : items) {
+			if (item instanceof Property) {
+				properties.add((Property)item);
+			}
+		}
 		return properties;
 	}
+	
+	/**
+	 * Adds an item to a property container.
+	 * @param item item to add.
+	 */
+	public void add(Item item) {
+		items.add(item);
+	}
 
+	/**
+	 * Adds a collection of items to a property container.
+	 * @param itemsToAdd items to add
+	 */
+	public void addAll(Collection<? extends Item> itemsToAdd) {
+		items.addAll(itemsToAdd);
+	}
+
+	
 	/**
 	 * Returns applicable property container definition.
 	 * 
@@ -130,7 +138,7 @@ public class PropertyContainer implements Serializable, Dumpable {
 	 * @return applicable property container definition
 	 */
 	public PropertyContainerDefinition getDefinition() {
-		return definition;
+		return (PropertyContainerDefinition) definition;
 	}
 
 	/**
@@ -144,35 +152,6 @@ public class PropertyContainer implements Serializable, Dumpable {
 	}
 
 	/**
-	 * Returns a display name for the property container type.
-	 * 
-	 * Returns null if the display name cannot be determined.
-	 * 
-	 * The display name is fetched from the definition. If no definition
-	 * (schema) is available, the display name will not be returned.
-	 * 
-	 * @return display name for the property container type
-	 */
-	public String getDisplayName() {
-		return getDefinition() == null ? null : getDefinition()
-				.getDisplayName();
-	}
-
-	/**
-	 * Returns help message defined for the property container type.
-	 * 
-	 * Returns null if the help message cannot be determined.
-	 * 
-	 * The help message is fetched from the definition. If no definition
-	 * (schema) is available, the help message will not be returned.
-	 * 
-	 * @return help message for the property container type
-	 */
-	public String getHelp() {
-		return getDefinition() == null ? null : getDefinition().getHelp();
-	}
-
-	/**
 	 * Finds a specific property in the container by name.
 	 * 
 	 * Returns null if nothing is found.
@@ -182,14 +161,49 @@ public class PropertyContainer implements Serializable, Dumpable {
 	 * @return found property or null
 	 */
 	public Property findProperty(QName propertyQName) {
-		for (Property property : properties) {
-			if (propertyQName.equals(property.getName())) {
-				return property;
+		for (Item item : items) {
+			if (item instanceof Property && propertyQName.equals(item.getName())) {
+				return (Property) item;
 			}
 		}
 		return null;
 	}
 
+	/**
+	 * Finds a specific property in the container by name.
+	 * 
+	 * Returns null if nothing is found.
+	 * 
+	 * @param itemQName
+	 *            property name to find.
+	 * @return found property or null
+	 */
+	public Item findItem(QName itemQName) {
+		for (Item item : items) {
+			if (itemQName.equals(item.getName())) {
+				return item;
+			}
+		}
+		return null;
+	}
+
+	
+	/**
+	 * Finds a specific property in the container by definition.
+	 * 
+	 * Returns null if nothing is found.
+	 * 
+	 * @param propertyDefinition
+	 *            property definition to find.
+	 * @return found property or null
+	 */
+	public Item findItem(ItemDefinition itemDefinition) {
+		if (itemDefinition==null) {
+			throw new IllegalArgumentException("No item definition");
+		}
+		return findItem(itemDefinition.getName());
+	}
+	
 	/**
 	 * Finds a specific property in the container by definition.
 	 * 
@@ -206,6 +220,17 @@ public class PropertyContainer implements Serializable, Dumpable {
 		return findProperty(propertyDefinition.getName());
 	}
 
+	@Override
+	public void serializeToDom(Node parentNode) throws SchemaException {
+		if (parentNode==null) {
+			throw new IllegalArgumentException("No parent node specified");
+		}
+		Element containerElement = DOMUtil.getDocument(parentNode).createElementNS(name.getNamespaceURI(), name.getLocalPart());
+		for (Item item : items) {
+			item.serializeToDom(containerElement);
+		}
+	}
+	
 	/**
 	 * Serialize properties to DOM or JAXB Elements.
 	 * 
@@ -216,62 +241,42 @@ public class PropertyContainer implements Serializable, Dumpable {
 	 * @return list of serialized properties
 	 * @throws SchemaProcessorException the schema definition is missing or is inconsistent
 	 */
-	public List<Object> serializePropertiesToDom(Document doc) throws SchemaProcessorException {
-		if (getDefinition() == null) {
-			// No definition. Therefore serialize properties one by one using a schema-less serialization
-			// Although schema-full serialization is strogly preferred, this is needed for "extension" and
-			// other schema-less parts.
-			for (Property property : properties) {
-				List<Object> elements = new ArrayList<Object>();
-				elements.addAll(property.serializeToDom(doc));
-				return elements;
+	public List<Object> serializePropertiesToJaxb(Document doc) throws SchemaException {
+		List<Object> elements = new ArrayList<Object>();
+		// This is not really correct. We should follow the ordering of elements
+		// in the schema so we produce valid XML
+		// TODO: FIXME
+		for (Item item : items) {
+			if (item instanceof Property) {
+				Property prop = (Property)item;
+				if (prop.getDefinition()!=null) {
+					elements.addAll(prop.serializeToJaxb(doc));
+				} else {
+					elements.addAll(prop.serializeToJaxb(doc,getDefinition().findPropertyDefinition(prop.getName())));
+				}
 			}
 		}
-		return getDefinition().serializePropertiesToDom(getProperties(), doc);
+		return elements;
 	}
-
-	/**
-	 * Serialize entire property container to DOM or JAXB Element.
-	 * 
-	 * Entire property container is returned wrapped in a
-	 * single DOM element. The properties are serialized
-	 * as sub-elements.
-	 * 
-	 * List of DOM elements is returned. The property container
-	 * must have a schema definition (see getDefinition())
-	 * 
-	 * @param doc DOM Document
-	 * @return serialized property container as DOM element
-	 * @throws SchemaProcessorException the schema definition is missing or is inconsistent
-	 */
-//	public Element serializeToDom(Document doc) throws SchemaProcessorException {
-//		List<Element> elements = serializePropertiesToDom(doc);
-//		Element container = doc.createElementNS(getName().getNamespaceURI(),
-//				getName().getLocalPart());
-//		for (Element el : elements) {
-//			container.appendChild(el);
-//		}
-//		return container;
-//	}
 
 	@Override
 	public String toString() {
 		return getClass().getSimpleName() + "(" + getName() + "):"
-				+ getProperties();
+				+ getItems();
 	}
 
 	public String dump() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getClass().getSimpleName()).append("(").append(getName()).append(")\n");
-		for (Property prop : getProperties()) {
+		for (Item item : getItems()) {
 			sb.append("  ");
-			sb.append(prop.dump());
+			sb.append(item.dump());
 		}
 		return sb.toString();
 	}
 
 	public boolean isEmpty() {
-		return properties.isEmpty();
+		return items.isEmpty();
 	}
 
 	public void applyModifications(List<PropertyModification> modifications) {
@@ -288,8 +293,8 @@ public class PropertyContainer implements Serializable, Dumpable {
 			Property property = findProperty(modification.getPropertyName());
 			if (modification.getModificationType() ==  ModificationType.REPLACE) {
 				Property newProperty = modification.getProperty();
-				properties.remove(property);
-				properties.add(newProperty);
+				items.remove(property);
+				items.add(newProperty);
 			} else {
 				throw new NotImplementedException("Modification type "+modification.getModificationType()+" is not supported yet");
 			}

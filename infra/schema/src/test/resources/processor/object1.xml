@@ -1,11 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<first xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+<!-- The name of the root element is not meaningful. This is resource object (object class), therefore
+	 it does not have an element name defined. The important part is the xsi:type definition. -->
+<account xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 		xmlns="http://schema.foo.com/bar"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xsi:type="FirstType">
+		xsi:type="AccountObjectClass">
             
-		<prop1>Barbar</prop1>
-		<prop2>123456</prop2>			
-</first>
+		<login>barbar</login>
+		<group>123456</group>			
+</account>
             

@@ -21,7 +21,15 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.List;
+import java.util.Set;
+
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 
 /**
  * Property Definition.
@@ -53,7 +61,7 @@ import javax.xml.namespace.QName;
  * @author Radovan Semancik
  * 
  */
-public class PropertyDefinition extends Definition {
+public class PropertyDefinition extends ItemDefinition {
 
 	private static final long serialVersionUID = 7259761997904371009L;
 	private QName valueType;
@@ -155,7 +163,7 @@ public class PropertyDefinition extends Definition {
 	 * @return true if property is single-valued.
 	 */
 	public boolean isSingleValue() {
-		return getMaxOccurs() <= 1;
+		return getMaxOccurs() >= 0 && getMaxOccurs() <= 1;
 	}
 
 	/**
@@ -164,7 +172,7 @@ public class PropertyDefinition extends Definition {
 	 * @return true if property is multi-valued.
 	 */
 	public boolean isMultiValue() {
-		return getMaxOccurs() > 1;
+		return getMaxOccurs() < 0 || getMaxOccurs() > 1;
 	}
 
 	/**
@@ -185,8 +193,14 @@ public class PropertyDefinition extends Definition {
 		return getMinOccurs() == 0;
 	}
 
+	@Override
 	public Property instantiate() {
-		return new Property(getNameOrDefaultName(), this);
+		return instantiate(getNameOrDefaultName());
+	}
+	
+	@Override
+	public Property instantiate(QName name) {
+		return new Property(name, this);
 	}
 
 	// TODO: factory methods for DOM and JAXB elements
@@ -206,4 +220,46 @@ public class PropertyDefinition extends Definition {
 	public boolean canCreate() {
 		return create;
 	}
+
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.schema.processor.Definition#parseItem(java.util.List)
+	 */
+	@Override
+	public Property parseItem(List<Object> elements) throws SchemaException {
+		if (elements == null || elements.isEmpty()) {
+			return null;
+		}
+		QName propName = JAXBUtil.getElementQName(elements.get(0));
+		Property prop = this.instantiate(propName);
+
+		if (!isMultiValue() && elements.size()>1) {
+			throw new SchemaException("Attempt to store multiple values in single-valued property "+propName);
+		}
+
+		for (Object element : elements) {		
+			Object value;
+			try {
+				value = XsdTypeConverter.toJavaValue(element, getTypeName());
+			} catch (JAXBException e) {
+				throw new SchemaException("Schema error in property "+propName+" : "+e.getMessage(),e);
+			}
+			prop.getValues().add(value);
+		}
+		return prop;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getClass().getSimpleName()).append(":").append(getName()).append(" (").append(getTypeName()).append(")");
+		if (isMultiValue()) {
+			sb.append(" multi");
+		}
+		if (isOptional()) {
+			sb.append(" opt");
+		}
+		return sb.toString();
+	}
+	
+	
 }

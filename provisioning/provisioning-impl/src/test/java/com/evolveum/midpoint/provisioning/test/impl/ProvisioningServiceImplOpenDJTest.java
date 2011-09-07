@@ -39,6 +39,10 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchScope;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.w3c.dom.Element;
@@ -52,6 +56,7 @@ import java.util.Set;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
@@ -60,7 +65,6 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 
@@ -198,7 +202,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	 * 
 	 */
 	@Test
-	public void test001Connectors() throws SchemaProcessorException {
+	public void test001Connectors() throws SchemaException {
 		displayTestTile("test001Connectors");
 		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
@@ -221,9 +225,9 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			Schema schema = Schema.parse(xmlSchemaType.getAny().get(0));
 			assertNotNull("Cannot parse schema",schema);
 			assertFalse("Empty schema",schema.isEmpty());
-			Definition definition = schema.getDefinitions().iterator().next();
-			assertNotNull(definition);
-			AssertJUnit.assertTrue("Unexpected definition",definition instanceof PropertyContainerDefinition);
+			display("Parsed connector schema",schema);
+			PropertyContainerDefinition definition = schema.findItemDefinition("configuration",PropertyContainerDefinition.class);
+			assertNotNull("Definition of <configuration> property container not found",definition);
 			PropertyContainerDefinition pcd = (PropertyContainerDefinition)definition;
 			assertFalse("Empty definition",pcd.isEmpty());
 		}
@@ -564,21 +568,43 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
 					.unmarshal(new File("src/test/resources/impl/account-change-description.xml")))
 					.getValue();
-
+			display("Object change",DebugUtil.prettyPrint(objectChange));
+			System.out.println("new sn value: " + ((Element)objectChange.getObjectModification().getPropertyModification().get(0).getValue().getAny().get(0)).getTextContent());
 			System.out.println("oid changed obj: " + objectChange.getObjectModification().getOid());
 
 			provisioningService.modifyObject(AccountShadowType.class,objectChange.getObjectModification(), null, result);
-
+			
 			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
 					ACCOUNT_MODIFY_OID, new PropertyReferenceListType(), result);
+			
+			display("Object after change",accountType);
+
 			String changedSn = null;
+			String uid = null;
 			for (Object e : accountType.getAttributes().getAny()) {
-				if (new QName(RESOURCE_NS, "sn").equals(JAXBUtil.getElementQName(e))) {
+				if ("sn".equals(JAXBUtil.getElementQName(e).getLocalPart())) {
 					changedSn = ((Element)e).getTextContent();
 				}
+				if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(e))) {
+					uid = ((Element)e).getTextContent();
+				}
+
 			}
+			assertNotNull(uid);
+			
+			// Check if object was modified in LDAP
+			
+			InternalSearchOperation op = openDJController.getInternalConnection().processSearch(
+					"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
+					100, false, "(entryUUID=" + uid + ")", null);
+
+			AssertJUnit.assertEquals(1, op.getEntriesSent());
+			SearchResultEntry response = op.getSearchEntries().get(0);
+			display("LDAP account", response);
+			assertAttribute(response, "sn", "First");
 
 			assertEquals("First", changedSn);
+			
 		} finally {
 			try {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);

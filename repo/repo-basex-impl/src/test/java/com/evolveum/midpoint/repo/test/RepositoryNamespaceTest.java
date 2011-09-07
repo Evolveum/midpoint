@@ -71,7 +71,7 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 	 * 
 	 * @throws Exception
 	 */
-	@Test
+	@Test(enabled=false)
 	public void serializedTest() throws Exception {
 		URL url = RepositoryNamespaceTest.class.getClassLoader().getResource("serialized");
 		File folder = new File(url.toURI());

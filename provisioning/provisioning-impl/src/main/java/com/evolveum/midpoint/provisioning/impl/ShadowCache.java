@@ -60,7 +60,9 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
+import com.evolveum.midpoint.schema.processor.ComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.Definition;
+import com.evolveum.midpoint.schema.processor.ItemDefinition;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
@@ -68,9 +70,9 @@ import com.evolveum.midpoint.schema.processor.PropertyModification;
 import com.evolveum.midpoint.schema.processor.PropertyModification.ModificationType;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
@@ -311,12 +313,18 @@ public class ShadowCache {
 					+ connector + ": " + ex.getMessage(), ex);
 		}
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Shadow from repository:\n{}",ObjectTypeUtil.dump(repositoryShadow));
+			LOGGER.trace("Resource object fetched from resource:\n{}",ro.dump());
+		}
+		
 		// Complete the shadow by adding attributes from the resource object
 		ResourceObjectShadowType resultShadow = assembleShadow(ro,repositoryShadow, parentResult);
-		
-		LOGGER.debug("Fresh object from ucf {}",
-				JAXBUtil.silentMarshalWrap(resultShadow));
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Shadow when assembled:\n",ObjectTypeUtil.dump(resultShadow));
+		}
+		
 		parentResult.recordSuccess();
 		return resultShadow;
 	}
@@ -353,12 +361,11 @@ public class ShadowCache {
 		// TODO: Optimize the use of XML namespaces
 		List<Object> xmlAttributes;
 		try {
-			xmlAttributes = resourceObject.serializePropertiesToDom(doc);
+			xmlAttributes = resourceObject.serializePropertiesToJaxb(doc);
 
-		} catch (SchemaProcessorException ex) {
-			parentResult.recordFatalError(
-					"Schema error. Reason: " + ex.getMessage(), ex);
-			throw new SchemaException("Schema error: " + ex.getMessage(), ex);
+		} catch (SchemaException ex) {
+			parentResult.recordFatalError(ex.getMessage());
+			throw ex;
 		}
 		resultShadow.getAttributes().getAny().clear();
 		resultShadow.getAttributes().getAny().addAll(xmlAttributes);
@@ -446,10 +453,6 @@ public class ShadowCache {
 					// Attached shadow (with OID)
 					try {
 						shadow = lookupShadow(object, parentResult);
-					} catch (SchemaProcessorException e) {
-						// TODO: better error handling
-						LOGGER.error("Schema processor exception in resource object search on {} for {}: {}",new Object[]{ObjectTypeUtil.toShortString(resource),objectClass,e.getMessage(),e});
-						return false;
 					} catch (SchemaException e) {
 						// TODO: better error handling
 						LOGGER.error("Schema exception in resource object search on {} for {}: {}",new Object[]{ObjectTypeUtil.toShortString(resource),objectClass,e.getMessage(),e});
@@ -533,7 +536,7 @@ public class ShadowCache {
 
 			LOGGER.debug("Added object: {}",
 					DebugUtil.prettyPrint(resourceAttributes));
-			resourceObject.getProperties().addAll(resourceAttributes);
+			resourceObject.addAll(resourceAttributes);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communitacing with the connector " + connector
@@ -939,17 +942,8 @@ public class ShadowCache {
 								DebugUtil.prettyPrint(shadow));
 					}
 
-				} catch (SchemaProcessorException e) {
-					// TODO: better error handling
-					// TODO log it?
-					parentResult.recordFatalError("Schema processor error: "
-							+ e.getMessage(), e);
-					LOGGER.error("Schema processor error: {}", e.getMessage(),
-							e);
-					return false;
 				} catch (SchemaException e) {
 					// TODO: better error handling
-					// TODO log it?
 					parentResult.recordFatalError(
 							"Schema error: " + e.getMessage(), e);
 					LOGGER.error("Schema error: {}", e.getMessage(), e);
@@ -1134,14 +1128,8 @@ public class ShadowCache {
 		xpathSegments.add(xpathSegment);
 		XPathHolder xpath = new XPathHolder(xpathSegments);
 		List<Object> values = new ArrayList<Object>();
-		try {
-			for (Property identifier : identifiers) {
-				values.addAll(identifier.serializeToDom(doc));
-			}
-		} catch (SchemaProcessorException ex) {
-			throw new SchemaException(
-					"Error serializing identifiers to dom. Reason: "
-							+ ex.getMessage(), ex);
+		for (Property identifier : identifiers) {
+			values.addAll(identifier.serializeToJaxb(doc));
 		}
 		Element filter;
 		try {
@@ -1283,7 +1271,7 @@ public class ShadowCache {
 	 */
 	private ResourceObjectShadowType lookupShadow(
 			ResourceObject resourceObject, OperationResult parentResult)
-			throws SchemaProcessorException, SchemaException {
+			throws SchemaException {
 
 		QueryType query = createSearchShadowQuery(resourceObject);
 		PagingType paging = new PagingType();
@@ -1344,8 +1332,8 @@ public class ShadowCache {
 					QueryUtil.createTypeFilter(doc, QNameUtil
 							.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
 					QueryUtil.createEqualFilter(doc, xpath,
-							identifier.serializeToDom(doc)));
-		} catch (SchemaProcessorException e) {
+							identifier.serializeToJaxb(doc)));
+		} catch (SchemaException e) {
 			LOGGER.error("Schema error while creating search filter: {}",e.getMessage(),e);
 			throw new SchemaException("Schema error while creating search filter: "+e.getMessage(),e);
 		}
@@ -1375,7 +1363,7 @@ public class ShadowCache {
 
 			try {
 				schema = Schema.parse(resourceXsdSchema);
-			} catch (SchemaProcessorException e) {
+			} catch (SchemaException e) {
 				parentResult
 						.recordFatalError("Unable to parse resource schema: "
 								+ e.getMessage(), e);
@@ -1414,8 +1402,39 @@ public class ShadowCache {
 			// offline) use
 
 		}
+		
+		checkSchema(schema);
 
 		return schema;
+	}
+
+	/**
+	 * Schema sanity check
+	 * @throws SchemaException 
+	 */
+	private void checkSchema(Schema schema) throws SchemaException {
+		// This is resource schema, it should contain only ResourceObjectDefintions
+		for (Definition def : schema.getDefinitions()) {
+			if (def instanceof ComplexTypeDefinition) {
+				// This is OK
+			} else if (def instanceof ResourceObjectDefinition) {
+				checkResourceObjectDefinition((ResourceObjectDefinition)def);
+			} else {
+				throw new SchemaException("Unexpected definition in resource schema: "+def);
+			}
+		}
+	}
+
+	/**
+	 * Definition satinty check
+	 * @throws SchemaException 
+	 */
+	private void checkResourceObjectDefinition(ResourceObjectDefinition rod) throws SchemaException {
+		for (ItemDefinition def : rod.getDefinitions()) {
+			if (!(def instanceof ResourceObjectAttributeDefinition)) {
+				throw new SchemaException("Unexpected definition in resource schema object "+rod+": "+def);
+			}
+		}
 	}
 
 	private ResourceType getResource(String oid, OperationResult parentResult)
@@ -1444,8 +1463,17 @@ public class ShadowCache {
 		Validate.notNull(objectClass, "Object class must not be null.");
 		Validate.notNull(schema, "Resource schema must not be null.");
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Shadow before conversion:\n{}",ObjectTypeUtil.dump(resourceObjectShadow));
+		}
+		
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
 				.findContainerDefinitionByType(objectClass);
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Shadow resource object definition:\n{}",rod.dump());
+		}
+		
 		if (rod == null) {
 			parentResult.recordFatalError("Schema definition for object class "
 					+ objectClass + " was not found");
@@ -1463,8 +1491,12 @@ public class ShadowCache {
 		}
 
 		Set<ResourceObjectAttribute> resAttr = rod.parseAttributes(attributes);
-		resourceObject.getAttributes().addAll(resAttr);
+		resourceObject.addAll(resAttr);
 
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Shadow converted to resource object:\n{}",resourceObject.dump());
+		}
+		
 		return resourceObject;
 	}
 
@@ -1486,12 +1518,12 @@ public class ShadowCache {
 		Document doc = DOMUtil.getDocument();
 		for (Property p : identifiers) {
 			try {
-				List<Object> eList = p.serializeToDom(doc);
+				List<Object> eList = p.serializeToJaxb(doc);
 				identifierElements.addAll(eList);
-			} catch (SchemaProcessorException e) {
+			} catch (SchemaException e) {
 				throw new SchemaException(
 						"An error occured while serializing property " + p
-								+ " to DOM");
+								+ " to DOM: "+e.getMessage(),e);
 			}
 		}
 
@@ -1549,12 +1581,12 @@ public class ShadowCache {
 		shadow.getAttributes().getAny().clear();
 		for (ResourceObjectAttribute attr : resourceObject.getAttributes()) {
 			try {
-				List<Object> eList = attr.serializeToDom(doc);
+				List<Object> eList = attr.serializeToJaxb(doc);
 				shadow.getAttributes().getAny().addAll(eList);
-			} catch (SchemaProcessorException e) {
+			} catch (SchemaException e) {
 				throw new SchemaException(
 						"An error occured while serializing attribute " + attr
-								+ " to DOM");
+								+ " to DOM: "+e.getMessage(),e);
 			}
 		}
 		
@@ -1583,12 +1615,12 @@ public class ShadowCache {
 		Set<Property> identifiers = resourceObject.getIdentifiers();
 		for (Property p : identifiers) {
 			try {
-				List<Object> eList = p.serializeToDom(doc);
+				List<Object> eList = p.serializeToJaxb(doc);
 				shadow.getAttributes().getAny().addAll(eList);
-			} catch (SchemaProcessorException e) {
+			} catch (SchemaException e) {
 				throw new SchemaException(
 						"An error occured while serializing property " + p
-								+ " to DOM");
+								+ " to DOM: "+e.getMessage(),e);
 			}
 		}
 
@@ -1653,8 +1685,8 @@ public class ShadowCache {
 			if (modification.getPath().getTextContent()
 					.contains(SchemaConstants.I_ATTRIBUTES.getLocalPart())) {
 
-				Set<Property> changedProperties = rod
-							.parseProperties(modification.getValue().getAny());
+				Set<ResourceObjectAttribute> changedProperties = rod
+							.parseAttributes(modification.getValue().getAny());
 				for (Property p : changedProperties) {
 
 					AttributeModificationOperation attributeModification = new AttributeModificationOperation();
@@ -1682,9 +1714,9 @@ public class ShadowCache {
 		List<Object> values = new ArrayList<Object>();
 		try {
 			for (Property identifier : identifiers) {
-				values.addAll(identifier.serializeToDom(doc));
+				values.addAll(identifier.serializeToJaxb(doc));
 			}
-		} catch (SchemaProcessorException ex) {
+		} catch (SchemaException ex) {
 			throw new SchemaException(
 					"Error serializing identifiers to dom. Reason: "
 							+ ex.getMessage(), ex);
@@ -1775,7 +1807,7 @@ public class ShadowCache {
 				LOGGER.trace("Generating XSD resource schema for "
 						+ ObjectTypeUtil.toShortString(resource));
 				xsdDoc = resourceSchema.serializeToXsd();
-			} catch (SchemaProcessorException e) {
+			} catch (SchemaException e) {
 				throw new SchemaException(
 						"Error processing resource schema for "
 								+ ObjectTypeUtil.toShortString(resource) + ": "

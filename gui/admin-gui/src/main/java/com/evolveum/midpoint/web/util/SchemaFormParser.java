@@ -32,12 +32,12 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
@@ -55,7 +55,7 @@ public class SchemaFormParser {
 	private String displayName;
 
 	public List<ResourceObjectAttributeDefinition> parseSchemaForAccount(AccountShadowDto account)
-			throws SchemaProcessorException {
+			throws SchemaException {
 		if (account == null) {
 			throw new IllegalArgumentException("Account shadow can't be null.");
 		}
@@ -65,7 +65,7 @@ public class SchemaFormParser {
 	}
 
 	public List<ResourceObjectAttributeDefinition> parseSchemaForAccount(AccountShadowDto account,
-			QName accountType) throws SchemaProcessorException {
+			QName accountType) throws SchemaException {
 		if (account == null) {
 			throw new IllegalArgumentException("Account shadow can't be null.");
 		}
@@ -112,7 +112,7 @@ public class SchemaFormParser {
 		schema.updateSchemaAccess(resource.getXmlObject().getSchemaHandling());
 
 		if (accountType == null) {
-			throw new SchemaProcessorException("Account type was not defined.");
+			throw new SchemaException("Account type was not defined.");
 		}
 
 		defaultAccountType = accountType;
@@ -120,13 +120,13 @@ public class SchemaFormParser {
 		ResourceObjectDefinition definition = (ResourceObjectDefinition) schema
 				.findContainerDefinitionByType(accountType);
 		if (definition == null) {
-			throw new SchemaProcessorException("Account definition for type '" + accountType
+			throw new SchemaException("Account definition for type '" + accountType
 					+ "' was not found.");
 		}
 		displayName = resource.getName() + ": " + definition.getName().getLocalPart();
 
 		List<ResourceObjectAttributeDefinition> attributes = new ArrayList<ResourceObjectAttributeDefinition>();
-		for (PropertyDefinition def : definition.getDefinitions()) {
+		for (PropertyDefinition def : definition.getPropertyDefinitions()) {
 			if (!(def instanceof ResourceObjectAttributeDefinition)) {
 				continue;
 			}

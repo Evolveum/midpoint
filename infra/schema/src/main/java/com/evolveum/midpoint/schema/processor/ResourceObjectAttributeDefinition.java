@@ -43,26 +43,23 @@ import javax.xml.namespace.QName;
  */
 public class ResourceObjectAttributeDefinition extends PropertyDefinition {
 
-	private ResourceObjectDefinition objectDefinition;
 	private String nativeAttributeName;
 	private String attributeDisplayName;
 
+	public ResourceObjectAttributeDefinition(QName name, QName typeName) {
+		super(name, null, typeName);
+	}
+	
 	public ResourceObjectAttributeDefinition(QName name, QName defaultName, QName typeName) {
-		this(null, name, defaultName, typeName);
-	}
-
-	public ResourceObjectAttributeDefinition(ResourceObjectDefinition objectDefinition, QName name,
-			QName defaultName, QName typeName) {
 		super(name, defaultName, typeName);
-		this.objectDefinition = objectDefinition;
-	}
-
-	public void setObjectDefinition(ResourceObjectDefinition objectDefinition) {
-		this.objectDefinition = objectDefinition;
 	}
 
 	public ResourceObjectAttribute instantiate() {
-		return new ResourceObjectAttribute(getNameOrDefaultName(), this);
+		return instantiate(getNameOrDefaultName());
+	}
+
+	public ResourceObjectAttribute instantiate(QName name) {
+		return new ResourceObjectAttribute(name, this);
 	}
 
 	/**
@@ -72,16 +69,12 @@ public class ResourceObjectAttributeDefinition extends PropertyDefinition {
 	 * 
 	 * @return true if the attribute is a (primary) identifier.
 	 */
-	public boolean isIdentifier() {
-		if (objectDefinition == null) {
-			return false;
-		}
+	public boolean isIdentifier(ResourceObjectDefinition objectDefinition) {
 		for (ResourceObjectAttributeDefinition identifier : objectDefinition.getIdentifiers()) {
 			if (this == identifier) {
 				return true;
 			}
 		}
-
 		return false;
 	}
 
@@ -113,29 +106,6 @@ public class ResourceObjectAttributeDefinition extends PropertyDefinition {
 	}
 
 	/**
-	 * Returns resource object reference target Qname.
-	 * 
-	 * Contains specification (QName) of a XSD type that is the type of
-	 * reference target objects.
-	 * 
-	 * Returns null if resource object reference is not set or unknown.
-	 * 
-	 * It is used as an annotation for attribute types that point to resource
-	 * objects, such as group members lists, role lists, etc. The clients can
-	 * use this annotation to detect that the attribute points to a different
-	 * object and follow the reference or display it appropriately.
-	 * 
-	 * @return resource object reference target Qname
-	 */
-	public QName getResourceObjectReference() {
-		if (objectDefinition == null) {
-			return null;
-		}
-
-		return objectDefinition.getName();
-	}
-
-	/**
 	 * @return the attributeDisplayName
 	 */
 	public String getAttributeDisplayName() {
@@ -147,5 +117,16 @@ public class ResourceObjectAttributeDefinition extends PropertyDefinition {
 	 */
 	public void setAttributeDisplayName(String attributeDisplayName) {
 		this.attributeDisplayName = attributeDisplayName;
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getClass().getSimpleName()).append(":").append(getName()).append(" (").append(getTypeName()).append(")");
+		if (getNativeAttributeName()!=null) {
+			sb.append(" native=");
+			sb.append(getNativeAttributeName());
+		}
+		return sb.toString();
 	}
 }

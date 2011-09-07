@@ -52,6 +52,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfException;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
@@ -60,7 +61,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -230,7 +230,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	 * @throws Exception 
 	 */
 	@Test
-    public void testFetchResourceSchema() throws CommunicationException, SchemaProcessorException {
+    public void testFetchResourceSchema() throws CommunicationException, SchemaException {
 		displayTestTile("testFetchResourceSchema");
 		// GIVEN
 		
@@ -259,12 +259,14 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertNotNull(uidDefinition);
 		
 		for (Definition def : schema.getDefinitions()) {
-			ResourceObjectDefinition rdef = (ResourceObjectDefinition)def;
-			assertNotEmpty("No type name in object class",rdef.getTypeName());
-			assertNotEmpty("No native object class for "+rdef.getTypeName(),rdef.getNativeObjectClass());
-			
-			// This is maybe not that important, but just for a sake of completeness
-			assertNotEmpty("No name for "+rdef.getTypeName(),rdef.getName());
+			if (def instanceof ResourceObjectDefinition) {
+				ResourceObjectDefinition rdef = (ResourceObjectDefinition)def;
+				assertNotEmpty("No type name in object class",rdef.getTypeName());
+				assertNotEmpty("No native object class for "+rdef.getTypeName(),rdef.getNativeObjectClass());
+				
+				// This is maybe not that important, but just for a sake of completeness
+				assertNotEmpty("No name for "+rdef.getTypeName(),rdef.getName());
+			}
 		}
 		
 	}
@@ -282,22 +284,22 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		ResourceObjectAttributeDefinition road = accountDefinition.findAttributeDefinition(new QName(resource.getNamespace(), "sn"));
 		ResourceObjectAttribute roa = road.instantiate();
 		roa.setValue("Teell");
-		resourceObject.getAttributes().add(roa);
+		resourceObject.add(roa);
 		
 		road = accountDefinition.findAttributeDefinition(new QName(resource.getNamespace(), "cn"));
 		roa = road.instantiate();
 		roa.setValue("Teell William");
-		resourceObject.getAttributes().add(roa);
+		resourceObject.add(roa);
 		
 		road = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		roa = road.instantiate();
 		roa.setValue("uid=Teell,ou=People,dc=example,dc=com");
-		resourceObject.getAttributes().add(roa);
+		resourceObject.add(roa);
 		
 		OperationResult addResult = new OperationResult(this.getClass().getName()+".testFetchObject");
 		Set<ResourceObjectAttribute> attrs = cc.addObject(resourceObject, null, addResult);
 		resourceObject = accountDefinition.instantiate();
-		resourceObject.getAttributes().addAll(attrs);
+		resourceObject.addAll(attrs);
 		
 		
 		Set<ResourceObjectAttributeDefinition> identifierDefinition = accountDefinition.getIdentifiers();

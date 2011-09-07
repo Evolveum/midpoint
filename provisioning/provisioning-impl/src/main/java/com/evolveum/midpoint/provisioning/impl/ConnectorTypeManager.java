@@ -43,7 +43,6 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -196,7 +195,7 @@ public class ConnectorTypeManager {
 					LOGGER.error("Cannot instantiate discovered connector "+ObjectTypeUtil.toShortString(foundConnector), ex);
 					result.recordPartialError("Cannot instantiate discovered connector "+ObjectTypeUtil.toShortString(foundConnector),ex);
 					// Skipping schema generation, but otherwise going on
-				} catch (SchemaProcessorException e) {
+				} catch (SchemaException e) {
 					LOGGER.error("Error processing connector schema for "
 							+ ObjectTypeUtil.toShortString(foundConnector) + ": "
 							+ e.getMessage(), e);

@@ -19,15 +19,24 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
 
-<resource xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<resource oid="ef2bc95b-76e0-59e2-86d6-999902d3abab"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-          oid="ef2bc95b-76e0-59e2-86d6-999902d3abab"
 		  xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd
 							  http://www.w3.org/2001/XMLSchema ../../../../../../infra/schema/src/test/resources/standard/XMLSchema.xsd">
 								  
 	<name>Embedded Test Derby</name>
-	<connectorRef oid="will-be-supplied-by-the-test-code"/>
+	<connectorRef type="ConnectorType">
+		<and>
+	        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+	        <equal>
+	          <value>
+	              <connectorType>org.identityconnectors.databasetable.DatabaseTableConnector</connectorType>
+	          </value>
+	        </equal>
+	    </and>
+	</connectorRef>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab</namespace>
 	<configuration xmlns:icfi="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">

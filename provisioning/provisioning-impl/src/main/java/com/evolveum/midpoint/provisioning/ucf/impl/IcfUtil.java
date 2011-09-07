@@ -5,15 +5,19 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import java.net.ConnectException;
 import java.sql.SQLSyntaxErrorException;
+import java.util.Set;
 
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.directory.SchemaViolationException;
 
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
+import org.identityconnectors.framework.common.exceptions.UnknownUidException;
+import org.identityconnectors.framework.common.objects.Attribute;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
@@ -67,7 +71,14 @@ class IcfUtil {
 			// Maybe we need special exception for security?
 			return new SystemException(
 					"Security violation: " + ex.getMessage(), ex);
+			
+		} else if (ex instanceof NullPointerException && ex.getMessage() != null) {
+			// NPE with a message text is in fact not a NPE but an application exception
+			// this usually means that some parameter is missing
+			parentResult.recordFatalError("Required attribute is missing: "+ex.getMessage(),ex);
+			return new SchemaException("Required attribute is missing: "+ex.getMessage(),ex);
 		}
+		
 		// Fallback
 		parentResult.recordFatalError(ex);
 		return new GenericFrameworkException(ex);
@@ -100,6 +111,10 @@ class IcfUtil {
 					ex);
 			return new SchemaException("DB error: "
 					+ ex.getMessage(), ex);
+		} else if (ex instanceof UnknownUidException) {
+			// Object not found
+			parentResult.recordFatalError("Object not found: "+ex.getMessage(),ex);
+			return new ObjectNotFoundException(ex.getMessage());
 		}
 		if (ex.getCause() == null) {
 			// found nothing
@@ -109,6 +124,15 @@ class IcfUtil {
 			return lookForKnownCause(ex.getCause(), originalException,
 					parentResult);
 		}
+	}
+
+	public static String dump(Set<Attribute> attributes) {
+		StringBuilder sb = new StringBuilder();
+		for (Attribute attr : attributes) {
+			sb.append(attr.toString());
+			sb.append("\n");
+		}
+		return sb.toString();
 	}
 
 

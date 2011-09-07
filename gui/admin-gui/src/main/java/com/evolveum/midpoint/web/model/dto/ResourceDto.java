@@ -74,7 +74,7 @@ public class ResourceDto extends ExtensibleObjectDto<ResourceType> {
 	// public void setSchemaHandling(ResourceType.SchemaHandling value) {
 	// getResourceType().setSchemaHandling(value);
 	// }
-	public List<Element> getConfiguration() {
+	public List<Object> getConfiguration() {
 		return getXmlObject().getConfiguration().getAny();
 	}
 

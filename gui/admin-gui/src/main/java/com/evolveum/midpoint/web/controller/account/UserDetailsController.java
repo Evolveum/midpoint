@@ -45,8 +45,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -263,7 +263,7 @@ public class UserDetailsController implements Serializable {
 				clearController();
 				FacesUtils.addWarnMessage("Errors occured during save operation.");
 			}
-		} catch (SchemaProcessorException ex) {
+		} catch (SchemaException ex) {
 			LOGGER.error("Dynamic form generator error", ex);
 			// TODO: What action should we fire in GUI if error occurs ???
 			String loginFailedMessage = FacesUtils.translateKey("save.failed");
@@ -275,7 +275,7 @@ public class UserDetailsController implements Serializable {
 		}
 	}
 
-	private void processNewAccounts() throws SchemaProcessorException {
+	private void processNewAccounts() throws SchemaException {
 		// new accounts are processed as modification of user in one operation
 		LOGGER.debug("Start processing of new accounts");
 		for (AccountFormBean formBean : accountList) {
@@ -344,7 +344,7 @@ public class UserDetailsController implements Serializable {
 			AccountShadowDto account = null;
 			try {
 				account = updateAccountAttributes(bean);
-			} catch (SchemaProcessorException ex) {
+			} catch (SchemaException ex) {
 				throw new WebModelException("Failed to update account attributes, reason: " + ex.getMessage()
 						+ ".", "Failed to update account attributes.", ex);
 			}
@@ -516,7 +516,7 @@ public class UserDetailsController implements Serializable {
 					} else {
 						list.add(generateForm(account, account.getObjectClass(), maxId++, createNew));
 					}
-				} catch (SchemaProcessorException ex) {
+				} catch (SchemaException ex) {
 					LoggingUtils.logException(LOGGER, "Can't parse schema for account {}", ex,
 							new Object[] { account.getName() });
 					FacesUtils.addErrorMessage("Can't parse schema for account '" + account.getName() + "'.",
@@ -529,12 +529,12 @@ public class UserDetailsController implements Serializable {
 	}
 
 	private AccountFormBean generateForm(AccountShadowDto account, int index, boolean createNew)
-			throws SchemaProcessorException {
+			throws SchemaException {
 		return generateForm(account, null, index, createNew);
 	}
 
 	private AccountFormBean generateForm(AccountShadowDto account, QName accountType, int index,
-			boolean createNew) throws SchemaProcessorException {
+			boolean createNew) throws SchemaException {
 		if (account == null) {
 			throw new IllegalArgumentException("Account object can't be null.");
 		}
@@ -554,10 +554,10 @@ public class UserDetailsController implements Serializable {
 			}
 			object.sort();
 			defaultAccountType = parser.getDefaultAccountType();
-		} catch (SchemaProcessorException ex) {
+		} catch (SchemaException ex) {
 			throw ex;
 		} catch (Exception ex) {
-			throw new SchemaProcessorException("Unknown error, reason: " + ex.getMessage(), ex);
+			throw new SchemaException("Unknown error, reason: " + ex.getMessage(), ex);
 		}
 
 		return new AccountFormBean(index, account, defaultAccountType, object, createNew);
@@ -597,7 +597,7 @@ public class UserDetailsController implements Serializable {
 		return builder.build();
 	}
 
-	private AccountShadowDto updateAccountAttributes(AccountFormBean bean) throws SchemaProcessorException {
+	private AccountShadowDto updateAccountAttributes(AccountFormBean bean) throws SchemaException {
 		LOGGER.trace("updateAccountAttributes::begin");
 		AccountShadowDto account = bean.getAccount();
 		LOGGER.trace("Account " + account);
@@ -636,7 +636,7 @@ public class UserDetailsController implements Serializable {
 				account.setObjectClass(bean.getDefaultAccountType());
 			}
 		} catch (Exception ex) {
-			throw new SchemaProcessorException("Unknown error: Can't update account attributes: "
+			throw new SchemaException("Unknown error: Can't update account attributes: "
 					+ ex.getMessage(), ex);
 		}
 		account.setAttributes(attrList);

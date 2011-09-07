@@ -95,15 +95,13 @@ public class DOMUtil {
 		return printDom(node).toString();
 	}
 
-	// public static String serializeDOMToString(org.w3c.dom.NodeList nodelist)
-	// {
-	// StringBuffer buffer = new StringBuffer();
-	// for (int i = 0; i < nodelist.getLength(); i++) {
-	// buffer.append(printDom(nodelist.item(i)));
-	// }
-	// return buffer.toString();
-	// }
-	//
+	public static Document getDocument(Node node) {
+		if (node instanceof Document) {
+			return (Document) node;
+		}
+		return node.getOwnerDocument();
+	}
+	
 	public static Document getDocument() {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -363,10 +361,43 @@ public class DOMUtil {
 		}
 		setQNameAttribute(element, XSI_TYPE, type);
 	}
-
+	
 	public static void setQNameAttribute(Element element, QName attributeName, QName attributeValue) {
+		Document doc = element.getOwnerDocument();
+		Attr attr = doc.createAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
+		String namePrefix = lookupOrCreateNamespaceDeclaration(element, attributeName.getNamespaceURI(),
+				attributeName.getPrefix());
+		attr.setPrefix(namePrefix);
+		setQNameAttribute(element,attr,attributeValue,element);
+	}
+	
+	public static void setQNameAttribute(Element element, String attributeName, QName attributeValue) {
+		Document doc = element.getOwnerDocument();
+		Attr attr = doc.createAttribute(attributeName);
+		setQNameAttribute(element,attr,attributeValue,element);
+	}
+
+	public static void setQNameAttribute(Element element, QName attributeName, QName attributeValue, Element definitionElement) {
+		Document doc = element.getOwnerDocument();
+		Attr attr = doc.createAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
+		String namePrefix = lookupOrCreateNamespaceDeclaration(element, attributeName.getNamespaceURI(),
+				attributeName.getPrefix());
+		attr.setPrefix(namePrefix);
+		setQNameAttribute(element,attr,attributeValue,definitionElement);
+	}
+	
+	public static void setQNameAttribute(Element element, String attributeName, QName attributeValue, Element definitionElement) {
+		Document doc = element.getOwnerDocument();
+		Attr attr = doc.createAttribute(attributeName);
+		setQNameAttribute(element,attr,attributeValue,definitionElement);
+	}
+
+	private static void setQNameAttribute(Element element, Attr attr, QName attributeValue, Element definitionElement) {
+		if (attributeValue.getNamespaceURI()==null || attributeValue.getNamespaceURI().isEmpty()) {
+			throw new IllegalArgumentException("Namespace of XML attribute value "+attributeValue+" is empty");
+		}
 		String valuePrefix = lookupOrCreateNamespaceDeclaration(element, attributeValue.getNamespaceURI(),
-				attributeValue.getPrefix());
+				attributeValue.getPrefix(), definitionElement);
 		String attrValue = null;
 		if (valuePrefix == null || valuePrefix.isEmpty()) {
 			// default namespace
@@ -374,12 +405,7 @@ public class DOMUtil {
 		} else {
 			attrValue = valuePrefix + ":" + attributeValue.getLocalPart();
 		}
-		Document doc = element.getOwnerDocument();
-		NamedNodeMap attributes = element.getAttributes();
-		Attr attr = doc.createAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
-		String namePrefix = lookupOrCreateNamespaceDeclaration(element, attributeName.getNamespaceURI(),
-				attributeName.getPrefix());
-		attr.setPrefix(namePrefix);
+		NamedNodeMap attributes = element.getAttributes();		
 		attr.setValue(attrValue);
 		attributes.setNamedItem(attr);
 	}
@@ -396,9 +422,14 @@ public class DOMUtil {
 		}
 		element.setTextContent(stringValue);
 	}
-
+	
 	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri,
 			String preferredPrefix) {
+		return lookupOrCreateNamespaceDeclaration(element, namespaceUri, preferredPrefix, element);
+	}
+
+	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri,
+			String preferredPrefix, Element definitionElement) {
 		// We need to figure out correct prefix. We have namespace URI, but we
 		// need a prefix to specify in the xsi:type
 		if (element.isDefaultNamespace(namespaceUri)) {
@@ -422,7 +453,7 @@ public class DOMUtil {
 						// This will trigger auto-generated prefix later
 						prefix = null;
 					} else {
-						setNamespaceDeclaration(element, prefix, namespaceUri);
+						setNamespaceDeclaration(definitionElement, prefix, namespaceUri);
 					}
 				} else if (namespaceUri.equals(namespaceDefinedForPreferredPrefix)) {
 					// Nothing to do, prefix already defined and the definition
@@ -439,7 +470,7 @@ public class DOMUtil {
 			if (prefix == null) {
 				// generate random prefix
 				prefix = RANDOM_ATTR_PREFIX_PREFIX + rnd.nextInt(RANDOM_ATTR_PREFIX_RND);
-				setNamespaceDeclaration(element, prefix, namespaceUri);
+				setNamespaceDeclaration(definitionElement, prefix, namespaceUri);
 			}
 		}
 		return prefix;
@@ -490,5 +521,18 @@ public class DOMUtil {
 			destination.appendChild(item);
 		}
 	}
-
+	
+	public static Element createElement(Document document, QName qname) {
+		Element element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
+		if (qname.getPrefix()!=null) {
+			element.setPrefix(qname.getPrefix());
+		}
+		return element;
+	}
+	
+	public static Element createElement(Document document, QName qname, Element parentElement, Element definitionElement) {
+		lookupOrCreateNamespaceDeclaration(parentElement, qname.getNamespaceURI(), qname.getPrefix(), definitionElement);
+		return createElement(document,qname);
+	}
+	
 }

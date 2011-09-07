@@ -35,10 +35,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -214,7 +214,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 				ResourceObjectDefinition objectDefinition = (ResourceObjectDefinition) definition;
 				item.getObjectTypes().add(new ResourceObjectType(objectDefinition));
 			}
-		} catch (SchemaProcessorException ex) {
+		} catch (SchemaException ex) {
 			FacesUtils.addErrorMessage("Couldn't parse schema for resource '" + resource.getName()
 					+ "', reason: " + ex.getMessage());
 		}

@@ -49,6 +49,66 @@
 
     <!-- Resource schema annotations and their types -->
 
+	<xsd:element name="resourceObject">
+		<xsd:annotation>
+			<xsd:documentation>
+				This is XSD annotation. It marks XSD type that is a resource object.
+
+				Every first-level element in a property container is either a
+				attribute or a property container containing attributes.
+				
+				Resource object is a property container, therefore all that holds
+				for property containers also hold for resource objects.
+				
+				This annotation can be attached to complexTypes that does not have
+				any associated element. This will cause that the types themselves will
+				be considered definitions of resource objects.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+
+    <xsd:complexType name="AccountTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+               Type definition for an
+               annotation that marks object classes that are supposed to be used
+               for accounts. This should be considered a suggestion or a default
+               value for the account type definition in schema handling.
+
+                This is supposed to be an annotation of an object class
+                (complexType in resource schema).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:attribute name="default" type="xsd:boolean" default="false">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Specifies whether this account type is the default account
+                    type for the resource.
+
+                    Only one account type can be default. Setting this flag for
+                    more than one type is an error.
+                </xsd:documentation>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+
+    <xsd:element name="accountType" type="tns:AccountTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+               Annotation that marks object classes that are supposed to be used
+               for accounts. This should be considered a suggestion or a default
+               value for the account type definition in schema handling.
+
+                This is supposed to be an annotation of an object class
+                (complexType in resource schema).
+                
+                It makes no sense to have accountType annotation on a schema construct
+                that does not have also resourceObject annotation. The system may consider
+                imply the resourceObject or may consider it to be an error.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
     <xsd:element name="identifier" type="tns:AttributeReferenceType">
         <xsd:annotation>
             <xsd:documentation>
@@ -188,43 +248,6 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:complexType name="AccountTypeType">
-        <xsd:annotation>
-            <xsd:documentation>
-               Type definition for an
-               annotation that marks object classes that are supposed to be used
-               for accounts. This should be considered a suggestion or a default
-               value for the account type definition in schema handling.
-
-                This is supposed to be an annotation of an object class
-                (complexType in resource schema).
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:attribute name="default" type="xsd:boolean" default="false">
-            <xsd:annotation>
-                <xsd:documentation>
-                    Specifies whether this account type is the default account
-                    type for the resource.
-
-                    Only one account type can be default. Setting this flag for
-                    more than one type is an error.
-                </xsd:documentation>
-            </xsd:annotation>
-        </xsd:attribute>
-    </xsd:complexType>
-
-    <xsd:element name="accountType" type="tns:AccountTypeType">
-        <xsd:annotation>
-            <xsd:documentation>
-               Annotation that marks object classes that are supposed to be used
-               for accounts. This should be considered a suggestion or a default
-               value for the account type definition in schema handling.
-
-                This is supposed to be an annotation of an object class
-                (complexType in resource schema).
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
 
     <xsd:element name="resourceObjectReference">
         <xsd:annotation>
@@ -283,39 +306,6 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="help" type="xsd:string">
-        <xsd:annotation>
-            <xsd:documentation>
-                Specifies the help text or a key to catalog file for a help
-                text. The help text may be displayed in any suitable way by
-                the GUI. It should explain the meaning of an attribute or
-                object class.
-
-                This is supposed to be both an annotation of an object class
-                (complexType in resource schema) and attribute (element).
-            </xsd:documentation>
-        </xsd:annotation>
-    </xsd:element>
-    
-    <xsd:simpleType name="ProtectedStringType">
-    	<xsd:annotation>
-    		<xsd:documentation>
-    			TODO
-    		</xsd:documentation>
-    	</xsd:annotation>
-    	<xsd:restriction base="xsd:string">
-    	</xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="ProtectedByteArrayType">
-    	<xsd:annotation>
-    		<xsd:documentation>
-    			TODO
-    		</xsd:documentation>
-    	</xsd:annotation>
-    	<xsd:restriction base="xsd:string">
-    	</xsd:restriction>
-    </xsd:simpleType>
 
 <!-- ============================================================= -->
     

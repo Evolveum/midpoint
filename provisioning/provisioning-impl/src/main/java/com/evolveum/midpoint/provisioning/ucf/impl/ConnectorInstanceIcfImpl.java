@@ -98,7 +98,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -228,27 +227,26 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		Schema mpSchema = new Schema(connectorType.getNamespace());
 
-		// Create definition of "configuration" element. midPoint will look for this.
-		mpSchema.createPropertyDefinition(SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
-
 		// Create configuration type - the type used by the "configuration" element
 		PropertyContainerDefinition configurationContainerDef = mpSchema.createPropertyContainerDefinition(
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME);
 		// element with "ConfigurationPropertiesType" - the dynamic part of configuration schema
-		configurationContainerDef.createPropertyDefinifion(
+		configurationContainerDef.createPropertyDefinition(
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME, 
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
 		// Create common ICF configuration property containers as a references to a static schema 
-		configurationContainerDef.createPropertyDefinifion(
+		configurationContainerDef.createPropertyDefinition(
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT,
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE);
-		configurationContainerDef.createPropertyDefinifion(
+		configurationContainerDef.createPropertyDefinition(
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT,
 		ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE);
-		configurationContainerDef.createPropertyDefinifion(
+		configurationContainerDef.createPropertyDefinition(
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT,
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_TYPE);
+		
+		// No need to create definition of "configuration" element. 
+		// midPoint will look for this element, but it will be generated as part of the PropertyContainer serialization to schema
 		
 		// Create definition of "configurationProperties" type (CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME)
 		PropertyContainerDefinition configDef = mpSchema.createPropertyContainerDefinition(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME);
@@ -258,7 +256,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			QName propXsdName = new QName(connectorType.getNamespace(),icfPropertyName);
 			QName propXsdType = icfTypeToXsdType(icfProperty.getType());
 			LOGGER.trace("{}: Mapping ICF config schema property {} from {} to {}", new Object[]{this, icfPropertyName, icfProperty.getType(), propXsdType});
-			PropertyDefinition propertyDefinifion = configDef.createPropertyDefinifion(propXsdName,propXsdType);
+			PropertyDefinition propertyDefinifion = configDef.createPropertyDefinition(propXsdName,propXsdType);
 			propertyDefinifion.setDisplayName(icfProperty.getDisplayName(null));
 			propertyDefinifion.setHelp(icfProperty.getHelpMessage(null));
 			if (isMultivaluedType(icfProperty.getType())) {
@@ -370,28 +368,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			QName objectClassXsdName = objectClassToQname(objectClassInfo
 					.getType());
 
-			// Element names does not really make much sense in Resource
-			// Objects as they are not usually used. But for the sake of
-			// completeness we are going to generate them.
-			// TODO: this may need to be moved to a separate method
-			QName objectElementName;
-			if (ObjectClass.ACCOUNT_NAME.equals(objectClassInfo.getType())) {
-				objectElementName = new QName(getSchemaNamespace(), "account", ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
-			} else if (ObjectClass.GROUP_NAME.equals(objectClassInfo.getType())) {
-				objectElementName = new QName(getSchemaNamespace(), "group", ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
-			} else {
-				objectElementName = new QName(getSchemaNamespace(), objectClassInfo.getType(),
-						ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
-			}
-
 			// ResourceObjectDefinition is a midPpoint way how to represent an
 			// object class.
 			// The important thing here is the last "type" parameter
 			// (objectClassXsdName). The rest is more-or-less cosmetics.
-			ResourceObjectDefinition roDefinition = new ResourceObjectDefinition(
-					mpSchema, objectElementName, objectElementName,
-					objectClassXsdName);
-			definitions.add(roDefinition);
+			ResourceObjectDefinition roDefinition = mpSchema.createResourceObjectDefinition(objectClassXsdName);
 
 			// The __ACCOUNT__ objectclass in ICF is a default account
 			// objectclass. So mark it appropriately.
@@ -401,14 +382,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 
 			// Every object has UID in ICF, therefore add it right now
-			ResourceObjectAttributeDefinition uidDefinition = new ResourceObjectAttributeDefinition(
-					roDefinition, ConnectorFactoryIcfImpl.ICFS_UID,
-					ConnectorFactoryIcfImpl.ICFS_UID, DOMUtil.XSD_STRING);
+			ResourceObjectAttributeDefinition uidDefinition = roDefinition.createAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID, DOMUtil.XSD_STRING);
 			// Make it mandatory
 			uidDefinition.setMinOccurs(1);
 			uidDefinition.setMaxOccurs(1);
 			uidDefinition.setAttributeDisplayName("ICF UID");
-			roDefinition.getDefinitions().add(uidDefinition);
 			// Uid is a primary identifier of every object (this is the ICF way)
 			roDefinition.getIdentifiers().add(uidDefinition);
 
@@ -422,9 +400,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				// Create ResourceObjectAttributeDefinition, which is midPoint
 				// way how to express attribute schema.
-				ResourceObjectAttributeDefinition roaDefinition = new ResourceObjectAttributeDefinition(
-						roDefinition, attrXsdName, attrXsdName, attrXsdType);
-				roDefinition.getDefinitions().add(roaDefinition);
+				ResourceObjectAttributeDefinition roaDefinition = roDefinition.createAttributeDefinition(attrXsdName, attrXsdType);
 				
 				// Set a better display name for __NAME__. The "name" is s very overloaded term, so let's try to make things
 				// a bit clearer
@@ -684,8 +660,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// setting ifc attributes from resource object attributes
 		Set<Attribute> attributes = null;
 		try {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("midPoint object before conversion:\n{}",object.dump());
+			}
 			attributes = convertFromResourceObject(object.getAttributes(),
 					result);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("ICF attributes after conversion:\n{}",IcfUtil.dump(attributes));
+			}
 		} catch (SchemaException ex) {
 			result.recordFatalError(
 					"Error while converting resource object attributes. Reason: "
@@ -706,24 +688,22 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		icfResult.addParam("options", null);
 		icfResult.addContext("connector", icfConnectorFacade);
 
+		Uid uid = null;
 		try {
 
-			
 			checkAndExecuteAdditionalOperation(additionalOperations,
 					ScriptOrderType.BEFORE);
+			
 			// CALL THE ICF FRAMEWORK
-			Uid uid = icfConnectorFacade.create(objectClass, attributes,
+			uid = icfConnectorFacade.create(objectClass, attributes,
 					new OperationOptionsBuilder().build());
 
 			checkAndExecuteAdditionalOperation(additionalOperations,
 					ScriptOrderType.AFTER);
-			ResourceObjectAttribute attribute = setUidAttribute(uid);
-			object.getAttributes().add(attribute);
-			icfResult.recordSuccess();
 
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
-			result.computeStatus();
+			result.computeStatus("Add object failed");
 
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -743,6 +723,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}
 
+		if (uid==null || uid.getUidValue()==null || uid.getUidValue().isEmpty()) {
+			icfResult.recordFatalError("ICF did not returned UID after create");
+			result.computeStatus("Add object failed");
+			throw new GenericFrameworkException("ICF did not returned UID after create");
+		}
+		
+		ResourceObjectAttribute attribute = setUidAttribute(uid);
+		object.add(attribute);
+		icfResult.recordSuccess();
+
+		
 		result.recordSuccess();
 		return object.getAttributes();
 	}
@@ -991,13 +982,29 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 			checkAndExecuteAdditionalOperation(additionalOperations, ScriptOrderType.AFTER);
 			icfResult.recordSuccess();
-		} catch (UnknownUidException ex) {
-			icfResult.recordFatalError("Object with the uid: " + uid
-					+ " was not found. Reason: " + ex.getMessage(), ex);
-			throw new ObjectNotFoundException("Object with the uid: " + uid
-					+ " was not found. Reason: " + ex.getMessage(), ex);
+			
+		} catch (Exception ex) {
+			Exception midpointEx = processIcfException(ex, icfResult);
+			result.computeStatus("Removing attribute values failed");
+			// Do some kind of acrobatics to do proper throwing of checked
+			// exception
+			if (midpointEx instanceof ObjectNotFoundException) {
+				throw (ObjectNotFoundException) midpointEx;
+			} else if (midpointEx instanceof CommunicationException) {
+				throw (CommunicationException) midpointEx;
+			} else if (midpointEx instanceof GenericFrameworkException) {
+				throw (GenericFrameworkException) midpointEx;
+			} else if (midpointEx instanceof SchemaException) {
+				// Schema exception during delete? It must be a missing UID
+				throw new IllegalArgumentException(midpointEx.getMessage(),midpointEx);
+			} else if (midpointEx instanceof RuntimeException) {
+				throw (RuntimeException) midpointEx;
+			} else {
+				throw new SystemException("Got unexpected exception: "
+						+ ex.getClass().getName(), ex);
+			}
 		}
-
+			
 		result.recordSuccess();
 	}
 
@@ -1408,7 +1415,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// Property p = propDef.instantiate();
 		ResourceObjectAttribute uidRoa = setUidAttribute(uid);
 		// p = setUidAttribute(uid);
-		ro.getAttributes().add(uidRoa);
+		ro.add(uidRoa);
 		// ro.getProperties().add(p);
 
 		for (Attribute icfAttr : co.getAttributes()) {
@@ -1428,7 +1435,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (icfValues!=null) {
 				roa.getValues().addAll(icfValues);
 			}
-			ro.getAttributes().add(roa);
+			ro.add(roa);
 		}
 
 		return ro;
@@ -1558,9 +1565,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Set<Property> identifiers = resourceObject.getIdentifiers();
 		for (Property p : identifiers) {
 			try {
-				List<Object> eList = p.serializeToDom(doc);
+				List<Object> eList = p.serializeToJaxb(doc);
 				shadow.getAttributes().getAny().addAll(eList);
-			} catch (SchemaProcessorException e) {
+			} catch (SchemaException e) {
 				throw new SchemaException(
 						"An error occured while serializing property " + p
 								+ " to DOM");
@@ -1583,7 +1590,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			Document doc = DOMUtil.getDocument();
 			List<Object> elements;
 			try {
-				elements = attr.serializeToDom(doc);
+				elements = attr.serializeToJaxb(doc);
 				for (Object e : elements) {
 					LOGGER.debug("Atribute to modify value: {}",
 							JAXBUtil.getTextContentDump(e));
@@ -1596,7 +1603,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				propertyModification.setPath(path);
 				modificationType.getPropertyModification().add(
 						propertyModification);
-			} catch (SchemaProcessorException ex) {
+			} catch (SchemaException ex) {
 				throw new SchemaException(
 						"An error occured while serializing resource object properties to DOM. "
 								+ ex.getMessage(), ex);
@@ -1623,10 +1630,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Document doc = DOMUtil.getDocument();
 		List<Object> elements = null;
 		try {
-			elements = lastToken.serializeToDom(doc);
-		} catch (SchemaProcessorException ex) {
+			elements = lastToken.serializeToJaxb(doc);
+		} catch (SchemaException ex) {
 			throw new SchemaException(
-					"Failed to serialize last token property to dom.");
+					"Failed to serialize last token property to dom.",ex);
 		}
 		for (Object e : elements) {
 			try {
@@ -1745,8 +1752,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		// Iterate over all the elements of XML resource definition that are in
 		// the "configuration" part.
-		List<Element> xmlConfig = configuration.getAny();
-		for (Element e : xmlConfig) {
+		List<Object> xmlConfig = configuration.getAny();
+		for (Object element : xmlConfig) {
+			
+			// assume DOM elements here.
+			// TODO: fix this to also check for JAXB elements
+			Element e = (Element)element;
 			
 			// Process the "configurationProperties" part of configuration
 			if (e.getNamespaceURI() != null && e.getNamespaceURI().equals(connectorConfNs)

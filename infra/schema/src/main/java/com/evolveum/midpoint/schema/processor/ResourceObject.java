@@ -63,8 +63,7 @@ public final class ResourceObject extends PropertyContainer {
 	 * 
 	 * The order of attributes is insignificant.
 	 * 
-	 * The returned set is mutable. Life set is returned, therefore changes to
-	 * the set will change the content of the resource object.
+	 * The returned set is imutable! Any change to it will be ignored.
 	 * 
 	 * @return set of resource object attributes.
 	 */
@@ -118,6 +117,8 @@ public final class ResourceObject extends PropertyContainer {
 	 * Resource objects may have multiple (composite) identifiers, all of them
 	 * are returned.
 	 * 
+	 * The returned set it immuatble! Any modifications will be lost.
+	 * 
 	 * @return set of identifier properties
 	 */
 	public Set<Property> getIdentifiers() {
@@ -131,8 +132,6 @@ public final class ResourceObject extends PropertyContainer {
 				}
 			}
 		}
-		
-		
 		return identifiers;
 	}
 

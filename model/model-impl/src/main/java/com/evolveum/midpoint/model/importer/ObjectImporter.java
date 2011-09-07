@@ -56,7 +56,6 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
-import com.evolveum.midpoint.schema.processor.SchemaProcessorException;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -423,9 +422,14 @@ public class ObjectImporter {
 		QueryType query = new QueryType();
 		query.setFilter(filter);
 		List<? extends ObjectType> objects = null;
+		QName objectType = ref.getType();
+		if (objectType==null) {
+			result.recordFatalError("Missing definition of type of reference " + propName);
+			return;
+		}
 		try {
 
-			objects = repository.searchObjects(ObjectTypes.getObjectTypeFromTypeQName(ref.getType())
+			objects = repository.searchObjects(ObjectTypes.getObjectTypeFromTypeQName(objectType)
 					.getClassDefinition(), query, null, result);
 
 		} catch (SchemaException e) {

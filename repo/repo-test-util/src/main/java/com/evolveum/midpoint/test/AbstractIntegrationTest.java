@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -86,10 +87,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	@Autowired(required = true)
 	protected TaskManager taskManager;
 
-	// Controller for embedded OpenDJ. The abstract test will configure it, but
+	// Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
 	// it will not start
-	// only tests that need OpenDJ should start it
+	// only tests that need OpenDJ or derby should start it
 	protected static OpenDJController openDJController = new OpenDJController();
+	protected static DerbyController derbyController = new DerbyController();
 
 	public AbstractIntegrationTest() throws JAXBException {
 		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());

@@ -121,9 +121,12 @@ public class TestSanity extends AbstractIntegrationTest {
 	private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
 	private static final String SYSTEM_CONFIGURATION_OID = "00000000-0000-0000-0000-000000000001";
 
-	private static final String RESOURCE_OPENDJ_FILENAME = "src/test/resources/repo/opendj-resource.xml";
+	private static final String RESOURCE_OPENDJ_FILENAME = "src/test/resources/repo/resource-opendj.xml";
 	private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 
+	private static final String RESOURCE_DERBY_FILENAME = "src/test/resources/repo/resource-derby.xml";
+	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
+	
 	private static final String TASK_OPENDJ_SYNC_FILENAME = "src/test/resources/repo/opendj-sync-task.xml";
 	private static final String TASK_OPENDJ_SYNC_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 
@@ -187,6 +190,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		// will be resolved
 		// correctly
 		importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
+		importObjectFromFile(RESOURCE_DERBY_FILENAME, initResult);
 
 		addObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
 		addObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
@@ -197,8 +201,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * superclass so individual tests may avoid starting OpenDJ.
 	 */
 	@BeforeClass
-	public static void startLdap() throws Exception {
+	public static void startResources() throws Exception {
 		openDJController.startCleanServer();
+		derbyController.startCleanServer();
 	}
 
 	/**
@@ -206,8 +211,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * superclass so individual tests may avoid starting OpenDJ.
 	 */
 	@AfterClass
-	public static void stopLdap() throws Exception {
+	public static void stopResources() throws Exception {
 		openDJController.stop();
+		derbyController.stop();
 	}
 
 	/**
@@ -226,15 +232,33 @@ public class TestSanity extends AbstractIntegrationTest {
 		AssertJUnit.assertNotNull(taskManager);
 
 		OperationResult result = new OperationResult(TestSanity.class.getName() + ".test000Integrity");
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
-				result);
-		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, resource.getOid());
 		
-		String connectorOid = resource.getConnectorRef().getOid();
-		ConnectorType connector = repositoryService.getObject(ConnectorType.class, connectorOid, null, result);
-		display("LDAP Connector: ",connector);
+		// Check if OpenDJ resource was imported correctly
+		
+		ResourceType openDjResource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
+				result);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, openDjResource.getOid());
+		
+		String ldapConnectorOid = openDjResource.getConnectorRef().getOid();
+		ConnectorType ldapConnector = repositoryService.getObject(ConnectorType.class, ldapConnectorOid, null, result);
+		display("LDAP Connector: ", ldapConnector);
+		
+		// Check if Derby resource was imported correctly
+		
+		ResourceType derbyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
+				result);
+		AssertJUnit.assertEquals(RESOURCE_DERBY_OID, derbyResource.getOid());
+		
+		String dbConnectorOid = derbyResource.getConnectorRef().getOid();
+		ConnectorType dbConnector = repositoryService.getObject(ConnectorType.class, dbConnectorOid, null, result);
+		display("DB Connector: ", dbConnector);
+		
+		// Check if password was encrypted during import
+		Object configurationPropertiesElement = JAXBUtil.findElement(derbyResource.getConfiguration().getAny(),new QName(dbConnector.getNamespace(),"configurationProperties"));
+		Object passwordElement = JAXBUtil.findElement(JAXBUtil.listChildElements(configurationPropertiesElement),new QName(dbConnector.getNamespace(),"password"));
+		System.out.println("Password element: "+passwordElement);
 
-		// TODO: test if OpenDJ is running
+		// TODO: test if OpenDJ and Derby are running
 	}
 
 	/**
