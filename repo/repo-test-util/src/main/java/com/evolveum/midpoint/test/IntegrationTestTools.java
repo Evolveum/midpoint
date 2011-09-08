@@ -63,7 +63,7 @@ public class IntegrationTestTools {
 	
 	public static boolean checkResults = true;
 	// public and not final - to allow changing it in tests
-	public static Trace logger = TraceManager.getTrace(IntegrationTestTools.class);
+	public static Trace LOGGER = TraceManager.getTrace(IntegrationTestTools.class);
 	
 	private static final String TEST_OUT_PREFIX = "\n\n=====[ ";
 	private static final String TEST_OUT_SUFFIX = " ]======================================\n";
@@ -191,36 +191,36 @@ public class IntegrationTestTools {
 
 	public static void displayTestTile(String title) {
 		System.out.println(TEST_OUT_PREFIX + title + TEST_OUT_SUFFIX);
-		logger.info(TEST_LOG_PREFIX + title + TEST_LOG_SUFFIX);
+		LOGGER.info(TEST_LOG_PREFIX + title + TEST_LOG_SUFFIX);
 	}
 
 	public static void displayTestTile(Object testCase, String title) {
 		System.out.println(TEST_OUT_PREFIX + testCase.getClass().getSimpleName() + "." + title + TEST_OUT_SUFFIX);
-		logger.info(TEST_LOG_PREFIX + testCase.getClass().getSimpleName() + "." + title + TEST_LOG_SUFFIX);
+		LOGGER.info(TEST_LOG_PREFIX + testCase.getClass().getSimpleName() + "." + title + TEST_LOG_SUFFIX);
 	}
 	
 	public static void waitFor(String message, Checker checker, int timeoutInterval) throws Exception {
 		System.out.println(message);
-		logger.debug(LOG_MESSAGE_PREFIX + message);
+		LOGGER.debug(LOG_MESSAGE_PREFIX + message);
 		long startTime = System.currentTimeMillis();
 		while (System.currentTimeMillis() < startTime + timeoutInterval) {
 			boolean done = checker.check();
 			if (done) {
 				System.out.println("... done");
-				logger.debug(LOG_MESSAGE_PREFIX + "... done " + message);
+				LOGGER.debug(LOG_MESSAGE_PREFIX + "... done " + message);
 				return;
 			}
 			Thread.sleep(WAIT_FOR_LOOP_SLEEP_MILIS);
 		}
 		// we have timeout
 		System.out.println("Timeout while "+message);
-		logger.error(LOG_MESSAGE_PREFIX + "Timeout while " + message);
+		LOGGER.error(LOG_MESSAGE_PREFIX + "Timeout while " + message);
 		throw new RuntimeException("Timeout while "+message);
 	}
 
 	public static void displayJaxb(String title, Object o, QName qname) throws JAXBException {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		logger.debug(OBJECT_TITLE_LOG_PREFIX + title);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
 		displayJaxb(o, qname);
 	}
 
@@ -228,88 +228,88 @@ public class IntegrationTestTools {
 		Document doc = DOMUtil.getDocument();
 		Element element = JAXBUtil.jaxbToDom(o, qname, doc);
 		System.out.println(DOMUtil.serializeDOMToString(element));
-		logger.debug(DOMUtil.serializeDOMToString(element));
+		LOGGER.debug(DOMUtil.serializeDOMToString(element));
 	}
 
 	public static void display(String message, SearchResultEntry response) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		logger.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
 		display(response);
 	}
 
 	public static void display(SearchResultEntry response) {
 		System.out.println(response.toLDIFString());
-		logger.debug(response.toLDIFString());
+		LOGGER.debug(response.toLDIFString());
 	}
 
 	public static void display(String message, Task task) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
 		System.out.println(task.dump());
-		logger.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		logger.debug(task.dump());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		LOGGER.debug(task.dump());
 	}
 
 	public static void display(String message, ObjectType o) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
 		System.out.println(ObjectTypeUtil.dump(o));
-		logger.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		logger.debug(ObjectTypeUtil.dump(o));
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		LOGGER.debug(ObjectTypeUtil.dump(o));
 	}
 
 	public static void display(String message, Collection<? extends ObjectType> collection) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		logger.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
 		for (ObjectType o : collection) {
 			System.out.println(ObjectTypeUtil.dump(o));
-			logger.debug(ObjectTypeUtil.dump(o));
+			LOGGER.debug(ObjectTypeUtil.dump(o));
 			System.out.println(OBJECT_LIST_SEPARATOR);
-			logger.debug(OBJECT_LIST_SEPARATOR);			
+			LOGGER.debug(OBJECT_LIST_SEPARATOR);			
 		}
 	}
 	
 	public static void display(String title, Entry entry) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(entry.toLDIFString());
-		logger.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		logger.debug(entry.toLDIFString());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
+		LOGGER.debug(entry.toLDIFString());
 	}
 
 	public static void display(String message, PropertyContainer propertyContainer) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
 		System.out.println(propertyContainer.dump());
-		logger.debug(OBJECT_TITLE_LOG_PREFIX + message);
-		logger.debug(propertyContainer.dump());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message);
+		LOGGER.debug(propertyContainer.dump());
 	}
 	
 	public static void display(String title, OperationResult result) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(result.dump());
-		logger.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		logger.debug(result.dump());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
+		LOGGER.debug(result.dump());
 	}
 
 	public static void display(String title, List<Element> elements) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		logger.debug(OBJECT_TITLE_LOG_PREFIX + title);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
 		for(Element e : elements) {
 			String s = DOMUtil.serializeDOMToString(e);
 			System.out.println(s);
-			logger.debug(s);
+			LOGGER.debug(s);
 		}
 	}
 	
 	public static void display(String title, Dumpable dumpable) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(dumpable.dump());
-		logger.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		logger.debug(dumpable.dump());
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
+		LOGGER.debug(dumpable.dump());
 	}
 	
 	public static void display(String title, String value) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
 		System.out.println(value);
-		logger.debug(OBJECT_TITLE_LOG_PREFIX + title);
-		logger.debug(value);
+		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
+		LOGGER.debug(value);
 	}
 
 }
