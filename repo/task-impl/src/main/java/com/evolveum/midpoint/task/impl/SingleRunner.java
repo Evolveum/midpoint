@@ -35,7 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class SingleRunner extends TaskRunner {
 
-	private static final transient Trace logger = TraceManager.getTrace(SingleRunner.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(SingleRunner.class);
 
 	public SingleRunner(TaskHandler handler, Task task, TaskManagerImpl taskManager) {
 		super(handler,task,taskManager);
@@ -48,7 +48,7 @@ public class SingleRunner extends TaskRunner {
 	 */
 	@Override
 	public void run() {
-		logger.info("SingleRunner.run starting");
+		LOGGER.info("SingleRunner.run starting");
 
 		try {
 
@@ -62,9 +62,9 @@ public class SingleRunner extends TaskRunner {
 			try {
 				task.recordRunStart(runnerRunOpResult);
 			} catch (ObjectNotFoundException ex) {
-				logger.error("Unable to record run start: {}", ex.getMessage(), ex);
+				LOGGER.error("Unable to record run start: {}", ex.getMessage(), ex);
 			} catch (SchemaException ex) {
-				logger.error("Unable to record run start: {}", ex.getMessage(), ex);
+				LOGGER.error("Unable to record run start: {}", ex.getMessage(), ex);
 			} // there are otherwise quite safe to ignore
 
 			TaskRunResult runResult = handler.run(task);
@@ -73,28 +73,28 @@ public class SingleRunner extends TaskRunner {
 			// TODO: figure out how to do better error handling
 			if (runResult == null) {
 				// Obviously error in task handler
-				logger.error("Unable to record run finish: task returned null result");
+				LOGGER.error("Unable to record run finish: task returned null result");
 			} else {
 				try {
 					task.recordRunFinish(runResult, runnerRunOpResult);
 					// Run finished. So let's close the task
 					task.close(runnerRunOpResult);
 				} catch (ObjectNotFoundException ex) {
-					logger.error("Unable to record run finish and close the task: {}", ex.getMessage(), ex);
+					LOGGER.error("Unable to record run finish and close the task: {}", ex.getMessage(), ex);
 				} catch (SchemaException ex) {
-					logger.error("Unable to record run finish and close the task: {}", ex.getMessage(), ex);
+					LOGGER.error("Unable to record run finish and close the task: {}", ex.getMessage(), ex);
 				} // there are otherwise quite safe to ignore
 			}
 			
 			// Call back task manager to clean up things
 			taskManager.finishRunnableTask(this,task, runnerRunOpResult);
 
-			logger.info("SingleRunner.run stopping");
+			LOGGER.info("SingleRunner.run stopping");
 
 		} catch (Throwable t) {
 			// This is supposed to run in a thread, so this kind of heavy artillery is needed. If throwable won't be
 			// caught here, nobody will catch it and it won't even get logged.
-			logger.error("SingleRunner got unexpected exception: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
+			LOGGER.error("SingleRunner got unexpected exception: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
 		}
 	}
 

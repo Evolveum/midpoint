@@ -84,7 +84,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	@Autowired(required=true)
 	private RepositoryService repositoryService;
 	
-	private static final transient Trace logger = TraceManager.getTrace(TaskManagerImpl.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(TaskManagerImpl.class);
 	private static final String TASK_THREAD_NAME_PREFIX = "midpoint-task-";
 	
 	private static long threadCounter = 0;
@@ -96,22 +96,22 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	
 	@PostConstruct
 	public void init() {
-		logger.info("Task Manager initialization");
+		LOGGER.info("Task Manager initialization");
 		startScannerThread();
-		logger.info("Task Manager initialized");
+		LOGGER.info("Task Manager initialized");
 	}
 	
 	@PreDestroy
 	public void shutdown() {
-		logger.info("Task Manager shutdown");
+		LOGGER.info("Task Manager shutdown");
 		stopScannerThread();
 		finishAllTasks();
-		logger.info("Task Manager shutdown finished");
+		LOGGER.info("Task Manager shutdown finished");
 	}
 
 	private void finishAllTasks() {
 		//we will wait for all tasks to finish correctly till we proceed with shutdown procedure
-		logger.info("Wait for Task Manager's tasks finish");
+		LOGGER.info("Wait for Task Manager's tasks finish");
 		for (TaskRunner runner : runners) {
 			runner.shutdown();
 		}
@@ -120,10 +120,10 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 				runner.thread.join();
 			} catch (InterruptedException e) {
 				// Safe to ignore. 
-				logger.trace("TaskManager waiting for join task threads got InterruptedException: " + e);
+				LOGGER.trace("TaskManager waiting for join task threads got InterruptedException: " + e);
 			}
 		}
-		logger.info("All Task Manager's tasks finished");
+		LOGGER.info("All Task Manager's tasks finished");
 	}
 	
 	/* (non-Javadoc)
@@ -278,7 +278,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 			scannerThread.setTaskManagerImpl(this);
 		}
 		if (scannerThread.isAlive()) {
-			logger.warn("Attempt to start task scanner thread that is already running");
+			LOGGER.warn("Attempt to start task scanner thread that is already running");
 		} else {
 			scannerThread.start();
 		}
@@ -286,7 +286,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 
 	private void stopScannerThread() {
 		if (scannerThread == null) {
-			logger.warn("Attempt to stop non-existing task scanner thread");
+			LOGGER.warn("Attempt to stop non-existing task scanner thread");
 		} else {
 			if (scannerThread.isAlive()) {
 				scannerThread.disable();
@@ -294,10 +294,10 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 				try {
 					scannerThread.join(JOIN_TIMEOUT);
 				} catch (InterruptedException ex) {
-					logger.warn("Wait to thread join in task manager was interrupted");
+					LOGGER.warn("Wait to thread join in task manager was interrupted");
 				}
 			} else {
-				logger.warn("Attempt to stop a task scanner thread that is not alive");
+				LOGGER.warn("Attempt to stop a task scanner thread that is not alive");
 			}
 		}
 	}
@@ -327,7 +327,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		TaskHandler handler = getHandler(task.getHandlerUri());
 		
 		if (handler==null) {
-			logger.error("No handler for URI {}, task {}",task.getHandlerUri(),task);
+			LOGGER.error("No handler for URI {}, task {}",task.getHandlerUri(),task);
 			throw new IllegalStateException("No handler for URI "+task.getHandlerUri());
 		}
 		
@@ -347,7 +347,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		} else {
 			
 			// Not supported yet
-			logger.error("Tightly bound tasks (cycles) are the only supported reccuring tasks for now. Sorry.");
+			LOGGER.error("Tightly bound tasks (cycles) are the only supported reccuring tasks for now. Sorry.");
 			// Ignore otherwise. Nothing else to do.
 			
 		}
@@ -416,7 +416,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 
 	@Override
 	public void deactivateServiceThreads() {
-		logger.warn("DEACTIVATING Task Manager service threads (RISK OF SYSTEM MALFUNCTION)");
+		LOGGER.warn("DEACTIVATING Task Manager service threads (RISK OF SYSTEM MALFUNCTION)");
 		stopScannerThread();
 		for (TaskRunner runner : runners) {
 			runner.shutdown();
@@ -426,7 +426,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 
 	@Override
 	public void reactivateServiceThreads() {
-		logger.info("Reactivating Task Manager service threads");
+		LOGGER.info("Reactivating Task Manager service threads");
 		startScannerThread();
 		// The scanner should find the runnable threads and reactivate runners
 		threadsRunning=true;

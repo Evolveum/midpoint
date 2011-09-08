@@ -34,11 +34,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class MockSingleTaskHandler implements TaskHandler {
 	
-	private static final transient Trace logger = TraceManager.getTrace(MockSingleTaskHandler.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(MockSingleTaskHandler.class);
 	
 	@Override
 	public TaskRunResult run(Task task) {
-		logger.info("MockSingle.run starting");
+		LOGGER.info("MockSingle.run starting");
 		
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");
@@ -55,7 +55,7 @@ public class MockSingleTaskHandler implements TaskHandler {
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
 		
-		logger.info("MockSingle.run stopping");
+		LOGGER.info("MockSingle.run stopping");
 		return runResult;
 	}
 	

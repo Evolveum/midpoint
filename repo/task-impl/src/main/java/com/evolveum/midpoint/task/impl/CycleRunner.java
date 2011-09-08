@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class CycleRunner extends TaskRunner {
 
-	private static final transient Trace logger = TraceManager.getTrace(CycleRunner.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(CycleRunner.class);
 
 	public CycleRunner(TaskHandler handler, Task task, TaskManagerImpl taskManager) {
 		super(handler,task,taskManager);
@@ -53,14 +53,14 @@ public class CycleRunner extends TaskRunner {
 	 */
 	@Override
 	public void run() {
-		logger.info("CycleRunner.run starting");
+		LOGGER.info("CycleRunner.run starting");
 
 		OperationResult cycleRunnerOpResult = new OperationResult(CycleRunner.class.getName() + ".run");
 		
 		try {
 
 			while (task.canRun()) {
-				logger.trace("CycleRunner loop: start");
+				LOGGER.trace("CycleRunner loop: start");
 
 				// This is NOT the result of the run itself. That can be found in the RunResult
 				// this is a result of the runner, used to record "overhead" things like recording the
@@ -70,9 +70,9 @@ public class CycleRunner extends TaskRunner {
 				try {
 					task.recordRunStart(cycleRunnerRunOpResult);
 				} catch (ObjectNotFoundException ex) {
-					logger.error("Unable to record run start: {}", ex.getMessage(), ex);
+					LOGGER.error("Unable to record run start: {}", ex.getMessage(), ex);
 				} catch (SchemaException ex) {
-					logger.error("Unable to record run start: {}", ex.getMessage(), ex);
+					LOGGER.error("Unable to record run start: {}", ex.getMessage(), ex);
 				} // there are otherwise quite safe to ignore
 
 				TaskRunResult runResult = handler.run(task);
@@ -81,14 +81,14 @@ public class CycleRunner extends TaskRunner {
 				// TODO: figure out how to do better error handling
 				if (runResult==null) {
 					// Obviously error in task handler
-					logger.error("Unable to record run finish: task returned null result");
+					LOGGER.error("Unable to record run finish: task returned null result");
 				} else {				
 					try {
 						task.recordRunFinish(runResult, cycleRunnerRunOpResult);
 					} catch (ObjectNotFoundException ex) {
-						logger.error("Unable to record run finish: {}", ex.getMessage(), ex);
+						LOGGER.error("Unable to record run finish: {}", ex.getMessage(), ex);
 					} catch (SchemaException ex) {
-						logger.error("Unable to record run finish: {}", ex.getMessage(), ex);
+						LOGGER.error("Unable to record run finish: {}", ex.getMessage(), ex);
 					} // there are otherwise quite safe to ignore
 				}
 				
@@ -97,7 +97,7 @@ public class CycleRunner extends TaskRunner {
 				// TODO: consider the PERMANENT_ERROR state of the last run. in this case we should "suspend" the task
 
 				long sleepFor = ScheduleEvaluator.determineSleepTime(task);
-				logger.trace("CycleRunner loop: sleep ({})", sleepFor);
+				LOGGER.trace("CycleRunner loop: sleep ({})", sleepFor);
 				try {
 					Thread.sleep(sleepFor);
 				} catch (InterruptedException e) {
@@ -107,21 +107,21 @@ public class CycleRunner extends TaskRunner {
 
 				// TODO: refresh task definition somehow
 				task.refresh(cycleRunnerOpResult);
-				logger.trace("CycleRunner loop: end");
+				LOGGER.trace("CycleRunner loop: end");
 			}
 
 			// Call back task manager to clean up things
 			taskManager.finishRunnableTask(this,task,cycleRunnerOpResult);
 			
-			logger.info("CycleRunner.run stopping");
+			LOGGER.info("CycleRunner.run stopping");
 		} catch (Throwable t) {
 			// This is supposed to run in a thread, so this kind of heavy artillery is needed. If throwable won't be
 			// caught here, nobody will catch it and it won't even get logged.
 			if (task.canRun()) {
-				logger.error("CycleRunner got unexpected exception: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
+				LOGGER.error("CycleRunner got unexpected exception: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
 			} else {
-				logger.debug("CycleRunner got unexpected exception while shutting down: {}: {}",new Object[] { t.getClass().getName(),t.getMessage()});
-				logger.trace("CycleRunner got unexpected exception while shutting down: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
+				LOGGER.debug("CycleRunner got unexpected exception while shutting down: {}: {}",new Object[] { t.getClass().getName(),t.getMessage()});
+				LOGGER.trace("CycleRunner got unexpected exception while shutting down: {}: {}",new Object[] { t.getClass().getName(),t.getMessage(),t});
 			}
 		}
 

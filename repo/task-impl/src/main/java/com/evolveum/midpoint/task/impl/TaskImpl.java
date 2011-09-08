@@ -86,7 +86,7 @@ public class TaskImpl implements Task {
 	private ScheduleType schedule;
 	private boolean canRun;
 	
-	private static final transient Trace logger = TraceManager.getTrace(TaskImpl.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(TaskImpl.class);
 
 	/**
 	 * Note: This constructor assumes that the task is transient.
@@ -155,7 +155,7 @@ public class TaskImpl implements Task {
 		}
 		schedule = taskType.getSchedule();
 		// Parse the extension
-		logger.trace("Parsing extension {}",ObjectTypeUtil.dump(taskType.getExtension()));
+		LOGGER.trace("Parsing extension {}",ObjectTypeUtil.dump(taskType.getExtension()));
 		extension = ExtensionProcessor.parseExtension(taskType.getExtension());
 	}
 	

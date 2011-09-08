@@ -58,7 +58,7 @@ public class TaskScanner extends Thread {
 	private boolean enabled = true;
 	private long lastLoopRun = 0;
 
-	private static final transient Trace logger = TraceManager.getTrace(TaskScanner.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(TaskScanner.class);
 
 	/**
 	 * @return the repositoryService
@@ -93,9 +93,9 @@ public class TaskScanner extends Thread {
 	@Override
 	public void run() {
 		try {
-			logger.info("Task scanner starting (enabled:{})", enabled);
+			LOGGER.info("Task scanner starting (enabled:{})", enabled);
 			while (enabled) {
-				logger.trace("Task scanner loop: start");
+				LOGGER.trace("Task scanner loop: start");
 				lastLoopRun = System.currentTimeMillis();
 
 				OperationResult loopResult = new OperationResult(TaskScanner.class.getName() + ".run");
@@ -105,14 +105,14 @@ public class TaskScanner extends Thread {
 				try {
 					tasks = repositoryService.searchObjects(TaskType.class, query, paging, loopResult);
 				} catch (SchemaException e) {
-					logger.error("Task scanner cannot search for tasks", e);
+					LOGGER.error("Task scanner cannot search for tasks", e);
 					// TODO: better error handling
 				}
 
 				if (tasks != null) {
-					logger.trace("Task scanner found {} runnable tasks", tasks.size());
+					LOGGER.trace("Task scanner found {} runnable tasks", tasks.size());
 					for (TaskType task : tasks) {
-							logger.trace("Task scanner: Start processing task " + task.getName() + " (OID: " + task.getOid() + ")");
+							LOGGER.trace("Task scanner: Start processing task " + task.getName() + " (OID: " + task.getOid() + ")");
 						if (canHandle(task)) {
 							if (ScheduleEvaluator.shouldRun(task)) {
 								long startTime = System.currentTimeMillis();
@@ -133,7 +133,7 @@ public class TaskScanner extends Thread {
 									// task.
 									// Just log warning for now. This can be
 									// switched to DEBUG later.
-									logger.warn(
+									LOGGER.warn(
 											"Task scanner: Claiming of task {} failed due to concurrency exception \"{}\", skipping it.",
 											DebugUtil.prettyPrint(task), ex.getMessage());
 
@@ -143,7 +143,7 @@ public class TaskScanner extends Thread {
 
 									try {
 
-										logger.debug("Task scanner is passing task to task manager:  "
+										LOGGER.debug("Task scanner is passing task to task manager:  "
 												+ DebugUtil.prettyPrint(task));
 
 										taskManagerImpl.processRunnableTaskType(task);
@@ -178,21 +178,21 @@ public class TaskScanner extends Thread {
 										// method.
 
 										// TODO: Better error reporting
-										logger.error(
+										LOGGER.error(
 												"Task scanner got runtime exception (processRunnableTaskType): {} : {}",
 												new Object[] { ex.getClass().getSimpleName(), ex.getMessage(), ex });
 									}
 								} // claimed
 							} else {
-								logger.trace("Task scanner: skipping task " + DebugUtil.prettyPrint(task)
+								LOGGER.trace("Task scanner: skipping task " + DebugUtil.prettyPrint(task)
 										+ " because it should not run yet");
 							}
 						} else {
-							logger.trace("Task scanner: skipping task " + DebugUtil.prettyPrint(task)
+							LOGGER.trace("Task scanner: skipping task " + DebugUtil.prettyPrint(task)
 									+ " because there is no handler for it on this node");
 						}
 
-						logger.trace("Task scanner: End processing task " + DebugUtil.prettyPrint(task));
+						LOGGER.trace("Task scanner: End processing task " + DebugUtil.prettyPrint(task));
 					}
 				}
 
@@ -201,20 +201,20 @@ public class TaskScanner extends Thread {
 					// Let's sleep a while to slow down the synch, to avoid
 					// overloading the system with sync polling
 
-					logger.trace("Synchronization thread loop: going to sleep");
+					LOGGER.trace("Synchronization thread loop: going to sleep");
 
 					try {
 						Thread.sleep(sleepInterval - (System.currentTimeMillis() - lastLoopRun));
 					} catch (InterruptedException ex) {
-						logger.trace("Task scanner got InterruptedException: " + ex);
+						LOGGER.trace("Task scanner got InterruptedException: " + ex);
 						// Safe to ignore
 					}
 				}
-				logger.trace("Task scanner loop: end");
+				LOGGER.trace("Task scanner loop: end");
 			}
-			logger.info("Task scanner stopping");
+			LOGGER.info("Task scanner stopping");
 		} catch (Throwable t) {
-			logger.error("Task scanner: Critical error: {}: {}", new Object[] { t, t.getMessage(), t });
+			LOGGER.error("Task scanner: Critical error: {}: {}", new Object[] { t, t.getMessage(), t });
 		}
 	}
 	

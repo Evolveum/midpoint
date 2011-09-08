@@ -35,7 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class MockCycleTaskHandler implements TaskHandler {
 	
-	private static final transient Trace logger = TraceManager.getTrace(MockCycleTaskHandler.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(MockCycleTaskHandler.class);
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.task.api.TaskHandler#run(com.evolveum.midpoint.task.api.Task)
@@ -43,7 +43,7 @@ public class MockCycleTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 		
-		logger.info("MockCycle.run starting");
+		LOGGER.info("MockCycle.run starting");
 		
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(MockCycleTaskHandler.class.getName()+".run");
@@ -58,7 +58,7 @@ public class MockCycleTaskHandler implements TaskHandler {
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
-		logger.info("MockCycle.run stopping");
+		LOGGER.info("MockCycle.run stopping");
 		return runResult;
 	}
 
