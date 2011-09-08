@@ -59,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 		"classpath:application-context-configuration-test.xml" })
 public class RepositoryResourceTest extends AbstractTestNGSpringContextTests {
 
-	org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(RepositoryResourceTest.class);
+	org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger(RepositoryResourceTest.class);
 
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
