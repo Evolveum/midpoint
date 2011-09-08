@@ -43,7 +43,7 @@ import org.apache.commons.lang.StringUtils;
 @FacesValidator("PasswordValidator")
 public class PasswordValidator implements Validator {
 
-	private static transient Trace logger = TraceManager.getTrace(PasswordValidator.class);
+	private static transient Trace LOGGER = TraceManager.getTrace(PasswordValidator.class);
 	public static final String OTHER_COMPONENT_ID = "otherComponentId";
 
 	@Override
@@ -60,7 +60,7 @@ public class PasswordValidator implements Validator {
 		String otherComponentId = (String) component.getAttributes().get(OTHER_COMPONENT_ID);
 		UIInput comp = findComponent(context.getViewRoot(), otherComponentId);
 		if (comp == null) {
-			logger.warn("Can't find component with name '{}', Component with password validator doesn't "
+			LOGGER.warn("Can't find component with name '{}', Component with password validator doesn't "
 					+ "have atttribute '{}' defined.", new Object[] { otherComponentId, OTHER_COMPONENT_ID });
 			throw createMessage("Component not found.", "Component '" + otherComponentId
 					+ "' not found, can't properly validate field.");

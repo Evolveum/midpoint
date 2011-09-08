@@ -31,11 +31,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class FakeApplicationHomeSetup extends ApplicationHomeSetup{
 	
-	private static final transient Trace logger = TraceManager.getTrace(FakeApplicationHomeSetup.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(FakeApplicationHomeSetup.class);
 	
 	public void init() {
 		System.setProperty("midpoint.home", "target/midHome");
-		logger.info("midpoint.home = " + System.getProperty("midpoint.home"));
+		LOGGER.info("midpoint.home = " + System.getProperty("midpoint.home"));
 		
 		super.directorySetup("target/midHome");
 	}

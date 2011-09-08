@@ -214,11 +214,11 @@ public class RepositoryManagerImpl implements RepositoryManager {
 		return oid;
 	}
 
-	private void printResults(Trace logger, OperationResult result) {
+	private void printResults(Trace LOGGER, OperationResult result) {
 		if (!result.isSuccess()) {
 			FacesUtils.addMessage(result);
 		}
 
-		logger.debug(result.dump());
+		LOGGER.debug(result.dump());
 	}
 }

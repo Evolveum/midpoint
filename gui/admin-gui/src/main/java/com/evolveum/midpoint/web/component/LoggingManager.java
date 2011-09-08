@@ -105,7 +105,7 @@ public class LoggingManager {
 		// TODO: save configuration
 		LoggingConfigurationType config = saveConfiguration(logging, result);
 		if (config == null) {
-			LOGGER.warn("System configuration is null, loggers won't be updated.");
+			LOGGER.warn("System configuration is null, LOGGERs won't be updated.");
 			return;
 		}
 		this.logging = config;
@@ -117,7 +117,7 @@ public class LoggingManager {
 		LoggingConfigurationType config = getConfiguration(result);
 
 		List<AppenderConfigurationType> appendersConf = config.getAppender();
-		List<LoggerConfigurationType> loggersConf = config.getLogger();
+		List<LoggerConfigurationType> LOGGERsConf = config.getLogger();
 
 		// cleanup log4j
 		cleanupLog4j();
@@ -125,53 +125,53 @@ public class LoggingManager {
 		// create new appenders
 		Map<String, Appender> appenders = createLog4jAppendersFromConfiguration(appendersConf);
 
-		// set new logger configuration
-		udpateLog4jLoggersFromConfiguration(loggersConf, appenders);
+		// set new LOGGER configuration
+		udpateLog4jLoggersFromConfiguration(LOGGERsConf, appenders);
 
-		configureLog4jNdcFiltering(loggersConf);
+		configureLog4jNdcFiltering(LOGGERsConf);
 	}
 
 	private void cleanupLog4j() {
 		LogManager.shutdown();
 	}
 
-	private void udpateLog4jLoggersFromConfiguration(List<LoggerConfigurationType> loggersConf,
+	private void udpateLog4jLoggersFromConfiguration(List<LoggerConfigurationType> LOGGERsConf,
 			Map<String, Appender> appenders) {
-		for (LoggerConfigurationType loggerConf : loggersConf) {
-			for (String pckg : loggerConf.getPackage()) {
-				Logger logger = Logger.getLogger(pckg);
-				logger.setLevel(Level.toLevel(StringUtils.upperCase(loggerConf.getLevel().value())));
-				logger.removeAllAppenders();
-				for (String appenderName : loggerConf.getAppender()) {
-					logger.addAppender(appenders.get(appenderName));
+		for (LoggerConfigurationType LOGGERConf : LOGGERsConf) {
+			for (String pckg : LOGGERConf.getPackage()) {
+				Logger LOGGER = Logger.getLogger(pckg);
+				LOGGER.setLevel(Level.toLevel(StringUtils.upperCase(LOGGERConf.getLevel().value())));
+				LOGGER.removeAllAppenders();
+				for (String appenderName : LOGGERConf.getAppender()) {
+					LOGGER.addAppender(appenders.get(appenderName));
 				}
 			}
 		}
 	}
 
-	private void configureLog4jNdcFiltering(List<LoggerConfigurationType> loggersConf) {
-		// we have to iterate through loggersConf and set it to Log4j Appenders
+	private void configureLog4jNdcFiltering(List<LoggerConfigurationType> LOGGERsConf) {
+		// we have to iterate through LOGGERsConf and set it to Log4j Appenders
 		// following ugly hack is because we can control only Log4j Appenders,
-		// but not Log4j loggers
-		for (LoggerConfigurationType loggerConf : loggersConf) {
+		// but not Log4j LOGGERs
+		for (LoggerConfigurationType LOGGERConf : LOGGERsConf) {
 
-			for (String pckg : loggerConf.getPackage()) {
+			for (String pckg : LOGGERConf.getPackage()) {
 				Enumeration<Appender> appenders = Logger.getLogger(pckg).getAllAppenders();
 				if (null != appenders) {
 					while (appenders.hasMoreElements()) {
 						Appender appender = (Appender) appenders.nextElement();
 						List<String> components = new ArrayList<String>();
-						for (LoggingComponentType lct : loggerConf.getComponent()) {
+						for (LoggingComponentType lct : LOGGERConf.getComponent()) {
 							components.add(lct.name());
 						}
 
 						if (appender instanceof NdcFilteringRollingFileAppender) {
 							NdcFilteringRollingFileAppender ndcAppender = (NdcFilteringRollingFileAppender) appender;
-							ndcAppender.addLoggerConfiguration(loggerConf.getPackage(), components);
+							ndcAppender.addLoggerConfiguration(LOGGERConf.getPackage(), components);
 						}
 						if (appender instanceof NdcFilteringDailyRollingFileAppender) {
 							NdcFilteringDailyRollingFileAppender ndcAppender = (NdcFilteringDailyRollingFileAppender) appender;
-							ndcAppender.addLoggerConfiguration(loggerConf.getPackage(), components);
+							ndcAppender.addLoggerConfiguration(LOGGERConf.getPackage(), components);
 						}
 					}
 				}

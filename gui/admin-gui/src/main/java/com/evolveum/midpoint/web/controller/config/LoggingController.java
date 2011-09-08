@@ -68,7 +68,7 @@ public class LoggingController implements Serializable {
 	private static final long serialVersionUID = -8739729766074013883L;
 	@Autowired(required = true)
 	private transient LoggingManager loggingManager;
-	private List<LoggerListItem> loggers;
+	private List<LoggerListItem> LOGGERs;
 	private List<AppenderListItem> appenders;
 	private boolean selectAllLoggers = false;
 	private boolean selectAllAppenders = false;
@@ -129,10 +129,10 @@ public class LoggingController implements Serializable {
 	}
 
 	public List<LoggerListItem> getLoggers() {
-		if (loggers == null) {
-			loggers = new ArrayList<LoggerListItem>();
+		if (LOGGERs == null) {
+			LOGGERs = new ArrayList<LoggerListItem>();
 		}
-		return loggers;
+		return LOGGERs;
 	}
 
 	public List<AppenderListItem> getAppenders() {
@@ -215,8 +215,8 @@ public class LoggingController implements Serializable {
 		}
 
 		int id = 0;
-		for (LoggerConfigurationType logger : logging.getLogger()) {
-			getLoggers().add(createLoggerListItem(id, logger));
+		for (LoggerConfigurationType LOGGER : logging.getLogger()) {
+			getLoggers().add(createLoggerListItem(id, LOGGER));
 			id++;
 		}
 
@@ -237,17 +237,17 @@ public class LoggingController implements Serializable {
 		initController();
 	}
 
-	private LoggerListItem createLoggerListItem(int id, LoggerConfigurationType logger) {
+	private LoggerListItem createLoggerListItem(int id, LoggerConfigurationType LOGGER) {
 		LoggerListItem item = new LoggerListItem(id);
-		item.setAppenders(logger.getAppender());
-		item.setLevel(logger.getLevel());
-		for (LoggingCategoryType category : logger.getCategory()) {
+		item.setAppenders(LOGGER.getAppender());
+		item.setLevel(LOGGER.getLevel());
+		for (LoggingCategoryType category : LOGGER.getCategory()) {
 			item.getCategories().add(category.value());
 		}
-		for (LoggingComponentType component : logger.getComponent()) {
+		for (LoggingComponentType component : LOGGER.getComponent()) {
 			item.getComponents().add(component.value());
 		}
-		item.getPackages().addAll(logger.getPackage());
+		item.getPackages().addAll(LOGGER.getPackage());
 
 		return item;
 	}
@@ -283,16 +283,16 @@ public class LoggingController implements Serializable {
 		return item;
 	}
 
-	private LoggingConfigurationType createConfiguration(List<LoggerListItem> loggers,
+	private LoggingConfigurationType createConfiguration(List<LoggerListItem> LOGGERs,
 			List<AppenderListItem> appenders) {
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
 		for (AppenderListItem item : appenders) {
 			AppenderConfigurationType appender = createAppenderType(item);
 			configuration.getAppender().add(appender);
 		}
-		for (LoggerListItem item : loggers) {
-			LoggerConfigurationType logger = createLoggerType(item, configuration);
-			configuration.getLogger().add(logger);
+		for (LoggerListItem item : LOGGERs) {
+			LoggerConfigurationType LOGGER = createLoggerType(item, configuration);
+			configuration.getLogger().add(LOGGER);
 		}
 
 		return configuration;
@@ -342,24 +342,24 @@ public class LoggingController implements Serializable {
 
 	private LoggerConfigurationType createLoggerType(LoggerListItem item,
 			LoggingConfigurationType configuration) {
-		LoggerConfigurationType logger = new LoggerConfigurationType();
+		LoggerConfigurationType LOGGER = new LoggerConfigurationType();
 		for (String category : item.getCategories()) {
-			logger.getCategory().add(LoggingCategoryType.fromValue(category));
+			LOGGER.getCategory().add(LoggingCategoryType.fromValue(category));
 		}
 		for (String component : item.getComponents()) {
-			logger.getComponent().add(LoggingComponentType.fromValue(component));
+			LOGGER.getComponent().add(LoggingComponentType.fromValue(component));
 		}
-		logger.getPackage().addAll(item.getPackages());
-		logger.setLevel(item.getLevel());
+		LOGGER.getPackage().addAll(item.getPackages());
+		LOGGER.setLevel(item.getLevel());
 
 		for (String appender : item.getAppenders()) {
 			if (!containsAppender(appender, configuration.getAppender())) {
 				continue;
 			}
-			logger.getAppender().add(appender);
+			LOGGER.getAppender().add(appender);
 		}
 
-		return logger;
+		return LOGGER;
 	}
 
 	private boolean containsAppender(String name, List<AppenderConfigurationType> appenders) {

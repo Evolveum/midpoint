@@ -45,7 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class Language implements Serializable {
 
 	private static final long serialVersionUID = -7653202257375931789L;
-	private final transient Trace logger = TraceManager.getTrace(Language.class);
+	private final transient Trace LOGGER = TraceManager.getTrace(Language.class);
 	private Locale currentLocale;
 
 	public Locale getCurrentLocale() {
@@ -53,7 +53,7 @@ public class Language implements Serializable {
 			Application application = FacesContext.getCurrentInstance().getApplication();
 			Locale locale = application.getDefaultLocale();
 			if (locale == null) {
-				logger.warn("Default locale not found, using locale: '" + Locale.ENGLISH.toString() + "'.");
+				LOGGER.warn("Default locale not found, using locale: '" + Locale.ENGLISH.toString() + "'.");
 				locale = Locale.ENGLISH;
 			}
 			setCurrentLocale(locale);
@@ -78,7 +78,7 @@ public class Language implements Serializable {
 				throw new RuntimeException("Can't find resource bundle for locale '" + locale + "'.");
 			}
 		} catch (Exception ex) {
-			LoggingUtils.logException(logger, "Couldn't set locale '{}'", ex, locale);
+			LoggingUtils.logException(LOGGER, "Couldn't set locale '{}'", ex, locale);
 		}
 	}
 

@@ -42,7 +42,7 @@ import org.slf4j.LoggerFactory;
 public class DualList<T> implements Serializable {
 
 	private static final long serialVersionUID = -7907105883243398033L;
-	private static final Logger logger = LoggerFactory.getLogger(DualList.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(DualList.class);
 	private List<SelectItem> leftItems = new ArrayList<SelectItem>();
 	private List<T> selectedLeftItems = new ArrayList<T>();
 	private List<SelectItem> rightItems = new ArrayList<SelectItem>();
@@ -169,12 +169,12 @@ public class DualList<T> implements Serializable {
 		@Override
 		public int compare(SelectItem item1, SelectItem item2) {
 			if (item1 == null || item2 == null) {
-				logger.debug("Can't sort items in list because it contains null items.");
+				LOGGER.debug("Can't sort items in list because it contains null items.");
 				return 0;
 			}
 
 			if (item1.getLabel() == null || item2.getLabel() == null) {
-				logger.debug("Can't sort items in list because it contains items with null values.");
+				LOGGER.debug("Can't sort items in list because it contains items with null values.");
 				return 0;
 			}
 

@@ -166,9 +166,9 @@ public class XPathDebugController implements Serializable {
 				}
 			}
 		}
-		// logger.info("variable value {}",
+		// LOGGER.info("variable value {}",
 		// variableMap.get(QNameUtil.uriToQName("http://xxx.com/")));
-		// logger.info("getVariableValue end");
+		// LOGGER.info("getVariableValue end");
 		return variableMap;
 	}
 

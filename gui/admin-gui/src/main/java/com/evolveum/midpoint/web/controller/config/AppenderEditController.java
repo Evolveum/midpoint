@@ -102,7 +102,7 @@ public class AppenderEditController implements Serializable {
 		}
 
 		if (oldItem != null) {
-			// loggers appender name update
+			// LOGGERs appender name update
 			if (!oldItem.getName().equals(item.getName())) {
 				for (LoggerListItem item : loggingController.getLoggers()) {
 					if (item.getAppenders().contains(oldItem.getName())) {

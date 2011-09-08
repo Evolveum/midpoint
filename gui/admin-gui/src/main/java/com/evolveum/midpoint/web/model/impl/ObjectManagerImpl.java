@@ -211,12 +211,12 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		return createObject(null);
 	}
 
-	protected void printResults(Trace logger, OperationResult result) {
+	protected void printResults(Trace LOGGER, OperationResult result) {
 		if (!result.isSuccess()) {
 			FacesUtils.addMessage(result);
 		}
 
-		logger.debug(result.dump());
+		LOGGER.debug(result.dump());
 	}
 
 	private void isObjectTypeSupported(ObjectType object) {
