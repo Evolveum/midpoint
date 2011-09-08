@@ -25,7 +25,7 @@
 			<repositoryServiceFactoryClass>com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory</repositoryServiceFactoryClass>
 			<runServer>true</runServer>
 			<embedded>true</embedded> <!-- embedded is applicable only if runServer > true -->
-			<shutdown>false</shutdown>
+			<shutdown>true</shutdown>
 			<dropDatabase>true</dropDatabase>
 			<initialDataPath></initialDataPath> <!-- initialDataPath - path containing xmls that should be loaded into DB -->
 			<databaseName>midPoint-test</databaseName> <!-- database name -->
