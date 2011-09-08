@@ -35,7 +35,7 @@ import org.apache.log4j.Level;
  */
 public class LoggerMXBeanImpl implements LoggerMXBean {
 
-    private static Trace TRACE = TraceManager.getTrace(LoggerMXBeanImpl.class);
+    private static Trace LOGGER = TraceManager.getTrace(LoggerMXBeanImpl.class);
     //constants
     private static final String DEFAULT_LOG_PATTERN = "%d{HH:mm:ss,SSS} %-5p [%c] - %m%n";
     private static final int DEFAULT_LOG_LEVEL = Level.WARN_INT;
@@ -51,7 +51,7 @@ public class LoggerMXBeanImpl implements LoggerMXBean {
     public LoggerMXBeanImpl(String name, String rootPackage) {
         this.name = name;
         this.rootPackage = rootPackage;
-        TRACE.debug("Constructor::Initialising Logger MXBean instance: " + name);
+        LOGGER.debug("Constructor::Initialising Logger MXBean instance: " + name);
         updateRootLogger();
     }
 
@@ -90,7 +90,7 @@ public class LoggerMXBeanImpl implements LoggerMXBean {
             pattern = DEFAULT_LOG_PATTERN;
         }
         if (!pattern.equals(this.logPattern)) {
-            TRACE.info("Updating log pattern '{}' for LOGGER {}.", new Object[]{pattern, logPattern});
+            LOGGER.info("Updating log pattern '{}' for LOGGER {}.", new Object[]{pattern, logPattern});
 
             this.logPattern = pattern;
             updateRootLogger();
@@ -177,11 +177,11 @@ public class LoggerMXBeanImpl implements LoggerMXBean {
             org.apache.log4j.Logger pkgLogger = rootLogger.getLoggerRepository().
                     getLogger(info.getPackageName());
             if (pkgLogger == null) {
-                TRACE.warn("Can't change LOGGER level, reason: LOGGER for package '" +
+                LOGGER.warn("Can't change LOGGER level, reason: LOGGER for package '" +
                         info.getPackageName() + "' is null.");
                 continue;
             }
-            TRACE.info("Log4J root LOGGER: {} Module: {}. Updating LOGGER '{}' to level: {}", new Object[]{
+            LOGGER.info("Log4J root LOGGER: {} Module: {}. Updating LOGGER '{}' to level: {}", new Object[]{
                         rootLogger, name, info.getPackageName(), Level.toLevel(info.getLevel())});
             pkgLogger.setLevel(Level.toLevel(info.getLevel()));
         }
@@ -225,14 +225,14 @@ public class LoggerMXBeanImpl implements LoggerMXBean {
                 return true;
             }
         } catch (Exception ex) {
-            TRACE.error("Unknown log level '" + name + "', reason: " + ex.getMessage());
+            LOGGER.error("Unknown log level '" + name + "', reason: " + ex.getMessage());
         }
 
         return false;
     }
 
     private void updateRootLogger() {
-        TRACE.info("Updating root LOGGER for: {}, package: {}, level: {}", new Object[]{name,
+        LOGGER.info("Updating root LOGGER for: {}, package: {}, level: {}", new Object[]{name,
                     rootPackage, Level.toLevel(moduleLogLevel)});
 
         org.apache.log4j.Logger rootLogger = org.apache.log4j.Logger.getRootLogger();
