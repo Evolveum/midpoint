@@ -190,7 +190,7 @@ public abstract class SchemaConstants {
 			}
 			resolverInitialized = true;
 		} catch (IOException ex) {
-			// logger.error("Unknown error occured: " + ex.getMessage(), ex);
+			// LOGGER.error("Unknown error occured: " + ex.getMessage(), ex);
 			resolverInitialized = false;
 			ex.printStackTrace();
 		}
