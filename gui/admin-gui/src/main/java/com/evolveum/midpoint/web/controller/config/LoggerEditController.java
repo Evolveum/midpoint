@@ -41,13 +41,13 @@ import com.evolveum.midpoint.web.util.SelectItemComparator;
  * @author lazyman
  * 
  */
-@Controller("LOGGEREdit")
+@Controller("loggerEdit")
 @Scope("session")
 public class LoggerEditController implements Serializable {
 
 	public static final String PAGE_NAVIGATION_LIST = "/config/logging?faces-redirect=true";
-	public static final String PAGE_NAVIGATION_EDIT = "/config/LOGGEREdit?faces-redirect=true";
-	public static final String PARAM_LOGGER_ID = "LOGGERId";
+	public static final String PAGE_NAVIGATION_EDIT = "/config/loggerEdit?faces-redirect=true";
+	public static final String PARAM_LOGGER_ID = "loggerId";
 	private static final long serialVersionUID = 4491151780064705480L;
 	@Autowired(required = true)
 	private LoggingController loggingController;
@@ -130,9 +130,9 @@ public class LoggerEditController implements Serializable {
 			return PAGE_NAVIGATION_LIST;
 		}
 
-		int LOGGERId = Integer.parseInt(argument);
+		int loggerId = Integer.parseInt(argument);
 		for (LoggerListItem item : loggingController.getLoggers()) {
-			if (item.getId() == LOGGERId) {
+			if (item.getId() == loggerId) {
 				this.item = item.cloneItem();
 				break;
 			}
