@@ -190,11 +190,15 @@ public class QueryUtil {
         return and;
     }
 
-	public static Element createNameAndClassFilter(ObjectType object) throws SchemaException {
+    public static Element createNameAndClassFilter(ObjectType object) throws SchemaException {
+    	return createNameAndClassFilter(object.getClass(), object.getName());
+    }
+    
+	public static <T extends ObjectType> Element createNameAndClassFilter(Class<T> type, String name) throws SchemaException {
 		Document doc = DOMUtil.getDocument();
 		return QueryUtil.createAndFilter(doc,
-				QueryUtil.createTypeFilter(doc, ObjectTypes.getObjectType(object.getClass()).getObjectTypeUri()),
-				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, object.getName()));
+				QueryUtil.createTypeFilter(doc, ObjectTypes.getObjectType(type).getObjectTypeUri()),
+				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, name));
 	}
 	
 	public static QueryType createQuery(Element filter) {

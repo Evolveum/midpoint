@@ -239,6 +239,9 @@ public class ObjectTypeUtil {
 	 * 
 	 */
 	public static Element findXsdElement(XmlSchemaType xmlSchemaType) {
+		if (xmlSchemaType==null) {
+			return null;
+		}
 		List<Element> schemaElements = xmlSchemaType.getAny();
 		for (Element e : schemaElements) {
 			if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {

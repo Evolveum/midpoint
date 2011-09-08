@@ -54,7 +54,7 @@
 	<!-- Resource configuration section -->
 	<configuration
 		xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 					   
 		<!-- Configuration specific for the LDAP connector -->
 		<icfcldap:configurationProperties>
@@ -62,7 +62,7 @@
 			<icfcldap:host>localhost</icfcldap:host>
 			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 			<icfcldap:principal>cn=directory manager</icfcldap:principal>
-			<icfcldap:credentials>secret</icfcldap:credentials>
+			<icfcldap:credentials><clearValue>secret</clearValue></icfcldap:credentials>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 		</icfcldap:configurationProperties>
 		
@@ -79,18 +79,18 @@
 		<icfc:producerBufferSize>100</icfc:producerBufferSize>
 
 		<icfc:timeouts>
-			<icfc:create>-1</icfc:create>
-			<icfc:get>-1</icfc:get>
-			<icfc:update>-1</icfc:update>
-			<icfc:delete>-1</icfc:delete>
-			<icfc:test>-1</icfc:test>
-			<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
-			<icfc:scriptOnResource>-1</icfc:scriptOnResource>
-			<icfc:authenticate>-1</icfc:authenticate>
-			<icfc:search>-1</icfc:search>
-			<icfc:validate>-1</icfc:validate>
-			<icfc:sync>-1</icfc:sync>
-			<icfc:schema>-1</icfc:schema>
+				<icfc:create>-1</icfc:create>
+				<icfc:get>-1</icfc:get>
+				<icfc:update>-1</icfc:update>
+				<icfc:delete>-1</icfc:delete>
+				<icfc:test>-1</icfc:test>
+				<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
+				<icfc:scriptOnResource>-1</icfc:scriptOnResource>
+				<icfc:authenticate>-1</icfc:authenticate>
+				<icfc:search>-1</icfc:search>
+				<icfc:validate>-1</icfc:validate>
+				<icfc:sync>-1</icfc:sync>
+				<icfc:schema>-1</icfc:schema>
 		</icfc:timeouts>
 
 	</configuration>

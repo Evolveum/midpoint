@@ -150,7 +150,21 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		result.addParam(OperationResult.PARAM_OID, taskOid);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerImpl.class);
 		
-		return fetchTaskFromRepository(taskOid, result);
+		Task task;
+		try {
+			
+			task = fetchTaskFromRepository(taskOid, result);
+			
+		} catch (ObjectNotFoundException e) {
+			result.recordFatalError("Task not found", e);
+			throw e;
+		} catch (SchemaException e) {
+			result.recordFatalError("Task schema error: "+e.getMessage(), e);
+			throw e;
+		}
+		
+		result.recordSuccess();
+		return task;
 	}
 
 	private Task fetchTaskFromRepository(String taskOid, OperationResult result) throws ObjectNotFoundException, SchemaException {

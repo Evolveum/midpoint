@@ -85,6 +85,7 @@ public class Validator {
 	private static final String END_LINE_NUMBER = "endLineNumber";
 	private boolean verbose = false;
 	private boolean validateSchemas = true;
+	private boolean allowAnyType = false;
 	private EventHandler handler;
 	private DOMConverter domConverter = new DOMConverter();
 	private Unmarshaller unmarshaller = null;
@@ -138,6 +139,14 @@ public class Validator {
 
 	public boolean getValidateSchema() {
 		return validateSchemas;
+	}
+	
+	public void setAllowAnyType(boolean allowAnyType) {
+		this.allowAnyType = allowAnyType;
+	}
+	
+	public boolean getAllowAnyType() {
+		return allowAnyType;
 	}
 	
 	private Unmarshaller createUnmarshaller(OperationResult validatorResult) {
@@ -241,21 +250,34 @@ public class Validator {
 	    	}
     		
 			JAXBElement jaxbElement = (JAXBElement) createUnmarshaller(validatorResult).unmarshal(objectDoc);
-			ObjectType object = (ObjectType) jaxbElement.getValue();
+			Object jaxbValue = jaxbElement.getValue();
+			ObjectType object = null;
 			
-			if (verbose) {
-				LOGGER.debug("Processing OID " + object.getOid());
-			}
+			if (jaxbValue instanceof ObjectType) {
+				object = (ObjectType) jaxbElement.getValue();
 
-			objectResult.addContext(OperationResult.CONTEXT_OBJECT, object);
-
-			validateObject(object, objectResult);
 			
-			if (handler != null) {
-				handler.postMarshall(object, objectElement, objectResult);
+				if (verbose) {
+					LOGGER.debug("Processing OID " + object.getOid());
+				}
+	
+				objectResult.addContext(OperationResult.CONTEXT_OBJECT, object);
+	
+				validateObject(object, objectResult);
+				
+				if (handler != null) {
+					handler.postMarshall(object, objectElement, objectResult);
+				}
+	
+				objectResult.recomputeStatus("Object processing has failed", "Validation warning");
+				
+			} else {
+				if (!allowAnyType) {
+					objectResult.recordFatalError("Found valid type that is not ObjectType: "+jaxbValue);
+				} else {
+					objectResult.recordSuccess();
+				}
 			}
-
-			objectResult.recomputeStatus("Object processing has failed", "Validation warning");
 
 			return object;
 			

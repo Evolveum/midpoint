@@ -176,7 +176,7 @@ public class TestSanity extends AbstractIntegrationTest {
 	public TestSanity() throws JAXBException {
 		super();
 		// TODO: fix this
-		IntegrationTestTools.checkResults = false;
+		//IntegrationTestTools.checkResults = false;
 	}
 
 	// This will get called from the superclass to init the repository
@@ -241,6 +241,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		
 		ResourceType openDjResource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
 				result);
+		display("Imported resource",openDjResource);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, openDjResource.getOid());
 		
 		String ldapConnectorOid = openDjResource.getConnectorRef().getOid();
@@ -334,6 +335,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		UserType repoUser = repositoryService.getObject(UserType.class, oid, resolve, repoResult);
 
+		repoResult.computeStatus();
+		display("repository.getObject result",repoResult);
 		assertSuccess("getObject has failed", repoResult);
 		AssertJUnit.assertEquals(USER_JACK_OID, repoUser.getOid());
 		AssertJUnit.assertEquals(user.getFullName(), repoUser.getFullName());
@@ -372,6 +375,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		UserType repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
 
+		repoResult.computeStatus();
 		displayJaxb("User (repository)", repoUser, new QName("user"));
 
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
@@ -386,6 +390,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, shadowOid,
 				resolve, repoResult);
+		repoResult.computeStatus();
 		assertSuccess("addObject has failed", repoResult);
 		displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
 		AssertJUnit.assertNotNull(repoShadow);
@@ -514,6 +519,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		repoResult = new OperationResult("getObject");
 		repoObject = repositoryService.getObject(ObjectType.class, shadowOid, resolve, repoResult);
+		repoResult.computeStatus();
 		assertSuccess("getObject(repo) has failed", repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
 		displayJaxb(repoShadow, new QName("shadow"));
@@ -659,6 +665,8 @@ public class TestSanity extends AbstractIntegrationTest {
 		// Check task status
 
 		Task task = taskManager.getTask(TASK_OPENDJ_SYNC_OID, result);
+		result.computeStatus();
+		display("getTask result",result);
 		assertSuccess("getTask has failed", result);
 		AssertJUnit.assertNotNull(task);
 		display("Task after pickup", task);
@@ -815,6 +823,8 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// THEN
 
+		System.out.println("importFromResource result:");
+		displayJaxb(taskHolder.value.getResult(), SchemaConstants.C_RESULT);
 		assertSuccess("importFromResource has failed", taskHolder.value.getResult());
 		// Convert the returned TaskType to a more usable Task
 		Task task = taskManager.createTaskInstance(taskHolder.value);
@@ -829,6 +839,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		TaskType taskAfter = repositoryService.getObject(TaskType.class, task.getOid(), null, result);
 		display("Import task in repo after launch", taskAfter);
 
+		result.computeStatus();
 		assertSuccess("getObject has failed", result);
 
 		final String taskOid = task.getOid();
@@ -880,6 +891,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		// to look directly into repository
 		List<AccountShadowType> sobjects = repositoryService.listObjects(AccountShadowType.class, null,
 				result);
+		result.computeStatus();
 		assertSuccess("listObjects has failed", result);
 		AssertJUnit.assertFalse("No shadows created", sobjects.isEmpty());
 

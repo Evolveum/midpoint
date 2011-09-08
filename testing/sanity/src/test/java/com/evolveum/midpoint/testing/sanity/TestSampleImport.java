@@ -119,25 +119,17 @@ public class TestSampleImport extends AbstractIntegrationTest {
 		modelService.importObjectsFromStream(stream, MiscUtil.getDefaultImportOptions(), task, result);
 
 		// THEN
-		result.computeStatus("Failed import.");
+		result.computeStatus();
 		display("Result after good import", result);
-		assertSuccess("Import has failed (result)", result);
+		assertSuccess("Import has failed (result)", result,1);
 
-		Document doc = DOMUtil.getDocument();
-		Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(), SchemaConstants.C_NAME.getLocalPart());
-		nameElement.setTextContent(objectName);
-		Element filter = QueryUtil.createAndFilter(doc,
-				QueryUtil.createTypeFilter(doc, ObjectTypes.getObjectType(type).getObjectTypeUri()),
-				QueryUtil.createEqualFilter(doc, null, nameElement));
-
-		QueryType query = new QueryType();
-		query.setFilter(filter);
+		QueryType query = QueryUtil.createQuery(QueryUtil.createNameAndClassFilter(type, objectName));
 		
 		List<T> objects = repositoryService.searchObjects(type, query, null, result);
 		for (T object : objects) {
 			display("Found object",object);
 		}
-		assertTrue(objects.size()==1);
+		assertEquals("Unexpected search result: "+objects,1,objects.size());
 		
 	}
 	

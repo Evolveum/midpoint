@@ -39,6 +39,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -79,10 +80,22 @@ public class IntegrationTestTools {
 		if (!checkResults) {
 			return;
 		}
-		assertEquals(message + ": " + result.getMessage(), OperationResultStatusType.SUCCESS,
-				result.getStatus());
+		// Ignore top-level if the operation name is not set
+		if (result.getOperation()!=null) {
+			if (result.getStatus() == null || result.getStatus() == OperationResultStatusType.UNKNOWN) {
+				fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
+			}
+			assertEquals(message + ": " + result.getMessage(), OperationResultStatusType.SUCCESS,
+					result.getStatus());
+		}
 		List<OperationResultType> partialResults = result.getPartialResults();
 		for (OperationResultType subResult : partialResults) {
+			if (subResult==null) {
+				fail(message+": null subresult under operation "+result.getOperation());
+			}
+			if (subResult.getOperation()==null) {
+				fail(message+": null subresult operation under operation "+result.getOperation());
+			}
 			assertSuccess(message, subResult);
 		}
 	}
@@ -108,6 +121,9 @@ public class IntegrationTestTools {
 	private static void assertSuccess(String message, OperationResult result, int stopLevel, int currentLevel) {
 		if (!checkResults) {
 			return;
+		}
+		if (result.getStatus() == null || result.getStatus().equals(OperationResultStatus.UNKNOWN)) {
+			fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
 		}
 		assertTrue(message + ": " + result.getMessage(), result.isSuccess());
 		if (stopLevel == currentLevel) {

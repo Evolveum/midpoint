@@ -183,6 +183,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				result.recordFatalError(e.getMessage(),e);
 				throw e;
 			}
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Configuring connector {}",connectorType);
+				for (String propName : apiConfig.getConfigurationProperties().getPropertyNames()) {
+					LOGGER.trace("P: {} = {}",propName,apiConfig.getConfigurationProperties().getProperty(propName).getValue());
+				}
+			}
 		
 			// Create new connector instance using the transformed configuration
 			icfConnectorFacade = ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
@@ -1831,21 +1838,35 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private Object convertToJava(Element configElement, Class type) throws SchemaException {
+		Object value = null;
+		Class midPointClass = type;
 		if (type.equals(GuardedString.class)) {
 			// Guarded string is a special ICF beast
-			return new GuardedString(configElement.getTextContent().toCharArray());
+			midPointClass = ProtectedStringType.class;
+		} else if (type.equals(GuardedByteArray.class)) {
+			// Guarded byte array is a special ICF beast
+			// TODO
+		}
+		try {
+			value = XsdTypeConverter.toJavaValue(configElement, midPointClass);
+		} catch (JAXBException e) {
+			throw new SchemaException("Unexpected JAXB problem while parsing config element "+DOMUtil.getQName(configElement)+": "+e.getMessage(),e,DOMUtil.getQName(configElement));
+		}
+		if (type.equals(GuardedString.class)) {
+			// Guarded string is a special ICF beast
+			// The value must be ProtectedStringType
+			ProtectedStringType ps = (ProtectedStringType)value;
+			try {
+				return new GuardedString(protector.decryptString(ps).toCharArray());
+			} catch (EncryptionException e) {
+				throw new SystemException("Unable to dectypt value of element "+DOMUtil.getQName(configElement)+": "+e.getMessage(),e);
+			}
 		} else if (type.equals(GuardedByteArray.class)) {
 			// Guarded string is a special ICF beast
+			// TODO
 			return new GuardedByteArray(Base64.decodeBase64(configElement.getTextContent()));
-		} else {
-			try {
-				return XsdTypeConverter.toJavaValue(configElement, type);
-			} catch (JAXBException e) {
-				throw new SchemaException("Unexpected JAXB problem while parsing config element "+DOMUtil.getQName(configElement),e,DOMUtil.getQName(configElement));
-			}
-		}
-		
-		
+		} 
+		return value;
 	}
 
 	/* (non-Javadoc)

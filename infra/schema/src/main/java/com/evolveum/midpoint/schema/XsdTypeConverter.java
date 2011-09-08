@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -116,7 +117,11 @@ public class XsdTypeConverter {
 	public static Class toJavaType(QName xsdType) {
 		Class javaType = xsdToJavaTypeMap.get(xsdType);
 		if (javaType == null) {
-			throw new IllegalArgumentException("No type mapping for XSD type " + xsdType);
+			if (xsdType.getNamespaceURI().equals(XMLConstants.W3C_XML_SCHEMA_NS_URI)) {
+				throw new IllegalArgumentException("No type mapping for XSD type " + xsdType);
+			} else {
+				return Element.class;
+			}
 		}
 		return javaType;
 	}
@@ -125,7 +130,9 @@ public class XsdTypeConverter {
 		if (element instanceof Element) {
 			Element xmlElement = (Element)element;
 			String stringContent = xmlElement.getTextContent();
-			if (type.equals(String.class)) {
+			if (type.equals(Element.class)) {
+				return (T) xmlElement;
+			} else if (type.equals(String.class)) {
 				return (T) stringContent;
 			} else if (type.equals(char.class)) {
 				return (T)(new Character(stringContent.charAt(0)));
@@ -251,7 +258,9 @@ public class XsdTypeConverter {
 				doc = DOMUtil.getDocument();
 			}
 			Element element = doc.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
-			if (type.equals(String.class)) {
+			if (type.equals(Element.class)) {
+				return val;
+			} else if (type.equals(String.class)) {
 				element.setTextContent((String)val);
 			} else if (type.equals(char.class) || type.equals(Character.class)) {
 				element.setTextContent(((Character)val).toString());

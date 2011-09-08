@@ -84,6 +84,7 @@ public class TestSamples {
 
 		Validator validator = new Validator();
 		validator.setVerbose(false);
+		validator.setAllowAnyType(true);
         FileInputStream fis = new FileInputStream(file);
         OperationResult result = new OperationResult(RESULT_OPERATION_NAME);
         
