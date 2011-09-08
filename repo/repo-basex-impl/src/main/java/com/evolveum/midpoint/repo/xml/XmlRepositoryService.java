@@ -157,6 +157,11 @@ public class XmlRepositoryService implements RepositoryService {
 						.append(OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS).append("'))");
 			}
 			LOGGER.trace("generated query: " + query);
+
+			executeQuery(query, result);
+
+			result.recordSuccess();
+			return oid;
 		} catch (JAXBException ex) {
 			LoggingUtils.logException(LOGGER, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
@@ -165,19 +170,15 @@ public class XmlRepositoryService implements RepositoryService {
 		} catch (RuntimeException ex) {
 			object.setOid(null);
 			throw ex;
+		} catch (ObjectAlreadyExistsException ex) {
+			object.setOid(null);
+			throw ex;
 		} 
-//		catch (ObjectAlreadyExistsException ex) {
-//			object.setOid(null);
-//			throw ex;
-//		} catch (SchemaException ex) {
+//		catch (SchemaException ex) {
 //			object.setOid(null);
 //			throw ex;
 //		}
 
-		executeQuery(query, result);
-
-		result.recordSuccess();
-		return oid;
 	}
 
 	/*
@@ -418,6 +419,9 @@ public class XmlRepositoryService implements RepositoryService {
 			throw new SystemException(
 					"Schema validation problem occured while checking existence of the object before its deletion",
 					ex);
+		} catch (ObjectNotFoundException ex) {
+			result.computeStatus("Trying to delete not existing object");
+			throw ex;
 		}
 
 		StringBuilder query = new StringBuilder();
