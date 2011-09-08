@@ -248,6 +248,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			LOGGER.error("Error occured during resource object shadow owner lookup.");
 			throw new SystemException("Error occured during resource object shadow owner lookup, reason: "
 					+ ex.getMessage(), ex);
+		} finally {
+			subResult.computeStatus();
 		}
 
 		LOGGER.trace("checkSituation::end - {}, {}",
