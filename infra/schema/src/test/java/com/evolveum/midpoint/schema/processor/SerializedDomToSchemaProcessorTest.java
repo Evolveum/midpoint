@@ -66,6 +66,13 @@ public class SerializedDomToSchemaProcessorTest {
 
 				schema = Schema.parse(DOMUtil.parseDocument(xml).getDocumentElement());
 				LOGGER.debug("Schema parsed {}", schema);
+				
+				LOGGER.debug("Schema parsed {}", schema);
+				document = schema.serializeToXsd();
+				xml = DOMUtil.printDom(document).toString();
+				LOGGER.trace("Schema parsed to dom:\n{}", xml);
+				document = DOMUtil.parseDocument(xml);
+				schema = Schema.parse(document.getDocumentElement());
 			} catch (Exception ex) {
 				Assert.fail(ex.getMessage(), ex);
 			}

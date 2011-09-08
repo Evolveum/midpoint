@@ -56,13 +56,13 @@ import java.util.Set;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
+import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -132,6 +132,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	private ProvisioningService provisioningService;
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager;
+	@Autowired(required = true)
+	private ConnectorFactory connectorFactoryIcfImpl;
 
 	private static Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplOpenDJTest.class);
 
@@ -770,6 +772,4 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		
 		// TODO: assert something
 	}
-	
-	
 }

@@ -67,7 +67,9 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 	 * xsd:schema element for that QName attributes. Therefore prefixes in
 	 * QNames in attributes can't be resolved.
 	 * 
-	 * Note: Test maintainability is very difficult, because if we change classes definition we have to regenerate files in serialized folder
+	 * Note: Test maintainability is very difficult, because if we change schema
+	 * processor classes definition we have to regenerate files in serialized
+	 * folder
 	 * 
 	 * @throws Exception
 	 */
@@ -99,10 +101,10 @@ public class RepositoryNamespaceTest extends AbstractTestNGSpringContextTests {
 				// connector object just for testing...
 				ConnectorType connector = new ConnectorType();
 				XmlSchemaType xmlSchema = new XmlSchemaType();
-				
-				document = DOMUtil.parseDocument(xml);				
+
+				document = DOMUtil.parseDocument(xml);
 				xmlSchema.getAny().add(document.getDocumentElement());
-				
+
 				connector.setSchema(xmlSchema);
 				connector.setName(file.getName());
 				connector.setNamespace("http://" + file.getName());
