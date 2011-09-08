@@ -237,13 +237,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// Create common ICF configuration property containers as a references to a static schema 
 		configurationContainerDef.createPropertyDefinition(
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE);
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE,0,1);
 		configurationContainerDef.createPropertyDefinition(
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT,
-		ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE);
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE,0,1);
 		configurationContainerDef.createPropertyDefinition(
 				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT,
-				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_TYPE);
+				ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_TYPE,0,1);
 		
 		// No need to create definition of "configuration" element. 
 		// midPoint will look for this element, but it will be generated as part of the PropertyContainer serialization to schema

@@ -203,6 +203,11 @@ public class PropertyDefinition extends ItemDefinition {
 		return new Property(name, this);
 	}
 
+	@Override
+	public Property instantiate(QName name, Object element) {
+		return new Property(name, this, null, element);
+	}
+
 	// TODO: factory methods for DOM and JAXB elements
 
 	public void setRead(boolean read) {
@@ -230,7 +235,13 @@ public class PropertyDefinition extends ItemDefinition {
 			return null;
 		}
 		QName propName = JAXBUtil.getElementQName(elements.get(0));
-		Property prop = this.instantiate(propName);
+		Property prop = null;
+		if (elements.size()==1) {
+			prop = this.instantiate(propName, elements.get(0));
+		} else {
+			// In-place modification not supported for multi-valued properties
+			prop = this.instantiate(propName, null);
+		}
 
 		if (!isMultiValue() && elements.size()>1) {
 			throw new SchemaException("Attempt to store multiple values in single-valued property "+propName);

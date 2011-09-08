@@ -73,6 +73,10 @@ public class ResourceObjectAttribute extends Property {
 		super(name, definition);
 	}
 
+	public ResourceObjectAttribute(QName name, PropertyDefinition definition, Object element) {
+		super(name, definition, null, element);
+	}
+
 	/**
 	 * The constructors should be used only occasionally (if used at all).
 	 * Use the factory methods in the ResourceObjectDefintion instead.

@@ -431,15 +431,19 @@ public final class JAXBUtil {
 		}
 	}
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Element toDomElement(Object element) throws JAXBException {
+		return toDomElement(element, DOMUtil.getDocument());
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static Element toDomElement(Object element, Document doc) throws JAXBException {
 		if (element == null) {
 			return null;
 		}
 		if (element instanceof Element) {
 			return ((Element) element);
 		} else if (element instanceof JAXBElement) {
-			return jaxbToDom((JAXBElement) element, null);
+			return jaxbToDom((JAXBElement) element, doc);
 		} else {
 			throw new IllegalArgumentException("Not an element: " + element + " ("
 					+ element.getClass().getName() + ")");

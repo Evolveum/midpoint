@@ -48,6 +48,9 @@ public abstract class Item implements Dumpable {
 
 	protected QName name;
 	protected Definition definition;
+	// Original element from which the item was parsed
+	// live reference, pointing to the original JAXB/DOM. used for applying modifications
+	protected Object element;
 
 	/**
 	 * Default constructor.
@@ -79,6 +82,17 @@ public abstract class Item implements Dumpable {
 		super();
 		this.name = name;
 		this.definition = definition;
+	}
+
+	/**
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 */
+	public Item(QName name, Definition definition, Object element) {
+		super();
+		this.name = name;
+		this.definition = definition;
+		this.element = element;
 	}
 
 	/**
@@ -132,6 +146,14 @@ public abstract class Item implements Dumpable {
 	 */
 	public void setDefinition(PropertyDefinition definition) {
 		this.definition = definition;
+	}
+	
+	public Object getElement() {
+		return element;
+	}
+	
+	public void setElement(Object element) {
+		this.element = element;
 	}
 
 	/**

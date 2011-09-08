@@ -69,6 +69,14 @@ public final class ResourceObject extends PropertyContainer {
 		super(name, definition);
 	}
 
+	/**
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 */
+	public ResourceObject(QName name, ResourceObjectDefinition definition, Object element) {
+		super(name, definition, element);
+	}
+
 	@Override
 	public ResourceObjectDefinition getDefinition() {
 		return (ResourceObjectDefinition) super.getDefinition();

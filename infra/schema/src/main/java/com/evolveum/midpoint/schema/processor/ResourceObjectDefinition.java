@@ -337,6 +337,12 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	public PropertyContainer instantiate(QName name) {
 		return new ResourceObject(name, this);
 	}
+	
+	@Override
+	public PropertyContainer instantiate(QName name, Object element) {
+		return new ResourceObject(name, this, element);
+	}
+
 
 	@Override
 	public String dump(int indent) {

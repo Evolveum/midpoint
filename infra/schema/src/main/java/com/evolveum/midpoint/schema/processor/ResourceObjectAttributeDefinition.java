@@ -62,6 +62,10 @@ public class ResourceObjectAttributeDefinition extends PropertyDefinition {
 		return new ResourceObjectAttribute(name, this);
 	}
 
+	public ResourceObjectAttribute instantiate(QName name, Object element) {
+		return new ResourceObjectAttribute(name, this, element);
+	}
+
 	/**
 	 * Returns true if the attribute is a (primary) identifier.
 	 * 

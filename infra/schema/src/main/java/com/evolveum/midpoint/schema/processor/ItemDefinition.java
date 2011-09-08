@@ -131,7 +131,15 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 * @return created item instance
 	 */
 	abstract public Item instantiate(QName name);
-	
+
+	/**
+	 * Create an item instance. Definition name will use provided name.
+	 * for the instance. The instance will contain reference to the element from
+	 * which it originated.
+	 * @return created item instance
+	 */
+	abstract public Item instantiate(QName name, Object element);
+
 	/**
 	 * Create at instance of the item initialized from the provided list of elements.
 	 * The definition name (ore default name) will be used as the instance (element) name.

@@ -166,7 +166,7 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	 * This is a preferred way how to create property container.
 	 */
 	public PropertyContainer instantiate() {
-		return new PropertyContainer(getNameOrDefaultName(), this);
+		return instantiate(getNameOrDefaultName());
 	}
 	
 	/**
@@ -177,7 +177,16 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	public PropertyContainer instantiate(QName name) {
 		return new PropertyContainer(name, this);
 	}
-	
+
+	/**
+	 * Create property container instance with a specified name and element.
+	 * 
+	 * This is a preferred way how to create property container.
+	 */
+	public PropertyContainer instantiate(QName name, Object element) {
+		return new PropertyContainer(name, this, element);
+	}
+
 	/**
 	 * Creates new instance of property definition and adds it to the container.
 	 * 
@@ -189,6 +198,26 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	 */
 	public PropertyDefinition createPropertyDefinition(QName name, QName typeName) {
 		PropertyDefinition propDef = new PropertyDefinition(name, typeName);
+		getDefinitions().add(propDef);
+		return propDef;
+	}
+	
+	/**
+	 * Creates new instance of property definition and adds it to the container.
+	 * 
+	 * This is the preferred method of creating a new definition.
+	 * 
+	 * @param name name of the property (element name)
+	 * @param typeName XSD type of the property
+	 * @param minOccurs minimal number of occurrences
+	 * @param maxOccurs maximal number of occurrences (-1 means unbounded)
+	 * @return created property definition
+	 */
+	public PropertyDefinition createPropertyDefinition(QName name, QName typeName,
+			int minOccurs, int maxOccurs) {
+		PropertyDefinition propDef = new PropertyDefinition(name, typeName);
+		propDef.setMinOccurs(minOccurs);
+		propDef.setMaxOccurs(maxOccurs);
 		getDefinitions().add(propDef);
 		return propDef;
 	}
@@ -229,6 +258,27 @@ public class PropertyContainerDefinition extends ItemDefinition {
 		QName name = new QName(getSchemaNamespace(),localName);
 		QName typeName = new QName(getSchemaNamespace(),localTypeName);
 		return createPropertyDefinition(name,typeName);
+	}
+	
+	/**
+	 * Creates new instance of property definition and adds it to the container.
+	 * 
+	 * This is the preferred method of creating a new definition.
+	 *
+	 * @param localName name of the property (element name) relative to the schema namespace
+	 * @param localTypeName XSD type of the property
+	 * @param minOccurs minimal number of occurrences
+	 * @param maxOccurs maximal number of occurrences (-1 means unbounded)
+	 * @return created property definition
+	 */
+	public PropertyDefinition createPropertyDefinition(String localName, String localTypeName,
+			int minOccurs, int maxOccurs) {
+		QName name = new QName(getSchemaNamespace(),localName);
+		QName typeName = new QName(getSchemaNamespace(),localTypeName);
+		PropertyDefinition propertyDefinition = createPropertyDefinition(name,typeName);
+		propertyDefinition.setMinOccurs(minOccurs);
+		propertyDefinition.setMaxOccurs(maxOccurs);
+		return propertyDefinition;
 	}
 	
 	/**
@@ -275,9 +325,19 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	 */
 	protected <T extends PropertyContainer> T parseItem(Object element, Class<T> type) throws SchemaException {
 		QName elementQName = JAXBUtil.getElementQName(element);
-		T container = (T) this.instantiate(elementQName);
+		T container = (T) this.instantiate(elementQName, element);
 		List<Object> childElements = JAXBUtil.listChildElements(element);
 		container.getItems().addAll(parseItems(childElements));
+		return container;
+	}
+	
+	public PropertyContainer parseAsContent(QName name, List<Object> contentElements) throws SchemaException {
+		return parseAsContent(name, contentElements, PropertyContainer.class);
+	}
+	
+	protected <T extends PropertyContainer> T parseAsContent(QName name, List<Object> contentElements, Class<T> type) throws SchemaException {
+		T container = (T) this.instantiate(name);
+		container.getItems().addAll(parseItems(contentElements));
 		return container;
 	}
 

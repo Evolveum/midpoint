@@ -278,10 +278,7 @@ public class OperationResult implements Serializable, Dumpable {
 
 	/**
 	 * Computes operation result status based on subtask status.
-	 * 
-	 * @deprecated this method will be marked as private
 	 */
-	@Deprecated
 	public void computeStatus() {
 		if (getSubresults().isEmpty()) {
 			return;
@@ -289,31 +286,44 @@ public class OperationResult implements Serializable, Dumpable {
 
 		OperationResultStatus newStatus = OperationResultStatus.UNKNOWN;
 		boolean allSuccess = true;
+		boolean allNotApplicable = true;
 		for (OperationResult sub : getSubresults()) {
+			if (sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
+				allNotApplicable = false;
+			}
 			if (sub.getStatus() == OperationResultStatus.FATAL_ERROR) {
 				status = OperationResultStatus.FATAL_ERROR;
+				if (message==null) {
+					message = sub.getMessage();
+				}
 				return;
 			}
-			if (sub.getStatus() != OperationResultStatus.SUCCESS) {
+			if (sub.getStatus() != OperationResultStatus.SUCCESS && sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
 				allSuccess = false;
 			}
 			if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
 				newStatus = OperationResultStatus.PARTIAL_ERROR;
+				if (message==null) {
+					message = sub.getMessage();
+				}
 			}
 			if (newStatus != OperationResultStatus.PARTIAL_ERROR) {
 				if (sub.getStatus() == OperationResultStatus.WARNING) {
 					newStatus = OperationResultStatus.WARNING;
-				} else if (sub.getStatus() == OperationResultStatus.NOT_APPLICABLE) {
-					newStatus = OperationResultStatus.NOT_APPLICABLE;
+					if (message==null) {
+						message = sub.getMessage();
+					}
 				}
 			}
 		}
 
-		if (allSuccess && !getSubresults().isEmpty()) {
+		if (allNotApplicable && !getSubresults().isEmpty()) {
+			status = OperationResultStatus.NOT_APPLICABLE;
+		} if (allSuccess && !getSubresults().isEmpty()) {
 			status = OperationResultStatus.SUCCESS;
 		} else {
 			status = newStatus;
-		}
+		}		
 	}
 
 	/**

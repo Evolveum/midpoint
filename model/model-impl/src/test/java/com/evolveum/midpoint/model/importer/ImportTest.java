@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.model.importer;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -34,6 +35,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -47,11 +50,11 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -79,6 +82,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	private static final File IMPORT_CONNECTOR_FILE = new File(TEST_FILE_DIRECTORY, "import-connector.xml");
 	private static final String CONNECOTR_LDAP_OID = "7d3ebd6f-6113-4833-8a6a-596b73a5e434";
+	private static final String CONNECTOR_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
 	private static final File IMPORT_RESOURCE_FILE = new File(TEST_FILE_DIRECTORY, "import-resource.xml");
 	private static final String RESOURCE_DERBY_OID = "ef2bc95b-76e0-59e2-86d6-999902d3abab";
 	
@@ -113,7 +117,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
 		// THEN
-		result.computeStatus("Failed import.");
+		result.computeStatus();
 		display("Result after good import", result);
 		assertSuccess("Import has failed (result)", result);
 
@@ -121,7 +125,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		ConnectorType connector = repositoryService.getObject(ConnectorType.class, CONNECOTR_LDAP_OID, null, result);
 		assertNotNull(connector);
 		assertEquals("ICF org.identityconnectors.databasetable.DatabaseTableConnector", connector.getName());
-		assertEquals("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector", connector.getNamespace());
+		assertEquals(CONNECTOR_NAMESPACE, connector.getNamespace());
 		assertEquals("org.identityconnectors.databasetable.DatabaseTableConnector", connector.getConnectorType());
 	}
 
@@ -137,16 +141,23 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
 		// THEN
-		result.computeStatus("Failed import.");
+		result.computeStatus();
 		display("Result after good import", result);
-		assertSuccess("Import has failed (result)", result);
+		assertSuccess("Import has failed (result)", result, 2);
 
 		// Check import with fixed OID
 		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, result);
 		assertNotNull(resource);
+		display("Imported resource",resource);
 		assertEquals("Embedded Test Derby", resource.getName());
 		assertEquals("http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-999902d3abab", resource.getNamespace());
 		assertEquals(CONNECOTR_LDAP_OID,resource.getConnectorRef().getOid());
+		
+		// The password in the resource configuration should be encrypted after import
+		Element configurationProperties = (Element) JAXBUtil.findElement(resource.getConfiguration().getAny(), new QName(CONNECTOR_NAMESPACE,"configurationProperties"));
+		Element password = (Element) configurationProperties.getElementsByTagNameNS(CONNECTOR_NAMESPACE, "password").item(0);
+		assertTrue("Password was not encrypted (clearValue)",password.getElementsByTagNameNS(SchemaConstants.NS_C, "clearValue").getLength()==0);
+		assertTrue("Password was not encrypted (no EncryptedData)",password.getElementsByTagNameNS(DOMUtil.NS_XML_ENC,"EncryptedData").getLength()==1);
 	}
 	
 	@Test
@@ -161,7 +172,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
 		// THEN
-		result.computeStatus("Failed import.");
+		result.computeStatus();
 		display("Result after good import", result);
 		assertSuccess("Import has failed (result)", result);
 
@@ -212,7 +223,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
 		// THEN
-		result.computeStatus("Failed import.");
+		result.computeStatus();
 		display("Result after dupicate import", result);
 		assertFalse("Unexpected success", result.isSuccess());
 
@@ -241,7 +252,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		modelService.importObjectsFromStream(stream, options, task, result);
 
 		// THEN
-		result.computeStatus("Failed import.");
+		result.computeStatus();
 		display("Result after import with overwrite", result);
 		assertSuccess("Import failed (result)", result,1);
 

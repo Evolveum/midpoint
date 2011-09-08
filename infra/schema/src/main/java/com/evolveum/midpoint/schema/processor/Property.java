@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -36,6 +37,7 @@ import org.w3c.dom.Node;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 
 
 /**
@@ -82,7 +84,20 @@ public class Property extends Item {
 
 	public Property(QName name, PropertyDefinition definition, Set<Object> values) {
 		super(name,definition);
-		this.values = values;
+		if (values == null) {
+			this.values = new HashSet<Object>();
+		} else {
+			this.values = values;
+		}
+	}
+
+	public Property(QName name, PropertyDefinition definition, Set<Object> values, Object element) {
+		super(name,definition,element);
+		if (values == null) {
+			this.values = new HashSet<Object>();
+		} else {
+			this.values = values;
+		}
 	}
 
 	/**
@@ -308,6 +323,41 @@ public class Property extends Item {
 			
 		}			
 		return elements;
+	}
+	
+	public void applyValueToElement() throws SchemaException {
+		if (element == null) {
+			throw new IllegalStateException("Cannot apply value to element as the element is null (property "+getName()+")");
+		}
+		if (element instanceof Element) {
+			// TODO
+			Element domElement = (Element) element;
+			Node parentNode = domElement.getParentNode();
+			if (!(parentNode instanceof Element)) {
+				// This is unlikely for JAXB elements, the will be JAXBElement instead. But this may happen for
+				// "primitive" types. It may need some solution later.
+				throw new IllegalStateException("Cannot apply value changes to top-level DOM elements (property "+getName()+")");
+			}
+			Element parentElement = (Element) parentNode;
+			Object newElement = null;
+			try {
+				newElement = XsdTypeConverter.toXsdElement(getValue(),getDefinition().getTypeName(),getName(),domElement.getOwnerDocument(),false);
+			} catch (JAXBException e) {
+				throw new SchemaException("Cannot convert value of property "+getName()+": "+e.getMessage(),e);
+			}
+			Element newDomElement = null;
+			try {
+				newDomElement = JAXBUtil.toDomElement(newElement,parentElement.getOwnerDocument());
+			} catch (JAXBException e) {
+				throw new SchemaException("Cannot convert value of property "+getName()+": "+e.getMessage(),e);
+			}
+			parentElement.replaceChild(newDomElement, domElement);
+			element = newDomElement;
+		} else if (element instanceof JAXBElement) {
+			((JAXBElement)element).setValue(getValue());
+		} else {
+			throw new IllegalStateException("Unknown element type "+element+" ("+element.getClass().getName()+"), property "+getName());
+		}
 	}
 	
 	@Override

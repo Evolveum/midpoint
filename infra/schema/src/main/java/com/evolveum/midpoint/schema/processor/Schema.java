@@ -104,7 +104,7 @@ public class Schema implements Dumpable, Serializable {
 
 	public static Schema parse(Element schema) throws SchemaException {
 		if (schema == null) {
-			throw new IllegalArgumentException("Input stream must not be null.");
+			throw new IllegalArgumentException("Schema DOM element must not be null.");
 		}
 
 		DomToSchemaProcessor processor = new DomToSchemaProcessor();

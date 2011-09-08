@@ -85,6 +85,9 @@ public class DOMUtil {
 	public static final QName XSD_DATETIME = new QName(W3C_XML_SCHEMA_NS_URI, "dateTime",
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_QNAME = new QName(W3C_XML_SCHEMA_NS_URI, "QName", NS_W3C_XML_SCHEMA_PREFIX);
+	
+	public static final String NS_XML_ENC = "http://www.w3.org/2001/04/xmlenc#";
+	public static final String NS_XML_DSIG = "http://www.w3.org/2000/09/xmldsig#";
 
 	private static final String RANDOM_ATTR_PREFIX_PREFIX = "qn";
 	private static final int RANDOM_ATTR_PREFIX_RND = 1000;

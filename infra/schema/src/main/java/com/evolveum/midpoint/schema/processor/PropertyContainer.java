@@ -70,12 +70,16 @@ public class PropertyContainer extends Item implements Serializable {
 		super();
 	}
 
+	public PropertyContainer(QName name) {
+		super(name);
+	}
+	
 	public PropertyContainer(QName name, PropertyContainerDefinition definition) {
 		super(name,definition);
 	}
 
-	public PropertyContainer(QName name) {
-		super(name);
+	public PropertyContainer(QName name, PropertyContainerDefinition definition, Object element) {
+		super(name,definition,element);
 	}
 
 	/**
