@@ -42,7 +42,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class SchemaHandler implements ErrorHandler, EntityResolver {
 
-	private static final Trace TRACE = TraceManager.getTrace(SchemaHandler.class);
+	private static final Trace LOGGER = TraceManager.getTrace(SchemaHandler.class);
 
 	private EntityResolver entityResolver;
 
@@ -78,8 +78,8 @@ public class SchemaHandler implements ErrorHandler, EntityResolver {
 		builder.append(" ");
 		builder.append(e.getMessage());
 
-		TRACE.error(builder.toString());
-		TRACE.trace(builder.toString(), e);
+		LOGGER.error(builder.toString());
+		LOGGER.trace(builder.toString(), e);
 	}
 
 	/*
@@ -92,14 +92,14 @@ public class SchemaHandler implements ErrorHandler, EntityResolver {
 	public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
 		try {
 			InputSource source = entityResolver.resolveEntity(publicId, systemId);
-			TRACE.trace("Resolved entity '{}', '{}': '{}'", new Object[] { publicId, systemId, source });
+			LOGGER.trace("Resolved entity '{}', '{}': '{}'", new Object[] { publicId, systemId, source });
 			return source;
 		} catch (SAXException e) {
-			TRACE.error("Error resolving entity '{}', '{}': '{}'",
+			LOGGER.error("Error resolving entity '{}', '{}': '{}'",
 					new Object[] { publicId, systemId, e.getMessage(), e });
 			throw e;
 		} catch (IOException e) {
-			TRACE.error("Error resolving entity '{}', '{}': '{}'",
+			LOGGER.error("Error resolving entity '{}', '{}': '{}'",
 					new Object[] { publicId, systemId, e.getMessage(), e });
 			throw e;
 		}

@@ -65,7 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
  */
 public final class JAXBUtil {
 
-	private static final Trace TRACE = TraceManager.getTrace(JAXBUtil.class);
+	private static final Trace LOGGER = TraceManager.getTrace(JAXBUtil.class);
 	private static final JAXBContext context;
 	private static final JAXBIntrospector introspector;
 
@@ -82,7 +82,7 @@ public final class JAXBUtil {
 			context = JAXBContext.newInstance(sb.toString());
 			introspector = context.createJAXBIntrospector();
 		} catch (JAXBException ex) {
-			TRACE.error("Couldn't create JAXBContext for: " + ObjectFactory.class.getPackage().getName(), ex);
+			LOGGER.error("Couldn't create JAXBContext for: " + ObjectFactory.class.getPackage().getName(), ex);
 			throw new IllegalStateException("Couldn't create JAXBContext for: "
 					+ ObjectFactory.class.getPackage().getName(), ex);
 		}
@@ -213,7 +213,7 @@ public final class JAXBUtil {
 		try {
 			return marshal(xmlObject);
 		} catch (JAXBException ex) {
-			TRACE.debug("Failed to marshal object {}", xmlObject, ex);
+			LOGGER.debug("Failed to marshal object {}", xmlObject, ex);
 			return null;
 		}
 	}
@@ -229,7 +229,7 @@ public final class JAXBUtil {
 					jaxbObject);
 			return marshal(jaxbElement);
 		} catch (JAXBException ex) {
-			TRACE.trace("Failed to marshal object {}", jaxbObject, ex);
+			LOGGER.trace("Failed to marshal object {}", jaxbObject, ex);
 			return null;
 		}
 	}
@@ -251,7 +251,7 @@ public final class JAXBUtil {
 		try {
 			marshal(xmlObject, element);
 		} catch (JAXBException ex) {
-			TRACE.debug("Failed to marshal object {}", xmlObject, ex);
+			LOGGER.debug("Failed to marshal object {}", xmlObject, ex);
 		}
 	}
 
@@ -315,7 +315,7 @@ public final class JAXBUtil {
 		try {
 			return unmarshal(xmlString);
 		} catch (JAXBException ex) {
-			TRACE.debug("Failed to unmarshal xml string {}", xmlString, ex);
+			LOGGER.debug("Failed to unmarshal xml string {}", xmlString, ex);
 			return null;
 		}
 	}
@@ -324,7 +324,7 @@ public final class JAXBUtil {
 		try {
 			return unmarshal(file);
 		} catch (JAXBException ex) {
-			TRACE.debug("Failed to unmarshal file {}", file, ex);
+			LOGGER.debug("Failed to unmarshal file {}", file, ex);
 			return null;
 		}
 	}
