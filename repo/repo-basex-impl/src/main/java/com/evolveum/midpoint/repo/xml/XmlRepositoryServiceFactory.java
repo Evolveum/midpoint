@@ -48,7 +48,7 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 	private boolean runServer = true;
 	private boolean embedded = true;
 	private boolean shutdown = false;
-	private String initialDataPath;
+	private String initialDataPath = "";
 	private String host = "localhost";
 	private int port = 1984;
 	private String username = "admin";
