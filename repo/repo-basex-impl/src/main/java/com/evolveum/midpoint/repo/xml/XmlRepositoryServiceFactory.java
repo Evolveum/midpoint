@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2011 Evolveum
  *
- * The contents of this file are subject to the terms
- * of the Common Development and Distribution License
+ * The contents of this file are subject to the terms 
+ * of the Common Development and Distribution License 
  * (the License). You may not use this file except in
  * compliance with the License.
- *
+ * 
  * You can obtain a copy of the License at
- * http://www.opensource.org/licenses/cddl1 or
+ * http://www.opensource.org/licenses/cddl1 or 
  * CDDLv1.0.txt file in the source code distribution.
  * See the License for the specific language governing
  * permission and limitations under the License.
- *
- * If applicable, add the following below the CDDL Header,
- * with the fields enclosed by brackets [] replaced by
+ * 
+ * If applicable, add the following below the CDDL Header, 
+ * with the fields enclosed by brackets [] replaced by 
  * your own identifying information:
- *
- * Portions Copyrighted 2011 [name of copyright owner]
+ * 
+ * Portions Copyrighted 2011 [name of copyright owner] 
  * Portions Copyrighted 2011 Igor Farinic
  */
 package com.evolveum.midpoint.repo.xml;
@@ -42,12 +42,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 
-	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryServiceFactory.class);
+	private static final Trace LOGGER = TraceManager.getTrace(XmlRepositoryServiceFactory.class);
 
 	private boolean dropDatabase = false;
 	private boolean runServer = true;
 	private boolean embedded = true;
-	// shutdown = true for standalone run, shutdown = false for test run
 	private boolean shutdown = false;
 	private String initialDataPath;
 	private String host = "localhost";
@@ -82,12 +81,12 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 		if (runServer) {
 			// start BaseX server, it registers its own shutdown hook, therefore
 			// no cleanup is required
-			TRACE.trace("Starting BaseX Server on {}:{}", host, port);
+			LOGGER.trace("Starting BaseX Server on {}:{}", host, port);
 
 			if (StringUtils.isNotEmpty(serverPath)) {
-				TRACE.debug("BaseX Server base path: {}", serverPath);
+				LOGGER.debug("BaseX Server base path: {}", serverPath);
 			} else {
-				TRACE.debug("BaseX Server base not set, using default value");
+				LOGGER.debug("BaseX Server base not set, using default value");
 			}
 			StringBuffer commands = new StringBuffer();
 			if (StringUtils.isNotEmpty(serverPath)) {
@@ -107,7 +106,7 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 				// set debug mode and run it as a Daemon process
 				server = new BaseXServer("-p" + port, "-d", "-s", commands.toString());
 			}
-			TRACE.trace("BaseX Server started");
+			LOGGER.trace("BaseX Server started");
 		}
 	}
 
@@ -122,9 +121,9 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 
 		ClientSession session = null;
 		try {
-			TRACE.trace("Creating BaseX client Session");
+			LOGGER.trace("Creating BaseX client Session");
 			session = new ClientSession(host, port, username, password);
-			TRACE.trace("BaseX client Session created");
+			LOGGER.trace("BaseX client Session created");
 
 			if (dropDatabase) {
 				session.execute("DROP DATABASE " + databaseName);
@@ -144,9 +143,9 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 					// FIXME: remove hardcoded values
 					String serializedObject = "<c:objects xmlns:c=\"http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"/>";
 					StringBuilder query = new StringBuilder()
-							.append("declare namespace c='" + SchemaConstants.NS_C + "';\n")
-							.append("let $x := ").append(serializedObject).append("\n")
-							.append("return insert node $x into doc(\"").append(databaseName).append("\")");
+							.append("declare namespace c='" + SchemaConstants.NS_C + "';\n").append("let $x := ")
+							.append(serializedObject).append("\n").append("return insert node $x into doc(\"")
+							.append(databaseName).append("\")");
 					ClientQuery cq;
 					cq = session.query(query.toString());
 					cq.execute();
@@ -191,15 +190,17 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 	public void destroy() {
 		if (shutdown) {
 			if (server != null) {
+				LOGGER.info("Basex server commiting to shutdown.");
 				server.stop();
+				LOGGER.info("Basex server is down.");
 			}
 		}
+		LOGGER.info("Destroying BaseX server service.");
 	}
 
 	@Override
 	public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
-		RepositoryService repositoryService = new XmlRepositoryService(host, port, username, password,
-				databaseName);
+		RepositoryService repositoryService = new XmlRepositoryService(host, port, username, password, databaseName);
 		return repositoryService;
 	}
 
@@ -299,15 +300,14 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 			SocketAddress endpoint = new InetSocketAddress(this.getPort());
 			ss.bind(endpoint);
 		} catch (IOException e) {
-			throw new RepositoryServiceFactoryException(
-					"BaseX port (" + this.getPort() + ") already in use.", e);
+			throw new RepositoryServiceFactoryException("BaseX port (" + this.getPort() + ") already in use.", e);
 		} finally {
 			try {
 				if (ss != null) {
 					ss.close();
 				}
 			} catch (IOException e) {
-				TRACE.error(
+				LOGGER.error(
 						"Reported IO error, while closing ServerSocket used to test availability of port for BaseX Server",
 						e);
 			}
