@@ -39,8 +39,8 @@ public class TraceManager {
     private static Logger LOG = org.slf4j.LoggerFactory.getLogger(TraceManager.class);
 
     public static Trace getTrace(Class clazz) {
-        Logger logger = org.slf4j.LoggerFactory.getLogger(clazz);
+        Logger LOGGER = org.slf4j.LoggerFactory.getLogger(clazz);
 
-        return new TraceImpl(logger);
+        return new TraceImpl(LOGGER);
     }
 }

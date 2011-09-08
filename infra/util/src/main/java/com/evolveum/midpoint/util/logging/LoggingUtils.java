@@ -33,18 +33,18 @@ import org.apache.commons.lang.Validate;
  */
 public class LoggingUtils {
 
-	public static void logException(Trace logger, String message, Exception ex, Object... objects) {
-		Validate.notNull(logger, "Logger can't be null.");
+	public static void logException(Trace LOGGER, String message, Exception ex, Object... objects) {
+		Validate.notNull(LOGGER, "Logger can't be null.");
 		Validate.notNull(ex, "Exception can't be null.");
 
 		List<Object> args = new ArrayList<Object>();
 		args.addAll(Arrays.asList(objects));
 		args.add(ex.getMessage());
 
-		logger.error(message + ", reason: {}", args.toArray());
+		LOGGER.error(message + ", reason: {}", args.toArray());
 		// Note: messages could contain {}, however these are not replaced with
 		// actual arguments, because logging API does not have support to log
 		// stack trace and format the message
-		logger.debug(message + ".", ex);
+		LOGGER.debug(message + ".", ex);
 	}
 }

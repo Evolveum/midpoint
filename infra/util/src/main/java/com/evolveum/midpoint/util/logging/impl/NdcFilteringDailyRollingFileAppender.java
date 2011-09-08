@@ -12,7 +12,7 @@ import org.apache.log4j.spi.LoggingEvent;
 
 public class NdcFilteringDailyRollingFileAppender extends DailyRollingFileAppender {
 
-	private Map<String, List<String>> loggerComponents = new HashMap<String, List<String>>();
+	private Map<String, List<String>> LOGGERComponents = new HashMap<String, List<String>>();
 
 	public NdcFilteringDailyRollingFileAppender() {
 	}
@@ -34,20 +34,20 @@ public class NdcFilteringDailyRollingFileAppender extends DailyRollingFileAppend
 		return ndcSubsystem;
 	}
 
-	private List<String> getSubsystems(String loggerName) {
-		//Log4j loggers are in hierarchy, so we have to search it from bottom to top
-		String searchName = loggerName;
+	private List<String> getSubsystems(String LOGGERName) {
+		//Log4j LOGGERs are in hierarchy, so we have to search it from bottom to top
+		String searchName = LOGGERName;
 		int dotPos = -1;
 		List<String> subsystems = null;
 		while ((dotPos = StringUtils.lastIndexOf(searchName, ".")) > -1) {
-			subsystems = loggerComponents.get(searchName);
+			subsystems = LOGGERComponents.get(searchName);
 			if (subsystems != null) {
 				return subsystems;
 			}
 			searchName = StringUtils.substring(searchName, 0, dotPos);
 		}
 	
-		return subsystems = loggerComponents.get(searchName);
+		return subsystems = LOGGERComponents.get(searchName);
 		
 	}
 	
@@ -70,7 +70,7 @@ public class NdcFilteringDailyRollingFileAppender extends DailyRollingFileAppend
 		// Note: possible problems, if there is more configurations for the same
 		// package. Only last configuration in the list will be applied
 		for (String pckg : pckgs) {
-			loggerComponents.put(pckg, subsystems);
+			LOGGERComponents.put(pckg, subsystems);
 		}
 	}
 

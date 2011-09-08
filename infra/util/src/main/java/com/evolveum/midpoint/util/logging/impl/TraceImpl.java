@@ -37,314 +37,314 @@ import com.evolveum.midpoint.util.logging.Trace;
 public class TraceImpl implements Trace {
 
     public static final String code_id = "$Id$";
-    private Logger logger;
+    private Logger LOGGER;
 
-    public TraceImpl(Logger logger) {
-        this.logger = logger;
+    public TraceImpl(Logger LOGGER) {
+        this.LOGGER = LOGGER;
     }
 
     @Override
     public String getName() {
-        return logger.getName();
+        return LOGGER.getName();
     }
 
     @Override
     public boolean isTraceEnabled() {
-        return logger.isTraceEnabled();
+        return LOGGER.isTraceEnabled();
     }
 
     @Override
     public void trace(String msg) {
-        logger.trace(msg);
+        LOGGER.trace(msg);
     }
 
     @Override
     public void trace(String format, Object arg) {
-        logger.trace(format, arg);
+        LOGGER.trace(format, arg);
     }
 
     @Override
     public void trace(String format, Object arg1, Object arg2) {
-        logger.trace(format, arg1, arg2);
+        LOGGER.trace(format, arg1, arg2);
     }
 
     @Override
     public void trace(String format, Object[] argArray) {
-        logger.trace(format, argArray);
+        LOGGER.trace(format, argArray);
     }
 
     @Override
     public void trace(String msg, Throwable t) {
-        logger.trace(msg, t);
+        LOGGER.trace(msg, t);
     }
 
     @Override
     public boolean isTraceEnabled(Marker marker) {
-        return logger.isTraceEnabled(marker);
+        return LOGGER.isTraceEnabled(marker);
     }
 
     @Override
     public void trace(Marker marker, String msg) {
-        logger.trace(marker, msg);
+        LOGGER.trace(marker, msg);
     }
 
     @Override
     public void trace(Marker marker, String format, Object arg) {
-        logger.trace(marker, format, arg);
+        LOGGER.trace(marker, format, arg);
     }
 
     @Override
     public void trace(Marker marker, String format, Object arg1, Object arg2) {
-        logger.trace(format, arg1, arg2);
+        LOGGER.trace(format, arg1, arg2);
     }
 
     @Override
     public void trace(Marker marker, String format, Object[] argArray) {
-        logger.trace(marker, format, argArray);
+        LOGGER.trace(marker, format, argArray);
     }
 
     @Override
     public void trace(Marker marker, String msg, Throwable t) {
-        logger.trace(marker, msg, t);
+        LOGGER.trace(marker, msg, t);
     }
 
     @Override
     public boolean isDebugEnabled() {
-        return logger.isDebugEnabled();
+        return LOGGER.isDebugEnabled();
     }
 
     @Override
     public void debug(String msg) {
-        logger.debug(msg);
+        LOGGER.debug(msg);
     }
 
     @Override
     public void debug(String format, Object arg) {
-        logger.debug(format, arg);
+        LOGGER.debug(format, arg);
     }
 
     @Override
     public void debug(String format, Object arg1, Object arg2) {
-        logger.debug(format, arg1, arg2);
+        LOGGER.debug(format, arg1, arg2);
     }
 
     @Override
     public void debug(String format, Object[] argArray) {
-        logger.debug(format, argArray);
+        LOGGER.debug(format, argArray);
     }
 
     @Override
     public void debug(String msg, Throwable t) {
-        logger.debug(msg, t);
+        LOGGER.debug(msg, t);
     }
 
     @Override
     public boolean isDebugEnabled(Marker marker) {
-        return logger.isDebugEnabled(marker);
+        return LOGGER.isDebugEnabled(marker);
     }
 
     @Override
     public void debug(Marker marker, String msg) {
-        logger.debug(marker, msg);
+        LOGGER.debug(marker, msg);
     }
 
     @Override
     public void debug(Marker marker, String format, Object arg) {
-        logger.debug(marker, format, arg);
+        LOGGER.debug(marker, format, arg);
     }
 
     @Override
     public void debug(Marker marker, String format, Object arg1, Object arg2) {
-        logger.debug(marker, format, arg1, arg2);
+        LOGGER.debug(marker, format, arg1, arg2);
     }
 
     @Override
     public void debug(Marker marker, String format, Object[] argArray) {
-        logger.debug(marker, format, argArray);
+        LOGGER.debug(marker, format, argArray);
     }
 
     @Override
     public void debug(Marker marker, String msg, Throwable t) {
-        logger.debug(msg, t);
+        LOGGER.debug(msg, t);
     }
 
     @Override
     public boolean isInfoEnabled() {
-        return logger.isInfoEnabled();
+        return LOGGER.isInfoEnabled();
     }
 
     @Override
     public void info(String msg) {
-        logger.info(msg);
+        LOGGER.info(msg);
     }
 
     @Override
     public void info(String format, Object arg) {
-        logger.info(format, arg);
+        LOGGER.info(format, arg);
     }
 
     @Override
     public void info(String format, Object arg1, Object arg2) {
-        logger.info(format, arg1, arg2);
+        LOGGER.info(format, arg1, arg2);
     }
 
     @Override
     public void info(String format, Object[] argArray) {
-        logger.info(format, argArray);
+        LOGGER.info(format, argArray);
     }
 
     @Override
     public void info(String msg, Throwable t) {
-        logger.info(msg, t);
+        LOGGER.info(msg, t);
     }
 
     @Override
     public boolean isInfoEnabled(Marker marker) {
-        return logger.isInfoEnabled(marker);
+        return LOGGER.isInfoEnabled(marker);
     }
 
     @Override
     public void info(Marker marker, String msg) {
-        logger.info(marker, msg);
+        LOGGER.info(marker, msg);
     }
 
     @Override
     public void info(Marker marker, String format, Object arg) {
-        logger.info(marker, format, arg);
+        LOGGER.info(marker, format, arg);
     }
 
     @Override
     public void info(Marker marker, String format, Object arg1, Object arg2) {
-        logger.info(marker, format, arg1, arg2);
+        LOGGER.info(marker, format, arg1, arg2);
     }
 
     @Override
     public void info(Marker marker, String format, Object[] argArray) {
-        logger.info(marker, format, argArray);
+        LOGGER.info(marker, format, argArray);
     }
 
     @Override
     public void info(Marker marker, String msg, Throwable t) {
-        logger.info(marker, msg, t);
+        LOGGER.info(marker, msg, t);
     }
 
     @Override
     public boolean isWarnEnabled() {
-        return logger.isWarnEnabled();
+        return LOGGER.isWarnEnabled();
     }
 
     @Override
     public void warn(String msg) {
-        logger.warn(msg);
+        LOGGER.warn(msg);
     }
 
     @Override
     public void warn(String format, Object arg) {
-        logger.warn(format, arg);
+        LOGGER.warn(format, arg);
     }
 
     @Override
     public void warn(String format, Object[] argArray) {
-        logger.warn(format, argArray);
+        LOGGER.warn(format, argArray);
     }
 
     @Override
     public void warn(String format, Object arg1, Object arg2) {
-         logger.warn(format, arg1, arg2);
+         LOGGER.warn(format, arg1, arg2);
     }
 
     @Override
     public void warn(String msg, Throwable t) {
-        logger.warn(msg, t);
+        LOGGER.warn(msg, t);
     }
 
     @Override
     public boolean isWarnEnabled(Marker marker) {
-        return logger.isWarnEnabled(marker);
+        return LOGGER.isWarnEnabled(marker);
     }
 
     @Override
     public void warn(Marker marker, String msg) {
-        logger.warn(marker, msg);
+        LOGGER.warn(marker, msg);
     }
 
     @Override
     public void warn(Marker marker, String format, Object arg) {
-        logger.warn(marker, format, arg);
+        LOGGER.warn(marker, format, arg);
     }
 
     @Override
     public void warn(Marker marker, String format, Object arg1, Object arg2) {
-        logger.warn(marker, format, arg1, arg2);
+        LOGGER.warn(marker, format, arg1, arg2);
     }
 
     @Override
     public void warn(Marker marker, String format, Object[] argArray) {
-        logger.warn(marker, format, argArray);
+        LOGGER.warn(marker, format, argArray);
     }
 
     @Override
     public void warn(Marker marker, String msg, Throwable t) {
-        logger.warn(marker, msg, t);
+        LOGGER.warn(marker, msg, t);
     }
 
     @Override
     public boolean isErrorEnabled() {
-        return logger.isErrorEnabled();
+        return LOGGER.isErrorEnabled();
     }
 
     @Override
     public void error(String msg) {
-        logger.error(msg);
+        LOGGER.error(msg);
     }
 
     @Override
     public void error(String format, Object arg) {
-        logger.error(format, arg);
+        LOGGER.error(format, arg);
     }
 
     @Override
     public void error(String format, Object arg1, Object arg2) {
-        logger.error(format, arg1, arg2);
+        LOGGER.error(format, arg1, arg2);
     }
 
     @Override
     public void error(String format, Object[] argArray) {
-        logger.error(format, argArray);
+        LOGGER.error(format, argArray);
     }
 
     @Override
     public void error(String msg, Throwable t) {
-        logger.error(msg, t);
+        LOGGER.error(msg, t);
     }
 
     @Override
     public boolean isErrorEnabled(Marker marker) {
-       return logger.isErrorEnabled(marker);
+       return LOGGER.isErrorEnabled(marker);
     }
 
     @Override
     public void error(Marker marker, String msg) {
-        logger.error(marker, msg);
+        LOGGER.error(marker, msg);
     }
 
     @Override
     public void error(Marker marker, String format, Object arg) {
-        logger.error(marker, format, arg);
+        LOGGER.error(marker, format, arg);
     }
 
     @Override
     public void error(Marker marker, String format, Object arg1, Object arg2) {
-        logger.error(marker, format, arg1, arg2);
+        LOGGER.error(marker, format, arg1, arg2);
     }
 
     @Override
     public void error(Marker marker, String format, Object[] argArray) {
-        logger.error(marker, format, argArray);
+        LOGGER.error(marker, format, argArray);
     }
 
     @Override
     public void error(Marker marker, String msg, Throwable t) {
-        logger.error(marker, msg, t);
+        LOGGER.error(marker, msg, t);
     }
 }

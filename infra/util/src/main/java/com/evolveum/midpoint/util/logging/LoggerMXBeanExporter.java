@@ -58,9 +58,9 @@ public class LoggerMXBeanExporter {
                 
                 ClassPathResource resource = new ClassPathResource(entry.getValue().getContext());
                 XmlBeanFactory factory = new XmlBeanFactory(resource);
-                LoggerMXBean logger = (LoggerMXBean) factory.getBean(entry.getValue().getBeanName());
+                LoggerMXBean LOGGER = (LoggerMXBean) factory.getBean(entry.getValue().getBeanName());
 
-                beanMap.put(entry.getKey(), logger);
+                beanMap.put(entry.getKey(), LOGGER);
             }
             exporter.setBeans(beanMap);
             exporter.afterPropertiesSet();

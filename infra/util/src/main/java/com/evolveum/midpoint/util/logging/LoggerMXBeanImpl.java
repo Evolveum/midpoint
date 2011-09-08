@@ -90,7 +90,7 @@ public class LoggerMXBeanImpl implements LoggerMXBean {
             pattern = DEFAULT_LOG_PATTERN;
         }
         if (!pattern.equals(this.logPattern)) {
-            TRACE.info("Updating log pattern '{}' for logger {}.", new Object[]{pattern, logPattern});
+            TRACE.info("Updating log pattern '{}' for LOGGER {}.", new Object[]{pattern, logPattern});
 
             this.logPattern = pattern;
             updateRootLogger();
@@ -177,11 +177,11 @@ public class LoggerMXBeanImpl implements LoggerMXBean {
             org.apache.log4j.Logger pkgLogger = rootLogger.getLoggerRepository().
                     getLogger(info.getPackageName());
             if (pkgLogger == null) {
-                TRACE.warn("Can't change logger level, reason: logger for package '" +
+                TRACE.warn("Can't change LOGGER level, reason: LOGGER for package '" +
                         info.getPackageName() + "' is null.");
                 continue;
             }
-            TRACE.info("Log4J root logger: {} Module: {}. Updating logger '{}' to level: {}", new Object[]{
+            TRACE.info("Log4J root LOGGER: {} Module: {}. Updating LOGGER '{}' to level: {}", new Object[]{
                         rootLogger, name, info.getPackageName(), Level.toLevel(info.getLevel())});
             pkgLogger.setLevel(Level.toLevel(info.getLevel()));
         }
@@ -232,7 +232,7 @@ public class LoggerMXBeanImpl implements LoggerMXBean {
     }
 
     private void updateRootLogger() {
-        TRACE.info("Updating root logger for: {}, package: {}, level: {}", new Object[]{name,
+        TRACE.info("Updating root LOGGER for: {}, package: {}, level: {}", new Object[]{name,
                     rootPackage, Level.toLevel(moduleLogLevel)});
 
         org.apache.log4j.Logger rootLogger = org.apache.log4j.Logger.getRootLogger();
@@ -241,17 +241,17 @@ public class LoggerMXBeanImpl implements LoggerMXBean {
         org.apache.log4j.Logger loggingLogger = rootLogger.getLoggerRepository().getLogger("com.evolveum.midpoint.logging");
         loggingLogger.setLevel(Level.INFO);
 
-//        org.apache.log4j.Logger logger = rootLogger.getLoggerRepository().getLogger(rootPackage);
-        org.apache.log4j.Logger logger = rootLogger.getLoggerRepository().getLogger("com.evolveum.midpoint");
-        logger.setLevel(Level.toLevel(moduleLogLevel));
+//        org.apache.log4j.Logger LOGGER = rootLogger.getLoggerRepository().getLogger(rootPackage);
+        org.apache.log4j.Logger LOGGER = rootLogger.getLoggerRepository().getLogger("com.evolveum.midpoint");
+        LOGGER.setLevel(Level.toLevel(moduleLogLevel));
     }
 
-    private void updateAppender(org.apache.log4j.Logger logger) {  	
-//        Appender appender = logger.getAppender(APPENDER_NAME);
+    private void updateAppender(org.apache.log4j.Logger LOGGER) {  	
+//        Appender appender = LOGGER.getAppender(APPENDER_NAME);
 //        if (appender == null) {
 //            appender = new ConsoleAppender(new PatternLayout(getLogPattern()));
 //            appender.setName(APPENDER_NAME);
-//            logger.addAppender(appender);
+//            LOGGER.addAppender(appender);
 //        }
     }
 }
