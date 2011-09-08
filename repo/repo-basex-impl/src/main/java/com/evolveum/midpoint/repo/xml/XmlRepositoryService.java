@@ -779,8 +779,8 @@ public class XmlRepositoryService implements RepositoryService {
 			cq.execute();
 		} catch (BaseXException ex) {
 			if (StringUtils.contains(ex.getMessage(), OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS)) {
-				result.recordWarning("Object with the same name already exists");
-				throw new ObjectAlreadyExistsException(ex);
+				result.recordFatalError("Object with the same name already exists");
+				throw new ObjectAlreadyExistsException("Object with the same name already exists");
 			} else {
 				errorLogRecordAndRethrow("Reported error by XML Database", result, ex);
 			}
