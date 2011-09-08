@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class RepositoryFactory implements RuntimeConfiguration {
 
-	private static final Trace TRACE = TraceManager.getTrace(RepositoryFactory.class);
+	private static final Trace LOGGER = TraceManager.getTrace(RepositoryFactory.class);
 	
 	@Autowired
 	MidpointConfiguration midpointConfiguration;
@@ -53,7 +53,7 @@ public class RepositoryFactory implements RuntimeConfiguration {
 		String repositoryServiceFactoryClassName = config.getString("repositoryServiceFactoryClass");
 		
 		if (StringUtils.isEmpty(repositoryServiceFactoryClassName)) {
-			TRACE.error("RepositoryServiceFactory implementation class name (repositoryServiceFactoryClass) not found in configuration. Provided configuration: {}", config);
+			LOGGER.error("RepositoryServiceFactory implementation class name (repositoryServiceFactoryClass) not found in configuration. Provided configuration: {}", config);
 			throw new SystemException("RepositoryServiceFactory implementation class name (repositoryServiceFactoryClass) not found in configuration. Provided configuration: " + config);
 		}
 		
@@ -65,16 +65,16 @@ public class RepositoryFactory implements RuntimeConfiguration {
 	        repositoryServiceFactory.setConfiguration(config);
 	        repositoryServiceFactory.init();
 	    } catch (ClassNotFoundException e) {
-	    	LoggingUtils.logException(TRACE, "RepositoryServiceFactory implementation class {} defined in configuration was not found.", e, repositoryServiceFactoryClassName);
+	    	LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} defined in configuration was not found.", e, repositoryServiceFactoryClassName);
 	    	throw new SystemException("RepositoryServiceFactory implementation class "+repositoryServiceFactoryClassName+" defined in configuration was not found.", e);
 	    } catch (InstantiationException e) {
-	    	LoggingUtils.logException(TRACE, "RepositoryServiceFactory implementation class {} could not be instantiated.", e, repositoryServiceFactoryClassName);
+	    	LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} could not be instantiated.", e, repositoryServiceFactoryClassName);
 	    	throw new SystemException("RepositoryServiceFactory implementation class "+repositoryServiceFactoryClassName+" could not be instantiated.", e);
 		} catch (IllegalAccessException e) {
-			LoggingUtils.logException(TRACE, "RepositoryServiceFactory implementation class {} could not be instantiated.", e, repositoryServiceFactoryClassName);
+			LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} could not be instantiated.", e, repositoryServiceFactoryClassName);
 	    	throw new SystemException("RepositoryServiceFactory implementation class "+repositoryServiceFactoryClassName+" could not be instantiated.", e);
 		} catch (RepositoryServiceFactoryException e) {
-			LoggingUtils.logException(TRACE, "RepositoryServiceFactory implementation class {} failed to initialize.", e, repositoryServiceFactoryClassName);
+			LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} failed to initialize.", e, repositoryServiceFactoryClassName);
 	    	throw new SystemException("RepositoryServiceFactory implementation class "+repositoryServiceFactoryClassName+" failed to initialize.", e);
 		}
 		
@@ -85,11 +85,11 @@ public class RepositoryFactory implements RuntimeConfiguration {
 			try {
 				repositoryServiceFactory.destroy();
 			} catch (RepositoryServiceFactoryException e) {
-		    	LoggingUtils.logException(TRACE, "Failed to destroy RepositoryServiceFactory", e);
+		    	LoggingUtils.logException(LOGGER, "Failed to destroy RepositoryServiceFactory", e);
 		    	throw new SystemException("Failed to destroy RepositoryServiceFactory", e);
 			}
 		} else {
-			TRACE.error("RepositoryFactory is in illegal state, repositoryServiceFactory cannot be destroyed, becuase it is not set");
+			LOGGER.error("RepositoryFactory is in illegal state, repositoryServiceFactory cannot be destroyed, becuase it is not set");
 			throw new IllegalStateException("RepositoryFactory is in illegal state, repositoryServiceFactory cannot be destroyed, becuase it is not set");
 		}
 	}
@@ -104,7 +104,7 @@ public class RepositoryFactory implements RuntimeConfiguration {
 		if (repositoryServiceFactory != null) {
 			config = repositoryServiceFactory.getCurrentConfiguration();
 		} else {
-			TRACE.error("RepositoryFactory is in illegal state, repositoryServiceFactory is not set");
+			LOGGER.error("RepositoryFactory is in illegal state, repositoryServiceFactory is not set");
 			throw new IllegalStateException("RepositoryFactory is in illegal state, repositoryServiceFactory is not set");
 		}
 		return config;
@@ -115,7 +115,7 @@ public class RepositoryFactory implements RuntimeConfiguration {
 			try {
 				repositoryService = repositoryServiceFactory.getRepositoryService();
 			} catch (RepositoryServiceFactoryException e) {
-				LoggingUtils.logException(TRACE, "Failed to get repository service from factory", e);
+				LoggingUtils.logException(LOGGER, "Failed to get repository service from factory", e);
 				throw new SystemException("Failed to get repository service from factory", e);
 			}
 		}
