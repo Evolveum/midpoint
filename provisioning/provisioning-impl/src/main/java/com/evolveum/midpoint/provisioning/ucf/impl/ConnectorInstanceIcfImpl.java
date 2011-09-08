@@ -1477,19 +1477,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		if (value instanceof ProtectedStringType) {
 			ProtectedStringType ps = (ProtectedStringType)value;
-			if (ps.getClearValue()!=null) {
-				LOGGER.warn("Got cleartext value for attribute {} while expected encrypted value",propName);
-				parentResult.recordFatalError("Got cleartext value for attribute "+propName+" while expected encrypted value");
-				return new GuardedString(ps.getClearValue().toCharArray());
-			} else {
-				try {
-					return new GuardedString(protector.decryptString(ps).toCharArray());
-				} catch (EncryptionException e) {
-					LOGGER.error("Unable to decrypt value of attribute {}: {}",e.getMessage(),e);
-					parentResult.recordFatalError("Unable to decrypt value of attribute "+propName+": "+e.getMessage(), e);
-					throw new SchemaException("Unable to decrypt value of attribute "+propName+": "+e.getMessage(), e);
-				}
-			}
+			return toGuardedString(ps, propName.toString());
 		}			
 		return value;
 	}
@@ -1856,17 +1844,32 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Guarded string is a special ICF beast
 			// The value must be ProtectedStringType
 			ProtectedStringType ps = (ProtectedStringType)value;
-			try {
-				return new GuardedString(protector.decryptString(ps).toCharArray());
-			} catch (EncryptionException e) {
-				throw new SystemException("Unable to dectypt value of element "+DOMUtil.getQName(configElement)+": "+e.getMessage(),e);
-			}
+			return toGuardedString(ps, DOMUtil.getQName(configElement).toString());
 		} else if (type.equals(GuardedByteArray.class)) {
 			// Guarded string is a special ICF beast
 			// TODO
 			return new GuardedByteArray(Base64.decodeBase64(configElement.getTextContent()));
 		} 
 		return value;
+	}
+	
+	private GuardedString toGuardedString(ProtectedStringType ps, String propertyName) {
+		if (ps == null) {
+			return null;
+		}
+		if (ps.getEncryptedData() == null) {
+			if (ps.getClearValue() == null) {
+				return null;
+			}
+			LOGGER.warn("Using cleartext value for {}",propertyName);
+			return new GuardedString(ps.getClearValue().toCharArray());
+		}
+		try {
+			return new GuardedString(protector.decryptString(ps).toCharArray());
+		} catch (EncryptionException e) {
+			LOGGER.error("Unable to decrypt value of element {}: {}",new Object[]{propertyName, e.getMessage(), e});
+			throw new SystemException("Unable to dectypt value of element "+propertyName+": "+e.getMessage(),e);
+		}
 	}
 
 	/* (non-Javadoc)
