@@ -27,7 +27,6 @@ import javax.xml.bind.JAXBException;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.model.controller.SchemaHandlerException;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -114,9 +113,9 @@ public class ModifyUserAction extends BaseAction {
 	private ResourceObjectShadowType resolveResource(ResourceObjectShadowType shadowAfterChange)
 			throws SynchronizationException {
 		try {
-			ResourceType resourceType = getModel().getObject(ResourceType.class, shadowAfterChange.getResourceRef().getOid(),
-					new PropertyReferenceListType(), new OperationResult("Get Object"),
-					false);
+			ResourceType resourceType = getModel().getObject(ResourceType.class,
+					shadowAfterChange.getResourceRef().getOid(), new PropertyReferenceListType(),
+					new OperationResult("Get Object"));
 
 			shadowAfterChange.setResource(resourceType);
 			shadowAfterChange.setResourceRef(null);

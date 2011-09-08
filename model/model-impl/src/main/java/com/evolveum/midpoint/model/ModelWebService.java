@@ -142,9 +142,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(SEARCH_OBJECTS);
 		try {
-			List<? extends ObjectType> list = model
-					.searchObjectsInRepository(ObjectTypes.getObjectTypeFromUri(objectTypeUri)
-							.getClassDefinition(), query, paging, operationResult);
+			List<? extends ObjectType> list = model.searchObjects(
+					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, paging,
+					operationResult);
 			handleOperationResult(operationResult, result);
 			ObjectListType listType = new ObjectListType();
 			for (ObjectType o : list) {

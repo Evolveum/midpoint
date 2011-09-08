@@ -240,8 +240,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		}
 
 		try {
-			return model.getObject(ResourceType.class, ref.getOid(), new PropertyReferenceListType(), result,
-					true);
+			return model.getObject(ResourceType.class, ref.getOid(), new PropertyReferenceListType(), result);
 		} catch (Exception ex) {
 			throw new SchemaException("Couldn't get resource object.", ex);
 		}

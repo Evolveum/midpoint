@@ -118,16 +118,16 @@ public class ControllerDeleteObjectTest extends AbstractTestNGSpringContextTests
 	@SuppressWarnings("unchecked")
 	public void testDeleteCorrectProvisioning() throws FaultMessage, JAXBException, ObjectNotFoundException,
 			SchemaException, CommunicationException, ConsistencyViolationException {
-		final ResourceType expectedUser = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+		final ResourceType expectedResource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"delete-resource.xml"))).getValue();
 
 		final String oid = "abababab-abab-abab-abab-000000000001";
 		when(
 				repository.getObject(any(Class.class), eq(oid), any(PropertyReferenceListType.class),
-						any(OperationResult.class))).thenReturn(expectedUser);
+						any(OperationResult.class))).thenReturn(expectedResource);
 		OperationResult result = new OperationResult("Delete Object From Provisioning");
 		try {
-			controller.deleteObject(UserType.class, oid, result);
+			controller.deleteObject(ResourceType.class, oid, result);
 		} finally {
 			LOGGER.debug(result.dump());
 		}

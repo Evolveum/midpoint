@@ -17,18 +17,16 @@
  */
 package com.evolveum.midpoint.model.controller;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 
 /**
@@ -38,11 +36,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
 		"classpath:application-context-model-unit-test.xml",
-		"classpath:application-context-configuration-test-no-repo.xml", 
+		"classpath:application-context-configuration-test-no-repo.xml",
 		"classpath:application-context-task.xml" })
-public class ControllerSearchObjectsInProvisioningTest extends AbstractTestNGSpringContextTests {
+public class ControllerSearchObjectsTest extends AbstractTestNGSpringContextTests {
 
-	private static final Trace LOGGER = TraceManager.getTrace(ControllerSearchObjectsInProvisioningTest.class);
 	@Autowired(required = true)
 	private ModelController controller;
 	@Autowired(required = true)
@@ -56,17 +53,17 @@ public class ControllerSearchObjectsInProvisioningTest extends AbstractTestNGSpr
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void nullQuery() {
-		controller.searchObjectsInProvisioning(null, null, null, null);
+	public void nullQuery() throws Exception {
+		controller.searchObjects(null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void nullPaging() {
-		controller.searchObjectsInProvisioning(null, new QueryType(), null, null);
+	public void nullPaging() throws Exception {
+		controller.searchObjects(null, new QueryType(), null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
-	public void nullResult() {
-		controller.searchObjectsInProvisioning(null, new QueryType(), PagingTypeFactory.createListAllPaging(), null);
+	public void nullResult() throws Exception {
+		controller.searchObjects(null, new QueryType(), PagingTypeFactory.createListAllPaging(), null);
 	}
 }

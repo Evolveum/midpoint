@@ -460,7 +460,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			LOGGER.debug("CORRELATION: expression for OID {} results in filter {}", resourceShadow.getOid(),
 					DebugUtil.prettyPrint(query));
 			PagingType paging = new PagingType();
-			users = controller.searchObjectsInRepository(UserType.class, query, paging, result);
+			users = controller.searchObjects(UserType.class, query, paging, result);
 			if (users == null) {
 				return null;
 			}
