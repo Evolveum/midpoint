@@ -88,13 +88,34 @@ public class IntegrationTestTools {
 	}
 
 	public static void assertSuccess(String message, OperationResult result) {
+		assertSuccess(message, result,-1);
+	}
+	
+	/**
+	 * level=-1 - check all levels
+	 * level=0 - check only the top-level
+	 * level=1 - check one level below top-level
+	 * ...
+	 * 
+	 * @param message
+	 * @param result
+	 * @param level
+	 */
+	public static void assertSuccess(String message, OperationResult result, int level) {
+		assertSuccess(message, result, level, 0);
+	}
+	
+	private static void assertSuccess(String message, OperationResult result, int stopLevel, int currentLevel) {
 		if (!checkResults) {
 			return;
 		}
 		assertTrue(message + ": " + result.getMessage(), result.isSuccess());
+		if (stopLevel == currentLevel) {
+			return;
+		}
 		List<OperationResult> partialResults = result.getSubresults();
 		for (OperationResult subResult : partialResults) {
-			assertSuccess(message, subResult);
+			assertSuccess(message, subResult, stopLevel, currentLevel + 1);
 		}
 	}
 

@@ -41,6 +41,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.result.OperationConstants;
@@ -116,6 +117,7 @@ public class ObjectImporter {
 				logger.debug("Starting import of object {}", ObjectTypeUtil.toShortString(object));
 
 				objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
+				objectResult.addContext(OperationResult.CONTEXT_OBJECT, object);
 				// TODO: params, context
 
 				if (objectResult.isAcceptable()) {					
@@ -169,18 +171,21 @@ public class ObjectImporter {
 
 	private void importObjectToRepository(ObjectType object, ImportOptionsType options, RepositoryService repository,
 		OperationResult objectResult) throws SchemaException, ObjectAlreadyExistsException {
+		
+		OperationResult result = objectResult.createSubresult(ObjectImporter.class.getName()+".importObjectToRepository");
+		
 		try {
 	
-			repository.addObject(object, objectResult);
-			objectResult.recordSuccess();
+			repository.addObject(object, result);
+			result.recordSuccess();
 	
 		} catch (ObjectAlreadyExistsException e) {
 			if (options.isOverwrite()) {
 				// Try to delete conflicting object 
-				boolean deleted = deleteObject(object, repository, objectResult);
+				boolean deleted = deleteObject(object, repository, result);
 				if (deleted) {
-					repository.addObject(object, objectResult);
-					objectResult.recordSuccess();
+					repository.addObject(object, result);
+					result.recordSuccess();
 				} else {
 					// cannot delete, throw original exception
 					throw e;
@@ -192,23 +197,36 @@ public class ObjectImporter {
 	}
 
 
-	private boolean deleteObject(ObjectType object, RepositoryService repository, OperationResult objectResult) {
+	private boolean deleteObject(ObjectType object, RepositoryService repository, OperationResult objectResult) throws SchemaException {
 		if (object.getOid()!=null) {
 			// The conflict is either UID or we should not proceed as we could delete wrong object
 			try {
 				repository.deleteObject(object.getClass(), object.getOid(), objectResult);
 			} catch (ObjectNotFoundException e) {
-				// Cannot delete. The conflicting thing was obvoiusly not OID. Just throw the original exception
+				// Cannot delete. The conflicting thing was obviously not OID. Just throw the original exception
 				return false;
 			}
 			// deleted
 			return true;
 		} else {
-			// The conflict was obviously name
-			//TODO: look for an object by name and type and delete it
-			throw new UnsupportedOperationException("Delete by name is not supported yet");
+			// The conflict was obviously name. As we have no explicit OID in the object to import
+			// it is pretty safe to try to delete the conflicting object
+			// look for an object by name and type and delete it
+			QueryType query = QueryUtil.createQuery(QueryUtil.createNameAndClassFilter(object));
+			List<? extends ObjectType> objects = repository.searchObjects(object.getClass(), query, null, objectResult);
+			if (objects.size()!=1) {
+				// too few or too much results, not safe to delete
+				return false;
+			}
+			String oidToDelete = objects.get(0).getOid();
+			try {
+				repository.deleteObject(object.getClass(), oidToDelete, objectResult);
+			} catch (ObjectNotFoundException e) {
+				// Cannot delete. Some strange conflict ...
+				return false;
+			}
+			return true;
 		}
-		
 	}
 	
 	protected void validateWithDynamicSchemas(ObjectType object, Element objectElement,

@@ -22,11 +22,15 @@
 
 package com.evolveum.midpoint.common;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -185,4 +189,17 @@ public class QueryUtil {
         and.appendChild(el3);
         return and;
     }
+
+	public static Element createNameAndClassFilter(ObjectType object) throws SchemaException {
+		Document doc = DOMUtil.getDocument();
+		return QueryUtil.createAndFilter(doc,
+				QueryUtil.createTypeFilter(doc, ObjectTypes.getObjectType(object.getClass()).getObjectTypeUri()),
+				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, object.getName()));
+	}
+	
+	public static QueryType createQuery(Element filter) {
+		QueryType query = new QueryType();
+		query.setFilter(filter);
+		return query;
+	}
 }

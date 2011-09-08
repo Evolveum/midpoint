@@ -47,7 +47,8 @@ public class ExtensionProcessor {
 	public static PropertyContainer parseExtension(Extension xmlExtension) {
 		// Extension is optional, so don't die on null
 		if (xmlExtension==null) {
-			return null;
+			// Return empty set
+			return new PropertyContainer();
 		}
 		return parseExtension(xmlExtension.getAny());
 	}

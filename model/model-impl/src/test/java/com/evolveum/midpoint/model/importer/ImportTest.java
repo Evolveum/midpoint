@@ -224,6 +224,28 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		}
 
 	}
+	
+	// Import the same thing again, this time with overwrite option. This should go well.
+	@Test
+	public void test005ImportUsersWithOverwrite() throws FileNotFoundException, ObjectNotFoundException,
+			SchemaException {
+		displayTestTile(this,"test005ImportUsersWithOverwrite");
+		// GIVEN
+		Task task = taskManager.createTaskInstance();
+		OperationResult result = new OperationResult(ImportTest.class.getName() + "test005ImportUsersWithOverwrite");
+		FileInputStream stream = new FileInputStream(IMPORT_USERS_FILE);
+		ImportOptionsType options = getDefaultImportOptions();
+		options.setOverwrite(true);
 
+		// WHEN
+		modelService.importObjectsFromStream(stream, options, task, result);
+
+		// THEN
+		result.computeStatus("Failed import.");
+		display("Result after import with overwrite", result);
+		assertSuccess("Import failed (result)", result,1);
+
+		// TODO: more checks
+	}
 
 }
