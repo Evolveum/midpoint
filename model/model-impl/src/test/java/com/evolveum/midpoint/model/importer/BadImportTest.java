@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model.importer;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static com.evolveum.midpoint.schema.util.MiscUtil.getDefaultImportOptions;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,6 +42,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -89,7 +91,7 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 		FileInputStream stream = new FileInputStream(BAD_IMPORT_FILE_NAME);
 
 		// WHEN
-		modelService.importObjectsFromStream(stream, task, false, result);
+		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
 		// THEN
 		result.computeStatus("Failed import.");

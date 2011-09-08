@@ -66,6 +66,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ExtensibleObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
@@ -93,12 +94,13 @@ public class ObjectImporter {
 	@Autowired(required=true)
 	private Protector protector;
 
-	public void importObjects(InputStream input, final Task task, final OperationResult parentResult,
+	public void importObjects(InputStream input, final ImportOptionsType options, final Task task, final OperationResult parentResult,
 			final RepositoryService repository) {
-
+		
 		EventHandler handler = new EventHandler() {
 
 			long progress = 0;
+			long errors = 0;
 
 			@Override
 			public boolean preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
@@ -120,37 +122,36 @@ public class ObjectImporter {
 					resolveReferences(object, repository, objectResult);
 				}
 				
-				if (objectResult.isAcceptable()) {
+				if (options.isValidateDynamicSchema() && objectResult.isAcceptable()) {
 					validateWithDynamicSchemas(object, objectElement, repository, objectResult);
 				}
 				
-				if (objectResult.isAcceptable()) {
+				if (options.isEncryptProtectedValues() && objectResult.isAcceptable()) {
 					encryptValues(object, objectResult);
 				}
 				
 				if (objectResult.isAcceptable()) {
 					try {
-
-						repository.addObject(object, objectResult);
-						objectResult.recordSuccess();
-
-					} catch (ObjectAlreadyExistsException e) {
-						objectResult.recordFatalError("Object already exists", e);
-						logger.error("Object already exists", e);
+						
+						importObjectToRepository(object,options,repository,objectResult);
+						
 					} catch (SchemaException e) {
 						objectResult.recordFatalError("Schema violation", e);
 						logger.error("Schema violation", e);
 					} catch (RuntimeException e) {
 						objectResult.recordFatalError("Unexpected problem", e);
 						logger.error("Unexpected problem", e);
+					} catch (ObjectAlreadyExistsException e) {
+						objectResult.recordFatalError("Object already exists", e);
+						logger.error("Object already exists", e);
 					}
-
+					
 				}
-
+					
 				// TODO check if there are too many errors
 
 			}
-
+				
 			@Override
 			public void handleGlobalError(OperationResult currentResult) {
 				// No reaction
@@ -160,11 +161,56 @@ public class ObjectImporter {
 
 		Validator validator = new Validator(handler);
 		validator.setVerbose(true);
+		validator.setValidateSchema(options.isValidateStaticSchema());
 
 		validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
 
 	}
 
+	private void importObjectToRepository(ObjectType object, ImportOptionsType options, RepositoryService repository,
+		OperationResult objectResult) throws SchemaException, ObjectAlreadyExistsException {
+		try {
+	
+			repository.addObject(object, objectResult);
+			objectResult.recordSuccess();
+	
+		} catch (ObjectAlreadyExistsException e) {
+			if (options.isOverwrite()) {
+				// Try to delete conflicting object 
+				boolean deleted = deleteObject(object, repository, objectResult);
+				if (deleted) {
+					repository.addObject(object, objectResult);
+					objectResult.recordSuccess();
+				} else {
+					// cannot delete, throw original exception
+					throw e;
+				}
+			} else {
+				throw e;
+			}
+		}
+	}
+
+
+	private boolean deleteObject(ObjectType object, RepositoryService repository, OperationResult objectResult) {
+		if (object.getOid()!=null) {
+			// The conflict is either UID or we should not proceed as we could delete wrong object
+			try {
+				repository.deleteObject(object.getClass(), object.getOid(), objectResult);
+			} catch (ObjectNotFoundException e) {
+				// Cannot delete. The conflicting thing was obvoiusly not OID. Just throw the original exception
+				return false;
+			}
+			// deleted
+			return true;
+		} else {
+			// The conflict was obviously name
+			//TODO: look for an object by name and type and delete it
+			throw new UnsupportedOperationException("Delete by name is not supported yet");
+		}
+		
+	}
+	
 	protected void validateWithDynamicSchemas(ObjectType object, Element objectElement,
 			RepositoryService repository, OperationResult objectResult) {
 		

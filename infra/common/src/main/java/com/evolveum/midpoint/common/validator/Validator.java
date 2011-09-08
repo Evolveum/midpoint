@@ -84,6 +84,7 @@ public class Validator {
 	private static final String START_LINE_NUMBER = "startLineNumber";
 	private static final String END_LINE_NUMBER = "endLineNumber";
 	private boolean verbose = false;
+	private boolean validateSchemas = true;
 	private EventHandler handler;
 	private DOMConverter domConverter = new DOMConverter();
 	private Unmarshaller unmarshaller = null;
@@ -129,6 +130,14 @@ public class Validator {
 
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
+	}
+	
+	public void setValidateSchema(boolean validateSchemas) {
+		this.validateSchemas = validateSchemas;
+	}
+
+	public boolean getValidateSchema() {
+		return validateSchemas;
 	}
 	
 	private Unmarshaller createUnmarshaller(OperationResult validatorResult) {
@@ -213,7 +222,11 @@ public class Validator {
 	    	Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
 	    	DOMUtil.setNamespaceDeclarations(objectElement,rootNamespaceDeclarations);
 	    	
-	    	Node postValidationTree = validateSchema(objectDoc, objectResult);
+	    	Node postValidationTree = null;
+	    	
+	    	if (validateSchemas) {
+	    		postValidationTree = validateSchema(objectDoc, objectResult);
+	    	}
 	    		    	
 			if (handler != null) {
 				boolean cont = handler.preMarshall(objectElement, postValidationTree, objectResult);
@@ -367,4 +380,5 @@ public class Validator {
 		subResult.addContext(OperationResult.CONTEXT_PROPERTY, propertyName);
 		subResult.recordFatalError("<" + propertyName + ">: " + message);
 	}
+
 }

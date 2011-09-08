@@ -25,6 +25,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static com.evolveum.midpoint.schema.util.MiscUtil.getDefaultImportOptions;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -51,6 +52,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -97,7 +99,7 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 		FileInputStream stream = new FileInputStream(IMPORT_FILE_NAME);
 
 		// WHEN
-		modelService.importObjectsFromStream(stream, task, false, result);
+		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
 		// THEN
 		result.computeStatus("Failed import.");

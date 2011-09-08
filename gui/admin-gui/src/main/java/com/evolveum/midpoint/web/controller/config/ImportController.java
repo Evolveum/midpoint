@@ -40,10 +40,12 @@ import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.schema.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 
 /**
  * 
@@ -151,7 +153,9 @@ public class ImportController implements Serializable {
 
 		OperationResult parentResult = new OperationResult(ImportController.class.getName() + ".uploadStream");
 
-		model.importObjectsFromStream(input, null, overwrite, parentResult);
+		ImportOptionsType options = MiscUtil.getDefaultImportOptions();
+		options.setOverwrite(overwrite);
+		model.importObjectsFromStream(input, options, null, parentResult);
 
 		if (!parentResult.isSuccess()) {
 			parentResult.computeStatus("Failed to import objects form file. Reason: "

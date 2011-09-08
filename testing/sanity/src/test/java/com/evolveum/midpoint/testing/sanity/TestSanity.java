@@ -69,6 +69,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.MiscUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -951,7 +952,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		LOGGER.trace("importObjectFromFile: {}", filename);
 		Task task = taskManager.createTaskInstance();
 		FileInputStream stream = new FileInputStream(filename);
-		modelService.importObjectsFromStream(stream, task, false, result);
+		modelService.importObjectsFromStream(stream, MiscUtil.getDefaultImportOptions(), task, result);
 	}
 
 }

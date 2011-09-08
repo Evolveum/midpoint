@@ -45,6 +45,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.util.MiscUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -112,7 +113,7 @@ public class TestSampleImport extends AbstractIntegrationTest {
 		FileInputStream stream = new FileInputStream(sampleFile);
 
 		// WHEN
-		modelService.importObjectsFromStream(stream, task, false, result);
+		modelService.importObjectsFromStream(stream, MiscUtil.getDefaultImportOptions(), task, result);
 
 		// THEN
 		result.computeStatus("Failed import.");

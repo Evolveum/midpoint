@@ -37,6 +37,7 @@ import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -470,7 +471,7 @@ public interface ModelService {
 	 * @param input
 	 * @param task
 	 */
-	void importObjectsFromFile(File input, Task task, OperationResult parentResult);
+	void importObjectsFromFile(File input, ImportOptionsType options, Task task, OperationResult parentResult);
 
 	/**
 	 * Import objects from stream.
@@ -483,7 +484,7 @@ public interface ModelService {
 	 * @param input
 	 * @param task
 	 */
-	void importObjectsFromStream(InputStream input, Task task, Boolean overwrite, OperationResult parentResult);
+	void importObjectsFromStream(InputStream input, ImportOptionsType options, Task task, OperationResult parentResult);
 
 	/**
 	 * Discovers local or remote connectors.

@@ -27,6 +27,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
+import static com.evolveum.midpoint.schema.util.MiscUtil.getDefaultImportOptions;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -55,6 +56,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
@@ -106,9 +108,9 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportTest.class.getName() + "test001ImportConnector");
 		FileInputStream stream = new FileInputStream(IMPORT_CONNECTOR_FILE);
-
+		
 		// WHEN
-		modelService.importObjectsFromStream(stream, task, false, result);
+		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
 		// THEN
 		result.computeStatus("Failed import.");
@@ -132,7 +134,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		FileInputStream stream = new FileInputStream(IMPORT_RESOURCE_FILE);
 
 		// WHEN
-		modelService.importObjectsFromStream(stream, task, false, result);
+		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
 		// THEN
 		result.computeStatus("Failed import.");
@@ -156,7 +158,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		FileInputStream stream = new FileInputStream(IMPORT_USERS_FILE);
 
 		// WHEN
-		modelService.importObjectsFromStream(stream, task, false, result);
+		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
 		// THEN
 		result.computeStatus("Failed import.");
@@ -207,7 +209,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		FileInputStream stream = new FileInputStream(IMPORT_USERS_FILE);
 
 		// WHEN
-		modelService.importObjectsFromStream(stream, task, false, result);
+		modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
 
 		// THEN
 		result.computeStatus("Failed import.");
@@ -222,5 +224,6 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		}
 
 	}
+
 
 }

@@ -23,6 +23,7 @@ package com.evolveum.midpoint.schema.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
@@ -46,6 +47,16 @@ public class MiscUtil {
 			list.add((T)o);
 		}
 		return list;
+	}
+	
+	public static ImportOptionsType getDefaultImportOptions() {
+		ImportOptionsType options = new ImportOptionsType();
+		options.setOverwrite(false);
+		options.setValidateStaticSchema(true);
+		options.setValidateDynamicSchema(true);
+		options.setEncryptProtectedValues(true);
+		options.setFetchResourceSchema(false);
+		return options;
 	}
 
 }

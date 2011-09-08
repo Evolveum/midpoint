@@ -72,6 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -662,7 +663,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public void importObjectsFromFile(File input, Task task, OperationResult parentResult) {
+	public void importObjectsFromFile(File input, ImportOptionsType options, Task task, OperationResult parentResult) {
 		// OperationResult result =
 		// parentResult.createSubresult(IMPORT_OBJECTS_FROM_FILE);
 		// TODO Auto-generated method stub
@@ -670,12 +671,10 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public void importObjectsFromStream(InputStream input, Task task, Boolean overwrite,
+	public void importObjectsFromStream(InputStream input, ImportOptionsType options, Task task,
 			OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
-		// TODO: set summarization
-		// TODO: overwrite flag not used!!!!!!!!!!!!!
-		objectImporter.importObjects(input, task, result, repository);
+		objectImporter.importObjects(input, options, task, result, repository);
 		result.computeStatus("Couldn't import object from input stream.");
 	}
 

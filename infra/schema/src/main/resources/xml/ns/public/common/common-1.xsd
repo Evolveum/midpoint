@@ -1401,6 +1401,41 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="referentialIntegrity" type="xsd:boolean" minOccurs="0" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true the importe errors will be summarized in the result.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="validateStaticSchema" type="xsd:boolean" minOccurs="0" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true the importe errors will be summarized in the result.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="validateDynamicSchema" type="xsd:boolean" minOccurs="0" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true the importe errors will be summarized in the result.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="encryptProtectedValues" type="xsd:boolean" minOccurs="0" default="true">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true the importe errors will be summarized in the result.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="fetchResourceSchema" type="xsd:boolean" minOccurs="0" default="false">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to true the importe errors will be summarized in the result.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
 
