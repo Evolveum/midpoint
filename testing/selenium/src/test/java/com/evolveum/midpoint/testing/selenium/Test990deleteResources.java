@@ -20,7 +20,7 @@ public class Test990deleteResources {
 	Selenium se;
 	static String baseUrl = "http://localhost:8080/idm";
 
-	private static final transient Trace logger = TraceManager.getTrace(Test990deleteResources.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(Test990deleteResources.class);
 
 	@Before
 	/***

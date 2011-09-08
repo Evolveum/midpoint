@@ -38,7 +38,7 @@ public class Test001loginPage {
 	WebDriverBackedSelenium selenium;
 	static String baseUrl="http://localhost:8080/idm";
 
-	private static final transient Trace logger = TraceManager.getTrace(Test001loginPage.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(Test001loginPage.class);
 	
 	@Before
 	public void start() {
@@ -62,7 +62,7 @@ public class Test001loginPage {
 	
 	@Test
 	public void negativeLoginTest() {
-		logger.info("negativeLoginTest");
+		LOGGER.info("negativeLoginTest");
 		selenium.open("/");
 		selenium.waitForPageToLoad("10000");
 		//Test invalid user name

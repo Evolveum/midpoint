@@ -18,7 +18,7 @@ public class Test999deleteUsers {
 	Selenium se;
 	static String baseUrl = "http://localhost:8080/idm";
 
-	private static final transient Trace logger = TraceManager.getTrace(Test999deleteUsers.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(Test999deleteUsers.class);
 
 	@Before
 	/***
@@ -151,7 +151,7 @@ public class Test999deleteUsers {
 		assertFalse(se.isTextPresent("Elizabeth Swann"));
 		
 		//delete jack
-		logger.info("Delete jack via GUI");
+		LOGGER.info("Delete jack via GUI");
 		se.click(se.findLink("topHome"));
 		se.waitForPageToLoad("30000");
 
@@ -163,7 +163,7 @@ public class Test999deleteUsers {
 		for (String l : se.getAllLinks()) {
 			if (!l.contains("Table") || !l.contains("name"))
 				continue;
-			logger.info("Adding:" + se.getText(l), l.replace("name", ""));
+			LOGGER.info("Adding:" + se.getText(l), l.replace("name", ""));
 			h.put(se.getText(l), l.replace("name", ""));
 		}
 

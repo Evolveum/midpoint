@@ -39,16 +39,16 @@ import com.google.common.base.Supplier;
 
 public class Selenium extends WebDriverBackedSelenium {
 	
-	private static final transient Trace logger = TraceManager.getTrace(Selenium.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(Selenium.class);
 	
 	public Selenium(WebDriver baseDriver, String baseUrl) {
 		super(baseDriver, baseUrl);
-		logger.debug("Selenium:" + baseUrl);
+		LOGGER.debug("Selenium:" + baseUrl);
 	}
 
 	public Selenium(Supplier<WebDriver> maker, String baseUrl) {
 		super(maker, baseUrl);
-		logger.debug("Selenium:" + baseUrl);
+		LOGGER.debug("Selenium:" + baseUrl);
 	}
 	
 	/***
@@ -73,11 +73,11 @@ public class Selenium extends WebDriverBackedSelenium {
 			} catch (InterruptedException e) {
 			}
 			if (this.isTextPresent(text)) {
-				logger.debug("Selenium.waitForText: " + text  + " - OK");
+				LOGGER.debug("Selenium.waitForText: " + text  + " - OK");
 				return true;
 			}
 		}
-		logger.debug("Selenium.waitForText: " + text  + " - FAIL");
+		LOGGER.debug("Selenium.waitForText: " + text  + " - FAIL");
 		return this.isTextPresent(text);
 	}
 	
@@ -86,7 +86,7 @@ public class Selenium extends WebDriverBackedSelenium {
 	 * @param sleep - number seconds to wait
 	 */
 	public void sleep (int sleep) {
-		logger.debug("Selenium.sleep: " + sleep  + "s");
+		LOGGER.debug("Selenium.sleep: " + sleep  + "s");
 		try {
 			Thread.sleep(1000*sleep);
 		} catch (InterruptedException e) {
@@ -101,42 +101,42 @@ public class Selenium extends WebDriverBackedSelenium {
 	public String findLink(String part) {
 		for (String s : Arrays.asList(this.getAllLinks())) {
 			if (s.contains(part)) {
-				logger.debug("Selenium.findlink: " + part + " - OK");
+				LOGGER.debug("Selenium.findlink: " + part + " - OK");
 				return s;
 			}
 		}
-		logger.debug("Selenium.findlink: " + part + " - FAIL" );
+		LOGGER.debug("Selenium.findlink: " + part + " - FAIL" );
 		return null;
 	}
 
 	@Override
 	public void click(String locator) {
 		super.click(locator);
-		logger.debug("Selenium.click: " + locator  + " / " + super.getLocation());
+		LOGGER.debug("Selenium.click: " + locator  + " / " + super.getLocation());
 	}
 
 	@Override
 	public void type(String locator, String value) {
 		super.type(locator, value);
-		logger.debug("Selenium.type: " + locator + " -> " + value );
+		LOGGER.debug("Selenium.type: " + locator + " -> " + value );
 	}
 	
 	@Override
 	public boolean isTextPresent(String pattern) {
 		boolean ret = super.isTextPresent(pattern);
-		logger.debug ("Selenium.isTextPresent :" + pattern + " - " + (ret ? "OK" : "FAIL") );
-		if (!ret && logger.isDebugEnabled()) {
-			logger.trace("getHtmlSource:\n" + this.getHtmlSource());
+		LOGGER.debug ("Selenium.isTextPresent :" + pattern + " - " + (ret ? "OK" : "FAIL") );
+		if (!ret && LOGGER.isDebugEnabled()) {
+			LOGGER.trace("getHtmlSource:\n" + this.getHtmlSource());
 		}
 		return ret;
 	}
 	
 	@Override
 	public void waitForPageToLoad(String timeout) {
-		logger.debug("Selenium.waitForPageToLoad: Start waiting for " + timeout + " ms " + super.getLocation());
+		LOGGER.debug("Selenium.waitForPageToLoad: Start waiting for " + timeout + " ms " + super.getLocation());
 		long start = System.currentTimeMillis();
 		super.waitForPageToLoad(timeout);
-		logger.debug("Selenium.waitForPageToLoad: Page( " + super.getLocation() + " ) loaded after " + (System.currentTimeMillis() - start) + "ms");
+		LOGGER.debug("Selenium.waitForPageToLoad: Page( " + super.getLocation() + " ) loaded after " + (System.currentTimeMillis() - start) + "ms");
 	}
 	
 	public void waitForPageToLoad() {
@@ -145,7 +145,7 @@ public class Selenium extends WebDriverBackedSelenium {
 	
 	@Override
 	public void open(String url){
-		logger.debug("Selenium.open: " + url);
+		LOGGER.debug("Selenium.open: " + url);
 		super.open(url);
 	}
 	

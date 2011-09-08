@@ -41,7 +41,7 @@ public class Test003resource {
 	Selenium se;
 	static String baseUrl = "http://localhost:8080/idm";
 
-	private static final transient Trace logger = TraceManager.getTrace(Test003resource.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(Test003resource.class);
 
 	@Before
 	/***

@@ -40,14 +40,14 @@ public class Test002basicUser {
 	static Selenium se;
 	static String baseUrl = "http://localhost:8080/idm";
 
-	private static final transient Trace logger = TraceManager.getTrace(Test002basicUser.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(Test002basicUser.class);
 
 	@BeforeClass
 	/***
 	 * Do login as Admin for each test
 	 */
 	static public void start() {
-		logger.info("--- START ------------------------------");
+		LOGGER.info("--- START ------------------------------");
 		WebDriver driver = new FirefoxDriver();
 		// WebDriver driver = new ChromeDriver();
 		se = new Selenium(driver, baseUrl);
@@ -71,7 +71,7 @@ public class Test002basicUser {
 	@AfterClass
 	static public void stop() {
 		se.stop();
-		logger.info("--- STOP ------------------------------");
+		LOGGER.info("--- STOP ------------------------------");
 	}
 
 	// Based on MID-2 jira scenarios
@@ -102,7 +102,7 @@ public class Test002basicUser {
 		se.waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
 
-		logger.info("Minimal requirements");
+		LOGGER.info("Minimal requirements");
 		se.type("createUserForm:name", "barbossa");
 		se.type("createUserForm:givenName", "Hector");
 		se.type("createUserForm:familyName", "Barbossa");
@@ -131,7 +131,7 @@ public class Test002basicUser {
 		se.waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
 		
-		logger.info("All fields filled");
+		LOGGER.info("All fields filled");
 		se.type("createUserForm:name", "elizabeth");
 		se.type("createUserForm:givenName", "Elizabeth");
 		se.type("createUserForm:familyName", "Swann");
@@ -157,7 +157,7 @@ public class Test002basicUser {
 		se.waitForText("Web access enabled");
 		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
 		
-		logger.info("try to insert twice");
+		LOGGER.info("try to insert twice");
 		se.type("createUserForm:name", "elizabeth");
 		se.type("createUserForm:givenName", "Elizabeth");
 		se.type("createUserForm:familyName", "Swann");
@@ -186,7 +186,7 @@ public class Test002basicUser {
 		assertEquals(baseUrl + "/account/userCreate.iface", se.getLocation());
 
 		// test missing name and password not match
-		logger.info("missing: name and not matching passsword");
+		LOGGER.info("missing: name and not matching passsword");
 		se.type("createUserForm:name", "");
 		se.type("createUserForm:givenName", "Joshamee");
 		se.type("createUserForm:familyName", "Gibbs");
@@ -201,7 +201,7 @@ public class Test002basicUser {
 		assertTrue(se.isTextPresent("Please check password fields."));
 		assertTrue(se.isTextPresent("Passwords doesn't match"));
 
-		logger.info("missing: password");
+		LOGGER.info("missing: password");
 		se.type("createUserForm:name", "Joshamee");
 		se.type("createUserForm:givenName", "Joshamee");
 		se.type("createUserForm:familyName", "Gibbs");
@@ -214,7 +214,7 @@ public class Test002basicUser {
 		se.click("createUserForm:createUser");
 		se.waitForText("Value is required");
 
-		logger.info("missing: givenname");
+		LOGGER.info("missing: givenname");
 		se.type("createUserForm:name", "Joshamee");
 		se.type("createUserForm:givenName", "");
 		se.type("createUserForm:familyName", "Gibbs");
@@ -227,7 +227,7 @@ public class Test002basicUser {
 		se.click("createUserForm:createUser");
 		se.waitForText("Value is required");
 
-		logger.info("missing: familyname");
+		LOGGER.info("missing: familyname");
 		se.type("createUserForm:name", "Joshamee");
 		se.type("createUserForm:givenName", "Joshamee");
 		se.type("createUserForm:familyName", "");
@@ -240,7 +240,7 @@ public class Test002basicUser {
 		se.click("createUserForm:createUser");
 		se.waitForText("Value is required");
 
-		logger.info("missing: fullname");
+		LOGGER.info("missing: fullname");
 		se.type("createUserForm:name", "Joshamee");
 		se.type("createUserForm:givenName", "Joshamee");
 		se.type("createUserForm:familyName", "Gibbs");
@@ -272,7 +272,7 @@ public class Test002basicUser {
 	 */
 	@Test
 	public void test020searchUser() throws InterruptedException {
-		logger.info("searchTest()");
+		LOGGER.info("searchTest()");
 
 		se.click(se.findLink("topAccount"));
 		se.waitForPageToLoad("30000");
@@ -288,7 +288,7 @@ public class Test002basicUser {
 		}
 
 		for (String k : h.keySet()) {
-			logger.info(k + " -> " + h.get(k));
+			LOGGER.info(k + " -> " + h.get(k));
 		}
 
 		assertTrue(se.isTextPresent("Elizabeth Swann"));

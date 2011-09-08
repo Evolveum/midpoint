@@ -20,7 +20,7 @@ public class Test004UserPassword {
 	Selenium se;
 	static String baseUrl="http://localhost:8080/idm";
 
-	private static final transient Trace logger = TraceManager.getTrace(Test004UserPassword.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(Test004UserPassword.class);
 	
 	@Before
 	public void start() {
