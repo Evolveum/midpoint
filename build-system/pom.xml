@@ -229,7 +229,7 @@
 			<dependency>
 				<groupId>org.basex</groupId>
 				<artifactId>basex</artifactId>
-				<version>${basex.version}.1</version>
+				<version>${basex.version}.2</version>
 			</dependency>
 			<dependency>
 				<groupId>org.glassfish.web</groupId>
