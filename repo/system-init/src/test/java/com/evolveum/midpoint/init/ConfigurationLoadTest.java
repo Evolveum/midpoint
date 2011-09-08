@@ -16,14 +16,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class ConfigurationLoadTest {
 	
-	private static final Trace logger = TraceManager.getTrace(ConfigurationLoadTest.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ConfigurationLoadTest.class);
 
 	@Test
 	public void t01simpleConfigTest() {
-		logger.info("---------------- simpleConfigTest -----------------");
+		LOGGER.info("---------------- simpleConfigTest -----------------");
 		
 		System.clearProperty("midpoint.home");
-		logger.info("midpoint.home => " + System.getProperty("midpoint.home"));
+		LOGGER.info("midpoint.home => " + System.getProperty("midpoint.home"));
 		
 		assertNull(System.getProperty("midpoint.home"), "midpoint.home");
 		
@@ -33,14 +33,14 @@ public class ConfigurationLoadTest {
 		Configuration c = sc.getConfiguration("midpoint.repository");
 		assertEquals(c.getString("repositoryServiceFactoryClass"),
 				"com.evolveum.midpoint.repo.xml.XmlRepositoryServiceFactory");
-		logger.info(sc.toString());
+		LOGGER.info(sc.toString());
 		
 		@SuppressWarnings("unchecked")
 		Iterator<String> i = c.getKeys();
 		
 		while ( i.hasNext()) {
 			String key = i.next();
-			logger.info("  " + key + " = " + c.getString(key));
+			LOGGER.info("  " + key + " = " + c.getString(key));
 		}
 		
 		assertEquals(c.getInt("port"),1984);
@@ -51,7 +51,7 @@ public class ConfigurationLoadTest {
 	
 	@Test
 	public void t02directoryAndExtractionTest() {
-		logger.info("---------------- directoryAndExtractionTest -----------------");
+		LOGGER.info("---------------- directoryAndExtractionTest -----------------");
 		
 		File f = new File("target/midPointHome");
 		System.setProperty("midpoint.home", "target/midPointHome/");
@@ -74,7 +74,7 @@ public class ConfigurationLoadTest {
 
 	@Test
 	public void t03complexConfigTest() {
-		logger.info("---------------- complexConfigTest -----------------");
+		LOGGER.info("---------------- complexConfigTest -----------------");
 		System.setProperty("midpoint.home", "target/midPointHome/");
 		StartupConfiguration sc = new StartupConfiguration();
 		assertNotNull(sc);
@@ -88,7 +88,7 @@ public class ConfigurationLoadTest {
 		
 		while ( i.hasNext()) {
 			String key = i.next();
-			logger.info("  " + key + " = " + c.getString(key));
+			LOGGER.info("  " + key + " = " + c.getString(key));
 		}
 		
 		assertEquals(c.getString("repository.initialDataPath"), "target/midPointHome/" );
