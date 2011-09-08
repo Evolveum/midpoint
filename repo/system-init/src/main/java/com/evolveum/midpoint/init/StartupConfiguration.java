@@ -121,7 +121,6 @@ public class StartupConfiguration implements MidpointConfiguration {
 			System.out.println(MIDPOINT_HOME + " is not set ! Using default configuration, for more information");
 			System.out.println("                 see http://wiki.evolveum.com/display/midPoint/");
 			System.out.println("*******************************************************************************");
-			return;
 		}
 
 		loadConfiguration();
