@@ -38,6 +38,7 @@ import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
@@ -94,7 +95,7 @@ public class SchemaFormParser {
 				}
 			}
 		}
-
+		System.out.println(DOMUtil.printDom(resource.getXmlObject().getSchema().getAny().get(0)));
 		Schema schema = Schema.parse(resource.getXmlObject().getSchema().getAny().get(0));
 		if (accountType == null) {
 			for (Definition definition : schema.getDefinitions()) {
@@ -123,7 +124,7 @@ public class SchemaFormParser {
 			throw new SchemaException("Account definition for type '" + accountType
 					+ "' was not found.");
 		}
-		displayName = resource.getName() + ": " + definition.getName().getLocalPart();
+		displayName = resource.getName() + ": " + definition.getTypeName().getLocalPart();
 
 		List<ResourceObjectAttributeDefinition> attributes = new ArrayList<ResourceObjectAttributeDefinition>();
 		for (PropertyDefinition def : definition.getPropertyDefinitions()) {
