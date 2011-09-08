@@ -93,7 +93,7 @@ public class NdcAspect {
 	@Pointcut("execution(* com.evolveum.midpoint.model.api.ModelService.*(..))")
     public void entriesIntoModel() {}
     
-    @Pointcut("execution(* com.evolveum.midpoint.web..*(..))")
+    @Pointcut("execution(* com.evolveum.midpoint.web.controller.*(..))")
     public void entriesIntoWeb() {}
         
 }
