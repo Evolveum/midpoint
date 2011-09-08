@@ -88,7 +88,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 @Component
 public class ObjectImporter {
 
-	private static final Trace logger = TraceManager.getTrace(ObjectImporter.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ObjectImporter.class);
 	private static final String OPERATION_RESOLVE_REFERENCE = ObjectImporter.class.getName()
 			+ ".resolveReference";
 	
@@ -114,7 +114,7 @@ public class ObjectImporter {
 
 				progress++;
 
-				logger.debug("Starting import of object {}", ObjectTypeUtil.toShortString(object));
+				LOGGER.debug("Starting import of object {}", ObjectTypeUtil.toShortString(object));
 
 				objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 				objectResult.addContext(OperationResult.CONTEXT_OBJECT, object);
@@ -139,13 +139,13 @@ public class ObjectImporter {
 						
 					} catch (SchemaException e) {
 						objectResult.recordFatalError("Schema violation", e);
-						logger.error("Schema violation", e);
+						LOGGER.error("Schema violation", e);
 					} catch (RuntimeException e) {
 						objectResult.recordFatalError("Unexpected problem", e);
-						logger.error("Unexpected problem", e);
+						LOGGER.error("Unexpected problem", e);
 					} catch (ObjectAlreadyExistsException e) {
 						objectResult.recordFatalError("Object already exists", e);
-						logger.error("Object already exists", e);
+						LOGGER.error("Object already exists", e);
 					}
 					
 				}
@@ -283,7 +283,7 @@ public class ObjectImporter {
 				// Probably a malformed connector. To be kind of robust, lets allow the import. 
 				// Mark the error ... there is nothing more to do
 				objectResult.recordPartialError("Connector (OID:"+connectorOid+") referenced from the resource has schema problems: "+e.getMessage(), e);
-				logger.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}",new Object[]{connectorOid,resource.getName(),e.getMessage(), e});
+				LOGGER.error("Connector (OID:{}) referenced from the imported resource \"{}\" has schema problems: {}",new Object[]{connectorOid,resource.getName(),e.getMessage(), e});
 				return;
 			}
 			QName configurationElementRef = new QName(connector.getNamespace(),SchemaConstants.CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME);
@@ -383,13 +383,13 @@ public class ObjectImporter {
 				// resolve it.
 				String propName = parseGetterPropName(method);
 				if (propName!=null) {
-					logger.debug("Found reference property {}, method {}", propName, method.getName());
+					LOGGER.debug("Found reference property {}, method {}", propName, method.getName());
 					try {
 						Object returnVal = method.invoke(object);
 						ObjectReferenceType ref = (ObjectReferenceType) returnVal;
 						resolveRef(ref, propName, repository, result);
 						if (!result.isAcceptable()) {
-							logger.error("Error resolving reference {}: {}", propName, result.getMessage());
+							LOGGER.error("Error resolving reference {}: {}", propName, result.getMessage());
 							return;
 						}
 					} catch (IllegalArgumentException e) {
@@ -408,7 +408,7 @@ public class ObjectImporter {
 								+ " due to InvocationTargetException", e);
 						return;
 					}
-					logger.debug("Reference {} processed", propName);
+					LOGGER.debug("Reference {} processed", propName);
 				}
 			}
 		}
@@ -454,7 +454,7 @@ public class ObjectImporter {
 			} catch (SchemaException e) {
 				result.recordPartialError("Schema error while trying to retrieve object " + ref.getOid()
 						+ " : " + e.getMessage(), e);
-				logger.error(
+				LOGGER.error(
 						"Schema error while trying to retrieve object " + ref.getOid() + " : "
 								+ e.getMessage(), e);
 				// But continue otherwise
@@ -476,7 +476,7 @@ public class ObjectImporter {
 			return;
 		}
 		// No OID and we have filter. Let's check the filter a bit
-		logger.debug("Resolving using filter {}", DOMUtil.serializeDOMToString(filter));
+		LOGGER.debug("Resolving using filter {}", DOMUtil.serializeDOMToString(filter));
 		NodeList childNodes = filter.getChildNodes();
 		if (childNodes.getLength() == 0) {
 			result.recordFatalError("OID not specified and filter is empty for property " + propName);
@@ -575,10 +575,10 @@ public class ObjectImporter {
 			ProtectedStringType ps = (ProtectedStringType) value;
 			if (ps.getClearValue()!=null) {
 				try {
-					logger.info("Encrypting cleartext value for field "+propName+" while importing "+ObjectTypeUtil.toShortString(objectType));
+					LOGGER.info("Encrypting cleartext value for field "+propName+" while importing "+ObjectTypeUtil.toShortString(objectType));
 					protector.encrypt(ps);
 				} catch (EncryptionException e) {
-					logger.info("Faild to encrypt cleartext value for field "+propName+" while importing "+ObjectTypeUtil.toShortString(objectType));
+					LOGGER.info("Faild to encrypt cleartext value for field "+propName+" while importing "+ObjectTypeUtil.toShortString(objectType));
 					result.recordFatalError("Faild to encrypt value for field "+propName+": "+e.getMessage(), e);
 					return;
 				}

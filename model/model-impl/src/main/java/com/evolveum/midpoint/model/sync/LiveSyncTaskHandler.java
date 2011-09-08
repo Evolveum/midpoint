@@ -60,7 +60,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	@Autowired(required=true)
 	private ProvisioningService provisioningService;
 	
-	private static final transient Trace logger = TraceManager.getTrace(LiveSyncTaskHandler.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(LiveSyncTaskHandler.class);
 
 	@PostConstruct
 	private void initialize() {
@@ -69,7 +69,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 	
 	@Override
 	public TaskRunResult run(Task task) {
-		logger.info("SynchronizationCycle.run starting");
+		LOGGER.info("SynchronizationCycle.run starting");
 		
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(OperationConstants.LIVE_SYNC);
@@ -95,21 +95,21 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			progress += provisioningService.synchronize(resourceOid, task, opResult);
 			
 		} catch (ObjectNotFoundException ex) {
-			logger.error("Live Sync: Resource does not exist, OID: {}",resourceOid,ex);
+			LOGGER.error("Live Sync: Resource does not exist, OID: {}",resourceOid,ex);
 			// This is bad. The resource does not exist. Permanent problem.
 			opResult.recordFatalError("Resource does not exist, OID: "+resourceOid,ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
 		} catch (CommunicationException ex) {
-			logger.error("Live Sync: Communication error: {}",ex.getMessage(),ex);
+			LOGGER.error("Live Sync: Communication error: {}",ex.getMessage(),ex);
 			// Error, but not critical. Just try later.
 			opResult.recordPartialError("Communication error: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
 		} catch (SchemaException ex) {
-			logger.error("Live Sync: Error dealing with schema: {}",ex.getMessage(),ex);
+			LOGGER.error("Live Sync: Error dealing with schema: {}",ex.getMessage(),ex);
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
 			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
@@ -117,7 +117,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 			runResult.setProgress(progress);
 			return runResult;
 		} catch (RuntimeException ex) {
-			logger.error("Live Sync: Internal Error: {}",ex.getMessage(),ex);
+			LOGGER.error("Live Sync: Internal Error: {}",ex.getMessage(),ex);
 			// Can be anything ... but we can't recover from that.
 			// It is most likely a programming error. Does not make much sense to retry.
 			opResult.recordFatalError("Internal Error: "+ex.getMessage(),ex);
@@ -130,7 +130,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
-		logger.info("SynchronizationCycle.run stopping");
+		LOGGER.info("SynchronizationCycle.run stopping");
 		return runResult;
 	}
 

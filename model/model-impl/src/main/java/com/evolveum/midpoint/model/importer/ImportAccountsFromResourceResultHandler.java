@@ -58,7 +58,7 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 	private long progress;
 	private boolean stopOnError;
 
-	private static final Trace logger = TraceManager.getTrace(ImportAccountsFromResourceResultHandler.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ImportAccountsFromResourceResultHandler.class);
 
 	public ImportAccountsFromResourceResultHandler(ResourceType resource, Task task,
 			ResourceObjectChangeListener objectChangeListener) {
@@ -88,10 +88,10 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 		result.addParam("object", object);
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 		
-		logger.trace("Importing {} from {}",ObjectTypeUtil.toShortString(object),ObjectTypeUtil.toShortString(resource));
+		LOGGER.trace("Importing {} from {}",ObjectTypeUtil.toShortString(object),ObjectTypeUtil.toShortString(resource));
 
 		if (objectChangeListener == null) {
-			logger.warn("No object change listener set for import task, ending the task");
+			LOGGER.warn("No object change listener set for import task, ending the task");
 			result.recordFatalError("No object change listener set for import task, ending the task");
 			return false;
 		}
@@ -112,14 +112,14 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 		// pretending that it has
 		// not existed before, so we will not provide it.
 
-		logger.debug("Going to call notification with new object: " + DebugUtil.prettyPrint(newShadow));
+		LOGGER.debug("Going to call notification with new object: " + DebugUtil.prettyPrint(newShadow));
 		try {
 
 			// Invoke the change notification
 			objectChangeListener.notifyChange(change, result);
 
 		} catch (Exception ex) {
-			logger.error("Change notication listener failed for import of object {}: {}: ", new Object[] {
+			LOGGER.error("Change notication listener failed for import of object {}: {}: ", new Object[] {
 					newShadow, ex.getClass().getSimpleName(), ex.getMessage(), ex });
 			result.recordPartialError("failed to import", ex);
 			return !isStopOnError();
@@ -129,12 +129,12 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 		if (task.canRun()) {
 			result.computeStatus("Failed to import.");
 			// Everything OK, signal to continue
-			logger.trace("Import of {} finished, result: {}",ObjectTypeUtil.toShortString(object),result.dump());
+			LOGGER.trace("Import of {} finished, result: {}",ObjectTypeUtil.toShortString(object),result.dump());
 			return true;
 		} else {
 			result.recordPartialError("Interrupted");
 			// Signal to stop
-			logger.warn("Import from {} interrupted",ObjectTypeUtil.toShortString(resource));
+			LOGGER.warn("Import from {} interrupted",ObjectTypeUtil.toShortString(resource));
 			return false;
 		}
 	}

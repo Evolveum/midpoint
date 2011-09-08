@@ -99,7 +99,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 	private Map<Task,ImportAccountsFromResourceResultHandler> handlers;
 	private PropertyDefinition objectclassPropertyDefinition;
 	
-	private static final Trace logger = TraceManager.getTrace(ImportAccountsFromResourceTaskHandler.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ImportAccountsFromResourceTaskHandler.class);
 	
 	public ImportAccountsFromResourceTaskHandler() {
 		super();
@@ -122,7 +122,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 	 */
 	public void launch(ResourceType resource, QName objectclass, Task task, OperationResult parentResult) {
 				
-		logger.debug("Launching import from resource {}",ObjectTypeUtil.toShortString(resource));
+		LOGGER.debug("Launching import from resource {}",ObjectTypeUtil.toShortString(resource));
 		
 		OperationResult result = parentResult.createSubresult(ImportAccountsFromResourceTaskHandler.class.getName()+".launch");
 		result.addParam("resource", resource);
@@ -148,11 +148,11 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 		try {
 			task.modifyExtension(modifications, result);
 		} catch (ObjectNotFoundException e) {
-			logger.error("Task object not found, expecting it to exist (task {})",task,e);
+			LOGGER.error("Task object not found, expecting it to exist (task {})",task,e);
 			result.recordFatalError("Task object not found", e);
 			throw new IllegalStateException("Task object not found, expecting it to exist",e);
 		} catch (SchemaException e) {
-			logger.error("Error dealing with schema (task {})",task,e);
+			LOGGER.error("Error dealing with schema (task {})",task,e);
 			result.recordFatalError("Error dealing with schema", e);
 			throw new IllegalStateException("Error dealing with schema",e);
 		}
@@ -163,7 +163,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 		taskManager.switchToBackground(task, result);
 		result.computeStatus("Import launch failed");
 		
-		logger.trace("Import from resource {} switched to background, control thread returning with task {}",ObjectTypeUtil.toShortString(resource),task);
+		LOGGER.trace("Import from resource {} switched to background, control thread returning with task {}",ObjectTypeUtil.toShortString(resource),task);
 	}
 
 	/**
@@ -172,7 +172,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 		
-		logger.debug("Import from resource run (task {})",task);
+		LOGGER.debug("Import from resource run (task {})",task);
 		
 		// This is an operation result for the entire import task. Therefore use the constant for
 		// operation name.
@@ -194,20 +194,20 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 			if (task.getObjectRef()!=null) {
 				resourceOid = task.getObjectRef().getOid();
 			}
-			logger.error("Import: Resource not found: {}",resourceOid,ex);
+			LOGGER.error("Import: Resource not found: {}",resourceOid,ex);
 			// This is bad. The resource does not exist. Permanent problem.
 			opResult.recordFatalError("Resource not found "+resourceOid,ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			return runResult;
 		} catch (SchemaException ex) {
-			logger.error("Import: Error dealing with schema: {}",ex.getMessage(),ex);
+			LOGGER.error("Import: Error dealing with schema: {}",ex.getMessage(),ex);
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
 			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			return runResult;
 		} catch (RuntimeException ex) {
-			logger.error("Import: Internal Error: {}",ex.getMessage(),ex);
+			LOGGER.error("Import: Internal Error: {}",ex.getMessage(),ex);
 			// Can be anything ... but we can't recover from that.
 			// It is most likely a programming error. Does not make much sense to retry.
 			opResult.recordFatalError("Internal Error: "+ex.getMessage(),ex);
@@ -216,7 +216,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 		}
 		
 		if (resource == null) {
-			logger.error("Import: No resource specified");
+			LOGGER.error("Import: No resource specified");
 			opResult.recordFatalError("No resource specified");
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			return runResult;
@@ -225,7 +225,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 		// Determine object class to import
 		Property objectclassProperty = task.getExtension(ImportConstants.OBJECTCLASS_PROPERTY_NAME);
 		if (objectclassProperty == null) {
-			logger.error("Import: No objectclass specified");
+			LOGGER.error("Import: No objectclass specified");
 			opResult.recordFatalError("No objectclass specified");
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			return runResult;
@@ -233,7 +233,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 		
 		QName objectclass = objectclassProperty.getValue(QName.class);
 		if (objectclass == null) {
-			logger.error("Import: No objectclass specified");
+			LOGGER.error("Import: No objectclass specified");
 			opResult.recordFatalError("No objectclass specified");
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			return runResult;
@@ -250,21 +250,21 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 			provisioning.searchObjectsIterative(createAccountShadowTypeQuery(resource, objectclass), null, handler, opResult);
 			
 		} catch (ObjectNotFoundException ex) {
-			logger.error("Import: Object not found: {}",ex.getMessage(),ex);
+			LOGGER.error("Import: Object not found: {}",ex.getMessage(),ex);
 			// This is bad. The resource does not exist. Permanent problem.
 			opResult.recordFatalError("Object not found "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(handler.getProgress());
 			return runResult;
 		} catch (CommunicationException ex) {
-			logger.error("Import: Communication error: {}",ex.getMessage(),ex);
+			LOGGER.error("Import: Communication error: {}",ex.getMessage(),ex);
 			// Error, but not critical. Just try later.
 			opResult.recordPartialError("Communication error: "+ex.getMessage(),ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
 			runResult.setProgress(handler.getProgress());
 			return runResult;
 		} catch (SchemaException ex) {
-			logger.error("Import: Error dealing with schema: {}",ex.getMessage(),ex);
+			LOGGER.error("Import: Error dealing with schema: {}",ex.getMessage(),ex);
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
 			opResult.recordFatalError("Error dealing with schema: "+ex.getMessage(),ex);
@@ -272,7 +272,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 			runResult.setProgress(handler.getProgress());
 			return runResult;
 		} catch (RuntimeException ex) {
-			logger.error("Import: Internal Error: {}",ex.getMessage(),ex);
+			LOGGER.error("Import: Internal Error: {}",ex.getMessage(),ex);
 			// Can be anything ... but we can't recover from that.
 			// It is most likely a programming error. Does not make much sense to retry.
 			opResult.recordFatalError("Internal Error: "+ex.getMessage(),ex);
@@ -288,7 +288,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 		runResult.setProgress(handler.getProgress());
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		
-		logger.debug("Import from resource run finished (task {}, run result {})",task,runResult);
+		LOGGER.debug("Import from resource run finished (task {}, run result {})",task,runResult);
 		
 		return runResult;
 	}

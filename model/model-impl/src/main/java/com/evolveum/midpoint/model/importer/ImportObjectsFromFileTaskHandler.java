@@ -95,7 +95,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 	//private Map<Task,ImportAccountsFromResourceResultHandler> handlers;
 	private PropertyDefinition filenamePropertyDefinition;
 	
-	private static final Trace logger = TraceManager.getTrace(ImportObjectsFromFileTaskHandler.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ImportObjectsFromFileTaskHandler.class);
 	
 	public ImportObjectsFromFileTaskHandler() {
 		super();
@@ -118,7 +118,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 	 */
 	public void launch(File input, Task task, OperationResult parentResult) {
 				
-		logger.debug("Launching import accounts from file {}",input);
+		LOGGER.debug("Launching import accounts from file {}",input);
 		
 		OperationResult result = parentResult.createSubresult(ImportObjectsFromFileTaskHandler.class.getName()+".launch");
 		result.addParam("input", input);
@@ -141,11 +141,11 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 		try {
 			task.modifyExtension(modifications, result);
 		} catch (ObjectNotFoundException e) {
-			logger.error("Task object not found, expecting it to exist (task {})",task,e);
+			LOGGER.error("Task object not found, expecting it to exist (task {})",task,e);
 			result.recordFatalError("Task object not found", e);
 			throw new IllegalStateException("Task object not found, expecting it to exist",e);
 		} catch (SchemaException e) {
-			logger.error("Error dealing with schema (task {})",task,e);
+			LOGGER.error("Error dealing with schema (task {})",task,e);
 			result.recordFatalError("Error dealing with schema", e);
 			throw new IllegalStateException("Error dealing with schema",e);
 		}
@@ -155,7 +155,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 		// Note: the thread may be actually started on a different node
 		taskManager.switchToBackground(task, result);
 		
-		logger.trace("Import objects from file {} switched to background, control thread returning with task {}",input,task);
+		LOGGER.trace("Import objects from file {} switched to background, control thread returning with task {}",input,task);
 	}
 
 	/**
@@ -164,7 +164,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 	@Override
 	public TaskRunResult run(Task task) {
 		
-		logger.debug("Import objects from file run (task {})",task);
+		LOGGER.debug("Import objects from file run (task {})",task);
 		
 		// This is an operation result for the entire import task. Therefore use the constant for
 		// operation name.
@@ -177,7 +177,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 		
 		Property filenameProperty = task.getExtension(ImportConstants.FILENAME_PROPERTY_NAME);
 		if (filenameProperty == null) {
-			logger.error("Import: No file specified");
+			LOGGER.error("Import: No file specified");
 			opResult.recordFatalError("No file specified");
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			return runResult;
@@ -185,7 +185,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 
 		String filename = filenameProperty.getValue(String.class);
 		if (filename == null) {
-			logger.error("Import: No file specified");
+			LOGGER.error("Import: No file specified");
 			opResult.recordFatalError("No file specified");
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			return runResult;
@@ -201,7 +201,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
 		// TODO: runResult.setProgress(progress);
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		
-		logger.debug("Import objects from file run finished (task {}, run result {})",task,runResult);
+		LOGGER.debug("Import objects from file run finished (task {}, run result {})",task,runResult);
 		
 		return runResult;
 	}
