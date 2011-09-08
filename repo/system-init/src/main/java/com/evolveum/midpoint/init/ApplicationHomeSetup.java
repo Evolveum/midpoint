@@ -33,18 +33,6 @@ public class ApplicationHomeSetup {
 
 		MIDPOINT_HOME = midpointHome;
 		
-		if (System.getProperty(MIDPOINT_HOME) == null || System.getProperty(MIDPOINT_HOME).isEmpty()) {
-			LOGGER.warn("*****************************************************************************************");
-			LOGGER.warn(MIDPOINT_HOME + " is not set ! Using default configuration, for more information see http://wiki.evolveum.com/display/midPoint/");
-			LOGGER.warn("*****************************************************************************************");
-
-			System.out.println("*******************************************************************************");
-			System.out.println(MIDPOINT_HOME + " is not set ! Using default configuration, for more information");
-			System.out.println("                 see http://wiki.evolveum.com/display/midPoint/");
-			System.out.println("*******************************************************************************");
-			return;
-		}
-
 		LOGGER.info(MIDPOINT_HOME +" = " + System.getProperty(MIDPOINT_HOME));
 		System.out.println(MIDPOINT_HOME + " = " + System.getProperty(MIDPOINT_HOME));
 

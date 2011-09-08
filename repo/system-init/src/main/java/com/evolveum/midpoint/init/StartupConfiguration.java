@@ -92,6 +92,16 @@ public class StartupConfiguration implements MidpointConfiguration {
 				sub.setProperty(key, sub.getString(key).replace("${" + MIDPOINT_HOME + "}", ""));
 			}
 		}
+		
+		if ( LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Configuration for {} :", componentName );
+			@SuppressWarnings("unchecked")
+			Iterator<String> i = sub.getKeys();
+			while (i.hasNext()) {
+				String key = i.next();
+				LOGGER.debug("    {} = {}",key,sub.getString(key));
+			}
+		}
 		return sub;
 	}
 
@@ -99,6 +109,18 @@ public class StartupConfiguration implements MidpointConfiguration {
 	 * Initialize system configuration
 	 */
 	public void init() {
+		if (System.getProperty(MIDPOINT_HOME) == null || System.getProperty(MIDPOINT_HOME).isEmpty()) {
+			LOGGER.warn("*****************************************************************************************");
+			LOGGER.warn(MIDPOINT_HOME + " is not set ! Using default configuration, for more information see http://wiki.evolveum.com/display/midPoint/");
+			LOGGER.warn("*****************************************************************************************");
+
+			System.out.println("*******************************************************************************");
+			System.out.println(MIDPOINT_HOME + " is not set ! Using default configuration, for more information");
+			System.out.println("                 see http://wiki.evolveum.com/display/midPoint/");
+			System.out.println("*******************************************************************************");
+			return;
+		}
+
 		loadConfiguration();
 	}
 
@@ -147,8 +169,9 @@ public class StartupConfiguration implements MidpointConfiguration {
 					ApplicationHomeSetup ah = new ApplicationHomeSetup();
 					ah.init(MIDPOINT_HOME);
 					ClassPathUtil.extractFileFromClassPath("config.xml", path);
+					
 				}
-
+				this.setConfigFilename(path);
 				//Load and parse properties
 				config.addProperty(MIDPOINT_HOME, System.getProperty(MIDPOINT_HOME));
 				config.addConfiguration(new XMLConfiguration(this.getConfigFilename()));
