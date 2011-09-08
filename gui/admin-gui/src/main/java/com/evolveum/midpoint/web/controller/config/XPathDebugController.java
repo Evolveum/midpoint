@@ -74,7 +74,7 @@ public class XPathDebugController implements Serializable {
 	private static final long serialVersionUID = 7295076387943631763L;
 	private static final String PARAM_VARIABLE_NAME = "variableName";
 	private static final String PARAM_OBJECT_OID = "objectOid";
-	private static final Trace TRACE = TraceManager.getTrace(XPathDebugController.class);
+	private static final Trace LOGGER = TraceManager.getTrace(XPathDebugController.class);
 	private static final List<SelectItem> returnTypes = new ArrayList<SelectItem>();
 	private static final List<SelectItem> types = new ArrayList<SelectItem>();
 	static {
@@ -111,19 +111,19 @@ public class XPathDebugController implements Serializable {
 	}
 
 	private ExpressionCodeHolder getExpressionHolderFromExpresion() {
-		TRACE.debug("getExpressionHolder start");
+		LOGGER.debug("getExpressionHolder start");
 
 		Document doc = DOMUtil.getDocument();
 		Element element = doc.createElement("valueExpresion");
 		element.setTextContent(expression);
 		ExpressionCodeHolder expressionHolder = new ExpressionCodeHolder(element);
-		TRACE.debug("expression holder: {}", expressionHolder.getFullExpressionAsString());
-		TRACE.debug("getExpressionHolder end");
+		LOGGER.debug("expression holder: {}", expressionHolder.getFullExpressionAsString());
+		LOGGER.debug("getExpressionHolder end");
 		return expressionHolder;
 	}
 
 	private QName getQNameForVariable(String variable) {
-		TRACE.debug("getQNameForVariable start");
+		LOGGER.debug("getQNameForVariable start");
 		ExpressionCodeHolder expressionHolder = getExpressionHolderFromExpresion();
 		Map<String, String> namespaceMap = expressionHolder.getNamespaceMap();
 
@@ -138,7 +138,7 @@ public class XPathDebugController implements Serializable {
 	}
 
 	private Map<QName, Variable> getVariableValue() throws JAXBException {
-		TRACE.debug("getVariableValue start");
+		LOGGER.debug("getVariableValue start");
 		Map<QName, Variable> variableMap = new HashMap<QName, Variable>();
 		for (XPathVariableBean variable : getVariables()) {
 			if (StringUtils.isNotEmpty(variable.getVariableName())) {
@@ -156,8 +156,8 @@ public class XPathDebugController implements Serializable {
 						variableMap.put(getQNameForVariable(variable.getVariableName()), new Variable(
 								jaxbToDom, false));
 					} catch (FaultMessage ex) {
-						TRACE.error("Failed to get variable value");
-						TRACE.error("Exception was: ", ex.getFaultInfo().getMessage());
+						LOGGER.error("Failed to get variable value");
+						LOGGER.error("Exception was: ", ex.getFaultInfo().getMessage());
 					}
 				}
 				if (variable.getType().equals("String")) {
@@ -173,7 +173,7 @@ public class XPathDebugController implements Serializable {
 	}
 
 	public String evaluate() {
-		TRACE.debug("evaluate start");
+		LOGGER.debug("evaluate start");
 		if (expression == null || expression.isEmpty()) {
 			FacesUtils.addErrorMessage("Expresion cannot be null.");
 			return null;
@@ -214,8 +214,8 @@ public class XPathDebugController implements Serializable {
 			FacesUtils.addErrorMessage("JAXB error occured, reason: " + ex.getMessage(), ex);
 		}
 
-		TRACE.debug("result is: {}", result);
-		TRACE.debug("evaluate end");
+		LOGGER.debug("result is: {}", result);
+		LOGGER.debug("evaluate end");
 		return null;
 	}
 

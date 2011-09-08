@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class UserCreateController implements Serializable {
 
 	private static final long serialVersionUID = -405498021481348879L;
-	private static final Trace TRACE = TraceManager.getTrace(UserCreateController.class);
+	private static final Trace LOGGER = TraceManager.getTrace(UserCreateController.class);
 
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog objectTypeCatalog;
@@ -74,20 +74,20 @@ public class UserCreateController implements Serializable {
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 			oid = userManager.add(user);
 		} catch (Exception ex) {
-			LoggingUtils.logException(TRACE, "Couldn't create user", ex);
+			LoggingUtils.logException(LOGGER, "Couldn't create user", ex);
 			FacesUtils.addErrorMessage("Failed to create user:" + ex.getMessage());
 
 			return null;
 		}
 		if (oid == null) {
 			FacesUtils.addErrorMessage("Failed to create user");
-			TRACE.debug("Failed to create user {}, oid returned null.", user.getName());
+			LOGGER.debug("Failed to create user {}, oid returned null.", user.getName());
 			return null;
 		}
 
 		reinit();
 
-		TRACE.info("Created user with oid {}", oid);
+		LOGGER.info("Created user with oid {}", oid);
 		FacesUtils.addSuccessMessage("User created successfully");
 
 		userListController.fillTableList();

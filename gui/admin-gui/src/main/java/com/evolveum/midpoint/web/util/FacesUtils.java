@@ -48,7 +48,7 @@ import com.evolveum.midpoint.web.jsf.messages.MidPointMessage;
 public abstract class FacesUtils {
 
 	public static final String DATE_PATTERN = "EEE, d. MMM yyyy HH:mm:ss.SSS";
-	private static final Trace TRACE = TraceManager.getTrace(FacesUtils.class);
+	private static final Trace LOGGER = TraceManager.getTrace(FacesUtils.class);
 
 	public static String getRequestParameter(String name) {
 		if (StringUtils.isEmpty(name)) {
@@ -73,7 +73,7 @@ public abstract class FacesUtils {
 		}
 		FacesContext context = FacesContext.getCurrentInstance();
 		if (context == null) {
-			TRACE.warn("Faces context is null. Key {} will not be translated.", key);
+			LOGGER.warn("Faces context is null. Key {} will not be translated.", key);
 			return key;
 		}
 		
@@ -91,7 +91,7 @@ public abstract class FacesUtils {
 
 			translation = bundle.getString(key);
 		} catch (Exception ex) {
-			TRACE.warn("Couldn't find key '" + key + "', reason: " + ex.getMessage());
+			LOGGER.warn("Couldn't find key '" + key + "', reason: " + ex.getMessage());
 		}
 
 		return translation;

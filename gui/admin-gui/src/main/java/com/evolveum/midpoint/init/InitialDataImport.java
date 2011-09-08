@@ -44,7 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
  */
 public class InitialDataImport {
 
-	private static final Trace TRACE = TraceManager.getTrace(InitialDataImport.class);
+	private static final Trace LOGGER = TraceManager.getTrace(InitialDataImport.class);
 
 	private final String[] FILES_FOR_IMPORT = new String[] { "systemConfiguration.xml", "admin.xml" };
 
@@ -57,7 +57,7 @@ public class InitialDataImport {
 
 	@SuppressWarnings("unchecked")
 	public void init() {
-		TRACE.info("Starting initial object import.");
+		LOGGER.info("Starting initial object import.");
 
 		OperationResult mainResult = new OperationResult("Initial Objects Import");
 		for (String file : FILES_FOR_IMPORT) {
@@ -78,7 +78,7 @@ public class InitialDataImport {
 				} catch (ObjectNotFoundException ex) {
 					importObject = true;
 				} catch (Exception ex) {
-					LoggingUtils.logException(TRACE, "Couldn't get object with oid {} from model", ex,
+					LoggingUtils.logException(LOGGER, "Couldn't get object with oid {} from model", ex,
 							object.getOid());
 					result.recordWarning("Couldn't get object with oid '" + object.getOid() + "' from model",
 							ex);
@@ -91,7 +91,7 @@ public class InitialDataImport {
 				model.addObject(object, result);
 				result.recordSuccess();
 			} catch (Exception ex) {
-				LoggingUtils.logException(TRACE, "Couldn't import file {}", ex, file);
+				LoggingUtils.logException(LOGGER, "Couldn't import file {}", ex, file);
 				result.recordFatalError("Couldn't import file '" + file + "'", ex);
 			} finally {
 				if (stream != null) {
@@ -101,8 +101,8 @@ public class InitialDataImport {
 			}
 		}
 		mainResult.recordSuccess();
-		TRACE.info("Initial object import finished.");
-		TRACE.info("Initialization status:\n" + mainResult.dump());
+		LOGGER.info("Initial object import finished.");
+		LOGGER.info("Initialization status:\n" + mainResult.dump());
 	}
 
 	private InputStream getResource(String name) {

@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
  */
 public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
-	private static final Trace TRACE = TraceManager.getTrace(MidPointAuthenticationProvider.class);
+	private static final Trace LOGGER = TraceManager.getTrace(MidPointAuthenticationProvider.class);
 	@Autowired(required = true)
 	transient UserDetailsService userManagerService;
 	@Autowired(required = true)
@@ -94,9 +94,9 @@ public class MidPointAuthenticationProvider implements AuthenticationProvider {
 
 			throw ex;
 		} catch (Exception ex) {
-			TRACE.error("Can't get user with username '{}'. Unknown error occured, reason {}.", new Object[] {
+			LOGGER.error("Can't get user with username '{}'. Unknown error occured, reason {}.", new Object[] {
 					authentication.getPrincipal(), ex.getMessage() });
-			TRACE.debug("Can't authenticate user '{}'.", new Object[] { authentication.getPrincipal() }, ex);
+			LOGGER.debug("Can't authenticate user '{}'.", new Object[] { authentication.getPrincipal() }, ex);
 			throw new AuthenticationServiceException("web.security.provider.unavailable");
 		}
 

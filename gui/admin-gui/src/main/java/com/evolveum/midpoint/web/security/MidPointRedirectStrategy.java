@@ -41,7 +41,7 @@ import java.io.IOException;
  */
 public class MidPointRedirectStrategy implements RedirectStrategy {
 
-	private static final Trace TRACE = TraceManager.getTrace(MidPointRedirectStrategy.class);
+	private static final Trace LOGGER = TraceManager.getTrace(MidPointRedirectStrategy.class);
 	private boolean contextRelative;
 
 	/**
@@ -65,14 +65,14 @@ public class MidPointRedirectStrategy implements RedirectStrategy {
 			// javax.faces.context.FacesContext ctxt =
 			// javax.faces.context.FacesContext.getCurrentInstance();
 			// ctxt.getExternalContext().redirect(redirectUrl);
-			TRACE.info("Sending ajax redirect (" + ajaxRedirect + ") to: " + redirectUrl);
+			LOGGER.info("Sending ajax redirect (" + ajaxRedirect + ") to: " + redirectUrl);
 			String ajaxRedirectXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 					+ "<partial-response><redirect url=\"" + redirectUrl
 					+ "\"></redirect></partial-response>";
 			response.setContentType("text/xml");
 			response.getWriter().write(ajaxRedirectXml);
 		} else {
-			TRACE.info("Sending standard redirect to: " + redirectUrl);
+			LOGGER.info("Sending standard redirect to: " + redirectUrl);
 			response.sendRedirect(redirectUrl);
 		}
 	}

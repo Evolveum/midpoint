@@ -67,7 +67,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-	private static final Trace TRACE = TraceManager.getTrace(UserDetailsServiceImpl.class);
+	private static final Trace LOGGER = TraceManager.getTrace(UserDetailsServiceImpl.class);
 	@Autowired(required = true)
 	private transient ModelPortType modelService;
 
@@ -77,7 +77,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		try {
 			user = findByUsername(principal);
 		} catch (FaultMessage ex) {
-			TRACE.warn("Couldn't find user with name '{}', reason: {}.",
+			LOGGER.warn("Couldn't find user with name '{}', reason: {}.",
 					new Object[] { principal, ex.getMessage() });
 		}
 
@@ -89,7 +89,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		try {
 			save(user);
 		} catch (RepositoryException ex) {
-			TRACE.warn("Couldn't save user '{}, ({})', reason: {}.",
+			LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
 					new Object[] { user.getFullName(), user.getOid(), ex.getMessage() });
 		}
 	}
@@ -97,7 +97,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 	private PrincipalUser findByUsername(String username) throws FaultMessage {
 		QueryType query = new QueryType();
 		query.setFilter(createQuery(username));
-		TRACE.trace("Looking for user, query:\n" + DOMUtil.printDom(query.getFilter()));
+		LOGGER.trace("Looking for user, query:\n" + DOMUtil.printDom(query.getFilter()));
 
 		ObjectListType list = modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query,
 				new PagingType(), new Holder<OperationResultType>(new OperationResultType()));
@@ -105,7 +105,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			return null;
 		}
 		List<ObjectType> objects = list.getObject();
-		TRACE.trace("Users found: {}.", new Object[] { objects.size() });
+		LOGGER.trace("Users found: {}.", new Object[] { objects.size() });
 		if (objects.size() == 0 || objects.size() > 1) {
 			return null;
 		}
@@ -231,7 +231,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			XMLGregorianCalendar calendar = DatatypeFactory.newInstance().newXMLGregorianCalendar(gc);
 			password.setLastFailedLoginTimestamp(calendar);
 		} catch (DatatypeConfigurationException ex) {
-			TRACE.error("Can't save last failed login timestamp, reason: " + ex.getMessage());
+			LOGGER.error("Can't save last failed login timestamp, reason: " + ex.getMessage());
 		}
 	}
 }

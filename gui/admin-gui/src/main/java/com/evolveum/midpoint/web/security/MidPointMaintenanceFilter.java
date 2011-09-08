@@ -46,7 +46,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class MidPointMaintenanceFilter extends GenericFilterBean {
 
 	static final String FILTER_APPLIED = "MidPointMaintenanceFilter_applied";
-	private static final Trace TRACE = TraceManager.getTrace(MidPointMaintenanceFilter.class);
+	private static final Trace LOGGER = TraceManager.getTrace(MidPointMaintenanceFilter.class);
 	private RedirectStrategy redirectStrategy = new DefaultRedirectStrategy();
 	private String maintenanceUrl;
 	private boolean enabled = false;
@@ -74,7 +74,7 @@ public class MidPointMaintenanceFilter extends GenericFilterBean {
 		HttpServletRequest request = (HttpServletRequest) req;
 
 		if (request.getAttribute(FILTER_APPLIED) != null) {
-			TRACE.debug("Maintenance filter already applied.");
+			LOGGER.debug("Maintenance filter already applied.");
 			chain.doFilter(request, response);
 			return;
 		}
@@ -91,7 +91,7 @@ public class MidPointMaintenanceFilter extends GenericFilterBean {
 
 		String ipAddress = request.getRemoteAddr();
 		if (enabled && !ipList.contains(ipAddress) && !goingToMaintenancePage) {
-			TRACE.debug("Maintenance mode enabled, redirecting to '" + maintenanceUrl + "'");
+			LOGGER.debug("Maintenance mode enabled, redirecting to '" + maintenanceUrl + "'");
 			redirectStrategy.sendRedirect(request, (HttpServletResponse) response, maintenanceUrl);
 
 			return;

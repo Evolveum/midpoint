@@ -49,7 +49,7 @@ import com.evolveum.midpoint.web.model.dto.ResourceDto;
  */
 public class SchemaFormParser {
 
-	private static transient Trace TRACE = TraceManager.getTrace(SchemaFormParser.class);
+	private static transient Trace LOGGER = TraceManager.getTrace(SchemaFormParser.class);
 	private QName defaultAccountType;
 	private Map<QName, List<Object>> valueMap = new HashMap<QName, List<Object>>();
 	private String displayName;
@@ -60,7 +60,7 @@ public class SchemaFormParser {
 			throw new IllegalArgumentException("Account shadow can't be null.");
 		}
 
-		TRACE.trace("Account contains default object class: " + account.getObjectClass());
+		LOGGER.trace("Account contains default object class: " + account.getObjectClass());
 		return parseSchemaForAccount(account, account.getObjectClass());
 	}
 
@@ -130,7 +130,7 @@ public class SchemaFormParser {
 			if (!(def instanceof ResourceObjectAttributeDefinition)) {
 				continue;
 			}
-			TRACE.trace("Attr. definition: " + def.getName());
+			LOGGER.trace("Attr. definition: " + def.getName());
 			attributes.add((ResourceObjectAttributeDefinition) def);
 		}
 
@@ -158,7 +158,7 @@ public class SchemaFormParser {
 			return;
 		}
 
-		TRACE.trace("Attributes found in account:");
+		LOGGER.trace("Attributes found in account:");
 		List<Object> values = null;
 
 		for (Element node : attrList) {
@@ -177,7 +177,7 @@ public class SchemaFormParser {
 	}
 
 	private void traceAttribute(String namespace, String name, String value) {
-		if (!TRACE.isTraceEnabled()) {
+		if (!LOGGER.isTraceEnabled()) {
 			return;
 		}
 
@@ -189,6 +189,6 @@ public class SchemaFormParser {
 		builder.append(": ");
 		builder.append(value);
 
-		TRACE.trace(builder.toString());
+		LOGGER.trace(builder.toString());
 	}
 }

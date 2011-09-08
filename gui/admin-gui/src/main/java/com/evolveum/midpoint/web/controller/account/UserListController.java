@@ -66,7 +66,7 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 	public static final String PAGE_NAVIGATION = "/account/index?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_DELETE = "/account/deleteUser?faces-redirect=true";
 	private static final long serialVersionUID = -6520469747022260260L;
-	private static final Trace TRACE = TraceManager.getTrace(UserListController.class);
+	private static final Trace LOGGER = TraceManager.getTrace(UserListController.class);
 	private static final String PARAM_USER_OID = "userOid";
 	@Autowired(required = true)
 	private transient UserDetailsController userDetailsController;
@@ -93,17 +93,17 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 		try {
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 
-			TRACE.info("userSelectionListener start");
+			LOGGER.info("userSelectionListener start");
 			PropertyReferenceListType resolve = new PropertyReferenceListType();
 			resolve.getProperty().add(Utils.fillPropertyReference("Account"));
 			resolve.getProperty().add(Utils.fillPropertyReference("Resource"));
 
 			user = (GuiUserDto) userManager.get(userOid, resolve);
-			TRACE.info("userSelectionListener end");
+			LOGGER.info("userSelectionListener end");
 
 			userDetailsController.setUser(user);
 		} catch (Exception ex) {
-			LoggingUtils.logException(TRACE, "Can't select user, unknown error occured", ex);
+			LoggingUtils.logException(LOGGER, "Can't select user, unknown error occured", ex);
 			FacesUtils.addErrorMessage("Can't select user, unknown error occured.", ex);
 		}
 
@@ -115,14 +115,14 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 	public void deleteUsers() {
 		showPopup = false;
 		for (GuiUserDto guiUserDto : getObjects()) {
-			TRACE.info("delete user {} is selected {}", guiUserDto.getFullName(), guiUserDto.isSelected());
+			LOGGER.info("delete user {} is selected {}", guiUserDto.getFullName(), guiUserDto.isSelected());
 
 			if (guiUserDto.isSelected()) {
 				try {
 					UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 					userManager.delete(guiUserDto.getOid());
 				} catch (Exception ex) {
-					LoggingUtils.logException(TRACE, "Delete user failed", ex);
+					LoggingUtils.logException(LOGGER, "Delete user failed", ex);
 					FacesUtils.addErrorMessage("Delete user failed: " + ex.getMessage());
 				}
 			}
