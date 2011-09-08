@@ -82,7 +82,7 @@ public class XmlRepositoryService implements RepositoryService {
 	private static final String C_PREFIX = "c";
 
 	private static final String DECLARE_NAMESPACE_C = "declare namespace c='" + SchemaConstants.NS_C + "';\n";
-	private static final Trace TRACE = TraceManager.getTrace(XmlRepositoryService.class);
+	private static final Trace LOGGER = TraceManager.getTrace(XmlRepositoryService.class);
 	private ObjectPool sessions;
 
 	// TODO: inject from Configuration Object
@@ -102,7 +102,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	public void init() {
-		TRACE.info("Initialize BaseX Client sessions pool");
+		LOGGER.info("Initialize BaseX Client sessions pool");
 		// TODO: make pool configuration external
 		Config poolConfig = new Config();
 		poolConfig.lifo = false;
@@ -114,14 +114,14 @@ public class XmlRepositoryService implements RepositoryService {
 
 	public void close() {
 		try {
-			TRACE.info("Releasing and closing BaseX Client sessions pool");
+			LOGGER.info("Releasing and closing BaseX Client sessions pool");
 			sessions.close();
 		} catch (Exception ex) {
-			TRACE.error("Reported exception while closing BaseX client session pool", ex);
+			LOGGER.error("Reported exception while closing BaseX client session pool", ex);
 			throw new SystemException("Reported exception while closing BaseX client session pool", ex);
 		}
 	}
-
+	
 	@Override
 	public String addObject(ObjectType object, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException {
@@ -156,9 +156,9 @@ public class XmlRepositoryService implements RepositoryService {
 						.append("return insert node $x into //c:objects ").append(" else (fn:error(null,'")
 						.append(OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS).append("'))");
 			}
-			TRACE.trace("generated query: " + query);
+			LOGGER.trace("generated query: " + query);
 		} catch (JAXBException ex) {
-			LoggingUtils.logException(TRACE, "Failed to (un)marshal object", ex);
+			LoggingUtils.logException(LOGGER, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		}
@@ -197,7 +197,7 @@ public class XmlRepositoryService implements RepositoryService {
 		query.append(DECLARE_NAMESPACE_C);
 		query.append("for $x in //c:object where $x/@oid=\"").append(oid).append("\" return $x");
 
-		TRACE.trace("generated query: " + query);
+		LOGGER.trace("generated query: " + query);
 
 		ClientSession session = null;
 		try {
@@ -210,7 +210,7 @@ public class XmlRepositoryService implements RepositoryService {
 					String c = cq.next();
 
 					if (null != object) {
-						TRACE.error("More than one object with oid {} found", oid);
+						LOGGER.error("More than one object with oid {} found", oid);
 						throw new SystemException("More than one object with oid " + oid + " found");
 					}
 
@@ -221,7 +221,7 @@ public class XmlRepositoryService implements RepositoryService {
 				}
 			}
 		} catch (JAXBException ex) {
-			LoggingUtils.logException(TRACE, "Failed to (un)marshal object", ex);
+			LoggingUtils.logException(LOGGER, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (BaseXException ex) {
@@ -267,7 +267,7 @@ public class XmlRepositoryService implements RepositoryService {
 		result.addParam("paging", paging);
 
 		if (null == objectType) {
-			TRACE.error("objectType is null");
+			LOGGER.error("objectType is null");
 			throw new IllegalArgumentException("objectType is null");
 		}
 
@@ -292,7 +292,7 @@ public class XmlRepositoryService implements RepositoryService {
 		result.addParam("query", query);
 		result.addParam("paging", paging);
 
-		TRACE.trace("midPoint query: {}", JAXBUtil.silentMarshalWrap(query));
+		LOGGER.trace("midPoint query: {}", JAXBUtil.silentMarshalWrap(query));
 
 		validateQuery(query);
 
@@ -311,7 +311,7 @@ public class XmlRepositoryService implements RepositoryService {
 			}
 
 			if (!StringUtils.equals(SchemaConstants.NS_C, child.getNamespaceURI())) {
-				TRACE.warn("Found query's filter element from unsupported namespace. Ignoring filter {}",
+				LOGGER.warn("Found query's filter element from unsupported namespace. Ignoring filter {}",
 						child);
 				continue;
 			}
@@ -369,7 +369,7 @@ public class XmlRepositoryService implements RepositoryService {
 		query.append(DECLARE_NAMESPACE_C).append("replace node //c:object[@oid=\"")
 				.append(objectChange.getOid()).append("\"] with ").append(serializedObject);
 
-		TRACE.trace("generated query: " + query);
+		LOGGER.trace("generated query: " + query);
 
 		try {
 			executeQuery(query, result);
@@ -397,7 +397,7 @@ public class XmlRepositoryService implements RepositoryService {
 		} catch (SchemaException ex) {
 			LoggingUtils
 					.logException(
-							TRACE,
+							LOGGER,
 							"Schema validation problem occured while checking existence of the object before its deletion",
 							ex);
 			result.recordFatalError(
@@ -412,7 +412,7 @@ public class XmlRepositoryService implements RepositoryService {
 		query.append(DECLARE_NAMESPACE_C);
 		query.append("delete nodes //c:object[@oid=\"").append(oid).append("\"]");
 
-		TRACE.trace("generated query: " + query);
+		LOGGER.trace("generated query: " + query);
 
 		try {
 			executeQuery(query, result);
@@ -595,7 +595,7 @@ public class XmlRepositoryService implements RepositoryService {
 		}
 		query.append(" return $x ");
 
-		TRACE.trace("generated query: " + query);
+		LOGGER.trace("generated query: " + query);
 
 		ClientQuery cq = null;
 		ClientSession session = null;
@@ -613,7 +613,7 @@ public class XmlRepositoryService implements RepositoryService {
 				}
 			}
 		} catch (JAXBException ex) {
-			LoggingUtils.logException(TRACE, "Failed to (un)marshal object", ex);
+			LoggingUtils.logException(LOGGER, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (BaseXException ex) {
@@ -753,7 +753,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	private void errorLogRecordAndRethrow(String message, OperationResult result, Exception ex) {
-		LoggingUtils.logException(TRACE, message, ex);
+		LoggingUtils.logException(LOGGER, message, ex);
 		result.recordFatalError(message, ex);
 		throw new SystemException(message, ex);
 	}
