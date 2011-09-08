@@ -94,9 +94,9 @@ public class XmlRepositoryService implements RepositoryService {
 
 	XmlRepositoryService(String host, int port, String username, String password, String dbName) {
 		super();
-		this.host = host; 
+		this.host = host;
 		this.port = port;
-		this.username = username; 
+		this.username = username;
 		this.password = password;
 		this.dbName = dbName;
 	}
@@ -121,7 +121,7 @@ public class XmlRepositoryService implements RepositoryService {
 			throw new SystemException("Reported exception while closing BaseX client session pool", ex);
 		}
 	}
-	
+
 	@Override
 	public String addObject(ObjectType object, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException {
@@ -160,8 +160,19 @@ public class XmlRepositoryService implements RepositoryService {
 		} catch (JAXBException ex) {
 			LoggingUtils.logException(LOGGER, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
+			object.setOid(null);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
-		}
+		} catch (RuntimeException ex) {
+			object.setOid(null);
+			throw ex;
+		} 
+//		catch (ObjectAlreadyExistsException ex) {
+//			object.setOid(null);
+//			throw ex;
+//		} catch (SchemaException ex) {
+//			object.setOid(null);
+//			throw ex;
+//		}
 
 		executeQuery(query, result);
 
@@ -337,10 +348,10 @@ public class XmlRepositoryService implements RepositoryService {
 
 		return searchObjects(clazz, objectType, paging, filters, namespaces, result);
 	}
-	
+
 	@Override
-	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
+	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange,
+			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".modifyObject");
 		result.addParam("objectChange", objectChange);
@@ -352,8 +363,8 @@ public class XmlRepositoryService implements RepositoryService {
 			// get object from repo
 			// FIXME: possible problems with resolving property reference before
 			// xml patching
-			ObjectType objectType = this.getObject(ObjectType.class, objectChange.getOid(), new PropertyReferenceListType(),
-					result);
+			ObjectType objectType = this.getObject(ObjectType.class, objectChange.getOid(),
+					new PropertyReferenceListType(), result);
 
 			// modify the object
 			PatchXml xmlPatchTool = new PatchXml();
@@ -384,7 +395,8 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult) throws ObjectNotFoundException {
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult)
+			throws ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".deleteObject");
 		result.addParam("oid", oid);
@@ -427,8 +439,8 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type, String oid,
-			PropertyReferenceListType properties, OperationResult parentResult)
+	public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type,
+			String oid, PropertyReferenceListType properties, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
@@ -765,7 +777,7 @@ public class XmlRepositoryService implements RepositoryService {
 			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
 			serializedObject = StringUtils.replace(serializedObject, "}", "}}");
 		}
-		
+
 		return serializedObject;
 	}
 
