@@ -34,6 +34,8 @@ import java.util.List;
 import javax.xml.bind.JAXBException;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -68,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 		"classpath:application-context-provisioning.xml", "classpath:application-context-sanity-test.xml",
 		"classpath:application-context-task.xml", "classpath:application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml" })
+@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class TestSampleImport extends AbstractIntegrationTest {
 	
 	private static final String SAMPLE_DIRECTORY_NAME = "../../samples/";

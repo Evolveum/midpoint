@@ -49,6 +49,8 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchScope;
 import org.opends.server.util.LDIFReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.Assert;
 import org.testng.AssertJUnit;
@@ -117,6 +119,7 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 		"classpath:application-context-provisioning.xml", "classpath:application-context-sanity-test.xml",
 		"classpath:application-context-task.xml", "classpath:application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml" })
+@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class TestSanity extends AbstractIntegrationTest {
 
 	private static final String SYSTEM_CONFIGURATION_FILENAME = "src/test/resources/repo/system-configuration.xml";
