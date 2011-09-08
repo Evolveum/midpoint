@@ -69,11 +69,19 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	protected ComplexTypeDefinition complexTypeDefinition;
 	protected Schema schema;
 
+	/**
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 */
 	PropertyContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition) {
 		super(name, complexTypeDefinition.getDefaultName(), complexTypeDefinition.getTypeName());
 		this.complexTypeDefinition = complexTypeDefinition;
 	}
 
+	/**
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 */
 	PropertyContainerDefinition(Schema schema, QName name, ComplexTypeDefinition complexTypeDefinition) {
 		super(name, complexTypeDefinition.getDefaultName(), complexTypeDefinition.getTypeName());
 		this.complexTypeDefinition = complexTypeDefinition;
@@ -118,8 +126,10 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	}
 	
 	/**
-	 * TODO
 	 * Returns set of property definitions.
+	 * 
+	 * WARNING: This may return definitions from the associated complex type.
+	 * Therefore changing the returned set may influence also the complex type definition.
 	 * 
 	 * The set contains all property definitions of all types that were parsed.
 	 * Order of definitions is insignificant.
@@ -136,6 +146,8 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	 * The set contains all property definitions of all types that were parsed.
 	 * Order of definitions is insignificant.
 	 * 
+	 * The returned set is immutable! All changes may be lost.
+	 * 
 	 * @return set of definitions
 	 */
 	public Set<PropertyDefinition> getPropertyDefinitions() {
@@ -148,34 +160,97 @@ public class PropertyContainerDefinition extends ItemDefinition {
 		return props;
 	}
 
+	/**
+	 * Create property container instance with a default name.
+	 * 
+	 * This is a preferred way how to create property container.
+	 */
 	public PropertyContainer instantiate() {
 		return new PropertyContainer(getNameOrDefaultName(), this);
 	}
 	
+	/**
+	 * Create property container instance with a specified name.
+	 * 
+	 * This is a preferred way how to create property container.
+	 */
 	public PropertyContainer instantiate(QName name) {
 		return new PropertyContainer(name, this);
 	}
 	
 	/**
-	 * @param domElement
-	 * @return
-	 * @throws SchemaException 
+	 * Creates new instance of property definition and adds it to the container.
+	 * 
+	 * This is the preferred method of creating a new definition.
+	 * 
+	 * @param name name of the property (element name)
+	 * @param typeName XSD type of the property
+	 * @return created property definition
 	 */
-	public PropertyContainer parsePropertyContainer(Element domElement) throws SchemaException {
-		QName domElementName = DOMUtil.getQName(domElement);
-		PropertyContainer container = instantiate(domElementName);
-		List<Object> elements = JAXBUtil.listChildElements(domElement);
-		Set<Item> newItems = parseItems(elements);
-		container.getItems().addAll(newItems);
-		return container;
+	public PropertyDefinition createPropertyDefinition(QName name, QName typeName) {
+		PropertyDefinition propDef = new PropertyDefinition(name, typeName);
+		getDefinitions().add(propDef);
+		return propDef;
+	}
+	
+	// Creates reference to other schema
+	// TODO: maybe check if the name is in different namespace
+	// TODO: maybe create entirely new concept of property reference?
+	public PropertyDefinition createPropertyDefinition(QName name) {
+		PropertyDefinition propDef = new PropertyDefinition(name);
+		getDefinitions().add(propDef);
+		return propDef;
 	}
 
+	/**
+	 * Creates new instance of property definition and adds it to the container.
+	 * 
+	 * This is the preferred method of creating a new definition.
+	 *
+	 * @param localName name of the property (element name) relative to the schema namespace
+	 * @param typeName XSD type of the property
+	 * @return created property definition
+	 */
+	public PropertyDefinition createPropertyDefinition(String localName, QName typeName) {
+		QName name = new QName(getSchemaNamespace(),localName);
+		return createPropertyDefinition(name,typeName);
+	}
+
+	/**
+	 * Creates new instance of property definition and adds it to the container.
+	 * 
+	 * This is the preferred method of creating a new definition.
+	 *
+	 * @param localName name of the property (element name) relative to the schema namespace
+	 * @param localTypeName XSD type of the property
+	 * @return created property definition
+	 */
+	public PropertyDefinition createPropertyDefinition(String localName, String localTypeName) {
+		QName name = new QName(getSchemaNamespace(),localName);
+		QName typeName = new QName(getSchemaNamespace(),localTypeName);
+		return createPropertyDefinition(name,typeName);
+	}
+	
+	/**
+	 * Creates new property container from DOM or JAXB representation (single element).
+	 * 
+	 * @param element DOM representation of property container
+	 * @return created property container parsed from the element
+	 * @throws SchemaException error parsing the element
+	 */
 	public PropertyContainer parseItem(Object element) throws SchemaException {
 		List<Object> elements = new ArrayList<Object>();
 		elements.add(element);
 		return parseItem(elements);
 	}
 	
+	/**
+	 * Creates new property container from DOM or JAXB representation (multiple elements).
+	 * 
+	 * @param elements DOM or JAXB representation of property container
+	 * @return created property container parsed from the elements
+	 * @throws SchemaException error parsing the elements
+	 */
 	@Override
 	public PropertyContainer parseItem(List<Object> elements) throws SchemaException {
 		if (elements == null || elements.isEmpty()) {
@@ -186,12 +261,17 @@ public class PropertyContainerDefinition extends ItemDefinition {
 		}
 		return parseItem(elements.get(0),PropertyContainer.class);
 	}
-	
+
 	/**
-	 * @param element
-	 * @param class1
-	 * @return
-	 * @throws SchemaException 
+	 * Creates new property container from DOM or JAXB representation (multiple elements).
+	 * 
+	 * Internal parametric method.
+	 * 
+	 * @param <T> subclass of property container to return
+	 * @param element JAXB or DOM element representing the container
+	 * @param type subclass of property container to return
+	 * @return created new property container (or subclass)
+	 * @throws SchemaException error parsing the elements
 	 */
 	protected <T extends PropertyContainer> T parseItem(Object element, Class<T> type) throws SchemaException {
 		QName elementQName = JAXBUtil.getElementQName(element);
@@ -202,31 +282,29 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	}
 
 	/**
-	 * Parses properties from a list of elements.
+	 * Parses items from a list of elements.
 	 * 
-	 * The elements must describe properties as defined by this
-	 * PropertyContainerDefinition. Serializes all the elements
-	 * from the provided list.
-	 * 
-	 * min/max constraints are not checked now
-	 * TODO: maybe we need to check them
+	 * The elements must describe properties or property container as defined by this
+	 * PropertyContainerDefinition. Serializes all the elements from the provided list.
 	 * 
 	 * @param elements list of elements with serialized properties
-	 * @return set of deserialized properties
-	 * @throws SchemaProcessorException 
+	 * @return set of deserialized items
+	 * @throws SchemaProcessorException error parsing the elements
 	 */
 	public Set<Item> parseItems(List<Object> elements) throws SchemaException {
 		return parseItems(elements,null);
 	}
 		
 	/**
-	 * Same as parseProperties(List<Element> elements, Class<T> clazz), but
-	 * selects only some of the properties to parse. Other properties are
-	 * ignored.
+	 * Parses items from a list of elements.
 	 * 
-	 * Useful to parse identifiers out of complete object or similar things.
-	 * Used by subclasses.
-	 * @throws SchemaProcessorException 
+	 * The elements must describe properties or property container as defined by this
+	 * PropertyContainerDefinition. Serializes all the elements from the provided list.
+	 * 
+	 * Internal parametric method. This does the real work.
+	 * 
+	 * min/max constraints are not checked now
+	 * TODO: maybe we need to check them
 	 */
 	protected Set<Item> parseItems(List<Object> elements, Set<? extends ItemDefinition> selection) throws SchemaException {
 		
@@ -288,33 +366,6 @@ public class PropertyContainerDefinition extends ItemDefinition {
 			sb.append(def.dump(indent+1));
 		}
 		return sb.toString();
-	}
-
-	public PropertyDefinition createPropertyDefinition(QName name, QName typeName) {
-		PropertyDefinition propDef = new PropertyDefinition(name, typeName);
-		getDefinitions().add(propDef);
-		return propDef;
-	}
-	
-	// Creates reference to other schema
-	// TODO: maybe check if the name is in different namespace
-	// TODO: maybe create entirely new concept of property reference?
-	public PropertyDefinition createPropertyDefinition(QName name) {
-		PropertyDefinition propDef = new PropertyDefinition(name);
-		getDefinitions().add(propDef);
-		return propDef;
-	}
-
-	public PropertyDefinition createPropertyDefinition(String localName, QName typeName) {
-		QName name = new QName(getSchemaNamespace(),localName);
-		return createPropertyDefinition(name,typeName);
-	}
-
-	
-	public PropertyDefinition createPropertyDefinition(String localName, String localTypeName) {
-		QName name = new QName(getSchemaNamespace(),localName);
-		QName typeName = new QName(getSchemaNamespace(),localTypeName);
-		return createPropertyDefinition(name,typeName);
 	}
 
 

@@ -42,19 +42,42 @@ import javax.xml.namespace.QName;
  */
 public class ResourceObjectAttribute extends Property {
 
+	/**
+	 * Default constructor.
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 */
 	public ResourceObjectAttribute() {
 		super();
 	}
 
+	/**
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 * @param name attribute name (element name)
+	 * @param definition attribute definition (schema)
+	 * @param values initial attribute values
+	 */
 	public ResourceObjectAttribute(QName name, PropertyDefinition definition,
 			Set<Object> values) {
 		super(name, definition, values);
 	}
 
+	/**
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 * @param name attribute name (element name)
+	 * @param definition attribute definition (schema)
+	 */
 	public ResourceObjectAttribute(QName name, PropertyDefinition definition) {
 		super(name, definition);
 	}
 
+	/**
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 * @param name attribute name (element name)
+	 */
 	public ResourceObjectAttribute(QName name) {
 		super(name);
 	}

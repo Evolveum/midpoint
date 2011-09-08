@@ -193,6 +193,9 @@ public class Schema implements Dumpable, Serializable {
 		return null;
 	}
 	
+	/**
+	 * Finds complex type definition by type name.
+	 */
 	public ComplexTypeDefinition findComplexTypeDefinition(QName typeName) {
 		if (typeName == null) {
 			throw new IllegalArgumentException("typeName must be supplied");
@@ -247,6 +250,7 @@ public class Schema implements Dumpable, Serializable {
 		return null;
 	}
 
+	@Override
 	public String dump() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("Schema ns=");
@@ -265,6 +269,8 @@ public class Schema implements Dumpable, Serializable {
 	/**
 	 * Creates a new property container definition and adds it to the schema.
 	 * 
+	 * This is a preferred way how to create definition in the schema.
+	 * 
 	 * @param localTypeName
 	 *            type name "relative" to schema namespace
 	 * @return new property container definition
@@ -280,11 +286,27 @@ public class Schema implements Dumpable, Serializable {
 		return def;
 	}
 
+	/**
+	 * Creates a new resource object definition and adds it to the schema.
+	 * 
+	 * This is a preferred way how to create definition in the schema.
+	 * 
+	 * @param localTypeName type name "relative" to schema namespace
+	 * @return new resource object definition
+	 */
 	public ResourceObjectDefinition createResourceObjectDefinition(String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
 		return createResourceObjectDefinition(typeName);
 	}
 
+	/**
+	 * Creates a new resource object definition and adds it to the schema.
+	 * 
+	 * This is a preferred way how to create definition in the schema.
+	 * 
+	 * @param localTypeName type QName
+	 * @return new resource object definition
+	 */
 	public ResourceObjectDefinition createResourceObjectDefinition(QName typeName) {
 		QName name = new QName(getNamespace(), toElementName(typeName.getLocalPart()));
 		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName,
@@ -294,19 +316,45 @@ public class Schema implements Dumpable, Serializable {
 		definitions.add(def);
 		return def;
 	}
-
 	
+	/**
+	 * Creates a top-level property definition and adds it to the schema.
+	 * 
+	 * This is a preferred way how to create definition in the schema.
+	 * 
+	 * @param localName element name "relative" to schema namespace
+	 * @param typeName XSD type name of the element
+	 * @return new property definition
+	 */
 	public PropertyDefinition createPropertyDefinition(String localName, QName typeName) {
 		QName name = new QName(getNamespace(), localName);
 		return createPropertyDefinition(name, typeName);
 	}
 
+	/**
+	 * Creates a top-level property definition and adds it to the schema.
+	 * 
+	 * This is a preferred way how to create definition in the schema.
+	 * 
+	 * @param localName element name "relative" to schema namespace
+	 * @param localTypeName XSD type name "relative" to schema namespace
+	 * @return new property definition
+	 */
 	public PropertyDefinition createPropertyDefinition(String localName, String localTypeName) {
 		QName name = new QName(getNamespace(), localName);
 		QName typeName = new QName(getNamespace(), localTypeName);
 		return createPropertyDefinition(name, typeName);
 	}
 
+	/**
+	 * Creates a top-level property definition and adds it to the schema.
+	 * 
+	 * This is a preferred way how to create definition in the schema.
+	 * 
+	 * @param localName element name
+	 * @param typeName XSD type name of the element
+	 * @return new property definition
+	 */
 	public PropertyDefinition createPropertyDefinition(QName name, QName typeName) {
 		PropertyDefinition def = new PropertyDefinition(name, typeName);
 		definitions.add(def);
@@ -314,8 +362,7 @@ public class Schema implements Dumpable, Serializable {
 	}
 
 	/**
-	 * @param localTypeName
-	 * @return
+	 * Internal method to create a "nice" element name from the type name.
 	 */
 	String toElementName(String localTypeName) {
 		String elementName = StringUtils.uncapitalize(localTypeName);
@@ -324,7 +371,5 @@ public class Schema implements Dumpable, Serializable {
 		}
 		return elementName;
 	}
-
-
 
 }

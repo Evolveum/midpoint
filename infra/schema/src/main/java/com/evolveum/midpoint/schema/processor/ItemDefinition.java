@@ -33,10 +33,12 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 
 /**
- * Abstract definition in the schema.
+ * Abstract item definition in the schema.
  * 
- * This is supposed to be a superclass for all definitions. It defines common
- * properties for all definitions.
+ * This is supposed to be a superclass for all item definitions. Items are things
+ * that can appear in property containers, which generally means only a property
+ * and property container itself. Therefore this is in fact superclass for those
+ * two definitions.
  * 
  * The definitions represent data structures of the schema. Therefore instances
  * of Java objects from this class represent specific <em>definitions</em> from
@@ -61,16 +63,27 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 
 	// TODO: annotations
 	
+	/**
+	 * Default constructor.
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 */
 	ItemDefinition(){
 		super();
 	}
 
+	/**
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 * 
+	 * @param name definition name (element Name)
+	 * @param defaultName default element name
+	 * @param typeName type name (XSD complex or simple type)
+	 */
 	ItemDefinition(QName name, QName defaultName, QName typeName) {
 		super(defaultName,typeName);
 		this.name = name;
 	}
-
-	
 	
 	/**
 	 * Returns name of the defined entity.
@@ -105,10 +118,28 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		return defaultName;
 	}
 	
+	/**
+	 * Create an item instance. Definition name or default name will
+	 * used as an element name for the instance. The instance will otherwise be empty.
+	 * @return created item instance
+	 */
 	abstract public Item instantiate();
-	
+
+	/**
+	 * Create an item instance. Definition name will use provided name.
+	 * for the instance. The instance will otherwise be empty.
+	 * @return created item instance
+	 */
 	abstract public Item instantiate(QName name);
 	
+	/**
+	 * Create at instance of the item initialized from the provided list of elements.
+	 * The definition name (ore default name) will be used as the instance (element) name.
+	 * 
+	 * @param elements content of the item
+	 * @return created item instance initialized with content
+	 * @throws SchemaException error parsing the provided elements
+	 */
 	abstract public Item parseItem(List<Object> elements) throws SchemaException;
 	
 	@Override

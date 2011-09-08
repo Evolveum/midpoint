@@ -42,13 +42,29 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
  */
 public final class ResourceObject extends PropertyContainer {
 
+	/**
+	 * Default constructor.
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 */
 	public ResourceObject() {
 	}
 
+	/**
+ 	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 * @param name resource object name (element name)
+	 */
 	public ResourceObject(QName name) {
 		super(name);
 	}
 
+	/**
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 * @param name resource object name (element name)
+	 * @param definition resource object definition (schema)
+	 */
 	public ResourceObject(QName name, ResourceObjectDefinition definition) {
 		super(name, definition);
 	}

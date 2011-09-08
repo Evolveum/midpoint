@@ -36,6 +36,11 @@ import com.evolveum.midpoint.util.Dumpable;
 /**
  * Item is a common abstraction of Property and PropertyContainer.
  * 
+ * This is supposed to be a superclass for all items. Items are things
+ * that can appear in property containers, which generally means only a property
+ * and property container itself. Therefore this is in fact superclass for those
+ * two definitions.
+ * 
  * @author Radovan Semancik
  * 
  */
@@ -44,16 +49,32 @@ public abstract class Item implements Dumpable {
 	protected QName name;
 	protected Definition definition;
 
+	/**
+	 * Default constructor.
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 */
 	public Item() {
 		super();
 	}
 
+	/**
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 * @param name item name (element name)
+	 */
 	public Item(QName name) {
 		super();
 		this.name = name;
 		this.definition = null;
 	}
 
+	/**
+	 * The constructors should be used only occasionally (if used at all).
+	 * Use the factory methods in the ResourceObjectDefintion instead.
+	 * @param name item name (element name)
+	 * @param definition item definition (schema)
+	 */
 	public Item(QName name, Definition definition) {
 		super();
 		this.name = name;
@@ -164,6 +185,7 @@ public abstract class Item implements Dumpable {
 		return getClass().getSimpleName()+"("+getName()+")";
 	}
 
+	@Override
 	public String dump() {
 		return toString();
 	}
