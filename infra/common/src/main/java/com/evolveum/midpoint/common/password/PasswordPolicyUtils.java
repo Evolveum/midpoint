@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.StringPolicyType;
  * 
  */
 public class PasswordPolicyUtils {
-	private static final transient Trace logger = TraceManager.getTrace(PasswordPolicyUtils.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(PasswordPolicyUtils.class);
 
 	/**
 	 * add defined default values

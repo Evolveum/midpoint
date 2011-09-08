@@ -44,7 +44,7 @@ import org.w3c.dom.Node;
  */
 public class MidPointDifferenceListener implements DifferenceListener {
 
-    private static final Logger logger = TraceManager.getTrace(MidPointDifferenceListener.class);
+    private static final Logger LOGGER = TraceManager.getTrace(MidPointDifferenceListener.class);
 
     public MidPointDifferenceListener() {
     }
@@ -78,6 +78,6 @@ public class MidPointDifferenceListener implements DifferenceListener {
 
     @Override
     public void skippedComparison(Node nodeControl, Node nodeTest) {
-        logger.warn("Skipped comparison for " + nodeControl + " " + nodeTest);
+        LOGGER.warn("Skipped comparison for " + nodeControl + " " + nodeTest);
     }
 }

@@ -59,7 +59,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
  */
 public class PatchXml extends XPathUtil {
 
-    private static final Logger logger = TraceManager.getTrace(PatchXml.class);
+    private static final Logger LOGGER = TraceManager.getTrace(PatchXml.class);
     private XPath xpath;
     private PatchingListener listener;
 
@@ -97,7 +97,7 @@ public class PatchXml extends XPathUtil {
                     throw new PatchException(ex);
                 }
                 if (null == parentNodes || parentNodes.getLength() != 1) {
-                    logger.error("XPath '{}' matches incorrect number of nodes (actual match was {})", xpathUtil.getXPath(), (parentNodes != null ? parentNodes.getLength() : 0));
+                    LOGGER.error("XPath '{}' matches incorrect number of nodes (actual match was {})", xpathUtil.getXPath(), (parentNodes != null ? parentNodes.getLength() : 0));
                     throw new PatchException("XPath matches incorrect number of nodes");
                 }
                 Node parentNode = parentNodes.item(0);
@@ -114,9 +114,9 @@ public class PatchXml extends XPathUtil {
                 }
                 //following checks are only for change types replace and delete
                 if (null == nodes || nodes.getLength() == 0) {
-                    logger.warn("No matches for XPath {}", xpathUtil.getXPath());
+                    LOGGER.warn("No matches for XPath {}", xpathUtil.getXPath());
                     if (PropertyModificationTypeType.replace.equals(change.getModificationType())) {
-                        logger.warn("Will create nodes defined by XPath {}", xpathUtil.getXPath());
+                        LOGGER.warn("Will create nodes defined by XPath {}", xpathUtil.getXPath());
                         //we will create xml tags defined by xpath
                         XPathUtil.createNodesDefinedByXPath(doc, xpathUtil);
                         try {
@@ -127,7 +127,7 @@ public class PatchXml extends XPathUtil {
                     }
                 }
                 if (nodes.getLength() > 1) {
-                    logger.warn("XPath {} matches more than one node ({}). It is ok, for multi value nodes", xpathUtil.getXPath(), nodes.getLength());
+                    LOGGER.warn("XPath {} matches more than one node ({}). It is ok, for multi value nodes", xpathUtil.getXPath(), nodes.getLength());
                 }
 
                 for (int i = 0; i < nodes.getLength(); i++) {
@@ -154,10 +154,10 @@ public class PatchXml extends XPathUtil {
         String patchedXml;
         try {
             patchedXml = DOMUtil.serializeDOMToString(objectDoc);
-            logger.trace("Patched xml (original xml with applied relative changes) = {}", patchedXml);
+            LOGGER.trace("Patched xml (original xml with applied relative changes) = {}", patchedXml);
             return patchedXml;
         } catch (Exception ex) {
-            logger.error("Failed to serialize DOM to String", ex);
+            LOGGER.error("Failed to serialize DOM to String", ex);
         }
         return null;
     }
@@ -169,7 +169,7 @@ public class PatchXml extends XPathUtil {
             object = (JAXBElement<ExtensibleObjectType>) JAXBUtil.unmarshal(oldXmlFile);
             return object;
         } catch (JAXBException ex) {
-            logger.error("Failed to unmarshall object", ex);
+            LOGGER.error("Failed to unmarshall object", ex);
             throw new PatchException("Failed to unmarshall object", ex);
         }
 
@@ -192,30 +192,30 @@ public class PatchXml extends XPathUtil {
     public String applyDifferences(ObjectModificationType changes, ObjectType objectType) throws PatchException {
         //marshall JAXB Object
         String xmlObject = marshallJaxbObject(objectType);
-        logger.trace("Original XML that we are going to patch {}", xmlObject);
+        LOGGER.trace("Original XML that we are going to patch {}", xmlObject);
 
         //create DOM document for serialized xml
         Document objectDoc = DOMUtil.parseDocument(xmlObject);
         //setup JAXP 
         xpath = setupXPath();
 
-        logger.debug("Iterate through relative changes and apply them");
+        LOGGER.debug("Iterate through relative changes and apply them");
         for (PropertyModificationType change : changes.getPropertyModification()) {
-            logger.debug("Apply change: changeType = {}, changePath = {}", new Object[]{change.getModificationType(), (null == change.getPath()) ? null : change.getPath().getTextContent()});
+            LOGGER.debug("Apply change: changeType = {}, changePath = {}", new Object[]{change.getModificationType(), (null == change.getPath()) ? null : change.getPath().getTextContent()});
             if (change.getValue().getAny().isEmpty() || change.getModificationType() == null) {
-                logger.warn("Skipping property modification, empty value list or undefined modification type.");
+                LOGGER.warn("Skipping property modification, empty value list or undefined modification type.");
                 continue;
             }
             try {
-				logger.trace("Value of the relative change = {}", JAXBUtil.serializeElementToString(change.getValue().getAny().get(0)));
+				LOGGER.trace("Value of the relative change = {}", JAXBUtil.serializeElementToString(change.getValue().getAny().get(0)));
 			} catch (JAXBException e) {
-				logger.error("Unexpected JAXB problem: "+e.getMessage(),e);
+				LOGGER.error("Unexpected JAXB problem: "+e.getMessage(),e);
 				throw new IllegalStateException("Unexpected JAXB problem: "+e.getMessage(),e);
 			}
             applyDifference(objectDoc, change);
-            logger.debug("Finished application of change: changeType = {}, changePath = {}", new Object[]{change.getModificationType(), (null == change.getPath()) ? null : change.getPath().getTextContent()});
+            LOGGER.debug("Finished application of change: changeType = {}, changePath = {}", new Object[]{change.getModificationType(), (null == change.getPath()) ? null : change.getPath().getTextContent()});
         }
-        logger.debug("Finished iteration through relative changes");
+        LOGGER.debug("Finished iteration through relative changes");
         return serializePatchedXml(objectDoc);
     }
 

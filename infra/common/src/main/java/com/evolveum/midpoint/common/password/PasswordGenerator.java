@@ -48,7 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.StringLimitType;
 
 public class PasswordGenerator {
 
-	private static final transient Trace logger = TraceManager.getTrace(PasswordGenerator.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(PasswordGenerator.class);
 
 	private static final Random rand = new Random(System.currentTimeMillis());
 
@@ -124,24 +124,24 @@ public class PasswordGenerator {
 						.recordFatalError("No intersection for required first character sets in password policy:"
 								+ pp.getName());
 				// Log error
-				if (logger.isErrorEnabled()) {
-					logger.error("Unable to generate password: No intersection for required first character sets in password policy: ["
+				if (LOGGER.isErrorEnabled()) {
+					LOGGER.error("Unable to generate password: No intersection for required first character sets in password policy: ["
 							+ pp.getName() + "] following character limitation and sets are used:");
 					for (StringLimitType l : mustBeFirst.keySet()) {
 						StrBuilder tmp = new StrBuilder();
 						tmp.appendSeparator(", ");
 						tmp.appendAll(mustBeFirst.get(l));
-						logger.error("L:" + l.getDescription() + " -> [" + tmp + "]");
+						LOGGER.error("L:" + l.getDescription() + " -> [" + tmp + "]");
 					}
 				}
 				// No more processing unrecoverable conflict
 				return null; // EXIT
 			} else {
-				if (logger.isDebugEnabled()) {
+				if (LOGGER.isDebugEnabled()) {
 					StrBuilder tmp = new StrBuilder();
 					tmp.appendSeparator(", ");
 					tmp.appendAll(intersectionCharacters);
-					logger.trace("Generate first character intersection items [" + tmp + "] into password.");
+					LOGGER.trace("Generate first character intersection items [" + tmp + "] into password.");
 				}
 				// Generate random char into password from intersection
 				password.append(intersectionCharacters.get(rand.nextInt(intersectionCharacters.size())));
@@ -171,7 +171,7 @@ public class PasswordGenerator {
 			}
 
 			if (chars.isEmpty()) {
-				logger.trace("Minimal criterias was met. No more characters");
+				LOGGER.trace("Minimal criterias was met. No more characters");
 				break;
 			}
 			// Find lowest possible cardinality and then generate char
@@ -179,7 +179,7 @@ public class PasswordGenerator {
 				if (chars.containsKey(card)) {
 					ArrayList<String> validChars = chars.get(card);
 					password.append(validChars.get(rand.nextInt(validChars.size())));
-					logger.trace(password.toString());
+					LOGGER.trace(password.toString());
 					break;
 				}
 			}
@@ -235,7 +235,7 @@ public class PasswordGenerator {
 				if (chars.containsKey(card)) {
 					ArrayList<String> validChars = chars.get(card);
 					password.append(validChars.get(rand.nextInt(validChars.size())));
-					logger.trace(password.toString());
+					LOGGER.trace(password.toString());
 					break;
 				}
 			}
@@ -315,7 +315,7 @@ public class PasswordGenerator {
 					return null;
 				} else if (i == l.getMaxOccurs()) {
 					// limitation matched remove all used chars
-					logger.trace("Skip " + l.getDescription());
+					LOGGER.trace("Skip " + l.getDescription());
 					for (String charToRemove : lims.get(l)) {
 						counter.remove(charToRemove);
 					}

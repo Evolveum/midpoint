@@ -45,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.StringPolicyType;
  */
 public class StringPolicyUtils {
 
-	private static final transient Trace logger = TraceManager.getTrace(StringPolicyUtils.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(StringPolicyUtils.class);
 
 	private static final String ASCII7_CHARS = " !\"#$%&'()*+,-.01234567890:;<=>?"
 			+ "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_" + "`abcdefghijklmnopqrstuvwxyz{|}~";

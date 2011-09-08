@@ -53,14 +53,14 @@ import org.w3c.dom.NodeList;
  */
 public class XPathUtil {
 
-    private static final Trace logger = TraceManager.getTrace(XPathUtil.class);
+    private static final Trace LOGGER = TraceManager.getTrace(XPathUtil.class);
 
     public static Object evaluateExpression(Map<QName, Variable> variables, ExpressionCodeHolder expressionHolder, QName returnType) {
         return new XPathUtil().evaluateExpr(variables, expressionHolder, returnType);
     }
 
     protected Object evaluateExpr(Map<QName, Variable> variables, ExpressionCodeHolder expressionHolder, QName returnType) {
-        logger.trace("Expression '{}' will be evaluated in context: variables = \n'{}' and namespaces = \n'{}'", new Object[]{expressionHolder.getExpressionAsString(), variables.values(), expressionHolder.getNamespaceMap()});
+        LOGGER.trace("Expression '{}' will be evaluated in context: variables = \n'{}' and namespaces = \n'{}'", new Object[]{expressionHolder.getExpressionAsString(), variables.values(), expressionHolder.getNamespaceMap()});
 
         Validate.notNull(expressionHolder);
 //        Validate.notNull(variables);
@@ -75,7 +75,7 @@ public class XPathUtil {
                 nodeForEval = variables.get(SchemaConstants.I_USER) == null ? null : (Node) variables.get(SchemaConstants.I_USER).getObject();
             }
             Object evaluatedExpression = expr.evaluate(nodeForEval, returnType);
-            logger.trace("Expression '{}' was evaluated to '{}' ", new Object[]{expressionHolder.getExpressionAsString(), evaluatedExpression});
+            LOGGER.trace("Expression '{}' was evaluated to '{}' ", new Object[]{expressionHolder.getExpressionAsString(), evaluatedExpression});
             return evaluatedExpression;
         } catch (XPathExpressionException ex) {
             //TODO: implement properly

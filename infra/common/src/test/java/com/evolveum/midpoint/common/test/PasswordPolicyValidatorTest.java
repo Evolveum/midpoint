@@ -60,7 +60,7 @@ public class PasswordPolicyValidatorTest {
 
 	public static final String BASE_PATH = "src/test/resources/";
 
-	private static final transient Trace logger = TraceManager.getTrace(PasswordPolicyValidatorTest.class);
+	private static final transient Trace LOGGER = TraceManager.getTrace(PasswordPolicyValidatorTest.class);
 
 	@Test
 	public void stringPolicyUtilsMinimalTest() {
@@ -115,31 +115,31 @@ public class PasswordPolicyValidatorTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		logger.error("Positive testing: passwordGeneratorComplexTest");
+		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
 		PasswordPolicyType pp = jbe.getValue();
 		OperationResult op = new OperationResult("passwordGeneratorComplexTest");
 		String psswd;
 		// generate minimal size passwd
 		for (int i = 0; i < 100; i++) {
 			psswd = PasswordGenerator.generate(pp, true, op);
-			logger.error("Generated password:" + psswd);
+			LOGGER.error("Generated password:" + psswd);
 			op.computeStatus();
 			if (!op.isSuccess()) {
-				logger.error("Result:" + op.dump());
+				LOGGER.error("Result:" + op.dump());
 			}
 			AssertJUnit.assertTrue(op.isSuccess());
 			assertNotNull(psswd);
 
 		}
 		// genereata to meet as possible
-		logger.error("-------------------------");
+		LOGGER.error("-------------------------");
 		// Generate up to possible
 		for (int i = 0; i < 100; i++) {
 			psswd = PasswordGenerator.generate(pp, false, op);
-			logger.error("Generated password:" + psswd);
+			LOGGER.error("Generated password:" + psswd);
 			op.computeStatus();
 			if (!op.isSuccess()) {
-				logger.error("Result:" + op.dump());
+				LOGGER.error("Result:" + op.dump());
 			}
 			AssertJUnit.assertTrue(op.isSuccess());
 			assertNotNull(psswd);
@@ -158,7 +158,7 @@ public class PasswordPolicyValidatorTest {
 		for (StringLimitType l : pp.getStringPolicy().getLimitations().getLimit()) {
 			l.setMustBeFirst(true);
 		}
-		logger.error("Negative testing: passwordGeneratorComplexTest");
+		LOGGER.error("Negative testing: passwordGeneratorComplexTest");
 		psswd = PasswordGenerator.generate(pp, op);
 		assertNull(psswd);
 		op.computeStatus();
@@ -177,7 +177,7 @@ public class PasswordPolicyValidatorTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		logger.error("Positive testing: passwordGeneratorComplexTest");
+		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
 		PasswordPolicyType pp = jbe.getValue();
 
 		// Test on all cases
@@ -191,7 +191,7 @@ public class PasswordPolicyValidatorTest {
 		OperationResult op = new OperationResult("Password Validator test with password:" + password);
 		PasswordPolicyUtils.validatePassword(password, pp, op);
 		op.computeStatus();
-		logger.error(op.dump());
+		LOGGER.error(op.dump());
 		return (op.isSuccess());
 	}
 
@@ -207,7 +207,7 @@ public class PasswordPolicyValidatorTest {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		logger.error("Positive testing: passwordGeneratorComplexTest");
+		LOGGER.error("Positive testing: passwordGeneratorComplexTest");
 		PasswordPolicyType pp = jbe.getValue();
 
 		String password = "582a**A";
@@ -220,7 +220,7 @@ public class PasswordPolicyValidatorTest {
 		
 		PasswordPolicyUtils.validatePassword(password, pps, op);
 		op.computeStatus();
-		logger.error(op.dump());
+		LOGGER.error(op.dump());
 		AssertJUnit.assertTrue(op.isSuccess());
 		
 	}
@@ -244,7 +244,7 @@ public class PasswordPolicyValidatorTest {
 		OperationResult op = new OperationResult("Generator testing");
 
 		// String pswd = PasswordPolicyUtils.generatePassword(pp, op);
-		// logger.info("Generated password: " + pswd);
+		// LOGGER.info("Generated password: " + pswd);
 		// assertNotNull(pswd);
 		// assertTrue(op.isSuccess());
 	}
