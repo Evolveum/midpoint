@@ -35,11 +35,12 @@
              This specific definition sets a full name as a concatenation
              of givenName and familyName. -->
 		<c:propertyConstruction>
-			<c:property>i:fullName</c:property>
+			<c:property>c:fullName</c:property>
 			<c:valueConstruction default="true">
 				<c:valueExpression>
-					declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-					concat($i:user/i:givenName,' ',$i:user/i:familyName)
+					<c:code>
+						concat($c:user/c:givenName,' ',$c:user/c:familyName)
+					</c:code>
                 </c:valueExpression>
 			</c:valueConstruction>
 		</c:propertyConstruction>
