@@ -1,0 +1,8 @@
+midpoint.version=${project.version}
+midpoint.build=${buildNumber}
+midpoint.branch=${scmBranch}
+midpoint.timestamp=${timestamp}
+midpoint.scm=${project.scm.connection}
+midpoint.jira=${project.issueManagement.url}
+midpoint.lincence=CDDL v1.0
+

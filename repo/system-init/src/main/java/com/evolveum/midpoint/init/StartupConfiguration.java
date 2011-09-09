@@ -19,11 +19,15 @@
 package com.evolveum.midpoint.init;
 
 import java.io.File;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.commons.configuration.CompositeConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.XMLConfiguration;
 import org.apache.commons.lang.NotImplementedException;
 
@@ -111,6 +115,7 @@ public class StartupConfiguration implements MidpointConfiguration {
 	 * Initialize system configuration
 	 */
 	public void init() {
+		welcome();
 		if (System.getProperty(MIDPOINT_HOME) == null || System.getProperty(MIDPOINT_HOME).isEmpty()) {
 			LOGGER.warn("*****************************************************************************************");
 			LOGGER.warn(MIDPOINT_HOME
@@ -209,5 +214,25 @@ public class StartupConfiguration implements MidpointConfiguration {
 			sb.append("; ");
 		}
 		return sb.toString();
+	}
+
+	private void welcome() {
+		try {
+			Configuration info = new PropertiesConfiguration("midpoint.info");
+			DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss.SSS");
+			LOGGER.info("+--------------------------------------------------------------------------------------------+");
+			LOGGER.info("|  Welcome to midPoint from Evolveum.com");
+			LOGGER.info("|  Licensed under Open source licence CCDL v1.0 see: http://www.opensource.org/licenses/cddl1");
+			LOGGER.info("|  Version :  " + info.getString("midpoint.version"));
+			LOGGER.info("|  Build   :  " + info.getString("midpoint.build") + " at "
+					+ formatter.format(new Date(info.getLong("midpoint.timestamp"))));
+			LOGGER.info("|  Sources :  " + info.getString("midpoint.scm") + "  branch:  "
+					+ info.getString("midpoint.branch"));
+			LOGGER.info("|  Bug reporting system : " + info.getString("midpoint.jira"));
+			LOGGER.info("|  Product informations : http://wiki.evolveum.com/display/midPoint");
+			LOGGER.info("+---------------------------------------------------------------------------------------------+");
+		} catch (ConfigurationException e) {
+			//NOTHING just skip
+		}
 	}
 }

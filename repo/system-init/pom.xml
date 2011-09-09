@@ -60,6 +60,14 @@
 			<url>http://repo.evolveum.com/repo</url>
 		</repository>
 	</repositories>
+	<build>		
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+	</build>
 	<dependencies>
 		<dependency>
 			<groupId>commons-configuration</groupId>
