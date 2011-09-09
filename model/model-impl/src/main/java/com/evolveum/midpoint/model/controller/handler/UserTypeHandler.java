@@ -54,7 +54,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.patch.PatchException;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
@@ -65,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModification
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.AccountType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
@@ -163,7 +163,7 @@ public class UserTypeHandler extends BasicHandler {
 			// TODO: process add account should be removed, we have to use only
 			// assignments and there should be account if needed
 			processAddAccountFromUser(user, result);
-			processAssignments(user, result);
+			processAssignments(user, user.getAssignment(), result);
 			user = processUserTemplateForUser(user, userTemplate, result);
 			oid = getRepository().addObject(user, result);
 			result.recordSuccess();
@@ -438,9 +438,9 @@ public class UserTypeHandler extends BasicHandler {
 		propertyChange.getValue().getAny().add(accountRefElement);
 	}
 
-	private void processAssignments(UserType user, OperationResult result) {
-		List<AssignmentType> assignments = user.getAssignment();
-		LOGGER.debug("User {} has {} assignments.", new Object[] { user.getName(), assignments.size() });
+	private void processAssignments(UserType user, List<AssignmentType> assignments, OperationResult result) {
+		LOGGER.debug("Processing assignments ({}) for user {}.",
+				new Object[] { assignments.size(), user.getName() });
 
 		for (AssignmentType assignment : assignments) {
 			OperationResult subResult = result.createSubresult("Process assignment");
@@ -448,18 +448,13 @@ public class UserTypeHandler extends BasicHandler {
 				continue;
 			}
 
-			// TODO: do stuff with assignment
 			try {
 				if (assignment.getAccountConstruction() != null) {
 					processAccountConstruction(user, assignment.getAccountConstruction(), subResult);
-				}
-
-				if (assignment.getTarget() != null) {
-					processTargetAssign(user, assignment.getTarget(), subResult);
-				}
-
-				if (assignment.getTargetRef() != null) {
-					processTargetRefAssign(user, assignment.getTargetRef(), subResult);
+				} else if (assignment.getTarget() != null) {
+					assignTarget(user, assignment.getTarget(), subResult);
+				} else if (assignment.getTargetRef() != null) {
+					assignTargetRef(user, assignment.getTargetRef(), subResult);
 				}
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't process assignment number {} on user {}", ex,
@@ -471,17 +466,120 @@ public class UserTypeHandler extends BasicHandler {
 		}
 	}
 
-	private void processTargetRefAssign(UserType user, ObjectReferenceType targetRef, OperationResult result)
+	private void assignTargetRef(UserType user, ObjectReferenceType targetRef, OperationResult result)
 			throws ObjectNotFoundException {
 		Class<? extends ObjectType> clazz = ObjectType.class;
 		if (targetRef.getType() != null) {
 			clazz = ObjectTypes.getObjectTypeFromTypeQName(targetRef.getType()).getClassDefinition();
 		}
 		ObjectType object = getObject(clazz, targetRef.getOid(), new PropertyReferenceListType(), result);
-		processTargetAssign(user, object, result);
+		assignTarget(user, object, result);
 	}
 
-	private void processTargetAssign(UserType user, ObjectType target, OperationResult result) {
+	private void assignTarget(UserType user, ObjectType target, OperationResult result) {
+		if (target == null) {
+			return;
+		}
 
+		if (target instanceof RoleType) {
+			assignRole(user, (RoleType) target, result);
+		} else if (target instanceof AccountShadowType) {
+			assignAccount(user, (AccountShadowType) target, result);
+		}
+	}
+
+	private void assignRole(UserType user, RoleType role, OperationResult result) {
+		LOGGER.debug("Processing role {} for user {}.", new Object[] { role.getName(), user.getName() });
+		OperationResult subResult = result.createSubresult("Assign role");
+		try {
+			processAssignments(user, role.getAssignment(), subResult);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't process role '{}' assignments ({})", ex,
+					role.getName(), role.getAssignment().size());
+		} finally {
+			subResult.computeStatus("Couldn't process assignment for role '" + role.getName() + "'.",
+					"Some minor problem occured while processing assignment for role '" + role.getName()
+							+ "'.");
+		}
+	}
+
+	private void assignAccount(UserType user, AccountShadowType account, OperationResult result) {
+		if (isAccountAssigned(user, account, result)) {
+			return;
+		}
+	}
+
+	/**
+	 * This method check if parameter account is not already assigned to user
+	 * selected in parameter user
+	 * 
+	 * @return true if account was created and assigned before, otherwise false
+	 */
+	private boolean isAccountAssigned(UserType user, AccountShadowType account, OperationResult result) {
+		for (AccountShadowType existingAccount : user.getAccount()) {
+			if (areAccountsEqual(account, existingAccount)) {
+				return true;
+			}
+		}
+
+		for (ObjectReferenceType accountRef : user.getAccountRef()) {
+			if (!ObjectTypes.ACCOUNT.getQName().equals(accountRef.getType())) {
+				continue;
+			}
+
+			try {
+				AccountShadowType refferedAccount = getObject(AccountShadowType.class, accountRef.getOid(),
+						ModelUtils.createPropertyReferenceListType("resource"), result);
+				if (areAccountsEqual(account, refferedAccount)) {
+					return true;
+				}
+			} catch (Exception ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't get account with oid '{}'", ex,
+						accountRef.getOid());
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Method compare two accounts based on account name and referenced resource
+	 * (oid)
+	 * 
+	 * @return true if two accounts are equal, otherwise false
+	 */
+	private boolean areAccountsEqual(AccountShadowType first, AccountShadowType second) {
+		if (!areResourcesEqual(first, second)) {
+			return false;
+		}
+
+		if (!first.getName().equals(second.getName())) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Method provides test for comparing resource oid values for two accounts
+	 * 
+	 * @return true if resource definition oid's in both accounts are equal
+	 */
+	private boolean areResourcesEqual(AccountShadowType first, AccountShadowType second) {
+		String firstOid = null;
+		if (first.getResourceRef() != null) {
+			firstOid = first.getResourceRef().getOid();
+		} else if (first.getResource() != null) {
+			firstOid = first.getResource().getOid();
+		}
+
+		String secondOid = null;
+		if (second.getResourceRef() != null) {
+			secondOid = second.getResourceRef().getOid();
+		} else if (first.getResource() != null) {
+			secondOid = second.getResource().getOid();
+		}
+
+		return firstOid != null ? firstOid.equals(secondOid) : secondOid == null;
 	}
 }

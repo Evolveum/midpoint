@@ -514,8 +514,8 @@ public class ModelControllerImpl implements ModelController {
 
 	// Note: The result is in the task. No need to pass it explicitly
 	@Override
-	public void importAccountsFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException {
+	public void importAccountsFromResource(String resourceOid, QName objectClass, Task task,
+			OperationResult parentResult) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object class must not be null.");
 		Validate.notNull(task, "Task must not be null.");
@@ -535,7 +535,7 @@ public class ModelControllerImpl implements ModelController {
 
 		// The launch should switch task to asynchronous. It is in/out, so no
 		// other action is needed
-		
+
 		if (task.isAsynchronous()) {
 			result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
 		} else {
@@ -727,26 +727,28 @@ public class ModelControllerImpl implements ModelController {
 						object.getName());
 			}
 
-			try {
-				PatchXml patchXml = new PatchXml();
-				String xmlPatchedObject = patchXml.applyDifferences(change, object);
-				object = (T) ((JAXBElement<ResourceObjectShadowType>) JAXBUtil.unmarshal(xmlPatchedObject))
-						.getValue();
+			if (user != null) {
+				try {
+					PatchXml patchXml = new PatchXml();
+					String xmlPatchedObject = patchXml.applyDifferences(change, object);
+					object = (T) ((JAXBElement<ResourceObjectShadowType>) JAXBUtil
+							.unmarshal(xmlPatchedObject)).getValue();
 
-				ObjectModificationType newChange = new BasicHandler(this, provisioning, repository,
-						schemaHandler).processOutboundSchemaHandling(user, (ResourceObjectShadowType) object,
-						result);
-				if (newChange != null) {
+					ObjectModificationType newChange = new BasicHandler(this, provisioning, repository,
+							schemaHandler).processOutboundSchemaHandling(user,
+							(ResourceObjectShadowType) object, result);
+					if (newChange != null) {
 
-					newChange.getPropertyModification().addAll(
-							updateChange(change.getPropertyModification(),
-									newChange.getPropertyModification()));
-					change = newChange;
+						newChange.getPropertyModification().addAll(
+								updateChange(change.getPropertyModification(),
+										newChange.getPropertyModification()));
+						change = newChange;
+					}
+
+				} catch (Exception ex) {
+					LoggingUtils.logException(LOGGER, "Couldn't process outbound handling for object {}", ex,
+							object.getName());
 				}
-
-			} catch (Exception ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't process outbound handling for object {}", ex,
-						object.getName());
 			}
 		}
 

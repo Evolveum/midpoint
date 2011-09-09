@@ -131,13 +131,13 @@ public class BasicHandler {
 					"Couldn't process property construction from template {} on user {}", ex,
 					userTemplate.getName(), user.getName());
 		}
-		processUserTemplateAccount(user, userTemplate, subResult);
+		processUserTemplateAccountConstruction(user, userTemplate, subResult);
 		subResult.computeStatus("Couldn't finish process user template.");
 
 		return user;
 	}
 
-	protected void processUserTemplateAccount(UserType user, UserTemplateType userTemplate,
+	private void processUserTemplateAccountConstruction(UserType user, UserTemplateType userTemplate,
 			OperationResult result) {
 		for (AccountConstructionType construction : userTemplate.getAccountConstruction()) {
 			OperationResult subResult = result.createSubresult(ModelControllerImpl.CREATE_ACCOUNT);
