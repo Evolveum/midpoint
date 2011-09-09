@@ -841,6 +841,7 @@ public class TestSanity extends AbstractIntegrationTest {
 //				display("getObject result (wait loop)",resultHolder.value);
 				assertSuccess("getObject has failed", resultHolder.value);
 				Task task = taskManager.createTaskInstance((TaskType) objectHolder.value);
+				System.out.println("Import task status: "+task.getExecutionStatus());
 				if (task.getExecutionStatus() == TaskExecutionStatus.CLOSED) {
 					// Task closed, wait finished
 					return true;

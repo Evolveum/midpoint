@@ -294,6 +294,15 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 			throw new IllegalStateException("Got SchemaException while not expecting it (task:"+task+")",ex);
 		}
 		
+		// Make sure that the task has repository service instance, so it can fully work as "persistent"
+		if (task instanceof TaskImpl) {
+			TaskImpl taskImpl = (TaskImpl)task;
+			if (taskImpl.getRepositoryService()==null) {
+				RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
+				taskImpl.setRepositoryService(repoService);
+			}
+		}
+		
 	}
 
 	/* (non-Javadoc)
