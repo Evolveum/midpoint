@@ -28,7 +28,7 @@
 		<idm:leftMenuItem id="leftBasic" name="#{msg['page.config.index.title']}"
 			action="/config/index?faces-redirect=true" />
 		<idm:leftMenuItem id="leftEncryption" name="#{msg['page.config.encryption.title']}"
-			action="/config/encryption?faces-redirect=true" />
+			action="#{encryption.init}" />
 		<idm:leftMenuItem id="leftLogging" name="#{msg['page.config.logging.title']}"
 			action="#{logging.initController}" />
 	</idm:leftMenuContainer>

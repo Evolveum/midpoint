@@ -43,7 +43,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 @Scope("session")
 public class EncryptionController implements Serializable {
 
+	public static final String PAGE_NAVIGATION = "/config/encryption?faces-redirect=true";
 	private static final long serialVersionUID = 4415668346210408646L;
+	private static final String OPTION_DECRYPT = "decrypt";
 	private static final String OPTION_ENCRYPT = "encrypt";
 	@Autowired(required = true)
 	private transient Protector protector;
@@ -68,6 +70,13 @@ public class EncryptionController implements Serializable {
 
 	public boolean isEncrypting() {
 		return OPTION_ENCRYPT.equals(getEncrypt());
+	}
+	
+	public String init() {
+		encrypt = OPTION_DECRYPT;
+		value = null;
+		
+		return PAGE_NAVIGATION;
 	}
 
 	@SuppressWarnings("unchecked")
