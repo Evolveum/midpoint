@@ -198,7 +198,10 @@ public class ModelUtils {
 	}
 
 	public static boolean isActivationEnabled(ActivationType activation) {
-		Validate.notNull(activation, "Activation must not be null.");
+		if (activation == null) {
+			return true;
+		}
+
 		if (activation.isEnabled() != null) {
 			return activation.isEnabled();
 		}

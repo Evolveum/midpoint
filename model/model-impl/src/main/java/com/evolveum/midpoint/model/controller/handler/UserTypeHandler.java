@@ -54,6 +54,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.patch.PatchException;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
@@ -182,19 +183,6 @@ public class UserTypeHandler extends BasicHandler {
 		}
 
 		return oid;
-	}
-
-	private void processAssignments(UserType user, OperationResult result) {
-		List<AssignmentType> assignments = user.getAssignment();
-		LOGGER.debug("User {} has {} assignments.", new Object[] { user.getName(), assignments.size() });
-
-		for (AssignmentType assignment : assignments) {
-			if (!ModelUtils.isActivationEnabled(assignment.getActivation())) {
-				continue;
-			}
-
-			// TODO: do stuff with assignment
-		}
 	}
 
 	private void processAddAccountFromUser(UserType user, OperationResult result) {
@@ -448,5 +436,53 @@ public class UserTypeHandler extends BasicHandler {
 
 		propertyChange.getValue().getAny().clear();
 		propertyChange.getValue().getAny().add(accountRefElement);
+	}
+
+	private void processAssignments(UserType user, OperationResult result) {
+		List<AssignmentType> assignments = user.getAssignment();
+		LOGGER.debug("User {} has {} assignments.", new Object[] { user.getName(), assignments.size() });
+
+		for (AssignmentType assignment : assignments) {
+			OperationResult subResult = result.createSubresult("Process assignment");
+			if (!ModelUtils.isActivationEnabled(assignment.getActivation())) {
+				continue;
+			}
+
+			// TODO: do stuff with assignment
+			try {
+				if (assignment.getAccountConstruction() != null) {
+					processAccountConstructionAssign(user, assignment.getAccountConstruction(), subResult);
+				}
+
+				if (assignment.getTarget() != null) {
+					processTargetAssign(user, assignment.getTarget(), subResult);
+				}
+
+				if (assignment.getTargetRef() != null) {
+					processTargetRefAssign(user, assignment.getTargetRef(), subResult);
+				}
+			} catch (Exception ex) {
+
+			}
+		}
+	}
+
+	private void processTargetRefAssign(UserType user, ObjectReferenceType targetRef, OperationResult result)
+			throws ObjectNotFoundException {
+		Class<? extends ObjectType> clazz = ObjectType.class;
+		if (targetRef.getType() != null) {
+			clazz = ObjectTypes.getObjectTypeFromTypeQName(targetRef.getType()).getClassDefinition();
+		}
+		ObjectType object = getObject(clazz, targetRef.getOid(), new PropertyReferenceListType(), result);
+		processTargetAssign(user, object, result);
+	}
+
+	private void processAccountConstructionAssign(UserType user, AccountConstructionType accountConstruction,
+			OperationResult result) {
+
+	}
+
+	private void processTargetAssign(UserType user, ObjectType target, OperationResult result) {
+
 	}
 }
