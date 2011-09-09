@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -71,7 +72,7 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	private long JOIN_TIMEOUT = 5000;
 	
 	private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
-	private Set<TaskRunner> runners = new HashSet<TaskRunner>();
+	private Set<TaskRunner> runners = new CopyOnWriteArraySet<TaskRunner>();
 	private TaskScanner scannerThread;
 	/**
 	 * True if the service threads are running.
