@@ -240,7 +240,7 @@ public class UserTypeHandler extends BasicHandler {
 		List<AccountShadowType> accountsToBeDeleted = new ArrayList<AccountShadowType>();
 		for (AccountShadowType account : user.getAccount()) {
 			try {
-				deleteObject(AccountShadowType.class, account.getOid(), result);
+				getModelController().deleteObject(AccountShadowType.class, account.getOid(), result);
 				accountsToBeDeleted.add(account);
 			} catch (ConsistencyViolationException ex) {
 				// TODO: handle this
@@ -253,7 +253,7 @@ public class UserTypeHandler extends BasicHandler {
 		List<ObjectReferenceType> refsToBeDeleted = new ArrayList<ObjectReferenceType>();
 		for (ObjectReferenceType accountRef : user.getAccountRef()) {
 			try {
-				deleteObject(AccountShadowType.class, accountRef.getOid(), result);
+				getModelController().deleteObject(AccountShadowType.class, accountRef.getOid(), result);
 				refsToBeDeleted.add(accountRef);
 			} catch (ConsistencyViolationException ex) {
 				// TODO handle this
