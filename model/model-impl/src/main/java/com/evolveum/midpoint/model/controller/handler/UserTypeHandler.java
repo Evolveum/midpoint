@@ -79,6 +79,13 @@ public class UserTypeHandler extends BasicHandler {
 
 	private static final Trace LOGGER = TraceManager.getTrace(UserTypeHandler.class);
 
+	/**
+	 * Enum is used during processing AssignmentType objects in user
+	 */
+	private static enum AssignOperation {
+		ADD, DELETE
+	}
+
 	public UserTypeHandler(ModelController modelController, ProvisioningService provisioning,
 			RepositoryService repository, SchemaHandler schemaHandler) {
 		super(modelController, provisioning, repository, schemaHandler);
@@ -116,10 +123,12 @@ public class UserTypeHandler extends BasicHandler {
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result)
 			throws ObjectNotFoundException, ConsistencyViolationException {
 		try {
-			UserType object = getObject(UserType.class, oid, new PropertyReferenceListType(), result);
-			deleteUserAccounts((UserType) object, result);
+			UserType user = getObject(UserType.class, oid,
+					ModelUtils.createPropertyReferenceListType("account", "resource"), result);
+			processAssignments(user, user.getAssignment(), result, AssignOperation.DELETE);
+			deleteUserAccounts((UserType) user, result);
 
-			getRepository().deleteObject(type, oid, result);
+			getRepository().deleteObject(UserType.class, oid, result);
 			result.recordSuccess();
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't delete object with oid {}", ex, oid);
@@ -163,7 +172,8 @@ public class UserTypeHandler extends BasicHandler {
 			// TODO: process add account should be removed, we have to use only
 			// assignments and there should be account if needed
 			processAddAccountFromUser(user, result);
-			processAssignments(user, user.getAssignment(), result);
+			processAssignments(user, user.getAssignment(), result, AssignOperation.ADD);
+
 			user = processUserTemplateForUser(user, userTemplate, result);
 			oid = getRepository().addObject(user, result);
 			result.recordSuccess();
@@ -438,23 +448,25 @@ public class UserTypeHandler extends BasicHandler {
 		propertyChange.getValue().getAny().add(accountRefElement);
 	}
 
-	private void processAssignments(UserType user, List<AssignmentType> assignments, OperationResult result) {
-		LOGGER.debug("Processing assignments ({}) for user {}.",
-				new Object[] { assignments.size(), user.getName() });
+	private void processAssignments(UserType user, List<AssignmentType> assignments, OperationResult result,
+			AssignOperation operation) {
+		LOGGER.debug("Processing assignments ({}) for user {}, operation: {}.",
+				new Object[] { assignments.size(), user.getName(), operation });
 
 		for (AssignmentType assignment : assignments) {
 			OperationResult subResult = result.createSubresult("Process assignment");
-			if (!ModelUtils.isActivationEnabled(assignment.getActivation())) {
+			if (AssignOperation.ADD.equals(operation)
+					&& !ModelUtils.isActivationEnabled(assignment.getActivation())) {
 				continue;
 			}
 
 			try {
-				if (assignment.getAccountConstruction() != null) {
+				if (AssignOperation.ADD.equals(operation) && assignment.getAccountConstruction() != null) {
 					processAccountConstruction(user, assignment.getAccountConstruction(), subResult);
 				} else if (assignment.getTarget() != null) {
-					assignTarget(user, assignment.getTarget(), subResult);
+					assignTarget(user, assignment.getTarget(), subResult, operation);
 				} else if (assignment.getTargetRef() != null) {
-					assignTargetRef(user, assignment.getTargetRef(), subResult);
+					assignTargetRef(user, assignment.getTargetRef(), subResult, operation);
 				}
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't process assignment number {} on user {}", ex,
@@ -466,33 +478,31 @@ public class UserTypeHandler extends BasicHandler {
 		}
 	}
 
-	private void assignTargetRef(UserType user, ObjectReferenceType targetRef, OperationResult result)
-			throws ObjectNotFoundException {
+	private void assignTargetRef(UserType user, ObjectReferenceType targetRef, OperationResult result,
+			AssignOperation operation) throws ObjectNotFoundException {
 		Class<? extends ObjectType> clazz = ObjectType.class;
 		if (targetRef.getType() != null) {
 			clazz = ObjectTypes.getObjectTypeFromTypeQName(targetRef.getType()).getClassDefinition();
 		}
 		ObjectType object = getObject(clazz, targetRef.getOid(), new PropertyReferenceListType(), result);
-		assignTarget(user, object, result);
+		assignTarget(user, object, result, operation);
 	}
 
-	private void assignTarget(UserType user, ObjectType target, OperationResult result) {
-		if (target == null) {
-			return;
-		}
-
+	private void assignTarget(UserType user, ObjectType target, OperationResult result,
+			AssignOperation operation) {
 		if (target instanceof RoleType) {
-			assignRole(user, (RoleType) target, result);
+			assignRole(user, (RoleType) target, result, operation);
 		} else if (target instanceof AccountShadowType) {
-			assignAccount(user, (AccountShadowType) target, result);
+			assignAccount(user, (AccountShadowType) target, result, operation);
 		}
 	}
 
-	private void assignRole(UserType user, RoleType role, OperationResult result) {
-		LOGGER.debug("Processing role {} for user {}.", new Object[] { role.getName(), user.getName() });
+	private void assignRole(UserType user, RoleType role, OperationResult result, AssignOperation operation) {
+		LOGGER.debug("Processing role {} assignment for user {}.",
+				new Object[] { role.getName(), user.getName() });
 		OperationResult subResult = result.createSubresult("Assign role");
 		try {
-			processAssignments(user, role.getAssignment(), subResult);
+			processAssignments(user, role.getAssignment(), subResult, operation);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't process role '{}' assignments ({})", ex,
 					role.getName(), role.getAssignment().size());
@@ -503,9 +513,45 @@ public class UserTypeHandler extends BasicHandler {
 		}
 	}
 
-	private void assignAccount(UserType user, AccountShadowType account, OperationResult result) {
+	/**
+	 * Method takes {@link AccountShadowType} from assignment. In case of
+	 * {@link AssignOperation} ADD, checks if is not already assigned to user
+	 * and if not it adds account to provisioning and as accountRef to user. In
+	 * case of {@link AssignOperation} DELETE method deletes account from
+	 * system.
+	 */
+	private void assignAccount(UserType user, AccountShadowType account, OperationResult result,
+			AssignOperation operation) {
+		LOGGER.debug("Processing account {} assignment for user {}.",
+				new Object[] { account.getName(), user.getName() });
 		if (isAccountAssigned(user, account, result)) {
-			return;
+			switch (operation) {
+				case DELETE:
+					try {
+						getModelController().deleteObject(AccountShadowType.class, account.getOid(), result);
+					} catch (Exception ex) {
+						LoggingUtils.logException(LOGGER, "Couldn't delete account {} from user {}", ex,
+								account.getName(), user.getName());
+					}
+				case ADD:
+					return;
+			}
+		}
+
+		try {
+			if (account.getActivation() == null) {
+				account.setActivation(user.getActivation());
+			}
+			// MID-72
+			pushPasswordFromUserToAccount(user, account, result);
+
+			String newAccountOid = getModelController().addObject(account, result);
+			ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid, ObjectTypes.ACCOUNT);
+			user.getAccountRef().add(accountRef);
+		} catch (SystemException ex) {
+			throw ex;
+		} catch (Exception ex) {
+			throw new SystemException("Couldn't process add account.", ex);
 		}
 	}
 
