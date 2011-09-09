@@ -20,7 +20,7 @@
 <!-- Portions Copyrighted 2011 Peter Prochazka               -->
 <!--                                                         -->
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="none" >
+<suite name="unit" parallel="false" >
   <test name="repo-api" preserve-order="false" enabled="false">
   </test>
 </suite>
