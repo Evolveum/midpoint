@@ -21,7 +21,6 @@
 package com.evolveum.midpoint.model.controller.handler;
 
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -56,7 +55,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -209,7 +207,7 @@ public class UserTypeHandler extends BasicHandler {
 				// MID-72
 				pushPasswordFromUserToAccount(user, account, result);
 
-				String newAccountOid = addObject(account, result);
+				String newAccountOid = getModelController().addObject(account, result);
 				ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid,
 						ObjectTypes.ACCOUNT);
 				user.getAccountRef().add(accountRef);
@@ -430,7 +428,7 @@ public class UserTypeHandler extends BasicHandler {
 	@SuppressWarnings("unchecked")
 	private void processAddAccountFromChanges(PropertyModificationType propertyChange, Object node,
 			UserType userBeforeChange, OperationResult result) throws JAXBException, ObjectNotFoundException,
-			PatchException, ObjectAlreadyExistsException {
+			PatchException, ObjectAlreadyExistsException, SchemaException {
 
 		AccountShadowType account = XsdTypeConverter.toJavaValue(node, AccountShadowType.class);
 		pushPasswordFromUserToAccount(userBeforeChange, account, result);
@@ -443,7 +441,7 @@ public class UserTypeHandler extends BasicHandler {
 			account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml)).getValue();
 		}
 
-		String newAccountOid = addObject(account, result);
+		String newAccountOid = getModelController().addObject(account, result);
 		ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid, ObjectTypes.ACCOUNT);
 		Element accountRefElement = JAXBUtil.jaxbToDom(accountRef, SchemaConstants.I_ACCOUNT_REF,
 				DOMUtil.getDocument());

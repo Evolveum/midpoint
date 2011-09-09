@@ -112,7 +112,7 @@ public class ModelControllerImpl implements ModelController {
 	@Autowired(required = true)
 	private transient ImportAccountsFromResourceTaskHandler importAccountsFromResourceTaskHandler;
 	@Autowired(required = true)
-	private ObjectImporter objectImporter;
+	private transient ObjectImporter objectImporter;
 
 	@Override
 	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException,
