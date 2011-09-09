@@ -131,6 +131,9 @@ public abstract class SchemaConstants {
 	public static final QName I_DIAGNOSTICS_MESSAGE_WARNING = new QName(NS_C, "error");
 	public static final QName I_SYSTEM_CONFIGURATION_TYPE = new QName(NS_C, "SystemConfigurationType");
 	public static final QName I_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
+	
+	public static final QName ROLE = new QName(NS_C, "role");
+	public static final QName ROLE_TYPE = new QName(NS_C, "RoleType");
 
 	public static final QName R_PROTECTED_STRING_TYPE = new QName(NS_C, "ProtectedStringType");
 	public static final QName R_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C, "ProtectedByteArrayType");

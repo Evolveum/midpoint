@@ -182,11 +182,18 @@ public class UserTypeHandler extends BasicHandler {
 					+ "' because user already exists.", ex);
 			throw ex;
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't add user {}, oid {} using template {}, oid {}", ex,
-					user.getName(), user.getOid(), userTemplate.getName(), userTemplate.getOid());
-			result.recordFatalError("Couldn't add user " + user.getName() + ", oid '" + user.getOid()
-					+ "' using template " + userTemplate.getName() + ", oid '" + userTemplate.getOid() + "'",
-					ex);
+			if (userTemplate != null) {
+				LoggingUtils.logException(LOGGER, "Couldn't add user {}, oid {} using template {}, oid {}",
+						ex, user.getName(), user.getOid(), userTemplate.getName(), userTemplate.getOid());
+				result.recordFatalError("Couldn't add user " + user.getName() + ", oid '" + user.getOid()
+						+ "' using template " + userTemplate.getName() + ", oid '" + userTemplate.getOid()
+						+ "'", ex);
+			} else {
+				LoggingUtils.logException(LOGGER, "Couldn't add user {}, oid {} without user template", ex,
+						user.getName(), user.getOid());
+				result.recordFatalError("Couldn't add user " + user.getName() + ", oid '" + user.getOid()
+						+ "' without user template.", ex);
+			}
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
 			LOGGER.debug(result.dump());

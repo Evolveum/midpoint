@@ -33,7 +33,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -64,7 +63,7 @@ public class Schema implements Dumpable, Serializable {
 	private static final long serialVersionUID = 5068618465625931984L;
 	private static final Trace LOGGER = TraceManager.getTrace(Schema.class);
 	static final String INDENT = "  ";
-	
+
 	private String namespace;
 	private Set<Definition> definitions;
 
@@ -75,7 +74,7 @@ public class Schema implements Dumpable, Serializable {
 		this.namespace = namespace;
 		definitions = new HashSet<Definition>();
 	}
-			
+
 	/**
 	 * Returns schema namespace.
 	 * 
@@ -123,13 +122,14 @@ public class Schema implements Dumpable, Serializable {
 		SchemaToDomProcessor processor = new SchemaToDomProcessor();
 		return processor.parseSchema(schema);
 	}
-	
+
 	public PropertyContainer parsePropertyContainer(Element domElement) throws SchemaException {
 		// locate appropriate definition based on the element name
 		QName domElementName = DOMUtil.getQName(domElement);
-		PropertyContainerDefinition propertyContainerDefinition = findItemDefinition(domElementName, PropertyContainerDefinition.class);
-		if (propertyContainerDefinition==null) {
-			throw new SchemaException("No definition for element "+domElementName);
+		PropertyContainerDefinition propertyContainerDefinition = findItemDefinition(domElementName,
+				PropertyContainerDefinition.class);
+		if (propertyContainerDefinition == null) {
+			throw new SchemaException("No definition for element " + domElementName);
 		}
 		return propertyContainerDefinition.parseItem(domElement);
 	}
@@ -192,7 +192,7 @@ public class Schema implements Dumpable, Serializable {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Finds complex type definition by type name.
 	 */
@@ -202,8 +202,7 @@ public class Schema implements Dumpable, Serializable {
 		}
 		// TODO: check for multiple definition with the same type
 		for (Definition definition : definitions) {
-			if (definition instanceof ComplexTypeDefinition
-					&& typeName.equals(definition.getTypeName())) {
+			if (definition instanceof ComplexTypeDefinition && typeName.equals(definition.getTypeName())) {
 				return (ComplexTypeDefinition) definition;
 			}
 		}
@@ -230,7 +229,7 @@ public class Schema implements Dumpable, Serializable {
 		}
 		return null;
 	}
-	
+
 	/**
 	 * Finds item definition by local name
 	 */
@@ -278,8 +277,7 @@ public class Schema implements Dumpable, Serializable {
 	public PropertyContainerDefinition createPropertyContainerDefinition(String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
 		QName name = new QName(getNamespace(), toElementName(localTypeName));
-		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName,
-				getNamespace());
+		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName, getNamespace());
 		PropertyContainerDefinition def = new PropertyContainerDefinition(this, name, cTypeDef);
 		definitions.add(cTypeDef);
 		definitions.add(def);
@@ -291,7 +289,8 @@ public class Schema implements Dumpable, Serializable {
 	 * 
 	 * This is a preferred way how to create definition in the schema.
 	 * 
-	 * @param localTypeName type name "relative" to schema namespace
+	 * @param localTypeName
+	 *            type name "relative" to schema namespace
 	 * @return new resource object definition
 	 */
 	public ResourceObjectDefinition createResourceObjectDefinition(String localTypeName) {
@@ -304,26 +303,28 @@ public class Schema implements Dumpable, Serializable {
 	 * 
 	 * This is a preferred way how to create definition in the schema.
 	 * 
-	 * @param localTypeName type QName
+	 * @param localTypeName
+	 *            type QName
 	 * @return new resource object definition
 	 */
 	public ResourceObjectDefinition createResourceObjectDefinition(QName typeName) {
 		QName name = new QName(getNamespace(), toElementName(typeName.getLocalPart()));
-		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName,
-				getNamespace());
-		ResourceObjectDefinition def = new ResourceObjectDefinition(this,name, cTypeDef);
+		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName, getNamespace());
+		ResourceObjectDefinition def = new ResourceObjectDefinition(this, name, cTypeDef);
 		definitions.add(cTypeDef);
 		definitions.add(def);
 		return def;
 	}
-	
+
 	/**
 	 * Creates a top-level property definition and adds it to the schema.
 	 * 
 	 * This is a preferred way how to create definition in the schema.
 	 * 
-	 * @param localName element name "relative" to schema namespace
-	 * @param typeName XSD type name of the element
+	 * @param localName
+	 *            element name "relative" to schema namespace
+	 * @param typeName
+	 *            XSD type name of the element
 	 * @return new property definition
 	 */
 	public PropertyDefinition createPropertyDefinition(String localName, QName typeName) {
@@ -336,8 +337,10 @@ public class Schema implements Dumpable, Serializable {
 	 * 
 	 * This is a preferred way how to create definition in the schema.
 	 * 
-	 * @param localName element name "relative" to schema namespace
-	 * @param localTypeName XSD type name "relative" to schema namespace
+	 * @param localName
+	 *            element name "relative" to schema namespace
+	 * @param localTypeName
+	 *            XSD type name "relative" to schema namespace
 	 * @return new property definition
 	 */
 	public PropertyDefinition createPropertyDefinition(String localName, String localTypeName) {
@@ -351,8 +354,10 @@ public class Schema implements Dumpable, Serializable {
 	 * 
 	 * This is a preferred way how to create definition in the schema.
 	 * 
-	 * @param localName element name
-	 * @param typeName XSD type name of the element
+	 * @param localName
+	 *            element name
+	 * @param typeName
+	 *            XSD type name of the element
 	 * @return new property definition
 	 */
 	public PropertyDefinition createPropertyDefinition(QName name, QName typeName) {

@@ -103,7 +103,7 @@ public class BasicHandler {
 		OperationResult configResult = result.createSubresult(ModelControllerImpl.GET_SYSTEM_CONFIGURATION);
 		SystemConfigurationType systemConfiguration = null;
 		try {
-			systemConfiguration = getObject(SystemConfigurationType.class,
+			systemConfiguration = getModelController().getObject(SystemConfigurationType.class,
 					SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 					ModelUtils.createPropertyReferenceListType("defaultUserTemplate"), result);
 			configResult.recordSuccess();
@@ -205,7 +205,7 @@ public class BasicHandler {
 
 	@SuppressWarnings("unchecked")
 	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
-			OperationResult result) throws ObjectNotFoundException {
+			OperationResult result) throws ObjectNotFoundException {		
 		T object = null;
 		try {
 			ObjectType objectType = null;
