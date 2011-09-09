@@ -33,67 +33,77 @@ import org.springframework.core.annotation.Order;
  *
  */
 @Aspect
-@Order(value=Ordered.HIGHEST_PRECEDENCE)
+@Order(value = Ordered.HIGHEST_PRECEDENCE)
 public class NdcAspect {
-	
-    @Around("entriesIntoRepository()")
-    public Object processRepositoryNdc(ProceedingJoinPoint pjp) throws Throwable {
-        return markSubsystem(pjp, "REPOSITORY");
-    }
-    
-    @Around("entriesIntoTaskManager()")
-    public Object processTaskManagerNdc(ProceedingJoinPoint pjp) throws Throwable {
-    	return markSubsystem(pjp, "TASKMANAGER");
-    }
 
-    @Around("entriesIntoProvisioning()")
-    public Object processProvisioningNdc(ProceedingJoinPoint pjp) throws Throwable {
-    	return markSubsystem(pjp, "PROVISIONING");
-    }
+	@Around("entriesIntoRepository()")
+	public Object processRepositoryNdc(ProceedingJoinPoint pjp) throws Throwable {
+		return markSubsystem(pjp, "REPOSITORY");
+	}
 
-    @Around("entriesIntoResourceObjectChangeListener()")
-    public Object processResourceObjectChangeListenerNdc(ProceedingJoinPoint pjp) throws Throwable {
-    	return markSubsystem(pjp, "RESOURCEOBJECTCHANGELISTENER");
-    }
-    
-    @Around("entriesIntoModel()")
-    public Object processModelNdc(ProceedingJoinPoint pjp) throws Throwable {
-    	return markSubsystem(pjp, "MODEL");
-    }
-    
-    @Around("entriesIntoWeb()")
-    public Object processWebNdc(ProceedingJoinPoint pjp) throws Throwable {
-    	return markSubsystem(pjp, "WEB");
-    }
-    
+	@Around("entriesIntoTaskManager()")
+	public Object processTaskManagerNdc(ProceedingJoinPoint pjp) throws Throwable {
+		return markSubsystem(pjp, "TASKMANAGER");
+	}
+
+	@Around("entriesIntoProvisioning()")
+	public Object processProvisioningNdc(ProceedingJoinPoint pjp) throws Throwable {
+		return markSubsystem(pjp, "PROVISIONING");
+	}
+
+	@Around("entriesIntoResourceObjectChangeListener()")
+	public Object processResourceObjectChangeListenerNdc(ProceedingJoinPoint pjp) throws Throwable {
+		return markSubsystem(pjp, "RESOURCEOBJECTCHANGELISTENER");
+	}
+
+	@Around("entriesIntoModel()")
+	public Object processModelNdc(ProceedingJoinPoint pjp) throws Throwable {
+		return markSubsystem(pjp, "MODEL");
+	}
+
+	@Around("entriesIntoWeb()")
+	public Object processWebNdc(ProceedingJoinPoint pjp) throws Throwable {
+		return markSubsystem(pjp, "WEB");
+	}
+
 	private Object markSubsystem(ProceedingJoinPoint pjp, String subsystem) throws Throwable {
 		Object retValue = null;
-        try {
-        	NDC.push(subsystem);
-            retValue = pjp.proceed();
-            return retValue;
-        } finally {
-            NDC.pop();
-        }
+		try {
+			NDC.push(subsystem);
+			retValue = pjp.proceed();
+			return retValue;
+		} finally {
+			NDC.pop();
+			//MID-408 memory leak
+			if (NDC.getDepth() < 1) {
+				NDC.remove();
+			}
+		}
 	}
-	
-    @Pointcut("execution(* com.evolveum.midpoint.repo.api.RepositoryService.*(..))")
-    public void entriesIntoRepository() {}
 
-    @Pointcut("execution(* com.evolveum.midpoint.task.api.TaskManager.*(..))")
-    public void entriesIntoTaskManager() {}
+	@Pointcut("execution(* com.evolveum.midpoint.repo.api.RepositoryService.*(..))")
+	public void entriesIntoRepository() {
+	}
 
-    @Pointcut("execution(* com.evolveum.midpoint.provisioning.api.ProvisioningService.*(..))")
-    public void entriesIntoProvisioning() {}
+	@Pointcut("execution(* com.evolveum.midpoint.task.api.TaskManager.*(..))")
+	public void entriesIntoTaskManager() {
+	}
+
+	@Pointcut("execution(* com.evolveum.midpoint.provisioning.api.ProvisioningService.*(..))")
+	public void entriesIntoProvisioning() {
+	}
 
 	@Pointcut("execution(* com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener.*(..))")
 	public void entriesIntoResourceObjectChangeListener() {
 	}
-	
+
 	@Pointcut("execution(* com.evolveum.midpoint.model.api.ModelService.*(..))")
-    public void entriesIntoModel() {}
-    
-    @Pointcut("execution(* com.evolveum.midpoint.web.controller.*(..))")
-    public void entriesIntoWeb() {}
-        
+	public void entriesIntoModel() {
+	}
+
+	@Pointcut("execution(* com.evolveum.midpoint.web.controller.*(..))")
+	public void entriesIntoWeb() {
+	}
+
 }
+
