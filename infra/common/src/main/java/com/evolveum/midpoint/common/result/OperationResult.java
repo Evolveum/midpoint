@@ -566,12 +566,16 @@ public class OperationResult implements Serializable, Dumpable {
 	}
 
 	public String dump() {
-		StringBuilder sb = new StringBuilder();
-		dumpIndent(sb, 0);
-		return sb.toString();
+		return dump(true);
 	}
 
-	private void dumpIndent(StringBuilder sb, int indent) {
+	public String dump(boolean withStack) {
+		StringBuilder sb = new StringBuilder();
+		dumpIndent(sb, 0, withStack);
+		return sb.toString();
+	}
+	
+	private void dumpIndent(StringBuilder sb, int indent, boolean printStackTrace) {
 		for (int i = 0; i < indent; i++) {
 			sb.append(INDENT_STRING);
 		}
@@ -591,8 +595,10 @@ public class OperationResult implements Serializable, Dumpable {
 			sb.append(":");
 			sb.append(cause.getMessage());
 			sb.append("\n");
-			dumpStackTrace(sb,cause.getStackTrace(),indent+4);
-			dumpInnerCauses(sb,cause.getCause(),indent+3);
+			if (printStackTrace) {
+				dumpStackTrace(sb,cause.getStackTrace(),indent+4);
+				dumpInnerCauses(sb,cause.getCause(),indent+3);
+			}
 		}
 
 		for (Map.Entry<String, Object> entry : getParams().entrySet()) {
@@ -636,7 +642,7 @@ public class OperationResult implements Serializable, Dumpable {
 		}
 
 		for (OperationResult sub : getSubresults()) {
-			sub.dumpIndent(sb, indent + 1);
+			sub.dumpIndent(sb, indent + 1, printStackTrace);
 		}
 	}
 	
