@@ -1,4 +1,24 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2011 lazyman					     -->
+<!--                                                         -->
 <ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
 	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
@@ -90,7 +110,7 @@
 					</ice:panelGrid>
 				</ice:panelTab>
 				<ice:panelTab id="accountsTab" rendered="true" label="#{msg['page.account.detail.tab.accounts.title']}"
-					icon="resources/images/drive.png" title="#{msg['page.account.detail.tab.accounts.description']}">
+					icon="/resources/images/drive.png" title="#{msg['page.account.detail.tab.accounts.description']}">
 					<ice:outputText style="margin-bottom: 10px; display: block;"
 						value="#{msg['page.account.detail.tab.accounts.text']}" />
 					<div>
@@ -140,9 +160,16 @@
 					</ice:panelGrid>
 				</ice:panelTab>
 
+<ui:remove>				
+				<ice:panelTab label="#{msg['page.account.detail.tab.assignments.title']}"
+					icon="/resources/images/report.png" title="#{msg['page.account.detail.tab.assignments.description']}">
+TODO: create this tab
+				</ice:panelTab>				
+</ui:remove>
+
 				<ui:remove>
 					<ice:panelTab rendered="true" label="#{msg['page.account.detail.tab.roles.title']}"
-						icon="resources/images/folder_key.png" title="#{msg['page.account.detail.tab.roles.description']}">
+						icon="/resources/images/folder_key.png" title="#{msg['page.account.detail.tab.roles.description']}">
 
 					</ice:panelTab>
 				</ui:remove>
