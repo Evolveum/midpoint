@@ -79,7 +79,7 @@ public class TestUtil {
                 JAXBElement<ExtensibleObjectType> o = (JAXBElement<ExtensibleObjectType>) ctx.createUnmarshaller().unmarshal(in);
                 out = o.getValue();
             } catch (JAXBException ex) {
-                Logger.getLogger(TestUtil.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(TestUtil.class.getName()).log(Level.SEVERE, "Error parsing "+object.getOID(), ex);
             }
         }
 

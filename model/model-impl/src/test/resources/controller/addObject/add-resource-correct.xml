@@ -33,7 +33,6 @@
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd ../ns/public/resource/idconnector/resource-schema-1.xsd
    http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd ../ns/public/resource/idconnector/configuration-1.xsd'>    
     <c:name>add-resource-correct</c:name>
-    <type>http://midpoint.evolveum.com/xml/ns/resource/ldap/1#LdapResource</type>
     <namespace>http://mi6.gov.uk/schema/</namespace>
     <schema>
         <xsd:schema targetNamespace="http://mi6.gov.uk/schema/">

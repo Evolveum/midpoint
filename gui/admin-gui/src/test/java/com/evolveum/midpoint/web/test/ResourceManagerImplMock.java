@@ -45,7 +45,6 @@ import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 
 /**
  * 
@@ -124,10 +123,6 @@ public class ResourceManagerImplMock implements ResourceManager {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	@Override
-	public TaskStatusType getImportStatus(String resourceOid) {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
 
 	@Override
 	public Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> listResourceObjects(

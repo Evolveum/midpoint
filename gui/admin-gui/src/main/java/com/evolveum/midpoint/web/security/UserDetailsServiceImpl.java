@@ -49,7 +49,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.model.RepositoryException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -169,10 +168,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 			UserType oldUserType = (UserType) JAXBUtil.clone(userType);
 
 			updateUserType(userType, person);
-
-			ObjectFactory of = new ObjectFactory();
-			ObjectContainerType userContainer = of.createObjectContainerType();
-			userContainer.setObject(userType);
 
 			ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
 			if (modification != null && modification.getOid() != null) {

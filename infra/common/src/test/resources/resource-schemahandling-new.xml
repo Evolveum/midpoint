@@ -22,7 +22,6 @@
 
 <object oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ResourceType">
     <name>Localhost OpenDJ</name>
-    <type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</type>
     <namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
     <configuration>
         <idc:ConnectorConfiguration xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:iccldap="http://midpoint.evolveum.com/xml/ns/resource/idconnector/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector/1.0.5531" xmlns:idc="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd" xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">

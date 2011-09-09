@@ -48,13 +48,11 @@ public class ResourceTypeComparator extends Equals<ResourceType> {
 		o1.getConfiguration();
 		o1.getConnector();
 		o1.getConnectorRef();
-		o1.getResourceAccessConfigurationRef();
 		o1.getSchema();
 		o1.getSchemaHandling();
 		o1.getScripts();
 		o1.getSynchronization();
 
-		return areStringEqual(o1.getType(), o2.getType())
-				&& areStringEqual(o1.getNamespace(), o2.getNamespace());
+		return areStringEqual(o1.getNamespace(), o2.getNamespace());
 	}
 }

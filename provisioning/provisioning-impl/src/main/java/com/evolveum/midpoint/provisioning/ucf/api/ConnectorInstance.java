@@ -29,7 +29,6 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceTestResultType;
 import java.util.List;
 import java.util.Set;
 import javax.xml.namespace.QName;

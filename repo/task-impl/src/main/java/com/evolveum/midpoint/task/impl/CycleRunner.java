@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -75,13 +76,30 @@ public class CycleRunner extends TaskRunner {
 					LOGGER.error("Unable to record run start: {}", ex.getMessage(), ex);
 				} // there are otherwise quite safe to ignore
 
-				TaskRunResult runResult = handler.run(task);
-
+				TaskRunResult runResult = null;
+				try {
+					
+					runResult = handler.run(task);
+					
+				} catch (Exception ex) {
+					LOGGER.error("Task handler threw unexpected exception: {}: {}",new Object[] { ex.getClass().getName(),ex.getMessage(),ex});
+					runResult = new TaskRunResult();
+					OperationResult dummyResult = new OperationResult(SingleRunner.class.getName() + ".error");
+					dummyResult.recordFatalError("Task handler threw unexpected exception: "+ex.getMessage(),ex);
+					runResult.setOperationResult(dummyResult);
+					runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+				}
+	
 				// record this run (this will also save the OpResult)
 				// TODO: figure out how to do better error handling
-				if (runResult==null) {
+				if (runResult == null) {
 					// Obviously error in task handler
 					LOGGER.error("Unable to record run finish: task returned null result");
+					runResult = new TaskRunResult();
+					OperationResult dummyResult = new OperationResult(SingleRunner.class.getName() + ".error");
+					dummyResult.recordFatalError("Unable to record run finish: task returned null result");
+					runResult.setOperationResult(dummyResult);
+					runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 				} else {				
 					try {
 						task.recordRunFinish(runResult, cycleRunnerRunOpResult);

@@ -49,14 +49,6 @@ public class ResourceDto extends ExtensibleObjectDto<ResourceType> {
 		super(object);
 	}
 
-	public String getType() {
-		return getXmlObject().getType();
-	}
-
-	public void setType(String value) {
-		getXmlObject().setType(value);
-	}
-
 	public Element getSchema() {
 		// TODO: Make this smarter ... if possible
 		XmlSchemaType schema = getXmlObject().getSchema();

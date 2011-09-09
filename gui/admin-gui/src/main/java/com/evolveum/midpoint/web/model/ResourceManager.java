@@ -32,7 +32,6 @@ import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.ResourceObjectShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 
 /**
  * 
@@ -57,8 +56,6 @@ public interface ResourceManager extends ObjectManager<GuiResourceDto> {
 	OperationResult testConnection(String resourceOid);
 
 	void importFromResource(String resourceOid, QName objectClass);
-
-	TaskStatusType getImportStatus(String resourceOid);
 
 	Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> listResourceObjects(String resourceOid,
 			QName objectClass, PagingType paging);

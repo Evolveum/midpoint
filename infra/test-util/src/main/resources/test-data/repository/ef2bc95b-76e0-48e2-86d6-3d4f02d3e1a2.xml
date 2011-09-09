@@ -25,7 +25,6 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xsi:type="c:ResourceType"
 oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
     <c:name>Localhost OpenDJ v3</c:name>
-    <c:type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</c:type>
     <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:namespace>
     <c:configuration>
         <ns2:ConnectorConfiguration xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/configuration-1.xsd">

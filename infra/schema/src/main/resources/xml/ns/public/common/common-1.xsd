@@ -644,21 +644,21 @@
 			<xsd:enumeration value="read">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="read" />
+						<jaxb:typesafeEnumMember name="READ" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="update">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="update" />
+						<jaxb:typesafeEnumMember name="UPDATE" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
 			<xsd:enumeration value="create">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="create" />
+						<jaxb:typesafeEnumMember name="CREATE" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -1031,6 +1031,7 @@
 		<xsd:annotation>
 			<xsd:documentation>
 				ONLY COPIED AND PASTED FROM ProtectedStringType, please update if needed later
+				TODO
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:choice>
@@ -1729,52 +1730,11 @@
 		the elements to this namespace works around that bug. This should be moved 
 		to the WSDL once the bug is resolved. -->
 
-	<xsd:complexType name="ObjectContainerType">
-		<xsd:sequence>
-			<xsd:element name="object" type="tns:ObjectType" />
-		</xsd:sequence>
-	</xsd:complexType>
-
 	<xsd:complexType name="ObjectListType">
 		<xsd:sequence>
 			<xsd:element name="object" type="tns:ObjectType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 		<xsd:attribute name="count" type="xsd:int" />
-	</xsd:complexType>
-
-	<xsd:complexType name="CycleListType">
-		<xsd:annotation>
-			<xsd:documentation>
-				List of cycle desciptions.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="cycle" type="tns:CycleType" minOccurs="0" maxOccurs="unbounded" />
-		</xsd:sequence>
-	</xsd:complexType>
-
-	<xsd:complexType name="CycleType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Description of a cycle.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="name" type="xsd:string" />
-			<xsd:element name="displayName" type="xsd:string" minOccurs="0" />
-			<xsd:element name="running" type="xsd:boolean" />
-			<xsd:element name="lastStatus" type="xsd:string" />
-			<xsd:element name="lastRunStart" type="xsd:dateTime" />
-			<xsd:element name="lastRunFinish" type="xsd:dateTime" />
-			<xsd:element name="lastError">
-				<xsd:complexType>
-					<xsd:sequence>
-						<xsd:element name="message" type="tns:DiagnosticsMessageType" />
-						<xsd:element name="timestamp" type="xsd:dateTime" />
-					</xsd:sequence>
-				</xsd:complexType>
-			</xsd:element>
-		</xsd:sequence>
 	</xsd:complexType>
 
 	<!-- ################################## -->
@@ -2352,124 +2312,6 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="ResourceAccessConfigurationType">
-		<xsd:annotation>
-			<xsd:documentation>
-				!!! DEPRECATED !!!
-
-				ResourceAccessConfiguration represents a
-				provisioning subsystem
-				system which we manage.
-				TODO: Add
-				documentation
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="c:ExtensibleObjectType">
-				<xsd:sequence>
-					<xsd:element name="namespace" type="xsd:anyURI">
-						<xsd:annotation>
-							<xsd:documentation>
-								ResourceAccessConfiguration private namespace.
-								This is the namespace that is private for a
-								specific
-								resourceAccessConfiguration IMPLEMENTATION.
-								It may be used by the
-								connector e.g. to generate
-								instance-specific resource
-								schema or
-								for other
-								purposes. It should be set by the system
-								administrator
-								to a unique
-								value for each resource
-								instance. The
-								configuration
-								tools (e.g. admin GUI)
-								should provide a reasonable default
-								value.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="schema">
-						<xsd:annotation>
-							<xsd:documentation>
-								Schema for resourceConfiguration objects.
-
-								This
-								element contains the XSD-formatted definition
-								of
-								resourceConfiguration schema.
-
-								Schema defines data types (XSD
-								types), but it
-								does NOT define how these types are
-								handled.
-								E.g. it
-								defines attributes and object class for
-								inetOrgPerson, it defines
-								that inetOrgPerson
-								extends
-								organizationalPerson and
-								persona, that
-								cn is multi-valued string attributed of Person,
-								etc. But it does
-								NOT define
-								that inetOrgPerson
-								object class
-								should be used as
-								account and that
-								modifyTimestamp attribute is read-only. Such
-								additional details are specified in
-								schemaHandling element
-								defined below.
-
-								Resource schema is read-only. Changing
-								resource
-								schema is not supported.
-
-								TODO:
-								annotations in the schema
-
-								Note:
-								xsd:any is here, but maybe a stricter type
-								would be preferable.
-							</xsd:documentation>
-						</xsd:annotation>
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded">
-									<xsd:annotation>
-										<xsd:appinfo>
-											<xjc:dom />
-										</xsd:appinfo>
-									</xsd:annotation>
-								</xsd:any>
-							</xsd:sequence>
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element ref="tns:schemaHandling" />
-					<xsd:element ref="tns:configuration" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="ResourceAccessConfigurationReferenceType">
-		<xsd:annotation>
-			<xsd:documentation>
-				!!! DEPRECATED !!!
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" base="tns:ObjectReferenceType">
-				<xsd:sequence>
-					<xsd:element name="nestedConfiguration" type="tns:ResourceAccessConfigurationReferenceType" minOccurs="0"></xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
 	<xsd:complexType name="ResourceType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -2528,40 +2370,6 @@
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
-					<xsd:element name="type" type="xsd:anyURI" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								DEPRECATED. It is made optional for now. It
-								will be removed later.
-
-								Type of the resource
-								expressed as URI.
-								The
-								type (indirectly) defines what method to use
-								to
-								connect to the
-								resource.
-								E.g. it may specify
-								the name of a Identity
-								Connector
-								bundle, version
-								and connector name.
-								Or it may specify the URI
-								of
-								built-in SPML
-								connector, etc.
-
-								Note: QName may be
-								more appropriate
-								here.
-								But due to
-								OpenESB bug we have URI. But
-								these
-								should be the
-								same anyway.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
 					<xsd:element name="namespace" type="xsd:anyURI">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -2581,17 +2389,6 @@
 								should provide
 								a
 								reasonable default value.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="resourceAccessConfigurationRef" type="tns:ResourceAccessConfigurationReferenceType" minOccurs="0">
-						<xsd:annotation>
-							<xsd:documentation>
-								DEPRECATED. This will be removed.
-
-								This is
-								optional for now. May become mandatory
-								later.
 							</xsd:documentation>
 						</xsd:annotation>
 					</xsd:element>
@@ -3938,33 +3735,6 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="pollingInterval" type="xsd:integer" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						The interval in seconds. If the connector is
-						based on polling, the resource will be polled
-						once
-						per
-						interval for
-						changes. If the connector is not
-						polling-based, this parameter has
-						no effect.
-
-						If not specified, it
-						means "as
-						frequently as possible".
-
-						Note that this value is only approximate. The resource
-						will not be
-						polled any
-						faster then specified
-						here. But
-						it may be polled less
-						frequently, e.g. in case the system
-						is overloaded.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
 			<xsd:element name="correlation" type="c:QueryType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -4203,98 +3973,6 @@
 
 		</xsd:restriction>
 	</xsd:simpleType>
-
-	<xsd:complexType name="ResourceStateType">
-		<xsd:annotation>
-			<xsd:documentation>
-				Object to store resource state. It is reflection
-				of temporary
-				resource parameters, such as
-				synchronization
-				tokens,
-				long-term
-				communication state, maybe even queues and similar data.
-
-				This object may store only
-				disposable, temporary
-				data. If this
-				object
-				is lost or deleted, the system must be able to restore
-				normal
-				operation
-				without administrator interaction.
-
-				This object is separate
-				from the resource to allow migrating
-				of resource definition
-				between
-				midPoint installations (e.g. from
-				testing to production). This object
-				can also be safely discarded,
-				implementing kind of "clear cache"
-				functionality.
-
-				This may be
-				considered an internal object of
-				provisioning.
-				It is
-				part of Identity Schema now, until we figure out
-				how to do
-				this in a better
-				way.
-
-				This object type is considered
-				UNSTABLE for now. Do not depend
-				on it too much. It is likely to
-				change.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:complexContent>
-			<xsd:extension base="c:ExtensibleObjectType">
-				<xsd:sequence>
-					<xsd:element name="resourceRef" type="c:ObjectReferenceType">
-						<xsd:annotation>
-							<xsd:documentation>
-								Reference to a resource. This object describes
-								state of the resource.
-
-								This may seem like a link
-								in a
-								wrong
-								direction.
-								But ResourceType is an more generic (abstract)
-								concept, while this object is closer to the
-								implementation.
-								Therefore this should depend
-								on the ResourceType, not vice versa.
-							</xsd:documentation>
-						</xsd:annotation>
-					</xsd:element>
-					<xsd:element name="synchronizationState" minOccurs="0" maxOccurs="1">
-						<xsd:annotation>
-							<xsd:documentation>
-								Place to store syncronization state, such as
-								sync token,
-								the ID of last applied change, etc.
-							</xsd:documentation>
-						</xsd:annotation>
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:any minOccurs="0" maxOccurs="unbounded">
-									<xsd:annotation>
-										<xsd:appinfo>
-											<jaxb:dom />
-										</xsd:appinfo>
-									</xsd:annotation>
-								</xsd:any>
-							</xsd:sequence>
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:sequence>
-			</xsd:extension>
-			<!-- Other parts may come here in the future -->
-		</xsd:complexContent>
-	</xsd:complexType>
 
 	<xsd:complexType name="ConnectorType">
 		<xsd:annotation>
@@ -4799,354 +4477,14 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="UserContainerType">
-		<xsd:sequence>
-			<xsd:element name="user" type="tns:UserType" />
-		</xsd:sequence>
-	</xsd:complexType>
-
 	<xsd:complexType name="UserListType">
 		<xsd:sequence>
 			<xsd:element name="user" type="tns:UserType" minOccurs="0" maxOccurs="unbounded" />
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="ObjectStageType">
-		<xsd:annotation>
-			<xsd:documentation>
-				!!! DEPRECATED !!!
-
-				TODO
-
-				This should REALY REALY be in the IDM model
-				interface
-				definition. The specific
-				properties of a
-				stage may
-				be
-				different
-				for each
-				implementation. The implementation may replace
-				this
-				with a similar concept of
-				stage.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element ref="c:object">
-				<xsd:annotation>
-					<xsd:documentation>
-						This element must contain the object that the
-						stage
-						describes. This is visible to the client and
-						client may
-						change
-						it (almost) freely.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						This is supposed to contain
-						conversation/interaction
-						state, the original object values, etc.
-						It
-						is
-						specific
-						for each implementation of the IDM model.
-
-						it is under
-						control of the IDM model implementation. The
-						client
-						(GUI) should
-						treat it
-						as an opaque data.
-					</xsd:documentation>
-					<xsd:appinfo>
-						<xjc:dom />
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:any>
-		</xsd:sequence>
-	</xsd:complexType>
-
-	<xsd:complexType name="ResourceTestResultType">
-		<xsd:annotation>
-			<xsd:documentation>
-				!!! DEPRECATED !!!
-
-				The result of resource test. It indicates whather
-				the resource
-				configuration is correct,
-				whether
-				the
-				connector can be
-				initialized,
-				can reach the target system, etc.
-
-				All the tests are
-				optional. If a respective
-				element is
-				not
-				present, it is assumed that
-				the test
-				was not executed. For
-				example because of failure of a
-				previous
-				required test.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="configurationValidation" type="tns:TestResultType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Check whether the configuration is valid e.g.
-						well-formed
-						XML, valid with regard to schema, etc.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="connectorInitialization" type="tns:TestResultType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Check whether the connector can be initialized.
-						E.g.
-						connector classes can be loaded, it can
-						process
-						configuration,
-						etc.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="connectorConnection" type="tns:TestResultType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Check whether the connector can be initialized.
-						E.g.
-						connector classes can be loaded, it can
-						process
-						configuration,
-						etc.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="connectorSchema" type="tns:TestResultType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Check whether the connector can fetch and
-						process
-						resource schema.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="connectorSanity" type="tns:TestResultType" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Check whether the connector can be used to fetch
-						some
-						mandatory objects (e.g. fetch a "root"
-						user).
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="extraTest">
-				<xsd:annotation>
-					<xsd:documentation>
-						Any kind of extra tests not specified above.
-					</xsd:documentation>
-				</xsd:annotation>
-				<xsd:complexType>
-					<xsd:sequence>
-						<xsd:element name="name" type="xsd:string">
-							<xsd:annotation>
-								<xsd:documentation>
-									Short test name. Not more than a word or two.
-									Printable, human readable.
-								</xsd:documentation>
-							</xsd:annotation>
-						</xsd:element>
-						<xsd:element name="result" type="tns:TestResultType">
-							<xsd:annotation>
-								<xsd:documentation>
-									The result of an extra test.
-								</xsd:documentation>
-							</xsd:annotation>
-						</xsd:element>
-					</xsd:sequence>
-				</xsd:complexType>
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
-
-	<xsd:element name="resourceTestResult" type="tns:ResourceTestResultType" />
-
-	<xsd:complexType name="TestResultType">
-		<xsd:annotation>
-			<xsd:documentation>
-				!!! DEPRECATED !!!
-
-				Result of a internal midPoint test.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="success" type="xsd:boolean">
-				<xsd:annotation>
-					<xsd:documentation>
-						True if the test passed.
-						False if the test
-						failed.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:choice minOccurs="0" maxOccurs="unbounded">
-				<xsd:element name="error" type="tns:DiagnosticsMessageType">
-					<xsd:annotation>
-						<xsd:documentation>
-							Error that was detected during the test.
-
-							There
-							may be more than one error or warning. In that
-							case, the
-							errors
-							and warnings should appear in this data
-							type in the order that
-							they have have happened.
-
-							At least
-							one instance of this
-							element must
-							be present
-							if a test failed (the success element above is false).
-							This element
-							should be present only if the
-							test failed.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:element>
-				<xsd:element name="warning" type="tns:DiagnosticsMessageType">
-					<xsd:annotation>
-						<xsd:documentation>
-							Warning that was detected during the test.
-
-							There may be more than one error or warning. In that
-							case, the
-							errors and warnings should appear in this data
-							type in the order
-							that they have have happened.
-						</xsd:documentation>
-					</xsd:annotation>
-				</xsd:element>
-			</xsd:choice>
-		</xsd:sequence>
-	</xsd:complexType>
-
-	<xsd:complexType name="DiagnosticsMessageType">
-		<xsd:annotation>
-			<xsd:documentation>
-				!!! DEPRECATED !!!
-
-				A situation (error or warning) that was detected
-				during a test.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="message" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Human-readable textual representation of the
-						situation.
-						This must be understandable for system
-						administrators.
-						It
-						should not be long. It should not be a stack trace.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="details" type="xsd:string" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						Any kind of detailed situation description. May
-						include stack trace or any other kind of "ugly"
-						information.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						The time moment that the message was originally
-						detected.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:sequence>
-	</xsd:complexType>
-
-	<xsd:complexType name="TaskStatusType">
-		<xsd:annotation>
-			<xsd:documentation>
-				The status of the task.
-
-				WARNING: This type
-				definition is UNSTABLE. It may change any
-				time without a
-				notice. Do
-				not use unless you really know what
-				you are doing.
-			</xsd:documentation>
-		</xsd:annotation>
-		<xsd:sequence>
-			<xsd:element name="name" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						Task name, free-form, inteded for display.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="running" type="xsd:boolean">
-				<xsd:annotation>
-					<xsd:documentation>
-						True if the task is running, false otherwise.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="launchTime" type="xsd:dateTime" minOccurs="0" />
-			<xsd:element name="finishTime" type="xsd:dateTime" minOccurs="0" />
-			<xsd:element name="progress" type="xsd:long" minOccurs="0">
-				<xsd:annotation>
-					<xsd:documentation>
-						The metric of task progress. It may be number of
-						percent,
-						number of processed entries, elapsed
-						seconds,
-						whatever
-						makes sense. It is has no upper limit except for the limit
-						of the
-						datatype.
-
-						Note: the upper limit
-						(the "100%"
-						progress) may not be
-						known for all tasks. Yet the user may want to see
-						that the task is
-						doing something
-						anyway. Ot the user
-						may
-						know the max metric from
-						some other source.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="lastStatus" type="xsd:string" />
-			<xsd:element name="numberOfErrors" type="xsd:long" minOccurs="0" />
-			<xsd:element name="lastError" type="tns:DiagnosticsMessageType" minOccurs="0" />
-		</xsd:sequence>
-	</xsd:complexType>
-
 	<xsd:element name="user" type="tns:UserType" substitutionGroup="c:object" />
 	<xsd:element name="resource" type="tns:ResourceType" substitutionGroup="c:object" />
-	<xsd:element name="resourceState" type="tns:ResourceStateType" substitutionGroup="c:object" />
 	<xsd:element name="account" type="tns:AccountShadowType" substitutionGroup="c:object" />
 	<xsd:element name="resourceObjectShadow" type="tns:ResourceObjectShadowType" substitutionGroup="c:object" />
 	<xsd:element name="modification" type="tns:ObjectModificationType" />

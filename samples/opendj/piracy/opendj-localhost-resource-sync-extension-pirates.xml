@@ -367,8 +367,7 @@ This resource definition contains also definition to enable synchronization.
                 It means that the synchronization will poll for changes once
                 per interval specified below. -->
             <enabled>true</enabled>
-            <!-- Synchronization polling interval, in seconds -->
-            <pollingInterval>60</pollingInterval>
+
             <!-- Correlation expression.
                  It will be used to find appropriate user entry for an account.
               -->

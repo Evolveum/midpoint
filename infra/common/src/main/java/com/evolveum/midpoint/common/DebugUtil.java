@@ -26,7 +26,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.DiagnosticsMessageType;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Iterator;
@@ -47,12 +46,10 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.aspect.LoggingAspect;
 import com.evolveum.midpoint.util.aspect.ObjectFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1.FaultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -67,8 +64,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TestResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.UserContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -188,16 +183,6 @@ public class DebugUtil implements ObjectFormatter {
 			sb.append("),...");
 			// TODO: more
 		}
-		sb.append(")");
-		return sb.toString();
-	}
-
-	public static String prettyPrint(ObjectContainerType container) {
-		if (container == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("ObjectContainer(");
-		sb.append(prettyPrint(container.getObject()));
 		sb.append(")");
 		return sb.toString();
 	}
@@ -384,16 +369,6 @@ public class DebugUtil implements ObjectFormatter {
 		return sb.toString();
 	}
 
-	public static String prettyPrint(UserContainerType container) {
-		if (container == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("UserContainerType(");
-		sb.append(prettyPrint(container.getUser()));
-		sb.append(")");
-		return sb.toString();
-	}
-
 	public static String prettyPrint(ResourceObjectShadowListType shadowListType) {
 		if (shadowListType == null) {
 			return "null";
@@ -512,31 +487,6 @@ public class DebugUtil implements ObjectFormatter {
 		return sb.toString();
 	}
 	
-	public static String prettyPrint(TestResultType testResult) {
-		if (testResult == null) {
-			return "null";
-		}
-		StringBuilder sb = new StringBuilder("TestResult(");
-		if (testResult.isSuccess()) {
-			sb.append("OK(");
-		} else {
-			sb.append("FAIL(");
-		}
-		List<JAXBElement<DiagnosticsMessageType>> messageElements = testResult.getErrorOrWarning();
-		for (JAXBElement<DiagnosticsMessageType> messageElement : messageElements) {
-			if (SchemaConstants.I_DIAGNOSTICS_MESSAGE_ERROR.equals(messageElement.getName())) {
-				sb.append("E:");
-			} else {
-				sb.append("W:");
-			}
-			DiagnosticsMessageType message = messageElement.getValue();
-			sb.append(message.getMessage());
-			sb.append(",");
-		}
-		sb.append(")");
-		return sb.toString();
-	}
-
 	public static String resourceFromShadow(ResourceObjectShadowType shadow) {
 		if (shadow == null) {
 			return null;

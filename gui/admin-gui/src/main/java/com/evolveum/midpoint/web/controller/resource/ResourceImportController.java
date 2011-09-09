@@ -36,7 +36,6 @@ import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 
 /**
  * 
@@ -68,32 +67,33 @@ public class ResourceImportController implements Serializable {
 
 	public TaskStatus getStatus() {
 		if (status == null) {
-			status = new TaskStatus(null);
+			status = new TaskStatus();
 		}
 		return status;
 	}
 
 	public String initController() {
 		String nextPage = null;
-		try {
-			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
-			TaskStatusType statusType = manager.getImportStatus(getResource().getOid());
-			if (statusType != null) {
-				this.status = new TaskStatus(statusType);
-				nextPage = PAGE_NAVIGATION;
-			} else {
-				FacesUtils.addErrorMessage("Couldn't get import status. TODO: resultType handling.");
-			}
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get import status for resource {}", ex, getResource()
-					.getName());
-			FacesUtils.addErrorMessage("Couldn't get import status for resource '" + getResource().getName()
-					+ "'.", ex);
-		}
-
-		if (PAGE_NAVIGATION.equals(nextPage)) {
-			template.setSelectedLeftId(NAVIGATION_LEFT);
-		}
+		// TODO
+//		try {
+//			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
+//			TaskStatusType statusType = manager.getImportStatus(getResource().getOid());
+//			if (statusType != null) {
+//				this.status = new TaskStatus(statusType);
+//				nextPage = PAGE_NAVIGATION;
+//			} else {
+//				FacesUtils.addErrorMessage("Couldn't get import status. TODO: resultType handling.");
+//			}
+//		} catch (Exception ex) {
+//			LoggingUtils.logException(LOGGER, "Couldn't get import status for resource {}", ex, getResource()
+//					.getName());
+//			FacesUtils.addErrorMessage("Couldn't get import status for resource '" + getResource().getName()
+//					+ "'.", ex);
+//		}
+//
+//		if (PAGE_NAVIGATION.equals(nextPage)) {
+//			template.setSelectedLeftId(NAVIGATION_LEFT);
+//		}
 		return nextPage;
 	}
 

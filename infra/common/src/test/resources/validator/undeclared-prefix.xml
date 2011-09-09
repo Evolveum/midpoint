@@ -26,7 +26,6 @@
                
     <c:resource oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
         <c:name>Localhost OpenDJ</c:name>
-        <c:type>http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resourceaccessconfiguration-1.xsd</c:type>
 
         <c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</c:namespace>
 

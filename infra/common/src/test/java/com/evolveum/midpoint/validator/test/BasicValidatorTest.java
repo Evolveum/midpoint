@@ -121,7 +121,7 @@ public class BasicValidatorTest {
         AssertJUnit.assertFalse(result.isSuccess());
         AssertJUnit.assertTrue(result.getMessage().contains("Unexpected close tag"));
         // Check if line number is in the error
-        AssertJUnit.assertTrue(result.getMessage().contains("49"));
+        AssertJUnit.assertTrue(result.getMessage().contains("48"));
 
     }
 
@@ -137,7 +137,7 @@ public class BasicValidatorTest {
         AssertJUnit.assertFalse(result.isSuccess());
         AssertJUnit.assertTrue(result.getMessage().contains("Undeclared namespace prefix"));
         // Check if line number is in the error
-        AssertJUnit.assertTrue(result.getMessage().contains("43"));
+        AssertJUnit.assertTrue(result.getMessage().contains("42"));
 
     }
 

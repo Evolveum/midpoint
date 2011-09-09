@@ -53,11 +53,8 @@ public enum SampleObjects {
     /**
      * OpenDJ unsaved jdoe (AccountShadowType)
      */
-    ACCOUNTSHADOWTYPE_OPENDJ_JDOE("e341e691-0b89-4245-9ec8-c20f63b69714"),
-    /**
-     * Identity Connector Integration (ResourceAccessConfigurationType)
-     */
-    RESOURCEACCESSCONFIGURATIONTYPE_IDENTITY_CONNECTOR_INTEGRATION("acf6bd6d-d3ee-4756-bf94-22c2f5168f63");
+    ACCOUNTSHADOWTYPE_OPENDJ_JDOE("e341e691-0b89-4245-9ec8-c20f63b69714");
+
     private String OID;
 
     private SampleObjects(String _key) {

@@ -41,9 +41,6 @@ public class TestUtilTest {
         ExtensibleObjectType result = TestUtil.getSampleObject(SampleObjects.RESOURCETYPE_LOCALHOST_OPENDJ);
         AssertJUnit.assertNotNull(result);
         result = null;
-        result = TestUtil.getSampleObject(SampleObjects.RESOURCEACCESSCONFIGURATIONTYPE_IDENTITY_CONNECTOR_INTEGRATION);
-        AssertJUnit.assertNotNull(result);
-        result = null;
         result = TestUtil.getSampleObject(SampleObjects.ACCOUNTSHADOWTYPE_OPENDJ_JBOND);
         AssertJUnit.assertNotNull(result);
         result = null;

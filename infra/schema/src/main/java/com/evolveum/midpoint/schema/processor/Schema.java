@@ -160,9 +160,9 @@ public class Schema implements Dumpable, Serializable {
 					continue;
 				}
 
-				property.setCreate(access.contains(AccessType.create));
-				property.setRead(access.contains(AccessType.read));
-				property.setUpdate(access.contains(AccessType.update));
+				property.setCreate(access.contains(AccessType.CREATE));
+				property.setRead(access.contains(AccessType.READ));
+				property.setUpdate(access.contains(AccessType.UPDATE));
 			}
 		}
 	}

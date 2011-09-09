@@ -47,7 +47,6 @@
         <c:name>bond new</c:name>
         <resource oid="333">
             <c:name>ds1</c:name>
-            <type>http://midpoint.evolveum.com/xml/ns/resource/ldap/1#LdapResource</type>
             <namespace>http://mi6.gov.uk/schema/</namespace>
             <schema>
                 <xsd:schema targetNamespace="http://mi6.gov.uk/schema/">

@@ -25,8 +25,8 @@ package com.evolveum.midpoint.web.bean;
 import java.io.Serializable;
 import java.util.Date;
 
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 
 /**
  * 
@@ -40,37 +40,12 @@ public class TaskStatus implements Serializable {
 	private Date finishTime;
 	private String lastStatus;
 	private long numberOfErrors;
-	private DiagnosticMessage lastError;
+	private OperationResult lastError;
 	private long progress;
 	private boolean running;
 
-	public TaskStatus(TaskStatusType statusType) {
-		if (statusType == null) {
-			return;
-		}
-
-		setName(statusType.getName());
-		setRunning(statusType.isRunning());
-		setLastStatus(statusType.getLastStatus());
-
-		if (statusType.getFinishTime() != null) {
-			setFinishTime(statusType.getFinishTime().toGregorianCalendar().getTime());
-		}
-		if (statusType.getLaunchTime() != null) {
-			setLaunchTime(statusType.getLaunchTime().toGregorianCalendar().getTime());
-		}
-		if (statusType.getProgress() != null) {
-			setProgress(statusType.getProgress());
-		}
-		if (statusType.getNumberOfErrors() != null) {
-			setNumberOfErrors(statusType.getNumberOfErrors());
-		}
-
-		if (statusType.getLastError() == null) {
-			return;
-		}
-		
-		lastError = new DiagnosticMessage(statusType.getLastError());
+	public TaskStatus() {
+		// TODO
 	}
 
 	public String getName() {
@@ -97,7 +72,7 @@ public class TaskStatus implements Serializable {
 		return lastStatus;
 	}
 
-	public DiagnosticMessage getLastError() {
+	public OperationResult getLastError() {
 		return lastError;
 	}
 
@@ -129,7 +104,7 @@ public class TaskStatus implements Serializable {
 		this.lastStatus = lastStatus;
 	}
 
-	public void setLastError(DiagnosticMessage lastError) {
+	public void setLastError(OperationResult lastError) {
 		this.lastError = lastError;
 	}
 

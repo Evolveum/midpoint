@@ -32,7 +32,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 
 public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiResourceDto> implements
@@ -149,44 +148,6 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 		}
 
 		printResults(LOGGER, result);
-	}
-
-	@Override
-	public TaskStatusType getImportStatus(String resourceOid) {
-		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
-		LOGGER.debug("Getting import status for resource with oid {}", new Object[] { resourceOid });
-
-		OperationResult result = new OperationResult(ResourceManager.GET_IMPORT_STATUS);
-		Holder<OperationResultType> holder = new Holder<OperationResultType>(
-				result.createOperationResultType());
-
-		TaskStatusType task = null;
-		try {
-			// TODO: switch to getObject(taskOid)
-
-			// getModel().getImportStatus(resourceOid, holder);
-			result = OperationResult.createOperationResult(holder.value);
-			result.recordSuccess();
-			// } catch (FaultMessage ex) {
-			// LoggingUtils.logException(LOGGER,
-			// "Couldn't get import status from resource {}", ex, resourceOid);
-			//
-			// OperationResultType resultType = (ex.getFaultInfo() != null &&
-			// ex.getFaultInfo()
-			// .getOperationResult() == null) ? holder.value :
-			// ex.getFaultInfo().getOperationResult();
-			// result = OperationResult.createOperationResult(resultType);
-			// result.recordFatalError(ex);
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get import status from resource {}", ex, resourceOid);
-
-			result = OperationResult.createOperationResult(holder.value);
-			result.recordFatalError(ex);
-		}
-
-		printResults(LOGGER, result);
-
-		return task;
 	}
 
 	@Override
