@@ -71,7 +71,7 @@ This resource definition contains only the very basic definitions for midPoint t
 				<icfcldap:host>localhost</icfcldap:host>
 				<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
 				<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
-				<icfcldap:credentials>secret</icfcldap:credentials>
+				<icfcldap:credentials><clearValue>secret</clearValue></icfcldap:credentials>
 				<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
 				<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
 				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
