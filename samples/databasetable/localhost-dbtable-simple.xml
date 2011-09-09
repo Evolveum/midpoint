@@ -73,7 +73,7 @@ object.
 				<icscdbtable:quoting></icscdbtable:quoting>
 				<icscdbtable:host>localhost</icscdbtable:host>
 				<icscdbtable:user>root</icscdbtable:user>
-				<icscdbtable:password>qwe123</icscdbtable:password>
+				<icscdbtable:password><clearValue>qwe123</clearValue></icscdbtable:password>
 				<icscdbtable:database>midpoint_tests</icscdbtable:database>
 				<icscdbtable:table>idrepo</icscdbtable:table>
 				<icscdbtable:keyColumn>userId</icscdbtable:keyColumn>

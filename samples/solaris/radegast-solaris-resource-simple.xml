@@ -72,16 +72,16 @@ object.
 				<icfcsolaris:port>22</icfcsolaris:port>
 				<icfcsolaris:host>radegast</icfcsolaris:host>
 				<icfcsolaris:loginUser>root</icfcsolaris:loginUser>
-				<icfcsolaris:password>qwe123</icfcsolaris:password>
+				<icfcsolaris:password><clearValue>qwe123</clearValue></icfcsolaris:password>
 				<icfcsolaris:connectionType>SSH</icfcsolaris:connectionType>
 				<icfcsolaris:loginShellPrompt>#</icfcsolaris:loginShellPrompt>
 				<!--
 				<icfcsolaris:rootUser>root</icfcsolaris:rootUser>
-				<icfcsolaris:credentials>password</icfcsolaris:credentials>
+				<icfcsolaris:credentials><clearValue>password</clearValue></icfcsolaris:credentials>
 				<icfcsolaris:rootShellPrompt>#</icfcsolaris:rootShellPrompt>
 				<icfcsolaris:sudoAuthorization>true</icfcsolaris:sudoAuthorization>
 				<icfcsolaris:privateKey>???</icfcsolaris:privateKey>
-				<icfsolaris:passphrase>MySuperSecretPassphrase</icfsolaris:passphrase>
+				<icfsolaris:passphrase><clearValue>MySuperSecretPassphrase</clearValue></icfsolaris:passphrase>
 
 				<icfsolaris:blockSize>100</icfsolaris:blockSize>
 				<icfsolaris:blockFetchTimeout>6000</icfsolaris:blockFetchTimeout>
