@@ -25,10 +25,11 @@ import java.util.Collections;
 import java.util.List;
 
 import javax.faces.model.SelectItem;
-import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -37,14 +38,10 @@ import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.controller.util.ListController;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 
 /**
  * 
@@ -63,7 +60,7 @@ public class BrowserBean extends ListController<BrowserItem> {
 
 		Collections.sort(types, new SelectItemComparator());
 	}
-	private transient ModelPortType model;
+	private transient ModelService model;
 	private String type;
 	private String name;
 	private boolean listByName = true;
@@ -91,7 +88,7 @@ public class BrowserBean extends ListController<BrowserItem> {
 		this.type = type;
 	}
 
-	public void setModel(ModelPortType model) {
+	public void setModel(ModelService model) {
 		this.model = model;
 	}
 
@@ -132,11 +129,11 @@ public class BrowserBean extends ListController<BrowserItem> {
 	private String listByName() {
 		QueryType query = new QueryType();
 		query.setFilter(ControllerUtil.createQuery(name, null));
-		ObjectListType list = null;
+		List<ObjectType> list = null;
 		try {
-			list = model.searchObjects(ObjectTypes.OBJECT.getObjectTypeUri(),query, new PagingType(), new Holder<OperationResultType>(
-					new OperationResultType()));
-		} catch (FaultMessage ex) {
+			list = model.searchObjects(ObjectType.class, query, new PagingType(), new OperationResult(
+					"List by name"));
+		} catch (Exception ex) {
 			FacesUtils.addErrorMessage("Couldn't search for object '" + name + "'.", ex);
 			LOGGER.debug("Couldn't search for object '" + name + "'.", ex);
 		}
@@ -147,16 +144,12 @@ public class BrowserBean extends ListController<BrowserItem> {
 	}
 
 	private String listByType() {
-		ObjectListType result = null;
+		List<? extends ObjectType> result = null;
 		try {
 			PagingType paging = PagingTypeFactory.createPaging(getOffset(), getRowsCount(),
 					OrderDirectionType.ASCENDING, "name");
-			result = model.listObjects(ObjectTypes.getObjectTypeUri(type), paging, new Holder<OperationResultType>(
-					new OperationResultType()));
-		} catch (FaultMessage ex) {
-			String message = (ex.getFaultInfo().getMessage() != null ? ex.getFaultInfo().getMessage() : ex
-					.getMessage());
-			FacesUtils.addErrorMessage("List object failed with exception " + message);
+			result = model.listObjects(ObjectTypes.getObjectType(type).getClassDefinition(), paging,
+					new OperationResult("List by type"));
 		} catch (Exception ex) {
 			FacesUtils.addErrorMessage("List object failed with exception " + ex.getMessage());
 			LOGGER.info("List object failed");
@@ -168,14 +161,14 @@ public class BrowserBean extends ListController<BrowserItem> {
 		return null;
 	}
 
-	private void updateObjectList(ObjectListType result) {
+	private void updateObjectList(List<? extends ObjectType> result) {
 		if (result == null) {
 			FacesUtils.addWarnMessage("No objects found for type '" + type + "'.");
 			return;
 		}
 
 		getObjects().clear();
-		for (ObjectType object : result.getObject()) {
+		for (ObjectType object : result) {
 			// TODO: refactor - object type from class name??? wtf
 			ObjectTypes objectType = ObjectTypes.getObjectType(object.getClass().getSimpleName());
 

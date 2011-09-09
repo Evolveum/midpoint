@@ -30,7 +30,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.ws.Holder;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,8 +38,11 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.diff.DiffException;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -49,16 +51,12 @@ import com.evolveum.midpoint.web.model.RepositoryException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectContainerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 
 /**
  * 
@@ -69,14 +67,14 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 	private static final Trace LOGGER = TraceManager.getTrace(UserDetailsServiceImpl.class);
 	@Autowired(required = true)
-	private transient ModelPortType modelService;
+	private transient ModelService modelService;
 
 	@Override
 	public PrincipalUser getUser(String principal) {
 		PrincipalUser user = null;
 		try {
 			user = findByUsername(principal);
-		} catch (FaultMessage ex) {
+		} catch (Exception ex) {
 			LOGGER.warn("Couldn't find user with name '{}', reason: {}.",
 					new Object[] { principal, ex.getMessage() });
 		}
@@ -94,23 +92,22 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 		}
 	}
 
-	private PrincipalUser findByUsername(String username) throws FaultMessage {
+	private PrincipalUser findByUsername(String username) throws SchemaException, ObjectNotFoundException {
 		QueryType query = new QueryType();
 		query.setFilter(createQuery(username));
 		LOGGER.trace("Looking for user, query:\n" + DOMUtil.printDom(query.getFilter()));
 
-		ObjectListType list = modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), query,
-				new PagingType(), new Holder<OperationResultType>(new OperationResultType()));
+		List<UserType> list = modelService.searchObjects(UserType.class, query, new PagingType(),
+				new OperationResult("Find by username"));
 		if (list == null) {
 			return null;
 		}
-		List<ObjectType> objects = list.getObject();
-		LOGGER.trace("Users found: {}.", new Object[] { objects.size() });
-		if (objects.size() == 0 || objects.size() > 1) {
+		LOGGER.trace("Users found: {}.", new Object[] { list.size() });
+		if (list.size() == 0 || list.size() > 1) {
 			return null;
 		}
 
-		return createUser((UserType) objects.get(0));
+		return createUser(list.get(0));
 	}
 
 	private PrincipalUser createUser(UserType userType) {
@@ -179,31 +176,24 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
 			ObjectModificationType modification = CalculateXmlDiff.calculateChanges(oldUserType, userType);
 			if (modification != null && modification.getOid() != null) {
-				modelService.modifyObject(ObjectTypes.USER.getObjectTypeUri(), modification,
-						new Holder<OperationResultType>(new OperationResultType()));
+				modelService.modifyObject(UserType.class, modification, new OperationResult("Save user"));
 			}
-		} catch (com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage ex) {
-			StringBuilder message = new StringBuilder();
-			message.append("Can't save user, reason: ");
-			if (ex.getFaultInfo() != null) {
-				message.append(ex.getFaultInfo().getMessage());
-			} else {
-				message.append(ex.getMessage());
-			}
-			throw new RepositoryException(message.toString(), ex);
+
 		} catch (DiffException ex) {
 			throw new RepositoryException("Can't save user. Unexpected error: "
 					+ "Couldn't create create diff.", ex);
 		} catch (JAXBException ex) {
 			// TODO: finish
+		} catch (Exception ex) {
+			throw new RepositoryException(ex.getMessage(), ex);
 		}
 
 		return null;
 	}
 
-	private UserType getUserByOid(String oid) throws FaultMessage {
-		ObjectType object = modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), oid,
-				new PropertyReferenceListType(), new Holder<OperationResultType>(new OperationResultType()));
+	private UserType getUserByOid(String oid) throws ObjectNotFoundException {
+		ObjectType object = modelService.getObject(UserType.class, oid, new PropertyReferenceListType(),
+				new OperationResult("Get user by oid"));
 		if (object != null && (object instanceof UserType)) {
 			return (UserType) object;
 		}

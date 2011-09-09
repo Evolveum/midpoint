@@ -31,7 +31,6 @@ import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
 import javax.xml.xpath.XPathConstants;
 
 import org.apache.commons.lang.StringUtils;
@@ -43,13 +42,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.xpath.XPathUtil;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.BrowserBean;
@@ -57,10 +58,7 @@ import com.evolveum.midpoint.web.bean.XPathVariableBean;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 
 /**
  * 
@@ -89,7 +87,7 @@ public class XPathDebugController implements Serializable {
 		types.add(new SelectItem("String"));
 	}
 	@Autowired
-	private transient ModelPortType port;
+	private transient ModelService modelService;
 	private String expression;
 	private List<XPathVariableBean> variables = new ArrayList<XPathVariableBean>();
 	private boolean selectAll;
@@ -144,20 +142,17 @@ public class XPathDebugController implements Serializable {
 			if (StringUtils.isNotEmpty(variable.getVariableName())) {
 				if (variable.getType().equals("Object")) {
 					try {
-						ObjectType objectType = port.getObject(
-								ObjectTypes.OBJECT.getObjectTypeUri(),
-								variable.getValue(),
-								new PropertyReferenceListType(), new Holder<OperationResultType>(
-										new OperationResultType()));
+						ObjectType objectType = modelService.getObject(ObjectType.class, variable.getValue(),
+								new PropertyReferenceListType(), new OperationResult("Get object"));
 						// Variable only accepts String or Node, but here we
 						// will get a JAXB object. Need to convert it.
 						Element jaxbToDom = JAXBUtil.jaxbToDom(objectType, SchemaConstants.I_OBJECT, null);
 						// TODO: May need to add xsi:type attribute here
 						variableMap.put(getQNameForVariable(variable.getVariableName()), new Variable(
 								jaxbToDom, false));
-					} catch (FaultMessage ex) {
-						LOGGER.error("Failed to get variable value");
-						LOGGER.error("Exception was: ", ex.getFaultInfo().getMessage());
+					} catch (Exception ex) {
+						LoggingUtils.logException(LOGGER, "Failed to get variable value {}", ex,
+								variable.getValue());
 					}
 				}
 				if (variable.getType().equals("String")) {
@@ -296,7 +291,7 @@ public class XPathDebugController implements Serializable {
 	public BrowserBean getBrowser() {
 		if (browser == null) {
 			browser = new BrowserBean();
-			browser.setModel(port);
+			browser.setModel(modelService);
 		}
 		return browser;
 	}
@@ -312,7 +307,7 @@ public class XPathDebugController implements Serializable {
 			return;
 		}
 
-		browser.setModel(port);
+		browser.setModel(modelService);
 		showBrowser = true;
 	}
 

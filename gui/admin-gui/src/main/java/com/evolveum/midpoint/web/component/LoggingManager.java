@@ -26,8 +26,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.ws.Holder;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.log4j.Appender;
@@ -42,7 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.SystemPropertyUtils;
 
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -59,13 +57,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfiguration
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NdcDailyRollingFileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.NdcRollingFileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RollingFileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 
 /**
  * 
@@ -76,7 +71,7 @@ public class LoggingManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingManager.class);
 	@Autowired(required = true)
-	private ModelPortType model;
+	private ModelService model;
 	@Autowired
 	private ObjectTypeCatalog catalog;
 	private LoggingConfigurationType logging;
@@ -262,29 +257,23 @@ public class LoggingManager {
 	}
 
 	private SystemConfigurationType getSystemConfiguration(OperationResult result) {
-		final OperationResult getSystemConfigResult = new OperationResult("Get System Configuration");
-
-		OperationResultType resultTypeHolder = new OperationResultType();
-		resultTypeHolder.setOperation(getSystemConfigResult.getOperation());
+		final OperationResult getSystemConfigResult = result.createSubresult("Get System Configuration");
 
 		SystemConfigurationType config = null;
 		try {
-			ObjectType object = model.getObject(ObjectTypes.SYSTEM_CONFIGURATION.getObjectTypeUri(),
-					SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-					new PropertyReferenceListType(), new Holder<OperationResultType>(resultTypeHolder));
+			ObjectType object = model.getObject(SystemConfigurationType.class,
+					SystemObjectsType.SYSTEM_CONFIGURATION.value(), new PropertyReferenceListType(),
+					getSystemConfigResult);
 			config = (SystemConfigurationType) object;
 
 			getSystemConfigResult.recordSuccess();
-		} catch (FaultMessage ex) {
+		} catch (Exception ex) {
 			String message = "Couldn't get system configuration";
 			LoggingUtils.logException(LOGGER, message, ex);
 
 			getSystemConfigResult.recordFatalError(message, ex);
 		} finally {
-			OperationResult opResult = OperationResult.createOperationResult(resultTypeHolder);
-			getSystemConfigResult.getSubresults().addAll(opResult.getSubresults());
-
-			result.addSubresult(getSystemConfigResult);
+			getSystemConfigResult.computeStatus();
 		}
 
 		if (config == null) {

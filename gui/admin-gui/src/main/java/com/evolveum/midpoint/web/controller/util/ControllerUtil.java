@@ -24,7 +24,6 @@ import java.util.List;
 
 import javax.faces.event.PhaseId;
 import javax.faces.event.ValueChangeEvent;
-import javax.xml.ws.Holder;
 
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -35,7 +34,6 @@ import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ResourceState;
@@ -53,14 +51,9 @@ import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.web.model.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 
 /**
  * 
@@ -70,34 +63,6 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 public class ControllerUtil {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ControllerUtil.class);
-
-	@SuppressWarnings("unchecked")
-	public static <T> T getObjectFromModel(String oid, ModelPortType model, OperationResult result,
-			Class<T> clazz) {
-		// TODO: operation result handling
-
-		OperationResult opResult = new OperationResult("Get Object");
-		result.addSubresult(opResult);
-		try {
-			ObjectType object = model.getObject(
-					ObjectTypes.OBJECT.getObjectTypeUri(),
-					oid, new PropertyReferenceListType(),
-					new Holder<OperationResultType>(opResult.createOperationResultType()));
-
-			if (clazz.isInstance(object)) {
-				opResult.recordSuccess();
-				return (T) object;
-			} else {
-				opResult.recordFatalError("Object type '" + object.getClass().getSimpleName()
-						+ "' is not expected (" + clazz.getSimpleName() + ").");
-			}
-		} catch (FaultMessage ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't get object with oid {}", ex, oid);
-			opResult.recordFatalError("Couldn't get object from model.", ex);
-		}
-
-		return null;
-	}
 
 	public static Element createQuery(String username, ObjectTypes objectType) {
 		Document document = DOMUtil.getDocument();

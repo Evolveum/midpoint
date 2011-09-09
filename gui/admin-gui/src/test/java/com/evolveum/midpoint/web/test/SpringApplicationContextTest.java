@@ -30,13 +30,13 @@ import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.init.InitialDataImport;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
-import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 
 /**
  * Test of spring application context initialization
@@ -45,27 +45,27 @@ import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
  * 
  */
 
-@ContextConfiguration(locations = { 
+@ContextConfiguration(locations = {
 		"file:src/main/webapp/WEB-INF/application-context-webapp.xml",
 		"file:src/main/webapp/WEB-INF/application-context-init.xml",
 		"file:src/main/webapp/WEB-INF/application-context-security.xml",
 		"classpath:application-context-test.xml",
-//TODO: if these two contexts are initilized then the test fails for unknown reason
-//		"classpath:application-context-provisioning.xml",
+		// TODO: if these two contexts are initilized then the test fails for
+		// unknown reason
+		// "classpath:application-context-provisioning.xml",
 		"classpath:application-context-repository.xml",
-		"classpath:application-context-configuration-test.xml"
-		 })
-public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests  {
+		"classpath:application-context-configuration-test.xml" })
+public class SpringApplicationContextTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = true)
 	private ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
-	private ModelPortType modelService;
+	private ModelService modelService;
 	@Autowired(required = true)
 	private InitialDataImport initialDataImport;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
-	
+
 	@Test
 	public void initApplicationContext() {
 		assertNotNull(objectTypeCatalog.listSupportedObjectTypes());
