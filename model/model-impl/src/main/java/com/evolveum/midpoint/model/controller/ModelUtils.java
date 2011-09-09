@@ -20,6 +20,9 @@
  */
 package com.evolveum.midpoint.model.controller;
 
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
@@ -33,6 +36,7 @@ import com.evolveum.midpoint.util.RandomString;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -191,5 +195,29 @@ public class ModelUtils {
 
 		throw new IllegalArgumentException("No schema handlig account type for name '" + accountTypeName
 				+ "' found.");
+	}
+
+	public static boolean isActivationEnabled(ActivationType activation) {
+		Validate.notNull(activation, "Activation must not be null.");
+		if (activation.isEnabled() != null) {
+			return activation.isEnabled();
+		}
+
+		Calendar actual = Calendar.getInstance();
+		if (activation.getValidFrom() != null) {
+			GregorianCalendar calendar = activation.getValidFrom().toGregorianCalendar();
+			if (actual.before(calendar)) {
+				return false;
+			}
+		}
+
+		if (activation.getValidTo() != null) {
+			GregorianCalendar calendar = activation.getValidTo().toGregorianCalendar();
+			if (actual.after(calendar)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

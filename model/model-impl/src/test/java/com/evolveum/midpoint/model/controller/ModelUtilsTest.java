@@ -21,13 +21,20 @@
 package com.evolveum.midpoint.model.controller;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,6 +48,7 @@ import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
@@ -54,7 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemObjectsType;
  * 
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml", 
+		"classpath:application-context-model-unit-test.xml",
 		"classpath:application-context-configuration-test-no-repo.xml",
 		"classpath:application-context-task.xml" })
 public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
@@ -224,5 +232,78 @@ public class ModelUtilsTest extends AbstractTestNGSpringContextTests {
 		ObjectReferenceType ref = account.getResourceRef();
 		assertEquals(resourceOid, ref.getOid());
 		assertEquals(ObjectTypes.RESOURCE.getTypeQName(), ref.getType());
+	}
+
+	@Test
+	public void testActivationDisabled() throws Exception {
+		ActivationType activation = new ActivationType();
+		activation.setEnabled(false);
+
+		Calendar calendar = GregorianCalendar.getInstance();
+		calendar.setTimeInMillis(new Date().getTime());
+		calendar.add(Calendar.DAY_OF_YEAR, -1);
+
+		XMLGregorianCalendar from = DatatypeFactory.newInstance().newXMLGregorianCalendar(
+				(GregorianCalendar) calendar);
+		activation.setValidFrom(from);
+
+		assertFalse(ModelUtils.isActivationEnabled(activation));
+	}
+
+	@Test
+	public void testActivationBeforeFrom() throws Exception {
+		ActivationType activation = new ActivationType();
+
+		Calendar calendar = GregorianCalendar.getInstance();
+		calendar.setTimeInMillis(new Date().getTime());
+		calendar.add(Calendar.DAY_OF_YEAR, 1);
+
+		XMLGregorianCalendar from = DatatypeFactory.newInstance().newXMLGregorianCalendar(
+				(GregorianCalendar) calendar);
+		activation.setValidFrom(from);
+
+		assertFalse(ModelUtils.isActivationEnabled(activation));
+	}
+
+	@Test
+	public void testActivationAfterTo() throws Exception {
+		ActivationType activation = new ActivationType();
+
+		Calendar calendar = GregorianCalendar.getInstance();
+		calendar.setTimeInMillis(new Date().getTime());
+		calendar.add(Calendar.DAY_OF_YEAR, -3);
+		XMLGregorianCalendar from = DatatypeFactory.newInstance().newXMLGregorianCalendar(
+				(GregorianCalendar) calendar);
+		activation.setValidFrom(from);
+
+		calendar = GregorianCalendar.getInstance();
+		calendar.setTimeInMillis(new Date().getTime());
+		calendar.add(Calendar.DAY_OF_YEAR, -1);
+		XMLGregorianCalendar to = DatatypeFactory.newInstance().newXMLGregorianCalendar(
+				(GregorianCalendar) calendar);
+		activation.setValidTo(to);
+
+		assertFalse(ModelUtils.isActivationEnabled(activation));
+	}
+
+	@Test
+	public void testActivationCorrect() throws Exception {
+		ActivationType activation = new ActivationType();
+
+		Calendar calendar = GregorianCalendar.getInstance();
+		calendar.setTimeInMillis(new Date().getTime());
+		calendar.add(Calendar.DAY_OF_YEAR, -3);
+		XMLGregorianCalendar from = DatatypeFactory.newInstance().newXMLGregorianCalendar(
+				(GregorianCalendar) calendar);
+		activation.setValidFrom(from);
+
+		calendar = GregorianCalendar.getInstance();
+		calendar.setTimeInMillis(new Date().getTime());
+		calendar.add(Calendar.DAY_OF_YEAR, 1);
+		XMLGregorianCalendar to = DatatypeFactory.newInstance().newXMLGregorianCalendar(
+				(GregorianCalendar) calendar);
+		activation.setValidTo(to);
+
+		assertTrue(ModelUtils.isActivationEnabled(activation));
 	}
 }

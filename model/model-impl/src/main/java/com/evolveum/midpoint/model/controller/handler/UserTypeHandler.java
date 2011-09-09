@@ -21,6 +21,7 @@
 package com.evolveum.midpoint.model.controller.handler;
 
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -55,6 +56,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -137,21 +140,7 @@ public class UserTypeHandler extends BasicHandler {
 
 	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException,
 			ObjectNotFoundException {
-		UserType user = (UserType) object;
-		processAddAccountFromUser(user, result);
-		// At first we get default user template from system configuration
-		SystemConfigurationType systemConfiguration = getSystemConfiguration(result);
-		UserTemplateType userTemplate = systemConfiguration.getDefaultUserTemplate();
-		object = processUserTemplateForUser(user, userTemplate, result);
-
-		try {
-			return getRepository().addObject(object, result);
-		} catch (ObjectAlreadyExistsException ex) {
-			throw ex;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't add object {} to repository", ex, object.getName());
-			throw new SystemException(ex.getMessage(), ex);
-		}
+		return addUser((UserType) object, null, result);
 	}
 
 	public String addUser(UserType user, UserTemplateType userTemplate, OperationResult result)
@@ -172,7 +161,10 @@ public class UserTypeHandler extends BasicHandler {
 
 		String oid = null;
 		try {
+			// TODO: process add account should be removed, we have to use only
+			// assignments and there should be account if needed
 			processAddAccountFromUser(user, result);
+			processAssignments(user, result);
 			user = processUserTemplateForUser(user, userTemplate, result);
 			oid = getRepository().addObject(user, result);
 			result.recordSuccess();
@@ -192,6 +184,19 @@ public class UserTypeHandler extends BasicHandler {
 		}
 
 		return oid;
+	}
+
+	private void processAssignments(UserType user, OperationResult result) {
+		List<AssignmentType> assignments = user.getAssignment();
+		LOGGER.debug("User {} has {} assignments.", new Object[] { user.getName(), assignments.size() });
+
+		for (AssignmentType assignment : assignments) {
+			if (!ModelUtils.isActivationEnabled(assignment.getActivation())) {
+				continue;
+			}
+
+			// TODO: do stuff with assignment
+		}
 	}
 
 	private void processAddAccountFromUser(UserType user, OperationResult result) {
@@ -348,7 +353,8 @@ public class UserTypeHandler extends BasicHandler {
 					accountChange.getPropertyModification().add(modification);
 				}
 
-				getModelController().modifyObjectWithExclusion(AccountShadowType.class, accountChange, accountOid, subResult);
+				getModelController().modifyObjectWithExclusion(AccountShadowType.class, accountChange,
+						accountOid, subResult);
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't update account {}", ex, accountRef.getOid());
 				subResult.recordFatalError(ex);
