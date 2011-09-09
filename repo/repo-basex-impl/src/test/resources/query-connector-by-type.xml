@@ -24,8 +24,6 @@
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<and>
-		<type
-			uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType" />
 		<equal>
 			<value>
 				<connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>

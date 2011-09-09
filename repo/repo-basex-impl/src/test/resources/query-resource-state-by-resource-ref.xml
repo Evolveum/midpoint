@@ -31,7 +31,6 @@
    <!-- Query filter example -->
 
     <c:and>
-        <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ResourceStateType"/>
         <c:equal>
             <c:value>
                 <i:resourceRef oid="d0db5be9-cb93-401f-b6c1-86ffffe4cd5e"/>

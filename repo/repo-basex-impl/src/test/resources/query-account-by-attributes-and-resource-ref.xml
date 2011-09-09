@@ -30,7 +30,6 @@
    <!-- Query filter example -->
 	
     <c:and>
-        <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#AccountShadowType"/>
         <c:equal>
             <c:path>c:attributes</c:path>
             <c:value>

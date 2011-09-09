@@ -54,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceStateType;
@@ -134,12 +135,12 @@ public class RepositorySearchTest extends AbstractTestNGSpringContextTests {
 
 			QueryType query = (QueryType) ((JAXBElement) JAXBUtil.unmarshal(new File(
 					"src/test/resources/query-all-by-name.xml"))).getValue();
-			List<UserType> objectList = repositoryService.searchObjects(UserType.class, query, new PagingType(), new OperationResult("test"));
+			List<ObjectType> objectList = repositoryService.searchObjects(ObjectType.class, query, new PagingType(), new OperationResult("test"));
 			assertNotNull(objectList);
 			assertEquals(1, objectList.size());
 
-			UserType foundUser = objectList.get(0);
-			assertEquals("Cpt. Jack Sparrow", foundUser.getFullName());
+			ObjectType foundUser = objectList.get(0);
+			assertEquals("Cpt. Jack Sparrow", ((UserType)foundUser).getFullName());
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {

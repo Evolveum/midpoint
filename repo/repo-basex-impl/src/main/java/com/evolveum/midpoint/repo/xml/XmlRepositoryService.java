@@ -271,8 +271,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging,
-			OperationResult parentResult) {
+	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging, OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".listObjects");
 		result.addParam("objectType", objectType);
@@ -283,15 +282,11 @@ public class XmlRepositoryService implements RepositoryService {
 			throw new IllegalArgumentException("objectType is null");
 		}
 
-		// validate, if object type is supported
-		ObjectTypes objType = ObjectTypes.getObjectType(objectType);
-		String oType = objType.getValue();
-
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		namespaces.put("idmdn", SchemaConstants.NS_C);
 
-		List<T> objects = searchObjects(objectType, oType, paging, null, namespaces, result);
+		List<T> objects = searchObjects(objectType, paging, null, namespaces, result);
 		result.recordSuccess();
 		return objects;
 	}
@@ -309,7 +304,7 @@ public class XmlRepositoryService implements RepositoryService {
 		validateQuery(query);
 
 		NodeList children = query.getFilter().getChildNodes();
-		String objectType = null;
+		//String objectType = null;
 		Map<String, String> filters = new HashMap<String, String>();
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
@@ -329,7 +324,8 @@ public class XmlRepositoryService implements RepositoryService {
 			}
 
 			if (validateFilterElement(SchemaConstants.NS_C, "type", child)) {
-				objectType = child.getAttributes().getNamedItem("uri").getTextContent();
+				//objectType = child.getAttributes().getNamedItem("uri").getTextContent();
+				LOGGER.warn("Found deprecated argument c:type in search filter. Ignoring it.");
 			} else if (validateFilterElement(SchemaConstants.NS_C, "equal", child)) {
 				Node criteria = DOMUtil.getFirstChildElement(child);
 
@@ -347,7 +343,7 @@ public class XmlRepositoryService implements RepositoryService {
 			}
 		}
 
-		return searchObjects(clazz, objectType, paging, filters, namespaces, result);
+		return searchObjects(clazz, paging, filters, namespaces, result);
 	}
 
 	@Override
@@ -460,8 +456,7 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:accountRef", accountOid);
-		List<UserType> retrievedObjects = searchObjects(UserType.class, ObjectTypes.USER.getObjectTypeUri(),
-				null, filters, namespaces, result);
+		List<UserType> retrievedObjects = searchObjects(UserType.class, null, filters, namespaces, result);
 
 		if (null == retrievedObjects || retrievedObjects.size() == 0) {
 			result.recordSuccess();
@@ -491,8 +486,7 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:resourceRef", resourceOid);
-		List<T> retrievedObjects = searchObjects(resourceObjectShadowType,
-				ObjectTypes.ACCOUNT.getObjectTypeUri(), null, filters, namespaces, result);
+		List<T> retrievedObjects = searchObjects(resourceObjectShadowType, null, filters, namespaces, result);
 
 		result.recordSuccess();
 		return retrievedObjects;
@@ -546,10 +540,18 @@ public class XmlRepositoryService implements RepositoryService {
 
 	}
 
-	private <T extends ObjectType> List<T> searchObjects(Class<T> clazz, String objectType,
+	private <T extends ObjectType> List<T> searchObjects(Class<T> clazz,
 			PagingType paging, Map<String, String> filters, Map<String, String> namespaces,
 			OperationResult result) {
 
+		//convert class object type to String representation
+		String objectType = null;
+		if (ObjectType.class.equals(clazz)) {
+			//object type will be empty, because we wan't to search through all the objects
+		} else {
+			objectType = ObjectTypes.getObjectType(clazz).getValue();
+		}
+		
 		List<T> objectList = new ArrayList<T>();
 		// FIXME: objectList.count has to contain all elements that match search
 		// criteria, but not only from paging interval
@@ -572,8 +574,7 @@ public class XmlRepositoryService implements RepositoryService {
 			// FIXME: possible problems with object type checking. Now it is
 			// simple string checking, because import schema is not
 			// supported by basex database
-			query.append("$x/@xsi:type=\"").append(objectType.substring(objectType.lastIndexOf("#") + 1))
-					.append("\"");
+			query.append("$x/@xsi:type=\"").append(objectType).append("\"");
 		}
 		if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
 			query.append("[fn:position() = ( ").append(paging.getOffset() * paging.getMaxSize())
