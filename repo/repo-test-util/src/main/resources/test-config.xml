@@ -27,12 +27,14 @@
 			<embedded>true</embedded> <!-- embedded is applicable only if runServer > true -->
 			<shutdown>true</shutdown>
 			<dropDatabase>true</dropDatabase>
+			<debug>true</debug>
 			<initialDataPath></initialDataPath> <!-- initialDataPath - path containing xmls that should be loaded into DB -->
 			<databaseName>midPoint-test</databaseName> <!-- database name -->
 			<serverPath>target/basex-data</serverPath>
 			<!-- client connection properties -->
 			<host>localhost</host>
 			<port>19840</port>
+			<eventPort>19850</eventPort>
 			<username>admin</username>
 			<password>admin</password>
 		</repository>

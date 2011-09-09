@@ -28,11 +28,13 @@
 			<embedded>true</embedded> <!-- embedded is applicable only if runServer > true -->
 			<shutdown>true</shutdown>
 			<dropDatabase>false</dropDatabase>
+			<debug>true</debug>
 			<initialDataPath>${midpoint.home}</initialDataPath> <!-- initialDataPath - path containing xmls that should be loaded into DB -->
 			<databaseName>midPoint</databaseName> <!-- database name -->
 			<!-- client connection properties -->
 			<host>localhost</host>
 			<port>1984</port>
+			<eventPort>1985</eventPort>
 			<username>admin</username>
 			<password>admin</password>
 		</repository>

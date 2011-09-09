@@ -48,9 +48,11 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 	private boolean runServer = true;
 	private boolean embedded = true;
 	private boolean shutdown = false;
+	private boolean debug = false;
 	private String initialDataPath = "";
 	private String host = "localhost";
 	private int port = 1984;
+	private int eventPort = 1985;
 	private String username = "admin";
 	private String password = "admin";
 	private String databaseName = "midPoint";
@@ -97,14 +99,20 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 				}
 			}
 
+			String debugging = "";
+			if (debug) {
+				debugging = "-d";
+			} 
+			
 			// args ordering is important!
 			if (embedded) {
-				this.checkPort();
+				this.checkPort(port);
+				this.checkPort(eventPort);
 				// set debug mode and run it in the same process
-				server = new BaseXServer("-p" + port, "-d", "-D", "-s", commands.toString());
+				server = new BaseXServer("-p" + port, "-e" + eventPort, "-D", "-s", debugging, commands.toString());
 			} else {
 				// set debug mode and run it as a Daemon process
-				server = new BaseXServer("-p" + port, "-d", "-s", commands.toString());
+				server = new BaseXServer("-p" + port, "-e" + eventPort, "-s", debugging, commands.toString());
 			}
 			LOGGER.trace("BaseX Server started");
 		}
@@ -177,10 +185,12 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 			setInitialDataPath(config.getString("initialDataPath", initialDataPath));
 			setPassword(config.getString("password", password));
 			setPort(config.getInt("port", port));
+			setEventPort(config.getInt("eventPort", eventPort));
 			setRunServer(config.getBoolean("runServer", runServer));
 			setServerPath(config.getString("serverPath", serverPath));
 			setShutdown(config.getBoolean("shutdown", shutdown));
 			setUsername(config.getString("username", username));
+			setDebug(config.getBoolean("debug", debug));
 		} else {
 			throw new IllegalStateException("Configuration has to be injected prior the initialization.");
 		}
@@ -243,6 +253,14 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 	public void setPort(int port) {
 		this.port = port;
 	}
+	
+	public int getEventPort() {
+		return eventPort;
+	}
+
+	public void setEventPort(int eventPort) {
+		this.eventPort = eventPort;
+	}
 
 	public String getUsername() {
 		return username;
@@ -291,16 +309,24 @@ public class XmlRepositoryServiceFactory implements RepositoryServiceFactory {
 	public void setServerPath(String serverPath) {
 		this.serverPath = serverPath;
 	}
+	
+	public boolean isDebug() {
+		return debug;
+	}
 
-	private void checkPort() throws RepositoryServiceFactoryException {
+	public void setDebug(boolean debug) {
+		this.debug = debug;
+	}
+
+	private void checkPort(int port) throws RepositoryServiceFactoryException {
 		ServerSocket ss = null;
 		try {
 			ss = new ServerSocket();
 			ss.setReuseAddress(true);
-			SocketAddress endpoint = new InetSocketAddress(this.getPort());
+			SocketAddress endpoint = new InetSocketAddress(port);
 			ss.bind(endpoint);
 		} catch (IOException e) {
-			throw new RepositoryServiceFactoryException("BaseX port (" + this.getPort() + ") already in use.", e);
+			throw new RepositoryServiceFactoryException("BaseX port (" + port + ") already in use.", e);
 		} finally {
 			try {
 				if (ss != null) {
