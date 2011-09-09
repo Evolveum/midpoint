@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -37,12 +38,15 @@ import com.evolveum.midpoint.model.controller.SchemaHandler;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.patch.PatchException;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -133,36 +137,13 @@ public class BasicHandler {
 		return user;
 	}
 
-	@SuppressWarnings("unchecked")
 	protected void processUserTemplateAccount(UserType user, UserTemplateType userTemplate,
 			OperationResult result) {
 		for (AccountConstructionType construction : userTemplate.getAccountConstruction()) {
 			OperationResult subResult = result.createSubresult(ModelControllerImpl.CREATE_ACCOUNT);
 			subResult.addParams(new String[] { "user", "userTemplate" }, user, userTemplate);
 			try {
-				ObjectReferenceType resourceRef = construction.getResourceRef();
-				ResourceType resource = getObject(ResourceType.class, resourceRef.getOid(),
-						new PropertyReferenceListType(), subResult);
-
-				AccountType accountType = ModelUtils.getAccountTypeFromHandling(construction.getType(),
-						resource);
-
-				AccountShadowType account = new AccountShadowType();
-				account.setAttributes(new ResourceObjectShadowType.Attributes());
-				account.setObjectClass(accountType.getObjectClass());
-				account.setName(resource.getName() + "-" + user.getName());
-				account.setResourceRef(resourceRef);
-				account.setActivation(user.getActivation());
-
-				ObjectModificationType changes = processOutboundSchemaHandling(user, account, subResult);
-				if (changes != null) {
-					PatchXml patchXml = new PatchXml();
-					String accountXml = patchXml.applyDifferences(changes, account);
-					account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml)).getValue();
-				}
-
-				String accountOid = getModelController().addObject(account, subResult);
-				user.getAccountRef().add(ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT));
+				processAccountConstructionForUser(user, construction, subResult);
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't process account construction '{}' for user {}",
 						ex, construction.getType(), user.getName());
@@ -174,6 +155,52 @@ public class BasicHandler {
 						+ "'.");
 			}
 		}
+	}
+
+	protected void processAccountConstruction(UserType user, AccountConstructionType construction,
+			OperationResult result) {
+		OperationResult subResult = result.createSubresult(ModelControllerImpl.CREATE_ACCOUNT);
+		subResult.addParams(new String[] { "user" }, user);
+		try {
+			processAccountConstructionForUser(user, construction, subResult);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't process account construction '{}' for user {}", ex,
+					construction.getType(), user.getName());
+			subResult.recordFatalError("Something went terribly wrong.", ex);
+			result.recordWarning("Couldn't process account construction '" + construction.getType() + "'.",
+					ex);
+		} finally {
+			subResult
+					.computeStatus("Couldn't process account construction '" + construction.getType() + "'.");
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void processAccountConstructionForUser(UserType user, AccountConstructionType construction,
+			OperationResult result) throws ObjectNotFoundException, PatchException, JAXBException,
+			ObjectAlreadyExistsException, SchemaException {
+		ObjectReferenceType resourceRef = construction.getResourceRef();
+		ResourceType resource = getObject(ResourceType.class, resourceRef.getOid(),
+				new PropertyReferenceListType(), result);
+
+		AccountType accountType = ModelUtils.getAccountTypeFromHandling(construction.getType(), resource);
+
+		AccountShadowType account = new AccountShadowType();
+		account.setAttributes(new ResourceObjectShadowType.Attributes());
+		account.setObjectClass(accountType.getObjectClass());
+		account.setName(resource.getName() + "-" + user.getName());
+		account.setResourceRef(resourceRef);
+		account.setActivation(user.getActivation());
+
+		ObjectModificationType changes = processOutboundSchemaHandling(user, account, result);
+		if (changes != null) {
+			PatchXml patchXml = new PatchXml();
+			String accountXml = patchXml.applyDifferences(changes, account);
+			account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml)).getValue();
+		}
+
+		String accountOid = getModelController().addObject(account, result);
+		user.getAccountRef().add(ModelUtils.createReference(accountOid, ObjectTypes.ACCOUNT));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -232,8 +259,7 @@ public class BasicHandler {
 		return change;
 	}
 
-	// TODO: change to protected
-	public void resolveObjectAttributes(ObjectType object, PropertyReferenceListType resolve,
+	protected void resolveObjectAttributes(ObjectType object, PropertyReferenceListType resolve,
 			OperationResult result) {
 		if (object == null) {
 			return;

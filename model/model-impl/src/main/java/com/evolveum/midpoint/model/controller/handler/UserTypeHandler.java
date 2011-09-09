@@ -451,7 +451,7 @@ public class UserTypeHandler extends BasicHandler {
 			// TODO: do stuff with assignment
 			try {
 				if (assignment.getAccountConstruction() != null) {
-					processAccountConstructionAssign(user, assignment.getAccountConstruction(), subResult);
+					processAccountConstruction(user, assignment.getAccountConstruction(), subResult);
 				}
 
 				if (assignment.getTarget() != null) {
@@ -462,7 +462,11 @@ public class UserTypeHandler extends BasicHandler {
 					processTargetRefAssign(user, assignment.getTargetRef(), subResult);
 				}
 			} catch (Exception ex) {
-
+				LoggingUtils.logException(LOGGER, "Couldn't process assignment number {} on user {}", ex,
+						assignments.indexOf(assignment), user.getName());
+				subResult.recordFatalError(ex.getMessage());
+			} finally {
+				subResult.computeStatus();
 			}
 		}
 	}
@@ -475,11 +479,6 @@ public class UserTypeHandler extends BasicHandler {
 		}
 		ObjectType object = getObject(clazz, targetRef.getOid(), new PropertyReferenceListType(), result);
 		processTargetAssign(user, object, result);
-	}
-
-	private void processAccountConstructionAssign(UserType user, AccountConstructionType accountConstruction,
-			OperationResult result) {
-
 	}
 
 	private void processTargetAssign(UserType user, ObjectType target, OperationResult result) {
