@@ -40,6 +40,7 @@ import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.model.controller.handler.BasicHandler;
 import com.evolveum.midpoint.model.controller.handler.UserTypeHandler;
 import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandler;
@@ -513,7 +514,7 @@ public class ModelControllerImpl implements ModelController {
 
 	// Note: The result is in the task. No need to pass it explicitly
 	@Override
-	public void importAccountsFromResource(String resourceOid, QName objectClass, Task task)
+	public void importAccountsFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object class must not be null.");
@@ -521,7 +522,7 @@ public class ModelControllerImpl implements ModelController {
 		LOGGER.debug("Launching import from resource with oid {} for object class {}.", new Object[] {
 				resourceOid, objectClass });
 
-		OperationResult result = task.getResult().createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
+		OperationResult result = parentResult.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
 		result.addParams(new String[] { "resourceOid", "objectClass", "task" }, resourceOid, objectClass,
 				task);
 		// TODO: add context to the result
@@ -534,6 +535,12 @@ public class ModelControllerImpl implements ModelController {
 
 		// The launch should switch task to asynchronous. It is in/out, so no
 		// other action is needed
+		
+		if (task.isAsynchronous()) {
+			result.recordStatus(OperationResultStatus.IN_PROGRESS, "Task running in background");
+		} else {
+			result.recordSuccess();
+		}
 	}
 
 	@Override

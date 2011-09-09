@@ -73,6 +73,35 @@ public interface TaskManager {
 	 * @return new Java representation of the task
 	 */
 	public Task createTaskInstance(TaskType taskType);
+
+	/**
+	 * Creates new transient, running, claimed task instance.
+	 * 
+	 * This is fact creates usual "synchronous" task.
+	 * 
+	 * This is useful for normal day-to-day tasks that are either
+	 * synchronous or start as a synchronous and are switched to
+	 * asynchronous task later.
+	 * 
+	 * The result inside the task will be initialized with
+	 * specified operation name.
+	 * 
+	 * @param operationName operation name to use as a root for new result in task
+	 * @return new Java representation of the task
+	 */
+	public Task createTaskInstance(String operationName);
+	
+	/**
+	 * Creates task instance from the XML task representation.
+	 * 
+	 * If there is not a result inside the task, it will create the
+	 * result with specified operation name.
+	 * 
+	 * @param taskType JAXB (XML) representation of the task
+	 * @param operationName operation name to use as a root for new result in task
+	 * @return new Java representation of the task
+	 */
+	public Task createTaskInstance(TaskType taskType, String operationName);
 	
 	/**
 	 * Returns a task with specified OID.

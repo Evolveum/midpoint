@@ -65,7 +65,14 @@ public enum OperationResultStatus {
 	 * This is different than UNKNOWN, as in this case we really know that it result is not
 	 * applicable. In UNKNOWN case we know nothing.
 	 */
-	NOT_APPLICABLE;
+	NOT_APPLICABLE,
+	
+	/*
+	 * The operation is being executed. This is set for operations that are executed
+	 * asynchronously or take a significant amount of time. Short synchronous operations
+	 * do not need to set this status, they may go well with the default UNKNOWN status.
+	 */
+	IN_PROGRESS;
 
 	public static OperationResultStatus parseStatusType(OperationResultStatusType statusType) {
 		if (statusType == null) {
@@ -81,6 +88,10 @@ public enum OperationResultStatus {
 				return SUCCESS;
 			case WARNING:
 				return WARNING;
+			case NOT_APPLICABLE:
+				return NOT_APPLICABLE;
+			case IN_PROGRESS:
+				return IN_PROGRESS;
 			default:
 				return UNKNOWN;
 		}
@@ -100,6 +111,10 @@ public enum OperationResultStatus {
 				return OperationResultStatusType.FATAL_ERROR;
 			case PARTIAL_ERROR:
 				return OperationResultStatusType.PARTIAL_ERROR;
+			case NOT_APPLICABLE:
+				return OperationResultStatusType.NOT_APPLICABLE;
+			case IN_PROGRESS:
+				return OperationResultStatusType.IN_PROGRESS;
 			default:
 				return OperationResultStatusType.UNKNOWN;
 		}

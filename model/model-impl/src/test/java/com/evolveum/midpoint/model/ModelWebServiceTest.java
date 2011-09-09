@@ -49,10 +49,12 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
@@ -90,7 +92,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void addNullObject() throws FaultMessage {
 		try {
-			modelService.addObject(null, new Holder<OperationResultType>(new OperationResultType()));
+			modelService.addObject(null, new Holder<String>(), new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -103,7 +105,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 		final UserType expectedUser = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
 				TEST_FOLDER_CONTROLLER, "./addObject/add-user-without-name.xml"))).getValue();
 		try {
-			modelService.addObject(expectedUser, new Holder<OperationResultType>(new OperationResultType()));
+			modelService.addObject(expectedUser, new Holder<String>(), new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -113,8 +115,9 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void testGetNullOid() throws FaultMessage {
 		try {
-			modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), null, new PropertyReferenceListType(), new Holder<OperationResultType>(
-					new OperationResultType()));
+			modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), null, new PropertyReferenceListType(),
+					new Holder<ObjectType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -124,8 +127,9 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void testGetEmptyOid() throws FaultMessage {
 		try {
-			modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), "", new PropertyReferenceListType(), new Holder<OperationResultType>(
-					new OperationResultType()));
+			modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), "", new PropertyReferenceListType(),
+					new Holder<ObjectType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -135,7 +139,9 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void testGetNullOidAndPropertyRef() throws FaultMessage {
 		try {
-			modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), null, null, new Holder<OperationResultType>(new OperationResultType()));
+			modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), null, null,
+					new Holder<ObjectType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -145,7 +151,9 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void testGetNullPropertyRef() throws FaultMessage {
 		try {
-			modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), "001", null, new Holder<OperationResultType>(new OperationResultType()));
+			modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), "001", null,
+					new Holder<ObjectType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -161,8 +169,9 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 							any(OperationResult.class))).thenThrow(
 					new ObjectNotFoundException("Object with oid '" + oid + "' not found."));
 
-			modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), oid, new PropertyReferenceListType(), new Holder<OperationResultType>(
-					new OperationResultType()));
+			modelService.getObject(ObjectTypes.USER.getObjectTypeUri(), oid, new PropertyReferenceListType(),
+					new Holder<ObjectType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertObjectNotFoundFault(ex);
 		}
@@ -172,7 +181,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void testDeleteNullOid() throws FaultMessage {
 		try {
-			modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), null, new Holder<OperationResultType>(new OperationResultType()));
+			modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), null);
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -182,17 +191,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void testDeleteEmptyOid() throws FaultMessage {
 		try {
-			modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), "", null);
-		} catch (FaultMessage ex) {
-			ModelTUtil.assertIllegalArgumentFault(ex);
-		}
-		Assert.fail("delete must fail");
-	}
-
-	@Test(expectedExceptions = FaultMessage.class)
-	public void testDeleteNullResult() throws FaultMessage {
-		try {
-			modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), "1", null);
+			modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), "");
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -208,7 +207,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 							any(OperationResult.class))).thenThrow(
 					new ObjectNotFoundException("Object with oid '' not found."));
 
-			modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), oid, new Holder<OperationResultType>(new OperationResultType()));
+			modelService.deleteObject(ObjectTypes.USER.getObjectTypeUri(), oid);
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertObjectNotFoundFault(ex);
 		}
@@ -218,8 +217,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void nullObjectType() throws FaultMessage {
 		try {
-			modelService.listObjects(null, new PagingType(), new Holder<OperationResultType>(
-					new OperationResultType()));
+			modelService.listObjects(null, new PagingType(), new Holder<ObjectListType>(), new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -229,7 +227,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void nullObjectTypeAndPaging() throws FaultMessage {
 		try {
-			modelService.listObjects(null, null, new Holder<OperationResultType>(new OperationResultType()));
+			modelService.listObjects(null, null, new Holder<ObjectListType>(), new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -239,7 +237,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void nullPagingList() throws FaultMessage {
 		try {
-			modelService.listObjects("", null, new Holder<OperationResultType>(new OperationResultType()));
+			modelService.listObjects("", null, new Holder<ObjectListType>(), new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -254,7 +252,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 
 		try {
 			modelService.listObjects(ObjectTypes.USER.getObjectTypeUri(), paging,
-					new Holder<OperationResultType>(new OperationResultType()));
+					new Holder<ObjectListType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -265,7 +264,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	public void nullOid() throws FaultMessage {
 		try {
 			modelService.getPropertyAvailableValues(null, new PropertyReferenceListType(),
-					new Holder<OperationResultType>(new OperationResultType()));
+					new Holder<PropertyAvailableValuesListType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -276,7 +276,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	public void emptyOid() throws FaultMessage {
 		try {
 			modelService.getPropertyAvailableValues("", new PropertyReferenceListType(),
-					new Holder<OperationResultType>(new OperationResultType()));
+					new Holder<PropertyAvailableValuesListType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -286,8 +287,9 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void nullQueryType() throws FaultMessage {
 		try {
-			modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, new PagingType(), new Holder<OperationResultType>(
-					new OperationResultType()));
+			modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, new PagingType(),
+					new Holder<ObjectListType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -297,8 +299,9 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void nullQueryTypeAndPaging() throws FaultMessage {
 		try {
-			modelService
-					.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, null, new Holder<OperationResultType>(new OperationResultType()));
+			modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), null, null, 
+					new Holder<ObjectListType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -312,8 +315,9 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 		paging.setOffset(-1);
 
 		try {
-			modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), new QueryType(), paging, new Holder<OperationResultType>(
-					new OperationResultType()));
+			modelService.searchObjects(ObjectTypes.USER.getObjectTypeUri(), new QueryType(), paging, 
+					new Holder<ObjectListType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -323,7 +327,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void nullChangeModify() throws FaultMessage {
 		try {
-			modelService.modifyObject(ObjectTypes.USER.getObjectTypeUri(), null, new Holder<OperationResultType>(new OperationResultType()));
+			modelService.modifyObject(ObjectTypes.USER.getObjectTypeUri(), null);
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -346,8 +350,7 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 				new ObjectNotFoundException("Oid '" + oid + "' not found."));
 
 		try {
-			modelService.modifyObject(ObjectTypes.USER.getObjectTypeUri(), modification,
-					new Holder<OperationResultType>(new OperationResultType()));
+			modelService.modifyObject(ObjectTypes.USER.getObjectTypeUri(), modification);
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertObjectNotFoundFault(ex);
 		}
@@ -356,8 +359,9 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void nullResourceOidListShadows() throws FaultMessage {
 		try {
-			modelService.listResourceObjectShadows(null, "notRelevant", new Holder<OperationResultType>(
-					new OperationResultType()));
+			modelService.listResourceObjectShadows(null, "notRelevant",
+					new Holder<ResourceObjectShadowListType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -366,8 +370,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void emptyResourceOidListShadows() throws FaultMessage {
 		try {
-			modelService.listResourceObjectShadows(null, "notRelevant", new Holder<OperationResultType>(
-					new OperationResultType()));
+			modelService.listResourceObjectShadows(null, "notRelevant", 
+					new Holder<ResourceObjectShadowListType>(), new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -376,8 +380,9 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void nullShadowTypeListShadows() throws FaultMessage {
 		try {
-			modelService.listResourceObjectShadows("1", null, new Holder<OperationResultType>(
-					new OperationResultType()));
+			modelService.listResourceObjectShadows("1", null, 
+					new Holder<ResourceObjectShadowListType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -386,8 +391,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void emptyShadowTypeListShadows() throws FaultMessage {
 		try {
-			modelService.listResourceObjectShadows("1", "", new Holder<OperationResultType>(
-					new OperationResultType()));
+			modelService.listResourceObjectShadows("1", "", new Holder<ResourceObjectShadowListType>(), 
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -404,7 +409,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 
 		try {
 			modelService.listResourceObjectShadows(resourceOid, ObjectTypes.ACCOUNT.getObjectTypeUri(),
-					new Holder<OperationResultType>(new OperationResultType()));
+					new Holder<ResourceObjectShadowListType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertObjectNotFoundFault(ex);
 		}
@@ -412,19 +418,21 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 
 	@Test
 	public void badResourceShadowTypeListResourceObjectShadows() throws FaultMessage {
-		ResourceObjectShadowListType list = modelService.listResourceObjectShadows(
+		Holder<ResourceObjectShadowListType> listHolder = new Holder<ResourceObjectShadowListType>();
+		modelService.listResourceObjectShadows(
 				"abababab-abab-abab-abab-000000000001", ObjectTypes.GENERIC_OBJECT.getObjectTypeUri(),
-				new Holder<OperationResultType>(new OperationResultType()));
+				listHolder,
+				new Holder<OperationResultType>());
 
-		assertNotNull(list);
-		assertEquals(0, list.getObject().size());
+		assertNotNull(listHolder.value);
+		assertEquals(0, listHolder.value.getObject().size());
 	}
 
 	@Test(expectedExceptions = FaultMessage.class)
 	public void nullAccountOidListAccountShadowOwner() throws FaultMessage {
 		try {
-			modelService.listAccountShadowOwner(null, new Holder<OperationResultType>(
-					new OperationResultType()));
+			modelService.listAccountShadowOwner(null, new Holder<UserType>(), 
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}
@@ -434,8 +442,8 @@ public class ModelWebServiceTest extends AbstractTestNGSpringContextTests  {
 	@Test(expectedExceptions = FaultMessage.class)
 	public void emptyAccountOidListAccountShadowOwner() throws FaultMessage {
 		try {
-			modelService.listAccountShadowOwner("",
-					new Holder<OperationResultType>(new OperationResultType()));
+			modelService.listAccountShadowOwner("", new Holder<UserType>(),
+					new Holder<OperationResultType>());
 		} catch (FaultMessage ex) {
 			ModelTUtil.assertIllegalArgumentFault(ex);
 		}

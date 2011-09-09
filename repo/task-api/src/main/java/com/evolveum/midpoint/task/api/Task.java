@@ -199,16 +199,7 @@ public interface Task extends Dumpable {
 	 * @return task operation result. 
 	 */
 	public OperationResult getResult();
-	
-	/**
-	 * Returns an OperationResult that was marked as the "current".
-	 * It is the result used to compile task results (parent result) of an asynchronous operation,
-	 * operation spanning a web service, etc.
-	 * 
-	 * @return
-	 */
-	public OperationResult getCurrentResult();
-	
+		
 	public Long getLastRunStartTimestamp();
 	public Long getLastRunFinishTimestamp();
 	

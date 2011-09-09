@@ -460,7 +460,7 @@ public interface ModelService {
 	 * </p>
 	 * TODO: OperationResult
 	 */
-	void importAccountsFromResource(String resourceOid, QName objectClass, Task task)
+	void importAccountsFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException;
 
 	/**

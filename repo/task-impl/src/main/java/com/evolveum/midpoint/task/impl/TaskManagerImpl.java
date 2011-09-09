@@ -37,6 +37,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
@@ -135,11 +136,34 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		return new TaskImpl(this);
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance(java.lang.String)
+	 */
+	@Override
+	public Task createTaskInstance(String operationName) {
+		TaskImpl taskImpl = new TaskImpl(this);
+		taskImpl.setResult(new OperationResult(operationName));
+		return taskImpl;
+	}
+	
 	@Override
 	public Task createTaskInstance(TaskType taskType) {
 		//Note: we need to be Spring Bean Factory Aware, because some repo implementations are in scope prototype
 		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
 		return new TaskImpl(this,taskType,repoService);
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.evolveum.midpoint.task.api.TaskManager#createTaskInstance(com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType, java.lang.String)
+	 */
+	@Override
+	public Task createTaskInstance(TaskType taskType, String operationName) {
+		RepositoryService repoService = (RepositoryService) this.beanFactory.getBean("repositoryService");
+		TaskImpl taskImpl = new TaskImpl(this,taskType,repoService);
+		if (taskImpl.getResult()==null) {
+			taskImpl.setResult(new OperationResult(operationName));
+		}
+		return taskImpl;
 	}
 
 	/* (non-Javadoc)
@@ -226,14 +250,24 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 	@Override
 	public void switchToBackground(final Task task, OperationResult parentResult) {
 		
+		parentResult.recordStatus(OperationResultStatus.IN_PROGRESS, "Task switched to background");
 		OperationResult result = parentResult.createSubresult(TaskManager.class.getName()+".switchToBackground");
-		persist(task,result);
-		result.recordSuccess();
+		// Kind of hack. We want success to be persisted. In case that the persist fails, we will switch it back
 		
-		// TODO: The task should be released and claimed again here - to let other nodes participate
+		try {
+			
+			result.recordSuccess();
+			persist(task,result);
 		
-		// No result is passed here ... as this is just a kind of async notification
-		processRunnableTask(task);
+			// TODO: The task should be released and claimed again here - to let other nodes participate
+		
+			// No result is passed here ... as this is just a kind of async notification
+			processRunnableTask(task);
+			
+		} catch (RuntimeException ex) {
+			result.recordFatalError("Unexpected problem: "+ex.getMessage(),ex);
+			throw ex;
+		}
 	}
 
 	private void persist(Task task,OperationResult parentResult)  {
@@ -452,4 +486,5 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 		return threadsRunning;
 	}
 
+	
 }

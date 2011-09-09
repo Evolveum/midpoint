@@ -261,15 +261,9 @@ public class TaskImpl implements Task {
 	public OperationResult getResult() {
 		return result;
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.task.api.Task#getResult()
-	 */
-	@Override
-	public OperationResult getCurrentResult() {
-		// TODO
-		// return the top-level result for now. FIXME
-		return result;
+
+	public void setResult(OperationResult result) {
+		this.result = result;
 	}
 
 	@Override

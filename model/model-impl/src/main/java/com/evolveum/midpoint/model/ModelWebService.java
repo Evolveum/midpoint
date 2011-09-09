@@ -22,6 +22,7 @@ package com.evolveum.midpoint.model;
 
 import java.util.List;
 
+import javax.jws.WebParam;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
@@ -74,16 +75,15 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	private TaskManager taskManager;
 
 	@Override
-	public String addObject(ObjectType object, Holder<OperationResultType> result) throws FaultMessage {
+	public void addObject(ObjectType object, Holder<String> oidHolder, Holder<OperationResultType> result) throws FaultMessage {
 		notNullArgument(object, "Object must not be null.");
-		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult(ADD_OBJECT);
 		try {
 			String oid = model.addObject(object, operationResult);
 			handleOperationResult(operationResult, result);
-
-			return oid;
+			oidHolder.value = oid;
+			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL addObject() failed", ex);
 			throw createSystemFault(ex, operationResult);
@@ -91,19 +91,18 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public ObjectType getObject(String objectTypeUri, String oid, PropertyReferenceListType resolve,
-			Holder<OperationResultType> result) throws FaultMessage {
+	public void getObject(String objectTypeUri, String oid, PropertyReferenceListType resolve,
+			Holder<ObjectType> objectHolder, Holder<OperationResultType> resultHolder) throws FaultMessage {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
 		notNullArgument(resolve, "Property reference list  must not be null.");
-		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult(GET_OBJECT);
 		try {
 			ObjectType object = model.getObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri)
 					.getClassDefinition(), oid, resolve, operationResult);
-			handleOperationResult(operationResult, result);
-
-			return object;
+			handleOperationResult(operationResult, resultHolder);
+			objectHolder.value = object;
+			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL getObject() failed", ex);
 			throw createSystemFault(ex, operationResult);
@@ -111,10 +110,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public ObjectListType listObjects(String objectType, PagingType paging, Holder<OperationResultType> result)
+	public void listObjects(String objectType, PagingType paging, Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result)
 			throws FaultMessage {
 		notEmptyArgument(objectType, "Object type must not be null or empty.");
-		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult(LIST_OBJECTS);
 		try {
@@ -127,7 +125,8 @@ public class ModelWebService implements ModelPortType, ModelPort {
 				listType.getObject().add(o);
 			}
 			listType.setCount(list.size());
-			return listType;
+			objectListHolder.value = listType;
+			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL listObjects() failed", ex);
 			throw createSystemFault(ex, operationResult);
@@ -135,10 +134,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public ObjectListType searchObjects(String objectTypeUri, QueryType query, PagingType paging,
-			Holder<OperationResultType> result) throws FaultMessage {
+	public void searchObjects(String objectTypeUri, QueryType query, PagingType paging,
+			Holder<ObjectListType> objectListHolder, Holder<OperationResultType> result) throws FaultMessage {
 		notNullArgument(query, "Query must not be null.");
-		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult(SEARCH_OBJECTS);
 		try {
@@ -151,7 +149,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 				listType.getObject().add(o);
 			}
 			listType.setCount(list.size());
-			return listType;
+			objectListHolder.value = listType;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL searchObjects() failed", ex);
 			throw createSystemFault(ex, operationResult);
@@ -159,16 +157,14 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public void modifyObject(String objectTypeUri, ObjectModificationType change,
-			Holder<OperationResultType> result) throws FaultMessage {
+	public OperationResultType modifyObject(String objectTypeUri, ObjectModificationType change) throws FaultMessage {
 		notNullArgument(change, "Object modification must not be null.");
-		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult(MODIFY_OBJECT);
 		try {
 			model.modifyObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), change,
 					operationResult);
-			handleOperationResult(operationResult, result);
+			return handleOperationResult(operationResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL modifyObject() failed", ex);
 			throw createSystemFault(ex, operationResult);
@@ -176,17 +172,16 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public void deleteObject(String objectTypeUri, String oid, Holder<OperationResultType> result)
+	public OperationResultType deleteObject(String objectTypeUri, String oid)
 			throws FaultMessage {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
 		notEmptyArgument(objectTypeUri, "objectType must not be null or empty.");
-		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult(DELETE_OBJECT);
 		try {
 			model.deleteObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid,
 					operationResult);
-			handleOperationResult(operationResult, result);
+			return handleOperationResult(operationResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL deleteObject() failed", ex);
 			throw createSystemFault(ex, operationResult);
@@ -194,19 +189,19 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public PropertyAvailableValuesListType getPropertyAvailableValues(String oid,
-			PropertyReferenceListType properties, Holder<OperationResultType> result) throws FaultMessage {
+	public void getPropertyAvailableValues(String oid, PropertyReferenceListType properties, 
+			Holder<PropertyAvailableValuesListType> propertyAvailableValuesListHolder,
+			Holder<OperationResultType> result) throws FaultMessage {
 		notEmptyArgument(oid, "Oid must not be null or empty.");
 		notNullArgument(properties, "Property reference list must not be null.");
-		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult(GET_PROPERTY_AVAILABLE_VALUES);
 		try {
 			PropertyAvailableValuesListType list = model.getPropertyAvailableValues(oid, properties,
 					operationResult);
 			handleOperationResult(operationResult, result);
-
-			return list;
+			propertyAvailableValuesListHolder.value = list;
+			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL getPropertyAvailableValues() failed", ex);
 			throw createSystemFault(ex, operationResult);
@@ -214,17 +209,17 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public UserType listAccountShadowOwner(String accountOid, Holder<OperationResultType> result)
+	public void listAccountShadowOwner(String accountOid, Holder<UserType> userHolder, 
+			Holder<OperationResultType> result)
 			throws FaultMessage {
 		notEmptyArgument(accountOid, "Account oid must not be null or empty.");
-		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult(LIST_ACCOUNT_SHADOW_OWNER);
 		try {
 			UserType user = model.listAccountShadowOwner(accountOid, operationResult);
 			handleOperationResult(operationResult, result);
-
-			return user;
+			userHolder.value = user;
+			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL listAccountShadowOwner() failed", ex);
 			throw createSystemFault(ex, operationResult);
@@ -233,11 +228,11 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public ResourceObjectShadowListType listResourceObjectShadows(String resourceOid,
-			String resourceObjectShadowType, Holder<OperationResultType> result) throws FaultMessage {
+	public void listResourceObjectShadows(String resourceOid, String resourceObjectShadowType,
+			Holder<ResourceObjectShadowListType> resourceObjectShadowListHolder,
+			Holder<OperationResultType> result) throws FaultMessage {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notEmptyArgument(resourceObjectShadowType, "Resource object shadow type must not be null or empty.");
-		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult(LIST_RESOURCE_OBJECT_SHADOWS);
 		try {
@@ -249,8 +244,8 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 			ResourceObjectShadowListType shadowList = new ResourceObjectShadowListType();
 			shadowList.getObject().addAll(list);
-
-			return shadowList;
+			resourceObjectShadowListHolder.value = shadowList;
+			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjectShadows() failed", ex);
 			throw createSystemFault(ex, operationResult);
@@ -258,19 +253,19 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public ObjectListType listResourceObjects(String resourceOid, QName objectType, PagingType paging,
+	public void listResourceObjects(String resourceOid, QName objectType, PagingType paging,
+			Holder<ObjectListType> objectListTypeHolder,
 			Holder<OperationResultType> result) throws FaultMessage {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notNullArgument(objectType, "Object type must not be null.");
 		notNullArgument(paging, "Paging  must not be null.");
-		notNullResultHolder(result);
 
 		OperationResult operationResult = new OperationResult(LIST_RESOURCE_OBJECTS);
 		try {
 			ObjectListType list = model.listResourceObjects(resourceOid, objectType, paging, operationResult);
 			handleOperationResult(operationResult, result);
-
-			return list;
+			objectListTypeHolder.value = list;
+			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjects() failed", ex);
 			throw createSystemFault(ex, operationResult);
@@ -278,14 +273,12 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public void testResource(String resourceOid, Holder<OperationResultType> resultHolder)
-			throws FaultMessage {
+	public OperationResultType testResource(String resourceOid) throws FaultMessage {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
-		notNullResultHolder(resultHolder);
 
 		try {
 			OperationResult testResult = model.testResource(resourceOid);
-			handleOperationResult(testResult, resultHolder);
+			return handleOperationResult(testResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL testResource() failed", ex);
 			throw createSystemFault(ex, null);
@@ -294,10 +287,19 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 	private void handleOperationResult(OperationResult result, Holder<OperationResultType> holder) {
 		result.recordSuccess();
-		OperationResultType res = result.createOperationResultType();
-		holder.value.getPartialResults().add(res);
+		OperationResultType resultType = result.createOperationResultType();
+		if (holder.value == null) {
+			holder.value = resultType;
+		} else {
+			holder.value.getPartialResults().add(resultType);
+		}
 	}
 
+	private OperationResultType handleOperationResult(OperationResult result) {
+		result.recordSuccess();
+		return result.createOperationResultType();
+	}
+	
 	private void notNullResultHolder(Holder<OperationResultType> holder) throws FaultMessage {
 		notNullArgument(holder, "Holder must not be null.");
 		notNullArgument(holder.value, "Result type must not be null.");
@@ -347,34 +349,32 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	}
 
 	@Override
-	public EmptyType importFromResource(String resourceOid, QName objectClass, Holder<TaskType> taskHolder)
+	public TaskType importFromResource(String resourceOid, QName objectClass)
 			throws FaultMessage {
 		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
 		notNullArgument(objectClass, "Object class must not be null.");
-		notNullHolder(taskHolder);
 
-		Task task = taskManager.createTaskInstance(taskHolder.value);
-		OperationResult operationResult = task.getCurrentResult().createSubresult(IMPORT_FROM_RESOURCE);
+		Task task = taskManager.createTaskInstance(IMPORT_FROM_RESOURCE);
+		OperationResult operationResult = task.getResult();
 
 		try {
-			model.importAccountsFromResource(resourceOid, objectClass, task);
-			handleTaskResult(task, taskHolder);
-
-			return new EmptyType();
+			model.importAccountsFromResource(resourceOid, objectClass, task, operationResult);
+			operationResult.computeStatus();
+			return handleTaskResult(task);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL importFromResource() failed", ex);
 			throw createSystemFault(ex, operationResult);
 		}
 	}
-
+	
 	/**
-	 * Fill the task holder with appropriate form of taskType (and result) to
+	 * return appropriate form of taskType (and result) to
 	 * return back to a web service caller.
 	 * 
 	 * @param task
 	 * @param taskHolder
 	 */
-	private void handleTaskResult(Task task, Holder<TaskType> taskHolder) {
-		taskHolder.value = task.getTaskTypeObject();
+	private TaskType handleTaskResult(Task task) {
+		return task.getTaskTypeObject();
 	}
 }

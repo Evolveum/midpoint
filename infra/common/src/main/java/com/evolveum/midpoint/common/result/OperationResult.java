@@ -298,6 +298,13 @@ public class OperationResult implements Serializable, Dumpable {
 				}
 				return;
 			}
+			if (sub.getStatus() == OperationResultStatus.IN_PROGRESS) {
+				status = OperationResultStatus.IN_PROGRESS;
+				if (message==null) {
+					message = sub.getMessage();
+				}
+				return;
+			}
 			if (sub.getStatus() != OperationResultStatus.SUCCESS && sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
 				allSuccess = false;
 			}

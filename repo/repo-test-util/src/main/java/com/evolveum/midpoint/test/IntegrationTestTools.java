@@ -40,6 +40,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -302,6 +303,10 @@ public class IntegrationTestTools {
 		System.out.println(result.dump());
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
 		LOGGER.debug(result.dump());
+	}
+	
+	public static void display(String title, OperationResultType result) throws JAXBException {
+		displayJaxb(title, result, SchemaConstants.C_RESULT);
 	}
 
 	public static void display(String title, List<Element> elements) {
