@@ -68,7 +68,6 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
 
-	//TODO: check account THERE IS NULLPOINTER IN LOGS???? WTF???
 	@SuppressWarnings("unchecked")
 	@Test
 	public void simpleRoleAssignment() throws Exception {
@@ -88,7 +87,7 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 				provisioning.getObject(eq(ResourceType.class), eq(resource.getOid()),
 						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
 				resource);
-		
+
 		when(
 				provisioning.addObject(any(AccountShadowType.class), any(ScriptsType.class),
 						any(OperationResult.class))).thenAnswer(new Answer<String>() {
@@ -102,14 +101,13 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 				return "12345678-d34d-b33f-f00d-987987987989";
 			}
 		});
-		
+
 		when(repository.addObject(any(UserType.class), any(OperationResult.class))).thenAnswer(
 				new Answer<String>() {
 					@Override
 					public String answer(InvocationOnMock invocation) throws Throwable {
 						UserType user = (UserType) invocation.getArguments()[0];
-						XmlAsserts.assertPatch(
-								new File(TEST_FOLDER, "user-expected.xml"),
+						XmlAsserts.assertPatch(new File(TEST_FOLDER, "user-expected.xml"),
 								JAXBUtil.marshalWrap(user));
 
 						return "12345678-d34d-b33f-f00d-987987987988";

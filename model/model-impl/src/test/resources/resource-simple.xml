@@ -19,457 +19,354 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!-- Portions Copyrighted 2011 lazyman                       -->
 <!--                                                         -->
-<c:resource oid="a1a1a1a1-76e0-48e2-86d6-3d4f02d3e1a2" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-		xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-           xmlns:i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xmlns:xsd="http://www.w3.org/2001/XMLSchema" 
-           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/a1a1a1a1-76e0-48e2-86d6-3d4f02d3e1a2"
-           xmlns:ids="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd"
-           xmlns:my="http://myself.me/schemas/whatever">
-        <!-- Resource name. It will be displayed in GUI.  -->
-		<name>Localhost OpenDJ</name>
-     
-     	<!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
-	     OID during import. -->
-		<connectorRef type="ConnectorType">
-			<and>
-		        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
-		        <equal>
-		          <value>
-		              <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-		          </value>
-		        </equal>
-		      </and>
-		</connectorRef>
-
-        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
-		<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instances/a1a1a1a1-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
-
-        <!-- Configuration section contains configuration of the connector,
-             such as hostnames and passwords -->
-		<c:configuration
+<object xsi:type="ResourceType" oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+	<name>Localhost OpenDJ</name>
+	<connectorRef oid="14e63399-8869-4787-9369-93f9d1311671" type="ConnectorType">
+		<and xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
+			<c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType" />
+			<c:equal>
+				<c:value>
+					<c:connectorType>org.identityconnectors.ldap.LdapConnector</c:connectorType>
+				</c:value>
+			</c:equal>
+		</and>
+	</connectorRef>
+	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2
+	</namespace>
+	<configuration>
+		<icfcldap:configurationProperties xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
-
-            <!-- Configuration specific for the LDAP connector -->
-			<icfcldap:configurationProperties>
-				<icfcldap:port>1389</icfcldap:port>
-				<icfcldap:host>localhost</icfcldap:host>
-				<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
-				<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
-				<icfcldap:credentials><clearValue>secret</clearValue></icfcldap:credentials>
-				<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
-				<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
-				<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
-			</icfcldap:configurationProperties>
-		
-			<!-- Generic ICF configuration -->
-
-			<icfc:connectorPoolConfiguration>
-				<icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
-				<icfc:minIdle>1</icfc:minIdle>
-				<icfc:maxIdle>10</icfc:maxIdle>
-				<icfc:maxObjects>10</icfc:maxObjects>
-				<icfc:maxWait>150000</icfc:maxWait>
-			</icfc:connectorPoolConfiguration>
-
-			<icfc:producerBufferSize>100</icfc:producerBufferSize>
-
-			<icfc:timeouts>
-				<icfc:create>-1</icfc:create>
-				<icfc:get>-1</icfc:get>
-				<icfc:update>-1</icfc:update>
-				<icfc:delete>-1</icfc:delete>
-				<icfc:test>-1</icfc:test>
-				<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
-				<icfc:scriptOnResource>-1</icfc:scriptOnResource>
-				<icfc:authenticate>-1</icfc:authenticate>
-				<icfc:search>-1</icfc:search>
-				<icfc:validate>-1</icfc:validate>
-				<icfc:sync>-1</icfc:sync>
-				<icfc:schema>-1</icfc:schema>
-			</icfc:timeouts>
-
-		</c:configuration>
-
-        <!-- Resource schema definition.
-             It defines all the object classes that are available to midPoint
-             (accounts, groups, ...).
-
-             This should be direct mapping of ICF schema (and therefore also
-             LDAP schema). This is not supposed to be customized during deployment
-             unless the underlying LDAP schema is non-standard (also see below).
-
-             This should be generated from the resource by the connector, but
-             this is not in midPoint yet. Therefore it needs to be provided manually for now. -->
-		<c:schema>
-
-			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-				xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/instances/a1a1a1a1-76e0-48e2-86d6-3d4f02d3e1a2"
-				xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
-				xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
-				xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"
-				elementFormDefault="qualified"
-				targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instances/a1a1a1a1-76e0-48e2-86d6-3d4f02d3e1a2">
-				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>				
-				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"/>
-				<xsd:complexType name="AccountObjectClass">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<r:identifier ref="icfs:uid"/>
-							<r:accountType default="true"/>
-						</xsd:appinfo>
-					</xsd:annotation>
-					<xsd:complexContent>
-						<xsd:extension base="r:ResourceObjectClass">
-							<xsd:sequence>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="x500UniqueIdentifier" type="xsd:base64Binary"/>
-								<xsd:element minOccurs="0" ref="icfs:password"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPassword" type="xsd:base64Binary"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="userSMIMECertificate" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="l" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" name="sn" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="internationaliSDNNumber" type="xsd:string"/>
-								<xsd:element minOccurs="0" name="employeeNumber" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="facsimileTelephoneNumber" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="telexNumber" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="registeredAddress" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string"/>
-								<xsd:element ref="icfs:uid"/>
-								<xsd:element ref="icfs:name"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="teletexTerminalIdentifier" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="st" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string"/>
-								<xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="roomNumber" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="secretary" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="audio" type="xsd:base64Binary"/>
-								<xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="homePostalAddress" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="postOfficeBox" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="userCertificate" type="xsd:base64Binary"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="mail" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="departmentNumber" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="carLicense" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="jpegPhoto" type="xsd:base64Binary"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="manager" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="mobile" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="physicalDeliveryOfficeName" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="pager" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalCode" type="xsd:string"/>
-								<xsd:element minOccurs="0" name="displayName" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalAddress" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="homePhone" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string"/>
-							</xsd:sequence>
-						</xsd:extension>
-					</xsd:complexContent>
-				</xsd:complexType>
-				<xsd:complexType name="GroupObjectClass">
-					<xsd:annotation>
-						<xsd:appinfo>
-							<r:identifier ref="icfs:uid"/>
-						</xsd:appinfo>
-					</xsd:annotation>
-					<xsd:complexContent>
-						<xsd:extension base="r:ResourceObjectClass">
-							<xsd:sequence>
-								<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string"/>
-								<xsd:element ref="icfs:name"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string"/>
-								<xsd:element ref="icfs:uid"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string"/>
-								<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string"/>
-							</xsd:sequence>
-						</xsd:extension>
-					</xsd:complexContent>
-				</xsd:complexType>
-			</xsd:schema>
-		</c:schema>
-        <!-- Resource Schema Handling definition.
-             This part defines how the schema defined above will be used by
-             midPoint. It defines expressions and limitations for individual
-             schema attributes.
-
-             The expressions that describe both inbound and outbound flow of
-             the attributes are defined in this section.
-
-             This is the part where most of the customization takes place.
-        -->
-		<c:schemaHandling>
-
-            <!-- Definition of default account type.
-                 This is now the only account type that midPoint can work with. -->
-			<c:accountType default="true">
-
-                <!-- Readable name for the account type -->
-				<c:name>Default Account</c:name>
-
-                <!-- Reference to the Resource Schema (see above) specifying
-                     object class for this account type -->
-				<c:objectClass>ri:AccountObjectClass</c:objectClass>
-
-                <!-- Definition of __NAME__ attribute handling.
-                     ICF will put entry DN into __NAME__ attribute.-->
-				<c:attribute ref="icfs:name">
-
-                    <!-- Readable name for the attribute. This will be used in GUI -->
-					<c:name>Distinguished Name</c:name>
-
-                    <!-- Access limitation for this attribute.
-                         In our case ICF will put DN in the __NAME__ attribute.
-                         Althouhg DN can be theoretically changes, this definition
-                         will make it immutable. -->
-					<c:access>create</c:access>
-					<c:access>read</c:access>
-
-                    <!-- Outbound expression for the __NAME__ attribute.
-                         If account is created or updated, the __NAME__ attribute
-                         will be set accruing to this expression.
-
-                         This specific expression will construct DN by concatenating
-                         name from user object and string constants.
-
-                         The expression is marked as "default", therefore it will
-                         be evaluated only if the entry already does not have an DN.
-
-                         It is an XPath expression, similar to BPEL assignment expressions. -->
-					<c:outbound default="true">
-						<c:valueExpression>
-							<c:code>
-								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-								concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
+			xmlns:my="http://myself.me/schemas/whatever">
+			<icfcldap:port>1389</icfcldap:port>
+			<icfcldap:host>localhost</icfcldap:host>
+			<icfcldap:baseContexts>dc=example,dc=com</icfcldap:baseContexts>
+			<icfcldap:principal>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:principal>
+			<icfcldap:credentials>
+				<enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+					<enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc" />
+					<ds:KeyInfo>
+						<ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
+					</ds:KeyInfo>
+					<enc:CipherData>
+						<enc:CipherValue>lg0Z08KE4rsE8GGvQsTqSMD1v7Id/sQAGg8f8VaA2jvwnno2f6vBkZbsDuYK8p9Y</enc:CipherValue>
+					</enc:CipherData>
+				</enc:EncryptedData>
+			</icfcldap:credentials>
+			<icfcldap:modifiersNamesToFilterOut>uid=idm,ou=Administrators,dc=example,dc=com</icfcldap:modifiersNamesToFilterOut>
+			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+			<icfcldap:usePagedResultControl>true</icfcldap:usePagedResultControl>
+		</icfcldap:configurationProperties>
+		<icfc:connectorPoolConfiguration xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
+			xmlns:my="http://myself.me/schemas/whatever">
+			<icfc:minEvictableIdleTimeMillis>120000</icfc:minEvictableIdleTimeMillis>
+			<icfc:minIdle>1</icfc:minIdle>
+			<icfc:maxIdle>10</icfc:maxIdle>
+			<icfc:maxObjects>10</icfc:maxObjects>
+			<icfc:maxWait>150000</icfc:maxWait>
+		</icfc:connectorPoolConfiguration>
+		<icfc:producerBufferSize xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
+			xmlns:my="http://myself.me/schemas/whatever">100</icfc:producerBufferSize>
+		<icfc:timeouts xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+			xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+			xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+			xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
+			xmlns:my="http://myself.me/schemas/whatever">
+			<icfc:create>-1</icfc:create>
+			<icfc:get>-1</icfc:get>
+			<icfc:update>-1</icfc:update>
+			<icfc:delete>-1</icfc:delete>
+			<icfc:test>-1</icfc:test>
+			<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
+			<icfc:scriptOnResource>-1</icfc:scriptOnResource>
+			<icfc:authenticate>-1</icfc:authenticate>
+			<icfc:search>-1</icfc:search>
+			<icfc:validate>-1</icfc:validate>
+			<icfc:sync>-1</icfc:sync>
+			<icfc:schema>-1</icfc:schema>
+		</icfc:timeouts>
+	</configuration>
+	<schema>
+		<xsd:schema elementFormDefault="qualified"
+			targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+			xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+			xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd" />
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" />
+			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd" />
+			<xsd:complexType name="GroupObjectClass">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:propertyContainer />
+						<r:resourceObject />
+						<r:identifier ref="icfs:uid" />
+						<r:displayName ref="icfs:name" />
+						<r:namingAttribute ref="icfs:name" />
+						<r:nativeObjectClass>__GROUP__</r:nativeObjectClass>
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="owner" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="uniqueMember" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
+					<xsd:element ref="icfs:name" />
+					<xsd:element ref="icfs:uid" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="AccountObjectClass">
+				<xsd:annotation>
+					<xsd:appinfo>
+						<a:propertyContainer />
+						<r:resourceObject />
+						<r:identifier ref="icfs:uid" />
+						<r:displayName ref="icfs:name" />
+						<r:namingAttribute ref="icfs:name" />
+						<r:nativeObjectClass>__ACCOUNT__</r:nativeObjectClass>
+						<r:accountType default="true" />
+					</xsd:appinfo>
+				</xsd:annotation>
+				<xsd:sequence>
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="internationaliSDNNumber" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="x121Address" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="employeeType" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="pager" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="audio" type="xsd:base64Binary" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="departmentNumber" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="x500UniqueIdentifier" type="xsd:base64Binary" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalAddress" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="objectClass" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="givenName" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="mail" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="photo" type="xsd:base64Binary" />
+					<xsd:element minOccurs="0" name="displayName" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" name="cn" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPassword" type="xsd:base64Binary" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="physicalDeliveryOfficeName" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="manager" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="homePhone" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="description" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="postOfficeBox" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="homePostalAddress" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="roomNumber" type="xsd:string" />
+					<xsd:element minOccurs="0" name="employeeNumber" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="facsimileTelephoneNumber" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="userSMIMECertificate" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="l" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="userCertificate" type="xsd:base64Binary" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="teletexTerminalIdentifier" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="jpegPhoto" type="xsd:base64Binary" />
+					<xsd:element ref="icfs:name" />
+					<xsd:element minOccurs="0" name="preferredDeliveryMethod" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="userPKCS12" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="postalCode" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="labeledURI" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="telexNumber" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="carLicense" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="street" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="registeredAddress" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" name="sn" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="seeAlso" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="secretary" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="mobile" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="uid" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="initials" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="businessCategory" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="telephoneNumber" type="xsd:string" />
+					<xsd:element ref="icfs:uid" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="o" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="title" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="destinationIndicator" type="xsd:string" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="st" type="xsd:string" />
+					<xsd:element minOccurs="0" ref="icfs:password" />
+					<xsd:element maxOccurs="unbounded" minOccurs="0" name="ou" type="xsd:string" />
+					<xsd:element minOccurs="0" name="preferredLanguage" type="xsd:string" />
+				</xsd:sequence>
+			</xsd:complexType>
+		</xsd:schema>
+	</schema>
+	<schemaHandling>
+		<accountType default="true">
+			<name>Default Account</name>
+			<objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
+			<attribute ref="icfs:name" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">
+				<name>Distinguished Name</name>
+				<access>create</access>
+				<access>read</access>
+				<outbound default="true">
+					<valueExpression>
+						<c:code xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+							xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"
+							xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:my="http://myself.me/schemas/whatever">
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							concat('uid=', $i:user/c:name, ',ou=people,dc=example,dc=com')
 							</c:code>
-                        </c:valueExpression>
-					</c:outbound>
-
-                    <!-- No inbound expression here. We cannot sync changes in DN yet -->
-
-				</c:attribute>
-
-                <!-- Definition of __UID__ attribute handling.
-                     ICF will put entry UUID into __UID__ attribute in case it
-                     is connecting to OpenDJ/OpenDS. It may be different for
-                     other directory servers and it also dependes on connector
-                     configuration. Please see connector documentation for
-                     more details.-->
-				<c:attribute ref="icfs:uid">
-
-                    <!-- Readable name for the attribute. This will be used in GUI -->
-					<c:name>Entry UUID</c:name>
-
-                    <!-- Access limitation for this attribute.
-                         Entry UUID is created by the directory server itelf
-                         and it is immutable. We can only read it. -->
-					<c:access>read</c:access>
-
-                    <!-- There is no "outbound" expression, so midPoint will not
-                         do anything with this attribute. -->
-
-                    <!-- No inbound expression here. Does not make sense to sync UUID as it is supposed to be immutable -->
-
-				</c:attribute>
-
-                <!-- Definition of cn attribute handling. -->
-				<c:attribute ref="ri:cn">
-
-					<c:name>Common Name</c:name>
-					<c:access>create</c:access>
-					<c:access>read</c:access>
-					<c:access>update</c:access>
-
-                    <!-- Outbound expression here is using "pure" XPath, without
-                         using functions. This is the simplest case, just copying
-                         the "fullName" property of user to the "cn" attribute of
-                         an account.
-
-                         Please note that this expression is not marked as "default".
-                         Therefore this value will be copied on every change,
-                         overwriting the original value of "cn" on the resource.
-                     -->
-					<c:outbound>
-						<c:valueExpression>
-							<c:code>
-								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-								$i:user/i:fullName
-							</c:code>
-                        </c:valueExpression>
-					</c:outbound>
-
-                    <!-- Inbound expression. It is used to synchronize changes
-                         in the account to the user object in the IDM. This
-                         expression specifies to copy the cn attribute value
-                         from the account to the fullName property of the user.
-                     -->
-					<c:inbound>
-						<c:target>
+					</valueExpression>
+				</outbound>
+			</attribute>
+			<attribute ref="icfs:uid" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd">
+				<name>Entry UUID</name>
+				<access>read</access>
+			</attribute>
+			<attribute ref="ri:cn"
+				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+				<name>Common Name</name>
+				<access>create</access>
+				<access>read</access>
+				<access>update</access>
+				<outbound>
+					<valueExpression>
+						<c:code xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+							xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+							xmlns:my="http://myself.me/schemas/whatever">
 							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 							$i:user/i:fullName
-						</c:target>
-					</c:inbound>
-
-				</c:attribute>
-
-                <!-- Definition of sn attribute handling. -->
-				<c:attribute ref="ri:sn">
-					<c:name>Surname</c:name>
-					<c:access>create</c:access>
-					<c:access>read</c:access>
-					<c:access>update</c:access>
-					<c:outbound>
-						<c:valueExpression>
-							<c:code>
-								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-								$i:user/i:familyName
 							</c:code>
-                        </c:valueExpression>
-					</c:outbound>
-                    <!-- sn will be synchronized to user's familyName -->
-					<c:inbound>
-						<c:target>
+					</valueExpression>
+				</outbound>
+				<c:inbound xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+					xmlns:my="http://myself.me/schemas/whatever">
+					<c:target>
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+						$i:user/i:fullName
+						</c:target>
+				</c:inbound>
+			</attribute>
+			<attribute ref="ri:sn"
+				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+				<name>Surname</name>
+				<access>create</access>
+				<access>read</access>
+				<access>update</access>
+				<outbound>
+					<valueExpression>
+						<c:code xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+							xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+							xmlns:my="http://myself.me/schemas/whatever">
 							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 							$i:user/i:familyName
-						</c:target>
-					</c:inbound>
-				</c:attribute>
-
-                <!-- Definition of givenName attribute handling. -->
-				<c:attribute ref="ri:givenName">
-					<c:name>Given Name</c:name>
-					<c:access>create</c:access>
-					<c:access>read</c:access>
-					<c:access>update</c:access>
-					<c:outbound>
-						<c:valueExpression>
-							<c:code>
-								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-								$i:user/i:givenName
 							</c:code>
-                        </c:valueExpression>
-					</c:outbound>
-                    <!-- givenName will be synchronized to user's givenName -->
-					<c:inbound>
-						<c:target>
+					</valueExpression>
+				</outbound>
+				<c:inbound xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+					xmlns:my="http://myself.me/schemas/whatever">
+					<c:target>
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+						$i:user/i:familyName
+						</c:target>
+				</c:inbound>
+			</attribute>
+			<attribute ref="ri:givenName"
+				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+				<name>Given Name</name>
+				<access>create</access>
+				<access>read</access>
+				<access>update</access>
+				<outbound>
+					<valueExpression>
+						<c:code xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+							xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+							xmlns:my="http://myself.me/schemas/whatever">
 							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 							$i:user/i:givenName
-						</c:target>
-					</c:inbound>
-				</c:attribute>
-
-                <!-- Definition of uid attribute handling.
-                     Do not confuse with __UID__! -->
-				<c:attribute ref="ri:uid">
-					<c:name>Login Name</c:name>
-					<c:access>create</c:access>
-					<c:access>read</c:access>
-					<c:outbound>
-                        <!-- It is mapped from (and also to) "name" property of
-                             user. It is essentially a login name -->
-						<c:valueExpression>
-							<c:code>
-								declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-								$i:user/i:name
 							</c:code>
-						</c:valueExpression>
-					</c:outbound>
-                        <!-- It is mapped to (and also from) "name" property of
-                             user. It is essentially a login name -->
-					<c:inbound>
-						<c:target>
+					</valueExpression>
+				</outbound>
+				<c:inbound xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+					xmlns:my="http://myself.me/schemas/whatever">
+					<c:target>
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+						$i:user/i:givenName
+						</c:target>
+				</c:inbound>
+			</attribute>
+			<attribute ref="ri:uid"
+				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+				<name>Login Name</name>
+				<access>create</access>
+				<access>read</access>
+				<outbound>
+					<valueExpression>
+						<c:code xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+							xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+							xmlns:my="http://myself.me/schemas/whatever">
 							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 							$i:user/i:name
-                        </c:target>
-					</c:inbound>
-				</c:attribute>
-
-                <!-- Definition of description attribute handling. -->
-				<c:attribute ref="ri:description">
-
-                    <!-- This outbound expression is not really an expression.
-                         It is using a fixed literal insead of dynamically
-                         generated value. -->
-					<c:outbound default="true">
-						<c:value>Created by IDM</c:value>
-					</c:outbound>
-
-					<c:inbound>
-						<c:valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
-							xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">
-							<f:replace>
-                                      <!-- Replaces all unicode control characters with emtpty string -->
-								<f:pattern>\p{C}</f:pattern>
-								<f:replacement></f:replacement>
-							</f:replace>
-						</c:valueFilter>
-						<c:target>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							declare namespace
-							my="http://whatever.com/my";
-							$i:user/i:extension/my:description
-                        </c:target>
-					</c:inbound>
-                    <!-- No inbound expression for description. We don't want to synchronize that -->
-				</c:attribute>
-
-                <!-- Definition of description attribute handling. -->
-                <!-- This attribute is using a lookup table to translate the values
-                     valid for user to a values valid for the resource account. -->
-				<c:attribute ref="ri:l">
-
-                    <!-- Outbound expression definition. This expression is using
-                         a configuration object (set into an XPath variable) to
-                         translate values. -->
-					<c:outbound>
-                        <!-- Definition of extra variable for the XPath expression.
-                             The variable will appear as "$my:config" in the Xpath
-                             expression below. It will contain the content of XML
-                             object stored by OID c0c010c0-d34d-b33f-f00d-999111111111. -->
-						<c:variable name="my:config">
-							<c:objectRef oid="c0c010c0-d34d-b33f-f00d-999111111111"/>
-						</c:variable>
-                        <!-- Example of setting a variable to a string value. -->
-						<c:variable name="my:defaultLocation">
-							<c:value>middle of nowhere</c:value>
-						</c:variable>
-                        <!-- The expression itself. It translates the value of
-                             user's attribute "locality" (expressed as $i:user/i:locality)
-                             using a lookup table defined in the configuration object
-                             in the $my:config variable specified above. -->
-						<c:valueExpression>
-							<c:code>
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							declare namespace my="http://myself.me/schemas/whatever";
-							if ($my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]) then
-								$my:config/i:extension/my:locations/my:location[@key=$i:user/i:locality]
-							else
-								$my:defaultLocation
 							</c:code>
-                        </c:valueExpression>
-					</c:outbound>
-				</c:attribute>
+					</valueExpression>
+				</outbound>
+				<c:inbound xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+					xmlns:my="http://myself.me/schemas/whatever">
+					<c:target>
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+						$i:user/i:name
+                        </c:target>
+				</c:inbound>
+			</attribute>
+			<attribute ref="ri:description"
+				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+				<outbound default="true">
+					<value>Created by IDM</value>
+				</outbound>
+				<c:inbound xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+					xmlns:my="http://myself.me/schemas/whatever">
+					<c:valueFilter type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter"
+						xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd">
+						<f:replace>
+							<f:pattern>\p{C}</f:pattern>
+							<f:replacement />
+						</f:replace>
+					</c:valueFilter>
+					<c:target>
+						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+						declare namespace
+						my="http://whatever.com/my";
+						$i:user/i:extension/my:description
+                        </c:target>
+				</c:inbound>
+			</attribute>
+			<attribute ref="ri:l"
+				xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+				<outbound>
+					<variable name="my:defaultLocation" xmlns:my="http://myself.me/schemas/whatever">
+						<value>middle of nowhere</value>
+					</variable>
+					<valueExpression>
+						<c:code xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+							xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+							xmlns:my="http://myself.me/schemas/whatever">
+							declare namespace my="http://myself.me/schemas/whatever";
 
-			</c:accountType>
-		</c:schemaHandling>
-    </c:resource>
+							$my:defaultLocation
+							</c:code>
+					</valueExpression>
+				</outbound>
+			</attribute>
+		</accountType>
+	</schemaHandling>
+</object>

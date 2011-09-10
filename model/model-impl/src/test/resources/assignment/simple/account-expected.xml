@@ -23,7 +23,16 @@
 	xmlns:r="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
 	<name>Localhost OpenDJ-johny</name>
-	<resourceRef oid="a1a1a1a1-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType" />
-	<objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/a1a1a1a1-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
-	<attributes />
+	<resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" type="ResourceType" />
+	<objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:AccountObjectClass</objectClass>
+	<attributes xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+		 xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">
+		<icfs:name>uid=johny,ou=people,dc=example,dc=com</icfs:name>
+		<ri:cn>Jan Prvy</ri:cn>
+		<ri:sn>Prvy</ri:sn>
+		<ri:givenName>Jan</ri:givenName>
+		<ri:uid>johny</ri:uid>
+		<ri:description>Created by IDM</ri:description>
+		<ri:l>middle of nowhere</ri:l>
+	</attributes>
 </object>
