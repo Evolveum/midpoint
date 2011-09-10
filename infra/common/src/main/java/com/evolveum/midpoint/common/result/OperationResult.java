@@ -280,8 +280,10 @@ public class OperationResult implements Serializable, Dumpable {
 	 * Computes operation result status based on subtask status.
 	 */
 	public void computeStatus() {
-		if (getSubresults().isEmpty() && status == OperationResultStatus.UNKNOWN) {
-			status = OperationResultStatus.SUCCESS;
+		if (getSubresults().isEmpty()) {
+			if (status == OperationResultStatus.UNKNOWN) {
+				status = OperationResultStatus.SUCCESS;
+			}
 			return;
 		}
 
@@ -294,31 +296,32 @@ public class OperationResult implements Serializable, Dumpable {
 			}
 			if (sub.getStatus() == OperationResultStatus.FATAL_ERROR) {
 				status = OperationResultStatus.FATAL_ERROR;
-				if (message==null) {
+				if (message == null) {
 					message = sub.getMessage();
 				}
 				return;
 			}
 			if (sub.getStatus() == OperationResultStatus.IN_PROGRESS) {
 				status = OperationResultStatus.IN_PROGRESS;
-				if (message==null) {
+				if (message == null) {
 					message = sub.getMessage();
 				}
 				return;
 			}
-			if (sub.getStatus() != OperationResultStatus.SUCCESS && sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
+			if (sub.getStatus() != OperationResultStatus.SUCCESS
+					&& sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
 				allSuccess = false;
 			}
 			if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
 				newStatus = OperationResultStatus.PARTIAL_ERROR;
-				if (message==null) {
+				if (message == null) {
 					message = sub.getMessage();
 				}
 			}
 			if (newStatus != OperationResultStatus.PARTIAL_ERROR) {
 				if (sub.getStatus() == OperationResultStatus.WARNING) {
 					newStatus = OperationResultStatus.WARNING;
-					if (message==null) {
+					if (message == null) {
 						message = sub.getMessage();
 					}
 				}
@@ -327,11 +330,12 @@ public class OperationResult implements Serializable, Dumpable {
 
 		if (allNotApplicable && !getSubresults().isEmpty()) {
 			status = OperationResultStatus.NOT_APPLICABLE;
-		} if (allSuccess && !getSubresults().isEmpty()) {
+		}
+		if (allSuccess && !getSubresults().isEmpty()) {
 			status = OperationResultStatus.SUCCESS;
 		} else {
 			status = newStatus;
-		}		
+		}
 	}
 
 	/**
@@ -582,7 +586,7 @@ public class OperationResult implements Serializable, Dumpable {
 		dumpIndent(sb, 0, withStack);
 		return sb.toString();
 	}
-	
+
 	private void dumpIndent(StringBuilder sb, int indent, boolean printStackTrace) {
 		for (int i = 0; i < indent; i++) {
 			sb.append(INDENT_STRING);
@@ -604,8 +608,8 @@ public class OperationResult implements Serializable, Dumpable {
 			sb.append(cause.getMessage());
 			sb.append("\n");
 			if (printStackTrace) {
-				dumpStackTrace(sb,cause.getStackTrace(),indent+4);
-				dumpInnerCauses(sb,cause.getCause(),indent+3);
+				dumpStackTrace(sb, cause.getStackTrace(), indent + 4);
+				dumpInnerCauses(sb, cause.getCause(), indent + 3);
 			}
 		}
 
@@ -653,9 +657,9 @@ public class OperationResult implements Serializable, Dumpable {
 			sub.dumpIndent(sb, indent + 1, printStackTrace);
 		}
 	}
-	
+
 	private void dumpInnerCauses(StringBuilder sb, Throwable innerCause, int indent) {
-		if (innerCause==null) {
+		if (innerCause == null) {
 			return;
 		}
 		for (int i = 0; i < indent; i++) {
@@ -666,8 +670,8 @@ public class OperationResult implements Serializable, Dumpable {
 		sb.append(": ");
 		sb.append(cause.getMessage());
 		sb.append("\n");
-		dumpStackTrace(sb, innerCause.getStackTrace(), indent+1);
-		dumpInnerCauses(sb,innerCause.getCause(),indent);
+		dumpStackTrace(sb, innerCause.getStackTrace(), indent + 1);
+		dumpInnerCauses(sb, innerCause.getCause(), indent);
 	}
 
 	private static void dumpStackTrace(StringBuilder sb, StackTraceElement[] stackTrace, int indent) {
