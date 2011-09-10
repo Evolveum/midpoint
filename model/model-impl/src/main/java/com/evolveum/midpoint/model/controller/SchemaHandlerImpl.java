@@ -209,21 +209,31 @@ public class SchemaHandlerImpl implements SchemaHandler {
 				resourceObjectShadow, resource);
 
 		for (AttributeDescriptionType attribute : accountType.getAttribute()) {
-			ResourceObjectAttributeDefinition attributeDefinition = objectDefinition
-					.findAttributeDefinition(attribute.getRef());
-			if (attributeDefinition == null) {
-				LOGGER.trace("Attribute {} defined in schema handling is not defined in the resource "
-						+ "schema {}. Attribute was not processed", new Object[] { attribute.getRef(),
-						resource.getName() });
-				continue;
+			try {
+				ResourceObjectAttributeDefinition attributeDefinition = objectDefinition
+						.findAttributeDefinition(attribute.getRef());
+				if (attributeDefinition == null) {
+					LOGGER.trace("Attribute {} defined in schema handling is not defined in the resource "
+							+ "schema {}. Attribute was not processed", new Object[] { attribute.getRef(),
+							resource.getName() });
+					continue;
+				}
+				insertUserDefinedVariables(attribute, variables, subResult);
+				changes.getPropertyModification().addAll(
+						processOutboundAttribute(attribute, variables, resourceObjectShadow));
+				subResult.recordSuccess();
+			} catch (Exception ex) {
+				subResult.recordFatalError("Couldn't process outbound for attribute '" + attribute.getName()
+						+ "'.", ex);
+				if (ex instanceof SchemaException) {
+					throw (SchemaException) ex;
+				} else {
+					throw new SchemaException(ex.getMessage(), ex);
+				}
 			}
-			insertUserDefinedVariables(attribute, variables, subResult);
-			changes.getPropertyModification().addAll(
-					processOutboundAttribute(attribute, variables, resourceObjectShadow));
 
 		}
 
-		subResult.recordSuccess();
 		return changes;
 	}
 

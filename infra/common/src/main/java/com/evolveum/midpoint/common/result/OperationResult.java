@@ -258,14 +258,14 @@ public class OperationResult implements Serializable, Dumpable {
 		switch (status) {
 			case FATAL_ERROR:
 			case PARTIAL_ERROR:
-				if (message == null) {
+				if (StringUtils.isEmpty(message)) {
 					message = errorMessage;
 				}
 				break;
 			case UNKNOWN:
 			case WARNING:
 			case NOT_APPLICABLE:
-				if (message == null) {
+				if (StringUtils.isEmpty(message)) {
 					if (StringUtils.isNotEmpty(warnMessage)) {
 						message = warnMessage;
 					} else {
@@ -280,7 +280,8 @@ public class OperationResult implements Serializable, Dumpable {
 	 * Computes operation result status based on subtask status.
 	 */
 	public void computeStatus() {
-		if (getSubresults().isEmpty()) {
+		if (getSubresults().isEmpty() && status == OperationResultStatus.UNKNOWN) {
+			status = OperationResultStatus.SUCCESS;
 			return;
 		}
 
