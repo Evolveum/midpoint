@@ -35,14 +35,16 @@ public class NdcFilteringRollingFileAppender extends RollingFileAppender {
 	
 	private String getNdcSubsystem(LoggingEvent event) {
 		//Note: possible logging performance issue, because we have only access to String representation of NDC 
-		int whiteCharPos = StringUtils.lastIndexOf(event.getNDC(), " ");
-		String ndcSubsystem;
-		if (whiteCharPos > -1) {
-			ndcSubsystem = StringUtils.substring(event.getNDC(), whiteCharPos + 1);
-		} else {
-			ndcSubsystem = event.getNDC();
-		}
+//		int whiteCharPos = StringUtils.lastIndexOf(event.getNDC(), " ");
+//		String ndcSubsystem;
+//		if (whiteCharPos > -1) {
+//			ndcSubsystem = StringUtils.substring(event.getNDC(), whiteCharPos + 1);
+//		} else {
+//			ndcSubsystem = event.getNDC();
+//		}
 
+		String ndcSubsystem = (String) event.getMDC("subsystem");
+		
 		return ndcSubsystem;
 	}
 

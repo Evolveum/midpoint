@@ -56,7 +56,7 @@
             <appender>Ndc File Appender</appender>
         </logger>
         <appender xsi:type="NdcRollingFileAppenderConfigurationType" name="Ndc File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <pattern>%d{ISO8601} [%x] [%t] %p (%c): %m%n</pattern>
+            <pattern>%d{ISO8601} [%X{subsystem}] [%t] %p (%c): %m%n</pattern>
             <filePath>${catalina.base}/logs/idm.log</filePath>            
             <append>true</append>
             <maxFileSize>10240</maxFileSize>

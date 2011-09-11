@@ -20,7 +20,7 @@
  */
 package com.evolveum.midpoint.util.aspect;
 
-import org.apache.log4j.NDC;
+import org.slf4j.MDC;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -68,16 +68,24 @@ public class NdcAspect {
 
 	private Object markSubsystem(ProceedingJoinPoint pjp, String subsystem) throws Throwable {
 		Object retValue = null;
+		String prev = null;
 		try {
-			NDC.push(subsystem);
+			prev = (String) MDC.get("subsystem");
+			MDC.put("subsystem",subsystem);
+//			NDC.push(subsystem);
 			retValue = pjp.proceed();
 			return retValue;
 		} finally {
-			NDC.pop();
-			//MID-408 memory leak
-			if (NDC.getDepth() < 1) {
-				NDC.remove();
+			if (prev == null) {
+				MDC.remove("subsystem");
+			} else {
+				MDC.put("subsystem",prev);
 			}
+//			NDC.pop();
+//			//MID-408 memory leak
+//			if (NDC.getDepth() < 1) {
+//				NDC.remove();
+//			}
 		}
 	}
 

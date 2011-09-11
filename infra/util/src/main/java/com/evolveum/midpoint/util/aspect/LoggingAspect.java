@@ -23,7 +23,7 @@ package com.evolveum.midpoint.util.aspect;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.NDC;
+import org.slf4j.MDC;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -90,7 +90,7 @@ public class LoggingAspect {
 			final Class<CodeSignature>[] types = ((CodeSignature) pjp.getSignature()).getParameterTypes();
 			name = ((CodeSignature) pjp.getSignature()).getName();
 			final StringBuffer methodCallInfo = new StringBuffer();
-			methodCallInfo.append(LOG_MESSAGE_PREFIX + " " + LOG_MESSAGE_ENTER + " " + NDC.peek() + " "
+			methodCallInfo.append(LOG_MESSAGE_PREFIX + " " + LOG_MESSAGE_ENTER + " " + MDC.get("subsystem") + " "
 					+ name + "(");
 
 			if (LOGGER_ENTRIES_PARAMS.isTraceEnabled()) {
@@ -118,10 +118,10 @@ public class LoggingAspect {
 
 		final Object tmp = pjp.proceed();
 		if (LOGGER_ENTRIES_PARAMS.isTraceEnabled()) {
-			LOGGER_ENTRIES_PARAMS.trace("{} {} {} {}(..): {}", new Object[]{LOG_MESSAGE_PREFIX, LOG_MESSAGE_EXIT, NDC.peek(), name, formatVal(tmp)});
+			LOGGER_ENTRIES_PARAMS.trace("{} {} {} {}(..): {}", new Object[]{LOG_MESSAGE_PREFIX, LOG_MESSAGE_EXIT, MDC.get("subsystem"), name, formatVal(tmp)});
 		}
 		if (LOGGER_ENTRIES.isInfoEnabled()) {
-			LOGGER_ENTRIES.info("{} {} {} {}(..): ..", new Object[]{LOG_MESSAGE_PREFIX, LOG_MESSAGE_EXIT, NDC.peek(), name});
+			LOGGER_ENTRIES.info("{} {} {} {}(..): ..", new Object[]{LOG_MESSAGE_PREFIX, LOG_MESSAGE_EXIT, MDC.get("subsystem"), name});
 		}
 		
 		return tmp;
