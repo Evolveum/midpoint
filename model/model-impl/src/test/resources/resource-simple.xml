@@ -239,8 +239,8 @@
 						<c:code xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 							xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 							xmlns:my="http://myself.me/schemas/whatever">
-							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-							$i:user/i:fullName
+							declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$c:user/c:fullName
 							</c:code>
 					</valueExpression>
 				</outbound>
@@ -248,8 +248,8 @@
 					xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 					xmlns:my="http://myself.me/schemas/whatever">
 					<c:target>
-						declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
-						$i:user/i:fullName
+						declare namespace c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+						$c:user/c:fullName
 						</c:target>
 				</c:inbound>
 			</attribute>

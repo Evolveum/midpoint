@@ -25,11 +25,13 @@ import java.io.File;
 
 import javax.xml.bind.JAXBElement;
 
+import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -67,6 +69,11 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 	private RepositoryService repository;
 	@Autowired(required = true)
 	private ProvisioningService provisioning;
+
+	@BeforeMethod
+	public void before() {
+		Mockito.reset(repository, provisioning);
+	}
 
 	@SuppressWarnings("unchecked")
 	@Test
@@ -119,6 +126,77 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 			model.addObject(user, result);
 		} finally {
 			LOGGER.debug(result.dump());
+		}
+	}
+
+	//TODO: fix
+	/*
+	2011-09-11 16:49:42,777 [main] TRACE (com.evolveum.midpoint.model.controller.SchemaHandlerImpl):  fullName ns0
+	2011-09-11 16:49:42,777 [main] TRACE (com.evolveum.midpoint.model.controller.SchemaHandlerImpl): Creating new element for value fullName.
+	2011-09-11 16:49:42,782 [main] ERROR (com.evolveum.midpoint.model.controller.SchemaHandlerImpl): Couldn't process property construction i:fullName for user bond, reason: NAMESPACE_ERR: An attempt is made to create or change an object in a way which is incorrect with regard to namespaces.
+	2011-09-11 16:49:42,782 [main] DEBUG (com.evolveum.midpoint.model.controller.SchemaHandlerImpl): Couldn't process property construction {} for user {}.
+	org.w3c.dom.DOMException: NAMESPACE_ERR: An attempt is made to create or change an object in a way which is incorrect with regard to namespaces.
+		at com.sun.org.apache.xerces.internal.dom.ElementNSImpl.setPrefix(ElementNSImpl.java:306)
+		at com.evolveum.midpoint.model.controller.SchemaHandlerImpl.createElementList(SchemaHandlerImpl.java:910)
+		at com.evolveum.midpoint.model.controller.SchemaHandlerImpl.updateUserAttribute(SchemaHandlerImpl.java:883)
+		at com.evolveum.midpoint.model.controller.SchemaHandlerImpl.processPropertyConstruction(SchemaHandlerImpl.java:859)
+		at com.evolveum.midpoint.model.controller.SchemaHandlerImpl.processPropertyConstructions(SchemaHandlerImpl.java:795)	
+	*/
+	@SuppressWarnings("unchecked")
+	@Test
+	public void accountAssignment() throws Exception {
+		try {
+			ModelTUtil.mockGetSystemConfiguration(repository, new File(
+					"./src/test/resources/controller/addObject/system-configuration.xml"));
+			final UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+					"user-account-assignment.xml"))).getValue();
+	
+			final ResourceType resource = ((JAXBElement<ResourceType>) JAXBUtil.unmarshal(new File(
+					"./src/test/resources/resource-simple.xml"))).getValue();
+	
+			when(
+					provisioning.getObject(eq(ResourceType.class), eq(resource.getOid()),
+							any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+					resource);
+			when(
+					provisioning.addObject(any(AccountShadowType.class), any(ScriptsType.class),
+							any(OperationResult.class))).thenAnswer(new Answer<String>() {
+				@Override
+				public String answer(InvocationOnMock invocation) throws Throwable {
+					AccountShadowType account = (AccountShadowType) invocation.getArguments()[0];
+					LOGGER.info("Created account:\n{}", JAXBUtil.silentMarshalWrap(account));
+					XmlAsserts.assertPatch(new File(TEST_FOLDER, "account-expected.xml"),
+							JAXBUtil.marshalWrap(account));
+	
+					return "12345678-d34d-b33f-f00d-987987987989";
+				}
+			});
+			when(repository.addObject(any(UserType.class), any(OperationResult.class))).thenAnswer(
+					new Answer<String>() {
+						@Override
+						public String answer(InvocationOnMock invocation) throws Throwable {
+							UserType returnedUser = (UserType) invocation.getArguments()[0];
+							
+							final UserType userExpected = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+							"user-expected.xml"))).getValue();
+							userExpected.getAssignment().clear();
+							userExpected.getAssignment().add(user.getAssignment().get(0));
+							
+							XmlAsserts.assertPatch(JAXBUtil.marshalWrap(userExpected),
+									JAXBUtil.marshalWrap(returnedUser));
+	
+							return "12345678-d34d-b33f-f00d-987987987988";
+						}
+					});
+	
+			OperationResult result = new OperationResult("Account Assignment");
+			try {
+				model.addObject(user, result);
+			} finally {
+				LOGGER.debug(result.dump());
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
 		}
 	}
 }
