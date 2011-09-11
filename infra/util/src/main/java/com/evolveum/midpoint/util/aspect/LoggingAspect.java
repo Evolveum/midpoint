@@ -90,8 +90,11 @@ public class LoggingAspect {
 			final Class<CodeSignature>[] types = ((CodeSignature) pjp.getSignature()).getParameterTypes();
 			name = ((CodeSignature) pjp.getSignature()).getName();
 			final StringBuffer methodCallInfo = new StringBuffer();
-			methodCallInfo.append(LOG_MESSAGE_PREFIX + " " + LOG_MESSAGE_ENTER + " " + MDC.get("subsystem") + " "
-					+ name + "(");
+			methodCallInfo.append(LOG_MESSAGE_PREFIX + " " + LOG_MESSAGE_ENTER + " " );
+			methodCallInfo.append(MDC.get("subsystem"));
+			methodCallInfo.append(" ");
+			methodCallInfo.append(name);
+			methodCallInfo.append("(");
 
 			if (LOGGER_ENTRIES_PARAMS.isTraceEnabled()) {
 				for (int i = 0; i < args.length; i++) {
