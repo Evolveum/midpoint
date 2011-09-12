@@ -42,6 +42,7 @@ import com.evolveum.midpoint.common.result.OperationConstants;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -95,25 +96,14 @@ public class ObjectImporter {
 		
 		EventHandler handler = new EventHandler() {
 
-			long progress = 0;
-			long errors = 0;
-
 			@Override
-			public boolean preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
-				
-				return true;
+			public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
+				return EventResult.cont();
 			}
 			
 			@Override
-			public void postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
-
-				progress++;
-
+			public EventResult postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
 				LOGGER.debug("Starting import of object {}", ObjectTypeUtil.toShortString(object));
-
-				objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
-				objectResult.addContext(OperationResult.CONTEXT_OBJECT, object);
-				// TODO: params, context
 
 				if (objectResult.isAcceptable()) {					
 					resolveReferences(object, repository, objectResult);
@@ -148,9 +138,14 @@ public class ObjectImporter {
 					}
 					
 				}
-					
-				// TODO check if there are too many errors
-
+				
+				if (objectResult.isAcceptable()) {
+					// Continue import
+					return EventResult.cont();
+				} else {
+					// Continue import, but skip the rest of the processing of this object
+					return EventResult.skipObject();
+				}
 			}
 
 			@Override
@@ -163,6 +158,9 @@ public class ObjectImporter {
 		Validator validator = new Validator(handler);
 		validator.setVerbose(true);
 		validator.setValidateSchema(options.isValidateStaticSchema());
+		if (options.getStopAfterErrors()!=null) {
+			validator.setStopAfterErrors(options.getStopAfterErrors().longValue());
+		}
 
 		validator.validate(input, parentResult, OperationConstants.IMPORT_OBJECT);
 

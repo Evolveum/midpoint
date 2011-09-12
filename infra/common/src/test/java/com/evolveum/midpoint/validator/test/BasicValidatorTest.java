@@ -22,6 +22,7 @@
 
 package com.evolveum.midpoint.validator.test;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertFalse;
 import org.testng.annotations.Test;
@@ -31,6 +32,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.ValidationMessage;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -77,16 +79,17 @@ public class BasicValidatorTest {
         EventHandler handler = new EventHandler() {
 
 			@Override
-			public boolean preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
+			public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
 				preMarshallHandledOids.add(objectElement.getAttribute("oid"));
-				return true;
+				return EventResult.cont();
 			}
 
             @Override
-            public void postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
+            public EventResult postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
             	System.out.println("Handler processing "+ObjectTypeUtil.toShortString(object)+", result:");
 				System.out.println(objectResult.dump());
                 postMarshallHandledOids.add(object.getOid());
+                return EventResult.cont();
             }
 
 			@Override
@@ -156,6 +159,26 @@ public class BasicValidatorTest {
         assertTrue(result.getSubresults().get(2).getMessage().contains("Invalid content was found starting with element 'i:familyName'"));
     }
 
+    /**
+     * Same data as schemaViolation test, but this will set s lower threshold to stop after just two erros.
+     */
+    @Test
+    public void testStopOnErrors() throws Exception {
+    	System.out.println("\n===[ testStopOnErrors ]=====");
+    	
+        OperationResult result = new OperationResult(this.getClass().getName()+".testStopOnErrors");
+        
+        Validator validator = new Validator();
+        validator.setVerbose(false);
+        validator.setStopAfterErrors(2);
+        
+        validateFile("three-users-schema-violation.xml", null, validator, result);
+        
+        System.out.println(result.dump());
+        assertFalse(result.isSuccess());
+        assertEquals(2,result.getSubresults().size());
+    }
+    
     @Test
     public void noName() throws Exception {
     	System.out.println("\n===[ noName ]=====");
@@ -176,6 +199,15 @@ public class BasicValidatorTest {
     }
 
     private void validateFile(String filename,EventHandler handler, OperationResult result) throws FileNotFoundException {
+        Validator validator = new Validator();
+        if (handler!=null) {
+            validator.setHandler(handler);
+        }
+        validator.setVerbose(false);
+        validateFile(filename, handler, validator, result);
+    }
+    
+    private void validateFile(String filename,EventHandler handler, Validator validator, OperationResult result) throws FileNotFoundException {
 
         String filepath = BASE_PATH + filename;
 
@@ -185,12 +217,6 @@ public class BasicValidatorTest {
 
         File file = new File(filepath);
         fis = new FileInputStream(file);
-
-        Validator validator = new Validator();
-        if (handler!=null) {
-            validator.setHandler(handler);
-        }
-        validator.setVerbose(false);
 
 		validator.validate(fis, result, OBJECT_RESULT_OPERATION_NAME);
 

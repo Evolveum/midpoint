@@ -49,7 +49,7 @@ public interface EventHandler {
 	 * @param objectResult Operation result for this object
 	 * @return true if the process should continue, false if it should stop
 	 */
-	public boolean preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult);
+	public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult);
 	
 	/**
 	 * Call-back called after the object is unmarshalled.
@@ -60,8 +60,9 @@ public interface EventHandler {
 	 * @param object unmarshalled JAXB object
 	 * @param objectElement DOM tree parsed from the fil
 	 * @param objectResult Operation result for this object
+	 * @return true if the process should continue, false if it should stop
 	 */
-    public void postMarshall(ObjectType object, Element objectElement, OperationResult objectResult);
+    public EventResult postMarshall(ObjectType object, Element objectElement, OperationResult objectResult);
     
     /**
      * Call-back to handle global errors.
@@ -69,6 +70,7 @@ public interface EventHandler {
      * This callback will be called with any error that cannot be attributed to any particular object.
      * 
      * @param currentResult Operation result pointing to the particular error.
+     * @return true if the process should continue, false if it should stop
      */
     public void handleGlobalError(OperationResult currentResult);
 

@@ -92,6 +92,9 @@ public class Validator {
 	private SchemaRegistry schemaRegistry;
 	private Schema midPointXsdSchema;
 	private javax.xml.validation.Validator xsdValidator;
+	long progress = 0;
+	long errors = 0;
+	long stopAfterErrors = 0;
 
 	public Validator() {
 		handler = null;
@@ -149,6 +152,22 @@ public class Validator {
 		return allowAnyType;
 	}
 	
+	public long getStopAfterErrors() {
+		return stopAfterErrors;
+	}
+
+	public void setStopAfterErrors(long stopAfterErrors) {
+		this.stopAfterErrors = stopAfterErrors;
+	}
+
+	public long getProgress() {
+		return progress;
+	}
+
+	public long getErrors() {
+		return errors;
+	}
+
 	private Unmarshaller createUnmarshaller(OperationResult validatorResult) {
 		if (unmarshaller!=null) {
 			return unmarshaller;
@@ -182,8 +201,16 @@ public class Validator {
 			if (eventType == XMLStreamConstants.START_ELEMENT) {
 				if (!stream.getName().equals(SchemaConstants.C_OBJECTS)) {
 					// This has to be an import file with a single objects. Try to process it.
-					readFromStreamAndValidate(stream, objectResultOperationName, rootNamespaceDeclarations, validatorResult);
-					// and return to avoid processing objects in loop
+					EventResult cont = readFromStreamAndValidate(stream, objectResultOperationName, rootNamespaceDeclarations, validatorResult);
+					if (!cont.isCont()) {
+						if (cont.getReason()!=null) {
+							validatorResult.recordFatalError(cont.getReason());
+						} else {
+							validatorResult.recordFatalError("Object validation failed");
+						}
+						return;
+					}
+					// return to avoid processing objects in loop
 					validatorResult.computeStatus("Validation failed", "Validation warnings");
 					return;
 				}
@@ -197,7 +224,23 @@ public class Validator {
 			while (stream.hasNext()) { 
 			    eventType = stream.next();
 			    if (eventType == XMLStreamConstants.START_ELEMENT) {
-			    	readFromStreamAndValidate(stream, objectResultOperationName, rootNamespaceDeclarations, validatorResult);
+			    	EventResult cont = readFromStreamAndValidate(stream, objectResultOperationName, rootNamespaceDeclarations, validatorResult);
+					if (cont.isStop()) {
+						if (cont.getReason()!=null) {
+							validatorResult.recordFatalError(cont.getReason());
+						} else {
+							validatorResult.recordFatalError("Processing has been stopped");
+						}
+						// This means total stop, no other objects will be processed
+						return;
+					}
+					if (!cont.isCont()) {
+						errors++;
+						if (stopAfterErrors > 0 && errors >= stopAfterErrors) {
+							validatorResult.recordFatalError("Too many errors ("+errors+")");
+							return;
+						}
+					}
 			    }
 			}
 
@@ -214,9 +257,11 @@ public class Validator {
 
 	}
 
-	private ObjectType readFromStreamAndValidate(XMLStreamReader stream, String objectResultOperationName, Map<String,String> rootNamespaceDeclarations, OperationResult validatorResult) {
+	private EventResult readFromStreamAndValidate(XMLStreamReader stream, String objectResultOperationName, Map<String,String> rootNamespaceDeclarations, OperationResult validatorResult) {
 		
 		OperationResult objectResult = validatorResult.createSubresult(objectResultOperationName);
+		progress++;
+		objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 		
 		try {
 			objectResult.addContext(START_LINE_NUMBER, stream.getLocation().getLineNumber());
@@ -238,15 +283,15 @@ public class Validator {
 	    	}
 	    		    	
 			if (handler != null) {
-				boolean cont = handler.preMarshall(objectElement, postValidationTree, objectResult);
-				if (!cont) {
-					return null;
+				EventResult cont = handler.preMarshall(objectElement, postValidationTree, objectResult);
+				if (!cont.isCont()) {
+					return cont;
 				}
 			}
 			
 	    	if (!objectResult.isAcceptable()) {
 	    		// Schema validation or preMarshall has failed. No point to continue with this object.
-	    		return null;
+	    		return EventResult.skipObject();
 	    	}
     		
 			JAXBElement jaxbElement = (JAXBElement) createUnmarshaller(validatorResult).unmarshal(objectDoc);
@@ -266,7 +311,10 @@ public class Validator {
 				validateObject(object, objectResult);
 				
 				if (handler != null) {
-					handler.postMarshall(object, objectElement, objectResult);
+					EventResult cont = handler.postMarshall(object, objectElement, objectResult);
+					if (!cont.isCont()) {
+						return cont;
+					}
 				}
 	
 				objectResult.recomputeStatus("Object processing has failed", "Validation warning");
@@ -279,7 +327,7 @@ public class Validator {
 				}
 			}
 
-			return object;
+			return EventResult.cont();
 			
 		} catch (JAXBException ex) {
 			if (verbose) {
@@ -302,14 +350,14 @@ public class Validator {
 			if (handler != null) {
 				handler.handleGlobalError(validatorResult);
 			}
-			return null;
+			return EventResult.skipObject();
 			
 		} catch (XMLStreamException ex) {
 			validatorResult.recordFatalError("XML parsing error: " + ex.getMessage(),ex);
 			if (handler != null) {
 				handler.handleGlobalError(validatorResult);
 			}
-			return null;
+			return EventResult.skipObject();
 		}
     }
 

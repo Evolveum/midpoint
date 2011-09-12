@@ -37,6 +37,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.ValidationMessage;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
@@ -227,10 +228,11 @@ public class DebugViewController implements Serializable {
 		Validator validator = new Validator(new EventHandler() {
 
 			@Override
-			public void postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
+			public EventResult postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
 				if (objects.isEmpty()) {
 					objects.add(object);
 				}
+				return EventResult.cont();
 			}
 
 			@Override
@@ -239,10 +241,10 @@ public class DebugViewController implements Serializable {
 			}
 
 			@Override
-			public boolean preMarshall(Element objectElement, Node postValidationTree,
+			public EventResult preMarshall(Element objectElement, Node postValidationTree,
 					OperationResult objectResult) {
 				// no reaction
-				return true;
+				return EventResult.cont();
 			}
 		});
 		// TODO: fix operation names
