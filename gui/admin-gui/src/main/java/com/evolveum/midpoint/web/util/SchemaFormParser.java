@@ -24,6 +24,7 @@ package com.evolveum.midpoint.web.util;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -34,6 +35,7 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
+import com.evolveum.midpoint.schema.processor.ItemDefinition;
 import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -45,9 +47,12 @@ import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 
+
+//TODO: this class should return FormObject(s) not definitions and values and display names!
 /**
  * 
  * @author Vilo Repan
+ * 
  */
 public class SchemaFormParser {
 
@@ -57,10 +62,27 @@ public class SchemaFormParser {
 	private String displayName;
 
 	public List<ResourceObjectDefinition> parseSchemaForConnector(ConnectorDto connector,
-			Configuration configuration) {
+			Configuration configuration) throws SchemaException {
 		List<ResourceObjectDefinition> objects = new ArrayList<ResourceObjectDefinition>();
 
-		//TODO: parse stuff here somehow :)
+		//TODO: do stuff with configuration, probable here, or maybe not :)
+		
+		Schema schema = Schema.parse(connector.getXmlObject().getSchema().getAny().get(0));
+		for (Definition definition : schema.getDefinitions()) {
+			if (!(definition instanceof ResourceObjectDefinition)) {
+				continue;
+			}
+
+			ResourceObjectDefinition object = (ResourceObjectDefinition) definition;
+			Iterator<ItemDefinition> iterator = object.getDefinitions().iterator();
+			while (iterator.hasNext()) {
+				ItemDefinition item = iterator.next();
+				if (!(item instanceof ResourceObjectAttributeDefinition)) {
+					iterator.remove();
+				}
+			}
+			objects.add(object);
+		}
 		
 		return objects;
 	}

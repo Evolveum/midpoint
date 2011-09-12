@@ -74,8 +74,14 @@ public class ResourceConfigurationController extends WizardPage {
 			return;
 		}
 
-		SchemaFormParser parser = new SchemaFormParser();
-		List<ResourceObjectDefinition> definitions = parser.parseSchemaForConnector(connector, configuration);
+		List<ResourceObjectDefinition> definitions = null;
+		try {
+			SchemaFormParser parser = new SchemaFormParser();
+			definitions = parser.parseSchemaForConnector(connector, configuration);
+		} catch (Exception ex) {
+			FacesUtils.addErrorMessage("Couldn't parse connector configuration schema.", ex);
+		}
+		
 		if (definitions == null) {
 			return;
 		}
@@ -100,6 +106,11 @@ public class ResourceConfigurationController extends WizardPage {
 		}
 	}
 
+	@Override
+	public void next() {
+		// TODO: update values in configuration object according to form object values
+	}
+	
 	@Override
 	public void cleanController() {
 		getConfigurationList().clear();
