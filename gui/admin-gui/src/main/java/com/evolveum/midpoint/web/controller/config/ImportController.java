@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
+import java.math.BigInteger;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -62,6 +63,79 @@ public class ImportController implements Serializable {
 	private String editor;
 	private boolean showFileUpload = false;
 	private boolean overwrite = false;
+	private boolean encryptProtected = true;
+	private boolean fetchResourceSchema = false;
+	private boolean referentialIntegrity = false;
+	private boolean summarizeErrors = false;
+	private boolean summarizeSucceses = true;
+	private boolean validateDynamicSchema = true;
+	private boolean validateStaticSchema = true;
+	private BigInteger stopAfterErrors;
+	
+	
+	public BigInteger getStopAfterErrors() {
+		return stopAfterErrors;
+	}
+
+	public void setStopAfterErrors(BigInteger stopAfterErrors) {
+		this.stopAfterErrors = stopAfterErrors;
+	}
+
+	public boolean isFetchResourceSchema() {
+		return fetchResourceSchema;
+	}
+
+	public void setFetchResourceSchema(boolean fetchResourceSchema) {
+		this.fetchResourceSchema = fetchResourceSchema;
+	}
+
+	public boolean isReferentialIntegrity() {
+		return referentialIntegrity;
+	}
+
+	public void setReferentialIntegrity(boolean referentialIntegrity) {
+		this.referentialIntegrity = referentialIntegrity;
+	}
+
+	public boolean isSummarizeErrors() {
+		return summarizeErrors;
+	}
+
+	public void setSummarizeErrors(boolean summarizeErrors) {
+		this.summarizeErrors = summarizeErrors;
+	}
+
+	public boolean isSummarizeSucceses() {
+		return summarizeSucceses;
+	}
+
+	public void setSummarizeSucceses(boolean summarizeSucceses) {
+		this.summarizeSucceses = summarizeSucceses;
+	}
+
+	public boolean isValidateDynamicSchema() {
+		return validateDynamicSchema;
+	}
+
+	public void setValidateDynamicSchema(boolean validateDynamicSchema) {
+		this.validateDynamicSchema = validateDynamicSchema;
+	}
+
+	public boolean isValidateStaticSchema() {
+		return validateStaticSchema;
+	}
+
+	public void setValidateStaticSchema(boolean validateStaticSchema) {
+		this.validateStaticSchema = validateStaticSchema;
+	}
+
+	public boolean isEncryptProtected() {
+		return encryptProtected;
+	}
+
+	public void setEncryptProtected(boolean encryptProtected) {
+		this.encryptProtected = encryptProtected;
+	}
 
 	public String getEditor() {
 		return editor;
@@ -146,6 +220,7 @@ public class ImportController implements Serializable {
 	private void clearController() {
 		showFileUpload = false;
 		overwrite = false;
+		encryptProtected = false;
 		editor = null;
 	}
 
@@ -155,6 +230,15 @@ public class ImportController implements Serializable {
 
 		ImportOptionsType options = MiscUtil.getDefaultImportOptions();
 		options.setOverwrite(overwrite);
+		options.setEncryptProtectedValues(encryptProtected);
+		options.setFetchResourceSchema(fetchResourceSchema);
+		options.setReferentialIntegrity(referentialIntegrity);
+		options.setSummarizeErrors(summarizeErrors);
+		options.setSummarizeSucceses(summarizeSucceses);
+		options.setValidateDynamicSchema(validateDynamicSchema);
+		options.setValidateStaticSchema(validateStaticSchema);
+		options.setStopAfterErrors(stopAfterErrors);
+		
 		model.importObjectsFromStream(input, options, null, parentResult);
 
 		if (!parentResult.isSuccess()) {

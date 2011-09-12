@@ -40,9 +40,43 @@
 			</ui:remove>			
 			<idm:xmlInput id="editor" height="350" readonly="false" value="#{import.editor}" />
 			<ul style="margin-top: 10px;">
+				<li><ice:selectBooleanCheckbox id="enableEncryptProtected" value="#{import.encryptProtected}">
+					#{msg['page.config.import.encryptProtected']}
+					</ice:selectBooleanCheckbox>
+				</li>
+				<li><ice:selectBooleanCheckbox id="enableFetchResourceSchema" value="#{import.fetchResourceSchema}">
+					#{msg['page.config.import.fetchResourceSchema']}
+					</ice:selectBooleanCheckbox>
+				</li>
 				<li><ice:selectBooleanCheckbox id="enableOverwrite" value="#{import.overwrite}">
 					#{msg['page.config.import.overwrite']}
 					</ice:selectBooleanCheckbox>
+				</li>
+
+				<li><ice:selectBooleanCheckbox id="enableFetchReferentialIntegrity" value="#{import.referentialIntegrity}">
+					#{msg['page.config.import.referentialIntegrity']}
+					</ice:selectBooleanCheckbox>
+				</li>
+				<li><ice:selectBooleanCheckbox id="enableSummarizeErrors" value="#{import.summarizeErrors}">
+					#{msg['page.config.import.summarizeErrors']}
+					</ice:selectBooleanCheckbox>
+				</li>
+				<li><ice:selectBooleanCheckbox id="enableSummarizeSucceses" value="#{import.summarizeSucceses}">
+					#{msg['page.config.import.summarizeSucceses']}
+					</ice:selectBooleanCheckbox>
+				</li>
+				<li><ice:selectBooleanCheckbox id="enableValidateDynamicSchema" value="#{import.validateDynamicSchema}">
+					#{msg['page.config.import.validateDynamicSchema']}
+					</ice:selectBooleanCheckbox>
+				</li>
+				<li><ice:selectBooleanCheckbox id="enableValidateStaticSchema" value="#{import.validateStaticSchema}">
+					#{msg['page.config.import.validateStaticSchema']}
+					</ice:selectBooleanCheckbox>
+				</li>
+				<li>
+					<ice:outputLabel  value="#{msg['page.config.import.stopAfter']} " />
+					<ice:inputText id="valueStopAfterErrors" value="#{import.stopAfterErrors}" style="width: 60px"/>
+					<ice:outputLabel  value=" #{msg['page.config.import.stopAfterErrors']}" />
 				</li>
 				<li><ice:selectBooleanCheckbox id="uploadFileCheckBox" value="#{import.showFileUpload}" immediate="true" partialSubmit="true">
 					#{msg['page.config.import.uploadFile']}</ice:selectBooleanCheckbox>
