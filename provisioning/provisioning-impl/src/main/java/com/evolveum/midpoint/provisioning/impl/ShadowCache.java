@@ -910,7 +910,7 @@ public class ShadowCache {
 
 					if (shadow == null) {
 						LOGGER.trace(
-								"Shadow object (in repo) to the resource object {} (on the resource) not found.",
+								"Shadow object (in repo) corresponding to the resource object (on the resource) was not found. The repo shadow will be created. The resource object:\n{}",
 								DebugUtil.prettyPrint(object));
 
 						// TODO: make sure that the resource object has

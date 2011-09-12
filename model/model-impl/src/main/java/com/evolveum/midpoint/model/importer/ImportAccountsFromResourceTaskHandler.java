@@ -122,7 +122,7 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 	 */
 	public void launch(ResourceType resource, QName objectclass, Task task, OperationResult parentResult) {
 				
-		LOGGER.debug("Launching import from resource {}",ObjectTypeUtil.toShortString(resource));
+		LOGGER.info("Launching import from resource {} as asynchronous task",ObjectTypeUtil.toShortString(resource));
 		
 		OperationResult result = parentResult.createSubresult(ImportAccountsFromResourceTaskHandler.class.getName()+".launch");
 		result.addParam("resource", resource);
@@ -239,6 +239,8 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 			return runResult;
 		}
 		
+		LOGGER.info("Start executing import from resource {}, importing object class {}",ObjectTypeUtil.toShortString(resource),objectclass);
+		
 		// Instantiate result handler. This will be called with every search result in the following iterative search
 		ImportAccountsFromResourceResultHandler handler = new ImportAccountsFromResourceResultHandler(resource,task,changeNotificationDispatcher);
 		
@@ -288,6 +290,8 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 		runResult.setProgress(handler.getProgress());
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		
+		LOGGER.info("Finished import from resource {}, importing object class {}. Processed {} objects, {} errors",
+				new Object[]{ ObjectTypeUtil.toShortString(resource), objectclass, handler.getProgress(), handler.getErrors() });
 		LOGGER.debug("Import from resource run finished (task {}, run result {})",task,runResult);
 		
 		return runResult;

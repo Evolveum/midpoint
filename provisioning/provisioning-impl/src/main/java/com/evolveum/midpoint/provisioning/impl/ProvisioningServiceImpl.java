@@ -664,10 +664,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		final ObjectListType objectList = new ObjectListType();
 
 		final ShadowHandler shadowHandler = new ShadowHandler() {
-
 			@Override
 			public boolean handle(ResourceObjectShadowType shadow) {
-				LOGGER.debug("Found shadow: {}", DebugUtil.prettyPrint(shadow));
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("listResourceObjects: processing shadow: {}", DebugUtil.prettyPrint(shadow));
+				}
 				objectList.getObject().add(shadow);
 				return true;
 			}
@@ -775,7 +776,9 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			@Override
 			public boolean handle(ResourceObjectShadowType shadow) {
-				LOGGER.debug("Found shadow: {}", DebugUtil.prettyPrint(shadow));
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("searchObjectsIterative: processing shadow: {}", DebugUtil.prettyPrint(shadow));
+				}
 				return handler.handle(shadow, result);
 			}
 		};

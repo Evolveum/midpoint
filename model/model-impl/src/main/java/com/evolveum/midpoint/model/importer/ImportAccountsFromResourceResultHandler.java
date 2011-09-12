@@ -56,6 +56,7 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 	private Task task;
 	private ResourceType resource;
 	private long progress;
+	private long errors;
 	private boolean stopOnError;
 
 	private static final Trace LOGGER = TraceManager.getTrace(ImportAccountsFromResourceResultHandler.class);
@@ -67,6 +68,7 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 		this.task = task;
 		this.resource = resource;
 		progress = 0;
+		errors = 0;
 		stopOnError = true;
 	}
 
@@ -117,9 +119,14 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 
 			// Invoke the change notification
 			objectChangeListener.notifyChange(change, result);
+			
+			LOGGER.info("Imported object {} from resource {}",ObjectTypeUtil.toShortString(newShadow),ObjectTypeUtil.toShortString(resource));
 
 		} catch (Exception ex) {
-			LOGGER.error("Change notication listener failed for import of object {}: {}: ", new Object[] {
+			errors++;
+			LOGGER.error("Import of object {} from resource {} failed: {}", new Object[] {
+					ObjectTypeUtil.toShortString(newShadow), ObjectTypeUtil.toShortString(resource), ex.getMessage(), ex });
+			LOGGER.trace("Change notication listener failed for import of object {}: {}: ", new Object[] {
 					newShadow, ex.getClass().getSimpleName(), ex.getMessage(), ex });
 			result.recordPartialError("failed to import", ex);
 			return !isStopOnError();
@@ -146,6 +153,10 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 
 	public long getProgress() {
 		return progress;
+	}
+	
+	public long getErrors() {
+		return errors;
 	}
 
 	/**

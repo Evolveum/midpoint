@@ -126,14 +126,19 @@ public class ObjectImporter {
 						
 						importObjectToRepository(object,options,repository,objectResult);
 						
+						LOGGER.info("Imported object {}",ObjectTypeUtil.toShortString(object));
+						
 					} catch (SchemaException e) {
 						objectResult.recordFatalError("Schema violation", e);
-						LOGGER.error("Schema violation", e);
+						LOGGER.error("Import of object {} failed: Schema violation: {}",
+								new Object[]{ObjectTypeUtil.toShortString(object),e.getMessage(), e});
 					} catch (RuntimeException e) {
 						objectResult.recordFatalError("Unexpected problem", e);
-						LOGGER.error("Unexpected problem", e);
+						LOGGER.error("Import of object {} failed: Unexpected problem: {}",
+								new Object[]{ObjectTypeUtil.toShortString(object),e.getMessage(), e});
 					} catch (ObjectAlreadyExistsException e) {
-						objectResult.recordFatalError("Object already exists", e);
+						LOGGER.error("Import of object {} failed: Object already exists: {}",
+								new Object[]{ObjectTypeUtil.toShortString(object),e.getMessage(), e});
 						LOGGER.error("Object already exists", e);
 					}
 					
