@@ -30,7 +30,8 @@
 			<shutdown>true</shutdown>
 			<dropDatabase>false</dropDatabase>
 			<debug>true</debug>
-			<initialDataPath>${midpoint.home}</initialDataPath> <!-- initialDataPath - path containing xmls that should be loaded into DB -->
+			<!-- initialDataPath - path containing xmls that should be loaded into DB -->
+			<!--  initialDataPath>${midpoint.home}/backup.xml</initialDataPath--> 
 			<databaseName>midPoint</databaseName> <!-- database name -->
 			<!-- client connection properties -->
 			<host>localhost</host>
