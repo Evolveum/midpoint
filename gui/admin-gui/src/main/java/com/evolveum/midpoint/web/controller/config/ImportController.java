@@ -220,6 +220,15 @@ public class ImportController implements Serializable {
 		showFileUpload = false;
 		overwrite = false;
 		encryptProtected = false;
+		
+		fetchResourceSchema = false;
+		referentialIntegrity = false;
+		summarizeErrors = false;
+		summarizeSucceses = true;
+		validateDynamicSchema = true;
+		validateStaticSchema = true;
+		stopAfterErrors=0;
+		
 		editor = null;
 	}
 

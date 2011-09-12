@@ -69,5 +69,11 @@ public abstract class WizardPage implements Serializable {
 		return getCancelPage();
 	}
 
+	public void back() {
+	}
+
+	public void next() {
+	}
+
 	public abstract void cleanController();
 }

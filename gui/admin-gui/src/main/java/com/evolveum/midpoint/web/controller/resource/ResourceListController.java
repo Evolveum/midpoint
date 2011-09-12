@@ -73,7 +73,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 	private static final String PARAM_RESOURCE_OID = "resourceOid";
 	private static final String PARAM_CONNECTOR_HOST_OID = "connectorHostOid";
 	private static final long serialVersionUID = 8325385127604325633L;
-	private static final Trace TRACE = TraceManager.getTrace(ResourceListController.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceListController.class);
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog objectTypeCatalog;
 	@Autowired(required = true)
@@ -175,11 +175,12 @@ public class ResourceListController extends SortableListController<ResourceListI
 
 		try {
 			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
-
+			LOGGER.debug("Testing connection for resource {}, oid '{}'.", new Object[] { resource.getName(),
+					resource.getOid() });
 			OperationResult result = manager.testConnection(resource.getOid());
 			ControllerUtil.updateResourceState(resource.getState(), result);
 		} catch (Exception ex) {
-			LoggingUtils.logException(TRACE, "Couldn't test resource {}", ex, resource.getName());
+			LoggingUtils.logException(LOGGER, "Couldn't test resource {}", ex, resource.getName());
 			FacesUtils.addErrorMessage("Couldn't test resource '" + resource.getName() + "'.", ex);
 		}
 	}
@@ -293,7 +294,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 
 				toBeDeleted.add(item);
 			} catch (Exception ex) {
-				LoggingUtils.logException(TRACE, "Couldn't delete resource {}", ex, item.getName());
+				LoggingUtils.logException(LOGGER, "Couldn't delete resource {}", ex, item.getName());
 				FacesUtils.addErrorMessage("Couldn't delete resource.", ex);
 			}
 		}
@@ -322,7 +323,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 		} catch (Exception ex) {
 			final String message = "Unknown error occured while listing resources";
 
-			LoggingUtils.logException(TRACE, message, ex);
+			LoggingUtils.logException(LOGGER, message, ex);
 			FacesUtils.addErrorMessage(message);
 
 			return null;
@@ -343,7 +344,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 		} catch (Exception ex) {
 			final String message = "Unknown error occured while listing connector hosts";
 
-			LoggingUtils.logException(TRACE, message, ex);
+			LoggingUtils.logException(LOGGER, message, ex);
 			FacesUtils.addErrorMessage(message);
 		}
 
@@ -378,7 +379,7 @@ public class ResourceListController extends SortableListController<ResourceListI
 		} catch (Exception ex) {
 			final String message = "Couldn't discover connectors";
 
-			LoggingUtils.logException(TRACE, message, ex);
+			LoggingUtils.logException(LOGGER, message, ex);
 			FacesUtils.addErrorMessage(message);
 		}
 	}

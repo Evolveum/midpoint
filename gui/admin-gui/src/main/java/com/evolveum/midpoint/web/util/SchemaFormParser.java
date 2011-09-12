@@ -38,11 +38,12 @@ import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 
 /**
  * 
@@ -54,6 +55,15 @@ public class SchemaFormParser {
 	private QName defaultAccountType;
 	private Map<QName, List<Object>> valueMap = new HashMap<QName, List<Object>>();
 	private String displayName;
+
+	public List<ResourceObjectDefinition> parseSchemaForConnector(ConnectorDto connector,
+			Configuration configuration) {
+		List<ResourceObjectDefinition> objects = new ArrayList<ResourceObjectDefinition>();
+
+		//TODO: parse stuff here somehow :)
+		
+		return objects;
+	}
 
 	public List<ResourceObjectAttributeDefinition> parseSchemaForAccount(AccountShadowDto account)
 			throws SchemaException {
@@ -95,7 +105,6 @@ public class SchemaFormParser {
 				}
 			}
 		}
-		System.out.println(DOMUtil.printDom(resource.getXmlObject().getSchema().getAny().get(0)));
 		Schema schema = Schema.parse(resource.getXmlObject().getSchema().getAny().get(0));
 		if (accountType == null) {
 			for (Definition definition : schema.getDefinitions()) {
@@ -109,7 +118,7 @@ public class SchemaFormParser {
 					break;
 				}
 			}
-		}		
+		}
 		schema.updateSchemaAccess(resource.getXmlObject().getSchemaHandling());
 
 		if (accountType == null) {
@@ -121,8 +130,7 @@ public class SchemaFormParser {
 		ResourceObjectDefinition definition = (ResourceObjectDefinition) schema
 				.findContainerDefinitionByType(accountType);
 		if (definition == null) {
-			throw new SchemaException("Account definition for type '" + accountType
-					+ "' was not found.");
+			throw new SchemaException("Account definition for type '" + accountType + "' was not found.");
 		}
 		displayName = resource.getName() + ": " + definition.getTypeName().getLocalPart();
 

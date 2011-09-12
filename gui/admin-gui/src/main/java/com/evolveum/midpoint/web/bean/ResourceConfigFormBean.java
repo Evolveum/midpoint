@@ -18,7 +18,6 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-
 package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
@@ -26,47 +25,32 @@ import java.io.Serializable;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.jsf.form.FormObject;
-import com.evolveum.midpoint.web.model.dto.ResourceDto;
+import com.evolveum.midpoint.web.model.dto.ConnectorDto;
 
 /**
  * 
  * @author mserbak
+ * 
  */
-
-public class ResourceConfigurationFormBean implements Serializable {
+public class ResourceConfigFormBean implements Serializable {
 
 	private static final long serialVersionUID = -1098405621403612160L;
 	private int id;
-	private ResourceDto resourceConfig;
-	private QName defaultresourceConfigType;
+	private ConnectorDto connectorConfig;
+	private QName defaultConfigType;
 	private FormObject bean;
 	private boolean expanded = true;
-	private boolean isNew;
-	private boolean enabled;
 
-	public ResourceConfigurationFormBean(int id, ResourceDto resourceConfig, QName defaultResourceConfigType, FormObject bean,
-			boolean isNew) {
+	public ResourceConfigFormBean(int id, ConnectorDto connectorConfig, QName defaultConfigType,
+			FormObject bean) {
 		this.id = id;
-		this.resourceConfig = resourceConfig;
-		this.defaultresourceConfigType = defaultResourceConfigType;
+		this.connectorConfig = connectorConfig;
+		this.defaultConfigType = defaultConfigType;
 		this.bean = bean;
-		this.isNew = isNew;
 	}
 
 	public QName getDefaultConnectorType() {
-		return defaultresourceConfigType;
-	}
-
-	public boolean isEnabled() {
-		return enabled;
-	}
-
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
-	}
-
-	public boolean isNew() {
-		return isNew;
+		return defaultConfigType;
 	}
 
 	public int getId() {
@@ -93,7 +77,7 @@ public class ResourceConfigurationFormBean implements Serializable {
 		this.expanded = expanded;
 	}
 
-	public ResourceDto getConnector() {
-		return resourceConfig;
+	public ConnectorDto getConnector() {
+		return connectorConfig;
 	}
 }

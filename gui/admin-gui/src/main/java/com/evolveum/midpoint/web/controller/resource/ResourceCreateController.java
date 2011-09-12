@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.controller.util.WizardPage;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
 import com.evolveum.midpoint.web.model.dto.ConnectorDto;
+import com.evolveum.midpoint.web.util.FacesUtils;
 
 /**
  * 
@@ -47,6 +48,8 @@ public class ResourceCreateController extends WizardPage {
 	private static final long serialVersionUID = 8679302869048479599L;
 	@Autowired(required = true)
 	private ObjectTypeCatalog catalog;
+	@Autowired(required = true)
+	private ResourceConfigurationController configurationController;
 	private Collection<ConnectorDto> connectors;
 	private String name;
 	private String connectorType;
@@ -122,5 +125,27 @@ public class ResourceCreateController extends WizardPage {
 		connectorType = null;
 		connectorVersion = null;
 		connectors = null;
+	}
+
+	@Override
+	public void next() {
+		ConnectorDto connector = null;
+		Collection<ConnectorDto> connectors = getConnectors();
+		for (ConnectorDto connectorDto : connectors) {
+			if (connectorDto.getConnectorType().equals(getConnectorType())
+					&& connectorDto.getConnectorVersion().equals(getConnectorVersion())) {
+				connector = connectorDto;
+				break;
+			}
+		}
+
+		if (connector == null) {
+			FacesUtils.addErrorMessage("Couldn't find connector of selected type '" + getConnectorType()
+					+ "' and version '" + getConnectorVersion() + "'.");
+			return;
+		}
+		
+		//TODO: if resource configuration already exists set there non null Configuration object
+		configurationController.init(connector, null);
 	}
 }

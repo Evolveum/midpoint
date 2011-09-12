@@ -97,14 +97,18 @@ public abstract class Wizard implements Serializable {
 	}
 
 	public String next() {
+		getActualWizardPage().next();
+		
 		if (index + 1 <= getPages().size()) {
 			index++;
 		}
-
+		
 		return getActualWizardPageUrl();
 	}
 
 	public String back() {
+		getActualWizardPage().back();
+		
 		if (index >= 1) {
 			index--;
 		}
