@@ -65,7 +65,7 @@ object.
              such as hostnames and passwords -->
 		<c:configuration
 		xmlns:icfcsolaris="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.unix.solaris/org.identityconnectors.solaris.SolarisConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 	
             <!-- Configuration specific for the LDAP connector -->
 			<icfcsolaris:configurationProperties>
@@ -113,20 +113,6 @@ object.
 
 			<icfc:producerBufferSize>100</icfc:producerBufferSize>
 
-			<icfc:timeout>
-				<icfc:operation name="create">-1</icfc:operation>
-				<icfc:operation name="update">-1</icfc:operation>
-				<icfc:operation name="delete">-1</icfc:operation>
-				<icfc:operation name="test">-1</icfc:operation>
-				<icfc:operation name="scriptOnConnector">-1</icfc:operation>
-				<icfc:operation name="scriptOnResource">-1</icfc:operation>
-				<icfc:operation name="get">-1</icfc:operation>
-				<icfc:operation name="authenticate">-1</icfc:operation>
-				<icfc:operation name="search">-1</icfc:operation>
-				<icfc:operation name="validate">-1</icfc:operation>
-				<icfc:operation name="sync">-1</icfc:operation>
-				<icfc:operation name="schema">-1</icfc:operation>
-			</icfc:timeout>
 
 		</c:configuration>
 

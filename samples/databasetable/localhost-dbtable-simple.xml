@@ -65,7 +65,7 @@ object.
              such as hostnames and passwords -->
 		<c:configuration
 			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
-			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf-1/configuration-1.xsd">
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf-1/connector-schema-1.xsd">
 
             <!-- Configuration specific for the DBTable connector -->
 			<icscdbtable:configurationProperties>
