@@ -63,15 +63,17 @@ public class SchemaProcessorBasicTest {
 		
 		// THEN
 		
-		AssertJUnit.assertNotNull(schema);
+		assertNotNull(schema);
 		
 		System.out.println("Parsed schema from "+SCHEMA1_FILENAME+":");
 		System.out.println(schema.dump());
 		
 		PropertyContainerDefinition accDef = schema.findContainerDefinitionByType(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"));
-		AssertJUnit.assertEquals(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"), accDef.getTypeName());
+		assertEquals(new QName(SCHEMA_NAMESPACE,"AccountObjectClass"), accDef.getTypeName());
+		assertTrue("Expected ResourceObjectDefinition but got "+accDef.getClass().getName(), accDef instanceof ResourceObjectDefinition);
+		assertTrue("Not a default account",((ResourceObjectDefinition)accDef).isDefaultAccountType());
 		PropertyDefinition loginDef = accDef.findPropertyDefinition(new QName(SCHEMA_NAMESPACE,"login"));
-		AssertJUnit.assertEquals(new QName(SCHEMA_NAMESPACE,"login"), loginDef.getName());
+		assertEquals(new QName(SCHEMA_NAMESPACE,"login"), loginDef.getName());
 	}
 
 	@Test
