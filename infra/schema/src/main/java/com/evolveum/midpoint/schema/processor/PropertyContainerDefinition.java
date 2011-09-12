@@ -119,12 +119,25 @@ public class PropertyContainerDefinition extends ItemDefinition {
 	 * 
 	 * @param name
 	 *            property definition name
-	 * @return found property definition of null
+	 * @return found property definition or null
 	 */
 	public PropertyDefinition findPropertyDefinition(QName name) {
 		return findItemDefinition(name,PropertyDefinition.class);
 	}
-	
+
+	/**
+	 * Finds an inner PropertyContainerDefinition by looking at the property container name.
+	 * 
+	 * Returns null if nothing is found.
+	 * 
+	 * @param name
+	 *            property container definition name
+	 * @return found property container definition or null
+	 */
+	public PropertyContainerDefinition findPropertyContainerDefinition(QName name) {
+		return findItemDefinition(name,PropertyContainerDefinition.class);
+	}
+
 	/**
 	 * Returns set of property definitions.
 	 * 

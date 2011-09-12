@@ -105,7 +105,7 @@ public class ResourceObjectAttributeDefinition extends PropertyDefinition {
 		return nativeAttributeName;
 	}
 
-	void setNativeAttributeName(String nativeAttributeName) {
+	public void setNativeAttributeName(String nativeAttributeName) {
 		this.nativeAttributeName = nativeAttributeName;
 	}
 

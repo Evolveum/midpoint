@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import org.testng.annotations.Test;
 import org.testng.AssertJUnit;
@@ -85,11 +86,15 @@ public class SchemaProcessorTest {
 		
 		Document xsd = schema.serializeToXsd();
 		
+		String stringXmlSchema = DOMUtil.serializeDOMToString(xsd);
+		
 		System.out.println("Generic schema after serializing to XSD: ");
-		System.out.println(DOMUtil.serializeDOMToString(DOMUtil.getFirstChildElement(xsd)));
+		System.out.println(stringXmlSchema);
 		System.out.println();
 		
-		Schema newSchema = Schema.parse(DOMUtil.getFirstChildElement(xsd));
+		Document parsedXsd = DOMUtil.parseDocument(stringXmlSchema);
+		
+		Schema newSchema = Schema.parse(DOMUtil.getFirstChildElement(parsedXsd));
 
 		System.out.println("Generic schema after parsing from XSD: ");
 		System.out.println(newSchema.dump());
@@ -127,6 +132,7 @@ public class SchemaProcessorTest {
 		// Property container
 		ResourceObjectDefinition containerDefinition = schema.createResourceObjectDefinition("AccountObjectClass");
 		containerDefinition.setAccountType(true);
+		containerDefinition.setDefaultAccountType(true);
 		containerDefinition.setNativeObjectClass("ACCOUNT");
 		// ... in it ordinary attribute - an identifier
 		ResourceObjectAttributeDefinition xloginDef = containerDefinition.createAttributeDefinition("login", DOMUtil.XSD_STRING);
@@ -147,11 +153,15 @@ public class SchemaProcessorTest {
 		
 		Document xsd = schema.serializeToXsd();
 		
+		String stringXmlSchema = DOMUtil.serializeDOMToString(xsd);
+		
 		System.out.println("Resource schema after serializing to XSD: ");
-		System.out.println(DOMUtil.serializeDOMToString(DOMUtil.getFirstChildElement(xsd)));
+		System.out.println(stringXmlSchema);
 		System.out.println();
 		
-		Schema newSchema = Schema.parse(DOMUtil.getFirstChildElement(xsd));
+		Document parsedXsd = DOMUtil.parseDocument(stringXmlSchema);
+		
+		Schema newSchema = Schema.parse(DOMUtil.getFirstChildElement(parsedXsd));
 
 		System.out.println("Resource schema after parsing from XSD: ");
 		System.out.println(newSchema.dump());
@@ -159,8 +169,12 @@ public class SchemaProcessorTest {
 		
 		// THEN
 			
-		PropertyContainerDefinition newContainerDef = schema.findContainerDefinitionByType(new QName(SCHEMA_NS,"AccountObjectClass"));
+		PropertyContainerDefinition newContainerDef = newSchema.findContainerDefinitionByType(new QName(SCHEMA_NS,"AccountObjectClass"));
 		assertEquals(new QName(SCHEMA_NS,"AccountObjectClass"),newContainerDef.getTypeName());
+		assertTrue(newContainerDef instanceof ResourceObjectDefinition);
+		ResourceObjectDefinition rod = (ResourceObjectDefinition) newContainerDef;
+		assertTrue(rod.isAccountType());
+		assertTrue(rod.isDefaultAccountType());
 		
 		PropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
 		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());
@@ -170,7 +184,7 @@ public class SchemaProcessorTest {
 		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
 		assertEquals(SchemaConstants.R_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
 
-		PropertyDefinition credDef = newContainerDef.findPropertyDefinition(new QName(SchemaConstants.NS_C,"credentials"));
+		PropertyContainerDefinition credDef = newContainerDef.findPropertyContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 		
