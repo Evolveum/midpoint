@@ -20,12 +20,12 @@
  */
 package com.evolveum.midpoint.model.importer;
 
+import static com.evolveum.midpoint.schema.util.MiscUtil.getDefaultImportOptions;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.schema.util.MiscUtil.getDefaultImportOptions;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -52,7 +52,6 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -65,7 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 		"classpath:application-context-configuration-test.xml",
 		"classpath:application-context-provisioning.xml",
 		"classpath:application-context-task.xml" })
-//@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class ImportRefTest extends AbstractTestNGSpringContextTests {
 
 	private static final File IMPORT_FILE_NAME = new File("src/test/resources/importer/import-ref.xml");
@@ -89,8 +88,7 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 
 	}
 
-	// Temporarily disabled due to strange spring/junit race condition
-	@Test(enabled = false)
+	@Test
 	public void test001GoodRefImport() throws FileNotFoundException, ObjectNotFoundException, SchemaException {
 		displayTestTile(this,"test001GoodRefImport");
 		// GIVEN
@@ -104,7 +102,7 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 		// THEN
 		result.computeStatus("Failed import.");
 		display("Result after good import", result);
-		assertSuccess("Import has failed (result)", result);
+		assertSuccess("Import has failed (result)", result, 2);
 
 		// Check import of user
 		Document doc = DOMUtil.getDocument();

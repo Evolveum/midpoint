@@ -20,15 +20,15 @@
  */
 package com.evolveum.midpoint.model.importer;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.assertNull;
+import static com.evolveum.midpoint.schema.util.MiscUtil.getDefaultImportOptions;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.schema.util.MiscUtil.getDefaultImportOptions;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -74,7 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 		"classpath:application-context-configuration-test.xml",
 		"classpath:application-context-provisioning.xml",
 		"classpath:application-context-task.xml" })
-//@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class ImportTest extends AbstractTestNGSpringContextTests {
 
 	private static final String TEST_FILE_DIRECTORY = "src/test/resources/importer/";

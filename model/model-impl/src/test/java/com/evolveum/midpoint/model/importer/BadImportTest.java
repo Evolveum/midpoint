@@ -20,9 +20,9 @@
  */
 package com.evolveum.midpoint.model.importer;
 
+import static com.evolveum.midpoint.schema.util.MiscUtil.getDefaultImportOptions;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
-import static com.evolveum.midpoint.schema.util.MiscUtil.getDefaultImportOptions;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,6 +30,8 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
@@ -42,7 +44,6 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -56,7 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 		"classpath:application-context-configuration-test.xml",
 		"classpath:application-context-provisioning.xml",
 		"classpath:application-context-task.xml" })
-//@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
+@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class BadImportTest extends AbstractTestNGSpringContextTests {
 	
 	private static final File BAD_IMPORT_FILE_NAME = new File("src/test/resources/importer/import-bad.xml");
@@ -81,8 +82,7 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 
 	}
 
-	//TODO: this test has to be disabled, till BaseX team provides us fix to support embedded BaseX server restarts. Then we can activate @DirtiesContext annotation and reinitialize spring context when required
-	@Test(enabled=false)
+	@Test
 	public void test001BadImport() throws FileNotFoundException, SchemaException {
 		displayTestTile(this,"test001BadImport");
 		// GIVEN

@@ -26,13 +26,13 @@
 	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 	xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
 	
-	<!-- should be "connector" instead of "object". But !@#@#!!!! Metro JAXB ignores it. -->
-	<object xsi:type="ConnectorType">
+	<connector>
 	   <name>ICF org.identityconnectors.ldap.LdapConnector</name>
+   	   <framework>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1</framework>
 	   <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
 	   <connectorVersion>1.0.5531</connectorVersion>
 	   <namespace>http://midpoint.evolveum.com/xml/ns/resource/icf/icf1-org.identityconnectors.ldap-1.0.5531-org.identityconnectors.ldap.LdapConnector</namespace>
-	</object>
+	</connector>
 
 	<resource>
 		<name>Sample Resource</name>
@@ -47,6 +47,10 @@
 	      </and>
 		</connectorRef>
 		<namespace>http://foo.bar.com/</namespace>
+		<configuration>
+		</configuration>
+		<schema>
+		</schema>
 	</resource>
 
 	<user>
