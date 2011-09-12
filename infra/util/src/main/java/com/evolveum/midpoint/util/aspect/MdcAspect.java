@@ -34,7 +34,7 @@ import org.springframework.core.annotation.Order;
  */
 @Aspect
 @Order(value = Ordered.HIGHEST_PRECEDENCE)
-public class NdcAspect {
+public class MdcAspect {
 
 	@Around("entriesIntoRepository()")
 	public Object processRepositoryNdc(ProceedingJoinPoint pjp) throws Throwable {
