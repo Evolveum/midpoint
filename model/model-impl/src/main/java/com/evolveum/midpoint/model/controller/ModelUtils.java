@@ -101,11 +101,13 @@ public class ModelUtils {
 		if (schemaHandling == null) {
 			return null;
 		}
-		QName accountObjectClass = accountShadow.getObjectClass();
 
-		for (AccountType accountType : schemaHandling.getAccountType()) {
-			if (accountObjectClass.equals(accountType.getObjectClass())) {
-				return accountType;
+		QName accountObjectClass = accountShadow.getObjectClass();
+		if (accountObjectClass != null) {
+			for (AccountType accountType : schemaHandling.getAccountType()) {
+				if (accountObjectClass.equals(accountType.getObjectClass())) {
+					return accountType;
+				}
 			}
 		}
 
