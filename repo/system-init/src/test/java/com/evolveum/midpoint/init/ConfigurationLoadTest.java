@@ -44,7 +44,7 @@ public class ConfigurationLoadTest {
 		}
 		
 		assertEquals(c.getInt("port"),1984);
-		//assertEquals(c.getString("initialDataPath"), "" );
+		assertEquals(c.getString("serverPath"), "" );
 		
 	}
 
@@ -91,7 +91,7 @@ public class ConfigurationLoadTest {
 			LOGGER.info("  " + key + " = " + c.getString(key));
 		}
 		
-		assertEquals(c.getString("repository.initialDataPath"), "target/midPointHome/" );
+		assertEquals(c.getString("repository.serverPath"), "target/midPointHome/" );
 		
 		//cleanup
 		System.clearProperty("midpoint.home");		
