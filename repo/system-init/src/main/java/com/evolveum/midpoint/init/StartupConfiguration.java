@@ -224,8 +224,12 @@ public class StartupConfiguration implements MidpointConfiguration {
 			LOGGER.info("|  Welcome to midPoint from Evolveum.com");
 			LOGGER.info("|  Licensed under Open source licence CCDL v1.0 see: http://www.opensource.org/licenses/cddl1");
 			LOGGER.info("|  Version :  " + info.getString("midpoint.version"));
-			LOGGER.info("|  Build   :  " + info.getString("midpoint.build") + " at "
-					+ formatter.format(new Date(info.getLong("midpoint.timestamp"))));
+			try {
+				LOGGER.info("|  Build   :  " + info.getString("midpoint.build") + " at "
+						+ formatter.format(new Date(info.getLong("midpoint.timestamp"))));
+			} catch (NumberFormatException ex) {
+				LOGGER.info("|  Build   :  " + info.getString("midpoint.build"));
+			}
 			LOGGER.info("|  Sources :  " + info.getString("midpoint.scm") + "  branch:  "
 					+ info.getString("midpoint.branch"));
 			LOGGER.info("|  Bug reporting system : " + info.getString("midpoint.jira"));
