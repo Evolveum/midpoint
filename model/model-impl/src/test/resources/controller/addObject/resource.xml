@@ -213,7 +213,7 @@
                 <c:access>create</c:access>
                 <c:access>read</c:access>
                 <c:access>update</c:access>
-                <i:outbound>
+                <i:outbound default="true">
                     <i:valueExpression>
                     	<c:code>
                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";

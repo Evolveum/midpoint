@@ -20,8 +20,6 @@
  */
 package com.evolveum.midpoint.model.sync.action;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeMethod;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.times;
@@ -38,7 +36,8 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -65,7 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  * 
  */
 @ContextConfiguration(locations = { "classpath:application-context-model.xml",
-		"classpath:application-context-model-unit-test.xml", 
+		"classpath:application-context-model-unit-test.xml",
 		"classpath:application-context-configuration-test-no-repo.xml",
 		"classpath:application-context-task.xml" })
 public class AddUserActionTest extends BaseActionTest {
@@ -130,6 +129,11 @@ public class AddUserActionTest extends BaseActionTest {
 				repository.getObject(any(Class.class), eq(templateOid), any(PropertyReferenceListType.class),
 						any(OperationResult.class))).thenThrow(
 				new ObjectNotFoundException("user template not found"));
+
+		when(
+				provisioning.getObject(eq(ResourceType.class), eq(change.getResource().getOid()),
+						any(PropertyReferenceListType.class), any(OperationResult.class))).thenReturn(
+				change.getResource());
 
 		try {
 			ObjectChangeAdditionType addition = (ObjectChangeAdditionType) change.getObjectChange();

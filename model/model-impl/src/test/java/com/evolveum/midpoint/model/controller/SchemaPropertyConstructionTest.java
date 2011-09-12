@@ -18,6 +18,7 @@
 package com.evolveum.midpoint.model.controller;
 
 import java.io.File;
+import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 
@@ -31,9 +32,12 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.test.XmlAsserts;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -100,11 +104,41 @@ public class SchemaPropertyConstructionTest extends AbstractTestNGSpringContextT
 
 	@SuppressWarnings("unchecked")
 	@Test
-	public void userWithAttribute() throws Exception {
+	public void userWithAttributeAndDefaultTrue() throws Exception {
 		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"user-with-fullname.xml"))).getValue();
 		UserTemplateType template = ((JAXBElement<UserTemplateType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
 				"template.xml"))).getValue();
+
+		OperationResult result = new OperationResult("User with fullname (property construction test)");
+		try {
+			user = handler.processPropertyConstructions(user, template, result);
+			LOGGER.trace("Updated user:\n{}", JAXBUtil.silentMarshalWrap(user));
+		} catch (Exception ex) {
+			LOGGER.debug("Error occured, reason: " + ex.getMessage(), ex);
+		} finally {
+			LOGGER.debug(result.dump());
+		}
+
+		XmlAsserts.assertPatch(new File(TEST_FOLDER, "expected-user-default.xml"), JAXBUtil.silentMarshalWrap(user));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void userWithAttributeAndDefaultFalse() throws Exception {
+		UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"user-with-fullname.xml"))).getValue();
+		UserTemplateType template = ((JAXBElement<UserTemplateType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,
+				"template.xml"))).getValue();
+		
+		List<PropertyConstructionType> properties = template.getPropertyConstruction();
+		for (PropertyConstructionType construction : properties) {
+			XPathHolder holder = new XPathHolder(construction.getProperty());
+			List<XPathSegment> segments = holder.toSegments();
+			if (segments.get(segments.size()-1).getQName().getLocalPart().equals("fullName")) {
+				construction.getValueConstruction().setDefault(false);
+			}
+		}
 
 		OperationResult result = new OperationResult("User with fullname (property construction test)");
 		try {

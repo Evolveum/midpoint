@@ -3419,28 +3419,16 @@
 		<xsd:attribute name="default" type="xsd:boolean" default="false" use="optional">
 			<xsd:annotation>
 				<xsd:documentation>
-					This value construction should only be applied if
-					the
+					This value construction should only be applied if the
 					property or attribute does not have a value.
 
-					This flag
-					makes the
-					value construction conditional. Please
-					note that now there is no way
-					how to get attribute value
-					and
-					set a new value
-					atomically. Therefore
-					also the "default"
-					flag cannot be executed atomically and a risk of
-					inconsistency is still there. The
-					implementation should
-					minimize
-					that risk by making the "window of risk" as short
-					as possible and
-					utilize any additional
-					consistency
-					guarantees if possible.
+					This flag makes the value construction conditional. Please
+					note that now there is no way how to get attribute value and
+					set a new value atomically. Therefore also the "default" flag 
+					cannot be executed atomically and a risk of inconsistency is 
+					still there. The implementation should minimize that risk by 
+					making the "window of risk" as shortas possible and utilize 
+					any additional consistency guarantees if possible.
 				</xsd:documentation>
 			</xsd:annotation>
 		</xsd:attribute>

@@ -139,7 +139,7 @@ public class ControllerModifyObjectWithExclusionTest extends AbstractTestNGSprin
 		doAnswer(new Answer<Void>() {
 			@Override
 			public Void answer(InvocationOnMock invocation) throws Throwable {
-				ObjectModificationType modification = (ObjectModificationType) invocation.getArguments()[0];
+				ObjectModificationType modification = (ObjectModificationType) invocation.getArguments()[1];
 				assertEquals("358bba7d-1176-45cf-8f32-b92125ea6fb1", modification.getOid());
 				assertEquals(8, modification.getPropertyModification().size());
 				assertActivation(modification);

@@ -129,19 +129,6 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 		}
 	}
 
-	//TODO: fix
-	/*
-	2011-09-11 16:49:42,777 [main] TRACE (com.evolveum.midpoint.model.controller.SchemaHandlerImpl):  fullName ns0
-	2011-09-11 16:49:42,777 [main] TRACE (com.evolveum.midpoint.model.controller.SchemaHandlerImpl): Creating new element for value fullName.
-	2011-09-11 16:49:42,782 [main] ERROR (com.evolveum.midpoint.model.controller.SchemaHandlerImpl): Couldn't process property construction i:fullName for user bond, reason: NAMESPACE_ERR: An attempt is made to create or change an object in a way which is incorrect with regard to namespaces.
-	2011-09-11 16:49:42,782 [main] DEBUG (com.evolveum.midpoint.model.controller.SchemaHandlerImpl): Couldn't process property construction {} for user {}.
-	org.w3c.dom.DOMException: NAMESPACE_ERR: An attempt is made to create or change an object in a way which is incorrect with regard to namespaces.
-		at com.sun.org.apache.xerces.internal.dom.ElementNSImpl.setPrefix(ElementNSImpl.java:306)
-		at com.evolveum.midpoint.model.controller.SchemaHandlerImpl.createElementList(SchemaHandlerImpl.java:910)
-		at com.evolveum.midpoint.model.controller.SchemaHandlerImpl.updateUserAttribute(SchemaHandlerImpl.java:883)
-		at com.evolveum.midpoint.model.controller.SchemaHandlerImpl.processPropertyConstruction(SchemaHandlerImpl.java:859)
-		at com.evolveum.midpoint.model.controller.SchemaHandlerImpl.processPropertyConstructions(SchemaHandlerImpl.java:795)	
-	*/
 	@SuppressWarnings("unchecked")
 	@Test
 	public void accountAssignment() throws Exception {

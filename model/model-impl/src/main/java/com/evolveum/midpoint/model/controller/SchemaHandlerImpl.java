@@ -831,6 +831,14 @@ public class SchemaHandlerImpl implements SchemaHandler {
 
 		List<Object> values = new ArrayList<Object>();
 		ValueConstructionType valueConstruction = construction.getValueConstruction();
+		try {
+			if (!isApplicablePropertyConstruction(valueConstruction.isDefault(), new XPathHolder(property),
+					variables, (UserType) JAXBUtil.unmarshal(user).getValue())) {
+				return user;
+			}
+		} catch (JAXBException ex) {
+			throw new SchemaException(ex.getMessage(), ex);
+		}
 		if (valueConstruction.getValue() != null) {
 			// we have value already evaluated in construction
 			LOGGER.debug("Using defined value for property construction.");
@@ -906,7 +914,9 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			LOGGER.trace("Creating new element for value {}.", new Object[] { qname });
 			Element element = user.getOwnerDocument().createElementNS(qname.getNamespaceURI(),
 					qname.getLocalPart());
-			element.setPrefix(prefix);
+			if (StringUtils.isNotEmpty(prefix)) {
+				element.setPrefix(prefix);
+			}
 			if (value != null && StringUtils.isNotEmpty(value.toString())) {
 				element.setTextContent(value.toString());
 			}

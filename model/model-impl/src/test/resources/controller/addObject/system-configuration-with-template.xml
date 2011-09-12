@@ -4,7 +4,10 @@
 	<defaultUserTemplate>
 		<name>Default User Template</name>
 		<propertyConstruction>
-			<property>i:fullName</property>
+			<property>			
+				declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+				i:fullName
+			</property>
 			<valueConstruction default="true">
 				<valueExpression>
 					<code>

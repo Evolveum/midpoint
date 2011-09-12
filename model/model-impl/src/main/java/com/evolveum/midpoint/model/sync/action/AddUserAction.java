@@ -28,8 +28,6 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.result.OperationResult;
-import com.evolveum.midpoint.model.controller.SchemaHandler;
-import com.evolveum.midpoint.model.controller.SchemaHandlerImpl;
 import com.evolveum.midpoint.model.sync.SynchronizationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -70,8 +68,8 @@ public class AddUserAction extends BaseAction {
 				UserTemplateType userTemplate = null;
 				String userTemplateOid = getUserTemplateOid();
 				if (StringUtils.isNotEmpty(userTemplateOid)) {
-					userTemplate = getModel().getObject(UserTemplateType.class, userTemplateOid, new PropertyReferenceListType(),
-							subResult);
+					userTemplate = getModel().getObject(UserTemplateType.class, userTemplateOid,
+							new PropertyReferenceListType(), subResult);
 				}
 
 				userOid = getModel().addUser(user, userTemplate, subResult);
@@ -81,8 +79,8 @@ public class AddUserAction extends BaseAction {
 			}
 			subResult.recordSuccess();
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't perform Add User Action for shadow '{}', oid '{}'.", ex,
-					shadowAfterChange.getName(), shadowAfterChange.getOid());
+			LoggingUtils.logException(LOGGER, "Couldn't perform Add User Action for shadow '{}', oid '{}'.",
+					ex, shadowAfterChange.getName(), shadowAfterChange.getOid());
 			subResult.recordFatalError(
 					"Couldn't perform Add User Action for shadow '" + shadowAfterChange.getName()
 							+ "', oid '" + shadowAfterChange.getOid() + "'.", ex);
