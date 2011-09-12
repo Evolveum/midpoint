@@ -136,7 +136,7 @@ public class SchemaFormParser {
 
 				ResourceObjectDefinition def = (ResourceObjectDefinition) definition;
 				if (def.isDefaultAccountType()) {
-					accountType = def.getName();
+					accountType = def.getTypeName();
 					break;
 				}
 			}
