@@ -1378,7 +1378,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="stopAfterErrors" type="xsd:integer" minOccurs="0">
+			<xsd:element name="stopAfterErrors" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						Number of errors that will cause import to stop. If set to one the import will stop on first error.

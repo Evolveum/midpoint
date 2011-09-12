@@ -28,7 +28,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
-import java.math.BigInteger;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -70,14 +69,14 @@ public class ImportController implements Serializable {
 	private boolean summarizeSucceses = true;
 	private boolean validateDynamicSchema = true;
 	private boolean validateStaticSchema = true;
-	private BigInteger stopAfterErrors;
+	private int stopAfterErrors;
 	
 	
-	public BigInteger getStopAfterErrors() {
+	public int getStopAfterErrors() {
 		return stopAfterErrors;
 	}
 
-	public void setStopAfterErrors(BigInteger stopAfterErrors) {
+	public void setStopAfterErrors(int stopAfterErrors) {
 		this.stopAfterErrors = stopAfterErrors;
 	}
 
