@@ -49,10 +49,13 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -65,6 +68,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests {
 
 	public static final String BASE_PATH = "src/test/resources/";
+
+	private boolean initialized = false;
 
 	@Autowired
 	private RepositoryService repositoryService;
@@ -91,11 +96,15 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 
 	@BeforeMethod
 	public void setUp() throws Exception {
-		OperationResult result = new OperationResult(RepositorySearchPagingTest.class.getName()
-				+ ".setupPagingTests");
+		if (!initialized) {
+			OperationResult result = new OperationResult(RepositorySearchPagingTest.class.getName()
+					+ ".setupPagingTests");
 
-		EventHandler handler = new MyEventHandler(repositoryService); 		
-		processFile("users.xml", handler, result);
+			EventHandler handler = new MyEventHandler(repositoryService);
+			processFile("users.xml", handler, result);
+
+			initialized = true;
+		}
 	}
 
 	@AfterMethod
@@ -104,7 +113,7 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 
 	@Test
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public void pagingTest() throws Exception {
+	public void pagingFromFirstElementTest() throws Exception {
 		// GIVEN
 		// prepare paging
 		PagingType paging = new PagingType();
@@ -124,6 +133,87 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 
 		// THEN
 		assertEquals(3, users.size());
+	}
+
+	@Test
+	public void pagingMaxValueTest() throws Exception {
+		// GIVEN
+		// prepare paging
+		PagingType paging = new PagingType();
+		paging.setOffset(3);
+		paging.setMaxSize(Integer.MAX_VALUE);
+		// create query
+		QueryType query = new QueryType();
+		Document doc = DOMUtil.getDocument();
+		Element filter = doc.createElementNS(SchemaConstants.C_FILTER_AND.getNamespaceURI(),
+				SchemaConstants.C_FILTER_AND.getLocalPart());
+		query.setFilter(filter);
+
+		// WHEN
+		OperationResult parentResult = new OperationResult(RepositorySearchPagingTest.class.getName()
+				+ ".pagingTest");
+		List<UserType> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
+
+		// THEN
+		assertEquals(2, users.size());
+	}
+
+	/**
+	 * There is no API contract for Paging negative values, yet.
+	 * Therefor we are ok, if repository returns 0 objects for negative paging values 
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	public void pagingNegativeValuesTest() throws Exception {
+		// GIVEN
+		// prepare paging
+		PagingType paging = new PagingType();
+		paging.setOffset(-2);
+		paging.setMaxSize(-4);
+		// create query
+		QueryType query = new QueryType();
+		Document doc = DOMUtil.getDocument();
+		Element filter = doc.createElementNS(SchemaConstants.C_FILTER_AND.getNamespaceURI(),
+				SchemaConstants.C_FILTER_AND.getLocalPart());
+		query.setFilter(filter);
+
+		// WHEN
+		OperationResult parentResult = new OperationResult(RepositorySearchPagingTest.class.getName()
+				+ ".pagingTest");
+		List<UserType> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
+
+		// THEN
+		assertEquals(0, users.size());
+	}
+
+	@Test
+	public void pagingOnlySortingTest() throws Exception {
+		// GIVEN
+		// prepare paging
+		PagingType paging = new PagingType();
+		Element el = DOMUtil.getDocument().createElementNS(SchemaConstants.NS_C, "property");
+		el.setTextContent("name");
+		PropertyReferenceType orderBy = new PropertyReferenceType();
+		orderBy.setProperty(el);
+		paging.setOrderBy(orderBy);
+		paging.setOrderDirection(OrderDirectionType.DESCENDING);
+		// create query
+		QueryType query = new QueryType();
+		Document doc = DOMUtil.getDocument();
+		Element filter = doc.createElementNS(SchemaConstants.C_FILTER_AND.getNamespaceURI(),
+				SchemaConstants.C_FILTER_AND.getLocalPart());
+		query.setFilter(filter);
+
+		// WHEN
+		OperationResult parentResult = new OperationResult(RepositorySearchPagingTest.class.getName()
+				+ ".pagingTest");
+		List<UserType> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
+
+		// THEN
+		assertEquals(5, users.size());
+		assertEquals("testuser0005", users.get(0).getName());
+		assertEquals("testuser0001", users.get(4).getName());
 	}
 
 	private static void processFile(String filename, EventHandler handler, OperationResult result)

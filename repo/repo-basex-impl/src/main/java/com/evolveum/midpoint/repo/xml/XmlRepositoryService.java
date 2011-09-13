@@ -592,8 +592,8 @@ public class XmlRepositoryService implements RepositoryService {
 			if (objectType != null) {
 				query.append(" and ");
 			}
-			int from = paging.getOffset() + 1;
-			int to = from + paging.getMaxSize();
+			long from = paging.getOffset() + 1;
+			long to = from + paging.getMaxSize();
 			query.append("$pos >= ").append(from).append(" and $pos <= ").append(to);
 		}
 		if (filters != null) {
