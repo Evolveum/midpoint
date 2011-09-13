@@ -576,7 +576,7 @@ public class XmlRepositoryService implements RepositoryService {
 			}
 		}
 
-		query.append("for $x in //c:object ");
+		query.append("for $x at $pos in //c:object ");
 		if (objectType != null
 				|| (null != paging && null != paging.getOffset() && null != paging.getMaxSize())
 				|| (filters != null && !filters.isEmpty())) {
@@ -589,9 +589,12 @@ public class XmlRepositoryService implements RepositoryService {
 			query.append("$x/@xsi:type=\"").append(objectType).append("\"");
 		}
 		if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
-			query.append("[fn:position() = ( ").append(paging.getOffset() * paging.getMaxSize())
-					.append(" to ").append(((paging.getOffset() + 1) * paging.getMaxSize()) - 1)
-					.append(") ] ");
+			if (objectType != null) {
+				query.append(" and ");
+			}
+			int from = paging.getOffset() + 1;
+			int to = from + paging.getMaxSize();
+			query.append("$pos >= ").append(from).append(" and $pos <= ").append(to);
 		}
 		if (filters != null) {
 			int pos = 0;

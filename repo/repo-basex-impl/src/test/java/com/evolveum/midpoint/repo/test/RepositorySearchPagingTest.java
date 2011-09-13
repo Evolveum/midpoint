@@ -1,0 +1,195 @@
+/*
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ *
+ * Portions Copyrighted 2011 Igor Farinic
+ * Portions Copyrighted 2010 Forgerock
+ */
+
+package com.evolveum.midpoint.repo.test;
+
+import static org.testng.AssertJUnit.assertEquals;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
+import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+
+/**
+ * 
+ * @author Igor Farinic
+ */
+@ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
+		"classpath:application-context-configuration-test.xml" })
+public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests {
+
+	public static final String BASE_PATH = "src/test/resources/";
+
+	@Autowired
+	private RepositoryService repositoryService;
+
+	public RepositoryService getRepositoryService() {
+		return repositoryService;
+	}
+
+	public void setRepositoryService(RepositoryService repositoryService) {
+		this.repositoryService = repositoryService;
+	}
+
+	public RepositorySearchPagingTest() {
+	}
+
+	@BeforeClass
+	public static void setUpClass() throws Exception {
+
+	}
+
+	@AfterClass
+	public static void tearDownClass() throws Exception {
+	}
+
+	@BeforeMethod
+	public void setUp() throws Exception {
+		OperationResult result = new OperationResult(RepositorySearchPagingTest.class.getName()
+				+ ".setupPagingTests");
+
+		EventHandler handler = new MyEventHandler(repositoryService); 		
+		processFile("users.xml", handler, result);
+	}
+
+	@AfterMethod
+	public void tearDown() throws Exception {
+	}
+
+	@Test
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void pagingTest() throws Exception {
+		// GIVEN
+		// prepare paging
+		PagingType paging = new PagingType();
+		paging.setOffset(0);
+		paging.setMaxSize(2);
+		// create query
+		QueryType query = new QueryType();
+		Document doc = DOMUtil.getDocument();
+		Element filter = doc.createElementNS(SchemaConstants.C_FILTER_AND.getNamespaceURI(),
+				SchemaConstants.C_FILTER_AND.getLocalPart());
+		query.setFilter(filter);
+
+		// WHEN
+		OperationResult parentResult = new OperationResult(RepositorySearchPagingTest.class.getName()
+				+ ".pagingTest");
+		List<UserType> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
+
+		// THEN
+		assertEquals(3, users.size());
+	}
+
+	private static void processFile(String filename, EventHandler handler, OperationResult result)
+			throws FileNotFoundException {
+
+		String filepath = BASE_PATH + filename;
+
+		System.out.println("Validating " + filename);
+
+		FileInputStream fis = null;
+
+		File file = new File(filepath);
+		fis = new FileInputStream(file);
+
+		Validator validator = new Validator();
+		if (handler != null) {
+			validator.setHandler(handler);
+		}
+		validator.setVerbose(false);
+
+		validator.validate(fis, result, RepositorySearchPagingTest.class.getName() + ".validateObject");
+
+		if (!result.isSuccess()) {
+			System.out.println("Errors:");
+			System.out.println(result.dump());
+		} else {
+			System.out.println("No errors");
+			System.out.println(result.dump());
+		}
+
+	}
+
+	private static final class MyEventHandler implements EventHandler {
+
+		RepositoryService repositoryService;
+
+		public MyEventHandler(RepositoryService repositoryService) {
+			this.repositoryService = repositoryService;
+		}
+
+		@Override
+		public EventResult preMarshall(Element objectElement, Node postValidationTree,
+				OperationResult objectResult) {
+			return EventResult.cont();
+		}
+
+		@Override
+		public EventResult postMarshall(ObjectType object, Element objectElement, OperationResult objectResult) {
+			System.out.println("Handler processing " + ObjectTypeUtil.toShortString(object) + ", result:");
+			try {
+				repositoryService.addObject(object, objectResult);
+			} catch (ObjectAlreadyExistsException e) {
+				throw new RuntimeException(e);
+			} catch (SchemaException e) {
+				throw new RuntimeException(e);
+			}
+			System.out.println(objectResult.dump());
+			return EventResult.cont();
+		}
+
+		@Override
+		public void handleGlobalError(OperationResult currentResult) {
+			System.out.println("Handler got global error:");
+			System.out.println(currentResult.dump());
+		}
+
+	};
+
+}
