@@ -173,11 +173,11 @@ public class XmlRepositoryService implements RepositoryService {
 		} catch (ObjectAlreadyExistsException ex) {
 			object.setOid(null);
 			throw ex;
-		} 
-//		catch (SchemaException ex) {
-//			object.setOid(null);
-//			throw ex;
-//		}
+		}
+		// catch (SchemaException ex) {
+		// object.setOid(null);
+		// throw ex;
+		// }
 
 	}
 
@@ -271,7 +271,8 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging, OperationResult parentResult) {
+	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging,
+			OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".listObjects");
 		result.addParam("objectType", objectType);
@@ -303,47 +304,58 @@ public class XmlRepositoryService implements RepositoryService {
 
 		validateQuery(query);
 
-		NodeList children = query.getFilter().getChildNodes();
-		//String objectType = null;
+		// String objectType = null;
 		Map<String, String> filters = new HashMap<String, String>();
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		namespaces.put("idmdn", SchemaConstants.NS_C);
-
-		for (int index = 0; index < children.getLength(); index++) {
-			Node child = children.item(index);
-			if (child.getNodeType() != Node.ELEMENT_NODE) {
-				// Skipping all non-element nodes
-				continue;
-			}
-
-			if (!StringUtils.equals(SchemaConstants.NS_C, child.getNamespaceURI())) {
-				LOGGER.warn("Found query's filter element from unsupported namespace. Ignoring filter {}",
-						child);
-				continue;
-			}
-
-			if (validateFilterElement(SchemaConstants.NS_C, "type", child)) {
-				//objectType = child.getAttributes().getNamedItem("uri").getTextContent();
-				LOGGER.warn("Found deprecated argument c:type in search filter. Ignoring it.");
-			} else if (validateFilterElement(SchemaConstants.NS_C, "equal", child)) {
-				Node criteria = DOMUtil.getFirstChildElement(child);
-
-				if (validateFilterElement(SchemaConstants.NS_C, "path", criteria)) {
-					XPathHolder xpathType = new XPathHolder((Element) criteria);
-					String parentPath = xpathType.getXPath();
-
-					Node criteriaValueNode = DOMUtil.getNextSiblingElement(criteria);
-					processValueNode(criteriaValueNode, filters, namespaces, parentPath);
+		
+		if (validateFilterElement(SchemaConstants.NS_C, "and", query.getFilter())) {
+			NodeList children = query.getFilter().getChildNodes();
+			
+			for (int index = 0; index < children.getLength(); index++) {
+				Node child = children.item(index);
+				if (child.getNodeType() != Node.ELEMENT_NODE) {
+					// Skipping all non-element nodes
+					continue;
 				}
 
-				if (validateFilterElement(SchemaConstants.NS_C, "value", criteria)) {
-					processValueNode(criteria, filters, namespaces, null);
+				if (!StringUtils.equals(SchemaConstants.NS_C, child.getNamespaceURI())) {
+					LOGGER.warn(
+							"Found query's filter element from unsupported namespace. Ignoring filter {}",
+							child);
+					continue;
 				}
+
+				processFilterBody(filters, namespaces, child);
 			}
+		} else {
+			processFilterBody(filters, namespaces, query.getFilter());
 		}
 
 		return searchObjects(clazz, paging, filters, namespaces, result);
+	}
+
+	private void processFilterBody(Map<String, String> filters, Map<String, String> namespaces, Node child) {
+		if (validateFilterElement(SchemaConstants.NS_C, "type", child)) {
+			// objectType =
+			// child.getAttributes().getNamedItem("uri").getTextContent();
+			LOGGER.warn("Found deprecated argument c:type in search filter (MID-395). Ignoring it.");
+		} else if (validateFilterElement(SchemaConstants.NS_C, "equal", child)) {
+			Node criteria = DOMUtil.getFirstChildElement(child);
+
+			if (validateFilterElement(SchemaConstants.NS_C, "path", criteria)) {
+				XPathHolder xpathType = new XPathHolder((Element) criteria);
+				String parentPath = xpathType.getXPath();
+
+				Node criteriaValueNode = DOMUtil.getNextSiblingElement(criteria);
+				processValueNode(criteriaValueNode, filters, namespaces, parentPath);
+			}
+
+			if (validateFilterElement(SchemaConstants.NS_C, "value", criteria)) {
+				processValueNode(criteria, filters, namespaces, null);
+			}
+		}
 	}
 
 	@Override
@@ -540,18 +552,18 @@ public class XmlRepositoryService implements RepositoryService {
 
 	}
 
-	private <T extends ObjectType> List<T> searchObjects(Class<T> clazz,
-			PagingType paging, Map<String, String> filters, Map<String, String> namespaces,
-			OperationResult result) {
+	private <T extends ObjectType> List<T> searchObjects(Class<T> clazz, PagingType paging,
+			Map<String, String> filters, Map<String, String> namespaces, OperationResult result) {
 
-		//convert class object type to String representation
+		// convert class object type to String representation
 		String objectType = null;
 		if (ObjectType.class.equals(clazz)) {
-			//object type will be empty, because we wan't to search through all the objects
+			// object type will be empty, because we wan't to search through all
+			// the objects
 		} else {
 			objectType = ObjectTypes.getObjectType(clazz).getValue();
 		}
-		
+
 		List<T> objectList = new ArrayList<T>();
 		// FIXME: objectList.count has to contain all elements that match search
 		// criteria, but not only from paging interval
