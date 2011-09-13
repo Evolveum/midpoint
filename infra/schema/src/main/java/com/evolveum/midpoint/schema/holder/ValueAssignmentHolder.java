@@ -23,11 +23,10 @@
 package com.evolveum.midpoint.schema.holder;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ValueFilterType;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
@@ -94,8 +93,7 @@ public class ValueAssignmentHolder {
         }
 
         try {
-            JAXBContext jctx = JAXBContext.newInstance(ObjectFactory.class);
-            Unmarshaller unmarshaller = jctx.createUnmarshaller();
+        	Unmarshaller unmarshaller = JAXBUtil.createUnmarshaller();
 
             List<ValueFilterType> newFilters = new ArrayList<ValueFilterType>();
             for (int i = 0; i < elements.getLength(); i++) {

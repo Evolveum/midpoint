@@ -156,7 +156,7 @@ public final class JAXBUtil {
 		return marshaller;
 	}
 
-	private static Unmarshaller createUnmarshaller() throws JAXBException {
+	public static Unmarshaller createUnmarshaller() throws JAXBException {
 		return context.createUnmarshaller();
 	}
 
