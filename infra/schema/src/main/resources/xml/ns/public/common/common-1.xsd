@@ -261,6 +261,15 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			
+			<xsd:element ref="tns:description" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Free-form textual description of the object. 
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			
 		</xsd:sequence>
 
 		<xsd:attribute name="oid" type="xsd:string" use="optional">
@@ -335,6 +344,20 @@
 		</xsd:attribute>
 
 	</xsd:complexType>
+	
+	<xsd:element name="description" type="xsd:string">
+		<xsd:annotation>
+			<xsd:documentation>
+				Free-form textual description of the object. It is supposed to describe
+				the object or a construct that it is attached to.
+				
+				Anything that the system administrator wants may be here. The system
+				will not interpret the information except for displaying it and allow
+				user to edit it. 
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+	
 
 	<xsd:element name="extension">
 		<xsd:annotation>
@@ -427,6 +450,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
+			<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
 			<xsd:element ref="tns:filter" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -1076,16 +1100,16 @@
 		</xsd:annotation>
 	</xsd:complexType>
 
-	<xsd:element name="query" type="tns:QueryType">
+	<xsd:element name="query" type="tns:QueryType"/>
+
+	<xsd:complexType name="QueryType">
 		<xsd:annotation>
 			<xsd:documentation>
 				TODO
 			</xsd:documentation>
 		</xsd:annotation>
-	</xsd:element>
-
-	<xsd:complexType name="QueryType">
 		<xsd:sequence>
+			<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
 			<xsd:element ref="tns:filter" />
 		</xsd:sequence>
 	</xsd:complexType>
@@ -2557,6 +2581,7 @@
 								</xsd:documentation>
 							</xsd:annotation>
 						</xsd:element>
+						<xsd:element ref="tns:description" minOccurs="0"/>
 						<xsd:element name="objectClass" type="xsd:QName">
 							<xsd:annotation>
 								<xsd:documentation>
@@ -3045,6 +3070,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
 			<xsd:element ref="c:access" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -3216,6 +3242,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
+			<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1" />
 			<xsd:element ref="c:extension" minOccurs="0" maxOccurs="1" />
 			<xsd:choice>
 				<xsd:element name="value" nillable="true">
@@ -3491,6 +3518,7 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:PropertyReferenceType">
 				<xsd:sequence>
+					<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
 					<xsd:element name="valueConstruction" type="tns:ValueConstructionType">
 						<xsd:annotation>
 							<xsd:documentation>
@@ -3533,6 +3561,7 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:sequence>
+			<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1" />
 			<xsd:element ref="tns:valueFilter" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -3798,6 +3827,7 @@
 				</xsd:annotation>
 				<xsd:complexType>
 					<xsd:sequence>
+						<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
 						<xsd:element name="situation" type="tns:SynchronizationSituationType">
 							<xsd:annotation>
 								<xsd:documentation>
@@ -4604,6 +4634,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
+			<xsd:element ref="tns:description" minOccurs="0" />
 			<xsd:element name="ref" type="xsd:QName" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
@@ -4684,22 +4715,25 @@
 				variable.
 			</xsd:documentation>
 		</xsd:annotation>
-		<xsd:choice>
-			<xsd:element name="objectRef" type="tns:ObjectReferenceType">
-				<xsd:annotation>
-					<xsd:documentation>
-						TODO
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="value" type="xsd:string">
-				<xsd:annotation>
-					<xsd:documentation>
-						TODO
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-		</xsd:choice>
+		<xsd:sequence>
+			<xsd:element ref="tns:description" minOccurs="0"/>
+			<xsd:choice>
+				<xsd:element name="objectRef" type="tns:ObjectReferenceType">
+					<xsd:annotation>
+						<xsd:documentation>
+							TODO
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+				<xsd:element name="value" type="xsd:string">
+					<xsd:annotation>
+						<xsd:documentation>
+							TODO
+						</xsd:documentation>
+					</xsd:annotation>
+				</xsd:element>
+			</xsd:choice>
+		</xsd:sequence>
 		<xsd:attribute name="name" type="xsd:QName">
 			<xsd:annotation>
 				<xsd:documentation>
@@ -4853,6 +4887,7 @@
 
 	<xsd:complexType name="AccountConstructionType">
 		<xsd:sequence>
+			<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1" />
 			<xsd:element ref="c:extension" minOccurs="0" maxOccurs="1" />
 			<xsd:choice>
 				<xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -5152,7 +5187,6 @@
 		<xsd:complexContent>
 			<xsd:extension base="c:ObjectType">
 				<xsd:sequence>
-					<xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1" />
 					<xsd:element name="lifetime" type="c:PasswordLifeTimeType" minOccurs="1" maxOccurs="1" />
 					<xsd:element name="stringPolicy" type="c:StringPolicyType" minOccurs="1" maxOccurs="1" />
 				</xsd:sequence>

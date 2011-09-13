@@ -94,7 +94,9 @@ public class TestSamples {
         	// The error is most likely the first inner result. Therefore let's pull it out for convenience
         	String errorMessage = result.getMessage();
         	if (result.getSubresults()!=null && !result.getSubresults().isEmpty()) {
-        		errorMessage = result.getSubresults().get(0).getMessage();
+        		if (result.getSubresults().get(0).getMessage() != null) {
+        			errorMessage = result.getSubresults().get(0).getMessage();
+        		}
         	}
         	System.out.println("ERROR: "+errorMessage);
         	System.out.println(result.dump());
