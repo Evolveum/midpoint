@@ -108,7 +108,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
 	private ConnectorInfoManager localConnectorInfoManager;
 	private Set<URL> bundleURLs;
-	private Map<String, ConnectorInfo> connectors;
+	private Set<ConnectorType>  localConnectorTypes = null;
 
 	@Autowired(required = true)
 	MidpointConfiguration midpointConfiguration;
@@ -150,14 +150,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		}
 
 		connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
-
-		connectors = new HashMap<String, ConnectorInfo>();
-		List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
-		for (ConnectorInfo connectorInfo : connectorInfos) {
-			ConnectorKey key = connectorInfo.getConnectorKey();
-			String mapKey = keyToNamespaceSuffix(key);
-			connectors.put(mapKey, connectorInfo);
-		}
+		
 	}
 
 	/**
@@ -229,13 +222,20 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	}
 
 	private Set<ConnectorType> listLocalConnectors() {
-		Set<ConnectorType> connectorTypes = new HashSet<ConnectorType>();
-		for (Map.Entry<String, ConnectorInfo> e : connectors.entrySet()) {
-			ConnectorInfo cinfo = e.getValue();
-			ConnectorType connectorType = convertToConnectorType(cinfo, null);
-			connectorTypes.add(connectorType);
+		if (localConnectorTypes == null) {
+			// Lazy initialize connector list
+			localConnectorTypes = new HashSet<ConnectorType>();
+			
+			// Fetch list of local connectors from ICF
+			List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
+			
+			for (ConnectorInfo connectorInfo : connectorInfos) {
+				ConnectorType connectorType = convertToConnectorType(connectorInfo, null);
+				localConnectorTypes.add(connectorType);
+			}
 		}
-		return connectorTypes;
+		
+		return localConnectorTypes;
 	}
 
 	private Set<ConnectorType> listRemoteConnectors(ConnectorHostType host) {
