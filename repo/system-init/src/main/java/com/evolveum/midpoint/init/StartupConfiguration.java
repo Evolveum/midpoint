@@ -221,7 +221,12 @@ public class StartupConfiguration implements MidpointConfiguration {
 			Configuration info = new PropertiesConfiguration("midpoint.info");
 			DateFormat formatter = new SimpleDateFormat("dd/MM/yyyy hh:mm:ss.SSS");
 			LOGGER.info("+--------------------------------------------------------------------------------------------+");
-			LOGGER.info("|  Welcome to midPoint from Evolveum.com");
+			LOGGER.info("|             _    | |  _  \\     _     _| |_");
+			LOGGER.info("|   ___ ____ (_) __| | |_) |___ (_)___|_   _|");
+			LOGGER.info("|  |  _ ` _ `| |/ _  |  __/  _ \\| |  _` | |");
+			LOGGER.info("|  | | | | | | | (_| | |  | (_) | | | | | |_");
+			LOGGER.info("|  |_| |_| |_|_|\\____|_|  \\____/|_|_| |_|\\__|  from Evolveum.com");
+			LOGGER.info("|"); 
 			LOGGER.info("|  Licensed under Open source licence CCDL v1.0 see: http://www.opensource.org/licenses/cddl1");
 			LOGGER.info("|  Version :  " + info.getString("midpoint.version"));
 			try {
