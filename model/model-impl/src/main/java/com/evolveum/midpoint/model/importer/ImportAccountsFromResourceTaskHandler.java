@@ -305,7 +305,6 @@ public class ImportAccountsFromResourceTaskHandler implements TaskHandler {
 	                // TODO: The account type is hardcoded now, it should determined
 	                // from the schema later, or maybe we can make it entirely
 	                // generic (use ResourceObjectShadowType instead).
-	                QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
 	                QueryUtil.createEqualRefFilter(doc, null, SchemaConstants.I_RESOURCE_REF,resource.getOid()),
 	                QueryUtil.createEqualFilter(doc, null, SchemaConstants.I_OBJECT_CLASS,objectClass)
                 );

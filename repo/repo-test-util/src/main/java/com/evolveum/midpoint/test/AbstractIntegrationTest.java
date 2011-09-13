@@ -211,10 +211,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		connectorTypeElement.setTextContent(connectorType);
 
 		// We have all the data, we can construct the filter now
-		Element filter = QueryUtil.createAndFilter(doc,
-				// No path needed. The default is OK.
-				QueryUtil.createTypeFilter(doc, ObjectTypes.CONNECTOR.getObjectTypeUri()),
-				QueryUtil.createEqualFilter(doc, null, connectorTypeElement));
+		Element filter = QueryUtil.createEqualFilter(doc, null, connectorTypeElement);
 
 		QueryType query = new QueryType();
 		query.setFilter(filter);

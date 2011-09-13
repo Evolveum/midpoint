@@ -144,9 +144,7 @@ public class AddUserActionTest extends AbstractTestNGSpringContextTests {
 			element.setTextContent("will");
 			values.add(element);
 
-			Element filter = QueryUtil.createAndFilter(doc,
-					QueryUtil.createTypeFilter(doc, QNameUtil.qNameToUri(SchemaConstants.I_USER_TYPE)),
-					QueryUtil.createEqualFilter(doc, xpath, values));
+			Element filter = QueryUtil.createEqualFilter(doc, xpath, values);
 
 			QueryType query = new QueryType();
 			query.setFilter(filter);

@@ -251,7 +251,7 @@ public class TaskScanner extends Thread {
 		Element filter = QueryUtil.createAndFilter(
 				doc,
 				// No path needed. The default is OK.
-				QueryUtil.createTypeFilter(doc, ObjectTypes.TASK.getObjectTypeUri()),
+//				QueryUtil.createTypeFilter(doc, ObjectTypes.TASK.getObjectTypeUri()),
 				QueryUtil.createEqualFilter(doc, null, executionStatusElement),
 				QueryUtil.createEqualFilter(doc, null, exclusivityStatusElement));
 

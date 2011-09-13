@@ -47,6 +47,7 @@ import org.w3c.dom.Element;
  */
 public class QueryUtil {
 
+	@Deprecated
     public static Element createTypeFilter(Document doc, String uri) {
         Validate.notNull(doc);
         Validate.notNull(uri);
@@ -196,9 +197,7 @@ public class QueryUtil {
     
 	public static <T extends ObjectType> Element createNameAndClassFilter(Class<T> type, String name) throws SchemaException {
 		Document doc = DOMUtil.getDocument();
-		return QueryUtil.createAndFilter(doc,
-				QueryUtil.createTypeFilter(doc, ObjectTypes.getObjectType(type).getObjectTypeUri()),
-				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, name));
+		return QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, name);
 	}
 	
 	public static QueryType createQuery(Element filter) {

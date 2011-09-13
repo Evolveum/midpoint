@@ -771,10 +771,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		Element nameElement = doc.createElementNS(SchemaConstants.C_NAME.getNamespaceURI(),
 				SchemaConstants.C_NAME.getLocalPart());
 		nameElement.setTextContent(WILL_NAME);
-		Element filter = QueryUtil.createAndFilter(doc,
-				// No path needed. The default is OK.
-				QueryUtil.createTypeFilter(doc, ObjectTypes.USER.getObjectTypeUri()),
-				QueryUtil.createEqualFilter(doc, null, nameElement));
+		Element filter = QueryUtil.createEqualFilter(doc, null, nameElement);
 
 		QueryType query = new QueryType();
 		query.setFilter(filter);

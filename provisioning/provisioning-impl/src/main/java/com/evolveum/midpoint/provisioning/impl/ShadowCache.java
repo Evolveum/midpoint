@@ -1133,10 +1133,7 @@ public class ShadowCache {
 		}
 		Element filter;
 		try {
-			filter = QueryUtil.createAndFilter(doc, QueryUtil
-					.createTypeFilter(doc, QNameUtil
-							.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
-					QueryUtil.createEqualFilter(doc, xpath, values));
+			filter = QueryUtil.createEqualFilter(doc, xpath, values);
 		} catch (SchemaException e) {
 			parentResult.recordFatalError(e);
 			throw e;
@@ -1324,15 +1321,8 @@ public class ShadowCache {
 		Document doc = DOMUtil.getDocument();
 		Element filter;
 		try {
-			filter = QueryUtil.createAndFilter(
-					doc,
-					// TODO: The account type is hardcoded now, it should determined
-					// from the schema later, or maybe we can make it entirely
-					// generic (use ResourceObjectShadowType instead).
-					QueryUtil.createTypeFilter(doc, QNameUtil
-							.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
-					QueryUtil.createEqualFilter(doc, xpath,
-							identifier.serializeToJaxb(doc)));
+			filter = QueryUtil.createEqualFilter(doc, xpath,
+					identifier.serializeToJaxb(doc));
 		} catch (SchemaException e) {
 			LOGGER.error("Schema error while creating search filter: {}",e.getMessage(),e);
 			throw new SchemaException("Schema error while creating search filter: "+e.getMessage(),e);
@@ -1721,10 +1711,7 @@ public class ShadowCache {
 					"Error serializing identifiers to dom. Reason: "
 							+ ex.getMessage(), ex);
 		}
-		Element filter = QueryUtil.createAndFilter(doc, QueryUtil
-					.createTypeFilter(doc, QNameUtil
-							.qNameToUri(SchemaConstants.I_ACCOUNT_SHADOW_TYPE)),
-					QueryUtil.createEqualFilter(doc, xpath, values));
+		Element filter = QueryUtil.createEqualFilter(doc, xpath, values);
 
 		QueryType query = new QueryType();
 		query.setFilter(filter);

@@ -247,7 +247,6 @@ public class ConnectorTypeManager {
 		Document doc = DOMUtil.getDocument();
         Element filter =
                 QueryUtil.createAndFilter(doc,
-	                QueryUtil.createTypeFilter(doc, ObjectTypes.CONNECTOR.getObjectTypeUri()),
 	                QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_FRAMEWORK,connector.getFramework()),
 	                QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE,connector.getConnectorType())
                 );
