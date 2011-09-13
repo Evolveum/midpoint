@@ -19,6 +19,12 @@
  */
 package com.evolveum.midpoint.testing.sanity;
 
+import static org.testng.AssertJUnit.assertFalse;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
+import org.testng.annotations.BeforeClass;
+import org.testng.Assert;
+import org.testng.AssertJUnit;
 import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttribute;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertAttributeNotNull;
@@ -377,10 +383,10 @@ public class TestSanity extends AbstractIntegrationTest {
 		displayJaxb("User (repository)", repoUser, new QName("user"));
 
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
-		AssertJUnit.assertEquals(1, accountRefs.size());
+		assertEquals(1, accountRefs.size());
 		ObjectReferenceType accountRef = accountRefs.get(0);
 		shadowOid = accountRef.getOid();
-		AssertJUnit.assertFalse(shadowOid.isEmpty());
+		assertFalse(shadowOid.isEmpty());
 
 		// Check if shadow was created in the repo
 
@@ -391,12 +397,11 @@ public class TestSanity extends AbstractIntegrationTest {
 		repoResult.computeStatus();
 		assertSuccess("addObject has failed", repoResult);
 		displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
-		AssertJUnit.assertNotNull(repoShadow);
-		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+		assertNotNull(repoShadow);
+		assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
 		// Check the "name" property, it should be set to DN, not entryUUID
-		Assert.assertEquals(repoShadow.getName().toLowerCase(), USER_JACK_LDAP_DN.toLowerCase(),
-				"Wrong name property");
+		assertEquals("Wrong name property", repoShadow.getName().toLowerCase(), USER_JACK_LDAP_DN.toLowerCase());
 
 		// check attributes in the shadow: should be only identifiers (ICF UID)
 		String uid = null;
@@ -405,7 +410,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		for (Object element : xmlAttributes) {
 			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
 				if (uid != null) {
-					Assert.fail("Multiple values for ICF UID in shadow attributes");
+					AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
 				} else {
 					uid = ((Element)element).getTextContent();
 				}
@@ -414,7 +419,7 @@ public class TestSanity extends AbstractIntegrationTest {
 			}
 		}
 
-		AssertJUnit.assertFalse(hasOthers);
+		assertFalse(hasOthers);
 		assertNotNull(uid);
 
 		// check if account was created in LDAP
@@ -428,7 +433,7 @@ public class TestSanity extends AbstractIntegrationTest {
 				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
 				100, false, "(entryUUID=" + uid + ")", null);
 
-		AssertJUnit.assertEquals(1, op.getEntriesSent());
+		assertEquals(1, op.getEntriesSent());
 		SearchResultEntry response = op.getSearchEntries().get(0);
 
 		display("LDAP account", response);
@@ -529,7 +534,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		for (Object element : xmlAttributes) {
 			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
 				if (uid != null) {
-					Assert.fail("Multiple values for ICF UID in shadow attributes");
+					AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
 				} else {
 					uid = ((Element)element).getTextContent();
 				}
@@ -590,7 +595,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 		try {
 			repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
-			Assert.fail("User still exists in repo after delete");
+			AssertJUnit.fail("User still exists in repo after delete");
 		} catch (ObjectNotFoundException e) {
 			// This is expected
 		}
@@ -599,7 +604,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		repoResult = new OperationResult("getObject");
 		try {
 			repositoryService.getObject(ObjectType.class, shadowOid, resolve, repoResult);
-			Assert.fail("Shadow still exists in repo after delete");
+			AssertJUnit.fail("Shadow still exists in repo after delete");
 		} catch (ObjectNotFoundException e) {
 			// This is expected, but check also the result
 			AssertJUnit.assertFalse("getObject failed as expected, but the result indicates success",
@@ -651,7 +656,11 @@ public class TestSanity extends AbstractIntegrationTest {
 					return true;
 				}
 				return false;
-			};
+			}
+			@Override
+			public void timeout() {
+				// No reaction, the test will fail right after return from this
+			}
 		}, 20000);
 
 		// Check task status
@@ -763,6 +772,10 @@ public class TestSanity extends AbstractIntegrationTest {
 					return (!tokenBefore.equals(tokenNow));
 				}
 			}
+			@Override
+			public void timeout() {
+				// No reaction, the test will fail right after return from this
+			}
 		}, 30000);
 
 		// Search for the user that should be created now
@@ -809,7 +822,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		System.out.println("importFromResource result:");
 		displayJaxb(taskType.getResult(), SchemaConstants.C_RESULT);
-		assertEquals("importFromResource has failed", OperationResultStatusType.IN_PROGRESS, taskType.getResult().getStatus());
+		AssertJUnit.assertEquals("importFromResource has failed", OperationResultStatusType.IN_PROGRESS, taskType.getResult().getStatus());
 		// Convert the returned TaskType to a more usable Task
 		Task task = taskManager.createTaskInstance(taskType);
 		AssertJUnit.assertNotNull(task);
@@ -843,8 +856,12 @@ public class TestSanity extends AbstractIntegrationTest {
 					// Task closed, wait finished
 					return true;
 				}
-				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
+//				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
 				return false;
+			}
+			@Override
+			public void timeout() {
+				// No reaction, the test will fail right after return from this
 			}
 		}, 45000);
 
@@ -860,14 +877,29 @@ public class TestSanity extends AbstractIntegrationTest {
 		display("Import task after finish (fetched from model)", task);
 
 		AssertJUnit.assertEquals(TaskExecutionStatus.CLOSED, task.getExecutionStatus());
-
-		// Ugly fix to wait until state change success fully on slow machines.
-		try {
-			Thread.sleep(1000);
-		} catch (Exception e) {
-		}
-
-		AssertJUnit.assertEquals(TaskExclusivityStatus.RELEASED, task.getExclusivityStatus());
+		
+		waitFor("Waiting for task to get released", new Checker() {
+			@Override
+			public boolean check() throws Exception {
+				Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+				Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+				modelWeb.getObject(ObjectTypes.TASK.getObjectTypeUri(), taskOid,
+						new PropertyReferenceListType(), objectHolder, resultHolder);
+//				display("getObject result (wait loop)",resultHolder.value);
+				assertSuccess("getObject has failed", resultHolder.value);
+				Task task = taskManager.createTaskInstance((TaskType) objectHolder.value);
+				System.out.println("Import task status: "+task.getExecutionStatus());
+				if (task.getExclusivityStatus() == TaskExclusivityStatus.RELEASED) {
+					// Task closed and released, wait finished
+					return true;
+				}
+//				IntegrationTestTools.display("Task result while waiting: ", task.getResult());
+				return false;
+			}
+			public void timeout() {
+				Assert.fail("The task was not released after closing");
+			}
+		}, 1000);
 
 		OperationResult taskResult = task.getResult();
 		AssertJUnit.assertNotNull("Task has no result", taskResult);
@@ -931,7 +963,7 @@ public class TestSanity extends AbstractIntegrationTest {
 				}
 			}
 			if (!found) {
-				Assert.fail("accountRef does not point to existing account " + accountRef.getOid());
+				AssertJUnit.fail("accountRef does not point to existing account " + accountRef.getOid());
 			}
 		}
 	}
@@ -943,6 +975,10 @@ public class TestSanity extends AbstractIntegrationTest {
 			@Override
 			public boolean check() throws Exception {
 				return taskManager.getRunningTasks().isEmpty();
+			}
+			@Override
+			public void timeout() {
+				// No reaction, the test will fail right after return from this
 			}
 		}, 10000);
 		AssertJUnit.assertEquals("Some tasks left running after shutdown", new HashSet<Task>(),

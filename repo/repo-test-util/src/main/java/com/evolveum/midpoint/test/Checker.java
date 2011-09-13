@@ -27,5 +27,7 @@ package com.evolveum.midpoint.test;
 public interface Checker {
 	
 	public boolean check() throws Exception;
+	
+	public void timeout();
 
 }

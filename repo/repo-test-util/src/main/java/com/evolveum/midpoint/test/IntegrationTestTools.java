@@ -232,6 +232,8 @@ public class IntegrationTestTools {
 		// we have timeout
 		System.out.println("Timeout while "+message);
 		LOGGER.error(LOG_MESSAGE_PREFIX + "Timeout while " + message);
+		// Invoke callback
+		checker.timeout();
 		throw new RuntimeException("Timeout while "+message);
 	}
 
