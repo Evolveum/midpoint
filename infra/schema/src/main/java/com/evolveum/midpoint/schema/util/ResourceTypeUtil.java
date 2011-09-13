@@ -21,7 +21,9 @@ package com.evolveum.midpoint.schema.util;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.schema.EnhancedResourceType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -68,6 +70,21 @@ public class ResourceTypeUtil {
 			}
 		}
 		return null;
+	}
+	
+	public static Schema getResourceSchema(ResourceType resource) throws SchemaException {
+		if (resource instanceof EnhancedResourceType) {
+			EnhancedResourceType enh = (EnhancedResourceType) resource;
+			if (enh.getParsedSchema() != null) {
+				return enh.getParsedSchema();
+			} else {
+				Schema parsedSchema = Schema.parse(getResourceXsdSchema(resource));
+				enh.setParsedSchema(parsedSchema);
+				return parsedSchema;
+			}
+		}
+		Schema parsedSchema = Schema.parse(getResourceXsdSchema(resource));
+		return parsedSchema;
 	}
 	
 }

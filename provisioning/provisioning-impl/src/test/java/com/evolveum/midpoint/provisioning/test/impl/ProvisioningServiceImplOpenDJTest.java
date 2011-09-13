@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertEquals;
@@ -59,6 +60,7 @@ import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.EnhancedResourceType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -66,12 +68,15 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -278,17 +283,50 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		assertSuccess("Test connection failed",operationResult);
 
 		ResourceType resourceAfter = repositoryService.getObject(ResourceType.class,RESOURCE_OPENDJ_OID, null, result);
+		
+		display("Resource after testResource",resourceAfter);
+		
 		XmlSchemaType xmlSchemaTypeAfter = resourceAfter.getSchema();
 		assertNotNull("No schema after test connection",xmlSchemaTypeAfter);
 		assertFalse("No schema after test connection",xmlSchemaTypeAfter.getAny().isEmpty());
-
-		display("Generated schema",xmlSchemaTypeBefore.getAny());
 		
-		// TODO: try to parse the schema
+		CachingMetadata cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
+		assertNotNull("No caching metadata",cachingMetadata);
+		assertNotNull("No retrievalTimestamp",cachingMetadata.getRetrievalTimestamp());
+		assertNotNull("No serialNumber",cachingMetadata.getSerialNumber());
+		
+		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
+		Schema parsedSchema = Schema.parse(xsdElement);
+		assertNotNull("No schema after parsing",parsedSchema);
+		
 	}
 	
 	@Test
-	public void test004ListResourceObjects() throws SchemaException, ObjectNotFoundException, CommunicationException {
+	public void test004ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException {
+		displayTestTile("test004ParsedSchema");
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test004ParsedSchema");
+		
+		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
+		
+		// The returned type should have the schema pre-parsed
+		assertTrue(resource instanceof EnhancedResourceType);
+		EnhancedResourceType enh = (EnhancedResourceType) resource;
+		assertNotNull(enh.getParsedSchema());
+		
+		// Also test if the utility method returns the same thing		
+		Schema returnedSchema = ResourceTypeUtil.getResourceSchema(resource);
+		
+		System.out.println("AAAAAAAAAA: "+returnedSchema);
+		System.out.println("BBBBBBBBBB: "+enh.getParsedSchema());
+		
+		// Not equals() but == ... we want to really know if exactly the same object instance is returned
+		assertTrue(returnedSchema == enh.getParsedSchema());
+
+	}
+	
+	@Test
+	public void test005ListResourceObjects() throws SchemaException, ObjectNotFoundException, CommunicationException {
 		displayTestTile("test004ListResourceObjects");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test004ListResourceObjects");

@@ -173,6 +173,11 @@ public enum ObjectTypes {
 				return type;
 			}
 		}
+		// No match. Try with superclass.
+		Class<?> superclass = objectType.getSuperclass();
+		if (superclass != null && !superclass.equals(ObjectType.class)) {
+			return getObjectType((Class<? extends ObjectType>)superclass);
+		}
 
 		throw new IllegalArgumentException("Unsupported object type " + objectType);
 	}

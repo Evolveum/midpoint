@@ -74,6 +74,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.MiscUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -124,8 +125,6 @@ import com.sun.xml.bind.v2.schemagen.xmlschema.SchemaTop;
  * repository. That should be made configurable later. It also only support
  * Account objects now.
  * 
- * This is WORK IN PROGRESS ...
- * 
  * @author Radovan Semancik
  */
 @Component
@@ -137,6 +136,8 @@ public class ShadowCache {
 //	private ConnectorFactory connectorFactory;
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager; 
+	@Autowired
+	private ResourceSchemaCache resourceSchemaCache;
 
 	private static final Trace LOGGER = TraceManager
 			.getTrace(ShadowCache.class);
@@ -1740,8 +1741,8 @@ public class ShadowCache {
 	 * @param resourceSchema
 	 *            schema that was freshly pre-fetched (or null)
 	 * @param result
-	 *            completed resource
-	 * @return
+	 *            
+	 * @return completed resource
 	 * @throws ObjectNotFoundException
 	 *             connector instance was not found
 	 * @throws SchemaException
@@ -1793,7 +1794,9 @@ public class ShadowCache {
 				// Convert to XSD
 				LOGGER.trace("Generating XSD resource schema for "
 						+ ObjectTypeUtil.toShortString(resource));
+				
 				xsdDoc = resourceSchema.serializeToXsd();
+				
 			} catch (SchemaException e) {
 				throw new SchemaException(
 						"Error processing resource schema for "
@@ -1803,15 +1806,21 @@ public class ShadowCache {
 			// Store into repository (modify ResourceType)
 			LOGGER.info("Storing generated schema in resource "
 					+ ObjectTypeUtil.toShortString(resource));
+			
 			xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
 			xmlSchemaType.getAny().add(xsdElement);
+			xmlSchemaType.setCachingMetadata(MiscUtil.generateCachingMetadata());
+			
 			ObjectModificationType objectModificationType = ObjectTypeUtil
 					.createModificationReplaceProperty(resource.getOid(),
 							SchemaConstants.I_SCHEMA, xmlSchemaType);
+			
 			repositoryService.modifyObject(resource.getClass(), objectModificationType, result);
 		}
+		
+		ResourceType newResource = resourceSchemaCache.put(resource);
 
-		return resource;
+		return newResource;
 	}
 
 }

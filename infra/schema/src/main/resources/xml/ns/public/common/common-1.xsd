@@ -1021,6 +1021,41 @@
 		</xsd:sequence>
 	</xsd:complexType>
 	
+	<xsd:complexType name="CachingMetadata">
+		<xsd:annotation>
+			<xsd:documentation>
+				Metadata that record when a cache copy was retrieved, the identifiers (etags) of that
+				copy and possibly also other data. It is used to guide cache coherence policies and
+				cache management in general. 
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="retrievalTimestamp" type="xsd:dateTime" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						The timestamp of a time moment when the object was retrieved from the source.
+						Used mostly for diagnostics and general visibility. As this is relativelly rough
+						granularity and the time in distributed system is relative anyway, it is not really
+						useful for anything else.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="serialNumber" type="xsd:string">
+				<xsd:annotation>
+					<xsd:documentation>
+						A string that uniquely represents the version of the data that was retrieved.
+						The objects of the same type and origin with the same serial number are assumed to
+						be the same.
+						There is no requirement for this to be identifier - the serialNumber cannot be used
+						to retrieve the object.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="cachingMetadata" type="tns:CachingMetadata"/>
+	
 	<xsd:complexType name="ProtectedStringType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -2524,6 +2559,7 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
+			<xsd:element ref="tns:cachingMetadata" minOccurs="0" />
 			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
 				<xsd:annotation>
 					<xsd:appinfo>

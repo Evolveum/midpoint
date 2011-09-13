@@ -22,7 +22,12 @@ package com.evolveum.midpoint.schema.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.schema.XsdTypeConverter;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -32,6 +37,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
  *
  */
 public class MiscUtil {
+	
+	private static Random rnd = new Random();
 	
 	public static ObjectListType toObjectListType(List<? extends ObjectType> list) {
 		ObjectListType listType = new ObjectListType();
@@ -57,6 +64,18 @@ public class MiscUtil {
 		options.setEncryptProtectedValues(true);
 		options.setFetchResourceSchema(false);
 		return options;
+	}
+
+	public static CachingMetadata generateCachingMetadata() {
+		CachingMetadata cmd = new CachingMetadata();
+		XMLGregorianCalendar xmlGregorianCalendarNow = XsdTypeConverter.toXMLGregorianCalendar(System.currentTimeMillis());
+		cmd.setRetrievalTimestamp(xmlGregorianCalendarNow);
+		cmd.setSerialNumber(generateSerialNumber());
+		return cmd;
+	}
+
+	private static String generateSerialNumber() {
+		return Long.toHexString(rnd.nextLong())+"-"+Long.toHexString(rnd.nextLong());
 	}
 
 }
