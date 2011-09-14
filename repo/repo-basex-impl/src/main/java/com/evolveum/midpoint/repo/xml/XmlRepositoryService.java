@@ -300,7 +300,9 @@ public class XmlRepositoryService implements RepositoryService {
 		result.addParam("query", query);
 		result.addParam("paging", paging);
 
+		if (LOGGER.isTraceEnabled()) {
 		LOGGER.trace("midPoint query: {}", JAXBUtil.silentMarshalWrap(query));
+		}
 
 		validateQuery(query);
 

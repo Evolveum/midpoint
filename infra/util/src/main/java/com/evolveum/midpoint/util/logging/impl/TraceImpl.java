@@ -39,8 +39,8 @@ public class TraceImpl implements Trace {
     public static final String code_id = "$Id$";
     private Logger LOGGER;
 
-    public TraceImpl(Logger LOGGER) {
-        this.LOGGER = LOGGER;
+    public TraceImpl(Logger logger) {
+        this.LOGGER = logger;
     }
 
     @Override

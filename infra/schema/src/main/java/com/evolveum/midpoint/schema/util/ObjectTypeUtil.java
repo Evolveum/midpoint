@@ -162,6 +162,9 @@ public class ObjectTypeUtil {
 		if (object==null) {
 			return "null";
 		}
+		StringBuilder builder = new StringBuilder();
+		
+		return builder.toString();
 		return object.getClass().getSimpleName()+": "+object.getName()+"(OID:"+object.getOid()+")";
 	}
 	

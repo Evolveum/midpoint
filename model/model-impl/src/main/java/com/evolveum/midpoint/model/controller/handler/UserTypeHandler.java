@@ -142,7 +142,9 @@ public class UserTypeHandler extends BasicHandler {
 			throw new ConsistencyViolationException("Couldn't delete object with oid '" + oid
 					+ "', potential consistency violation", ex);
 		} finally {
-			LOGGER.debug(result.dump());
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(result.dump());
+			}
 		}
 	}
 
@@ -196,7 +198,9 @@ public class UserTypeHandler extends BasicHandler {
 			}
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
-			LOGGER.debug(result.dump());
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(result.dump());
+			}
 		}
 
 		return oid;

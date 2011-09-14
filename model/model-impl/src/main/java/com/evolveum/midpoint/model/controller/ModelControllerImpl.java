@@ -157,7 +157,9 @@ public class ModelControllerImpl implements ModelController {
 		} finally {
 			subResult.computeStatus("Error occured during add object '" + object.getName() + "'.",
 					"Warning occured during add object '" + object.getName() + "'.");
-			LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(subResult.dump(false));
+			}
 		}
 
 		return oid;
@@ -210,7 +212,9 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordFatalError("Couldn't list objects.", ex);
 			throw new SystemException(ex.getMessage(), ex);
 		} finally {
-			LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(subResult.dump(false));
+			}
 		}
 
 		if (list == null) {
@@ -263,7 +267,9 @@ public class ModelControllerImpl implements ModelController {
 			LoggingUtils.logException(LOGGER, message, ex);
 			subResult.recordFatalError(message, ex);
 		} finally {
-			LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(subResult.dump(false));
+			}
 		}
 
 		if (list == null) {
@@ -321,10 +327,10 @@ public class ModelControllerImpl implements ModelController {
 			throw new SystemException(message, ex);
 		} finally {
 			subResult.computeStatus("Couldn't update object with oid '" + change.getOid() + "'.");
-			LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(subResult.dump(false));
+			}
 		}
-
-		LOGGER.debug(subResult.dump(false));
 	}
 
 	@Override
@@ -367,7 +373,9 @@ public class ModelControllerImpl implements ModelController {
 			throw new ConsistencyViolationException("Couldn't delete object with oid '" + oid
 					+ "', potential consistency violation", ex);
 		} finally {
-			LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(subResult.dump(false));
+			}
 		}
 	}
 
@@ -411,7 +419,9 @@ public class ModelControllerImpl implements ModelController {
 			subResult.recordFatalError("Couldn't list account shadow owner for account with oid '"
 					+ accountOid + "'.", ex);
 		} finally {
-			LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(subResult.dump(false));
+			}
 		}
 
 		return user;
@@ -443,7 +453,9 @@ public class ModelControllerImpl implements ModelController {
 					"Couldn't list resource object shadows type '" + resourceObjectShadowType
 							+ "' from repository for resource, oid '" + resourceOid + "'.", ex);
 		} finally {
-			LOGGER.debug(subResult.dump(false));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(subResult.dump(false));
+			}
 		}
 
 		if (list == null) {
@@ -505,7 +517,9 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		if (testResult != null) {
-			LOGGER.debug(testResult.dump(false));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(testResult.dump(false));
+			}
 		} else {
 			LOGGER.debug("Operation sub result was null (Error occured).");
 		}
@@ -717,8 +731,10 @@ public class ModelControllerImpl implements ModelController {
 			UserType user = null;
 			try {
 				user = listAccountShadowOwner(object.getOid(), result);
-				LOGGER.debug("Found owner {} for account shadow {}", ObjectTypeUtil.toShortString(user),
-						ObjectTypeUtil.toShortString(object));
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Found owner {} for account shadow {}", ObjectTypeUtil.toShortString(user),
+							ObjectTypeUtil.toShortString(object));
+				}
 			} catch (ObjectNotFoundException ex) {
 				// we didn't find shadow owner, in next step we skip outbound
 				// schema handling processing.
