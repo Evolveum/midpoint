@@ -43,7 +43,7 @@ import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.aspect.LoggingAspect;
+import com.evolveum.midpoint.util.aspect.MidpointAspect;
 import com.evolveum.midpoint.util.aspect.ObjectFormatter;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
@@ -569,7 +569,7 @@ public class DebugUtil implements ObjectFormatter {
 	//static initialization of LoggingAspect - formatters registration
 	static {
 		ObjectFormatter f = new DebugUtil();
-		LoggingAspect.registerFormatter(f);
+		MidpointAspect.registerFormatter(f);
 	}
 
 }
