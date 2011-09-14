@@ -58,6 +58,7 @@ import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.ComplexTypeDefinition;
@@ -1342,56 +1343,26 @@ public class ShadowCache {
 	private Schema getResourceSchema(ResourceType resource,
 			ConnectorInstance connector, OperationResult parentResult)
 			throws CommunicationException, SchemaException {
-
-		// TODO: Need to add some form of memory caching here.
-
+		
 		Schema schema = null;
-
-		// Parse schema from resource definition (if available)
-		Element resourceXsdSchema = ResourceTypeUtil
-				.getResourceXsdSchema(resource);
-		if (resourceXsdSchema != null) {
-
-			try {
-				schema = Schema.parse(resourceXsdSchema);
-			} catch (SchemaException e) {
-				parentResult
-						.recordFatalError("Unable to parse resource schema: "
-								+ e.getMessage(), e);
-				throw new SchemaException("Unable to parse resource schema: "
-						+ e.getMessage(), e);
-			}
-
-		} else {
-			// Otherwise try to fetch schema from connector
-
-			try {
-				schema = connector.fetchResourceSchema(parentResult);
-			} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
-				parentResult.recordFatalError(
-						"Error communicating with the connector " + connector,
-						ex);
-				throw new CommunicationException(
-						"Error communicating with the connector " + connector,
-						ex);
-			} catch (GenericFrameworkException ex) {
-				parentResult.recordFatalError("Generic error in connector "
-						+ connector + ": " + ex.getMessage(), ex);
-				throw new GenericConnectorException(
-						"Generic error in connector " + connector + ": "
-								+ ex.getMessage(), ex);
-			}
-
-			if (schema == null) {
-				parentResult
-						.recordFatalError("Unable to fetch schema from the resource.");
-				throw new SchemaException(
-						"Unable to fetch schema from the resource");
-			}
-
-			// TODO: store fetched schema in the resource for future (and
-			// offline) use
-
+		try {
+			
+			// Make sure that the schema is retrieved from the resource
+			// this will also retrieve the schema from cache and/or parse it if needed
+			ResourceType completeResource = completeResource(resource, null, parentResult);
+			schema = ResourceTypeUtil.getResourceSchema(completeResource);
+			
+		} catch (SchemaException e) {
+			parentResult.recordFatalError("Unable to parse resource schema: "
+							+ e.getMessage(), e);
+			throw new SchemaException("Unable to parse resource schema: "
+					+ e.getMessage(), e);
+		} catch (ObjectNotFoundException e) {
+			// this really should not happen
+			parentResult.recordFatalError("Unexpected ObjectNotFoundException: "
+					+ e.getMessage(), e);
+			throw new SystemException("Unexpected ObjectNotFoundException: "
+					+ e.getMessage(), e);
 		}
 		
 		checkSchema(schema);
@@ -1762,8 +1733,10 @@ public class ShadowCache {
 		}
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaType);
 
+		ResourceType newResource = null;
+		
 		if (xsdElement == null) {
-			// There is no schema, we need to pull it from the resource
+			// There is no schema, we need to pull it from the resource 
 
 			if (resourceSchema == null) { // unless it has been already pulled
 				LOGGER.trace("Fetching resource schema for "
@@ -1816,9 +1789,14 @@ public class ShadowCache {
 							SchemaConstants.I_SCHEMA, xmlSchemaType);
 			
 			repositoryService.modifyObject(resource.getClass(), objectModificationType, result);
+			
+			newResource = resourceSchemaCache.put(resource);
 		}
 		
-		ResourceType newResource = resourceSchemaCache.put(resource);
+		if (newResource == null) {
+			// try to fetch schema from cache
+			newResource = resourceSchemaCache.get(resource);
+		}
 
 		return newResource;
 	}

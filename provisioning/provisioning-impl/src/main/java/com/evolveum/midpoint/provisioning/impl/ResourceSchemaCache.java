@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.EnhancedResourceType;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
@@ -48,28 +49,88 @@ public class ResourceSchemaCache {
 		cache = new HashMap<String, ResourceSchemaCache.ResourceSchemaCacheEntry>();
 	}
 	
-	public ResourceType put(ResourceType resourceType) throws SchemaException {
+	public synchronized ResourceType put(ResourceType resourceType) throws SchemaException {
 		if (resourceType.getSchema() == null) {
 			// nothing to cache
 			return resourceType;
 		}
-		if (resourceType.getOid() == null) {
+		String oid = resourceType.getOid();
+		if (oid == null) {
 			// no key to cache under
 			return resourceType;
 		}
 		
 		XmlSchemaType xmlSchemaType = resourceType.getSchema();
-		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaType);
-		Schema parsedSchema = Schema.parse(xsdElement);
 		String serial = null;
 		if (xmlSchemaType.getCachingMetadata()!=null) {
 			serial = xmlSchemaType.getCachingMetadata().getSerialNumber();
 		}
+		
+		if (cache.containsKey(oid)) {
+			// There is already an entry in the cache. Check serial number
+			ResourceSchemaCacheEntry entry = cache.get(oid);
+			if (serial != null && !(serial.equals(entry.serialNumber))) {
+				// The new object has different serial number.
+				// Delete the old entry, there is obviously new version of schema
+				cache.remove(oid);
+			} else {
+				// existing entry that seems to be still valid. Reuse parsed schema
+				EnhancedResourceType enhResource = new EnhancedResourceType(resourceType);
+				enhResource.setParsedSchema(entry.parsedSchema);
+				return enhResource;
+			}
+		}
+		
+		// Cache entry does not exist (or was deleted). Parse the schema.
+		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaType);
+		Schema parsedSchema = Schema.parse(xsdElement);
+		// Put it into cache
 		ResourceSchemaCacheEntry entry = new ResourceSchemaCacheEntry(serial, xsdElement, parsedSchema);
-		cache.put(resourceType.getOid(),entry);
+		cache.put(oid,entry);
 		
 		EnhancedResourceType enhResource = new EnhancedResourceType(resourceType);
 		enhResource.setParsedSchema(parsedSchema);
+		
+		return enhResource;
+	}
+	
+	public synchronized ResourceType get(ResourceType resourceType) throws SchemaException {
+		if (resourceType.getSchema() == null) {
+			// nothing to cache
+			return resourceType;
+		}
+		String oid = resourceType.getOid();
+		if (oid == null) {
+			// no key to cache under
+			return resourceType;
+		}
+		XmlSchemaType xmlSchemaType = resourceType.getSchema();
+		if (xmlSchemaType == null) {
+			// No schema, nothing to cache
+			return resourceType;
+		}
+		
+		ResourceSchemaCacheEntry entry = cache.get(oid);
+		if (entry == null) {
+			// No cache entry. So let's create it
+			return put(resourceType);
+		}
+				
+		// Check metadata to see if we can reuse what is in the cache
+		CachingMetadata cachingMetadata = xmlSchemaType.getCachingMetadata();
+		if (cachingMetadata != null) {			
+			if (cachingMetadata.getSerialNumber()!=null) {
+				if (!cachingMetadata.getSerialNumber().equals(entry.serialNumber)) {
+					// cache entry is not usable. serial number mismatch
+					// therefore add the new entry to cache
+					return put(resourceType);
+				}
+			}
+		} // No metadata or serial number - we can reuse cache forever
+
+		// We have entry that matches. Create appropriate resource		
+		EnhancedResourceType enhResource = new EnhancedResourceType(resourceType);
+		enhResource.setParsedSchema(entry.parsedSchema);
 		
 		return enhResource;
 	}

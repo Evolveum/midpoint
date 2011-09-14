@@ -64,6 +64,9 @@ public class ResourceTypeUtil {
 	}
 	
 	public static Element getResourceXsdSchema(ResourceType resource) {
+		if (resource.getSchema() == null) {
+			return null;
+		}
 		for (Element e : resource.getSchema().getAny()) {
 			if (QNameUtil.compareQName(DOMUtil.XSD_SCHEMA_ELEMENT, e)) {
 				return e;
@@ -73,17 +76,21 @@ public class ResourceTypeUtil {
 	}
 	
 	public static Schema getResourceSchema(ResourceType resource) throws SchemaException {
+		Element resourceXsdSchema = getResourceXsdSchema(resource);
+		if (resourceXsdSchema == null) {
+			return null;
+		}
 		if (resource instanceof EnhancedResourceType) {
 			EnhancedResourceType enh = (EnhancedResourceType) resource;
 			if (enh.getParsedSchema() != null) {
 				return enh.getParsedSchema();
 			} else {
-				Schema parsedSchema = Schema.parse(getResourceXsdSchema(resource));
+				Schema parsedSchema = Schema.parse(resourceXsdSchema);
 				enh.setParsedSchema(parsedSchema);
 				return parsedSchema;
 			}
 		}
-		Schema parsedSchema = Schema.parse(getResourceXsdSchema(resource));
+		Schema parsedSchema = Schema.parse(resourceXsdSchema);
 		return parsedSchema;
 	}
 	
