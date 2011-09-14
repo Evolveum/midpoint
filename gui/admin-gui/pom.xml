@@ -20,7 +20,8 @@
 <!-- Portions Copyrighted 2010 Peter Prochazka               -->
 <!--                                                         -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<name>midPoint User Interface - admin web gui</name>
 	<groupId>com.evolveum.midpoint.gui</groupId>
@@ -33,7 +34,7 @@
 	</parent>
 	<build>
 		<finalName>idm</finalName>
-		<plugins />			
+		<plugins />
 		<resources>
 			<resource>
 				<directory>src/main/resources</directory>
@@ -228,7 +229,17 @@
 			<artifactId>org.identityconnectors.spml</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>jcl-over-slf4j</artifactId>
+			<scope>runtime</scope>
 
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>log4j-over-slf4j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 	</dependencies>
 
 	<profiles>

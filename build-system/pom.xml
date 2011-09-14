@@ -56,7 +56,7 @@
 		<opendj.version>2.4.3</opendj.version>
 		<mockito.version>1.8.5</mockito.version>
 		<selenium.version>1.0.1</selenium.version>
-		<slf4j.version>1.6.1</slf4j.version>
+		<slf4j.version>1.6.2</slf4j.version>
 		<spring.version>3.0.5.RELEASE</spring.version>
 		<spring.security.version>3.0.5.RELEASE</spring.security.version>
 		<testng.version>6.1.1</testng.version>
@@ -64,6 +64,11 @@
 	</properties>
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-classic</artifactId>
+				<version>0.9.29</version>
+			</dependency>
 			<dependency>
 				<groupId>com.sleepycat</groupId>
 				<artifactId>je</artifactId>
@@ -156,11 +161,11 @@
 				<artifactId>jstl</artifactId>
 				<version>1.2</version>
 			</dependency>
-			<dependency>
-				<groupId>log4j</groupId>
-				<artifactId>log4j</artifactId>
-				<version>1.2.16</version>
-			</dependency>
+<!-- 			<dependency> -->
+<!-- 				<groupId>log4j</groupId> -->
+<!-- 				<artifactId>log4j</artifactId> -->
+<!-- 				<version>1.2.16</version> -->
+<!-- 			</dependency> -->
 			<dependency>
 				<groupId>net.sf.saxon</groupId>
 				<artifactId>saxonhe</artifactId>
@@ -316,14 +321,25 @@
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-api</artifactId>
+				<artifactId>jcl-over-slf4j</artifactId>
 				<version>${slf4j.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
-				<artifactId>slf4j-log4j12</artifactId>
+				<artifactId>log4j-over-slf4j</artifactId>
 				<version>${slf4j.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>org.slf4j</groupId>
+				<artifactId>slf4j-api</artifactId>
+				<version>${slf4j.version}</version>
+			</dependency>
+			
+<!-- 			<dependency> -->
+<!-- 				<groupId>org.slf4j</groupId> -->
+<!-- 				<artifactId>slf4j-log4j12</artifactId> -->
+<!-- 				<version>${slf4j.version}</version> -->
+<!-- 			</dependency> -->
 			<!--  Spring dependencies  -->
 			<dependency>
 				<groupId>org.springframework</groupId>
