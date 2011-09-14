@@ -94,8 +94,10 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 					"src/test/resources/user.xml"))).getValue();
 			repositoryService.addObject(user, new OperationResult("test"));
 			
-			//try to store the same object again, exception is expected
-			repositoryService.addObject(user, new OperationResult("test"));
+			//try to store object with the same oid again, but different name
+			UserType user2 = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
+			"src/test/resources/user.xml"))).getValue();
+			repositoryService.addObject(user2, new OperationResult("test"));
 		} finally {
 			// to be sure try to delete the object as part of cleanup
 			try {
@@ -110,13 +112,13 @@ public class RepositoryTest extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	@Test(expectedExceptions = ObjectAlreadyExistsException.class)
 	public void addObjectWithTheSameName() throws Exception {
-		String oid = "c0c010c0-d34d-b33f-f00d-111111111111";
+		String oid = null;
 		try {
 			// store user
 			UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(
-					"src/test/resources/user.xml"))).getValue();
+					"src/test/resources/user-without-oid.xml"))).getValue();
 			repositoryService.addObject(user, new OperationResult("test"));
-			
+			oid = user.getOid();
 			//try to store the same object with no oid again, exception is expected
 			user.setOid(null);
 			repositoryService.addObject(user, new OperationResult("test"));
