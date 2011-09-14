@@ -141,7 +141,11 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		List<UserType> users = repositoryService.searchObjects(UserType.class, query, paging, parentResult);
 
 		// THEN
-		assertEquals(3, users.size());
+		assertEquals(2, users.size());
+		assertEquals("testuser0005", users.get(0).getName());
+		assertEquals("testuser0004", users.get(1).getName());
+
+		
 	}
 
 	@Test

@@ -152,9 +152,8 @@ public class XmlRepositoryService implements RepositoryService {
 				query.append(DECLARE_NAMESPACE_C).append("if (every $object in //c:objects/c:object[")
 						.append("@xsi:type='").append(oType).append("']")
 						.append(" satisfies $object/c:name !='").append(object.getName()).append("' and ")
-						.append("$object[@oid!='").append(oid).append("']")
-						.append(" )")
-						.append(" then ").append(" let $x := ").append(serializedObject).append("\n")
+						.append("$object[@oid!='").append(oid).append("']").append(" )").append(" then ")
+						.append(" let $x := ").append(serializedObject).append("\n")
 						.append("return insert node $x into //c:objects ").append(" else (fn:error(null,'")
 						.append(OBJECT_ALREADY_EXISTS).append("'))");
 			}
@@ -303,7 +302,7 @@ public class XmlRepositoryService implements RepositoryService {
 		result.addParam("paging", paging);
 
 		if (LOGGER.isTraceEnabled()) {
-		LOGGER.trace("midPoint query: {}", JAXBUtil.silentMarshalWrap(query));
+			LOGGER.trace("midPoint query: {}", JAXBUtil.silentMarshalWrap(query));
 		}
 
 		validateQuery(query);
@@ -313,10 +312,10 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		namespaces.put("idmdn", SchemaConstants.NS_C);
-		
+
 		if (validateFilterElement(SchemaConstants.NS_C, "and", query.getFilter())) {
 			NodeList children = query.getFilter().getChildNodes();
-			
+
 			for (int index = 0; index < children.getLength(); index++) {
 				Node child = children.item(index);
 				if (child.getNodeType() != Node.ELEMENT_NODE) {
@@ -580,7 +579,10 @@ public class XmlRepositoryService implements RepositoryService {
 			}
 		}
 
-		query.append("for $x at $pos in //c:object ");
+		if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
+			query.append("subsequence(");
+		}
+		query.append("for $x in //c:object ");
 		if (objectType != null
 				|| (null != paging && null != paging.getOffset() && null != paging.getMaxSize())
 				|| (filters != null && !filters.isEmpty())) {
@@ -591,14 +593,6 @@ public class XmlRepositoryService implements RepositoryService {
 			// simple string checking, because import schema is not
 			// supported by basex database
 			query.append("$x/@xsi:type=\"").append(objectType).append("\"");
-		}
-		if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
-			if (objectType != null) {
-				query.append(" and ");
-			}
-			long from = paging.getOffset() + 1;
-			long to = from + paging.getMaxSize() - 1;
-			query.append("$pos >= ").append(from).append(" and $pos <= ").append(to);
 		}
 		if (filters != null) {
 			int pos = 0;
@@ -629,7 +623,13 @@ public class XmlRepositoryService implements RepositoryService {
 				query.append(StringUtils.lowerCase(paging.getOrderDirection().toString()));
 			}
 		}
-		query.append(" return $x ");
+		query.append(" return $x");
+		if (null != paging && null != paging.getOffset() && null != paging.getMaxSize()) {
+			long from = paging.getOffset() + 1;
+			long to = paging.getMaxSize();
+			query.append(", ").append(from).append(", ").append(to).append(") ");
+
+		}
 
 		LOGGER.trace("generated query: " + query);
 
