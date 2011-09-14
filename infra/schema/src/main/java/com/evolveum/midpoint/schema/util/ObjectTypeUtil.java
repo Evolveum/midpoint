@@ -22,6 +22,16 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -30,150 +40,158 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType.Value;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationTypeType;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-import javax.xml.bind.JAXBException;
-import javax.xml.namespace.QName;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 /**
- * Methods that would belong to the ObjectType class but cannot go there
- * because of JAXB.
+ * Methods that would belong to the ObjectType class but cannot go there because
+ * of JAXB.
  * 
- * There are also useful methods that would belong to other classes. But we don't
- * want to create new class for every method ... if this goes beyond a reasonable
- * degree, please refactor accordingly.
+ * There are also useful methods that would belong to other classes. But we
+ * don't want to create new class for every method ... if this goes beyond a
+ * reasonable degree, please refactor accordingly.
  * 
  * @author Radovan Semancik
  */
 public class ObjectTypeUtil {
 
-    static Random rnd = new Random();
+	static Random rnd = new Random();
 
-    public static List<String> extractOids(List<? extends ObjectType> objects, List<? extends ObjectReferenceType> refs) {
+	public static List<String> extractOids(List<? extends ObjectType> objects,
+			List<? extends ObjectReferenceType> refs) {
 
-        List<String> oids = new ArrayList<String>();
+		List<String> oids = new ArrayList<String>();
 
-        if (objects != null) {
-            for (ObjectType object : objects) {
-                oids.add(object.getOid());
-            }
-        }
-
-        if (refs != null) {
-            for (ObjectReferenceType ref : refs) {
-                oids.add(ref.getOid());
-            }
-        }
-
-        return oids;
-    }
-
-    public static ObjectReferenceType findRef(String oid, List<ObjectReferenceType> refs) {
-        for (ObjectReferenceType ref : refs) {
-            if (ref.getOid().equals(oid)) {
-                return ref;
-            }
-        }
-        return null;
-    }
-
-//    TODO: refactor to use one code base for the method
-    public static PropertyModificationType createPropertyModificationType(PropertyModificationTypeType changeType, XPathHolder xpathType, Object element) {
-        PropertyModificationType change = new PropertyModificationType();
-        change.setValue(new Value());
-        change.setModificationType(changeType);
-        change.setPath(xpathType.toElement(SchemaConstants.NS_C, "path"));
-        change.getValue().getAny().add(element);
-
-        return change;
-    }
-//    public static PropertyModificationType createPropertyModificationType(PropertyModificationTypeType changetype, XPathType xpath, Element element) {
-//        return createPropertyModificationType(changetype, xpath, new QName(element.getNamespaceURI(), element.getLocalName()), element.getTextContent());
-//    }
-
-    public static PropertyModificationType createPropertyModificationType(PropertyModificationTypeType changetype, XPathHolder xpath, QName property, Object value) {
-
-        PropertyModificationType propertyChange = new PropertyModificationType();
-        propertyChange.setModificationType(changetype);
-
-        Document doc = DOMUtil.getDocument();
-
-        if (xpath == null) {
-            // Default XPath is empty XPath, which means "."
-            xpath = new XPathHolder();
-        }
-
-        if (property.getPrefix() == null) {
-            // If the prefix was not specified, generate a random prefix
-            // to avoid collisions with standard "nsXX" prefixes
-            String prefix = "ch" + rnd.nextInt(10000);
-            property = new QName(property.getNamespaceURI(), property.getLocalPart(), prefix);
-        }
-
-        propertyChange.setPath(xpath.toElement(SchemaConstants.NS_C, "path", doc));
-
-        Value jaxbValue = new Value();
-
-        if (value==null) {
-        	// Emtpy value, that means empty element set. Nothing to do.
-        	// This may be used e.g. for deleting all values (replacing by empty value)
-        } else if (XsdTypeConverter.canConvert(value.getClass())) {
-        	
-        	try {
-        		Object e = XsdTypeConverter.toXsdElement(value, property, doc);
-        		jaxbValue.getAny().add(e);
-			} catch (JAXBException ex) {
-				throw new SystemException("Unexpected JAXB problem while coverting "+property+" : "+ex.getMessage(),ex);
+		if (objects != null) {
+			for (ObjectType object : objects) {
+				oids.add(object.getOid());
 			}
-        } else if (value instanceof Element){
-        	// This may not be needed any more
-        	jaxbValue.getAny().add((Element) value);
-        } else {
-            throw new IllegalArgumentException("Unsupported value type " + value.getClass().getName());
-        }
+		}
 
-        propertyChange.setValue(jaxbValue);
+		if (refs != null) {
+			for (ObjectReferenceType ref : refs) {
+				oids.add(ref.getOid());
+			}
+		}
 
-        return propertyChange;
-    }
-    
-    public static ObjectModificationType createModificationReplaceProperty(String oid, QName propertyName, Object propertyValue) {
+		return oids;
+	}
+
+	public static ObjectReferenceType findRef(String oid, List<ObjectReferenceType> refs) {
+		for (ObjectReferenceType ref : refs) {
+			if (ref.getOid().equals(oid)) {
+				return ref;
+			}
+		}
+		return null;
+	}
+
+	// TODO: refactor to use one code base for the method
+	public static PropertyModificationType createPropertyModificationType(
+			PropertyModificationTypeType changeType, XPathHolder xpathType, Object element) {
+		PropertyModificationType change = new PropertyModificationType();
+		change.setValue(new Value());
+		change.setModificationType(changeType);
+		change.setPath(xpathType.toElement(SchemaConstants.NS_C, "path"));
+		change.getValue().getAny().add(element);
+
+		return change;
+	}
+
+	// public static PropertyModificationType
+	// createPropertyModificationType(PropertyModificationTypeType changetype,
+	// XPathType xpath, Element element) {
+	// return createPropertyModificationType(changetype, xpath, new
+	// QName(element.getNamespaceURI(), element.getLocalName()),
+	// element.getTextContent());
+	// }
+
+	public static PropertyModificationType createPropertyModificationType(
+			PropertyModificationTypeType changetype, XPathHolder xpath, QName property, Object value) {
+
+		PropertyModificationType propertyChange = new PropertyModificationType();
+		propertyChange.setModificationType(changetype);
+
+		Document doc = DOMUtil.getDocument();
+
+		if (xpath == null) {
+			// Default XPath is empty XPath, which means "."
+			xpath = new XPathHolder();
+		}
+
+		if (property.getPrefix() == null) {
+			// If the prefix was not specified, generate a random prefix
+			// to avoid collisions with standard "nsXX" prefixes
+			String prefix = "ch" + rnd.nextInt(10000);
+			property = new QName(property.getNamespaceURI(), property.getLocalPart(), prefix);
+		}
+
+		propertyChange.setPath(xpath.toElement(SchemaConstants.NS_C, "path", doc));
+
+		Value jaxbValue = new Value();
+
+		if (value == null) {
+			// Emtpy value, that means empty element set. Nothing to do.
+			// This may be used e.g. for deleting all values (replacing by empty
+			// value)
+		} else if (XsdTypeConverter.canConvert(value.getClass())) {
+
+			try {
+				Object e = XsdTypeConverter.toXsdElement(value, property, doc);
+				jaxbValue.getAny().add(e);
+			} catch (JAXBException ex) {
+				throw new SystemException("Unexpected JAXB problem while coverting " + property + " : "
+						+ ex.getMessage(), ex);
+			}
+		} else if (value instanceof Element) {
+			// This may not be needed any more
+			jaxbValue.getAny().add((Element) value);
+		} else {
+			throw new IllegalArgumentException("Unsupported value type " + value.getClass().getName());
+		}
+
+		propertyChange.setValue(jaxbValue);
+
+		return propertyChange;
+	}
+
+	public static ObjectModificationType createModificationReplaceProperty(String oid, QName propertyName,
+			Object propertyValue) {
 		ObjectModificationType modification = new ObjectModificationType();
 		modification.setOid(oid);
 		List<PropertyModificationType> propertyModifications = modification.getPropertyModification();
-		PropertyModificationType propertyModification = createPropertyModificationType(PropertyModificationTypeType.replace, null, propertyName, propertyValue);		
+		PropertyModificationType propertyModification = createPropertyModificationType(
+				PropertyModificationTypeType.replace, null, propertyName, propertyValue);
 		propertyModifications.add(propertyModification);
 		return modification;
 	}
-	
+
 	public static String toShortString(ObjectType object) {
-		if (object==null) {
+		if (object == null) {
 			return "null";
 		}
 		StringBuilder builder = new StringBuilder();
-		
+		builder.append(object.getClass().getSimpleName());
+		builder.append(": ");
+		builder.append(object.getName());
+		builder.append("(OID:");
+		builder.append(object.getOid());
+		builder.append(")");
+
 		return builder.toString();
-		return object.getClass().getSimpleName()+": "+object.getName()+"(OID:"+object.getOid()+")";
 	}
-	
+
 	public static String dump(ObjectType object) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(toShortString(object));
 		sb.append("\n");
-		if (object==null) {
-			//in sb is already serialized null object
+		if (object == null) {
+			// in sb is already serialized null object
 			return sb.toString();
 		}
 		Document doc = DOMUtil.getDocument();
@@ -190,25 +208,25 @@ public class ObjectTypeUtil {
 	}
 
 	public static Object toShortString(ObjectReferenceType objectRef) {
-		if (objectRef==null) {
+		if (objectRef == null) {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder();
 		sb.append("objectRef oid=").append(objectRef.getOid());
-		if (objectRef.getType()!=null) {
+		if (objectRef.getType() != null) {
 			sb.append(" type=").append(objectRef.getType());
 		}
 		return sb.toString();
 	}
 
 	public static ObjectReferenceType createObjectRef(ObjectType objectType) {
-		if (objectType==null) {
+		if (objectType == null) {
 			return null;
 		}
 		ObjectReferenceType ref = new ObjectReferenceType();
 		ref.setOid(objectType.getOid());
 		ObjectTypes objectTypeType = ObjectTypes.getObjectType(objectType.getClass());
-		if (objectTypeType!=null) {
+		if (objectTypeType != null) {
 			ref.setType(objectTypeType.getTypeQName());
 		}
 		return ref;
@@ -219,7 +237,7 @@ public class ObjectTypeUtil {
 	 * @return
 	 */
 	public static String dump(Extension extension) {
-		if (extension==null) {
+		if (extension == null) {
 			return "null";
 		}
 		StringBuilder sb = new StringBuilder();
@@ -242,7 +260,7 @@ public class ObjectTypeUtil {
 	 * 
 	 */
 	public static Element findXsdElement(XmlSchemaType xmlSchemaType) {
-		if (xmlSchemaType==null) {
+		if (xmlSchemaType == null) {
 			return null;
 		}
 		List<Element> schemaElements = xmlSchemaType.getAny();
