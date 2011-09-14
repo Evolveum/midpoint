@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
@@ -85,7 +84,7 @@ public class DOMUtil {
 	public static final QName XSD_DATETIME = new QName(W3C_XML_SCHEMA_NS_URI, "dateTime",
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_QNAME = new QName(W3C_XML_SCHEMA_NS_URI, "QName", NS_W3C_XML_SCHEMA_PREFIX);
-	
+
 	public static final String NS_XML_ENC = "http://www.w3.org/2001/04/xmlenc#";
 	public static final String NS_XML_DSIG = "http://www.w3.org/2000/09/xmldsig#";
 
@@ -93,6 +92,17 @@ public class DOMUtil {
 	private static final int RANDOM_ATTR_PREFIX_RND = 1000;
 	// To generate random namespace prefixes
 	private static Random rnd = new Random();
+	private static final DocumentBuilder loader;
+
+	static {
+		try {
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setNamespaceAware(true);
+			loader = factory.newDocumentBuilder();
+		} catch (ParserConfigurationException ex) {
+			throw new IllegalStateException("Error creating XML document " + ex.getMessage());
+		}
+	}
 
 	public static String serializeDOMToString(org.w3c.dom.Node node) {
 		return printDom(node).toString();
@@ -104,16 +114,9 @@ public class DOMUtil {
 		}
 		return node.getOwnerDocument();
 	}
-	
+
 	public static Document getDocument() {
-		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware(true);
-			DocumentBuilder loader = factory.newDocumentBuilder();
-			return loader.newDocument();
-		} catch (ParserConfigurationException ex) {
-			throw new IllegalStateException("Error creating XML document " + ex.getMessage());
-		}
+		return loader.newDocument();
 	}
 
 	public static Document parseDocument(String doc) {
@@ -364,40 +367,44 @@ public class DOMUtil {
 		}
 		setQNameAttribute(element, XSI_TYPE, type);
 	}
-	
+
 	public static void setQNameAttribute(Element element, QName attributeName, QName attributeValue) {
 		Document doc = element.getOwnerDocument();
 		Attr attr = doc.createAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
 		String namePrefix = lookupOrCreateNamespaceDeclaration(element, attributeName.getNamespaceURI(),
 				attributeName.getPrefix());
 		attr.setPrefix(namePrefix);
-		setQNameAttribute(element,attr,attributeValue,element);
+		setQNameAttribute(element, attr, attributeValue, element);
 	}
-	
+
 	public static void setQNameAttribute(Element element, String attributeName, QName attributeValue) {
 		Document doc = element.getOwnerDocument();
 		Attr attr = doc.createAttribute(attributeName);
-		setQNameAttribute(element,attr,attributeValue,element);
+		setQNameAttribute(element, attr, attributeValue, element);
 	}
 
-	public static void setQNameAttribute(Element element, QName attributeName, QName attributeValue, Element definitionElement) {
+	public static void setQNameAttribute(Element element, QName attributeName, QName attributeValue,
+			Element definitionElement) {
 		Document doc = element.getOwnerDocument();
 		Attr attr = doc.createAttributeNS(attributeName.getNamespaceURI(), attributeName.getLocalPart());
 		String namePrefix = lookupOrCreateNamespaceDeclaration(element, attributeName.getNamespaceURI(),
 				attributeName.getPrefix());
 		attr.setPrefix(namePrefix);
-		setQNameAttribute(element,attr,attributeValue,definitionElement);
-	}
-	
-	public static void setQNameAttribute(Element element, String attributeName, QName attributeValue, Element definitionElement) {
-		Document doc = element.getOwnerDocument();
-		Attr attr = doc.createAttribute(attributeName);
-		setQNameAttribute(element,attr,attributeValue,definitionElement);
+		setQNameAttribute(element, attr, attributeValue, definitionElement);
 	}
 
-	private static void setQNameAttribute(Element element, Attr attr, QName attributeValue, Element definitionElement) {
-		if (attributeValue.getNamespaceURI()==null || attributeValue.getNamespaceURI().isEmpty()) {
-			throw new IllegalArgumentException("Namespace of XML attribute value "+attributeValue+" is empty");
+	public static void setQNameAttribute(Element element, String attributeName, QName attributeValue,
+			Element definitionElement) {
+		Document doc = element.getOwnerDocument();
+		Attr attr = doc.createAttribute(attributeName);
+		setQNameAttribute(element, attr, attributeValue, definitionElement);
+	}
+
+	private static void setQNameAttribute(Element element, Attr attr, QName attributeValue,
+			Element definitionElement) {
+		if (attributeValue.getNamespaceURI() == null || attributeValue.getNamespaceURI().isEmpty()) {
+			throw new IllegalArgumentException("Namespace of XML attribute value " + attributeValue
+					+ " is empty");
 		}
 		String valuePrefix = lookupOrCreateNamespaceDeclaration(element, attributeValue.getNamespaceURI(),
 				attributeValue.getPrefix(), definitionElement);
@@ -408,7 +415,7 @@ public class DOMUtil {
 		} else {
 			attrValue = valuePrefix + ":" + attributeValue.getLocalPart();
 		}
-		NamedNodeMap attributes = element.getAttributes();		
+		NamedNodeMap attributes = element.getAttributes();
 		attr.setValue(attrValue);
 		attributes.setNamedItem(attr);
 	}
@@ -425,7 +432,7 @@ public class DOMUtil {
 		}
 		element.setTextContent(stringValue);
 	}
-	
+
 	public static String lookupOrCreateNamespaceDeclaration(Element element, String namespaceUri,
 			String preferredPrefix) {
 		return lookupOrCreateNamespaceDeclaration(element, namespaceUri, preferredPrefix, element);
@@ -493,13 +500,12 @@ public class DOMUtil {
 		attr.setValue(namespaceUri);
 		attributes.setNamedItem(attr);
 	}
-	
+
 	public static void setNamespaceDeclarations(Element element, Map<String, String> rootNamespaceDeclarations) {
 		for (Entry<String, String> entry : rootNamespaceDeclarations.entrySet()) {
 			setNamespaceDeclaration(element, entry.getKey(), entry.getValue());
 		}
 	}
-
 
 	public static QName getQName(Element element) {
 		if (element.getPrefix() == null) {
@@ -524,18 +530,20 @@ public class DOMUtil {
 			destination.appendChild(item);
 		}
 	}
-	
+
 	public static Element createElement(Document document, QName qname) {
 		Element element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
-		if (qname.getPrefix()!=null) {
+		if (qname.getPrefix() != null) {
 			element.setPrefix(qname.getPrefix());
 		}
 		return element;
 	}
-	
-	public static Element createElement(Document document, QName qname, Element parentElement, Element definitionElement) {
-		lookupOrCreateNamespaceDeclaration(parentElement, qname.getNamespaceURI(), qname.getPrefix(), definitionElement);
-		return createElement(document,qname);
+
+	public static Element createElement(Document document, QName qname, Element parentElement,
+			Element definitionElement) {
+		lookupOrCreateNamespaceDeclaration(parentElement, qname.getNamespaceURI(), qname.getPrefix(),
+				definitionElement);
+		return createElement(document, qname);
 	}
-	
+
 }
