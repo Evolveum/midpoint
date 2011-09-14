@@ -137,7 +137,7 @@
 			</xsd:element>
 			<xsd:element name="scriptOnResource" type="xsd:integer" minOccurs="0">
 			</xsd:element>
-			<xsd:element name="authenticate" type="xsd:integer" minOccurs="0">
+			<xsd:element name="authentication" type="xsd:integer" minOccurs="0">
 			</xsd:element>
 			<xsd:element name="search" type="xsd:integer" minOccurs="0">
 			</xsd:element>

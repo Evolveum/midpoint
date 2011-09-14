@@ -113,7 +113,7 @@ object.
 				<icfc:test>-1</icfc:test>
 				<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
 				<icfc:scriptOnResource>-1</icfc:scriptOnResource>
-				<icfc:authenticate>-1</icfc:authenticate>
+				<icfc:authentication>-1</icfc:authentication>
 				<icfc:search>-1</icfc:search>
 				<icfc:validate>-1</icfc:validate>
 				<icfc:sync>-1</icfc:sync>
@@ -541,6 +541,21 @@ object.
 			</accountType>
 			
 		</schemaHandling>
+		
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/provisioning/capabilities-1.xsd">
+			<cap:activation>
+				<cap:enableDisable>
+					<cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>
+					<cap:enableValue/>
+					<cap:disableValue>true</cap:disableValue>
+				</cap:enableDisable>
+			</cap:activation>
+			<cap:credentials>
+				<cap:password/>
+			</cap:credentials>
+			<cap:liveSync/>
+			<cap:testConnection/>
+		</capabilities>
 
         <!--
             Synchronization section describes the synchronization policy, timing,

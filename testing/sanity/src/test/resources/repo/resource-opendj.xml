@@ -86,7 +86,7 @@
 				<icfc:test>-1</icfc:test>
 				<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
 				<icfc:scriptOnResource>-1</icfc:scriptOnResource>
-				<icfc:authenticate>-1</icfc:authenticate>
+				<icfc:authentication>-1</icfc:authentication>
 				<icfc:search>-1</icfc:search>
 				<icfc:validate>-1</icfc:validate>
 				<icfc:sync>-1</icfc:sync>

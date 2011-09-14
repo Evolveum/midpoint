@@ -35,6 +35,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.codec.binary.Base64;
+import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
 import org.identityconnectors.common.security.GuardedByteArray;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.APIConfiguration;
@@ -43,6 +44,8 @@ import org.identityconnectors.framework.api.ConfigurationProperty;
 import org.identityconnectors.framework.api.ConnectorFacade;
 import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.api.ConnectorInfo;
+import org.identityconnectors.framework.api.operations.APIOperation;
+import org.identityconnectors.framework.api.operations.CreateApiOp;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -53,8 +56,10 @@ import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.Name;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.ObjectClassInfo;
+import org.identityconnectors.framework.common.objects.OperationOptionInfo;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.OperationOptionsBuilder;
+import org.identityconnectors.framework.common.objects.OperationalAttributes;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
 import org.identityconnectors.framework.common.objects.ScriptContext;
 import org.identityconnectors.framework.common.objects.SyncDelta;
@@ -71,6 +76,7 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.result.OperationResultStatus;
+import com.evolveum.midpoint.provisioning.ucf.api.ActivationChangeOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
@@ -136,7 +142,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private static final String GROUP_OBJECTCLASS_LOCALNAME = "GroupObjectClass";
 	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
 	private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
-	private static final String CONFIGURATION_PROPERTIES_XML_ELEMENT_NAME = "configurationProperties";
 
 	private static final Trace LOGGER = TraceManager
 			.getTrace(ConnectorInstanceIcfImpl.class);
@@ -364,7 +369,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		// New instance of midPoint schema object
 		Schema mpSchema = new Schema(getSchemaNamespace());
-		Set<Definition> definitions = mpSchema.getDefinitions();
 
 		// Let's convert every objectclass in the ICF schema ...
 		Set<ObjectClassInfo> objectClassInfoSet = icfSchema
@@ -442,7 +446,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 
 		}
-
+		
 		result.recordSuccess();
 		return mpSchema;
 	}
@@ -766,6 +770,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Set<ResourceObjectAttribute> valuesToRemove = new HashSet<ResourceObjectAttribute>();
 
 		Set<Operation> additionalOperations = new HashSet<Operation>();
+		ActivationChangeOperation activationChangeOperation = null;
 
 		for (Operation operation : changes) {
 			if (operation instanceof AttributeModificationOperation) {
@@ -796,11 +801,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					updateValues.add(updateAttribute);
 
 				}
-			}
-
-			if (operation instanceof ExecuteScriptOperation) {
+				
+			} else if (operation instanceof ActivationChangeOperation) {
+				activationChangeOperation = (ActivationChangeOperation) operation;
+				// TODO: check for multiple occurrences and fail
+				
+			} else if (operation instanceof ExecuteScriptOperation) {
 				ExecuteScriptOperation scriptOperation = (ExecuteScriptOperation) operation;
 				additionalOperations.add(scriptOperation);
+				
+			} else {
+				throw new IllegalArgumentException("Unknown operation type "+operation.getClass().getName()+": "+operation);
 			}
 
 		}
@@ -863,8 +874,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		try {
-			if (updateValues != null && !updateValues.isEmpty()) {
+			if (updateValues != null && !updateValues.isEmpty() || activationChangeOperation != null) {
 				Set<Attribute> attributes = null;
+				
 				try {
 					attributes = convertFromResourceObject(updateValues, result);
 				} catch (SchemaException ex) {
@@ -875,6 +887,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							"Error while converting resource object attributes. Reason: "
 									+ ex.getMessage(), ex);
 				}
+				
+				if (activationChangeOperation != null) {
+					// Activation change means modification of attributes
+					convertFromActivation(attributes, activationChangeOperation);
+				}
+				
 				OperationOptions options = new OperationOptionsBuilder()
 						.build();
 				icfResult = result.createSubresult(ConnectorFacade.class
@@ -884,7 +902,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.addParam("attributes", attributes);
 				icfResult.addParam("options", options);
 				icfResult.addContext("connector", icfConnectorFacade);
+				
+				// Call ICF
 				icfConnectorFacade.update(objClass, uid, attributes, options);
+				
 				icfResult.recordSuccess();
 			}
 		} catch (Exception ex) {
@@ -1451,7 +1472,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private Set<Attribute> convertFromResourceObject(
 			Set<ResourceObjectAttribute> resourceAttributes,
 			OperationResult parentResult) throws SchemaException {
+		
 		Set<Attribute> attributes = new HashSet<Attribute>();
+		if (resourceAttributes == null) {
+			// returning empty set
+			return attributes;
+		}
 
 		for (ResourceObjectAttribute attribute : resourceAttributes) {
 
@@ -1481,7 +1507,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}			
 		return value;
 	}
-
+	
+	private void convertFromActivation(Set<Attribute> attributes,
+			ActivationChangeOperation activationChangeOperation) {
+		
+		attributes.add(
+				AttributeBuilder.build(OperationalAttributes.ENABLE_NAME,
+						activationChangeOperation.isEnabled()));
+		
+	}
+	
 	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result,
 			Schema schema, OperationResult parentResult) throws SchemaException {
 		List<Change> changeList = new ArrayList<Change>();
@@ -1523,52 +1558,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		}
 		return changeList;
-	}
-
-	// TODO:refaktor = > move to the utility methods or resource object
-	// methods...the same method used in the shadow cache..
-	private ResourceObjectShadowType createResourceShadow(
-			ResourceObject resourceObject, ResourceType resource,
-			OperationResult parentResult) throws SchemaException {
-
-		ResourceObjectShadowType shadow = null;
-
-		// Determine correct type for the shadow
-		String accountName = null;
-		if (resourceObject.isAccountType()) {
-			shadow = new AccountShadowType();
-			ResourceObjectAttribute name = resourceObject
-					.findAttribute(new QName(resource.getNamespace(), "uid"));
-			if (name.getValues().size() != 1) {
-				throw new IllegalArgumentException(
-						"Name attribute must be just one.");
-			}
-			accountName = name.getValue(String.class);
-		} else {
-			shadow = new ResourceObjectShadowType();
-		}
-
-		shadow.setObjectClass(resourceObject.getDefinition().getTypeName());
-		shadow.setName(resource.getName() + "-" + accountName);
-		shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
-		Attributes attributes = new Attributes();
-		shadow.setAttributes(attributes);
-
-		Document doc = DOMUtil.getDocument();
-
-		// Add identifiers to the shadow
-		Set<Property> identifiers = resourceObject.getIdentifiers();
-		for (Property p : identifiers) {
-			try {
-				List<Object> eList = p.serializeToJaxb(doc);
-				shadow.getAttributes().getAny().addAll(eList);
-			} catch (SchemaException e) {
-				throw new SchemaException(
-						"An error occured while serializing property " + p
-								+ " to DOM");
-			}
-		}
-		return shadow;
 	}
 
 	private ObjectChangeModificationType createModificationChange(
@@ -1681,14 +1670,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				ExecuteScriptOperation executeOp = (ExecuteScriptOperation) op;
 				// execute operation in the right order..
 				if (order.equals(executeOp.getScriptOrder())) {
-					executeOperation(executeOp);
+					executeScript(executeOp);
 				}
 			}
 		}
 
 	}
 
-	private void executeOperation(ExecuteScriptOperation executeOp) {
+	private void executeScript(ExecuteScriptOperation executeOp) {
 
 		// convert execute script operation to the script context required from
 		// the connector
@@ -1756,7 +1745,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 			// Process the "configurationProperties" part of configuration
 			if (e.getNamespaceURI() != null && e.getNamespaceURI().equals(connectorConfNs)
-					&& e.getLocalName() != null && e.getLocalName().equals(CONFIGURATION_PROPERTIES_XML_ELEMENT_NAME)) {
+					&& e.getLocalName() != null &&
+					e.getLocalName().equals(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME)) {
 				
 				// Iterate over all the XML elements there. Each element is
 				// a configuration property.
@@ -1815,6 +1805,74 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						}
 					}
 				}
+				
+			} else if (e.getNamespaceURI() != null && e.getNamespaceURI().equals(ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION)
+						&& e.getLocalName() != null &&
+						e.getLocalName().equals(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME)) {
+				// Process the "connectorPoolConfiguration" part of configuration
+				
+				ObjectPoolConfiguration connectorPoolConfiguration = apiConfig.getConnectorPoolConfiguration();
+				
+				NodeList childNodes = e.getChildNodes();
+				for (int i = 0; i < childNodes.getLength(); i++) {
+					Node item = childNodes.item(i);
+					if (item.getNodeType() == Node.ELEMENT_NODE) {
+						Element subelement = (Element)item;
+						if (subelement.getNamespaceURI() != null && subelement.getNamespaceURI().equals(ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION)) {
+							String subelementName = subelement.getLocalName();
+							if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS.equals(subelementName)) {
+								connectorPoolConfiguration.setMinEvictableIdleTimeMillis(parseLong(subelement));
+							} else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE.equals(subelementName)) {
+								connectorPoolConfiguration.setMinIdle(parseInt(subelement));
+							} else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE.equals(subelementName)) {
+								connectorPoolConfiguration.setMaxIdle(parseInt(subelement));
+							} else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS.equals(subelementName)) {
+								connectorPoolConfiguration.setMaxObjects(parseInt(subelement));
+							} else if (ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT.equals(subelementName)) {
+								connectorPoolConfiguration.setMaxWait(parseLong(subelement));
+							} else {
+								throw new SchemaException("Unexpected element "+DOMUtil.getQName(subelement)+" in "+
+										ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
+							}
+						} else {
+							throw new SchemaException("Unexpected element "+DOMUtil.getQName(subelement)+" in "+
+									ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME);
+						}
+					}
+				}
+				
+			} else if (e.getNamespaceURI() != null && e.getNamespaceURI().equals(ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION)
+					&& e.getLocalName() != null && 
+					e.getLocalName().equals(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME)) {
+				// Process the "producerBufferSize" part of configuration
+				apiConfig.setProducerBufferSize(parseInt(e));
+				
+			} else if (e.getNamespaceURI() != null && e.getNamespaceURI().equals(ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION)
+					&& e.getLocalName() != null &&
+					e.getLocalName().equals(ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME)) {
+				// Process the "timeouts" part of configuration
+				
+				NodeList childNodes = e.getChildNodes();
+				for (int i = 0; i < childNodes.getLength(); i++) {
+					Node item = childNodes.item(i);
+					if (item.getNodeType() == Node.ELEMENT_NODE) {
+						Element subelement = (Element)item;
+
+						if (ConnectorFactoryIcfImpl.NS_ICF_CONFIGURATION.equals(subelement.getNamespaceURI())) {
+							String opName = subelement.getLocalName();
+							Class<? extends APIOperation> apiOpClass = ConnectorFactoryIcfImpl.resolveApiOpClass(opName);
+							if (apiOpClass != null) {
+								apiConfig.setTimeout(apiOpClass , parseInt(subelement));
+							} else {
+								throw new SchemaException("Unknown operation name "+opName+" in "+
+										ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME);
+							}
+						}
+					}
+				}
+				
+			} else {
+				throw new SchemaException("Unexpected element "+DOMUtil.getQName(e)+" in resource configuration");
 			}
 		}
 
@@ -1823,6 +1881,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (numConfingProperties==0) {
 			throw new SchemaException("No configuration properties found. Wrong namespace? (expected: "+connectorConfNs+")");
 		}
+	}
+
+	private int parseInt(Element e) {
+		return Integer.parseInt(e.getTextContent());
+	}
+
+	private long parseLong(Element e) {
+		return Long.parseLong(e.getTextContent());
 	}
 
 	private Object convertToJava(Element configElement, Class type) throws SchemaException {

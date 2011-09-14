@@ -19,6 +19,9 @@
 
 package com.evolveum.midpoint.test.ldap;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -29,6 +32,7 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.jar.JarEntry;
@@ -37,9 +41,14 @@ import java.util.jar.JarFile;
 import org.opends.messages.Message;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
+import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryEnvironmentConfig;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchScope;
 import org.opends.server.util.EmbeddedUtils;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -435,5 +444,48 @@ public class OpenDJController {
 		// }
 
 		return result;
+	}
+	
+	// Generic utility methods
+	
+	public SearchResultEntry searchByEntryUuid(String entryUuid) throws DirectoryException {
+		InternalSearchOperation op = getInternalConnection().processSearch(
+				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
+				100, false, "(entryUUID=" + entryUuid + ")", getSearchAttributes());
+
+		assertEquals("Entry UUID "+entryUuid+" not found",1, op.getEntriesSent());
+		return op.getSearchEntries().get(0);
+	}
+	
+	private LinkedHashSet<String> getSearchAttributes() {
+		LinkedHashSet<String> attrs = new LinkedHashSet<String>();
+		attrs.add("*");
+		attrs.add("ds-pwp-account-disabled");
+		return attrs;
+	}
+
+	public boolean isAccountEnabled(SearchResultEntry ldapEntry) {
+		String pwpAccountDisabled = getAttributeValue(ldapEntry, "ds-pwp-account-disabled");
+		if (pwpAccountDisabled != null && pwpAccountDisabled.equals("true")) {
+			return false;
+		}
+		return true;
+	}
+
+	public static String getAttributeValue(SearchResultEntry response, String name) {
+		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
+		if (attrs == null || attrs.size() == 0) {
+			return null;
+		}
+		assertEquals("Too many values for attribute "+name+": ",
+				1, attrs.size());
+		Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
+		return attribute.iterator().next().getValue().toString();
+	}
+
+	public static void assertAttribute(SearchResultEntry response, String name, String value) {
+		String attrValue = getAttributeValue(response, name);
+		assertNotNull("No attribute "+name+" in LDAP response", attrValue);
+		assertEquals("Attribute "+name+" does not match: ",value, attrValue);
 	}
 }

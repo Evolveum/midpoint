@@ -44,6 +44,19 @@ import org.identityconnectors.framework.api.ConnectorInfoManager;
 import org.identityconnectors.framework.api.ConnectorInfoManagerFactory;
 import org.identityconnectors.framework.api.ConnectorKey;
 import org.identityconnectors.framework.api.RemoteFrameworkConnectionInfo;
+import org.identityconnectors.framework.api.operations.APIOperation;
+import org.identityconnectors.framework.api.operations.AuthenticationApiOp;
+import org.identityconnectors.framework.api.operations.CreateApiOp;
+import org.identityconnectors.framework.api.operations.DeleteApiOp;
+import org.identityconnectors.framework.api.operations.GetApiOp;
+import org.identityconnectors.framework.api.operations.SchemaApiOp;
+import org.identityconnectors.framework.api.operations.ScriptOnConnectorApiOp;
+import org.identityconnectors.framework.api.operations.ScriptOnResourceApiOp;
+import org.identityconnectors.framework.api.operations.SearchApiOp;
+import org.identityconnectors.framework.api.operations.SyncApiOp;
+import org.identityconnectors.framework.api.operations.TestApiOp;
+import org.identityconnectors.framework.api.operations.UpdateApiOp;
+import org.identityconnectors.framework.api.operations.ValidateApiOp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -87,23 +100,39 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	public static final QName ICFS_UID = new QName(NS_ICF_SCHEMA, "uid");
 	public static final QName ICFS_PASSWORD = new QName(NS_ICF_SCHEMA, "password");
 	public static final QName ICFS_ACCOUNT = new QName(NS_ICF_SCHEMA, "account");
+
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME = "configurationProperties";
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
+	
+	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME = "connectorPoolConfiguration";
 	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(
 			NS_ICF_CONFIGURATION, "connectorPoolConfiguration");
 	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(
 			NS_ICF_CONFIGURATION, "ConnectorPoolConfigurationType");
+	protected static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS = "minEvictableIdleTimeMillis";
+	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE = "minIdle";
+	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE = "maxIdle";
+	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_OBJECTS = "maxObjects";
+	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_WAIT = "maxWait";
+
+	public static final String CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME = "producerBufferSize";
 	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(NS_ICF_CONFIGURATION,
-			"producerBufferSize");
+			CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME);
 	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE = DOMUtil.XSD_INTEGER;
-	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(NS_ICF_CONFIGURATION, "timeouts");
+	
+	public static final String CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME = "timeouts";
+	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(NS_ICF_CONFIGURATION, 
+			CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME);
 	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_TYPE = new QName(NS_ICF_CONFIGURATION, "TimeoutsType");
+	
+	static final Map<String,Class<? extends APIOperation>> apiOpMap = new HashMap<String,Class<? extends APIOperation>>();
 
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = ICF_FRAMEWORK_URI + "/bundle/";
 	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryIcfImpl.class);
+	
 
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
 	private ConnectorInfoManager localConnectorInfoManager;
@@ -527,6 +556,25 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	private ConnectorKey getConnectorKey(ConnectorType connectorType) {
 		return new ConnectorKey(connectorType.getConnectorBundle(), connectorType.getConnectorVersion(),
 				connectorType.getConnectorType());
+	}
+	
+	static Class<? extends APIOperation> resolveApiOpClass(String opName) {
+		return apiOpMap.get(opName);
+	}
+	
+	static {
+		apiOpMap.put("create", CreateApiOp.class);
+		apiOpMap.put("get", GetApiOp.class);
+		apiOpMap.put("update", UpdateApiOp.class);
+		apiOpMap.put("delete", DeleteApiOp.class);
+		apiOpMap.put("test", TestApiOp.class);
+		apiOpMap.put("scriptOnConnector", ScriptOnConnectorApiOp.class);
+		apiOpMap.put("scriptOnResource", ScriptOnResourceApiOp.class);
+		apiOpMap.put("authentication", AuthenticationApiOp.class);
+		apiOpMap.put("search", SearchApiOp.class);
+		apiOpMap.put("validate", ValidateApiOp.class);
+		apiOpMap.put("sync", SyncApiOp.class);
+		apiOpMap.put("schema", SchemaApiOp.class);
 	}
 
 }

@@ -85,6 +85,7 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -424,27 +425,17 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// check if account was created in LDAP
 
-		// Set<String> attributes = new HashSet<String>();
-		// attributes.add(
-		// "ds-pwp-account-disabled");
-		// attributes.add(
-		// "givenName");
-		InternalSearchOperation op = openDJController.getInternalConnection().processSearch(
-				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
-				100, false, "(entryUUID=" + uid + ")", null);
-
-		assertEquals(1, op.getEntriesSent());
-		SearchResultEntry response = op.getSearchEntries().get(0);
-
+		SearchResultEntry response = openDJController.searchByEntryUuid(uid);
+		
 		display("LDAP account", response);
 
-		assertAttribute(response, "uid", "jack");
-		assertAttribute(response, "givenName", "Jack");
-		assertAttribute(response, "sn", "Sparrow");
-		assertAttribute(response, "cn", "Jack Sparrow");
+		OpenDJController.assertAttribute(response, "uid", "jack");
+		OpenDJController.assertAttribute(response, "givenName", "Jack");
+		OpenDJController.assertAttribute(response, "sn", "Sparrow");
+		OpenDJController.assertAttribute(response, "cn", "Jack Sparrow");
 		// The "l" attribute is assigned indirectly through schemaHandling and
 		// config object
-		assertAttribute(response, "l", "middle of nowhere");
+		OpenDJController.assertAttribute(response, "l", "middle of nowhere");
 
 		// Use getObject to test fetch of complete shadow
 
@@ -557,14 +548,14 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		display(response);
 
-		assertAttribute(response, "uid", "jack");
-		assertAttribute(response, "givenName", "Jack");
-		assertAttribute(response, "sn", "Sparrow");
+		OpenDJController.assertAttribute(response, "uid", "jack");
+		OpenDJController.assertAttribute(response, "givenName", "Jack");
+		OpenDJController.assertAttribute(response, "sn", "Sparrow");
 		// These two should be assigned from the User modification by
 		// schemaHandling
-		assertAttribute(response, "cn", "Cpt. Jack Sparrow");
+		OpenDJController.assertAttribute(response, "cn", "Cpt. Jack Sparrow");
 
-		assertAttribute(response, "l", "There there over the corner"); // IS
+		OpenDJController.assertAttribute(response, "l", "There there over the corner"); // IS
 																		// THIS
 																		// NOT
 																		// RIGHT?

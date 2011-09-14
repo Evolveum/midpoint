@@ -199,13 +199,6 @@ public class IntegrationTestTools {
 		return values;
 	}
 
-	public static void assertAttribute(SearchResultEntry response, String name, String value) {
-		assertNotNull(response.getAttribute(name.toLowerCase()));
-		assertEquals(1, response.getAttribute(name.toLowerCase()).size());
-		Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
-		assertEquals(value, attribute.iterator().next().getValue().toString());
-	}
-
 	public static void displayTestTile(String title) {
 		System.out.println(TEST_OUT_PREFIX + title + TEST_OUT_SUFFIX);
 		LOGGER.info(TEST_LOG_PREFIX + title + TEST_LOG_SUFFIX);
@@ -334,5 +327,5 @@ public class IntegrationTestTools {
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title);
 		LOGGER.debug(value);
 	}
-
+	
 }

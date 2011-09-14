@@ -31,7 +31,7 @@
 	<connectorRef oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3eedd"/>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2</namespace>
 	<configuration xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.ldap/org.identityconnectors.ldap.LdapConnector"
-	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/configuration-1.xsd">
+	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd">
 					   
 		<icfcldap:configurationProperties>
 			<!-- Wrong port number -->
@@ -53,20 +53,20 @@
 		
 		<icfc:producerBufferSize>100</icfc:producerBufferSize>
 		
-		<icfc:timeout>
-			<icfc:operation name="create">-1</icfc:operation>
-			<icfc:operation name="update">-1</icfc:operation>
-			<icfc:operation name="delete">-1</icfc:operation>
-			<icfc:operation name="test">-1</icfc:operation>
-			<icfc:operation name="scriptOnConnector">-1</icfc:operation>
-			<icfc:operation name="scriptOnResource">-1</icfc:operation>
-			<icfc:operation name="get">-1</icfc:operation>
-			<icfc:operation name="authenticate">-1</icfc:operation>
-			<icfc:operation name="search">-1</icfc:operation>
-			<icfc:operation name="validate">-1</icfc:operation>
-			<icfc:operation name="sync">-1</icfc:operation>
-			<icfc:operation name="schema">-1</icfc:operation>
-		</icfc:timeout>
+		<icfc:timeouts>
+				<icfc:create>-1</icfc:create>
+				<icfc:get>-1</icfc:get>
+				<icfc:update>-1</icfc:update>
+				<icfc:delete>-1</icfc:delete>
+				<icfc:test>-1</icfc:test>
+				<icfc:scriptOnConnector>-1</icfc:scriptOnConnector>
+				<icfc:scriptOnResource>-1</icfc:scriptOnResource>
+				<icfc:authentication>-1</icfc:authentication>
+				<icfc:search>-1</icfc:search>
+				<icfc:validate>-1</icfc:validate>
+				<icfc:sync>-1</icfc:sync>
+				<icfc:schema>-1</icfc:schema>
+			</icfc:timeouts>
 
 	</configuration>
 </resource>

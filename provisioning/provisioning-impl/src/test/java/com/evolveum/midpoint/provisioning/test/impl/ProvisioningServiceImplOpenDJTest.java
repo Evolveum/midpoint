@@ -71,6 +71,7 @@ import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
+import com.evolveum.midpoint.test.ldap.OpenDJController;
 
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -641,7 +642,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			AssertJUnit.assertEquals(1, op.getEntriesSent());
 			SearchResultEntry response = op.getSearchEntries().get(0);
 			display("LDAP account", response);
-			assertAttribute(response, "sn", "First");
+			OpenDJController.assertAttribute(response, "sn", "First");
 
 			assertEquals("First", changedSn);
 			

@@ -728,7 +728,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="propertyModification" type="tns:PropertyModificationType" minOccurs="1" maxOccurs="unbounded">
+			<xsd:element ref="tns:propertyModification" minOccurs="1" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>
 						Describe a change to a single attribute of an
@@ -798,6 +798,8 @@
 		</xsd:complexContent>
 
 	</xsd:complexType>
+	
+	<xsd:element name="propertyModification" type="tns:PropertyModificationType"/>
 
 	<xsd:simpleType name="PropertyModificationTypeType">
 		<xsd:annotation>
@@ -2514,6 +2516,8 @@
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element ref="tns:schemaHandling" minOccurs="0" />
+					<xsd:element name="nativeCapabilities" type="tns:CapabilitiesType" minOccurs="0" />
+					<xsd:element name="capabilities" type="tns:CapabilitiesType" minOccurs="0" />
 					<xsd:element ref="tns:scripts" minOccurs="0" />
 					<xsd:element ref="tns:synchronization" minOccurs="0" />
 				</xsd:sequence>
@@ -2777,6 +2781,24 @@
 			</xsd:element>
 		</xsd:sequence>
 	</xsd:complexType>
+	
+	<xsd:complexType name="CapabilitiesType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="lax">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:any>
+		</xsd:sequence>
+	</xsd:complexType>
+
 
 	<xsd:element name="scripts" type="tns:ScriptsType" />
 

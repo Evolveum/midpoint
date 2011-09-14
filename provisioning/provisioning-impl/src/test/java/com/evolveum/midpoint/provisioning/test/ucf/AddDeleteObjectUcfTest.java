@@ -17,6 +17,8 @@
 
 package com.evolveum.midpoint.provisioning.test.ucf;
 
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -32,6 +34,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
+import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -45,6 +48,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.provisioning.ucf.api.ActivationChangeOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.AttributeModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
@@ -201,6 +205,16 @@ public class AddDeleteObjectUcfTest extends AbstractTestNGSpringContextTests {
 		Set<ResourceObjectAttribute> resourceAttributes = cc.addObject(resourceObject, operation, result);
 		return resourceAttributes;
 	}
+	
+	private String getEntryUuid(Set<ResourceObjectAttribute> identifiers) {
+		for (ResourceObjectAttribute identifier : identifiers) {
+			if (identifier.getName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
+				return identifier.getValue(String.class);
+			}
+		}
+		return null;
+	}
+
 
 	@Test
 	public void testAddDeleteObject() throws Exception {
@@ -288,6 +302,40 @@ public class AddDeleteObjectUcfTest extends AbstractTestNGSpringContextTests {
 		List<Change> changes = cc.fetchChanges(objectClass, lastToken, result);
 		AssertJUnit.assertEquals(0, changes.size());
 	}
+
+// This obviously does not work with LDAP connector
+	@Test(enabled=false)
+	public void testDisableAccount() throws Exception{
+		displayTestTile(this,"testDisableAccount");
+
+		// GIVEN
+		OperationResult result = new OperationResult(this.getClass().getName()
+				+ ".testDisableAccount");
+
+		Set<ResourceObjectAttribute> identifiers = addSampleResourceObject("blackbeard", "Edward", "Teach");
+
+		// Check precondition
+		String entryUuid = getEntryUuid(identifiers);
+		SearchResultEntry ldapEntryBefore = openDJController.searchByEntryUuid(entryUuid);
+		assertTrue("The account is not enabled",openDJController.isAccountEnabled(ldapEntryBefore));
+
+		// WHEN
+		
+		Set<Operation> changes = new HashSet<Operation>();
+		ActivationChangeOperation act = new ActivationChangeOperation(false);
+		changes.add(act);
+
+		QName objectClass = new QName(resource.getNamespace(), "AccountObjectClass");
+
+		cc.modifyObject(objectClass, identifiers, changes, result);
+		
+		// THEN
+		
+		SearchResultEntry ldapEntryAfter = openDJController.searchByEntryUuid(entryUuid);
+		assertFalse("The account was not disabled",openDJController.isAccountEnabled(ldapEntryAfter));
+
+	}
+
 
 	private Property createProperty(String propertyName, String propertyValue) {
 		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema
