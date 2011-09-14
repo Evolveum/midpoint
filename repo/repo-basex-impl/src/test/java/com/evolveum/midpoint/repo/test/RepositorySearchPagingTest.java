@@ -30,6 +30,8 @@ import java.io.FileNotFoundException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.annotations.AfterClass;
@@ -49,7 +51,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -65,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
  */
 @ContextConfiguration(locations = { "../../../../../application-context-repository.xml",
 		"classpath:application-context-configuration-test.xml" })
+@DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests {
 
 	public static final String BASE_PATH = "src/test/resources/";
@@ -117,6 +119,13 @@ public class RepositorySearchPagingTest extends AbstractTestNGSpringContextTests
 		// GIVEN
 		// prepare paging
 		PagingType paging = new PagingType();
+		Element el = DOMUtil.getDocument().createElementNS(SchemaConstants.NS_C, "property");
+		el.setTextContent("name");
+		PropertyReferenceType orderBy = new PropertyReferenceType();
+		orderBy.setProperty(el);
+		paging.setOrderBy(orderBy);
+		paging.setOrderDirection(OrderDirectionType.DESCENDING);
+
 		paging.setOffset(0);
 		paging.setMaxSize(2);
 		// create query

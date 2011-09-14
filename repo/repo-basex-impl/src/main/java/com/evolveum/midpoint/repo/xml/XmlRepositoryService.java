@@ -77,7 +77,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 public class XmlRepositoryService implements RepositoryService {
 
-	private static final String OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS = "ObjectWithTheSameNameAlreadyExists";
+	private static final String OBJECT_ALREADY_EXISTS = "ObjectAlreadyExists";
 
 	private static final String C_PREFIX = "c";
 
@@ -134,7 +134,7 @@ public class XmlRepositoryService implements RepositoryService {
 		StringBuilder query = new StringBuilder();
 		try {
 			// generate new oid, if necessary
-			oid = (null != object.getOid() ? object.getOid() : UUID.randomUUID().toString());
+			oid = (StringUtils.isNotEmpty(object.getOid()) ? object.getOid() : UUID.randomUUID().toString());
 			object.setOid(oid);
 
 			Map<String, Object> properties = new HashMap<String, Object>();
@@ -151,10 +151,12 @@ public class XmlRepositoryService implements RepositoryService {
 
 				query.append(DECLARE_NAMESPACE_C).append("if (every $object in //c:objects/c:object[")
 						.append("@xsi:type='").append(oType).append("']")
-						.append(" satisfies $object/c:name !='").append(object.getName()).append("' )")
+						.append(" satisfies $object/c:name !='").append(object.getName()).append("' and ")
+						.append("$object[@oid!='").append(oid).append("']")
+						.append(" )")
 						.append(" then ").append(" let $x := ").append(serializedObject).append("\n")
 						.append("return insert node $x into //c:objects ").append(" else (fn:error(null,'")
-						.append(OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS).append("'))");
+						.append(OBJECT_ALREADY_EXISTS).append("'))");
 			}
 			LOGGER.trace("generated query: " + query);
 
@@ -812,9 +814,9 @@ public class XmlRepositoryService implements RepositoryService {
 			cq = session.query(query.toString());
 			cq.execute();
 		} catch (BaseXException ex) {
-			if (StringUtils.contains(ex.getMessage(), OBJECT_WITH_THE_SAME_NAME_ALREADY_EXISTS)) {
-				result.recordFatalError("Object with the same name already exists");
-				throw new ObjectAlreadyExistsException("Object with the same name already exists");
+			if (StringUtils.contains(ex.getMessage(), OBJECT_ALREADY_EXISTS)) {
+				result.recordFatalError("Object with the same name or oid already exists");
+				throw new ObjectAlreadyExistsException("Object with the same name or oid already exists");
 			} else {
 				errorLogRecordAndRethrow("Reported error by XML Database", result, ex);
 			}

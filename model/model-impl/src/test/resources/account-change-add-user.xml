@@ -527,7 +527,7 @@
 						declare namespace
 						dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/c0c010c0-d34d-b33f-f00d-333222111111";
 						$i:account/i:attributes/dj:uid
-						<c:code>
+						</c:code>
 		                        </c:valueExpression>
 				</c:equal>
 			</i:correlation>

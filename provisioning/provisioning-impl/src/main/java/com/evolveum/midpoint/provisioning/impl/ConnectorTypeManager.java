@@ -24,6 +24,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
@@ -207,7 +208,7 @@ public class ConnectorTypeManager {
 				}
 				
 				// Sanitize framework-supplied OID
-				if (foundConnector.getOid()!=null) {
+				if (StringUtils.isNotEmpty(foundConnector.getOid())) {
 					LOGGER.warn("Provisioning framework "+foundConnector.getFramework()+" supplied OID for connector "+ObjectTypeUtil.toShortString(foundConnector));
 					foundConnector.setOid(null);
 				}
