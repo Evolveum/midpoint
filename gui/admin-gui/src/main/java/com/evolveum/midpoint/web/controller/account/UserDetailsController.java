@@ -176,12 +176,6 @@ public class UserDetailsController implements Serializable {
 		}
 	}
 
-	private UserManager getUserManager() {
-		ObjectManager<GuiUserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
-				GuiUserDto.class);
-		return (UserManager) (objectManager);
-	}
-
 	public void startEditMode(ActionEvent evt) {
 		editMode = true;
 	}
@@ -215,7 +209,7 @@ public class UserDetailsController implements Serializable {
 	 */
 	public void savePerformed(ActionEvent evt) {
 		try {
-			UserManager userManager = getUserManager();
+			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 
 			processNewAccounts();

@@ -35,7 +35,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.exception.SchemaException;
@@ -44,6 +43,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -183,13 +183,13 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 			return qnames;
 		}
 
-		if (resource == null || resource.getSchema() == null || resource.getSchema().getAny().isEmpty()) {
+		if (resource == null) {
 			return qnames;
 		}
 
 		Schema schema = null;
 		try {
-			schema = Schema.parse(resource.getSchema().getAny().get(0));
+			schema = ResourceTypeUtil.getResourceSchema(resource);
 		} catch (SchemaException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't parse resource schema", ex);
 			FacesUtils.addErrorMessage("Couldn't parse resource schema.", ex);

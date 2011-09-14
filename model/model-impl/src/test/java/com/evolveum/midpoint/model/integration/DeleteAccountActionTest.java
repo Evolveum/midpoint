@@ -42,6 +42,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowChangeDescriptionType;
@@ -71,7 +72,7 @@ public class DeleteAccountActionTest extends AbstractTestNGSpringContextTests {
 
 	private ResourceObject createSampleResourceObject(ResourceType resourceType, AccountShadowType accountType)
 			throws SchemaException, SchemaException {
-		Schema schema = Schema.parse(resourceType.getSchema().getAny().get(0));
+		Schema schema = ResourceTypeUtil.getResourceSchema(resourceType);
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(accountType
 				.getObjectClass());
 		ResourceObject resourceObject = rod.instantiate();

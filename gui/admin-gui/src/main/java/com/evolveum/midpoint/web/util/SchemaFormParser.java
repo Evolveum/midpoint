@@ -40,6 +40,7 @@ import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
@@ -127,7 +128,7 @@ public class SchemaFormParser {
 				}
 			}
 		}
-		Schema schema = Schema.parse(resource.getXmlObject().getSchema().getAny().get(0));
+		Schema schema = ResourceTypeUtil.getResourceSchema(resource.getXmlObject());
 		if (accountType == null) {
 			for (Definition definition : schema.getDefinitions()) {
 				if (!(definition instanceof ResourceObjectDefinition)) {

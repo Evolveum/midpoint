@@ -53,6 +53,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -91,7 +92,7 @@ public class AddUserActionTest extends AbstractTestNGSpringContextTests {
 
 	private ResourceObject createSampleResourceObject(ResourceType resourceType, AccountShadowType accountType)
 			throws SchemaException {
-		Schema schema = Schema.parse(resourceType.getSchema().getAny().get(0));
+		Schema schema = ResourceTypeUtil.getResourceSchema(resourceType);
 		ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
 				.findContainerDefinitionByType(accountType.getObjectClass());
 		ResourceObject resourceObject = rod.instantiate();

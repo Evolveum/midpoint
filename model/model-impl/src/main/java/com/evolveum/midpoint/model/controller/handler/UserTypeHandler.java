@@ -98,7 +98,7 @@ public class UserTypeHandler extends BasicHandler {
 		UserType user = (UserType) getObject(UserType.class, change.getOid(),
 				new PropertyReferenceListType(), result);
 
-		// processing add account
+		// processing add and delete account
 		processAddDeleteAccountFromChanges(change, user, result);
 
 		getRepository().modifyObject(UserType.class, change, result);

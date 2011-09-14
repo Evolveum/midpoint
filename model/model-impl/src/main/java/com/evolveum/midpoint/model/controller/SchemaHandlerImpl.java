@@ -63,6 +63,7 @@ import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.ExpressionUtil;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Variable;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -260,7 +261,7 @@ public class SchemaHandlerImpl implements SchemaHandler {
 			ResourceObjectShadowType shadow) throws SchemaException {
 		PropertyContainerDefinition objectDefinition = null;
 		try {
-			Schema schema = Schema.parse(resource.getSchema().getAny().get(0));
+			Schema schema = ResourceTypeUtil.getResourceSchema(resource);
 			objectDefinition = schema.findContainerDefinitionByType(shadow.getObjectClass());
 		} catch (Exception ex) {
 			throw new SchemaException(ex.getMessage(), ex);

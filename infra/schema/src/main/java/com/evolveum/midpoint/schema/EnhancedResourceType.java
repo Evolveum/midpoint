@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2011 Evolveum
  *
  * The contents of this file are subject to the terms
@@ -15,6 +15,7 @@
  * If applicable, add the following below the CDDL Header,
  * with the fields enclosed by brackets [] replaced by
  * your own identifying information:
+ *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
 package com.evolveum.midpoint.schema;
@@ -24,16 +25,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**
  * @author Radovan Semancik
- *
+ * 
  */
 public class EnhancedResourceType extends ResourceType {
 
+	private static final long serialVersionUID = -3858765689306267363L;
 	private Schema parsedSchema;
-	
+
 	public EnhancedResourceType() {
 		super();
 	}
-	
+
 	public EnhancedResourceType(ResourceType resourceType) {
 		setConfiguration(resourceType.getConfiguration());
 		setConnector(resourceType.getConnector());
@@ -57,5 +59,4 @@ public class EnhancedResourceType extends ResourceType {
 	public void setParsedSchema(Schema parsedSchema) {
 		this.parsedSchema = parsedSchema;
 	}
-
 }

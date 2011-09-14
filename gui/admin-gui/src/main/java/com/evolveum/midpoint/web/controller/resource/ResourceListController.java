@@ -39,6 +39,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -199,13 +200,8 @@ public class ResourceListController extends SortableListController<ResourceListI
 		String version = connector.getConnectorVersion();
 
 		ResourceListItem item = new ResourceListItem(resource.getOid(), resource.getName(), type, version);
-		XmlSchemaType xmlSchema = resource.getSchema();
-		if (xmlSchema == null || xmlSchema.getAny().isEmpty()) {
-			return item;
-		}
-
 		try {
-			Schema schema = Schema.parse(xmlSchema.getAny().get(0));
+			Schema schema = ResourceTypeUtil.getResourceSchema(resource);
 			Set<Definition> definitions = schema.getDefinitions();
 			for (Definition definition : definitions) {
 				if (!(definition instanceof ResourceObjectDefinition)) {

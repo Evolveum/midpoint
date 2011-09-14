@@ -22,7 +22,6 @@ package com.evolveum.midpoint.schema.util;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.EnhancedResourceType;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -37,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  * @author Radovan Semancik
  */
 public class ResourceTypeUtil {
-	
+
 	public static String getConnectorOid(ResourceType resource) {
 		if (resource.getConnectorRef() != null) {
 			return resource.getConnectorRef().getOid();
@@ -49,7 +48,9 @@ public class ResourceTypeUtil {
 	}
 
 	/**
-	 * The usage of "resolver" is experimental. Let's see if it will be practical ...
+	 * The usage of "resolver" is experimental. Let's see if it will be
+	 * practical ...
+	 * 
 	 * @see ObjectResolver
 	 */
 	public static ConnectorType getConnectorType(ResourceType resource, ObjectResolver resolver) {
@@ -57,12 +58,12 @@ public class ResourceTypeUtil {
 			return resource.getConnector();
 		} else if (resource.getConnectorRef() != null) {
 			String oid = resource.getConnectorRef().getOid();
-			return (ConnectorType)resolver.resolve(oid);
+			return (ConnectorType) resolver.resolve(oid);
 		} else {
 			return null;
 		}
 	}
-	
+
 	public static Element getResourceXsdSchema(ResourceType resource) {
 		if (resource.getSchema() == null) {
 			return null;
@@ -74,7 +75,7 @@ public class ResourceTypeUtil {
 		}
 		return null;
 	}
-	
+
 	public static Schema getResourceSchema(ResourceType resource) throws SchemaException {
 		Element resourceXsdSchema = getResourceXsdSchema(resource);
 		if (resourceXsdSchema == null) {
@@ -93,5 +94,5 @@ public class ResourceTypeUtil {
 		Schema parsedSchema = Schema.parse(resourceXsdSchema);
 		return parsedSchema;
 	}
-	
+
 }
