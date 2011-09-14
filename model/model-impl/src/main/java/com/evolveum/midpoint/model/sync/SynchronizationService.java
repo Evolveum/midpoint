@@ -150,7 +150,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 			notifyChange(change, situation, resource, objectShadowAfterChange, subResult);
 		} finally {
-			LOGGER.debug(subResult.dump());
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug(subResult.dump());
+			}
 		}
 	}
 
@@ -425,7 +427,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			Action action = actionManager.getActionInstance(actionXml.getRef());
 			if (action == null) {
 				LOGGER.warn("Couln't create action with uri '{}' for reaction {}, skipping action.",
-						actionXml.getRef(), reactions.indexOf(reaction));
+						new Object[] { actionXml.getRef(), reactions.indexOf(reaction) });
 				continue;
 			}
 			action.setParameters(actionXml.getAny());
@@ -459,8 +461,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		try {
 			query = new ObjectFactory().createQueryType();
 			query.setFilter(filter);
-			LOGGER.debug("CORRELATION: expression for OID {} results in filter {}", resourceShadow.getOid(),
-					DebugUtil.prettyPrint(query));
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("CORRELATION: expression for OID {} results in filter {}", new Object[] {
+						resourceShadow.getOid(), DebugUtil.prettyPrint(query) });
+			}
 			PagingType paging = new PagingType();
 			users = controller.searchObjects(UserType.class, query, paging, result);
 			if (users == null) {
@@ -501,8 +505,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 		}
 
-		LOGGER.debug("CONFIRMATION: expression for OID {} matched {} users.",
-				resourceObjectShadowType.getOid(), list.size());
+		LOGGER.debug("CONFIRMATION: expression for OID {} matched {} users.", new Object[] {
+				resourceObjectShadowType.getOid(), list.size() });
 		return list;
 	}
 
@@ -514,7 +518,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 
 		try {
-			LOGGER.trace("Transforming search filter from:\n{}", DOMUtil.printDom(filter.getOwnerDocument()));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Transforming search filter from:\n{}",
+						DOMUtil.printDom(filter.getOwnerDocument()));
+			}
 			Document document = DOMUtil.getDocument();
 
 			Element and = document.createElementNS(SchemaConstants.NS_C, "and");
@@ -561,7 +568,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				}
 			}
 			filter = and;
-			LOGGER.trace("Transforming filter to:\n{}", DOMUtil.printDom(filter.getOwnerDocument()));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Transforming filter to:\n{}", DOMUtil.printDom(filter.getOwnerDocument()));
+			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't transform filter.", ex);
 			throw new SynchronizationException("Couldn't transform filter, reason: " + ex.getMessage(), ex);

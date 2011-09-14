@@ -52,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
  */
 public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 
+	private static final Trace LOGGER = TraceManager.getTrace(ImportAccountsFromResourceResultHandler.class);
 	private ResourceObjectChangeListener objectChangeListener;
 	private Task task;
 	private ResourceType resource;
@@ -59,11 +60,8 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 	private long errors;
 	private boolean stopOnError;
 
-	private static final Trace LOGGER = TraceManager.getTrace(ImportAccountsFromResourceResultHandler.class);
-
 	public ImportAccountsFromResourceResultHandler(ResourceType resource, Task task,
 			ResourceObjectChangeListener objectChangeListener) {
-		super();
 		this.objectChangeListener = objectChangeListener;
 		this.task = task;
 		this.resource = resource;
@@ -90,7 +88,9 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 		result.addParam("object", object);
 		result.addContext(OperationResult.CONTEXT_PROGRESS, progress);
 		
-		LOGGER.trace("Importing {} from {}",ObjectTypeUtil.toShortString(object),ObjectTypeUtil.toShortString(resource));
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Importing {} from {}",ObjectTypeUtil.toShortString(object),ObjectTypeUtil.toShortString(resource));
+		}
 
 		if (objectChangeListener == null) {
 			LOGGER.warn("No object change listener set for import task, ending the task");
@@ -114,20 +114,26 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 		// pretending that it has
 		// not existed before, so we will not provide it.
 
-		LOGGER.debug("Going to call notification with new object: " + DebugUtil.prettyPrint(newShadow));
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Going to call notification with new object: " + DebugUtil.prettyPrint(newShadow));
+		}
 		try {
 
 			// Invoke the change notification
 			objectChangeListener.notifyChange(change, result);
-			
-			LOGGER.info("Imported object {} from resource {}",ObjectTypeUtil.toShortString(newShadow),ObjectTypeUtil.toShortString(resource));
-
+			if (LOGGER.isInfoEnabled()) {
+				LOGGER.info("Imported object {} from resource {}",ObjectTypeUtil.toShortString(newShadow),ObjectTypeUtil.toShortString(resource));
+			}
 		} catch (Exception ex) {
 			errors++;
-			LOGGER.error("Import of object {} from resource {} failed: {}", new Object[] {
+			if (LOGGER.isErrorEnabled()) {
+				LOGGER.error("Import of object {} from resource {} failed: {}", new Object[] {
 					ObjectTypeUtil.toShortString(newShadow), ObjectTypeUtil.toShortString(resource), ex.getMessage(), ex });
-			LOGGER.trace("Change notication listener failed for import of object {}: {}: ", new Object[] {
+			}
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Change notication listener failed for import of object {}: {}: ", new Object[] {
 					newShadow, ex.getClass().getSimpleName(), ex.getMessage(), ex });
+			}
 			result.recordPartialError("failed to import", ex);
 			return !isStopOnError();
 		}
@@ -136,12 +142,16 @@ public class ImportAccountsFromResourceResultHandler implements ResultHandler {
 		if (task.canRun()) {
 			result.computeStatus("Failed to import.");
 			// Everything OK, signal to continue
-			LOGGER.trace("Import of {} finished, result: {}",ObjectTypeUtil.toShortString(object),result.dump());
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Import of {} finished, result: {}",ObjectTypeUtil.toShortString(object),result.dump());
+			}
 			return true;
 		} else {
 			result.recordPartialError("Interrupted");
 			// Signal to stop
-			LOGGER.warn("Import from {} interrupted",ObjectTypeUtil.toShortString(resource));
+			if (LOGGER.isWarnEnabled()) {
+				LOGGER.warn("Import from {} interrupted",ObjectTypeUtil.toShortString(resource));
+			}
 			return false;
 		}
 	}
