@@ -156,8 +156,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		try {
 			repositoryObject = getRepositoryService().getObject(type, oid, resolve,
 					result);
-			LOGGER.trace("**PROVISIONING: Got repository object {}",
-					JAXBUtil.silentMarshalWrap(repositoryObject));
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("**PROVISIONING: Got repository object {}",
+						JAXBUtil.silentMarshalWrap(repositoryObject));
+			}
 		} catch (ObjectNotFoundException e) {
 			LOGGER.error(
 					"**PROVISIONING: Can't get obejct with oid {}. Reason {}",
@@ -183,8 +185,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			try {
 				shadow = getShadowCache().getShadow(oid,
 						(ResourceObjectShadowType) repositoryObject, result);
-				LOGGER.trace("**PROVISIONING: Got shadow object {}",
-						JAXBUtil.silentMarshalWrap(shadow));
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("**PROVISIONING: Got shadow object {}",
+							JAXBUtil.silentMarshalWrap(shadow));
+				}
 			} catch (ObjectNotFoundException e) {
 				LOGGER.error(
 						"**PROVISIONING: Can't get obejct with oid {}. Reason {}",
@@ -329,9 +333,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					parentResult);
 		}
 
-		LOGGER.trace(
-				"**PROVISIONING: Got token property: {} from the task extension.",
-				DebugUtil.prettyPrint(tokenProperty));
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace(
+					"**PROVISIONING: Got token property: {} from the task extension.",
+					DebugUtil.prettyPrint(tokenProperty));
+		}
 
 		List<PropertyModification> modifications = new ArrayList<PropertyModification>();
 		List<Change> changes = null;
@@ -345,9 +351,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 				ResourceObjectShadowChangeDescriptionType shadowChangeDescription = createResourceShadowChangeDescription(
 						change, resourceType);
-				LOGGER.trace(
-						"**PROVISIONING: Created resource object shadow change description {}",
-						DebugUtil.prettyPrint(shadowChangeDescription));
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace(
+							"**PROVISIONING: Created resource object shadow change description {}",
+							DebugUtil.prettyPrint(shadowChangeDescription));
+				}
 				notifyResourceObjectChangeListeners(shadowChangeDescription,
 						result);
 				//get updated token from change, 
@@ -487,8 +495,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				ProvisioningServiceImpl.class);
 
 		LOGGER.debug("**PROVISIONING: Start to modify object.");
-		LOGGER.trace("*PROVISIONING: Object change: {}",
-				JAXBUtil.silentMarshalWrap(objectChange));
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("*PROVISIONING: Object change: {}",
+					JAXBUtil.silentMarshalWrap(objectChange));
+		}
 
 		if (objectChange == null || objectChange.getOid() == null) {
 			result.recordFatalError("Object change or object change oid cannot be null");
@@ -503,9 +513,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 		LOGGER.debug("**PROVISIONING: Modifying object with oid {}",
 				objectChange.getOid());
-		LOGGER.trace("**PROVISIONING: Object to modify: {}.",
-				JAXBUtil.silentMarshalWrap(objectType));
-
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("**PROVISIONING: Object to modify: {}.",
+					JAXBUtil.silentMarshalWrap(objectType));
+		}
+		
 		try {
 			//calling shadow cache to modify object
 			getShadowCache().modifyShadow(objectType, null, objectChange,
