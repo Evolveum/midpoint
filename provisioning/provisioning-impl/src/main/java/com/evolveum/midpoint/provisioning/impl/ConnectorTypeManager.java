@@ -20,8 +20,10 @@
  */
 package com.evolveum.midpoint.provisioning.impl;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
@@ -45,9 +47,11 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -73,13 +77,53 @@ public class ConnectorTypeManager {
 	private ConnectorFactory connectorFactory;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
+	
+	private Map<String,ConfiguredConnectorInstanceEntry> connectorInstanceCache = new HashMap<String, ConnectorTypeManager.ConfiguredConnectorInstanceEntry>();
 
 	public ConnectorInstance getConfiguredConnectorInstance(ResourceType resource, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
+		String resourceOid = resource.getOid();
+		String connectorOid = ResourceTypeUtil.getConnectorOid(resource);
+		if (connectorInstanceCache.containsKey(resourceOid)) {
+			// Check if the instance can be reused
+			ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(resourceOid);
+			
+			if (configuredConnectorInstanceEntry.connectorOid.equals(resourceOid) &&
+					ResourceTypeUtil.compareConfiguration(configuredConnectorInstanceEntry.configuration,resource.getConfiguration())) {
+				
+				// We found entry that matches
+				return configuredConnectorInstanceEntry.connectorInstance;
+				
+			} else {
+				// There is an entry but it does not match. We assume that the resource configuration has changed
+				// and the old entry is useless now. So remove it.
+				connectorInstanceCache.remove(resourceOid);
+			}
+			
+		}
+		
+		// No usable connector in cache. Let's create it.
+		ConnectorInstance configuredConnectorInstance = createConfiguredConnectorInstance(resource,result);
+		
+		// .. and cache it
+		ConfiguredConnectorInstanceEntry cacheEntry = new ConfiguredConnectorInstanceEntry();
+		cacheEntry.connectorOid = connectorOid;
+		cacheEntry.configuration = resource.getConfiguration();
+		cacheEntry.connectorInstance = configuredConnectorInstance;
+		connectorInstanceCache.put(resourceOid,cacheEntry);
+		
+		return configuredConnectorInstance;
+	}
+	
+	private ConnectorInstance createConfiguredConnectorInstance(ResourceType resource, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
+		// This log message should be INFO level. It happens only occasionally. If it happens often, it may be an
+		// indication of a problem. Therefore it is good for admin to see it. 
+		LOGGER.info("Creating new connector instance for {}",ObjectTypeUtil.toShortString(resource));
 		ConnectorType connectorType = getConnectorType(resource, result);
-		// TODO: Add caching later
 		ConnectorInstance connector = null;
 		try {
+			
 			connector = connectorFactory.createConnectorInstance(connectorType,resource.getNamespace());
+			
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
 			result.recordFatalError(e.getMessage(), e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
@@ -320,6 +364,12 @@ public class ConnectorTypeManager {
 		LOGGER.error("Inconsistent representation of ConnectorType, one has version and other does not. OIDs: "+a.getOid()+" and "+b.getOid());
 		// Obviously they don't match
 		return false;
+	}
+	
+	private class ConfiguredConnectorInstanceEntry {
+		public String connectorOid;
+		public Configuration configuration;
+		public ConnectorInstance connectorInstance;
 	}
 
 	

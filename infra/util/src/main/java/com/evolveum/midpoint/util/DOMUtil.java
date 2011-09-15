@@ -46,12 +46,14 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 import org.xml.sax.SAXException;
 
 /**
@@ -544,6 +546,100 @@ public class DOMUtil {
 		lookupOrCreateNamespaceDeclaration(parentElement, qname.getNamespaceURI(), qname.getPrefix(),
 				definitionElement);
 		return createElement(document, qname);
+	}
+
+	public static boolean compareElement(Element a, Element b) {
+		if (a==b) {
+			return true;
+		}
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (!getQName(a).equals(getQName(b))) {
+			return false;
+		}
+		if (!compareAttributes(a.getAttributes(),b.getAttributes())) {
+			return false;
+		}
+		if (!compareNodeList(a.getChildNodes(),b.getChildNodes())) {
+			return false;
+		}
+		return true;
+	}
+
+	private static boolean compareAttributes(NamedNodeMap a, NamedNodeMap b) {
+		if (a==b) {
+			return true;
+		}
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (a.getLength() != b.getLength()) {
+			return false;
+		}
+		for (int i = 0; i < a.getLength(); i++) {
+			Node aItem = a.item(i);
+			Attr aAttr = (Attr) aItem;
+			QName aQname = new QName(aAttr.getNamespaceURI(),aAttr.getLocalName());
+			Attr bAttr = findAttributeByQName(b,aQname);
+			if (bAttr == null) {
+				return false;
+			}
+			if (!StringUtils.equals(aAttr.getTextContent(),bAttr.getTextContent())) {
+				return false;
+			}
+		}
+		return true;
+	}
+	
+	private static Attr findAttributeByQName(NamedNodeMap attrs, QName qname) {
+		for (int i = 0; i < attrs.getLength(); i++) {
+			Node aItem = attrs.item(i);
+			Attr aAttr = (Attr) aItem;
+			QName aQname = new QName(aAttr.getNamespaceURI(),aAttr.getLocalName());
+			if (aQname.equals(qname)) {
+				return aAttr;
+			}
+		}
+		return null;
+	}
+
+	private static boolean compareNodeList(NodeList a, NodeList b) {
+		if (a==b) {
+			return true;
+		}
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (a.getLength() != b.getLength()) {
+			return false;
+		}
+		for (int i = 0; i < a.getLength(); i++) {
+			Node aItem = a.item(i);
+			Node bItem = b.item(i);
+			if (aItem.getNodeType() != bItem.getNodeType()) {
+				return false;
+			}
+			if (aItem.getNodeType() == Node.ELEMENT_NODE) {
+				if (!compareElement((Element)aItem,(Element)bItem)) {
+					return false;
+				}
+			} else if (aItem.getNodeType() == Node.TEXT_NODE) {
+				if (!StringUtils.equals(aItem.getTextContent(),bItem.getTextContent())) {
+					return false;
+				}
+			}
+		}
+		return true;
 	}
 
 }

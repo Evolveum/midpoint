@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
@@ -93,6 +94,20 @@ public class ResourceTypeUtil {
 		}
 		Schema parsedSchema = Schema.parse(resourceXsdSchema);
 		return parsedSchema;
+	}
+
+	public static boolean compareConfiguration(Configuration a, Configuration b) {
+		if (a == b) {
+			// Short-cut. If they are the same instance they must be the same
+			return true;
+		}
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		return JAXBUtil.compareAny(a.getAny(),b.getAny());
 	}
 
 }

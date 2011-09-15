@@ -44,6 +44,7 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.io.IOUtils;
+import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -529,4 +530,73 @@ public final class JAXBUtil {
 		}
 		return childElements;
 	}
+
+	public static boolean compareAny(List<Object> a, List<Object> b) {
+		if (a==b) {
+			return true;
+		}
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (a.size() != b.size()) {
+			return false;
+		}
+		for (int i = 0; i < a.size(); i++) {
+			if (!compareElement(a.get(i),b.get(i))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static boolean compareElement(Object a, Object b) {
+		if (a==b) {
+			return true;
+		}
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		Document doc = null;
+		Element ae = null;
+		Element be = null;
+		
+		if (a instanceof Element) {
+			ae = (Element) a;
+		} else if (a instanceof JAXBElement) {
+			if (doc == null) {
+				doc = DOMUtil.getDocument();
+			}
+			try {
+				ae = jaxbToDom((JAXBElement)a, doc);
+			} catch (JAXBException e) {
+				throw new IllegalStateException("Failed to marshall element "+a,e);
+			}
+		} else {
+			throw new IllegalArgumentException("Got unexpected type "+a.getClass().getName()+": "+a);
+		}
+
+		if (b instanceof Element) {
+			be = (Element) b;
+		} else if (a instanceof JAXBElement) {
+			if (doc == null) {
+				doc = DOMUtil.getDocument();
+			}
+			try {
+				be = jaxbToDom((JAXBElement)a, doc);
+			} catch (JAXBException e) {
+				throw new IllegalStateException("Failed to marshall element "+b,e);
+			}
+		} else {
+			throw new IllegalArgumentException("Got unexpected type "+b.getClass().getName()+": "+b);
+		}
+		
+		return DOMUtil.compareElement(ae,be);
+	}
+	
 }

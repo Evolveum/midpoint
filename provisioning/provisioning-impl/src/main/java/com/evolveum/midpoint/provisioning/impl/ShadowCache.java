@@ -133,8 +133,6 @@ public class ShadowCache {
 
 	@Autowired
 	private RepositoryService repositoryService;
-//	@Autowired
-//	private ConnectorFactory connectorFactory;
 	@Autowired
 	private ConnectorTypeManager connectorTypeManager; 
 	@Autowired
