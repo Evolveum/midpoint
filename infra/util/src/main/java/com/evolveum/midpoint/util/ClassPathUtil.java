@@ -49,7 +49,7 @@ public class ClassPathUtil {
 
 		while (resources.hasMoreElements()) {
 			URL candidateUrl = resources.nextElement();
-			LOGGER.debug("Candidates from: " + candidateUrl.getPath());
+			LOGGER.trace("Candidates from: " + candidateUrl.getPath());
 
 			// test if it is a directory or JAR
 			if ("file".contentEquals(candidateUrl.getProtocol())) {
@@ -158,7 +158,7 @@ public class ClassPathUtil {
 		}
 		String path = packageName.replace('.', '/');
 		Enumeration<JarEntry> entries = jar.entries();
-		LOGGER.debug("PATH:" + path);
+		LOGGER.trace("PATH:" + path);
 
 		JarEntry e;
 		while (entries.hasMoreElements()) {
@@ -177,7 +177,7 @@ public class ClassPathUtil {
 				continue;
 			}
 
-			LOGGER.info("JAR Candidate: {}", name);
+			LOGGER.trace("JAR Candidate: {}", name);
 			try {// to create class
 
 				// Convert name back to package
@@ -233,7 +233,7 @@ public class ClassPathUtil {
 				continue;
 			}
 			try {// to create class
-				LOGGER.info("DIR Candidate: {}", dirList[i]);
+				LOGGER.trace("DIR Candidate: {}", dirList[i]);
 				classes.add(Class.forName(packageName + "." + dirList[i].replace(".class", "")));
 			} catch (ClassNotFoundException e) {
 				LOGGER.error("Error during loading class {} from {}. ", dirList[i], dir.getAbsolutePath());

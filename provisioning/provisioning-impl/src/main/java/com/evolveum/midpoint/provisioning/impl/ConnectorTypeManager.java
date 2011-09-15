@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -83,11 +84,11 @@ public class ConnectorTypeManager {
 	public ConnectorInstance getConfiguredConnectorInstance(ResourceType resource, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
 		String resourceOid = resource.getOid();
 		String connectorOid = ResourceTypeUtil.getConnectorOid(resource);
-		if (connectorInstanceCache.containsKey(resourceOid)) {
+		if (connectorInstanceCache.containsKey(resourceOid)) { 
 			// Check if the instance can be reused
 			ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(resourceOid);
 			
-			if (configuredConnectorInstanceEntry.connectorOid.equals(resourceOid) &&
+			if (configuredConnectorInstanceEntry.connectorOid.equals(connectorOid) &&
 					ResourceTypeUtil.compareConfiguration(configuredConnectorInstanceEntry.configuration,resource.getConfiguration())) {
 				
 				// We found entry that matches
