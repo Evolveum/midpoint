@@ -79,6 +79,7 @@ public class SchemaRegistry implements LSResourceResolver {
 		registerSchema("xml/ns/public/common/common-1.xsd","c",SchemaConstants.NS_C);
 		registerSchema("xml/ns/public/common/annotation-1.xsd","a",SchemaConstants.NS_ANNOTATION);
 		registerSchema("xml/ns/public/resource/resource-schema-1.xsd","r",SchemaConstants.NS_RESOURCE);
+		registerSchema("xml/ns/public/resource/capabilities-1.xsd","cap",SchemaConstants.NS_CAPABILITIES);
 		registerSchema("xml/ns/public/connector/icf-1/connector-schema-1.xsd","icfc",SchemaConstants.NS_ICF_CONFIGURATION);
 		registerSchema("xml/ns/public/connector/icf-1/resource-schema-1.xsd","icfs",SchemaConstants.NS_ICF_SCHEMA);
 		registerSchema("xml/ns/standard/XMLSchema.xsd","xsd",W3C_XML_SCHEMA_NS_URI);

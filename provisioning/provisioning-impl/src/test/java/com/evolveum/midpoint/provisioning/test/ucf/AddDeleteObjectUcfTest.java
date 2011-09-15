@@ -161,7 +161,7 @@ public class AddDeleteObjectUcfTest extends AbstractTestNGSpringContextTests {
 		// TODO: assert something
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".initUcf");
-		schema = cc.fetchResourceSchema(result);
+		schema = cc.getResourceSchema(result);
 
 		assertNotNull(schema);
 

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 
+ * Copyright (c) 2011 Evolveum
+ *
+ * The contents of this file are subject to the terms
+ * of the Common Development and Distribution License
+ * (the License). You may not use this file except in
+ * compliance with the License.
+ *
+ * You can obtain a copy of the License at
+ * http://www.opensource.org/licenses/cddl1 or
+ * CDDLv1.0.txt file in the source code distribution.
+ * See the License for the specific language governing
+ * permission and limitations under the License.
+ *
+ * If applicable, add the following below the CDDL Header,
+ * with the fields enclosed by brackets [] replaced by
+ * your own identifying information:
+ * "Portions Copyrighted 2011 [name of copyright owner]"
+ * -->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
+    xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
+    elementFormDefault="qualified">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Capabilities schema.
+            
+            TODO
+            
+            UNSTABLE. This definition may change in the future.
+            
+            Recommended namespace prefix: cap
+        </xsd:documentation>
+    </xsd:annotation>
+
+	<xsd:complexType name="ActivationCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes capability to process activation data, which means
+				enable/disable of accounts, dates for scheduled enable/disable
+				and similar things related to make the account active.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="enableDisable">
+				<xsd:annotation>
+					<xsd:documentation>
+						Describes capability to enable and disable account.
+					</xsd:documentation>
+				</xsd:annotation>
+				<xsd:complexType>
+					<xsd:sequence>
+						<!-- TODO: "disable destroys password" -->
+						<xsd:element name="attribute" type="xsd:QName">
+							<xsd:annotation>
+								<xsd:documentation>
+									Name of the attribute to use for account enable/disable.
+									This is a configuration of simulated enable/disable capability.
+									UNSTABLE. This element may change in the future.
+								</xsd:documentation>
+							</xsd:annotation>
+						</xsd:element>
+						<xsd:element name="enableValue" type="xsd:string">
+							<xsd:annotation>
+								<xsd:documentation>
+									Value to set to the attribute when the account should be enabled.
+									This is a configuration of simulated enable/disable capability.
+									UNSTABLE. This element may change in the future.
+								</xsd:documentation>
+							</xsd:annotation>						
+						</xsd:element>
+						<xsd:element name="disableValue" type="xsd:string">
+							<xsd:annotation>
+								<xsd:documentation>
+									Value to set to the attribute when the account should be disabled.
+									This is a configuration of simulated enable/disable capability.
+									UNSTABLE. This element may change in the future.
+								</xsd:documentation>
+							</xsd:annotation>						
+						</xsd:element>
+					</xsd:sequence>
+				</xsd:complexType>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="activation" type="tns:ActivationCapabilityType"/>
+
+	<xsd:complexType name="CredentialsCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes capability to present credentials in a structured way.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="password" type="tns:PasswordCapabilityType"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:element name="credentials" type="tns:CredentialsCapabilityType"/>
+	
+	<xsd:complexType name="PasswordCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes capability to present password in a structured way.
+			</xsd:documentation>
+		</xsd:annotation>
+		<!-- TODO: password expiration -->
+	</xsd:complexType>
+	
+	<xsd:complexType name="LiveSyncCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes capability to detect changes in almost real time (live synchronization).
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:complexType>
+	
+	<xsd:element name="liveSync" type="tns:LiveSyncCapabilityType"/>
+	
+	<xsd:complexType name="TestConnectionCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes capability to test connection to the resource once the connector is configured.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:complexType>
+
+	<xsd:element name="testConnection" type="tns:TestConnectionCapabilityType"/>
+
+</xsd:schema>
+
+
+
+

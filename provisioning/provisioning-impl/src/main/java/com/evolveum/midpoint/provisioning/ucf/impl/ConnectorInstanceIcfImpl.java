@@ -122,6 +122,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptOrderType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.PasswordCapabilityType;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.IcfUtil.processIcfException;
 
@@ -151,6 +152,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	ConnectorFacade icfConnectorFacade;
 	String schemaNamespace;
 	Protector protector;
+	
+	private Schema resourceSchema = null;
+	Set<Object> capabilities;
 
 	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType, String schemaNamespace, Protector protector) {
 		this.cinfo = connectorInfo;
@@ -318,24 +322,26 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// ... unless it is byte[] or char[]
 		return type.isArray() && !type.equals(byte[].class) && !type.equals(char[].class);
 	}
-
+	
 	/**
 	 * Retrieves schema from the resource.
 	 * 
 	 * Transforms native ICF schema to the midPoint representation.
 	 * 
+	 * @see com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance#initialize(com.evolveum.midpoint.common.result.OperationResult)
 	 * @return midPoint resource schema.
 	 * @throws CommunicationException
 	 */
 	@Override
-	public Schema fetchResourceSchema(OperationResult parentResult)
-			throws CommunicationException, GenericFrameworkException {
-
+	public void initialize(OperationResult parentResult) throws CommunicationException,
+			GenericFrameworkException {
+		
 		// Result type for this operation
 		OperationResult result = parentResult
 				.createSubresult(ConnectorInstance.class.getName()
-						+ ".fetchResourceSchema");
+						+ ".initialize");
 		result.addContext("connector", connectorType);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ConnectorFactoryIcfImpl.class);
 		
 		if (icfConnectorFacade==null) {
 			result.recordFatalError("Attempt to use unconfigured connector");
@@ -366,9 +372,39 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// This is fatal. No point in continuing.
 			throw new GenericFrameworkException(ex);
 		}
+		
+		parseResourceSchema(icfSchema);
+		
+		result.recordSuccess();
+	}
 
+	@Override
+	public Schema getResourceSchema(OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException {
+
+		// Result type for this operation
+		OperationResult result = parentResult
+				.createSubresult(ConnectorInstance.class.getName()
+						+ ".getResourceSchema");
+		result.addContext("connector", connectorType);
+
+		if (resourceSchema == null) {
+			// initialize the connector if it was not initialized yet
+			initialize(result);
+		}
+
+		result.recordSuccess();
+		
+		return resourceSchema;
+	}
+		
+	private void parseResourceSchema(org.identityconnectors.framework.common.objects.Schema icfSchema) {
+
+		boolean capPassword = false;
+		boolean capEnable = false;
+		
 		// New instance of midPoint schema object
-		Schema mpSchema = new Schema(getSchemaNamespace());
+		resourceSchema = new Schema(getSchemaNamespace());
 
 		// Let's convert every objectclass in the ICF schema ...
 		Set<ObjectClassInfo> objectClassInfoSet = icfSchema
@@ -383,7 +419,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// object class.
 			// The important thing here is the last "type" parameter
 			// (objectClassXsdName). The rest is more-or-less cosmetics.
-			ResourceObjectDefinition roDefinition = mpSchema.createResourceObjectDefinition(objectClassXsdName);
+			ResourceObjectDefinition roDefinition = resourceSchema.createResourceObjectDefinition(objectClassXsdName);
 
 			// The __ACCOUNT__ objectclass in ICF is a default account
 			// objectclass. So mark it appropriately.
@@ -405,7 +441,22 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			Set<AttributeInfo> attributeInfoSet = objectClassInfo
 					.getAttributeInfo();
 			for (AttributeInfo attributeInfo : attributeInfoSet) {
-
+				
+				if (PASSWORD_ATTRIBUTE_NAME.equals(attributeInfo.getName())) {
+					// This attribute will not go into the schema (TODO)
+					// instead a "password" capability is used
+					capPassword = true;
+					// TODO
+					// Skip this attribute, capability is sufficient
+					// continue;
+				} 
+				
+				if (OperationalAttributes.ENABLE_NAME.equals(attributeInfo.getName())) {
+					capEnable = true;
+					// Skip this attribute, capability is sufficient
+					continue;
+				}
+				
 				QName attrXsdName = convertAttributeNameToQName(attributeInfo.getName());
 				QName attrXsdType = icfTypeToXsdType(attributeInfo.getType());
 
@@ -447,8 +498,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		}
 		
-		result.recordSuccess();
-		return mpSchema;
+		// TODO capabilities
+		
 	}
 
 	@Override
@@ -1132,7 +1183,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// convert changes from icf to midpoint Change
 		List<Change> changeList = null;
 		try {
-			Schema schema = fetchResourceSchema(subresult);
+			Schema schema = getResourceSchema(subresult);
 			changeList = getChangesFromSyncDelta(result, schema, subresult);
 		} catch (SchemaException ex) {
 			subresult.recordFatalError(ex.getMessage(), ex);

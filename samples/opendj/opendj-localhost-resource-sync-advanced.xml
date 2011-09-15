@@ -542,7 +542,7 @@ object.
 			
 		</schemaHandling>
 		
-		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/provisioning/capabilities-1.xsd">
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
 			<cap:activation>
 				<cap:enableDisable>
 					<cap:attribute>ri:ds-pwp-account-disabled</cap:attribute>

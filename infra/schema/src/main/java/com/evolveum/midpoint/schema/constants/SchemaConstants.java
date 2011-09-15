@@ -51,6 +51,7 @@ public abstract class SchemaConstants {
 	public static final String NS_ANNOTATION = "http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd";
 	public static final String NS_C_PREFIX = "c";
 	public static final String NS_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd";
+	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd";
 	public static final String NS_FILTER = "http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd";
 	public static final QName LOGGING = new QName(SchemaConstants.NS_C, "logging");
 	public static final QName C_NAME = new QName(NS_C, "name");

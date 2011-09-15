@@ -204,7 +204,21 @@
 									<extension>true</extension>
 								</xsdOption>
 								<xsdOption>
+									<xsd>src/main/resources/xml/ns/public/resource/capabilities-1.xsd</xsd>
+									<extensionArgs>
+										<extensionArg>-Xts</extensionArg>
+									</extensionArgs>
+									<extension>true</extension>
+								</xsdOption>
+								<xsdOption>
 									<xsd>src/main/resources/xml/ns/public/connector/icf-1/resource-schema-1.xsd</xsd>
+									<extensionArgs>
+										<extensionArg>-Xts</extensionArg>
+									</extensionArgs>
+									<extension>true</extension>
+								</xsdOption>
+								<xsdOption>
+									<xsd>src/main/resources/xml/ns/public/connector/icf-1/connector-schema-1.xsd</xsd>
 									<extensionArgs>
 										<extensionArg>-Xts</extensionArg>
 									</extensionArgs>

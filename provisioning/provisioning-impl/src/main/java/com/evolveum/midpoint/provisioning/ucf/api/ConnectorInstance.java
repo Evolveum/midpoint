@@ -72,6 +72,20 @@ public interface ConnectorInstance {
 	
 	public Schema generateConnectorSchema();
 	
+	/**
+	 * Get necessary information from the remote system.
+	 * 
+	 * This method will initialized the configured connector. It may contact the remote system in order to do so,
+	 * e.g. to download the schema. It will the cache the information inside connector instance until this method
+	 * is called again. It must be called after configure() and before any other method that is accessing the
+	 * resource.
+	 * 
+	 * @param parentResult
+	 * @throws CommunicationException
+	 * @throws GenericFrameworkException
+	 */
+	public void initialize(OperationResult parentResult)  throws CommunicationException, GenericFrameworkException;
+	
     /**
 	 * Retrieves the schema from the resource.
 	 * 
@@ -79,8 +93,8 @@ public interface ConnectorInstance {
 	 * "parsed" format and it is in fact a bit stricter and richer midPoint
 	 * schema.
 	 * 
-	 * The schema is always "freshly" fetched from the resource, it is not
-	 * cached in any way. Therefore this may be quite an expensive operation.
+	 * The schema is retrieved from the connector instance and therefore it may be out-of-date.
+	 * This must be called after a call to initialize() method.
 	 * 
 	 * @see Schema
 	 * 
@@ -88,7 +102,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException error in communication to the resource 
 	 *				- nothing was fetched.
 	 */
-	public Schema fetchResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public Schema getResourceSchema(OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Retrieves a specific object from the resource.

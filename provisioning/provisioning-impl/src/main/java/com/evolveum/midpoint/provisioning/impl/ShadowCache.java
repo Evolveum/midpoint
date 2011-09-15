@@ -820,7 +820,7 @@ public class ShadowCache {
 			// Try to fetch schema from the connector. The UCF will convert it
 			// to Schema Processor
 			// format, so it is already structured
-			schema = connector.fetchResourceSchema(schemaResult);
+			schema = connector.getResourceSchema(schemaResult);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
 			schemaResult.recordFatalError(
 					"Communication error: " + e.getMessage(), e);
@@ -1745,7 +1745,7 @@ public class ShadowCache {
 					// Fetch schema from connector, UCF will convert it to
 					// Schema Processor format and add all
 					// necessary annotations
-					resourceSchema = connector.fetchResourceSchema(result);
+					resourceSchema = connector.getResourceSchema(result);
 
 				} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 					throw new CommunicationException(
