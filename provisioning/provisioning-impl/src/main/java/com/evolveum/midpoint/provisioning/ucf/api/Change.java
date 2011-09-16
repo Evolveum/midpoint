@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.provisioning.ucf.api;
 
 import com.evolveum.midpoint.schema.processor.Property;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
@@ -31,13 +32,13 @@ import java.util.Set;
  */
 public final class Change {
 	
-    private Set<Property> identifiers;
+    private Set<ResourceObjectAttribute> identifiers;
     private ObjectChangeType change;
     private Property token;
     private ResourceObjectShadowType oldShadow;
 //    private Token token;
 
-    public Change(Set<Property> identifiers, ObjectChangeType change, Property token) {
+    public Change(Set<ResourceObjectAttribute> identifiers, ObjectChangeType change, Property token) {
         this.identifiers = identifiers;
         this.change = change;
         this.token = token;
@@ -56,13 +57,11 @@ public final class Change {
         this.change = change;
     }
 
-    // Is ResourceObject really the right type here?
-    // TODO: If yes then explain why
-    public Set<Property> getIdentifiers() {
+    public Set<ResourceObjectAttribute> getIdentifiers() {
         return identifiers;
     }
 
-    public void setIdentifiers(Set<Property> identifiers) {
+    public void setIdentifiers(Set<ResourceObjectAttribute> identifiers) {
         this.identifiers = identifiers;
     }
 

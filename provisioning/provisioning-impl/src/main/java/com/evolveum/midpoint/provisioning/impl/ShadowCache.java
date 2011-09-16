@@ -1120,7 +1120,7 @@ public class ShadowCache {
 		return newShadow;
 	}
 
-	private List<AccountShadowType> searchAccountByUid(Set<Property> identifiers,
+	private List<AccountShadowType> searchAccountByUid(Set<ResourceObjectAttribute> identifiers,
 			OperationResult parentResult) throws SchemaException {
 		XPathSegment xpathSegment = new XPathSegment(
 				SchemaConstants.I_ATTRIBUTES);
@@ -1204,7 +1204,7 @@ public class ShadowCache {
 		return shadow;
 	}
 
-	private ResourceObject fetchResourceObject(Set<Property> identifiers,
+	private ResourceObject fetchResourceObject(Set<ResourceObjectAttribute> identifiers,
 			ConnectorInstance connector, ResourceType resource,
 			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException, SchemaException {
@@ -1573,7 +1573,7 @@ public class ShadowCache {
 		Document doc = DOMUtil.getDocument();
 
 		// Add identifiers to the shadow
-		Set<Property> identifiers = resourceObject.getIdentifiers();
+		Set<ResourceObjectAttribute> identifiers = resourceObject.getIdentifiers();
 		for (Property p : identifiers) {
 			try {
 				List<Object> eList = p.serializeToJaxb(doc);
@@ -1609,7 +1609,7 @@ public class ShadowCache {
 			throws SchemaException {
 		if (resourceObject.getNamingAttribute() == null) {
 			// No naming attribute defined. Try to fall back to identifiers.
-			Set<Property> identifiers = resourceObject.getIdentifiers();
+			Set<ResourceObjectAttribute> identifiers = resourceObject.getIdentifiers();
 			// We can use only single identifiers (not composite)
 			if (identifiers.size() == 1) {
 				Property identifier = identifiers.iterator().next();

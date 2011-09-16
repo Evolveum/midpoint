@@ -116,7 +116,7 @@ public final class ResourceObject extends PropertyContainer {
 	 *             if resource object has multiple identifiers
 	 */
 	public Property getIdentifier() {
-		Set<Property> attrDefs = getIdentifiers();
+		Set<ResourceObjectAttribute> attrDefs = getIdentifiers();
 		if (attrDefs.size() > 1){
 			throw new IllegalStateException("Resource object has more than one identifier.");
 		}
@@ -145,11 +145,11 @@ public final class ResourceObject extends PropertyContainer {
 	 * 
 	 * @return set of identifier properties
 	 */
-	public Set<Property> getIdentifiers() {
-		Set<Property> identifiers = new HashSet<Property>();
+	public Set<ResourceObjectAttribute> getIdentifiers() {
+		Set<ResourceObjectAttribute> identifiers = new HashSet<ResourceObjectAttribute>();
 		Set<ResourceObjectAttributeDefinition> attrDefs = getDefinition().getIdentifiers();
 		for (ResourceObjectAttributeDefinition attrDef : attrDefs) {		
-			for (Property property : getProperties()){
+			for (ResourceObjectAttribute property : getAttributes()){
 				if (attrDef.getName().equals(property.getName())){
 					property.setDefinition(attrDef);
 					identifiers.add(property);

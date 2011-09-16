@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
@@ -34,6 +35,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
@@ -45,13 +48,20 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.ucf.api.CommunicationException;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
+import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
+import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
+import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.provisioning.ucf.api.PasswordChangeOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.UcfException;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Definition;
 import com.evolveum.midpoint.schema.processor.Property;
@@ -68,6 +78,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
@@ -98,7 +109,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	ResourceType resource;
 	ResourceType badResource;
 	ConnectorType connectorType;
-	private ConnectorFactory manager;
+	private ConnectorFactory factory;
 	private ConnectorInstance cc;
 	Schema schema;
 	
@@ -106,6 +117,9 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	
 	@Autowired(required = true)
 	ConnectorFactory connectorFactoryIcfImpl;
+	
+	@Autowired(required = true)
+	Protector protector;
 	
 	protected static OpenDJController openDJController = new OpenDJController();
 	
@@ -152,14 +166,15 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		object = u.unmarshal(fis);
 		connectorType = (ConnectorType) ((JAXBElement) object).getValue();
 
-		manager = connectorFactoryIcfImpl;
+		factory = connectorFactoryIcfImpl;
 
-		cc = manager.createConnectorInstance(connectorType,resource.getNamespace());
+		cc = factory.createConnectorInstance(connectorType,resource.getNamespace());
 		AssertJUnit.assertNotNull(cc);
-		cc.configure(resource.getConfiguration(), new OperationResult("initUcf"));
+		OperationResult result = new OperationResult("initUcf");
+		cc.configure(resource.getConfiguration(), result);
+		cc.initialize(result);
 		// TODO: assert something
 		
-		OperationResult result = new OperationResult(this.getClass().getName()+".initUcf");
 		schema = cc.getResourceSchema(result);
 		
 		AssertJUnit.assertNotNull(schema);
@@ -209,7 +224,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 		OperationResult result = new OperationResult("testTestConnectionNegative");
 		
-		ConnectorInstance badConnector = manager.createConnectorInstance(connectorType,badResource.getNamespace());
+		ConnectorInstance badConnector = factory.createConnectorInstance(connectorType,badResource.getNamespace());
 		badConnector.configure(badResource.getConfiguration(),result);
 		
         //WHEN
@@ -298,41 +313,19 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	@Test
 	public void testFetchObject() throws Exception {
 		displayTestTile("testFetchObject");
-		// GIVEN
 		
-		// Account type is hardcoded now
-		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(resource.getNamespace(),"AccountObjectClass"));
-		// Determine identifier from the schema
-		ResourceObject resourceObject = accountDefinition.instantiate();
-		
-		ResourceObjectAttributeDefinition road = accountDefinition.findAttributeDefinition(new QName(resource.getNamespace(), "sn"));
-		ResourceObjectAttribute roa = road.instantiate();
-		roa.setValue("Teell");
-		resourceObject.add(roa);
-		
-		road = accountDefinition.findAttributeDefinition(new QName(resource.getNamespace(), "cn"));
-		roa = road.instantiate();
-		roa.setValue("Teell William");
-		resourceObject.add(roa);
-		
-		road = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
-		roa = road.instantiate();
-		roa.setValue("uid=Teell,ou=People,dc=example,dc=com");
-		resourceObject.add(roa);
+		// GIVEN		
+		ResourceObject resourceObject = createResourceObject("uid=Teell,ou=People,dc=example,dc=com",
+				"Teell William", "Teell");
 		
 		OperationResult addResult = new OperationResult(this.getClass().getName()+".testFetchObject");
-		Set<ResourceObjectAttribute> attrs = cc.addObject(resourceObject, null, addResult);
-		resourceObject = accountDefinition.instantiate();
-		resourceObject.addAll(attrs);
+
+		// Add a testing object
+		cc.addObject(resourceObject, null, addResult);
 		
+		ResourceObjectDefinition accountDefinition = resourceObject.getDefinition();
 		
-		Set<ResourceObjectAttributeDefinition> identifierDefinition = accountDefinition.getIdentifiers();
-		Set<ResourceObjectAttribute> identifiers = new HashSet<ResourceObjectAttribute>();
-		for (Property property : resourceObject.getIdentifiers()) {
-			ResourceObjectAttribute identifier = new ResourceObjectAttribute(property.getName(), property.getDefinition(), property.getValues());
-			System.out.println("Fetch: Identifier "+identifier);
-			identifiers.add(identifier);
-		}
+		Set<ResourceObjectAttribute> identifiers = resourceObject.getIdentifiers();
 		// Determine object class from the schema
 		QName objectClass = accountDefinition.getTypeName();
 		
@@ -378,5 +371,75 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		
 		
 	}
+	
+	@Test
+	public void testChangePassword() throws DirectoryException, CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, EncryptionException {
+		displayTestTile("testChangePassword");
+		// GIVEN		
+		ResourceObject resourceObject = createResourceObject("uid=drake,ou=People,dc=example,dc=com",
+				"Sir Francis Drake", "Drake");
 
+		OperationResult addResult = new OperationResult(this.getClass().getName()+".testFetchObject");
+
+		// Add a testing object
+		cc.addObject(resourceObject, null, addResult);
+
+		String entryUuid = (String) resourceObject.getIdentifier().getValue();
+		SearchResultEntry entry = openDJController.searchByEntryUuid(entryUuid);
+		display("Entry before change",entry);
+		String passwordBefore = OpenDJController.getAttributeValue(entry, "userPassword");
+		// We have set no password during create, therefore the password should be empty
+		assertNull(passwordBefore);
+		
+		ResourceObjectDefinition accountDefinition = resourceObject.getDefinition();
+		
+		Set<ResourceObjectAttribute> identifiers = resourceObject.getIdentifiers();
+		// Determine object class from the schema
+		QName objectClass = accountDefinition.getTypeName();
+		
+		OperationResult result = new OperationResult(this.getClass().getName()+".testFetchObject");
+	
+		// WHEN
+		
+		Set<Operation> changes = new HashSet<Operation>();
+		ProtectedStringType passPs = protector.encryptString("x-m4rx-da-sp0t");
+		PasswordChangeOperation passwordChange = new PasswordChangeOperation(passPs);
+		changes.add(passwordChange);
+		cc.modifyObject(objectClass, identifiers, changes , result);
+		
+		// THEN
+
+		entry = openDJController.searchByEntryUuid(entryUuid);
+		display("Entry after change",entry);
+		
+		String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
+		assertNotNull(passwordAfter);
+		
+		System.out.println("Changed password: "+passwordAfter);
+
+	}
+
+	private ResourceObject createResourceObject(String dn, String sn, String cn) {
+		// Account type is hardcoded now
+		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(resource.getNamespace(),"AccountObjectClass"));
+		// Determine identifier from the schema
+		ResourceObject resourceObject = accountDefinition.instantiate();
+		
+		ResourceObjectAttributeDefinition road = accountDefinition.findAttributeDefinition(new QName(resource.getNamespace(), "sn"));
+		ResourceObjectAttribute roa = road.instantiate();
+		roa.setValue(sn);
+		resourceObject.add(roa);
+		
+		road = accountDefinition.findAttributeDefinition(new QName(resource.getNamespace(), "cn"));
+		roa = road.instantiate();
+		roa.setValue(cn);
+		resourceObject.add(roa);
+		
+		road = accountDefinition.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		roa = road.instantiate();
+		roa.setValue(dn);
+		resourceObject.add(roa);
+		
+		return resourceObject;
+	}
 }

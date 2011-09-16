@@ -88,6 +88,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.provisioning.ucf.api.PasswordChangeOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -145,7 +146,6 @@ import static com.evolveum.midpoint.provisioning.ucf.impl.IcfUtil.processIcfExce
  */
 public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
-	private static final String PASSWORD_ATTRIBUTE_NAME = "__PASSWORD__";
 	private static final String ACCOUNT_OBJECTCLASS_LOCALNAME = "AccountObjectClass";
 	private static final String GROUP_OBJECTCLASS_LOCALNAME = "GroupObjectClass";
 	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
@@ -449,7 +449,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					.getAttributeInfo();
 			for (AttributeInfo attributeInfo : attributeInfoSet) {
 				
-				if (PASSWORD_ATTRIBUTE_NAME.equals(attributeInfo.getName())) {
+				if (OperationalAttributes.PASSWORD_NAME.equals(attributeInfo.getName())) {
 					// This attribute will not go into the schema (TODO)
 					// instead a "password" capability is used
 					capPassword = true;
@@ -877,6 +877,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		Set<Operation> additionalOperations = new HashSet<Operation>();
 		ActivationChangeOperation activationChangeOperation = null;
+		PasswordChangeOperation passwordChangeOperation = null;
 
 		for (Operation operation : changes) {
 			if (operation instanceof AttributeModificationOperation) {
@@ -911,7 +912,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (operation instanceof ActivationChangeOperation) {
 				activationChangeOperation = (ActivationChangeOperation) operation;
 				// TODO: check for multiple occurrences and fail
-				
+
+			} else if (operation instanceof PasswordChangeOperation) {
+				passwordChangeOperation = (PasswordChangeOperation) operation;
+				// TODO: check for multiple occurrences and fail	
+			
 			} else if (operation instanceof ExecuteScriptOperation) {
 				ExecuteScriptOperation scriptOperation = (ExecuteScriptOperation) operation;
 				additionalOperations.add(scriptOperation);
@@ -952,6 +957,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.addParam("attributes", attributes);
 				icfResult.addParam("options", options);
 				icfResult.addContext("connector", icfConnectorFacade);
+				
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Invoking ICF addAttributeValues(), objectclass={}, uid={}, attributes=\n{}",
+							new Object[]{objClass, uid, dumpAttributes(attributes)});
+				}
 
 				icfConnectorFacade
 						.addAttributeValues(objClass, uid, attributes, options);
@@ -980,7 +990,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		try {
-			if (updateValues != null && !updateValues.isEmpty() || activationChangeOperation != null) {
+			if (updateValues != null && !updateValues.isEmpty() || activationChangeOperation != null ||
+					passwordChangeOperation != null) {
+				
 				Set<Attribute> attributes = null;
 				
 				try {
@@ -999,6 +1011,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					convertFromActivation(attributes, activationChangeOperation);
 				}
 				
+				if (passwordChangeOperation != null) {
+					// Activation change means modification of attributes
+					convertFromPassword(attributes, passwordChangeOperation);
+				}
+				
 				OperationOptions options = new OperationOptionsBuilder()
 						.build();
 				icfResult = result.createSubresult(ConnectorFacade.class
@@ -1008,6 +1025,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.addParam("attributes", attributes);
 				icfResult.addParam("options", options);
 				icfResult.addContext("connector", icfConnectorFacade);
+				
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Invoking ICF update(), objectclass={}, uid={}, attributes=\n{}",
+							new Object[]{objClass, uid, dumpAttributes(attributes)});
+				}
 				
 				// Call ICF
 				icfConnectorFacade.update(objClass, uid, attributes, options);
@@ -1058,6 +1080,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.addParam("attributes", attributes);
 				icfResult.addParam("options", options);
 				icfResult.addContext("connector", icfConnectorFacade);
+				
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Invoking ICF removeAttributeValues(), objectclass={}, uid={}, attributes=\n{}",
+							new Object[]{objClass, uid, dumpAttributes(attributes)});
+				}
+				
 				icfConnectorFacade.removeAttributeValues(objClass, uid, attributes,
 						options);
 				icfResult.recordSuccess();
@@ -1085,6 +1113,22 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		checkAndExecuteAdditionalOperation(additionalOperations,
 				ScriptOrderType.AFTER);
 		result.recordSuccess();
+	}
+
+	private String dumpAttributes(Set<Attribute> attributes) {
+		if (attributes == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder();
+		for (Attribute attr : attributes) {
+			for (Object value : attr.getValue()) {
+				sb.append(attr.getName());
+				sb.append(" = ");
+				sb.append(value);
+				sb.append("\n");
+			}
+		}
+		return sb.toString();
 	}
 
 	@Override
@@ -1391,7 +1435,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// so convert to something more friendly such as icfs:name
 			attrXsdName = ConnectorFactoryIcfImpl.ICFS_NAME;
 		}
-		if (PASSWORD_ATTRIBUTE_NAME.equals(icfAttrName)) {
+		if (OperationalAttributes.PASSWORD_NAME.equals(icfAttrName)) {
 			// Temporary hack. Password should go into credentials, not
 			// attributes
 			// TODO: fix this
@@ -1415,7 +1459,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		if (ConnectorFactoryIcfImpl.ICFS_PASSWORD.equals(attrQName)) {
-			return PASSWORD_ATTRIBUTE_NAME;
+			return OperationalAttributes.PASSWORD_NAME;
 		}
 		
 		if (ConnectorFactoryIcfImpl.ICFS_UID.equals(attrQName)) {
@@ -1617,12 +1661,20 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private void convertFromActivation(Set<Attribute> attributes,
 			ActivationChangeOperation activationChangeOperation) {
 		
-		attributes.add(
-				AttributeBuilder.build(OperationalAttributes.ENABLE_NAME,
+		attributes.add(AttributeBuilder.build(OperationalAttributes.ENABLE_NAME,
 						activationChangeOperation.isEnabled()));
 		
 	}
-	
+
+	private void convertFromPassword(Set<Attribute> attributes,
+			PasswordChangeOperation passwordChangeOperation) {
+		
+		GuardedString guardedPassword = toGuardedString(passwordChangeOperation.getNewPassword(), "new password");
+		attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,
+						guardedPassword));
+		
+	}
+
 	private List<Change> getChangesFromSyncDelta(Set<SyncDelta> result,
 			Schema schema, OperationResult parentResult) throws SchemaException {
 		List<Change> changeList = new ArrayList<Change>();
@@ -1633,7 +1685,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				deletionType.setOid(delta.getUid().getUidValue());
 				ResourceObjectAttribute uidAttribute = setUidAttribute(delta
 						.getUid());
-				Set<Property> identifiers = new HashSet<Property>();
+				Set<ResourceObjectAttribute> identifiers = new HashSet<ResourceObjectAttribute>();
 				identifiers.add(uidAttribute);
 				Change change = new Change(identifiers, deletionType,
 						getToken(delta.getToken()));
