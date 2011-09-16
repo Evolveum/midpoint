@@ -33,6 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.Utils;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.diff.CalculateXmlDiff;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -72,6 +74,8 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 	private static final long serialVersionUID = -3457278299468312767L;
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog objectTypeCatalog;
+	@Autowired(required = true)
+	private transient Protector protector;
 
 	@Override
 	protected Class<? extends ObjectType> getSupportedObjectClass() {
@@ -91,11 +95,14 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 	@Override
 	public Set<PropertyChange> submit(GuiUserDto changedObject) {
 		Validate.notNull(changedObject, "User object must not be null.");
+
 		Set<PropertyChange> set = null;
 		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
 
 		OperationResult result = new OperationResult(UserManager.SUBMIT);
 		try { // Call Web Service Operation
+			changedObject.encryptCredentials(protector);
+
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
 					changedObject.getXmlObject());
 			if (changes != null && changes.getOid() != null && changes.getPropertyModification().size() > 0) {
@@ -126,6 +133,18 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 		printResults(LOGGER, result);
 
 		return set;
+	}
+
+	@Override
+	public String add(GuiUserDto object) {
+		Validate.notNull(object);
+		try {
+			object.encryptCredentials(protector);
+		} catch (EncryptionException ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't encrypt credentials for user {}", ex,
+					object.getName());
+		}
+		return super.add(object);
 	}
 
 	@Override

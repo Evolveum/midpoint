@@ -175,6 +175,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		OperationResult result = new OperationResult(LIST);
 		try {
 			List<O> objectList = getModel().listObjects(type, paging, result);
+			LOGGER.debug("Found {} objects of type {}.", new Object[] { objectList.size(), type });
 			for (O objectType : objectList) {
 				collection.add(objectType);
 			}
@@ -216,7 +217,9 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 			FacesUtils.addMessage(result);
 		}
 
-		logger.debug(result.dump());
+		if (logger.isDebugEnabled()) {
+			logger.debug(result.dump());
+		}
 	}
 
 	private void isObjectTypeSupported(ObjectType object) {
