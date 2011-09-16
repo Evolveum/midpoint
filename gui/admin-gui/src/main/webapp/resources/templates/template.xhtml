@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
-	xmlns:h="http://java.sun.com/jsf/html" xmlns:comp="http://java.sun.com/jsf/composite/components"
-	xmlns:f="http://java.sun.com/jsf/core" xmlns:ice="http://www.icesoft.com/icefaces/component"
-	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/" xmlns:c="http://java.sun.com/jsp/jstl/core">
-<f:view locale="#{lang.currentLocale}" contentType="text/html; charset=utf-8">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
+<f:view locale="#{lang.currentLocale}"
+	contentType="text/html; charset=utf-8">
 	<h:head>
 		<title>midPoint</title>
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -12,75 +17,114 @@
 		<ice:outputStyle href="/xmlhttp/css/xp/xp.css" />
 		<ice:outputStyle href="/resources/css/default.css" />
 		<ice:outputStyle href="/resources/css/evolveum.css" />
+		<h:outputScript name="jquery.js" library="js" />
 		<h:outputScript name="evolveum.js" library="js" />
 	</h:head>
-	<h:body>
+
+	<h:body style="min-width:1270px;">
+		<!-- <div id="blackWindow"
+			style="left: 0px; top: 0px; width: 100%; height: 100%; background-color: black; z-index: 1000; position: absolute;"></div>
+		<span id="preloader"
+			style="background-image: url('resources/images/preLoader.gif'); width: 100px; height: 100px; z-index: 1001; position: absolute;"></span> -->
 		<div id="header">
 			<div id="login-box">
-				<span> <ice:outputLabel value="#{msg['page.template.loggedInAs']}"
+				<span> <ice:outputLabel
+						value="#{msg['page.template.loggedInAs']}"
 						rendered="#{security.isUserLoggedIn}" /> <em>&nbsp; <ice:outputLabel
-							value="#{security.shortUserName}" rendered="#{security.isUserLoggedIn}" /> </em> </span> <span> <ice:form
+							value="#{security.shortUserName}"
+							rendered="#{security.isUserLoggedIn}" /> </em> </span> <span> <ice:form
 						rendered="#{not security.isUserLoggedIn}" style="display: inline;">			
 	                    #{msg['page.template.language']}:
-		            <ui:repeat value="#{lang.supportedLocales}" var="locale">
+
+						<ui:repeat value="#{lang.supportedLocales}" var="locale">
 							<ice:commandLink immediate="true">
-								<ice:graphicImage value="/resources/images/flag/#{locale.language}.png" alt="#{locale.language}"
-									styleClass="flag" />
+								<ice:graphicImage
+									value="/resources/images/flag/#{locale.language}.png"
+									alt="#{locale.language}" styleClass="flag" />
 								<f:setPropertyActionListener target="#{lang.currentLanguage}"
 									value="#{locale.language}_#{locale.country}_#{locale.variant}" />
 							</ice:commandLink>
 						</ui:repeat>
 					</ice:form> </span>
-				<f:verbatim styleClass="delimiter" rendered="#{security.isUserLoggedIn}">|</f:verbatim>
-				<span> <ice:outputLink id="logoutUserLink" rendered="#{security.isUserLoggedIn}"
+				<f:verbatim styleClass="delimiter"
+					rendered="#{security.isUserLoggedIn}">|</f:verbatim>
+				<span> <ice:outputLink id="logoutUserLink"
+						rendered="#{security.isUserLoggedIn}"
 						value="#{facesContext.externalContext.requestContextPath}/j_spring_security_logout">
-						<span>#{msg['page.template.logout']}</span>
+						<span id="logoutUserLinkSpan">#{msg['page.template.logout']}</span>
 					</ice:outputLink> </span>
 
-				<f:verbatim styleClass="delimiter" rendered="#{security.isUserLoggedIn}">|</f:verbatim>
-				<ice:outputLink id="topHelpLink" value="#{facesContext.externalContext.requestContextPath}/help/index.iface"
+				<f:verbatim styleClass="delimiter"
+					rendered="#{security.isUserLoggedIn}">|</f:verbatim>
+				<ice:outputLink id="topHelpLink"
+					value="#{facesContext.externalContext.requestContextPath}/help/index.iface"
 					rendered="#{security.isUserLoggedIn}">
-					<span>#{msg['page.template.help']}</span>
+					<span id="helpSpan">#{msg['page.template.help']}</span>
 				</ice:outputLink>
 				<ice:panelGroup style="padding-right: 10px; display: inline-block;">&nbsp;</ice:panelGroup>
 			</div>
 			<div class="container">
 				<div id="logo">
-					<ice:graphicImage value="/resources/images/logo.png" alt="Evolveum" />
-&nbsp;&nbsp;
-					<ice:graphicImage value="/resources/images/midpoint_logo.png" alt="midPoint" />
+					<ice:graphicImage value="/resources/images/Logo.jpg" alt="Evolveum" />
+					<!-- <ice:graphicImage value="/resources/images/midpoint_logo.png"
+						alt="midPoint" /> -->
 				</div>
 			</div>
 		</div>
-		<h:panelGroup rendered="#{security.isUserLoggedIn}" id="nav" layout="block">
+		<h:panelGroup rendered="#{security.isUserLoggedIn}" id="nav"
+			layout="block">
 			<div class="container">
 				<idm:topMenu selected="#{template.selectedTopId}">
-					<idm:topMenuItem id="topHome" action="/index?faces-redirect=true" name="#{msg['page.template.top.home']}"
-						description="#{msg['page.template.top.description.home']}" />
-					<idm:topMenuItem id="topAccounts" action="#{userList.fillTableList}"
-						name="#{msg['page.template.top.accounts']}"
-						description="#{msg['page.template.top.description.accounts']}" />
-					<ui:remove>
-						<idm:topMenuItem id="topWorkItems" action="/work/index?faces-redirect=true"
-							name="#{msg['page.template.top.workitems']}"
-							description="#{msg['page.template.top.description.workitems']}" />
-					</ui:remove>
-					<idm:topMenuItem id="topRoles" action="/role/index?faces-redirect=true"
-						name="#{msg['page.template.top.roles']}" description="#{msg['page.template.top.description.roles']}" />
-					<idm:topMenuItem id="topResources" action="#{resourceList.listFirst}"
-						name="#{msg['page.template.top.resources']}"
-						description="#{msg['page.template.top.description.resources']}" />
-					<idm:topMenuItem id="topServerTasks" action="#{taskList.listFirst}"
-						name="#{msg['page.template.top.servertasks']}"
-						description="#{msg['page.template.top.description.servertasks']}" />
-					<ui:remove>
-						<idm:topMenuItem id="topReports" action="/report/index?faces-redirect=true"
-							name="#{msg['page.template.top.reports']}"
-							description="#{msg['page.template.top.description.reports']}" />
-					</ui:remove>
-					<idm:topMenuItem id="topConfiguration" action="/config/index?faces-redirect=true"
-						name="#{msg['page.template.top.configuration']}"
-						description="#{msg['page.template.top.description.configuration']}" />
+					<div id="navBar" style="position: absolute; width: 926px;">
+						<div id="topHomeButtonLeft"
+							style="background-image: url('/admin-gui/resources/images/buttonNormalLeftCut1.jpg'); position: absolute; height: 47px; width: 30px; left: 0px; top: 0px;">
+						</div>
+						<idm:topMenuItem id="topHome" style="margin-left: 30px;"
+							action="/index?faces-redirect=true"
+							name="#{msg['page.template.top.home']}"
+							description="#{msg['page.template.top.description.home']}" />
+
+						<idm:topMenuItem id="topAccounts"
+							action="#{userList.fillTableList}"
+							name="#{msg['page.template.top.accounts']}"
+							description="#{msg['page.template.top.description.accounts']}" />
+						<ui:remove>
+							<idm:topMenuItem id="topWorkItems"
+								action="/work/index?faces-redirect=true"
+								name="#{msg['page.template.top.workitems']}"
+								description="#{msg['page.template.top.description.workitems']}" />
+						</ui:remove>
+						<idm:topMenuItem id="topRoles"
+							action="/role/index?faces-redirect=true"
+							name="#{msg['page.template.top.roles']}"
+							description="#{msg['page.template.top.description.roles']}" />
+						<idm:topMenuItem id="topResources"
+							action="#{resourceList.listFirst}"
+							name="#{msg['page.template.top.resources']}"
+							description="#{msg['page.template.top.description.resources']}" />
+						<idm:topMenuItem id="topServerTasks"
+							action="#{taskList.listFirst}"
+							name="#{msg['page.template.top.servertasks']}"
+							description="#{msg['page.template.top.description.servertasks']}" />
+						<ui:remove>
+							<idm:topMenuItem id="topReports"
+								action="/report/index?faces-redirect=true"
+								name="#{msg['page.template.top.reports']}"
+								description="#{msg['page.template.top.description.reports']}" />
+						</ui:remove>
+						<idm:topMenuItem id="topConfiguration"
+							action="/config/index?faces-redirect=true"
+							name="#{msg['page.template.top.configuration']}"
+							description="#{msg['page.template.top.description.configuration']}" />
+
+						<!-- idm:topMenuItem id="topTest"
+							action="/test/index?faces-redirect=true" name="TEST"
+							description="testings" /> -->
+
+						<div id="topConfigurationButtonRight" class="abcd"
+							style="background-image: url('/admin-gui/resources/images/buttonNormalRightCut1.jpg'); position: absolute; height: 47px; width: 30px; right: 0px; top: 0px;">
+						</div>
+					</div>
 				</idm:topMenu>
 			</div>
 		</h:panelGroup>
@@ -95,30 +139,33 @@
 			</div>
 		</ui:remove>
 		<div class="container">
-			<div id="sidebar">
-				<ui:insert name="sidebar">
-					<idm:leftMenu selected="#{template.selectedLeftId}">
-						<ui:insert name="menu">
-							<idm:leftMenuContainer name="Sample Menu">
-								<idm:leftMenuItem name="Sample Menu Item 1" action="/a" />
-								<idm:leftMenuItem name="Sample Menu Item 2" action="/b" />
-								<idm:leftMenuItem name="Sample Menu Item 3" action="/c" />
-							</idm:leftMenuContainer>
-						</ui:insert>
-					</idm:leftMenu>
-				</ui:insert>
-				<div class="clear-menu"></div>
-			</div>
-			<div id="content">
-				<div id="wrapper">
-					<h2>
-						<ui:insert name="title">Welcome</ui:insert>
-					</h2>
-					<idm:messages id="messages" errorClass="messages-error" infoClass="messages-info"
-						fatalClass="message-fatal" warnClass="messages-warn" />
-					<ui:insert name="content">
+			<div id="contentBody">
+				<div id="sidebar">
+					<ui:insert name="sidebar">
+						<idm:leftMenu selected="#{template.selectedLeftId}">
+							<ui:insert name="menu">
+								<idm:leftMenuContainer name="Sample Menu">
+									<idm:leftMenuItem name="Sample Menu Item 1" action="/a" />
+									<idm:leftMenuItem name="Sample Menu Item 2" action="/b" />
+									<idm:leftMenuItem name="Sample Menu Item 3" action="/c" />
+								</idm:leftMenuContainer>
+							</ui:insert>
+						</idm:leftMenu>
+					</ui:insert>
+					<div class="clear-menu"></div>
+				</div>
+				<div id="content">
+					<div id="wrapper">
+						<h2>
+							<ui:insert name="title">Welcome</ui:insert>
+						</h2>
+						<idm:messages id="messages" errorClass="messages-error"
+							infoClass="messages-info" fatalClass="message-fatal"
+							warnClass="messages-warn" />
+						<ui:insert name="content">
 					sample content
 				</ui:insert>
+					</div>
 				</div>
 			</div>
 		</div>

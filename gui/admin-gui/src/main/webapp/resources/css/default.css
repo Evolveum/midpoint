@@ -1,4 +1,4 @@
-body,table {
+body, table {
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 1em;
 	color: #000000;
@@ -25,17 +25,20 @@ body,table {
 	margin: 10px;
 }
 
+.ace_editor{
+	
+}
+
 .iceDatTblColHdr,.iceDatTblColHdr1,.iceDatTblColHdr2,.iceDatTblColGrpHdrCol,.iceDatTblFtr
 	{
 	background-image: none;
-	background-color: #546048;
+	background-color: #267d99;
 	background-position: bottom;
 	background-repeat: repeat-x;
 	font-weight: normal;
 	text-align: center;
 	color: #fff;
-	border-right: 1px solid #aaa;
-	border-top: 1px solid #aaa;
+	border: 1px solid white;
 	padding-left: 5px;
 	padding-right: 5px;
 	padding-top: 4px;
@@ -48,7 +51,7 @@ body,table {
 
 .icePnlPopHdr,.icePnlTlTipHdr {
 	background-image: none;
-	background-color: #404535;
+	background-color: #035069;
 	font-family: Georgia, "Times New Roman", serif;
 	height: 2.0em;
 	vertical-align: middle;
