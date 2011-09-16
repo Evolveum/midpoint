@@ -331,6 +331,6 @@ public final class AutoFormFactory {
 	}
 
 	private static boolean isOnlyReadable(FormAttributeDefinition definition) {
-		return definition.canRead() && !definition.canUpdate();
+		return definition.canRead() && !definition.canUpdate() && !definition.canCreate();
 	}
 }
