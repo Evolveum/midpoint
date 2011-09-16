@@ -26,7 +26,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.application.Resource;
@@ -38,7 +37,6 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.result.OperationResultStatus;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
@@ -73,11 +71,7 @@ public class MidPointFacesMessages extends HtmlMessages {
 			message.rendered();
 
 			if (message instanceof MidPointMessage) {
-				try {
-					writeMidPointMessage((MidPointMessage) message, context, index);
-				} catch (Exception ex) {
-					LoggingUtils.logException(LOGGER, "Couldn't pring message to web page", ex);
-				}
+				writeMidPointMessage((MidPointMessage) message, context, index);
 				index++;
 			} else {
 				writer.startElement("li", null);
@@ -233,7 +227,8 @@ public class MidPointFacesMessages extends HtmlMessages {
 		Resource show_details = context.getApplication().getResourceHandler()
 				.createResource("star.png", "images");
 		writer.writeAttribute("src", show_details.getRequestPath(), null);
-		writer.writeAttribute("title", FacesUtils.translateKey("Details"), null);
+		writer.writeAttribute("title",
+				FacesUtils.translateKey("web.jsf.messages.MidPointFacesMessages.details"), null);
 		StringBuilder script = new StringBuilder();
 		script.append("displayMessageErrorDetails('");
 		script.append("errorNumber" + errorNum);
@@ -271,16 +266,12 @@ public class MidPointFacesMessages extends HtmlMessages {
 	}
 
 	private void writeMessageDetailsParams(Map<String, Object> map, ResponseWriter writer) throws IOException {
-		Set<Entry<String, Object>> set = map.entrySet();
-		Iterator<Entry<String, Object>> it = set.iterator();
-
-		while (it.hasNext()) {
-			Map.Entry<String, Object> me = (Map.Entry<String, Object>) it.next();
-			// System.out.println(me.getKey() + " : " + me.getValue());
+		for (Entry<String, Object> entry : map.entrySet()) {
 			writer.startElement("ul", null);
 			writer.startElement("li", null);
-			writer.write("&raquo; " + FacesUtils.translateKey("Params") + " &gt;&gt;  " + me.getKey() + " : "
-					+ me.getValue());
+			writer.write("&raquo; "
+					+ FacesUtils.translateKey("web.jsf.messages.MidPointFacesMessages.params")
+					+ " &gt;&gt;  " + entry.getKey() + " : " + entry.getValue());
 			writer.endElement("li");
 			writer.endElement("ul");
 		}
@@ -288,16 +279,12 @@ public class MidPointFacesMessages extends HtmlMessages {
 
 	private void writeMessageDetailsContext(Map<String, Object> map, ResponseWriter writer)
 			throws IOException {
-		Set<Entry<String, Object>> set = map.entrySet();
-		Iterator<Entry<String, Object>> it = set.iterator();
-
-		while (it.hasNext()) {
-			Map.Entry<String, Object> me = (Map.Entry<String, Object>) it.next();
-			// System.out.println(me.getKey() + " : " + me.getValue());
+		for (Entry<String, Object> entry : map.entrySet()) {
 			writer.startElement("ul", null);
 			writer.startElement("li", null);
-			writer.write("&raquo; " + FacesUtils.translateKey("Context") + " &gt;&gt;  " + me.getKey()
-					+ " : " + me.getValue());
+			writer.write("&raquo; "
+					+ FacesUtils.translateKey("web.jsf.messages.MidPointFacesMessages.context")
+					+ " &gt;&gt;  " + entry.getKey() + " : " + entry.getValue());
 			writer.endElement("li");
 			writer.endElement("ul");
 		}
@@ -308,13 +295,12 @@ public class MidPointFacesMessages extends HtmlMessages {
 			return;
 		}
 
-		Iterator<String> it = list.iterator();
-
-		while (it.hasNext()) {
-			// System.out.println("TEST LIST: " + (String) it.next());
+		for (String item : list) {
 			writer.startElement("ul", null);
 			writer.startElement("li", null);
-			writer.write("&raquo; " + FacesUtils.translateKey("Details") + " &gt;&gt;  " + (String) it.next());
+			writer.write("&raquo; "
+					+ FacesUtils.translateKey("web.jsf.messages.MidPointFacesMessages.details")
+					+ " &gt;&gt;  " + item);
 			writer.endElement("li");
 			writer.endElement("ul");
 		}
@@ -325,7 +311,8 @@ public class MidPointFacesMessages extends HtmlMessages {
 		if (th != null) {
 			writer.startElement("ul", null);
 			writer.startElement("li", null);
-			writer.write("&raquo; " + FacesUtils.translateKey("Cause") + " &gt;&gt; ");
+			writer.write("&raquo; " + FacesUtils.translateKey("web.jsf.messages.MidPointFacesMessages.cause")
+					+ " &gt;&gt; ");
 			if (StringUtils.isNotEmpty(th.getMessage())) {
 				writer.writeText(th.getMessage(), null);
 			} else {
