@@ -46,6 +46,8 @@ import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.api.operations.APIOperation;
 import org.identityconnectors.framework.api.operations.CreateApiOp;
+import org.identityconnectors.framework.api.operations.SyncApiOp;
+import org.identityconnectors.framework.api.operations.TestApiOp;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.Attribute;
@@ -125,7 +127,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptOrderType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.LiveSyncCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.PasswordCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.TestConnectionCapabilityType;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.IcfUtil.processIcfException;
 
@@ -515,6 +519,20 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			PasswordCapabilityType capPass = new PasswordCapabilityType();
 			capCred.setPassword(capPass);
 			capabilities.add(capCred);
+		}
+		
+		// Create capabilities from supported connector operations
+		
+		Set<Class<? extends APIOperation>> supportedOperations = icfConnectorFacade.getSupportedOperations();
+		
+		if (supportedOperations.contains(SyncApiOp.class)) {
+			LiveSyncCapabilityType capSync = new LiveSyncCapabilityType();
+			capabilities.add(capSync);
+		}
+		
+		if (supportedOperations.contains(TestApiOp.class)) {
+			TestConnectionCapabilityType capTest = new TestConnectionCapabilityType();
+			capabilities.add(capTest);
 		}
 		
 	}

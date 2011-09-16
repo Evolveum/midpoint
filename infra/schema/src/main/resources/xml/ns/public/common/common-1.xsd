@@ -2516,8 +2516,29 @@
 						</xsd:annotation>
 					</xsd:element>
 					<xsd:element ref="tns:schemaHandling" minOccurs="0" />
-					<xsd:element name="nativeCapabilities" type="tns:CapabilitiesType" minOccurs="0" />
-					<xsd:element name="capabilities" type="tns:CapabilitiesType" minOccurs="0" />
+					<xsd:element name="nativeCapabilities" type="tns:CapabilitiesType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								The capabilities nativelly supported by the connector without any simulation or any
+								other workaround. This may not be stored in the repository, as this can be fetched
+								any time from the connector.
+								If this element is not present then the connector provides no capabilities.
+								The value of this element indicates what the connector can do.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+					<xsd:element name="capabilities" type="tns:CapabilitiesType" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								The capabilities supported by the resource, including both native capabilities of
+								the connector and simulated capabilities.
+								If this element is not present at all, the value of nativeCapabilities element is assumed.
+								The value of this element is not generated, it should be set by the administrator.
+								The value of this element indicates administrator decisions what connector capabilities
+								to use, what capabilities to simulate and how to simulate them.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
 					<xsd:element ref="tns:scripts" minOccurs="0" />
 					<xsd:element ref="tns:synchronization" minOccurs="0" />
 				</xsd:sequence>

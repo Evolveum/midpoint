@@ -84,6 +84,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -1733,14 +1734,14 @@ public class ShadowCache {
 
 		ResourceType newResource = null;
 		
+		ConnectorInstance connector = getConnectorInstance(resource, result);
+		
 		if (xsdElement == null) {
 			// There is no schema, we need to pull it from the resource 
 
 			if (resourceSchema == null) { // unless it has been already pulled
 				LOGGER.trace("Fetching resource schema for "
 						+ ObjectTypeUtil.toShortString(resource));
-				ConnectorInstance connector = getConnectorInstance(resource,
-						result);
 				try {
 					// Fetch schema from connector, UCF will convert it to
 					// Schema Processor format and add all
@@ -1795,8 +1796,27 @@ public class ShadowCache {
 			// try to fetch schema from cache
 			newResource = resourceSchemaCache.get(resource);
 		}
+		
+		addNativeCapabilities(newResource, connector, result);
 
 		return newResource;
+	}
+
+	private void addNativeCapabilities(ResourceType resource, ConnectorInstance connector, OperationResult result) throws CommunicationException {
+		Set<Object> capabilities = null;
+		try {
+			
+			capabilities = connector.getCapabilities(result);
+			
+		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
+			throw new CommunicationException("Cannot fetch resource schema: " + ex.getMessage(), ex);
+		} catch (GenericFrameworkException ex) {
+			throw new GenericConnectorException("Generic error in connector " + connector + ": " + ex.getMessage(), ex);
+		}
+		
+		CapabilitiesType capType = new CapabilitiesType();
+		capType.getAny().addAll(capabilities);
+		resource.setNativeCapabilities(capType);
 	}
 
 }

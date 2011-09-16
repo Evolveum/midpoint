@@ -78,6 +78,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
@@ -88,6 +89,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
 
 /**
  * Test for provisioning service implementation.
@@ -318,19 +321,45 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		// Also test if the utility method returns the same thing		
 		Schema returnedSchema = ResourceTypeUtil.getResourceSchema(resource);
 		
-		System.out.println("AAAAAAAAAA: "+returnedSchema);
-		System.out.println("BBBBBBBBBB: "+enh.getParsedSchema());
-		
 		// Not equals() but == ... we want to really know if exactly the same object instance is returned
 		assertTrue(returnedSchema == enh.getParsedSchema());
 
 	}
 	
 	@Test
-	public void test005ListResourceObjects() throws SchemaException, ObjectNotFoundException, CommunicationException {
-		displayTestTile("test004ListResourceObjects");
+	public void test005Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException {
+		displayTestTile("test005Capabilities");
+
 		// GIVEN
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test004ListResourceObjects");
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test005Capabilities");
+
+		// WHEN
+		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
+		
+		// THEN
+		CapabilitiesType nativeCapabilities = resource.getNativeCapabilities();
+		List<Object> capabilities = nativeCapabilities.getAny();
+        assertFalse("Empty capabilities returned",capabilities.isEmpty());
+        CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(capabilities, CredentialsCapabilityType.class);
+        assertNotNull("password capability not present",capCred.getPassword());
+        // Connector cannot do activation, this should be null
+        ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(capabilities, ActivationCapabilityType.class);
+        assertNull("Found activation capability while not expecting it",capAct);
+        
+        capCred = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+        assertNotNull("password capability not found",capCred.getPassword());
+        // Although connector does not support activation, the resource specifies a way how to simulate it.
+        // Therefore the following should succeed
+        capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
+        assertNotNull("activation capability not found",capCred.getPassword());
+	}
+	
+	
+	@Test
+	public void test006ListResourceObjects() throws SchemaException, ObjectNotFoundException, CommunicationException {
+		displayTestTile("test006ListResourceObjects");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test006ListResourceObjects");
 		// WHEN
 		ObjectListType objectList = provisioningService.listResourceObjects(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
 		// THEN

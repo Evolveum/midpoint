@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import java.util.Collection;
 import java.util.Set;
 
 import org.w3c.dom.Element;
@@ -114,13 +115,24 @@ public class ResourceTypeUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T getCapability(Set<Object> capabilities, Class<T> capabilityClass) {
+	public static <T> T getCapability(Collection<Object> capabilities, Class<T> capabilityClass) {
 		for (Object cap : capabilities) {
 			if (capabilityClass.isAssignableFrom(cap.getClass())) {
 				return (T) cap;
 			}
 		}
 		return null;
+	}
+	
+	public static <T> T getEffectiveCapability(ResourceType resource, Class<T> capabilityClass) {
+		if ( resource.getCapabilities()!=null ) {
+			return getCapability(resource.getCapabilities().getAny(),capabilityClass);
+		} else if (resource.getNativeCapabilities() != null) {
+			return getCapability(resource.getNativeCapabilities().getAny(),capabilityClass);
+		} else {
+			// No capabilities at all
+			return null;
+		}
 	}
 
 }
