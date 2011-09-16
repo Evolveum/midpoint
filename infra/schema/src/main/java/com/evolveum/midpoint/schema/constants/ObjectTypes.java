@@ -167,6 +167,7 @@ public enum ObjectTypes {
 		throw new IllegalArgumentException("Unsupported object type " + objectType);
 	}
 
+	@SuppressWarnings("unchecked")
 	public static ObjectTypes getObjectType(Class<? extends ObjectType> objectType) {
 		for (ObjectTypes type : values()) {
 			if (type.getClassDefinition().equals(objectType)) {

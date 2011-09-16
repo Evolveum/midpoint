@@ -44,7 +44,6 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.io.IOUtils;
-import org.springframework.util.xml.DomUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -96,18 +95,19 @@ public final class JAXBUtil {
 	public static JAXBIntrospector getIntrospector() {
 		return introspector;
 	}
-	
-	public static boolean isJaxbClass(Class clazz) {
+
+	public static boolean isJaxbClass(Class<?> clazz) {
 		if (clazz == null) {
 			throw new IllegalArgumentException("No class, no fun");
 		}
-		if (clazz.getPackage()==null) {
-			// No package: this is most likely a primitive type and definitely not a JAXB class
+		if (clazz.getPackage() == null) {
+			// No package: this is most likely a primitive type and definitely
+			// not a JAXB class
 			return false;
 		}
 		for (int i = 0; i < SchemaConstants.JAXB_PACKAGES.length; i++) {
-			if (SchemaConstants.JAXB_PACKAGES[i]==null) {
-				throw new IllegalStateException("Entry #"+i+" in SchemaConstants.JAXB_PACKAGES is null");
+			if (SchemaConstants.JAXB_PACKAGES[i] == null) {
+				throw new IllegalStateException("Entry #" + i + " in SchemaConstants.JAXB_PACKAGES is null");
 			}
 			if (SchemaConstants.JAXB_PACKAGES[i].equals(clazz.getPackage().getName())) {
 				return true;
@@ -435,7 +435,7 @@ public final class JAXBUtil {
 	public static Element toDomElement(Object element) throws JAXBException {
 		return toDomElement(element, DOMUtil.getDocument());
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Element toDomElement(Object element, Document doc) throws JAXBException {
 		if (element == null) {
@@ -485,13 +485,14 @@ public final class JAXBUtil {
 	}
 
 	/**
-	 * Looks for an element with specified name. Considers both DOM and JAXB elements.
-	 * Assumes single element instance in the list.
+	 * Looks for an element with specified name. Considers both DOM and JAXB
+	 * elements. Assumes single element instance in the list.
+	 * 
 	 * @param elements
 	 * @param elementName
 	 */
 	public static Object findElement(List<Object> elements, QName elementName) {
-		if (elements==null) {
+		if (elements == null) {
 			return null;
 		}
 		for (Object element : elements) {
@@ -507,7 +508,7 @@ public final class JAXBUtil {
 	 * @return
 	 */
 	public static List<Object> listChildElements(Object parentElement) {
-		if (parentElement==null) {
+		if (parentElement == null) {
 			return null;
 		}
 		List<Object> childElements = new ArrayList<Object>();
@@ -525,14 +526,14 @@ public final class JAXBUtil {
 			// Look for @XsdAnyElement annotation and return the list
 			throw new UnsupportedOperationException("Not implemented yet");
 		} else {
-		throw new IllegalArgumentException("Not an element: " + parentElement + " ("
-				+ parentElement.getClass().getName() + ")");
+			throw new IllegalArgumentException("Not an element: " + parentElement + " ("
+					+ parentElement.getClass().getName() + ")");
 		}
 		return childElements;
 	}
 
 	public static boolean compareAny(List<Object> a, List<Object> b) {
-		if (a==b) {
+		if (a == b) {
 			return true;
 		}
 		if (a == null && b == null) {
@@ -545,15 +546,16 @@ public final class JAXBUtil {
 			return false;
 		}
 		for (int i = 0; i < a.size(); i++) {
-			if (!compareElement(a.get(i),b.get(i))) {
+			if (!compareElement(a.get(i), b.get(i))) {
 				return false;
 			}
 		}
 		return true;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static boolean compareElement(Object a, Object b) {
-		if (a==b) {
+		if (a == b) {
 			return true;
 		}
 		if (a == null && b == null) {
@@ -565,7 +567,7 @@ public final class JAXBUtil {
 		Document doc = null;
 		Element ae = null;
 		Element be = null;
-		
+
 		if (a instanceof Element) {
 			ae = (Element) a;
 		} else if (a instanceof JAXBElement) {
@@ -573,12 +575,12 @@ public final class JAXBUtil {
 				doc = DOMUtil.getDocument();
 			}
 			try {
-				ae = jaxbToDom((JAXBElement)a, doc);
+				ae = jaxbToDom((JAXBElement) a, doc);
 			} catch (JAXBException e) {
-				throw new IllegalStateException("Failed to marshall element "+a,e);
+				throw new IllegalStateException("Failed to marshall element " + a, e);
 			}
 		} else {
-			throw new IllegalArgumentException("Got unexpected type "+a.getClass().getName()+": "+a);
+			throw new IllegalArgumentException("Got unexpected type " + a.getClass().getName() + ": " + a);
 		}
 
 		if (b instanceof Element) {
@@ -588,15 +590,15 @@ public final class JAXBUtil {
 				doc = DOMUtil.getDocument();
 			}
 			try {
-				be = jaxbToDom((JAXBElement)a, doc);
+				be = jaxbToDom((JAXBElement) a, doc);
 			} catch (JAXBException e) {
-				throw new IllegalStateException("Failed to marshall element "+b,e);
+				throw new IllegalStateException("Failed to marshall element " + b, e);
 			}
 		} else {
-			throw new IllegalArgumentException("Got unexpected type "+b.getClass().getName()+": "+b);
+			throw new IllegalArgumentException("Got unexpected type " + b.getClass().getName() + ": " + b);
 		}
-		
-		return DOMUtil.compareElement(ae,be);
+
+		return DOMUtil.compareElement(ae, be);
 	}
-	
+
 }

@@ -34,26 +34,26 @@ import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 /**
  * @author Vilo Repan
  * @author Radovan Semancik
  */
 public abstract class SchemaConstants {
 
+	private static final Trace LOGGER = TraceManager.getTrace(SchemaConstants.class);
 	private static final CatalogResolver catalogResolver;
 	private static boolean resolverInitialized = false;
-	// identity schema is not used, all definitions are in common schema - it is
-	// workaround for OPENIDM-124
-	// default schema list for schema parsing
-	// W3C_XML_SCHEMA_NS_URI public static final String NS_XSD =
-	// "http://www.w3.org/2001/XMLSchema";
+
 	public static final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
 	public static final String NS_ANNOTATION = "http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd";
 	public static final String NS_C_PREFIX = "c";
 	public static final String NS_RESOURCE = "http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd";
 	public static final String NS_CAPABILITIES = "http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd";
 	public static final String NS_FILTER = "http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd";
-	public static final QName LOGGING = new QName(SchemaConstants.NS_C, "logging");
+	public static final QName LOGGING = new QName(NS_C, "logging");
 	public static final QName C_NAME = new QName(NS_C, "name");
 	public static final QName C_GENERIC_OBJECT = new QName(NS_C, "genericObject");
 	public static final QName C_ACCESS = new QName(NS_C, "access");
@@ -67,20 +67,20 @@ public abstract class SchemaConstants {
 	public static final QName C_OBJECTS = new QName(NS_C, "objects");
 	public static final QName C_OBJECT = new QName(NS_C, "object");
 	public static final QName C_OBJECT_TYPE = new QName(NS_C, "ObjectType");
-	
+
 	public static final QName ACTIVATION = new QName(NS_C, "activation");
-	
+
 	public static final QName C_OID_ATTRIBUTE = new QName(NS_C, "oid");
 	public static final QName I_OBJECTS = new QName(NS_C, "objects");
 	public static final QName C_EXTENSION = new QName(NS_C, "extension");;
-	public static final QName C_TASK_TYPE = new QName(NS_C,"TaskType");
-	public static final QName C_TASK = new QName(NS_C,"task");
-	public static final QName C_TASK_EXECUTION_STATUS = new QName(NS_C,"executionStatus");
-	public static final QName C_TASK_EXECLUSIVITY_STATUS = new QName(NS_C,"exclusivityStatus");
-	public static final QName C_TASK_LAST_RUN_START_TIMESTAMP = new QName(NS_C,"lastRunStartTimestamp");
-	public static final QName C_TASK_LAST_RUN_FINISH_TIMESTAMP = new QName(NS_C,"lastRunFinishTimestamp");
-	public static final QName C_TASK_RESULT = new QName(NS_C,"result");
-	public static final QName C_TASK_PROGRESS = new QName(NS_C,"progress");
+	public static final QName C_TASK_TYPE = new QName(NS_C, "TaskType");
+	public static final QName C_TASK = new QName(NS_C, "task");
+	public static final QName C_TASK_EXECUTION_STATUS = new QName(NS_C, "executionStatus");
+	public static final QName C_TASK_EXECLUSIVITY_STATUS = new QName(NS_C, "exclusivityStatus");
+	public static final QName C_TASK_LAST_RUN_START_TIMESTAMP = new QName(NS_C, "lastRunStartTimestamp");
+	public static final QName C_TASK_LAST_RUN_FINISH_TIMESTAMP = new QName(NS_C, "lastRunFinishTimestamp");
+	public static final QName C_TASK_RESULT = new QName(NS_C, "result");
+	public static final QName C_TASK_PROGRESS = new QName(NS_C, "progress");
 	public static final QName I_RESOURCE = new QName(NS_C, "resource");
 	public static final QName C_RESOURCE_CONFIGURATION = new QName(NS_C, "configuration");
 	public static final QName I_RESOURCE_STATE = new QName(NS_C, "resourceState");
@@ -128,24 +128,23 @@ public abstract class SchemaConstants {
 	public static final QName X_APPINFO = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo");
 	public static final QName X_SCHEMA = new QName(W3C_XML_SCHEMA_NS_URI, "schema");
 	public static final QName X_DOCUMENTATION = new QName(W3C_XML_SCHEMA_NS_URI, "documentation");
-	public static final QName I_DIAGNOSTICS_MESSAGE_ERROR = new QName(NS_C, "error");
-	public static final QName I_DIAGNOSTICS_MESSAGE_WARNING = new QName(NS_C, "error");
 	public static final QName I_SYSTEM_CONFIGURATION_TYPE = new QName(NS_C, "SystemConfigurationType");
 	public static final QName I_SYSTEM_CONFIGURATION = new QName(NS_C, "systemConfiguration");
-	
+
 	public static final QName ROLE = new QName(NS_C, "role");
 	public static final QName ROLE_TYPE = new QName(NS_C, "RoleType");
 
 	public static final QName R_PROTECTED_STRING_TYPE = new QName(NS_C, "ProtectedStringType");
 	public static final QName R_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C, "ProtectedByteArrayType");
-	
+
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME = "configuration";
-	
-	// This constant should not be here. It is used by schema processor to supply correct import. But the dependency should
+
+	// This constant should not be here. It is used by schema processor to
+	// supply correct import. But the dependency should
 	// be inverted, eventually (MID-356)
 	public static final String NS_ICF_SCHEMA = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd";
 	public static final String NS_ICF_CONFIGURATION = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd";
-	
+
 	public static final String NS_PROVISIONING = "http://midpoint.evolveum.com/xml/ns/public/provisioning";
 	public static final String NS_PROVISIONING_LIVE_SYNC = NS_PROVISIONING + "/liveSync-1.xsd";
 	public static final QName SYNC_TOKEN = new QName(NS_PROVISIONING_LIVE_SYNC, "token");
@@ -157,15 +156,14 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_CHANNEL, "import");
 
 	public static final String NS_SITUATION = "http://midpoint.evolveum.com/xml/ns/public/model/situation-1.xsd";
-	
-	public static final String[] JAXB_PACKAGES = new String[]{
-		"com.evolveum.midpoint.xml.ns._public.common.common_1",
-		"com.evolveum.midpoint.xml.ns._public.resource.resource_schema_1",
-		"com.evolveum.midpoint.xml.ns._public.resource.capabilities_1"
-	};
+
+	public static final String[] JAXB_PACKAGES = new String[] {
+			"com.evolveum.midpoint.xml.ns._public.common.common_1",
+			"com.evolveum.midpoint.xml.ns._public.resource.resource_schema_1",
+			"com.evolveum.midpoint.xml.ns._public.resource.capabilities_1" };
 
 	static {
-		
+
 		CatalogManager catalogManager = new CatalogManager();
 		catalogManager.setUseStaticCatalog(true);
 		catalogManager.setIgnoreMissingProperties(true);
@@ -195,9 +193,8 @@ public abstract class SchemaConstants {
 			}
 			resolverInitialized = true;
 		} catch (IOException ex) {
-			// LOGGER.error("Unknown error occured: " + ex.getMessage(), ex);
 			resolverInitialized = false;
-			ex.printStackTrace();
+			LOGGER.error("Unknown error occured: " + ex.getMessage(), ex);
 		}
 	}
 }
