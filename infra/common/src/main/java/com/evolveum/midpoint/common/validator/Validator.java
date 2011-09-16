@@ -24,14 +24,11 @@ package com.evolveum.midpoint.common.validator;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -44,7 +41,6 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.staxmate.dom.DOMConverter;
@@ -62,9 +58,7 @@ import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.Objects;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 
 /**
@@ -76,7 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 public class Validator {
 
 	private static final Trace LOGGER = TraceManager.getTrace(Validator.class);
-	private static final String INPUT_STEAM_CHARSET = "utf-8";
+	private static final String INPUT_STREAM_CHARSET = "utf-8";
 	private static final String OPERATION_PREFIX = Validator.class.getName() + ".";
 	private static final String OPERATION_RESOURCE_NAMESPACE_CHECK = OPERATION_PREFIX
 			+ "resourceNamespaceCheck";
@@ -105,15 +99,15 @@ public class Validator {
 		this.handler = handler;
 		initialize();
 	}
-	
+
 	private void initialize() {
 		schemaRegistry = new SchemaRegistry();
 		try {
 			schemaRegistry.initialize();
 		} catch (SAXException e) {
-			throw new IllegalStateException("Error in system schemas: "+e.getMessage(),e);
+			throw new IllegalStateException("Error in system schemas: " + e.getMessage(), e);
 		} catch (IOException e) {
-			throw new IllegalStateException("Error reading schemas: "+e.getMessage(),e);
+			throw new IllegalStateException("Error reading schemas: " + e.getMessage(), e);
 		}
 		midPointXsdSchema = schemaRegistry.getMidPointSchema();
 		xsdValidator = midPointXsdSchema.newValidator();
@@ -135,7 +129,7 @@ public class Validator {
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
 	}
-	
+
 	public void setValidateSchema(boolean validateSchemas) {
 		this.validateSchemas = validateSchemas;
 	}
@@ -143,15 +137,15 @@ public class Validator {
 	public boolean getValidateSchema() {
 		return validateSchemas;
 	}
-	
+
 	public void setAllowAnyType(boolean allowAnyType) {
 		this.allowAnyType = allowAnyType;
 	}
-	
+
 	public boolean getAllowAnyType() {
 		return allowAnyType;
 	}
-	
+
 	public long getStopAfterErrors() {
 		return stopAfterErrors;
 	}
@@ -169,7 +163,7 @@ public class Validator {
 	}
 
 	private Unmarshaller createUnmarshaller(OperationResult validatorResult) {
-		if (unmarshaller!=null) {
+		if (unmarshaller != null) {
 			return unmarshaller;
 		}
 		try {
@@ -186,24 +180,25 @@ public class Validator {
 		return unmarshaller;
 	}
 
-	@SuppressWarnings("unchecked")
 	public void validate(InputStream inputStream, OperationResult validatorResult,
 			String objectResultOperationName) {
 
 		XMLStreamReader stream = null;
 		try {
-			
-			Map<String,String> rootNamespaceDeclarations = new HashMap<String, String>();
-			
-			XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance(); 
+
+			Map<String, String> rootNamespaceDeclarations = new HashMap<String, String>();
+
+			XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
 			stream = xmlInputFactory.createXMLStreamReader(inputStream);
 			int eventType = stream.nextTag();
 			if (eventType == XMLStreamConstants.START_ELEMENT) {
 				if (!stream.getName().equals(SchemaConstants.C_OBJECTS)) {
-					// This has to be an import file with a single objects. Try to process it.
-					EventResult cont = readFromStreamAndValidate(stream, objectResultOperationName, rootNamespaceDeclarations, validatorResult);
+					// This has to be an import file with a single objects. Try
+					// to process it.
+					EventResult cont = readFromStreamAndValidate(stream, objectResultOperationName,
+							rootNamespaceDeclarations, validatorResult);
 					if (!cont.isCont()) {
-						if (cont.getReason()!=null) {
+						if (cont.getReason() != null) {
 							validatorResult.recordFatalError(cont.getReason());
 						} else {
 							validatorResult.recordFatalError("Object validation failed");
@@ -215,38 +210,41 @@ public class Validator {
 					return;
 				}
 				// Extract root namespace declarations
-				for(int i = 0; i < stream.getNamespaceCount(); i++) {
-					rootNamespaceDeclarations.put(stream.getNamespacePrefix(i),stream.getNamespaceURI(i));
+				for (int i = 0; i < stream.getNamespaceCount(); i++) {
+					rootNamespaceDeclarations.put(stream.getNamespacePrefix(i), stream.getNamespaceURI(i));
 				}
 			} else {
 				throw new SystemException("StAX Malfunction?");
 			}
-			while (stream.hasNext()) { 
-			    eventType = stream.next();
-			    if (eventType == XMLStreamConstants.START_ELEMENT) {
-			    	EventResult cont = readFromStreamAndValidate(stream, objectResultOperationName, rootNamespaceDeclarations, validatorResult);
+			while (stream.hasNext()) {
+				eventType = stream.next();
+				if (eventType == XMLStreamConstants.START_ELEMENT) {
+					EventResult cont = readFromStreamAndValidate(stream, objectResultOperationName,
+							rootNamespaceDeclarations, validatorResult);
 					if (cont.isStop()) {
-						if (cont.getReason()!=null) {
+						if (cont.getReason() != null) {
 							validatorResult.recordFatalError(cont.getReason());
 						} else {
 							validatorResult.recordFatalError("Processing has been stopped");
 						}
-						// This means total stop, no other objects will be processed
+						// This means total stop, no other objects will be
+						// processed
 						return;
 					}
 					if (!cont.isCont()) {
 						errors++;
 						if (stopAfterErrors > 0 && errors >= stopAfterErrors) {
-							validatorResult.recordFatalError("Too many errors ("+errors+")");
+							validatorResult.recordFatalError("Too many errors (" + errors + ")");
 							return;
 						}
 					}
-			    }
+				}
 			}
 
 		} catch (XMLStreamException ex) {
-			//validatorResult.recordFatalError("XML parsing error: " + ex.getMessage()+" on line "+stream.getLocation().getLineNumber(),ex);
-			validatorResult.recordFatalError("XML parsing error: " + ex.getMessage(),ex);
+			// validatorResult.recordFatalError("XML parsing error: " +
+			// ex.getMessage()+" on line "+stream.getLocation().getLineNumber(),ex);
+			validatorResult.recordFatalError("XML parsing error: " + ex.getMessage(), ex);
 			if (handler != null) {
 				handler.handleGlobalError(validatorResult);
 			}
@@ -257,78 +255,81 @@ public class Validator {
 
 	}
 
-	private EventResult readFromStreamAndValidate(XMLStreamReader stream, String objectResultOperationName, Map<String,String> rootNamespaceDeclarations, OperationResult validatorResult) {
-		
+	private EventResult readFromStreamAndValidate(XMLStreamReader stream, String objectResultOperationName,
+			Map<String, String> rootNamespaceDeclarations, OperationResult validatorResult) {
+
 		OperationResult objectResult = validatorResult.createSubresult(objectResultOperationName);
 		progress++;
 		objectResult.addContext(OperationResult.CONTEXT_PROGRESS, progress);
-		
+
 		try {
 			objectResult.addContext(START_LINE_NUMBER, stream.getLocation().getLineNumber());
-			
+
 			// Parse the object from stream to DOM
-	    	Document objectDoc = domConverter.buildDocument(stream);
-	    	
-	    	objectResult.addContext(END_LINE_NUMBER, stream.getLocation().getLineNumber());
-	    	
-	    	// This element may not have complete namespace definitions for a stand-alone
-	    	// processing, therefore copy namespace definitions from the root element 
-	    	Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
-	    	DOMUtil.setNamespaceDeclarations(objectElement,rootNamespaceDeclarations);
-	    	
-	    	Node postValidationTree = null;
-	    	
-	    	if (validateSchemas) {
-	    		postValidationTree = validateSchema(objectDoc, objectResult);
-	    	}
-	    		    	
+			Document objectDoc = domConverter.buildDocument(stream);
+
+			objectResult.addContext(END_LINE_NUMBER, stream.getLocation().getLineNumber());
+
+			// This element may not have complete namespace definitions for a
+			// stand-alone
+			// processing, therefore copy namespace definitions from the root
+			// element
+			Element objectElement = DOMUtil.getFirstChildElement(objectDoc);
+			DOMUtil.setNamespaceDeclarations(objectElement, rootNamespaceDeclarations);
+
+			Node postValidationTree = null;
+
+			if (validateSchemas) {
+				postValidationTree = validateSchema(objectDoc, objectResult);
+			}
+
 			if (handler != null) {
 				EventResult cont = handler.preMarshall(objectElement, postValidationTree, objectResult);
 				if (!cont.isCont()) {
 					return cont;
 				}
 			}
-			
-	    	if (!objectResult.isAcceptable()) {
-	    		// Schema validation or preMarshall has failed. No point to continue with this object.
-	    		return EventResult.skipObject();
-	    	}
-    		
+
+			if (!objectResult.isAcceptable()) {
+				// Schema validation or preMarshall has failed. No point to
+				// continue with this object.
+				return EventResult.skipObject();
+			}
+
 			JAXBElement jaxbElement = (JAXBElement) createUnmarshaller(validatorResult).unmarshal(objectDoc);
 			Object jaxbValue = jaxbElement.getValue();
 			ObjectType object = null;
-			
+
 			if (jaxbValue instanceof ObjectType) {
 				object = (ObjectType) jaxbElement.getValue();
 
-			
 				if (verbose) {
 					LOGGER.debug("Processing OID " + object.getOid());
 				}
-	
+
 				objectResult.addContext(OperationResult.CONTEXT_OBJECT, object);
-	
+
 				validateObject(object, objectResult);
-				
+
 				if (handler != null) {
 					EventResult cont = handler.postMarshall(object, objectElement, objectResult);
 					if (!cont.isCont()) {
 						return cont;
 					}
 				}
-	
+
 				objectResult.recomputeStatus("Object processing has failed", "Validation warning");
-				
+
 			} else {
 				if (!allowAnyType) {
-					objectResult.recordFatalError("Found valid type that is not ObjectType: "+jaxbValue);
+					objectResult.recordFatalError("Found valid type that is not ObjectType: " + jaxbValue);
 				} else {
 					objectResult.recordSuccess();
 				}
 			}
 
 			return EventResult.cont();
-			
+
 		} catch (JAXBException ex) {
 			if (verbose) {
 				ex.printStackTrace();
@@ -342,7 +343,7 @@ public class Validator {
 								+ " col " + saxex.getColumnNumber() + ")", ex);
 
 			} else if (ex instanceof UnmarshalException) {
-				validatorResult.recordFatalError("Unmarshalling error: " + ex.getMessage(),ex);
+				validatorResult.recordFatalError("Unmarshalling error: " + ex.getMessage(), ex);
 			} else {
 				validatorResult.recordFatalError("Unmarshalling error: "
 						+ (linkedException != null ? linkedException.getMessage() : "unknown: " + ex), ex);
@@ -351,32 +352,32 @@ public class Validator {
 				handler.handleGlobalError(validatorResult);
 			}
 			return EventResult.skipObject();
-			
+
 		} catch (XMLStreamException ex) {
-			validatorResult.recordFatalError("XML parsing error: " + ex.getMessage(),ex);
+			validatorResult.recordFatalError("XML parsing error: " + ex.getMessage(), ex);
 			if (handler != null) {
 				handler.handleGlobalError(validatorResult);
 			}
 			return EventResult.skipObject();
 		}
-    }
+	}
 
 	private Node validateSchema(Document objectDoc, OperationResult objectResult) {
-		OperationResult result = objectResult.createSubresult(Validator.class.getName()+".validateSchema");
+		OperationResult result = objectResult.createSubresult(Validator.class.getName() + ".validateSchema");
 		DOMResult validationResult = new DOMResult();
 		try {
-			xsdValidator.validate(new DOMSource(objectDoc),validationResult);
+			xsdValidator.validate(new DOMSource(objectDoc), validationResult);
 		} catch (SAXException e) {
-			result.recordFatalError("Validation error: "+e.getMessage(), e);
-			objectResult.computeStatus("Validation error: "+e.getMessage());
+			result.recordFatalError("Validation error: " + e.getMessage(), e);
+			objectResult.computeStatus("Validation error: " + e.getMessage());
 			return null;
 		} catch (IOException e) {
-			result.recordFatalError("OI error during validation: "+e.getMessage(), e);
-			objectResult.computeStatus("OI error during validation: "+e.getMessage());
+			result.recordFatalError("OI error during validation: " + e.getMessage(), e);
+			objectResult.computeStatus("OI error during validation: " + e.getMessage());
 			return null;
 		}
 		result.recordSuccess();
-		return validationResult.getNode(); 
+		return validationResult.getNode();
 	}
 
 	public void validateObject(ObjectType object, OperationResult objectResult) {
@@ -390,7 +391,7 @@ public class Validator {
 			ResourceType resource = (ResourceType) object;
 			checkResource(resource, objectResult);
 		}
-		
+
 		// TODO: more checks
 
 		objectResult.recomputeStatus("Object validation has failed", "Validation warning");

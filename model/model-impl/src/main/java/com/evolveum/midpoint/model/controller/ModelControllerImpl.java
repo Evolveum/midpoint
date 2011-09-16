@@ -221,6 +221,8 @@ public class ModelControllerImpl implements ModelController {
 			list = new ArrayList<T>();
 		}
 
+		LOGGER.debug("Returning {} objects.", new Object[] { list.size() });
+
 		return list;
 	}
 

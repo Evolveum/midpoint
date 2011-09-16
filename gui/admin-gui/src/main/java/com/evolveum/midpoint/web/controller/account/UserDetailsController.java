@@ -78,6 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 /**
  * 
  * @author lazyman
+ * 
  */
 @Controller("userDetails")
 @Scope("session")

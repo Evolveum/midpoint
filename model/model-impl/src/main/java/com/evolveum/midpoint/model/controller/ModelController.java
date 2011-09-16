@@ -13,8 +13,10 @@ public interface ModelController extends ModelService {
 
 	// Constants for OperationResult
 	String CLASS_NAME = ModelController.class.getName() + ".";
+	String SEARCH_OBJECTS_IN_REPOSITORY = CLASS_NAME_WITH_DOT + "searchObjectsInRepository";
 	String SEARCH_OBJECTS_IN_PROVISIONING = CLASS_NAME + "searchObjectsInProvisioning";
 	String MODIFY_OBJECT_WITH_EXCLUSION = CLASS_NAME + "modifyObjectWithExclusion";
+	String PROCESS_ACCOUNT_FROM_CHANGES = CLASS_NAME + "processAddDeleteAccountFromChanges";
 
 	<T extends ObjectType> void modifyObjectWithExclusion(Class<T> type, ObjectModificationType change,
 			String accountOid, OperationResult result) throws ObjectNotFoundException;

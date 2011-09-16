@@ -58,7 +58,6 @@ import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.ResourceItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 /**
  * 
@@ -202,6 +201,10 @@ public class ResourceListController extends SortableListController<ResourceListI
 		ResourceListItem item = new ResourceListItem(resource.getOid(), resource.getName(), type, version);
 		try {
 			Schema schema = ResourceTypeUtil.getResourceSchema(resource);
+			if (schema == null) {
+				LOGGER.debug("Schema for resource {} was null.", new Object[] { resource.getName() });
+				return item;
+			}
 			Set<Definition> definitions = schema.getDefinitions();
 			for (Definition definition : definitions) {
 				if (!(definition instanceof ResourceObjectDefinition)) {

@@ -38,6 +38,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.result.OperationResultStatus;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
@@ -72,7 +73,11 @@ public class MidPointFacesMessages extends HtmlMessages {
 			message.rendered();
 
 			if (message instanceof MidPointMessage) {
-				writeMidPointMessage((MidPointMessage) message, context, index);
+				try {
+					writeMidPointMessage((MidPointMessage) message, context, index);
+				} catch (Exception ex) {
+					LoggingUtils.logException(LOGGER, "Couldn't pring message to web page", ex);
+				}
 				index++;
 			} else {
 				writer.startElement("li", null);

@@ -55,7 +55,6 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -156,9 +155,9 @@ public class CalculateXmlDiff {
 
 			String stringOld = JAXBUtil.marshal(jaxbOld);
 			String stringNew = JAXBUtil.marshal(jaxbNew);
-
-			LOGGER.trace("Old Object {}", stringOld);
-			LOGGER.trace("New Object {}", stringNew);
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Old Object {}\nNew Object {}", new Object[] { stringOld, stringNew });
+			}
 
 			return calculateChanges(IOUtils.toInputStream(stringOld, "utf-8"),
 					IOUtils.toInputStream(stringNew, "utf-8"), oldObject.getOid());
@@ -359,19 +358,24 @@ public class CalculateXmlDiff {
 			// changes
 			if (null != change) {
 				changes.getPropertyModification().add(change);
-				LOGGER.trace(
-						"Finished processing of difference {}. Relative change for difference is change = {}",
-						diff.getDescription(), DebugUtil.prettyPrint(change));
-				if (null != change.getValue()) {
-					try {
-						LOGGER.trace("Relative change value= {}",
-								JAXBUtil.serializeElementToString(change.getValue().getAny().get(0)));
-					} catch (JAXBException e) {
-						LOGGER.error("Unexpected JAXB exception while serializing "+change.getValue().getAny().get(0)+": "+e.getMessage(),e);
-						throw new IllegalStateException("Unexpected JAXB exception while serializing "+change.getValue().getAny().get(0)+": "+e.getMessage(),e);
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace(
+							"Finished processing of difference {}. Relative change for difference is change = {}",
+
+							diff.getDescription(), DebugUtil.prettyPrint(change));
+					if (null != change.getValue()) {
+						try {
+							LOGGER.trace("Relative change value= {}",
+									JAXBUtil.serializeElementToString(change.getValue().getAny().get(0)));
+						} catch (JAXBException e) {
+							LOGGER.error("Unexpected JAXB exception while serializing "
+									+ change.getValue().getAny().get(0) + ": " + e.getMessage(), e);
+							throw new IllegalStateException("Unexpected JAXB exception while serializing "
+									+ change.getValue().getAny().get(0) + ": " + e.getMessage(), e);
+						}
+					} else {
+						LOGGER.trace("Relative change value was null");
 					}
-				} else {
-					LOGGER.trace("Relative change value was null");
 				}
 			}
 		}

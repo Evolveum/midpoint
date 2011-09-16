@@ -92,8 +92,7 @@ public interface ModelService {
 	String IMPORT_ACCOUNTS_FROM_RESOURCE = CLASS_NAME_WITH_DOT + "importAccountsFromResource";
 	String IMPORT_OBJECTS_FROM_FILE = CLASS_NAME_WITH_DOT + "importObjectsFromFile";
 	String IMPORT_OBJECTS_FROM_STREAM = CLASS_NAME_WITH_DOT + "importObjectsFromStream";
-	String POST_INIT = CLASS_NAME_WITH_DOT + "postInit";
-	String SEARCH_OBJECTS_IN_REPOSITORY = CLASS_NAME_WITH_DOT + "searchObjectsInRepository";
+	String POST_INIT = CLASS_NAME_WITH_DOT + "postInit";	
 	String DISCOVER_CONNECTORS = CLASS_NAME_WITH_DOT + "discoverConnectors";
 
 	/**
