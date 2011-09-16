@@ -161,6 +161,7 @@ public abstract class SchemaConstants {
 	public static final String[] JAXB_PACKAGES = new String[]{
 		"com.evolveum.midpoint.xml.ns._public.common.common_1",
 		"com.evolveum.midpoint.xml.ns._public.resource.resource_schema_1",
+		"com.evolveum.midpoint.xml.ns._public.resource.capabilities_1"
 	};
 
 	static {
