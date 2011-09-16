@@ -19,9 +19,9 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
-import static com.evolveum.midpoint.test.IntegrationTestTools.assertNotEmpty;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertFalse;
+import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -61,6 +61,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -68,6 +69,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
 
 /**
  * Test UCF implementation with OpenDJ and ICF LDAP connector.
@@ -270,6 +273,27 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		}
 		
 	}
+	
+	@Test
+    public void testCapabilities() throws Exception {
+		displayTestTile("testCapabilities");
+        //GIVEN
+
+		OperationResult result = new OperationResult("testCapabilities");
+		
+        //WHEN
+		
+        Set<Object> capabilities = cc.getCapabilities(result);
+
+        //THEN
+        result.computeStatus("getCapabilities failed");
+        assertSuccess("getCapabilities failed (result)",result);
+        assertFalse("Empty capabilities returned",capabilities.isEmpty());
+        CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(capabilities, CredentialsCapabilityType.class);
+        assertNotNull("password capability not present",capCred.getPassword());
+        
+    }
+
 
 	@Test
 	public void testFetchObject() throws Exception {

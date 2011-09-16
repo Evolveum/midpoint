@@ -19,6 +19,8 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import java.util.Set;
+
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.EnhancedResourceType;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -108,6 +111,16 @@ public class ResourceTypeUtil {
 			return false;
 		}
 		return JAXBUtil.compareAny(a.getAny(),b.getAny());
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> T getCapability(Set<Object> capabilities, Class<T> capabilityClass) {
+		for (Object cap : capabilities) {
+			if (capabilityClass.isAssignableFrom(cap.getClass())) {
+				return (T) cap;
+			}
+		}
+		return null;
 	}
 
 }

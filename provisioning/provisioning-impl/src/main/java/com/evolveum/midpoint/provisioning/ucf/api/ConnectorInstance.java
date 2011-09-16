@@ -86,6 +86,24 @@ public interface ConnectorInstance {
 	 */
 	public void initialize(OperationResult parentResult)  throws CommunicationException, GenericFrameworkException;
 	
+	/**
+	 * Retrieves native connector capabilities.
+	 * 
+	 * The capabilities specify what the connector can do without any kind of simulation or other workarounds.
+	 * The set of capabilities may depend on the connector configuration (e.g. if a "disable" or password attribute
+	 * was specified in the configuration or not).
+	 *
+	 * The schema is retrieved from the connector instance and therefore it may be out-of-date.
+	 * This must be called after a call to initialize() method.
+	 *
+	 * @param parentResult
+	 * @return
+	 * @throws CommunicationException
+	 * @throws GenericFrameworkException
+	 */
+	public Set<Object> getCapabilities(OperationResult parentResult) throws CommunicationException,
+			GenericFrameworkException;
+	
     /**
 	 * Retrieves the schema from the resource.
 	 * 

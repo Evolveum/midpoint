@@ -122,6 +122,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadow
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptOrderType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.PasswordCapabilityType;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.IcfUtil.processIcfException;
@@ -154,7 +157,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	Protector protector;
 	
 	private Schema resourceSchema = null;
-	Set<Object> capabilities;
+	Set<Object> capabilities = null;
 
 	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType, String schemaNamespace, Protector protector) {
 		this.cinfo = connectorInfo;
@@ -397,7 +400,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		return resourceSchema;
 	}
-		
+	
 	private void parseResourceSchema(org.identityconnectors.framework.common.objects.Schema icfSchema) {
 
 		boolean capPassword = false;
@@ -498,10 +501,44 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		}
 		
-		// TODO capabilities
+		capabilities = new HashSet<Object>();
+		
+		if (capEnable) {
+			ActivationCapabilityType capAct = new ActivationCapabilityType();
+			EnableDisable capEnableDisable = new EnableDisable();
+			capAct.setEnableDisable(capEnableDisable);
+			capabilities.add(capAct);
+		}
+		
+		if (capPassword) {
+			CredentialsCapabilityType capCred = new CredentialsCapabilityType();
+			PasswordCapabilityType capPass = new PasswordCapabilityType();
+			capCred.setPassword(capPass);
+			capabilities.add(capCred);
+		}
 		
 	}
 
+	@Override
+	public Set<Object> getCapabilities(OperationResult parentResult)
+			throws CommunicationException, GenericFrameworkException {
+
+		// Result type for this operation
+		OperationResult result = parentResult
+				.createSubresult(ConnectorInstance.class.getName()
+						+ ".getCapabilities");
+		result.addContext("connector", connectorType);
+
+		if (capabilities == null) {
+			// initialize the connector if it was not initialized yet
+			initialize(result);
+		}
+
+		result.recordSuccess();
+		
+		return capabilities;
+	}
+	
 	@Override
 	public ResourceObject fetchObject(
 			ResourceObjectDefinition resourceObjectDefinition,
