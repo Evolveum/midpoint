@@ -103,7 +103,7 @@ public class RoleListController extends SearchableListController<RoleListItem> {
 
 		template.setSelectedLeftId("leftAvailableRoles");
 		roleEditor.setNewRole(true);
-		
+
 		return PAGE_NAVIGATION_LIST;
 	}
 
@@ -174,8 +174,8 @@ public class RoleListController extends SearchableListController<RoleListItem> {
 					RoleManager roleManager = ControllerUtil.getRoleManager(catalog);
 					roleManager.delete(role.getOid());
 				} catch (Exception ex) {
-					LoggingUtils.logException(LOGGER, "Delete role failed", ex);
-					FacesUtils.addErrorMessage("Delete role failed: " + ex.getMessage());
+					LoggingUtils.logException(LOGGER, "Deleting role '{}' failed", ex, role.getName());
+					FacesUtils.addErrorMessage("Deleting role '" + role.getName() + "' failed.", ex);
 				}
 			}
 

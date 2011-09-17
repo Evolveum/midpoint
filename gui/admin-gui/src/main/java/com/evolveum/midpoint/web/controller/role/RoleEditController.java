@@ -52,8 +52,10 @@ public class RoleEditController implements Serializable {
 	private static final Trace LOGGER = TraceManager.getTrace(RoleEditController.class);
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog catalog;
-	@Autowired(required=true)
+	@Autowired(required = true)
 	private transient TemplateController template;
+	@Autowired(required = true)
+	private transient RoleListController roleList;
 	private boolean newRole = true;
 	private RoleDto role;
 
@@ -68,7 +70,7 @@ public class RoleEditController implements Serializable {
 	public boolean isNewRole() {
 		return newRole;
 	}
-	
+
 	void setNewRole(boolean newRole) {
 		this.newRole = newRole;
 	}
@@ -99,9 +101,11 @@ public class RoleEditController implements Serializable {
 			RoleManager manager = ControllerUtil.getRoleManager(catalog);
 			manager.submit(getRole());
 
+			roleList.initController();
 			nextPage = RoleListController.PAGE_NAVIGATION_LIST;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());
+			FacesUtils.addErrorMessage("Couldn't submit role '" + role.getName() + "'.", ex);
 		}
 
 		return nextPage;
