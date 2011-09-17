@@ -22,10 +22,20 @@ package com.evolveum.midpoint.web.controller.role;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.controller.TemplateController;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.RoleManager;
 import com.evolveum.midpoint.web.model.dto.RoleDto;
+import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 
 /**
@@ -38,15 +48,62 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 public class RoleEditController implements Serializable {
 
 	public static final String PAGE_NAVIGATION = "/role/roleEdit?faces-redirect=true";
+	private static final long serialVersionUID = 6390559677870495118L;
+	private static final Trace LOGGER = TraceManager.getTrace(RoleEditController.class);
+	@Autowired(required = true)
+	private transient ObjectTypeCatalog catalog;
+	@Autowired(required=true)
+	private transient TemplateController template;
+	private boolean newRole = true;
 	private RoleDto role;
 
 	public RoleDto getRole() {
 		return role;
 	}
 
+	/**
+	 * True if this controller is used for creating new role, false if we're
+	 * editing existing role
+	 */
+	public boolean isNewRole() {
+		return newRole;
+	}
+	
+	void setNewRole(boolean newRole) {
+		this.newRole = newRole;
+	}
+
+	void setRole(RoleDto role) {
+		Validate.notNull(role, "Role must not be null.");
+		this.role = role;
+		newRole = false;
+		template.setSelectedLeftId("leftRoleEdit");
+	}
+
 	public String initController() {
 		role = new RoleDto(new RoleType());
+		newRole = true;
+		template.setSelectedLeftId("leftRoleCreate");
 
 		return PAGE_NAVIGATION;
+	}
+
+	public String save() {
+		if (role == null) {
+			FacesUtils.addErrorMessage("Role must not be null.");
+			return null;
+		}
+
+		String nextPage = null;
+		try {
+			RoleManager manager = ControllerUtil.getRoleManager(catalog);
+			manager.submit(getRole());
+
+			nextPage = RoleListController.PAGE_NAVIGATION_LIST;
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());
+		}
+
+		return nextPage;
 	}
 }

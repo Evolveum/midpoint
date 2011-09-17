@@ -13,6 +13,19 @@
 
 	<ui:define name="content">
 		<ice:form>
+			<ice:panelPopup modal="true" autoCentre="true" visible="#{roleList.showPopup}">
+				<f:facet name="header">
+					<ice:outputText value="#{msg['page.role.index.popup.delete.title']}" />
+				</f:facet>
+				<f:facet id="confirm" name="body">
+					<ice:outputText value="#{msg['page.role.index.popup.delete.confirm']}" />
+					<div class="button-bar">
+						<ice:commandButton id="deleteRoleYes" value="#{msg['page.button.yes']}" action="#{roleList.deleteRoles}" />
+						<ice:commandButton id="deleteRoleNo" value="#{msg['page.button.no']}"
+							action="#{roleList.hideConfirmDelete}" />
+					</div>
+				</f:facet>
+			</ice:panelPopup>
 			<ice:dataTable id="roleTable" rows="#{roleList.rowsCount}" value="#{roleList.objects}" var="role"
 				sortColumn="#{roleList.sortColumnName}" sortAscending="#{roleList.ascending}"
 				columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2" columnWidths="auto, 250px, 450px"
@@ -57,6 +70,10 @@
 				<idm:button id="goToLast" img="/resources/images/resultset_last.png" value="#{msg['page.paginator.last']}"
 					action="#{roleList.listLast}" />
 			</ice:panelGroup>
+			<div>
+				<idm:button action="#{roleList.showConfirmDelete}" id="deleteRole" buttonType="negative"
+					value="#{msg['page.button.delete']}" img="/resources/images/user_delete.png" />
+			</div>
 		</ice:form>
 	</ui:define>
 </ui:composition>

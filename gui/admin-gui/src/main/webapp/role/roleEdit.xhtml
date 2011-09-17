@@ -5,7 +5,10 @@
 	xmlns:ice="http://www.icesoft.com/icefaces/component" xmlns:ace="http://www.icefaces.org/icefaces/components"
 	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
 
-	<ui:define name="title">#{msg['page.role.roleEdit.title']}</ui:define>
+	<ui:define name="title">
+		<f:subview rendered="#{not roleEdit.newRole}">#{msg['page.role.roleEdit.title']}</f:subview>
+		<f:subview rendered="#{roleEdit.newRole}">#{msg['page.role.roleEdit.title.create']}</f:subview>
+	</ui:define>
 
 	<ui:define name="menu">
 		<ui:include src="./menu.xhtml" />
@@ -15,7 +18,7 @@
 		<ice:form>
 			<ice:panelGrid columns="3" cellpadding="3" cellspacing="3">
 				<ice:outputLabel value="Name" />
-				<ice:inputText id="name" value="#{roleEdit.role.name}" />
+				<ice:inputText id="name" value="#{roleEdit.role.name}" required="true" />
 				<ice:message for="name" />
 
 				<ice:outputLabel value="Description" />
@@ -45,6 +48,14 @@
 				</ace:dateTimeEntry>
 				<ice:message for="calendarTo" rendered="#{roleEdit.role.showActivationDate}" />
 			</ice:panelGrid>
+			<div class="button-bar">
+				<idm:button action="#{roleList.initController}"
+					value="#{msg['page.button.cancel']}" img="/resources/images/door_in.png"
+					id="cancelRoleCreate" immediate="true" />
+
+				<idm:button action="#{roleEdit.save}" id="createRole" buttonType="positive"
+					value="#{msg['page.button.save']}" img="/resources/images/user_add.png" />
+			</div>
 		</ice:form>
 	</ui:define>
 </ui:composition>

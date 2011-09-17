@@ -26,11 +26,15 @@ import java.util.Collections;
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.RoleListItem;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
@@ -38,9 +42,11 @@ import com.evolveum.midpoint.web.controller.util.SearchableListController;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.RoleManager;
 import com.evolveum.midpoint.web.model.dto.RoleDto;
+import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.RoleListItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 
 /**
  * 
@@ -51,13 +57,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 @Scope("session")
 public class RoleListController extends SearchableListController<RoleListItem> {
 
-	private static final long serialVersionUID = -2220151123394281052L;
 	public static final String PAGE_NAVIGATION_LIST = "/role/index?faces-redirect=true";
+	private static final long serialVersionUID = -2220151123394281052L;
+	private static final Trace LOGGER = TraceManager.getTrace(RoleListController.class);
+	private static final String PARAM_ROLE_OID = "roleOid";
 	@Autowired(required = true)
 	private transient TemplateController template;
 	@Autowired(required = true)
 	private transient ObjectTypeCatalog catalog;
+	@Autowired(required = true)
+	private transient RoleEditController roleEditor;
 	private boolean selectAll;
+	private boolean showPopup;
 
 	@Override
 	protected void sort() {
@@ -76,10 +87,11 @@ public class RoleListController extends SearchableListController<RoleListItem> {
 		getObjects().clear();
 		Collection<RoleDto> list = manager.list(paging);
 		if (list != null) {
+			RoleListItem item;
 			for (RoleDto role : list) {
 				// TODO: assignments
-				getObjects()
-						.add(new RoleListItem(role.getOid(), role.getName(), role.getDescription(), null));
+				item = new RoleListItem(role.getOid(), role.getName(), role.getDescription(), null);
+				getObjects().add(item);
 			}
 		}
 
@@ -90,12 +102,47 @@ public class RoleListController extends SearchableListController<RoleListItem> {
 		listFirst();
 
 		template.setSelectedLeftId("leftAvailableRoles");
+		roleEditor.setNewRole(true);
+		
 		return PAGE_NAVIGATION_LIST;
 	}
 
 	public String showRoleDetails() {
-		// TODO:
-		return RoleEditController.PAGE_NAVIGATION;
+		String roleOid = FacesUtils.getRequestParameter(PARAM_ROLE_OID);
+		if (StringUtils.isEmpty(roleOid)) {
+			FacesUtils.addErrorMessage("Couldn't show role details, unidentified oid.");
+			return null;
+		}
+
+		RoleListItem item = getRoleItem(roleOid);
+		if (item == null) {
+			FacesUtils.addErrorMessage("Couldn't show role details, unidentified role list item.");
+			return null;
+		}
+
+		String nextPage = null;
+		try {
+			RoleManager manager = ControllerUtil.getRoleManager(catalog);
+			RoleDto role = manager.get(roleOid, new PropertyReferenceListType());
+			roleEditor.setRole(role);
+
+			nextPage = RoleEditController.PAGE_NAVIGATION;
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't show role '{}' details", ex, item.getName());
+			FacesUtils.addErrorMessage("Couldn't show details for role '" + item.getName() + "'.", ex);
+		}
+
+		return nextPage;
+	}
+
+	private RoleListItem getRoleItem(String oid) {
+		for (RoleListItem item : getObjects()) {
+			if (item.getOid().equals(oid)) {
+				return item;
+			}
+		}
+
+		return null;
 	}
 
 	public boolean isSelectAll() {
@@ -116,5 +163,48 @@ public class RoleListController extends SearchableListController<RoleListItem> {
 
 	public void sortItem(ActionEvent e) {
 		sort();
+	}
+
+	public void deleteRoles() {
+		showPopup = false;
+		for (RoleListItem role : getObjects()) {
+			if (role.isSelected()) {
+				LOGGER.debug("Deleting role {}.", new Object[] { role.getName() });
+				try {
+					RoleManager roleManager = ControllerUtil.getRoleManager(catalog);
+					roleManager.delete(role.getOid());
+				} catch (Exception ex) {
+					LoggingUtils.logException(LOGGER, "Delete role failed", ex);
+					FacesUtils.addErrorMessage("Delete role failed: " + ex.getMessage());
+				}
+			}
+
+		}
+		listFirst();
+	}
+
+	public boolean isShowPopup() {
+		return showPopup;
+	}
+
+	public void hideConfirmDelete() {
+		showPopup = false;
+	}
+
+	public void showConfirmDelete() {
+		boolean selected = false;
+
+		for (RoleListItem role : getObjects()) {
+			if (role != null && role.isSelected()) {
+				selected = true;
+				break;
+			}
+		}
+
+		if (selected) {
+			showPopup = true;
+		} else {
+			FacesUtils.addErrorMessage("No user selected.");
+		}
 	}
 }
