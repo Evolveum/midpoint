@@ -12,6 +12,51 @@
 	</ui:define>
 
 	<ui:define name="content">
-		Role stuff :)))
+		<ice:form>
+			<ice:dataTable id="roleTable" rows="#{roleList.rowsCount}" value="#{roleList.objects}" var="role"
+				sortColumn="#{roleList.sortColumnName}" sortAscending="#{roleList.ascending}"
+				columnClasses="iceDatTblCol1" rowClasses="iceDatTblRow1 iceDatTblRow2" columnWidths="auto, 250px, 450px"
+				resizable="false">
+				<ice:column>
+					<f:facet name="header">
+						<ice:selectBooleanCheckbox id="deleteAllCheckbox" value="#{roleList.selectAll}"
+							valueChangeListener="#{roleList.selectAllPerformed}" immediate="true" partialSubmit="true" />
+					</f:facet>
+					<ice:selectBooleanCheckbox id="deleteCheckbox" value="#{role.selected}" immediate="true"
+						partialSubmit="true" />
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="name" arrow="true" actionListener="#{roleList.sortItem}">
+							<ice:outputText id="roleName" value="#{msg['page.role.index.table.name']}" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:outputText>
+						<ice:commandLink styleClass="iceOutTxt" style="text-decoration: underline;" id="name"
+							value="#{role.name}" action="#{roleList.showRoleDetails}">
+							<f:param name="roleOid" value="#{role.oid}" />
+						</ice:commandLink>
+					</ice:outputText>
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:commandSortHeader columnName="description" arrow="true" actionListener="#{roleList.sortItem}">
+							<ice:outputText id="roleDescription" value="#{msg['page.role.index.table.description']}" />
+						</ice:commandSortHeader>
+					</f:facet>
+					<ice:outputText id="description" value="#{role.description}" />
+				</ice:column>
+			</ice:dataTable>
+			<ice:panelGroup styleClass="container-auto" style="text-align: center;">
+				<idm:button id="goToFirst" img="/resources/images/resultset_first.png"
+					value="#{msg['page.paginator.first']}" action="#{roleList.listFirst}" />
+				<idm:button id="goToPrevious" img="/resources/images/resultset_previous.png"
+					value="#{msg['page.paginator.previous']}" action="#{roleList.listPrevious}" />
+				<idm:button id="goToNext" img="/resources/images/resultset_next.png" value="#{msg['page.paginator.next']}"
+					action="#{roleList.listNext}" />
+				<idm:button id="goToLast" img="/resources/images/resultset_last.png" value="#{msg['page.paginator.last']}"
+					action="#{roleList.listLast}" />
+			</ice:panelGroup>
+		</ice:form>
 	</ui:define>
 </ui:composition>

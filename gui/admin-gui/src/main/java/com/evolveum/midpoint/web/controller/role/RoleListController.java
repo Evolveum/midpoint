@@ -20,10 +20,27 @@
  */
 package com.evolveum.midpoint.web.controller.role;
 
-import java.io.Serializable;
+import java.util.Collection;
+import java.util.Collections;
 
+import javax.faces.event.ActionEvent;
+import javax.faces.event.ValueChangeEvent;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
+
+import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.web.bean.RoleListItem;
+import com.evolveum.midpoint.web.controller.TemplateController;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.controller.util.SearchableListController;
+import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
+import com.evolveum.midpoint.web.model.RoleManager;
+import com.evolveum.midpoint.web.model.dto.RoleDto;
+import com.evolveum.midpoint.web.util.RoleListItemComparator;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.OrderDirectionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 
 /**
  * 
@@ -32,13 +49,72 @@ import org.springframework.stereotype.Controller;
  */
 @Controller("roleList")
 @Scope("session")
-public class RoleListController implements Serializable {
+public class RoleListController extends SearchableListController<RoleListItem> {
 
 	private static final long serialVersionUID = -2220151123394281052L;
 	public static final String PAGE_NAVIGATION_LIST = "/role/index?faces-redirect=true";
+	@Autowired(required = true)
+	private transient TemplateController template;
+	@Autowired(required = true)
+	private transient ObjectTypeCatalog catalog;
+	private boolean selectAll;
+
+	@Override
+	protected void sort() {
+		Collections.sort(getObjects(), new RoleListItemComparator(getSortColumnName(), isAscending()));
+	}
+
+	@Override
+	protected String listObjects() {
+		RoleManager manager = ControllerUtil.getRoleManager(catalog);
+
+		OrderDirectionType direction = isAscending() ? OrderDirectionType.ASCENDING
+				: OrderDirectionType.DESCENDING;
+		PagingType paging = PagingTypeFactory.createPaging(getOffset(), getRowsCount(), direction,
+				getSortColumnName());
+
+		getObjects().clear();
+		Collection<RoleDto> list = manager.list(paging);
+		if (list != null) {
+			for (RoleDto role : list) {
+				// TODO: assignments
+				getObjects()
+						.add(new RoleListItem(role.getOid(), role.getName(), role.getDescription(), null));
+			}
+		}
+
+		return null;
+	}
 
 	public String initController() {
+		listFirst();
 
+		template.setSelectedLeftId("leftAvailableRoles");
 		return PAGE_NAVIGATION_LIST;
+	}
+
+	public String showRoleDetails() {
+		// TODO:
+		return RoleEditController.PAGE_NAVIGATION;
+	}
+
+	public boolean isSelectAll() {
+		return selectAll;
+	}
+
+	public void setSelectAll(boolean selectAll) {
+		this.selectAll = selectAll;
+	}
+
+	public void selectAllPerformed(ValueChangeEvent event) {
+		ControllerUtil.selectAllPerformed(event, getObjects());
+	}
+
+	public void selectPerformed(ValueChangeEvent evt) {
+		this.selectAll = ControllerUtil.selectPerformed(evt, getObjects());
+	}
+
+	public void sortItem(ActionEvent e) {
+		sort();
 	}
 }

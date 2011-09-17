@@ -89,4 +89,12 @@ public class ObjectDto<T extends ObjectType> implements Serializable {
 	public void setVersion(String value) {
 		getXmlObject().setVersion(value);
 	}
+
+	public String getDescription() {
+		return getXmlObject().getDescription();
+	}
+
+	public void setDescription(String description) {
+		getXmlObject().setDescription(description);
+	}
 }

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ui:composition template="/resources/templates/template.xhtml" xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:comp="http://java.sun.com/jsf/composite/components" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component" xmlns:ace="http://www.icefaces.org/icefaces/components"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/">
+
+	<ui:define name="title">#{msg['page.role.roleEdit.title']}</ui:define>
+
+	<ui:define name="menu">
+		<ui:include src="./menu.xhtml" />
+	</ui:define>
+
+	<ui:define name="content">
+		<ice:form>
+			<ice:panelGrid columns="3" cellpadding="3" cellspacing="3">
+				<ice:outputLabel value="Name" />
+				<ice:inputText id="name" value="#{roleEdit.role.name}" />
+				<ice:message for="name" />
+
+				<ice:outputLabel value="Description" />
+				<ice:inputTextarea id="description" value="#{roleEdit.role.description}" />
+				<ice:message for="description" />
+
+				<ice:outputLabel value="Enabled" />
+				<ice:selectBooleanCheckbox id="enabled" value="#{roleEdit.role.enabled}" />
+				<ice:message for="enabled" />
+
+				<ice:outputLabel value="Activation date" />
+				<ice:selectBooleanCheckbox id="activationDate" value="#{roleEdit.role.showActivationDate}"
+					immediate="true" partialSubmit="true" />
+				<ice:message for="activationDate" />
+
+				<ice:outputLabel value="Active from" rendered="#{roleEdit.role.showActivationDate}" />
+				<ace:dateTimeEntry id="calendarFrom" value="#{roleEdit.role.fromActivation}" renderAsPopup="true"
+					renderInputField="true" singleSubmit="false" rendered="#{roleEdit.role.showActivationDate}">
+					<f:convertDateTime pattern="MMM/dd/yyyy hh:mm a" />
+				</ace:dateTimeEntry>
+				<ice:message for="calendarFrom" rendered="#{roleEdit.role.showActivationDate}" />
+
+				<ice:outputLabel value="Active to" rendered="#{roleEdit.role.showActivationDate}" />
+				<ace:dateTimeEntry id="calendarTo" value="#{roleEdit.role.toActivation}" renderAsPopup="true"
+					renderInputField="true" singleSubmit="false" rendered="#{roleEdit.role.showActivationDate}">
+					<f:convertDateTime pattern="MMM/dd/yyyy hh:mm a" />
+				</ace:dateTimeEntry>
+				<ice:message for="calendarTo" rendered="#{roleEdit.role.showActivationDate}" />
+			</ice:panelGrid>
+		</ice:form>
+	</ui:define>
+</ui:composition>

@@ -41,7 +41,6 @@ import com.evolveum.midpoint.web.controller.util.ListController;
 import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
@@ -136,7 +135,7 @@ public class DebugListController extends ListController<ObjectBean> {
 		for (ObjectType object : list) {
 			getObjects().add(new ObjectBean(object.getOid(), object.getName()));
 		}
-		
+
 		if (getObjects().isEmpty()) {
 			FacesUtils.addWarnMessage("Couldn't find any object.");
 		}
@@ -151,7 +150,7 @@ public class DebugListController extends ListController<ObjectBean> {
 			return;
 		}
 
-		if (!repositoryManager.deleteObject(ObjectTypes.getObjectTypeClass(objectType),oidToDelete)) {
+		if (!repositoryManager.deleteObject(ObjectTypes.getObjectTypeClass(objectType), oidToDelete)) {
 			FacesUtils.addErrorMessage("Delete object failed.");
 		}
 

@@ -43,15 +43,18 @@ import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.ResourceManager;
+import com.evolveum.midpoint.web.model.RoleManager;
 import com.evolveum.midpoint.web.model.SystemManager;
 import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
+import com.evolveum.midpoint.web.model.dto.RoleDto;
 import com.evolveum.midpoint.web.model.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -152,6 +155,12 @@ public class ControllerUtil {
 		ObjectManager<SystemConfigurationDto> manager = catalog.getObjectManager(
 				SystemConfigurationType.class, SystemConfigurationDto.class);
 		return (SystemManager) (manager);
+	}
+
+	public static RoleManager getRoleManager(ObjectTypeCatalog catalog) {
+		Validate.notNull(catalog, "Object type catalog must not be null.");
+		ObjectManager<RoleDto> manager = catalog.getObjectManager(RoleType.class, RoleDto.class);
+		return (RoleManager) (manager);
 	}
 
 	public static void updateResourceState(ResourceState state, OperationResult result) {

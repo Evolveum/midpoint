@@ -7,5 +7,7 @@
 	<idm:leftMenuContainer name="#{msg['page.template.top.roles']}">
 		<idm:leftMenuItem id="leftAvailableRoles" name="#{msg['page.role.index.title']}"
 			action="#{roleList.initController}" />
+		<idm:leftMenuItem id="leftCreateRole" name="#{msg['page.role.roleEdit.title']}"
+			action="#{roleEdit.initController}" />
 	</idm:leftMenuContainer>
 </ui:composition>

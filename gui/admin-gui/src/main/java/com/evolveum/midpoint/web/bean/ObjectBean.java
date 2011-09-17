@@ -34,8 +34,13 @@ public class ObjectBean implements Serializable {
 	private static final long serialVersionUID = 7834659389991367819L;
 	private String name;
 	private String oid;
-
+	private String description;
+	
 	public ObjectBean(String oid, String name) {
+		this(oid, name, null);
+	}
+
+	public ObjectBean(String oid, String name, String description) {
 		if (StringUtils.isEmpty(oid)) {
 			throw new IllegalArgumentException("Oid can't be null.");
 		}
@@ -44,13 +49,18 @@ public class ObjectBean implements Serializable {
 		}
 		this.oid = oid;
 		this.name = name;
+		this.description = description;
 	}
-	
+
 	public String getName() {
 		return name;
 	}
 
 	public String getOid() {
 		return oid;
+	}
+
+	public String getDescription() {
+		return description;
 	}
 }
