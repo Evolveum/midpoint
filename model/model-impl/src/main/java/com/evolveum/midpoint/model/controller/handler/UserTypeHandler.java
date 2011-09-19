@@ -104,14 +104,17 @@ public class UserTypeHandler extends BasicHandler {
 		List<PropertyModificationType> accountChanges = getAccountChanges(change);
 		// we remove account changes, then we save user object
 		change.getPropertyModification().removeAll(accountChanges);
-		getRepository().modifyObject(UserType.class, change, result);
+		if (!change.getPropertyModification().isEmpty()) {
+			// not only account was added/deleted, other attributes has changed
+			getRepository().modifyObject(UserType.class, change, result);
 
-		try {
-			PatchXml patchXml = new PatchXml();
-			String u = patchXml.applyDifferences(change, user);
-			user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(u)).getValue();
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't patch user {}", ex, user.getName());
+			try {
+				PatchXml patchXml = new PatchXml();
+				String u = patchXml.applyDifferences(change, user);
+				user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(u)).getValue();
+			} catch (Exception ex) {
+				LoggingUtils.logException(LOGGER, "Couldn't patch user {}", ex, user.getName());
+			}
 		}
 
 		PropertyModificationType userActivationChanged = hasPropertyChanged(change,
