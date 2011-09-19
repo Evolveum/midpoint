@@ -132,8 +132,10 @@ public class XmlRepositoryService implements RepositoryService {
 		result.addParam("object", object);
 
 		StringBuilder query = new StringBuilder();
+		String origOid = null;
 		try {
 			// generate new oid, if necessary
+			origOid = object.getOid();
 			oid = (StringUtils.isNotEmpty(object.getOid()) ? object.getOid() : UUID.randomUUID().toString());
 			object.setOid(oid);
 
@@ -166,13 +168,13 @@ public class XmlRepositoryService implements RepositoryService {
 		} catch (JAXBException ex) {
 			LoggingUtils.logException(LOGGER, "Failed to (un)marshal object", ex);
 			result.recordFatalError("Failed to (un)marshal object", ex);
-			object.setOid(null);
+			object.setOid(origOid);
 			throw new IllegalArgumentException("Failed to (un)marshal object", ex);
 		} catch (RuntimeException ex) {
-			object.setOid(null);
+			object.setOid(origOid);
 			throw ex;
 		} catch (ObjectAlreadyExistsException ex) {
-			object.setOid(null);
+			object.setOid(origOid);
 			throw ex;
 		}
 		// catch (SchemaException ex) {
