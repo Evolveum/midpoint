@@ -79,7 +79,9 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 
 	private static final String TEST_FILE_DIRECTORY = "src/test/resources/importer/";
 	private static final File IMPORT_USERS_FILE = new File(TEST_FILE_DIRECTORY, "import-users.xml");
+	private static final File IMPORT_USERS_OVERWRITE_FILE = new File(TEST_FILE_DIRECTORY, "import-users-overwrite.xml");
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	private static final String USER_WILL_OID = "c0c010c0-d34d-b33f-f00d-111111111112";
 	private static final File IMPORT_CONNECTOR_FILE = new File(TEST_FILE_DIRECTORY, "import-connector.xml");
 	private static final String CONNECOTR_LDAP_OID = "7d3ebd6f-6113-4833-8a6a-596b73a5e434";
 	private static final String CONNECTOR_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector";
@@ -190,9 +192,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 
 		// Check import with generated OID
 		Document doc = DOMUtil.getDocument();
-		Element filter = QueryUtil.createAndFilter(doc,
-				QueryUtil.createTypeFilter(doc, ObjectTypes.USER.getObjectTypeUri()),
-				QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "guybrush"));
+		Element filter = QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_NAME, "guybrush");
 
 		QueryType query = new QueryType();
 		query.setFilter(filter);
@@ -244,7 +244,7 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		// GIVEN
 		Task task = taskManager.createTaskInstance();
 		OperationResult result = new OperationResult(ImportTest.class.getName() + "test005ImportUsersWithOverwrite");
-		FileInputStream stream = new FileInputStream(IMPORT_USERS_FILE);
+		FileInputStream stream = new FileInputStream(IMPORT_USERS_OVERWRITE_FILE);
 		ImportOptionsType options = getDefaultImportOptions();
 		options.setOverwrite(true);
 
@@ -256,7 +256,35 @@ public class ImportTest extends AbstractTestNGSpringContextTests {
 		display("Result after import with overwrite", result);
 		assertSuccess("Import failed (result)", result,1);
 
-		// TODO: more checks
+		// list all users
+		List<UserType> users = modelService.listObjects(UserType.class, null, result);
+		// Three old users, one new
+		assertEquals(4,users.size());
+		
+		for (UserType user : users) {
+			if (user.getName().equals("jack")) {
+				// OID and all the attributes should be the same
+				assertEquals(USER_JACK_OID,user.getOid());
+				assertEquals("Jack", user.getGivenName());
+				assertEquals("Sparrow", user.getFamilyName());
+				assertEquals("Cpt. Jack Sparrow", user.getFullName());
+			}
+			if (user.getName().equals("will")) {
+				// OID should be the same, and there should be an employee type
+				assertEquals(USER_WILL_OID,user.getOid());
+				assertTrue("Wrong Will's employee type", user.getEmployeeType().contains("legendary"));
+			}			
+			if (user.getName().equals("guybrush")) {
+				// OID may be different, there should be a locality attribute
+				assertEquals("Guybrush is not in the Caribbean", "Deep in the Caribbean", user.getLocality());
+			}			
+			if (user.getName().equals("ht")) {
+				// Herman should be here now
+				assertEquals("Herman is confused", "Herman Toothrot", user.getFullName());
+				assertEquals("Herman is confused", "Herman", user.getGivenName());
+				assertEquals("Herman is confused", "Toothrot", user.getFamilyName());
+			}	
+		}
 	}
 
 }

@@ -180,7 +180,7 @@ public class ObjectImporter {
 	
 			repository.addObject(object, result);
 			result.recordSuccess();
-	
+			
 		} catch (ObjectAlreadyExistsException e) {
 			if (options.isOverwrite()) {
 				// Try to delete conflicting object 
