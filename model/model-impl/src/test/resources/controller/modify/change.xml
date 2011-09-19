@@ -1,21 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <object xsi:type="ObjectModificationType" xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/model/password-1.wsdl"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<oid>f65963e3-9d47-4b18-aaf3-bfc98bdfaf0b</oid>
-	<propertyModification modificationType="add">
-		<xp372:path xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xp372="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">idmdn:credentials/idmdn:password</xp372:path>
-		<value>
-			<c:base64 xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" />
-		</value>
-	</propertyModification>
+	<oid>f65963e3-9d47-4b18-aaf3-bfc98bdfaf0b</oid>	
 	<propertyModification modificationType="replace">
-		<xp5340:path xmlns:xp5340="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">idmdn:credentials</xp5340:path>
-		<value>
-			<allowedIdmGuiAccess>false</allowedIdmGuiAccess>
-		</value>
-	</propertyModification>
-	<propertyModification modificationType="replace">
-		<xp7192:path xmlns:xp7192="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">idmdn:activation</xp7192:path>
+		<xp7192:path xmlns:xp7192="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+		xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">idmdn:activation
+		</xp7192:path>
 		<value>
 			<enabled>false</enabled>
 		</value>
