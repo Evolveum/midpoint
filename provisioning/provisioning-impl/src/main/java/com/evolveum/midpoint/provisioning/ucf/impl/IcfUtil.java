@@ -48,6 +48,13 @@ class IcfUtil {
 		// how to handle ICF errors
 		// Therefore let's just guess what might have happened. That's the best
 		// we can do.
+		
+		if (ex == null) {
+			throw new IllegalArgumentException("Null exception while processing ICF exception ");
+		}
+		if (parentResult == null) {
+			throw new IllegalArgumentException("Null parent result while processing ICF exception "+ex+": "+ex.getMessage(),ex);
+		}
 
 		// Introspect the inner exceptions and look for known causes
 		Exception knownCause = lookForKnownCause(ex, ex, parentResult);

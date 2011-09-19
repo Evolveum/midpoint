@@ -43,7 +43,9 @@
 
     <i:credentials>
         <i:password>
-            <i:cleartextPassword>deadmentellnotales</i:cleartextPassword>
+        	<i:protectedString>
+	            <i:clearValue>deadmentellnotales</i:clearValue>
+            </i:protectedString>
         </i:password>
     </i:credentials>
 </i:user>

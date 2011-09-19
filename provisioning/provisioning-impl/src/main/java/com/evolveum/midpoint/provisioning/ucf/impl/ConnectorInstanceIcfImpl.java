@@ -1003,71 +1003,72 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}
 
-		try {
-			if (updateValues != null && !updateValues.isEmpty() || activationChangeOperation != null ||
-					passwordChangeOperation != null) {
-				
-				Set<Attribute> attributes = null;
-				
-				try {
-					attributes = convertFromResourceObject(updateValues, result);
-				} catch (SchemaException ex) {
-					result.recordFatalError(
-							"Error while converting resource object attributes. Reason: "
-									+ ex.getMessage(), ex);
-					throw new SchemaException(
-							"Error while converting resource object attributes. Reason: "
-									+ ex.getMessage(), ex);
-				}
-				
-				if (activationChangeOperation != null) {
-					// Activation change means modification of attributes
-					convertFromActivation(attributes, activationChangeOperation);
-				}
-				
-				if (passwordChangeOperation != null) {
-					// Activation change means modification of attributes
-					convertFromPassword(attributes, passwordChangeOperation);
-				}
-				
-				OperationOptions options = new OperationOptionsBuilder()
-						.build();
-				icfResult = result.createSubresult(ConnectorFacade.class
-						.getName() + ".update");
-				icfResult.addParam("objectClass", objectClass);
-				icfResult.addParam("uid", uid);
-				icfResult.addParam("attributes", attributes);
-				icfResult.addParam("options", options);
-				icfResult.addContext("connector", icfConnectorFacade);
-				
-				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Invoking ICF update(), objectclass={}, uid={}, attributes=\n{}",
-							new Object[]{objClass, uid, dumpAttributes(attributes)});
-				}
-				
+		
+		if (updateValues != null && !updateValues.isEmpty() || activationChangeOperation != null ||
+				passwordChangeOperation != null) {
+			
+			Set<Attribute> attributes = null;
+			
+			try {
+				attributes = convertFromResourceObject(updateValues, result);
+			} catch (SchemaException ex) {
+				result.recordFatalError(
+						"Error while converting resource object attributes. Reason: "
+								+ ex.getMessage(), ex);
+				throw new SchemaException(
+						"Error while converting resource object attributes. Reason: "
+								+ ex.getMessage(), ex);
+			}
+			
+			if (activationChangeOperation != null) {
+				// Activation change means modification of attributes
+				convertFromActivation(attributes, activationChangeOperation);
+			}
+			
+			if (passwordChangeOperation != null) {
+				// Activation change means modification of attributes
+				convertFromPassword(attributes, passwordChangeOperation);
+			}
+			
+			OperationOptions options = new OperationOptionsBuilder()
+					.build();
+			icfResult = result.createSubresult(ConnectorFacade.class
+					.getName() + ".update");
+			icfResult.addParam("objectClass", objectClass);
+			icfResult.addParam("uid", uid);
+			icfResult.addParam("attributes", attributes);
+			icfResult.addParam("options", options);
+			icfResult.addContext("connector", icfConnectorFacade);
+			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Invoking ICF update(), objectclass={}, uid={}, attributes=\n{}",
+						new Object[]{objClass, uid, dumpAttributes(attributes)});
+			}
+			
+			try {
 				// Call ICF
 				icfConnectorFacade.update(objClass, uid, attributes, options);
 				
 				icfResult.recordSuccess();
-			}
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
-			result.computeStatus("Update failed");
-			// Do some kind of acrobatics to do proper throwing of checked
-			// exception
-			if (midpointEx instanceof ObjectNotFoundException) {
-				throw (ObjectNotFoundException) midpointEx;
-			} else if (midpointEx instanceof CommunicationException) {
-				throw (CommunicationException) midpointEx;
-			} else if (midpointEx instanceof GenericFrameworkException) {
-				throw (GenericFrameworkException) midpointEx;
-			} else if (midpointEx instanceof SchemaException) {
-				throw (SchemaException) midpointEx;
-			} else if (midpointEx instanceof RuntimeException) {
-				throw (RuntimeException) midpointEx;
-			} else {
-				throw new SystemException("Got unexpected exception: "
-						+ ex.getClass().getName(), ex);
+			} catch (Exception ex) {
+				Exception midpointEx = processIcfException(ex, icfResult);
+				result.computeStatus("Update failed");
+				// Do some kind of acrobatics to do proper throwing of checked
+				// exception
+				if (midpointEx instanceof ObjectNotFoundException) {
+					throw (ObjectNotFoundException) midpointEx;
+				} else if (midpointEx instanceof CommunicationException) {
+					throw (CommunicationException) midpointEx;
+				} else if (midpointEx instanceof GenericFrameworkException) {
+					throw (GenericFrameworkException) midpointEx;
+				} else if (midpointEx instanceof SchemaException) {
+					throw (SchemaException) midpointEx;
+				} else if (midpointEx instanceof RuntimeException) {
+					throw (RuntimeException) midpointEx;
+				} else {
+					throw new SystemException("Got unexpected exception: "
+							+ ex.getClass().getName(), ex);
+				}
 			}
 		}
 
@@ -1682,6 +1683,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	private void convertFromPassword(Set<Attribute> attributes,
 			PasswordChangeOperation passwordChangeOperation) {
+		if (passwordChangeOperation == null || passwordChangeOperation.getNewPassword() == null) {
+			throw new IllegalArgumentException("No password was provided");
+		}
 		
 		GuardedString guardedPassword = toGuardedString(passwordChangeOperation.getNewPassword(), "new password");
 		attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME,

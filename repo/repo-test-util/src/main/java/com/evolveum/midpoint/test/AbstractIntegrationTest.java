@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -86,6 +87,9 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	@Autowired(required = true)
 	protected TaskManager taskManager;
+	
+	@Autowired(required = true)
+	protected Protector protector;
 
 	// Controllers for embedded OpenDJ and Derby. The abstract test will configure it, but
 	// it will not start

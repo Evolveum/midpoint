@@ -745,6 +745,9 @@ public class ShadowCache {
 				Password newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectChange,"credentials","password",Password.class);
 				if (newPasswordStructure != null) {
 					ProtectedStringType newPasswordPS = newPasswordStructure.getProtectedString();
+					if (MiscUtil.isNullOrEmpty(newPasswordPS)) {
+						throw new IllegalArgumentException("ProtectedString is empty in an attempt to change password of "+ObjectTypeUtil.toShortString(objectType));
+					}
 					PasswordChangeOperation passwordChangeOp = new PasswordChangeOperation(newPasswordPS);
 					// TODO: other things from the structure
 					changes.add(passwordChangeOp);

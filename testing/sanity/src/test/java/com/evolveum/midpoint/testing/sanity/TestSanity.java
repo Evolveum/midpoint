@@ -68,6 +68,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
@@ -98,6 +99,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
@@ -160,6 +162,7 @@ public class TestSanity extends AbstractIntegrationTest {
 
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
 	private static final String REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME = "src/test/resources/request/user-modify-fullname-locality.xml";
+	private static final String REQUEST_USER_MODIFY_PASSWORD_FILENAME = "src/test/resources/request/user-modify-password.xml";
 
 	private static final QName IMPORT_OBJECTCLASS = new QName(
 			"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
@@ -317,15 +320,20 @@ public class TestSanity extends AbstractIntegrationTest {
 	 */
 	@Test
 	public void test002AddUser() throws FileNotFoundException, JAXBException, FaultMessage,
-			ObjectNotFoundException, SchemaException {
+			ObjectNotFoundException, SchemaException, EncryptionException {
 		displayTestTile("test002AddUser");
 
 		// GIVEN
 		UserType user = unmarshallJaxbFromFile(USER_JACK_FILENAME, UserType.class);
+		
+		// Encrypt Jack's password
+		protector.encrypt(user.getCredentials().getPassword().getProtectedString());
 
 		OperationResultType result = new OperationResultType();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(result);
 		Holder<String> oidHolder = new Holder<String>();
+		
+		display("Adding user object",user);
 
 		// WHEN
 		modelWeb.addObject(user, oidHolder, resultHolder);
@@ -471,9 +479,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * @throws DirectoryException
 	 */
 	@Test
-	public void test004modifyUser() throws FileNotFoundException, JAXBException, FaultMessage,
+	public void test004ModifyUser() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException {
-		displayTestTile("test004modifyUser");
+		displayTestTile("test004ModifyUser");
 		// GIVEN
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
@@ -538,13 +546,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertNotNull(uid);
 
 		// Check if LDAP account was updated
-
-		InternalSearchOperation op = openDJController.getInternalConnection().processSearch(
-				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
-				100, false, "(entryUUID=" + uid + ")", null);
-
-		AssertJUnit.assertEquals(1, op.getEntriesSent());
-		SearchResultEntry response = op.getSearchEntries().get(0);
+		SearchResultEntry response = openDJController.searchByEntryUuid(uid);
 
 		display(response);
 
@@ -554,14 +556,95 @@ public class TestSanity extends AbstractIntegrationTest {
 		// These two should be assigned from the User modification by
 		// schemaHandling
 		OpenDJController.assertAttribute(response, "cn", "Cpt. Jack Sparrow");
-
-		OpenDJController.assertAttribute(response, "l", "There there over the corner"); // IS
-																		// THIS
-																		// NOT
-																		// RIGHT?
-		// assertAttribute(response, "l", "somewhere");
+		// This will get translated from "somewhere" to this (outbound expression in schemeHandling)
+		OpenDJController.assertAttribute(response, "l", "There there over the corner");
 	}
 
+	/**
+	 * We are going to change user's password. As the user has an account, the password change
+	 * should be also applied to the account (by schemaHandling).
+	 */
+	@Test
+	public void test005ChangePassword() throws FileNotFoundException, JAXBException, FaultMessage,
+			ObjectNotFoundException, SchemaException, DirectoryException {
+		displayTestTile("test005ChangePassword");
+		// GIVEN
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_PASSWORD_FILENAME, ObjectModificationType.class);
+		
+		System.out.println("In modification: "+objectChange.getPropertyModification().get(0).getValue().getAny().get(0));
+
+		// WHEN
+		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+		// THEN
+		System.out.println("modifyObject result:");
+		displayJaxb(result, SchemaConstants.C_RESULT);
+		assertSuccess("modifyObject has failed", result);
+
+		// Check if user object was modified in the repo
+
+		OperationResult repoResult = new OperationResult("getObject");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		ObjectType repoObject = repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
+		UserType repoUser = (UserType) repoObject;
+		displayJaxb(repoUser, new QName("user"));
+
+		// Check if nothing else was modified
+		AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
+		AssertJUnit.assertEquals("somewhere", repoUser.getLocality());
+
+		// Check if appropriate accountRef is still there
+		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+		AssertJUnit.assertEquals(1, accountRefs.size());
+		ObjectReferenceType accountRef = accountRefs.get(0);
+		String newShadowOid = accountRef.getOid();
+		AssertJUnit.assertEquals(shadowOid, newShadowOid);
+
+		// Check if shadow is still in the repo and that it is untouched
+		repoResult = new OperationResult("getObject");
+		repoObject = repositoryService.getObject(ObjectType.class, shadowOid, resolve, repoResult);
+		repoResult.computeStatus();
+		assertSuccess("getObject(repo) has failed", repoResult);
+		AccountShadowType repoShadow = (AccountShadowType) repoObject;
+		displayJaxb(repoShadow, new QName("shadow"));
+		AssertJUnit.assertNotNull(repoShadow);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+
+		// check attributes in the shadow: should be only identifiers (ICF UID)
+		String uid = null;
+		boolean hasOthers = false;
+		List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
+		for (Object element : xmlAttributes) {
+			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
+				if (uid != null) {
+					AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
+				} else {
+					uid = ((Element)element).getTextContent();
+				}
+			} else {
+				hasOthers = true;
+			}
+		}
+
+		AssertJUnit.assertFalse(hasOthers);
+		assertNotNull(uid);
+
+		// Check if LDAP account was updated
+
+		SearchResultEntry response = openDJController.searchByEntryUuid(uid);
+		display(response);
+
+		OpenDJController.assertAttribute(response, "uid", "jack");
+		OpenDJController.assertAttribute(response, "givenName", "Jack");
+		OpenDJController.assertAttribute(response, "sn", "Sparrow");
+		// These two should be assigned from the User modification by
+		// schemaHandling
+		OpenDJController.assertAttribute(response, "cn", "Cpt. Jack Sparrow");
+		OpenDJController.assertAttribute(response, "l", "There there over the corner");
+	}
+	
 	/**
 	 * The user should have an account now. Let's try to delete the user. The
 	 * account should be gone as well.
@@ -569,7 +652,7 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * @throws JAXBException
 	 */
 	@Test
-	public void test005DeleteUser() throws SchemaException, FaultMessage, DirectoryException, JAXBException {
+	public void test006DeleteUser() throws SchemaException, FaultMessage, DirectoryException, JAXBException {
 		displayTestTile("test005DeleteUser");
 		// GIVEN
 

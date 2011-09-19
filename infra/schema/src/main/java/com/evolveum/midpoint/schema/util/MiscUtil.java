@@ -31,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 
 /**
  * @author Radovan Semancik
@@ -76,6 +77,10 @@ public class MiscUtil {
 
 	private static String generateSerialNumber() {
 		return Long.toHexString(rnd.nextLong())+"-"+Long.toHexString(rnd.nextLong());
+	}
+
+	public static boolean isNullOrEmpty(ProtectedStringType ps) {
+		return (ps == null || (ps.getClearValue() == null && ps.getEncryptedData() == null));
 	}
 
 }
