@@ -26,10 +26,18 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
+import javax.xml.bind.JAXBException;
+
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
 import com.evolveum.midpoint.common.validator.Validator;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
  * Test validity of the samples in the trunk/samples directory.
@@ -82,9 +90,39 @@ public class TestSamples {
 	private void validate(File file) throws FileNotFoundException {
 		System.out.println("===> Validating file "+file.getPath());
 
+		EventHandler handler = new EventHandler() {
+
+			@Override
+			public EventResult preMarshall(Element objectElement, Node postValidationTree,
+					OperationResult objectResult) {
+				return EventResult.cont();
+			}
+
+			@Override
+			public EventResult postMarshall(ObjectType object, Element objectElement,
+					OperationResult objectResult) {
+				
+				// Try to marshall it back. This may detect some JAXB miscofiguration problems.
+				try {
+					String marshalledString = JAXBUtil.marshal(object);
+				} catch (JAXBException e) {
+					objectResult.recordFatalError("Object marshalling failed", e);
+				}
+				
+				return EventResult.cont();
+			}
+
+			@Override
+			public void handleGlobalError(OperationResult currentResult) {
+				// no reaction
+			}
+			
+		};
+		
 		Validator validator = new Validator();
 		validator.setVerbose(false);
 		validator.setAllowAnyType(true);
+		validator.setHandler(handler);
         FileInputStream fis = new FileInputStream(file);
         OperationResult result = new OperationResult(RESULT_OPERATION_NAME);
         

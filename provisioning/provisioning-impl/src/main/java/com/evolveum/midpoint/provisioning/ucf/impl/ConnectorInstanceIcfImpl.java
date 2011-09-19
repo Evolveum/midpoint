@@ -129,6 +129,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.LiveSyncCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.PasswordCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.TestConnectionCapabilityType;
 
@@ -150,6 +151,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private static final String GROUP_OBJECTCLASS_LOCALNAME = "GroupObjectClass";
 	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
 	private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
+	
+	private static final ObjectFactory capabilityObjectFactory = new ObjectFactory();
 
 	private static final Trace LOGGER = TraceManager
 			.getTrace(ConnectorInstanceIcfImpl.class);
@@ -511,14 +514,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			ActivationCapabilityType capAct = new ActivationCapabilityType();
 			EnableDisable capEnableDisable = new EnableDisable();
 			capAct.setEnableDisable(capEnableDisable);
-			capabilities.add(capAct);
+			
+			capabilities.add(capabilityObjectFactory.createActivation(capAct));
 		}
 		
 		if (capPassword) {
 			CredentialsCapabilityType capCred = new CredentialsCapabilityType();
 			PasswordCapabilityType capPass = new PasswordCapabilityType();
 			capCred.setPassword(capPass);
-			capabilities.add(capCred);
+			capabilities.add(capabilityObjectFactory.createCredentials(capCred));
 		}
 		
 		// Create capabilities from supported connector operations
@@ -527,12 +531,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		if (supportedOperations.contains(SyncApiOp.class)) {
 			LiveSyncCapabilityType capSync = new LiveSyncCapabilityType();
-			capabilities.add(capSync);
+			capabilities.add(capabilityObjectFactory.createLiveSync(capSync));
 		}
 		
 		if (supportedOperations.contains(TestApiOp.class)) {
 			TestConnectionCapabilityType capTest = new TestConnectionCapabilityType();
-			capabilities.add(capTest);
+			capabilities.add(capabilityObjectFactory.createTestConnection(capTest));
 		}
 		
 	}

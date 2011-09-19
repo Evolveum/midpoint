@@ -19,8 +19,13 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
+import javax.xml.bind.JAXBElement;
 
 import org.w3c.dom.Element;
 
@@ -117,7 +122,12 @@ public class ResourceTypeUtil {
 	@SuppressWarnings("unchecked")
 	public static <T> T getCapability(Collection<Object> capabilities, Class<T> capabilityClass) {
 		for (Object cap : capabilities) {
-			if (capabilityClass.isAssignableFrom(cap.getClass())) {
+			if (cap instanceof JAXBElement) {
+				JAXBElement jaxe = (JAXBElement)cap;
+				if (capabilityClass.isAssignableFrom(jaxe.getDeclaredType())) {
+					return (T) jaxe.getValue();
+				}
+			} else if (capabilityClass.isAssignableFrom(cap.getClass())) {
 				return (T) cap;
 			}
 		}
@@ -133,6 +143,24 @@ public class ResourceTypeUtil {
 			// No capabilities at all
 			return null;
 		}
+	}
+	
+	public static List<Object> listEffectiveCapabilities(ResourceType resource) {
+		if ( resource.getCapabilities()!=null ) {
+			return resource.getCapabilities().getAny();
+		} else if (resource.getNativeCapabilities() != null) {
+			return resource.getNativeCapabilities().getAny();
+		} else {
+			return new ArrayList<Object>();
+		}		
+	}
+	
+	public static String getCapabilityDisplayName(Object capability) {
+		// TODO: look for schema annotation
+		if (capability instanceof JAXBElement) {
+			return ((JAXBElement)capability).getDeclaredType().getSimpleName();
+		}
+		return capability.getClass().getSimpleName();
 	}
 
 }
