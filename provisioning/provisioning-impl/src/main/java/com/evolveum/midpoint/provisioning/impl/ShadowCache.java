@@ -525,22 +525,35 @@ public class ShadowCache {
 		ResourceObject resourceObject = convertResourceObjectFromXml(
 				shadow, schema, parentResult);
 
-		Set<ResourceObjectAttribute> resourceAttributes = null;
+		Set<Operation> additionalOperations = new HashSet<Operation>();
+		
+		// Check for password
+		if (shadow instanceof AccountShadowType) {
+			AccountShadowType account = (AccountShadowType)shadow;
+			if (account.getCredentials() != null && account.getCredentials().getPassword() != null) {
+				Password password = account.getCredentials().getPassword();
+				ProtectedStringType protectedString = password.getProtectedString();
+				if (protectedString != null) {
+					PasswordChangeOperation passOp = new PasswordChangeOperation(protectedString);
+					additionalOperations.add(passOp);
+				}
+			}
+		}
+		
+		Set<ResourceObjectAttribute> resourceAttributesAfterAdd = null;
 		// add object using connector, setting new properties to the
 		// resourceObject
-
 		try {
-			Set<Operation> scriptOperations = null;
 
-			scriptOperations = createExecuteScriptOperation(
+			 addExecuteScriptOperation(additionalOperations,
 					OperationTypeType.ADD, scripts, parentResult);
 
-			resourceAttributes = connector.addObject(resourceObject,
-					scriptOperations, parentResult);
+			resourceAttributesAfterAdd = connector.addObject(resourceObject,
+					additionalOperations, parentResult);
 
 			LOGGER.debug("Added object: {}",
-					DebugUtil.prettyPrint(resourceAttributes));
-			resourceObject.addAll(resourceAttributes);
+					DebugUtil.prettyPrint(resourceAttributesAfterAdd));
+			resourceObject.addAll(resourceAttributesAfterAdd);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communitacing with the connector " + connector
@@ -572,13 +585,13 @@ public class ShadowCache {
 
 	}
 
-	private Set<Operation> createExecuteScriptOperation(OperationTypeType type,
+	private void addExecuteScriptOperation(Set<Operation> operations, OperationTypeType type,
 			ScriptsType scripts, OperationResult result) {
 		if (scripts == null) {
-			result.recordWarning("Skiping creating script operation to execute. Scripts was not defined.");
-			return null;
+			// No warning needed, this is quite normal
+			//result.recordWarning("Skiping creating script operation to execute. Scripts was not defined.");
+			return;
 		}
-		Set<Operation> scriptOperations = new HashSet<Operation>();
 		for (ScriptType script : scripts.getScript()) {
 			if (type.equals(script.getOperation())) {
 				ExecuteScriptOperation scriptOperation = new ExecuteScriptOperation();
@@ -605,10 +618,9 @@ public class ShadowCache {
 					scriptOperation.setResourceHost(true);
 				}
 
-				scriptOperations.add(scriptOperation);
+				operations.add(scriptOperation);
 			}
 		}
-		return scriptOperations;
 	}
 
 	public void deleteShadow(ObjectType objectType, ScriptsType scripts,
@@ -645,14 +657,14 @@ public class ShadowCache {
 			LOGGER.debug("Getting object identifiers");
 			Set<ResourceObjectAttribute> identifiers = rod
 						.parseIdentifiers(accountShadow.getAttributes().getAny());
-			Set<Operation> executeScriptOperations = null;
+			Set<Operation> additionalOperations = new HashSet<Operation>();
 
-			executeScriptOperations = createExecuteScriptOperation(
+			 addExecuteScriptOperation(additionalOperations,
 					OperationTypeType.DELETE, scripts, parentResult);
 
 			try {
 				connector.deleteObject(accountShadow.getObjectClass(),
-						executeScriptOperations, identifiers, parentResult);
+						additionalOperations, identifiers, parentResult);
 			} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
 				parentResult.recordFatalError("Can't delete object "
 						+ ObjectTypeUtil.toShortString(accountShadow)
@@ -721,26 +733,18 @@ public class ShadowCache {
 					.findContainerDefinitionByType(shadow.getObjectClass());
 			Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(shadow.getAttributes().getAny());
 
-			Set<Operation> executeScriptOperation = null;
-
-			executeScriptOperation = createExecuteScriptOperation(
-					OperationTypeType.MODIFY, scripts, parentResult);
-
 			Set<Operation> changes = getAttributeChanges(objectChange, rod);
-			if (executeScriptOperation != null) {
-				changes.addAll(executeScriptOperation);
-			}
+
+			addExecuteScriptOperation(changes,
+					OperationTypeType.MODIFY, scripts, parentResult);
 			
-			LOGGER.trace("$$$$$$$$ 1");
 			if (objectType instanceof AccountShadowType) {
 				//AccountShadowType accountShadow = (AccountShadowType) shadow;
-				LOGGER.trace("$$$$$$$$ 2");
 				
 				// Look for password change
 				Password newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectChange,"credentials","password",Password.class);
 				if (newPasswordStructure != null) {
 					ProtectedStringType newPasswordPS = newPasswordStructure.getProtectedString();
-					LOGGER.trace("$$$$$$$$ 3 {}",newPasswordPS);
 					PasswordChangeOperation passwordChangeOp = new PasswordChangeOperation(newPasswordPS);
 					// TODO: other things from the structure
 					changes.add(passwordChangeOp);
@@ -754,7 +758,6 @@ public class ShadowCache {
 					JAXBUtil.silentMarshalWrap(objectChange));
 			try {
 				
-				LOGGER.trace("$$$$$$$$ 4");
 				// Invoke ICF
 				connector.modifyObject(shadow.getObjectClass(),
 						identifiers, changes, parentResult);

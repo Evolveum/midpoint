@@ -134,6 +134,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	private static final String ACCOUNT_SEARCH_ITERATIVE_OID = "c0c010c0-d34d-b44f-f11d-333222666666";
 	private static final String FILENAME_ACCOUNT_SEARCH = "src/test/resources/impl/account-search.xml";
 	private static final String ACCOUNT_SEARCH_OID = "c0c010c0-d34d-b44f-f11d-333222777777";
+	private static final String FILENAME_ACCOUNT_NEW_WITH_PASSWORD = "src/test/resources/impl/account-new-with-password.xml";;
+	private static final String ACCOUNT_NEW_WITH_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222124422";
 	private static final String NON_EXISTENT_OID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 	private static final String RESOURCE_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_NS,"AccountObjectClass");
@@ -754,6 +756,65 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			}
 			try {
 				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_MODIFY_PASSWORD_OID, result);
+			} catch (Exception ex) {
+			}
+		}
+	}
+
+	@Test
+	public void test015AddObjectWithPassword() throws Exception {
+		displayTestTile("test015AddObjectWithPassword");
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test015AddObjectWithPassword");
+
+		try {
+			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_NEW_WITH_PASSWORD);
+
+			System.out.println(DebugUtil.prettyPrint(object));
+			System.out.println(DOMUtil.serializeDOMToString(JAXBUtil.jaxbToDom(object,
+					SchemaConstants.I_ACCOUNT, DOMUtil.getDocument())));
+
+			String addedObjectOid = provisioningService.addObject(object, null, result);
+			assertEquals(ACCOUNT_NEW_WITH_PASSWORD_OID, addedObjectOid);
+
+			AccountShadowType accountType =  repositoryService.getObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
+					new PropertyReferenceListType(), result);
+			assertEquals("lechuck", accountType.getName());
+
+			AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID,
+					new PropertyReferenceListType(), result);
+			assertEquals("lechuck", provisioningAccountType.getName());
+			
+			String uid = null;
+			for (Object e : accountType.getAttributes().getAny()) {
+				if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(e))) {
+					uid = ((Element)e).getTextContent();
+				}
+			}
+			assertNotNull(uid);
+			
+			// Check if object was created in LDAP and that there is a password
+			
+			SearchResultEntry entryAfter = openDJController.searchByEntryUuid(uid);			
+			display("LDAP account after", entryAfter);
+
+			String passwordAfter = OpenDJController.getAttributeValue(entryAfter, "userPassword");
+			assertNotNull("The password was not changed",passwordAfter);
+			
+			System.out.println("Account password: "+passwordAfter);
+			
+		} finally {
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_NEW_WITH_PASSWORD_OID, result);
 			} catch (Exception ex) {
 			}
 		}
