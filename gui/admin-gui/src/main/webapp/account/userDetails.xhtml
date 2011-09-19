@@ -132,6 +132,9 @@
 
 								<idm:autoForm bean="#{userDetails.formObjects}" index="#{status.index}"
 									editable="#{userDetails.editMode}" />
+
+								<hr />
+								<comp:resourceCapability bean="#{item.resourceCapability}" editable="#{userDetails.editMode}" />
 							</ice:panelCollapsible>
 							<idm:button action="/account/userDetails" actionListener="#{userDetails.removeResourcePerformed}"
 								value="#{msg['page.account.detail.tab.accounts.button.delete']}" buttonType="negative"
@@ -160,12 +163,12 @@
 					</ice:panelGrid>
 				</ice:panelTab>
 
-<ui:remove>				
-				<ice:panelTab label="#{msg['page.account.detail.tab.assignments.title']}"
-					icon="/resources/images/report.png" title="#{msg['page.account.detail.tab.assignments.description']}">
+				<ui:remove>
+					<ice:panelTab label="#{msg['page.account.detail.tab.assignments.title']}"
+						icon="/resources/images/report.png" title="#{msg['page.account.detail.tab.assignments.description']}">
 TODO: create this tab
-				</ice:panelTab>				
-</ui:remove>
+				</ice:panelTab>
+				</ui:remove>
 
 				<ui:remove>
 					<ice:panelTab rendered="true" label="#{msg['page.account.detail.tab.roles.title']}"

@@ -33,19 +33,25 @@ public class AccountFormBean implements Serializable {
 	private static final long serialVersionUID = 7023783107817686439L;
 	private int id;
 	private AccountShadowDto account;
+	private ResourceCapability resourceCapability;
 	private QName defaultAccountType;
 	private FormObject bean;
 	private boolean expanded = true;
 	private boolean isNew;
 	private boolean enabled;
 
-	public AccountFormBean(int id, AccountShadowDto account, QName defaultAccountType, FormObject bean,
+	public AccountFormBean(int id, AccountShadowDto account, ResourceCapability resourceCapability, QName defaultAccountType, FormObject bean,
 			boolean isNew) {
 		this.id = id;
 		this.account = account;
+		this.resourceCapability = resourceCapability;
 		this.defaultAccountType = defaultAccountType;
 		this.bean = bean;
 		this.isNew = isNew;
+	}
+	
+	public ResourceCapability getResourceCapability() {
+		return resourceCapability;
 	}
 
 	public QName getDefaultAccountType() {

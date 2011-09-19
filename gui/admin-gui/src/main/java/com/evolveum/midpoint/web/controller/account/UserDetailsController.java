@@ -51,6 +51,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AccountFormBean;
+import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.jsf.form.AttributeType;
@@ -555,7 +556,12 @@ public class UserDetailsController implements Serializable {
 			throw new SchemaException("Unknown error, reason: " + ex.getMessage(), ex);
 		}
 
-		return new AccountFormBean(index, account, defaultAccountType, object, createNew);
+		// TODO
+		ResourceCapability capability = new ResourceCapability();
+		capability.setActivation(true);
+		capability.setCredentials(true);
+		
+		return new AccountFormBean(index, account, capability, defaultAccountType, object, createNew);
 	}
 
 	private FormAttributeDefinition createDefinition(ResourceObjectAttributeDefinition def) {
@@ -631,8 +637,8 @@ public class UserDetailsController implements Serializable {
 				account.setObjectClass(bean.getDefaultAccountType());
 			}
 		} catch (Exception ex) {
-			throw new SchemaException("Unknown error: Can't update account attributes: "
-					+ ex.getMessage(), ex);
+			throw new SchemaException("Unknown error: Can't update account attributes: " + ex.getMessage(),
+					ex);
 		}
 		account.setAttributes(attrList);
 

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2011 lazyman			             -->
+<!--                                                         -->
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ice="http://www.icesoft.com/icefaces/component" xmlns:c="http://java.sun.com/jsp/jstl/core"
+	xmlns:idm="http://midpoint.evolveum.com/xml/ns/custom-taglib/"
+	xmlns:ace="http://www.icefaces.org/icefaces/components" xmlns:composite="http://java.sun.com/jsf/composite">
+
+<composite:interface>
+	<composite:attribute name="bean" type="com.evolveum.midpoint.web.bean.ResourceCapability" required="true" />
+	<composite:attribute name="editable" type="java.lang.Boolean" required="true" />
+</composite:interface>
+
+<composite:implementation>
+
+	<f:subview rendered="#{cc.attrs.bean.activation}">
+		<h3 style="margin-top: 10px;">Activation</h3>
+	</f:subview>
+	<ice:panelGrid columns="3" rendered="#{cc.attrs.bean.activation}">
+		<ice:outputLabel value="Enabled" />
+		<ice:selectBooleanCheckbox id="enabledCapability" value="#{cc.attrs.bean.enabled}"
+			disabled="#{not cc.attrs.editable}" />
+		<ice:message for="enabledCapability" />
+
+		<ice:outputLabel value="Activation date" />
+		<ice:selectBooleanCheckbox id="activationDate" value="#{cc.attrs.bean.activationUsed}" partialSubmit="true"
+			immediate="true" disabled="#{not cc.attrs.editable}" />
+		<ice:message for="activationDate" />
+
+		<ice:outputLabel value="Active from" rendered="#{cc.attrs.bean.activationUsed}" />
+		<ace:dateTimeEntry id="calendarFrom" value="#{cc.attrs.bean.activeFrom}" renderAsPopup="true"
+			renderInputField="true" singleSubmit="false" rendered="#{cc.attrs.bean.activationUsed}"
+			disabled="#{not cc.attrs.editable}">
+			<f:convertDateTime pattern="MMM/dd/yyyy hh:mm a" />
+		</ace:dateTimeEntry>
+		<ice:message for="calendarFrom" rendered="#{cc.attrs.bean.activationUsed}" />
+
+		<ice:outputLabel value="Active to" rendered="#{cc.attrs.bean.activationUsed}" />
+		<ace:dateTimeEntry id="calendarTo" value="#{cc.attrs.bean.activeTo}" renderAsPopup="true"
+			renderInputField="true" singleSubmit="false" rendered="#{cc.attrs.bean.activationUsed}"
+			disabled="#{not cc.attrs.editable}">
+			<f:convertDateTime pattern="MMM/dd/yyyy hh:mm a" />
+		</ace:dateTimeEntry>
+		<ice:message for="calendarTo" rendered="#{cc.attrs.bean.activationUsed}" />
+	</ice:panelGrid>
+
+	<f:subview rendered="#{cc.attrs.bean.credentials}">
+		<h3 style="margin-top: 10px;">Credentials</h3>
+	</f:subview>
+	<ice:panelGrid columns="3" rendered="#{cc.attrs.bean.credentials and cc.attrs.editable}">
+		<ice:outputLabel value="Password" />
+		<ice:inputSecret id="password1" value="#{cc.attrs.bean.password1}"
+			requiredMessage="#{msg['field.required']}" disabled="#{not cc.attrs.editable}">
+			<f:validator validatorId="PasswordValidator" />
+			<f:attribute name="otherComponentId" value="password2" />
+		</ice:inputSecret>
+		<ice:message for="password1" errorClass="error" />
+
+		<ice:outputLabel value="Confirm password" />
+		<ice:inputSecret id="password2" immediate="true" value="#{cc.attrs.bean.password2}"
+			requiredMessage="#{msg['field.required']}" disabled="#{not cc.attrs.editable}" />
+		<ice:message for="password2" errorClass="error" />
+	</ice:panelGrid>
+
+</composite:implementation>
+</html>
