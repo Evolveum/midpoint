@@ -422,4 +422,33 @@ public class XPathHolder {
 	public boolean isEmpty() {
 		return segments.isEmpty();
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (absolute ? 1231 : 1237);
+		result = prime * result + ((segments == null) ? 0 : segments.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		XPathHolder other = (XPathHolder) obj;
+		if (absolute != other.absolute)
+			return false;
+		if (segments == null) {
+			if (other.segments != null)
+				return false;
+		} else if (!segments.equals(other.segments))
+			return false;
+		return true;
+	}
+	
 }

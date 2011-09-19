@@ -37,8 +37,10 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType.Password;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -170,6 +172,8 @@ public class ObjectTypeUtil {
 		propertyModifications.add(propertyModification);
 		return modification;
 	}
+	
+	
 
 	public static String toShortString(ObjectType object) {
 		if (object == null) {
@@ -270,6 +274,68 @@ public class ObjectTypeUtil {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * common-1.xsd namespace is assumed
+	 * single value and "replace" modification are assumed
+	 */	
+	public static <T> T getPropertyNewValue(ObjectModificationType objectChange, String pathSegment,
+			String propertyName, Class<T> propertyClass) { 
+		XPathSegment xpathSegment = new XPathSegment(new QName(SchemaConstants.NS_C,pathSegment));
+		List<XPathSegment> segmentlist = new ArrayList<XPathSegment>(1);
+		segmentlist.add(xpathSegment);
+		XPathHolder xpath = new XPathHolder(segmentlist);
+		return getPropertyNewValue(objectChange, xpath, new QName(SchemaConstants.NS_C,propertyName), propertyClass);
+	}
+	
+	/**
+	 * single value and "replace" modification are assumed
+	 */	
+	public static <T> T getPropertyNewValue(ObjectModificationType objectChange, XPathHolder path,
+			QName propertyName, Class<T> propertyClass) { 
+		PropertyModificationType propertyModification = getPropertyModification(objectChange, path, propertyName);
+		if (propertyModification == null) {
+			return null;
+		}
+		if (!propertyModification.getModificationType().equals(PropertyModificationTypeType.replace)) {
+			throw new IllegalStateException("Encoutered modify type "+propertyModification.getModificationType()+" while expecting "+PropertyModificationTypeType.replace+" during modification of property "+propertyName);
+		}
+		List<Object> valueElements = propertyModification.getValue().getAny();
+		if (valueElements.size()>1) {
+			throw new IllegalStateException("Multiple values during modification of property "+propertyName+" while expeting just a single value");
+		}
+		try {
+			return XsdTypeConverter.toJavaValue(valueElements.get(0), propertyClass);
+		} catch (JAXBException e) {
+			throw new IllegalStateException("Error parsing value of property "+propertyName+": "+e.getMessage(),e);
+		}
+	}
+	
+	public static PropertyModificationType getPropertyModification(ObjectModificationType objectChange, XPathHolder path,
+			QName propertyName) { 
+		List<PropertyModificationType> propertyModifications = objectChange.getPropertyModification();
+		for (PropertyModificationType propertyModification : propertyModifications) {
+			XPathHolder propertyPath = new XPathHolder(propertyModification.getPath());
+			if (!path.equals(propertyPath)) {
+				continue;
+			}
+			if (!propertyName.equals(getElementName(propertyModification))) {
+				continue;
+			}
+			return propertyModification;
+		}
+		return null;
+	}
+
+	public static QName getElementName(PropertyModificationType propertyModification) {
+		if (propertyModification.getValue() == null) {
+			throw new IllegalArgumentException("Modification without value element");
+		}
+		if (propertyModification.getValue().getAny() == null || propertyModification.getValue().getAny().isEmpty()) {
+			throw new IllegalArgumentException("Modification with empty value element");
+		}
+		return JAXBUtil.getElementQName(propertyModification.getValue().getAny().get(0));
 	}
 
 }

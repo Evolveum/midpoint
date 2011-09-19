@@ -26,7 +26,7 @@ import javax.xml.namespace.QName;
 
 /**
  *
- * @author semancik
+ * @author Radovan Semancik
  */
 public class XPathSegment {
 
@@ -79,5 +79,33 @@ public class XPathSegment {
             return qName.toString();
         }
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((qName == null) ? 0 : qName.hashCode());
+		result = prime * result + (variable ? 1231 : 1237);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		XPathSegment other = (XPathSegment) obj;
+		if (qName == null) {
+			if (other.qName != null)
+				return false;
+		} else if (!qName.equals(other.qName))
+			return false;
+		if (variable != other.variable)
+			return false;
+		return true;
+	}
 
 }

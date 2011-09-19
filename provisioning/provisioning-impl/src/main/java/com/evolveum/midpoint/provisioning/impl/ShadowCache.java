@@ -50,6 +50,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
+import com.evolveum.midpoint.provisioning.ucf.api.PasswordChangeOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -85,6 +86,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType.Password;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeAdditionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectChangeDeletionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
@@ -94,6 +96,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.OperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptArgumentType;
@@ -698,16 +701,16 @@ public class ShadowCache {
 		Validate.notNull(objectType, "Object to modify must not be null.");
 		Validate.notNull(objectChange, "Object change must not be null.");
 
-		if (objectType instanceof AccountShadowType) {
-			AccountShadowType accountType = (AccountShadowType) objectType;
+		if (objectType instanceof ResourceObjectShadowType) {
+			ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
 			if (resource == null) {
 				resource = getResource(
-						ResourceObjectShadowUtil.getResourceOid(accountType),
+						ResourceObjectShadowUtil.getResourceOid(shadow),
 						parentResult);
 			}
 
 			LOGGER.debug("Modifying object {} on resource with oid {}",
-					JAXBUtil.silentMarshalWrap(accountType), resource.getOid());
+					JAXBUtil.silentMarshalWrap(shadow), resource.getOid());
 
 			ConnectorInstance connector = getConnectorInstance(resource,
 					parentResult);
@@ -715,8 +718,8 @@ public class ShadowCache {
 			Schema schema = getResourceSchema(resource, connector, parentResult);
 
 			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema
-					.findContainerDefinitionByType(accountType.getObjectClass());
-			Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(accountType.getAttributes().getAny());
+					.findContainerDefinitionByType(shadow.getObjectClass());
+			Set<ResourceObjectAttribute> identifiers = rod.parseIdentifiers(shadow.getAttributes().getAny());
 
 			Set<Operation> executeScriptOperation = null;
 
@@ -727,11 +730,35 @@ public class ShadowCache {
 			if (executeScriptOperation != null) {
 				changes.addAll(executeScriptOperation);
 			}
-			LOGGER.debug("Applying change: {}",
+			
+			LOGGER.trace("$$$$$$$$ 1");
+			if (objectType instanceof AccountShadowType) {
+				//AccountShadowType accountShadow = (AccountShadowType) shadow;
+				LOGGER.trace("$$$$$$$$ 2");
+				
+				// Look for password change
+				Password newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectChange,"credentials","password",Password.class);
+				if (newPasswordStructure != null) {
+					ProtectedStringType newPasswordPS = newPasswordStructure.getProtectedString();
+					LOGGER.trace("$$$$$$$$ 3 {}",newPasswordPS);
+					PasswordChangeOperation passwordChangeOp = new PasswordChangeOperation(newPasswordPS);
+					// TODO: other things from the structure
+					changes.add(passwordChangeOp);
+				}
+				
+				// TODO: look for activation change
+				
+			}
+			
+			LOGGER.trace("Applying change: {}",
 					JAXBUtil.silentMarshalWrap(objectChange));
 			try {
-				connector.modifyObject(accountType.getObjectClass(),
+				
+				LOGGER.trace("$$$$$$$$ 4");
+				// Invoke ICF
+				connector.modifyObject(shadow.getObjectClass(),
 						identifiers, changes, parentResult);
+				
 			} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
 				parentResult.recordFatalError(
 						"Object to modify not found. Reason: "
@@ -1656,9 +1683,6 @@ public class ShadowCache {
 					attributeModification.setNewAttribute(p);
 					changes.add(attributeModification);
 				}
-			} else {
-				throw new IllegalArgumentException("Wrong path value: "
-						+ modification.getPath().getTextContent());
 			}
 		}
 		return changes;

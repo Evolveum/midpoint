@@ -126,6 +126,8 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	private static final String ACCOUNT_BAD_OID = "dbb0c37d-9ee6-44a4-8d39-016dbce1ffff";
 	private static final String FILENAME_ACCOUNT_MODIFY = "src/test/resources/impl/account-modify.xml";
 	private static final String ACCOUNT_MODIFY_OID = "c0c010c0-d34d-b44f-f11d-333222444555";
+	private static final String FILENAME_ACCOUNT_MODIFY_PASSWORD = "src/test/resources/impl/account-modify-password.xml";
+	private static final String ACCOUNT_MODIFY_PASSWORD_OID = "c0c010c0-d34d-b44f-f11d-333222444566";
 	private static final String FILENAME_ACCOUNT_DELETE = "src/test/resources/impl/account-delete.xml";
 	private static final String ACCOUNT_DELETE_OID = "c0c010c0-d34d-b44f-f11d-333222654321";
 	private static final String FILENAME_ACCOUNT_SEARCH_ITERATIVE = "src/test/resources/impl/account-search-iterative.xml";
@@ -369,11 +371,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void testGetObject() throws Exception {
-		displayTestTile("testGetObject");
+	public void test007GetObject() throws Exception {
+		displayTestTile("test007GetObject");
 		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".getObjectTest");
+				+ ".test007GetObject");
 		try {
 
 			ObjectType objectToAdd = unmarshallJaxbFromFile(FILENAME_ACCOUNT1);
@@ -413,11 +415,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	 * Let's try to fetch object that does not exist in the repository.
 	 */
 	@Test
-	public void testGetObjectNotFoundRepo() throws Exception {
-		displayTestTile("testGetObjectNotFoundRepo");
+	public void test008GetObjectNotFoundRepo() throws Exception {
+		displayTestTile("test008GetObjectNotFoundRepo");
 		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".getObjectTest");
+				+ ".test008GetObjectNotFoundRepo");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 		try {
@@ -456,11 +458,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	 * exist in the resource.
 	 */
 	@Test
-	public void testGetObjectNotFoundResource() throws Exception {
-		displayTestTile("testGetObjectNotFoundResource");
+	public void test009GetObjectNotFoundResource() throws Exception {
+		displayTestTile("test009GetObjectNotFoundResource");
 		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".getObjectTest");
+				+ ".test009GetObjectNotFoundResource");
 		PropertyReferenceListType resolve = new PropertyReferenceListType();
 
 		try {
@@ -495,11 +497,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void testAddObject() throws Exception {
-		displayTestTile("testAddObject");
+	public void test010AddObject() throws Exception {
+		displayTestTile("test010AddObject");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".addObjectTest");
+				+ ".test010AddObject");
 
 		try {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_NEW);
@@ -536,11 +538,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 	
 	@Test
-	public void testAddObjectNull() throws Exception {
-		displayTestTile("testAddObjectNull");
+	public void test011AddObjectNull() throws Exception {
+		displayTestTile("test011AddObjectNull");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".addObjectTest");
+				+ ".test011AddObjectNull");
 
 		String addedObjectOid = null;
 		
@@ -565,11 +567,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 	
 	@Test
-	public void testDeleteObject() throws Exception {
-		displayTestTile("testDeleteObject");
+	public void test012DeleteObject() throws Exception {
+		displayTestTile("test012DeleteObject");
 
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".addObjectTest");
+				+ ".test012DeleteObject");
 
 		try {
 			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_DELETE);
@@ -618,11 +620,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 	}
 
 	@Test
-	public void testModifyObject() throws Exception {
-		displayTestTile("testModifyObject");
+	public void test013ModifyObject() throws Exception {
+		displayTestTile("test013ModifyObject");
 		
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".addObjectTest");
+				+ ".test013ModifyObject");
 
 		try {
 
@@ -664,15 +666,10 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			
 			// Check if object was modified in LDAP
 			
-			InternalSearchOperation op = openDJController.getInternalConnection().processSearch(
-					"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
-					100, false, "(entryUUID=" + uid + ")", null);
-
-			AssertJUnit.assertEquals(1, op.getEntriesSent());
-			SearchResultEntry response = op.getSearchEntries().get(0);
+			SearchResultEntry response = openDJController.searchByEntryUuid(uid);			
 			display("LDAP account", response);
+			
 			OpenDJController.assertAttribute(response, "sn", "First");
-
 			assertEquals("First", changedSn);
 			
 		} finally {
@@ -692,6 +689,77 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 
 	}
 
+	@Test
+	public void test014ChangePassword() throws Exception {
+		displayTestTile("test014ChangePassword");
+		
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test014ChangePassword");
+
+		try {
+
+			ObjectType object = unmarshallJaxbFromFile(FILENAME_ACCOUNT_MODIFY_PASSWORD);
+
+			String addedObjectOid = provisioningService.addObject(object, null, result);
+
+			assertEquals(ACCOUNT_MODIFY_PASSWORD_OID, addedObjectOid);
+			
+			AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class,
+					ACCOUNT_MODIFY_PASSWORD_OID, new PropertyReferenceListType(), result);
+			
+			display("Object after password change",accountType);
+			
+			String uid = null;
+			for (Object e : accountType.getAttributes().getAny()) {
+				if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(e))) {
+					uid = ((Element)e).getTextContent();
+				}
+			}
+			assertNotNull(uid);
+			
+			SearchResultEntry entryBefore = openDJController.searchByEntryUuid(uid);			
+			display("LDAP account before", entryBefore);
+
+			String passwordBefore = OpenDJController.getAttributeValue(entryBefore, "userPassword");
+			assertNull("Unexpected password before change",passwordBefore);
+
+			ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
+					.unmarshal(new File("src/test/resources/impl/account-change-password.xml")))
+					.getValue();
+			display("Object change",DebugUtil.prettyPrint(objectChange));
+
+			// WHEN
+			provisioningService.modifyObject(AccountShadowType.class,objectChange.getObjectModification(), null, result);
+
+			// THEN
+			
+			// Check if object was modified in LDAP
+			
+			SearchResultEntry entryAfter = openDJController.searchByEntryUuid(uid);			
+			display("LDAP account after", entryAfter);
+
+			String passwordAfter = OpenDJController.getAttributeValue(entryAfter, "userPassword");
+			assertNotNull("The password was not changed",passwordAfter);
+			
+			System.out.println("Changed password: "+passwordAfter);
+
+		} finally {
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT1_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_BAD_OID, result);
+			} catch (Exception ex) {
+			}
+			try {
+				repositoryService.deleteObject(AccountShadowType.class, ACCOUNT_MODIFY_PASSWORD_OID, result);
+			} catch (Exception ex) {
+			}
+		}
+	}
+
+	
 	@Test
 	public void testListObjects() throws Exception {
 		displayTestTile("testListObjects");
