@@ -75,7 +75,13 @@
 			layout="block">
 			<div class="container">
 				<idm:topMenu selected="#{template.selectedTopId}">
-					<div id="navBar" style="position: absolute; width: 926px;">
+					<div id="navBar"
+						style="position: absolute; width: auto;">
+						<script type="text/javascript">
+							var centerOfWindow = jQuery("#nav").width() / 2;
+							jQuery("#navBar").css("margin-left",
+									centerOfWindow - 490);
+						</script>
 						<div id="topHomeButtonLeft"
 							style="background-image: url('/admin-gui/resources/images/buttonNormalLeftCut1.jpg'); position: absolute; height: 47px; width: 30px; left: 0px; top: 0px;">
 						</div>
@@ -94,8 +100,7 @@
 								name="#{msg['page.template.top.workitems']}"
 								description="#{msg['page.template.top.description.workitems']}" />
 						</ui:remove>
-						<idm:topMenuItem id="topRoles"
-							action="#{roleList.initController}"
+						<idm:topMenuItem id="topRoles" action="#{roleList.initController}"
 							name="#{msg['page.template.top.roles']}"
 							description="#{msg['page.template.top.description.roles']}" />
 						<idm:topMenuItem id="topResources"
@@ -121,8 +126,8 @@
 							action="/test/index?faces-redirect=true" name="TEST"
 							description="testings" /> -->
 
-						<div id="topConfigurationButtonRight" class="abcd"
-							style="background-image: url('/admin-gui/resources/images/buttonNormalRightCut1.jpg'); position: absolute; height: 47px; width: 30px; right: 0px; top: 0px;">
+						<div id="topConfigurationButtonRight" 
+							style="background-image: url('/admin-gui/resources/images/buttonNormalRightCut1.jpg'); position: absolute; height: 47px; width: 30px; margin-right: -30px; right: 0px; top: 0px;">
 						</div>
 					</div>
 				</idm:topMenu>

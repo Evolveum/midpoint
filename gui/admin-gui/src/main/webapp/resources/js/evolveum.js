@@ -18,9 +18,13 @@
 
 jQuery.noConflict();
 window.onresize = function() {
-	var centerOfWindow = jQuery("#nav").width() / 2;
-	jQuery("#navBar").css("margin-left", centerOfWindow - 500);
+	setToCenter();
 };
+
+function setToCenter() {
+	var centerOfWindow = jQuery("#nav").width() / 2;
+	jQuery("#navBar").css("margin-left", centerOfWindow - 490);
+}
 
 function displayMessageDetails(id, showImage, hideImage) {
 	var buttonElement = document.getElementById(id + "ImageButton");
@@ -58,21 +62,9 @@ function displayMessageCauseDetails(id) {
 	}
 }
 
-// //////////////////////////////////////// jQuery
-// ////////////////////////////////////////////////
+/* //////////////////// jQuery ////////////////////////////// */
 jQuery(document).ready(function() {
-	jQuery("#topConfigurationButtonRight").attr("class","");
-	var centerOfWindow = jQuery("#nav").width() / 2;
-	jQuery("#navBar").css("margin-left", centerOfWindow-490);
 	
-	if(jQuery("#sidebar").find(".form")){
-		/*alert("aaaa");*/
-		//jQuery("#sidebar").hide();
-	}
-	
-	
-	
-	jQuery("#top-nav li").css("float", "left");
 	jQuery("#blackWindow").css("opacity", "0.7");
 	jQuery("#blackWindow").hide();
 	jQuery("#preloader").hide();
@@ -81,8 +73,6 @@ jQuery(document).ready(function() {
 	var x = jQuery(window).width() / 2;
 	jQuery("#preloader").css("top", y - 50);
 	jQuery("#preloader").css("left", x - 50);
-	// jQuery("#blackWindow").hide();
-	// jQuery("#preloader").hide();
 
 	jQuery("#logoutUserLinkSpan").css("color", "white");
 	jQuery("#logoutUserLinkSpan").css("opacity", "0.5");
@@ -117,17 +107,8 @@ jQuery(document).ready(function() {
 			opacity : 0.5
 		}, 300);
 	});
-	
-});
 
-function popHiddenLayer() {
-	alert("aaaaaaa");
-	/*
-	 * if (document.getElementById('hiddenLayer') != null) { var elem =
-	 * document.getElementById('hiddenLayer'); elem.className = 'POP_LAYER'; }
-	 */
-	return true;
-}
+});
 
 function waitScreen() {
 	jQuery("#blackWindow").hide();
