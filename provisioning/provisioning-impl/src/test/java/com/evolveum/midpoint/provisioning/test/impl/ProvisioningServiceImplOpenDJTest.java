@@ -356,6 +356,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
         // Therefore the following should succeed
         capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
         assertNotNull("activation capability not found",capCred.getPassword());
+        
+        List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
+        for (Object capability : effectiveCapabilities) {
+        	System.out.println("Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+        }
 	}
 	
 	

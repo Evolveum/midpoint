@@ -157,10 +157,16 @@ public class ResourceTypeUtil {
 	
 	public static String getCapabilityDisplayName(Object capability) {
 		// TODO: look for schema annotation
+		String className = null;
 		if (capability instanceof JAXBElement) {
-			return ((JAXBElement)capability).getDeclaredType().getSimpleName();
+			className = ((JAXBElement)capability).getDeclaredType().getSimpleName();
+		} else {
+			className = capability.getClass().getSimpleName();
 		}
-		return capability.getClass().getSimpleName();
+		if (className.endsWith("CapabilityType")) {
+			return className.substring(0, className.length() - "CapabilityType".length());
+		}
+		return className;
 	}
 
 }
