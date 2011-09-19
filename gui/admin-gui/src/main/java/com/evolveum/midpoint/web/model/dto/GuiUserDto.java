@@ -22,6 +22,8 @@
 
 package com.evolveum.midpoint.web.model.dto;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.schema.exception.SystemException;
@@ -87,7 +89,7 @@ public class GuiUserDto extends UserDto implements Selectable {
 	}
 
 	public void encryptCredentials(Protector protector) throws EncryptionException {
-		if (password1 == null) {
+		if (StringUtils.isEmpty(password1)) {
 			return;
 		}
 

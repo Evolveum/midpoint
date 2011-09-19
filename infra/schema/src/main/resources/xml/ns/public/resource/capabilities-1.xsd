@@ -22,7 +22,11 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
     xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd"
-    elementFormDefault="qualified">
+    xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+    xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+    elementFormDefault="qualified"
+    jaxb:extensionBindingPrefixes="xjc"
+    jaxb:version="2.0">
 
     <xsd:annotation>
         <xsd:documentation>
@@ -34,6 +38,11 @@
             
             Recommended namespace prefix: cap
         </xsd:documentation>
+        <xsd:appinfo>
+			<jaxb:globalBindings>
+				<xjc:serializable uid="201105211233" />
+			</jaxb:globalBindings>
+		</xsd:appinfo>
     </xsd:annotation>
 
 	<xsd:complexType name="ActivationCapabilityType">

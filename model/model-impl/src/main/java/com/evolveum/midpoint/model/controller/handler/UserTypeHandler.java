@@ -27,7 +27,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -49,7 +48,7 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -69,6 +68,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType.A
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.PasswordCapabilityType;
 
 /**
  * 
@@ -98,10 +99,12 @@ public class UserTypeHandler extends BasicHandler {
 		UserType user = (UserType) getObject(UserType.class, change.getOid(),
 				new PropertyReferenceListType(), result);
 
-		// processing add and delete account
-		processAddDeleteAccountFromChanges(change, user, result);
-
+		// ADD and DELETE account changes
+		List<PropertyModificationType> accountChanges = getAccountChanges(change);
+		// we remove account changes, then we save user object
+		change.getPropertyModification().removeAll(accountChanges);
 		getRepository().modifyObject(UserType.class, change, result);
+		
 		try {
 			PatchXml patchXml = new PatchXml();
 			String u = patchXml.applyDifferences(change, user);
@@ -116,8 +119,43 @@ public class UserTypeHandler extends BasicHandler {
 		}
 
 		// from now on we have updated user, next step is processing
-		// outbound for every account or enable/disable account if needed
-		modifyAccountsAfterUserWithExclusion(user, change, userActivationChanged, accountOid, result);
+		// outbound for every existing account or enable/disable account if
+		// needed
+		modifyAccountsAfterUserWithExclusion(user, userActivationChanged, accountOid, result);
+
+		// process add and delete accounts
+		List<PropertyModificationType> userChanges = processAddDeleteAccountFromChanges(accountChanges, user,
+				result);
+		if (userChanges.isEmpty()) {
+			return;
+		}
+		// update user by adding and removing accountRef elements
+		change = new ObjectModificationType();
+		change.setOid(user.getOid());
+		change.getPropertyModification().addAll(userChanges);
+		getRepository().modifyObject(UserType.class, change, result);
+	}
+
+	private List<PropertyModificationType> getAccountChanges(ObjectModificationType change) {
+		List<PropertyModificationType> modifications = new ArrayList<PropertyModificationType>();
+		if (change == null || change.getPropertyModification() == null) {
+			return modifications;
+		}
+
+		for (PropertyModificationType propertyChange : change.getPropertyModification()) {
+			if (propertyChange.getValue() == null || propertyChange.getValue().getAny().isEmpty()) {
+				continue;
+			}
+
+			Object node = propertyChange.getValue().getAny().get(0);
+			if (!SchemaConstants.I_ACCOUNT.equals(JAXBUtil.getElementQName(node))) {
+				continue;
+			}
+
+			modifications.add(propertyChange);
+		}
+
+		return modifications;
 	}
 
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result)
@@ -150,6 +188,12 @@ public class UserTypeHandler extends BasicHandler {
 
 	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException,
 			ObjectNotFoundException {
+		if (!(object instanceof UserType)) {
+			throw new IllegalArgumentException("Can't add '" + object.getName() + "', type '"
+					+ object.getClass().getSimpleName() + "' with '" + UserTypeHandler.class.getSimpleName()
+					+ "'.");
+		}
+
 		return addUser((UserType) object, null, result);
 	}
 
@@ -235,11 +279,20 @@ public class UserTypeHandler extends BasicHandler {
 	 */
 	private void pushPasswordFromUserToAccount(UserType user, AccountShadowType account,
 			OperationResult result) throws ObjectNotFoundException {
-		ResourceType resource = account.getResource();
-		if (resource == null) {
-			resource = getObject(ResourceType.class, account.getResourceRef().getOid(),
-					new PropertyReferenceListType(), result);
+
+		ResourceType resource = resolveResource(account, result);
+		// checking resource password capabilities for password push to account
+		CredentialsCapabilityType credentialsCapability = ResourceTypeUtil.getEffectiveCapability(resource,
+				CredentialsCapabilityType.class);
+		if (credentialsCapability == null) {
+			return;
 		}
+
+		PasswordCapabilityType passwordCapability = credentialsCapability.getPassword();
+		if (passwordCapability == null) {
+			return;
+		}
+
 		AccountType accountHandling = ModelUtils.getAccountTypeFromHandling(account, resource);
 		boolean pushPasswordToAccount = false;
 		if (accountHandling != null && accountHandling.getCredentials() != null
@@ -321,13 +374,13 @@ public class UserTypeHandler extends BasicHandler {
 		return change;
 	}
 
-	private void modifyAccountsAfterUserWithExclusion(UserType user, ObjectModificationType change,
+	private void modifyAccountsAfterUserWithExclusion(UserType user,
 			PropertyModificationType userActivationChanged, String accountOid, OperationResult result) {
 		List<ObjectReferenceType> accountRefs = user.getAccountRef();
 		for (ObjectReferenceType accountRef : accountRefs) {
 			OperationResult subResult = result.createSubresult(ModelControllerImpl.UPDATE_ACCOUNT);
-			subResult.addParams(new String[] { "change", "accountOid", "object", "accountRef" }, change,
-					accountOid, user, accountRef);
+			subResult.addParams(new String[] { "accountOid", "object", "accountRef" }, accountOid, user,
+					accountRef);
 			if (StringUtils.isNotEmpty(accountOid) && accountOid.equals(accountRef.getOid())) {
 				subResult.computeStatus("Account excluded during modification, skipped.");
 				// preventing cycles while updating resource object shadows
@@ -335,8 +388,9 @@ public class UserTypeHandler extends BasicHandler {
 			}
 
 			try {
-				AccountShadowType account = getModelController().getObject(AccountShadowType.class, accountRef.getOid(),
-						ModelUtils.createPropertyReferenceListType("Resource"), subResult);
+				AccountShadowType account = getModelController().getObject(AccountShadowType.class,
+						accountRef.getOid(), ModelUtils.createPropertyReferenceListType("Resource"),
+						subResult);
 
 				ObjectModificationType accountChange = null;
 				try {
@@ -387,89 +441,73 @@ public class UserTypeHandler extends BasicHandler {
 		return null;
 	}
 
-	private void processAddDeleteAccountFromChanges(ObjectModificationType change, UserType userBeforeChange,
-			OperationResult result) {
+	private List<PropertyModificationType> processAddDeleteAccountFromChanges(
+			List<PropertyModificationType> accountChanges, UserType user, OperationResult result) {
+		List<PropertyModificationType> userChanges = new ArrayList<PropertyModificationType>();
 		// MID-72, MID-73 password push from user to account
 		// TODO: look for password property modification and next use it while
 		// creating account. If account schemahandling credentials
 		// outboundPassword is true, we have to push password
-		for (PropertyModificationType propertyChange : change.getPropertyModification()) {
-			if (propertyChange.getValue() == null || propertyChange.getValue().getAny().isEmpty()) {
-				continue;
-			}
-
-			Object node = propertyChange.getValue().getAny().get(0);
-			if (!SchemaConstants.I_ACCOUNT.equals(JAXBUtil.getElementQName(node))) {
-				continue;
-			}
+		for (PropertyModificationType change : accountChanges) {
 			OperationResult subResult = result.createSubresult(ModelController.PROCESS_ACCOUNT_FROM_CHANGES);
+			Object node = change.getValue().getAny().get(0);
 			try {
-				switch (propertyChange.getModificationType()) {
+				switch (change.getModificationType()) {
 					case add:
-						processAddAccountFromChanges(propertyChange, node, userBeforeChange, subResult);
+						userChanges.add(processAddAccountFromChanges(change, node, user, subResult));
 						break;
 					case delete:
-						processDeleteAccountFromChanges(propertyChange, node, userBeforeChange, subResult);
-						break;
+						userChanges.add(processDeleteAccountFromChanges(change, node, user, subResult));
 				}
-				// } catch (SystemException ex) {
-				// throw ex;
 				subResult.recordSuccess();
 			} catch (Exception ex) {
-				final String operation = propertyChange.getModificationType() == PropertyModificationTypeType.add ? "add"
+				final String operation = change.getModificationType() == PropertyModificationTypeType.add ? "add"
 						: "delete";
-				// throw new SystemException(message, ex);
-				subResult.recordFatalError(
-						"Couldn't " + operation + " account for user '" + userBeforeChange.getName() + "'.",
-						ex);
+				subResult.recordFatalError("Couldn't " + operation + " account for user '" + user.getName()
+						+ "'.", ex);
 				LoggingUtils.logException(LOGGER, "Couldn't process {} account for user '{}'.", ex,
-						operation, userBeforeChange.getName());
+						operation, user.getName());
 			} finally {
 				subResult.computeStatus();
 			}
 		}
+
+		return userChanges;
 	}
 
-	private void processDeleteAccountFromChanges(PropertyModificationType propertyChange, Object node,
-			UserType userBeforeChange, OperationResult result) throws JAXBException {
+	private PropertyModificationType processDeleteAccountFromChanges(PropertyModificationType propertyChange,
+			Object node, UserType userBeforeChange, OperationResult result) throws JAXBException {
+
 		AccountShadowType account = XsdTypeConverter.toJavaValue(node, AccountShadowType.class);
 
 		ObjectReferenceType accountRef = ModelUtils.createReference(account.getOid(), ObjectTypes.ACCOUNT);
 		PropertyModificationType deleteAccountRefChange = ObjectTypeUtil.createPropertyModificationType(
 				PropertyModificationTypeType.delete, null, SchemaConstants.I_ACCOUNT_REF, accountRef);
 
-		propertyChange.setPath(deleteAccountRefChange.getPath());
-		propertyChange.setValue(deleteAccountRefChange.getValue());
+		return deleteAccountRefChange;
 	}
 
 	@SuppressWarnings("unchecked")
-	private void processAddAccountFromChanges(PropertyModificationType propertyChange, Object node,
-			UserType userBeforeChange, OperationResult result) throws JAXBException, ObjectNotFoundException,
-			PatchException, ObjectAlreadyExistsException, SchemaException {
-		String newAccountOid = null;
-		try {
-			AccountShadowType account = XsdTypeConverter.toJavaValue(node, AccountShadowType.class);
-			pushPasswordFromUserToAccount(userBeforeChange, account, result);
+	private PropertyModificationType processAddAccountFromChanges(PropertyModificationType propertyChange,
+			Object node, UserType user, OperationResult result) throws JAXBException,
+			ObjectNotFoundException, PatchException, ObjectAlreadyExistsException, SchemaException {
 
-			ObjectModificationType accountChange = processOutboundSchemaHandling(userBeforeChange, account,
-					result);
-			if (accountChange != null) {
-				PatchXml patchXml = new PatchXml();
-				String accountXml = patchXml.applyDifferences(accountChange, account);
-				account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml)).getValue();
-			}
+		AccountShadowType account = XsdTypeConverter.toJavaValue(node, AccountShadowType.class);
+		pushPasswordFromUserToAccount(user, account, result);
 
-			newAccountOid = getModelController().addObject(account, result);
-		} finally {
-			propertyChange.getValue().getAny().clear();
-			if (StringUtils.isNotEmpty(newAccountOid)) {
-				ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid,
-						ObjectTypes.ACCOUNT);
-				Element accountRefElement = JAXBUtil.jaxbToDom(accountRef, SchemaConstants.I_ACCOUNT_REF,
-						DOMUtil.getDocument());
-				propertyChange.getValue().getAny().add(accountRefElement);
-			}
+		ObjectModificationType accountChange = processOutboundSchemaHandling(user, account, result);
+		if (accountChange != null) {
+			PatchXml patchXml = new PatchXml();
+			String accountXml = patchXml.applyDifferences(accountChange, account);
+			account = ((JAXBElement<AccountShadowType>) JAXBUtil.unmarshal(accountXml)).getValue();
 		}
+
+		String newAccountOid = getModelController().addObject(account, result);
+
+		ObjectReferenceType accountRef = ModelUtils.createReference(newAccountOid, ObjectTypes.ACCOUNT);
+		PropertyModificationType addAccountRefChange = ObjectTypeUtil.createPropertyModificationType(
+				PropertyModificationTypeType.add, null, SchemaConstants.I_ACCOUNT_REF, accountRef);
+		return addAccountRefChange;
 	}
 
 	private void processAssignments(UserType user, List<AssignmentType> assignments, OperationResult result,

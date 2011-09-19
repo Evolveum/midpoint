@@ -27,6 +27,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.common.patch.PatchXml;
@@ -96,6 +97,24 @@ public class BasicHandler {
 
 	protected SchemaHandler getSchemaHandler() {
 		return schemaHandler;
+	}
+
+	protected ResourceType resolveResource(ResourceObjectShadowType shadow, OperationResult result)
+			throws ObjectNotFoundException {
+		Validate.notNull(shadow, "Resource object shadow must not be null.");
+
+		ResourceType resource = shadow.getResource();
+		if (resource == null && shadow.getResourceRef() != null) {
+			resource = getObject(ResourceType.class, shadow.getResourceRef().getOid(),
+					new PropertyReferenceListType(), result);
+		}
+
+		if (resource == null) {
+			throw new SystemException("Couldn't get resource from shadow '" + shadow.getName()
+					+ "', resource and resourceRef couldn't be resolved.");
+		}
+
+		return resource;
 	}
 
 	protected SystemConfigurationType getSystemConfiguration(OperationResult result)
@@ -205,7 +224,7 @@ public class BasicHandler {
 
 	@SuppressWarnings("unchecked")
 	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, PropertyReferenceListType resolve,
-			OperationResult result) throws ObjectNotFoundException {		
+			OperationResult result) throws ObjectNotFoundException {
 		T object = null;
 		try {
 			ObjectType objectType = null;
