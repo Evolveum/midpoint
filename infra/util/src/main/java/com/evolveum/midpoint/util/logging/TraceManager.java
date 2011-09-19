@@ -22,7 +22,9 @@
 
 package com.evolveum.midpoint.util.logging;
 
+import org.slf4j.ILoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.evolveum.midpoint.util.logging.impl.TraceImpl;
 
@@ -36,11 +38,15 @@ import com.evolveum.midpoint.util.logging.impl.TraceImpl;
 public class TraceManager {
 
     public static final String code_id = "$Id$";
-    private static Logger LOG = org.slf4j.LoggerFactory.getLogger(TraceManager.class);
+    private static Logger LOGGER = org.slf4j.LoggerFactory.getLogger(TraceManager.class);
 
-    public static Trace getTrace(Class clazz) {
+    public static Trace getTrace(@SuppressWarnings("rawtypes") Class clazz) {
         Logger LOGGER = org.slf4j.LoggerFactory.getLogger(clazz);
 
         return new TraceImpl(LOGGER);
+    }
+    
+    public static ILoggerFactory getILoggerFactory() {
+    	return LoggerFactory.getILoggerFactory();
     }
 }
