@@ -450,5 +450,47 @@ public class XPathHolder {
 			return false;
 		return true;
 	}
+
+	/**
+	 * Returns true if this path is below a specified path.
+	 */
+	public boolean isBelow(XPathHolder path) {
+		for(int i = 0; i < path.segments.size(); i++) {
+			if (i > this.segments.size()) {
+				// We have run beyond all of local segments, therefore
+				// this path cannot be below specified path
+				return false;
+			}
+			if (!this.segments.get(i).equals(path.segments.get(i))) {
+				// Segments don't match. We are not below.
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
+	 * Returns a list of segments that are the "tail" after specified path.
+	 * The path in the parameter is assumed to be a "superpath" to this path, e.i.
+	 * this path is below specified path. This method returns all the segments 
+	 * of this path that are below the specified path.
+	 * Returns null if the assumption is false.
+	 */
+	public List<XPathSegment> getTail(XPathHolder path) {
+		int i=0;
+		while(i < path.segments.size()) {
+			if (i > this.segments.size()) {
+				// We have run beyond all of local segments, therefore
+				// this path cannot be below specified path
+				return null;
+			}
+			if (!this.segments.get(i).equals(path.segments.get(i))) {
+				// Segments don't match. We are not below.
+				return null;
+			}
+			i++;
+		}
+		return segments.subList(i, this.segments.size());
+	}
 	
 }

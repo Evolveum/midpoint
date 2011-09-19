@@ -52,8 +52,36 @@ public class ObjectTypeUtilTest {
 		
 		// THEN
 		
-		assertNotNull(newPasswordStructure);
-		
+		assertNotNull("No Password structure",newPasswordStructure);
+		assertNotNull("No protectedString in Password structure",newPasswordStructure.getProtectedString());
+		assertNotNull("No value in protectedString in Password structure",newPasswordStructure.getProtectedString().getClearValue());
 	}
-	
+
+	/**
+	 * Test for a wrong way how to represent property changes.
+	 *  
+	 * THIS IS ALL WRONG! This is a wrong way how to change password. the <clearValue> is not a property
+     * and therefore it cannot be changed by itself. But current problems with the diff algorithm cause
+     * that modifications like this appear in the system.
+	 */
+	@Test
+	public void testGetPropertyNewValueHack() throws JAXBException {
+		// GIVEN
+		
+		ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
+				.unmarshal(new File("src/test/resources/util/object-change-modify-password-hack.xml")))
+				.getValue();
+		
+		// WHEN
+		
+		ObjectModificationType objectModification = objectChange.getObjectModification();
+		Password newPasswordStructure = ObjectTypeUtil.getPropertyNewValue(objectModification,"credentials","password",Password.class);
+		
+		// THEN
+		
+		assertNotNull("No Password structure",newPasswordStructure);
+		assertNotNull("No protectedString in Password structure",newPasswordStructure.getProtectedString());
+		assertNotNull("No value in protectedString in Password structure",newPasswordStructure.getProtectedString().getClearValue());		
+	}
+
 }

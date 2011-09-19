@@ -318,7 +318,45 @@ public class ObjectTypeUtil {
 		for (PropertyModificationType propertyModification : propertyModifications) {
 			XPathHolder propertyPath = new XPathHolder(propertyModification.getPath());
 			if (!path.equals(propertyPath)) {
-				continue;
+				if (propertyPath.isBelow(path)) {
+					// this is an UGLY HACK
+					// TODO: explain
+					List<XPathSegment> tail = propertyPath.getTail(path); 
+					if (tail.isEmpty()) {
+						continue;
+					}
+					XPathSegment propSegment = tail.get(0);
+					if (!propertyName.equals(propSegment.getQName())) {
+						continue;
+					}
+					PropertyModificationType newPropertyMod = new PropertyModificationType();
+					Document doc = DOMUtil.getDocument();
+					newPropertyMod.setPath(path.toElement(SchemaConstants.I_PROPERTY_CONTAINER_REFERENCE_PATH, doc));
+					newPropertyMod.setModificationType(propertyModification.getModificationType());
+					Element rootElement = DOMUtil.createElement(doc, propertyName);
+					Element currentElement = rootElement;
+					for (int i = 1; i < tail.size(); i++) {
+						XPathSegment xPathSegment = tail.get(i);
+						Element newElement = DOMUtil.createElement(doc, xPathSegment.getQName());
+						currentElement.appendChild(newElement);
+						currentElement = newElement;
+					}
+					for (Object valueJaxbElement : propertyModification.getValue().getAny()) {
+						Element valueDomElement;
+						try {
+							valueDomElement = JAXBUtil.toDomElement(valueJaxbElement,doc,true,true,false);
+						} catch (JAXBException e) {
+							throw new IllegalStateException("Cannot convert element "+valueJaxbElement+" to DOM");
+						}
+						currentElement.appendChild(valueDomElement);
+					}
+					Value value = new Value();
+					value.getAny().add(rootElement);
+					newPropertyMod.setValue(value);
+					return newPropertyMod;
+				} else {
+					continue;
+				}
 			}
 			if (!propertyName.equals(getElementName(propertyModification))) {
 				continue;

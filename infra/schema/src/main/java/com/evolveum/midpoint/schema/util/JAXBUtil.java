@@ -436,18 +436,32 @@ public final class JAXBUtil {
 		return toDomElement(element, DOMUtil.getDocument());
 	}
 
+	public static Element toDomElement(Object jaxbElement, Document doc) throws JAXBException {
+		return toDomElement(jaxbElement,doc,false,false,false);
+	}
+	
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static Element toDomElement(Object element, Document doc) throws JAXBException {
-		if (element == null) {
+	public static Element toDomElement(Object jaxbElement, Document doc, boolean adopt, boolean clone, boolean deep) throws JAXBException {
+		if (jaxbElement == null) {
 			return null;
 		}
-		if (element instanceof Element) {
-			return ((Element) element);
-		} else if (element instanceof JAXBElement) {
-			return jaxbToDom((JAXBElement) element, doc);
+		if (jaxbElement instanceof Element) {
+			Element domElement = (Element) jaxbElement;
+			if (clone) {
+				domElement = (Element) domElement.cloneNode(deep);
+			}
+			if (domElement.getOwnerDocument().equals(doc)) {
+				return domElement;
+			}
+			if (adopt) {
+				doc.adoptNode(domElement);
+			}
+			return domElement;
+		} else if (jaxbElement instanceof JAXBElement) {
+			return jaxbToDom((JAXBElement) jaxbElement, doc);
 		} else {
-			throw new IllegalArgumentException("Not an element: " + element + " ("
-					+ element.getClass().getName() + ")");
+			throw new IllegalArgumentException("Not an element: " + jaxbElement + " ("
+					+ jaxbElement.getClass().getName() + ")");
 		}
 	}
 
