@@ -22,8 +22,9 @@ window.onresize = function() {
 };
 
 function setToCenter() {
-	var centerOfWindow = jQuery("#nav").width() / 2;
-	jQuery("#navBar").css("margin-left", centerOfWindow - 490);
+	var centerOfWindow = jQuery("#top-nav").width() / 2;
+	var navBarHalfWidth = jQuery("#navBar").width() / 2;
+	jQuery("#navBar").css("margin-left", centerOfWindow - navBarHalfWidth);
 }
 
 function displayMessageDetails(id, showImage, hideImage) {
