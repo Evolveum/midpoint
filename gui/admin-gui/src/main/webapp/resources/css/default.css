@@ -1,4 +1,4 @@
-body, table {
+body,table {
 	font-family: Arial, Helvetica, sans-serif;
 	font-size: 1em;
 	color: #000000;
@@ -21,12 +21,9 @@ body, table {
 
 .iceDatTbl {
 	background-color: #FFFFFF;
-	border: 1px solid #aaaaaa;
-	margin: 10px;
-}
-
-.ace_editor{
-	
+	border: 1px solid #1e6b83;
+	border-collapse: collapse;
+	margin: 10px 0 10px 0;
 }
 
 .iceDatTblColHdr,.iceDatTblColHdr1,.iceDatTblColHdr2,.iceDatTblColGrpHdrCol,.iceDatTblFtr
@@ -37,8 +34,8 @@ body, table {
 	background-repeat: repeat-x;
 	font-weight: normal;
 	text-align: center;
+	border: 1px solid #A8C6D0;
 	color: #fff;
-	border: 1px solid white;
 	padding-left: 5px;
 	padding-right: 5px;
 	padding-top: 4px;
@@ -73,4 +70,10 @@ body, table {
 	width: 10px;
 	height: 10px;
 	margin-left: 5px;
+}
+
+.iceDatTblCol {
+	border: 1px solid #A8C6D0;
+/* 	border-bottom: 1px solid #cccccc;
+	border-right: 1px solid #cccccc; */
 }

@@ -17,6 +17,7 @@
  */
 
 jQuery.noConflict();
+
 window.onresize = function() {
 	setToCenter();
 };
@@ -65,23 +66,25 @@ function displayMessageCauseDetails(id) {
 
 /* //////////////////// jQuery ////////////////////////////// */
 jQuery(document).ready(function() {
-	
+
 	jQuery("#blackWindow").css("opacity", "0.7");
 	jQuery("#blackWindow").hide();
 	jQuery("#preloader").hide();
+
+	highliteTableRows();
+	
+	jQuery(".iceCmdLnk ").click(function(){
+			setTimeout("highliteTableRows()",200);
+	});
+	
+	jQuery(".buttons").find("#admin-content:goToNext").click(function() {
+		highliteTableRows();
+	});
 
 	var y = jQuery(window).height() / 2;
 	var x = jQuery(window).width() / 2;
 	jQuery("#preloader").css("top", y - 50);
 	jQuery("#preloader").css("left", x - 50);
-	
-	jQuery(".iceDatTblRow").mouseover(function(){
-		jQuery(this).css("background-color","#CFDEE1");
-	});
-	
-	jQuery(".iceDatTblRow").mouseout(function(){
-		jQuery(this).css("background-color", "#FFFFFF");
-	});
 
 	jQuery("#logoutUserLinkSpan").css("color", "white");
 	jQuery("#logoutUserLinkSpan").css("opacity", "0.5");
@@ -118,6 +121,16 @@ jQuery(document).ready(function() {
 	});
 
 });
+
+function highliteTableRows() {
+	jQuery(".iceDatTblRow").mouseover(function() {
+		jQuery(this).css("background-color", "#CFDEE1");
+	});
+
+	jQuery(".iceDatTblRow").mouseout(function() {
+		jQuery(this).css("background-color", "#FFFFFF");
+	});
+}
 
 function waitScreen() {
 	jQuery("#blackWindow").hide();
