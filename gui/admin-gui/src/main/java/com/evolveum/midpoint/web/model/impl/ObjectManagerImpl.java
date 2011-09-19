@@ -71,7 +71,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
-	protected <O extends ObjectType> O get(String oid, PropertyReferenceListType resolve, Class<O> objectClass)
+	protected <O extends ObjectType> O get(Class<O> objectClass, String oid, PropertyReferenceListType resolve)
 			throws ObjectNotFoundException {
 		Validate.notEmpty(oid, "Object oid must not be null or empty.");
 		Validate.notNull(resolve, "Property reference list must not be null.");
@@ -110,7 +110,7 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 
 		T object = null;
 		try {
-			ObjectType objectType = get(oid, resolve, getSupportedObjectClass());
+			ObjectType objectType = get(getSupportedObjectClass(), oid, resolve);
 			isObjectTypeSupported(objectType);
 			object = createObject((C) objectType);
 			result.recordSuccess();

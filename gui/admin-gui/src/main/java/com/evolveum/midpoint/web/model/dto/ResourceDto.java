@@ -30,6 +30,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SchemaHandlingType;
@@ -58,7 +59,11 @@ public class ResourceDto extends ExtensibleObjectDto<ResourceType> {
 	}
 
 	public void setConfiguration(Configuration value) {
-		// TODO
+		// TODO		
+	}
+	
+	public CapabilitiesType getEffectiveCapabilities() {
+		return ResourceTypeUtil.getEffectiveCapabilities(getXmlObject());
 	}
 
 	public List<AccountTypeDto> getAccountTypes() {

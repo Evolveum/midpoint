@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.PropertyAvailableValues;
@@ -95,4 +96,8 @@ public class AccountManagerImplMock implements AccountManager {
 		throw new UnsupportedOperationException("Not supported yet.");
 	}
 
+	@Override
+	public ResourceCapability getResourceCapability(AccountShadowDto account) {
+		throw new UnsupportedOperationException("Not supported yet.");
+	}
 }

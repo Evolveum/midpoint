@@ -23,6 +23,8 @@
 package com.evolveum.midpoint.web.model.dto;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 
 /**
  * 
@@ -37,5 +39,13 @@ public class AccountShadowDto extends ResourceObjectShadowDto<AccountShadowType>
 	}
 
 	public AccountShadowDto() {
+	}
+
+	public CredentialsType getCredentials() {
+		return getXmlObject().getCredentials();
+	}
+
+	public ActivationType getActivation() {
+		return getXmlObject().getActivation();
 	}
 }

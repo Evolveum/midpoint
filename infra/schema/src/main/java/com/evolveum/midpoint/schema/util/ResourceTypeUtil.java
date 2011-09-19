@@ -21,9 +21,7 @@ package com.evolveum.midpoint.schema.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 
@@ -34,10 +32,10 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -116,14 +114,14 @@ public class ResourceTypeUtil {
 		if (a == null || b == null) {
 			return false;
 		}
-		return JAXBUtil.compareAny(a.getAny(),b.getAny());
+		return JAXBUtil.compareAny(a.getAny(), b.getAny());
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T> T getCapability(Collection<Object> capabilities, Class<T> capabilityClass) {
 		for (Object cap : capabilities) {
 			if (cap instanceof JAXBElement) {
-				JAXBElement jaxe = (JAXBElement)cap;
+				JAXBElement jaxe = (JAXBElement) cap;
 				if (capabilityClass.isAssignableFrom(jaxe.getDeclaredType())) {
 					return (T) jaxe.getValue();
 				}
@@ -133,33 +131,33 @@ public class ResourceTypeUtil {
 		}
 		return null;
 	}
-	
+
 	public static <T> T getEffectiveCapability(ResourceType resource, Class<T> capabilityClass) {
-		if ( resource.getCapabilities()!=null ) {
-			return getCapability(resource.getCapabilities().getAny(),capabilityClass);
+		if (resource.getCapabilities() != null) {
+			return getCapability(resource.getCapabilities().getAny(), capabilityClass);
 		} else if (resource.getNativeCapabilities() != null) {
-			return getCapability(resource.getNativeCapabilities().getAny(),capabilityClass);
+			return getCapability(resource.getNativeCapabilities().getAny(), capabilityClass);
 		} else {
 			// No capabilities at all
 			return null;
 		}
 	}
-	
+
 	public static List<Object> listEffectiveCapabilities(ResourceType resource) {
-		if ( resource.getCapabilities()!=null ) {
+		if (resource.getCapabilities() != null) {
 			return resource.getCapabilities().getAny();
 		} else if (resource.getNativeCapabilities() != null) {
 			return resource.getNativeCapabilities().getAny();
 		} else {
 			return new ArrayList<Object>();
-		}		
+		}
 	}
-	
+
 	public static String getCapabilityDisplayName(Object capability) {
 		// TODO: look for schema annotation
 		String className = null;
 		if (capability instanceof JAXBElement) {
-			className = ((JAXBElement)capability).getDeclaredType().getSimpleName();
+			className = ((JAXBElement) capability).getDeclaredType().getSimpleName();
 		} else {
 			className = capability.getClass().getSimpleName();
 		}
@@ -169,4 +167,35 @@ public class ResourceTypeUtil {
 		return className;
 	}
 
+	public static CapabilitiesType getEffectiveCapabilities(ResourceType resource) {
+		CapabilitiesType capabilities = new CapabilitiesType();
+
+		CapabilitiesType natives = resource.getNativeCapabilities();
+		if (natives == null) {
+			return capabilities;
+		}
+
+		CapabilitiesType existing = resource.getCapabilities();
+		if (existing == null) {
+			capabilities.getAny().addAll(natives.getAny());
+			return capabilities;
+		}
+
+		boolean found;
+		for (Object capability : natives.getAny()) {
+			found = false;
+			for (Object existingCapability : existing.getAny()) {
+				if (capability.getClass().equals(existingCapability.getClass())) {
+					capabilities.getAny().add(existingCapability);
+					found = true;
+					break;
+				}
+			}
+			if (!found) {
+				capabilities.getAny().add(capability);
+			}
+		}
+
+		return capabilities;
+	}
 }

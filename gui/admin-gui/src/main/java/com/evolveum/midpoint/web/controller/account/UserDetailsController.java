@@ -537,6 +537,7 @@ public class UserDetailsController implements Serializable {
 
 		FormObject object = new FormObject();
 		QName defaultAccountType = null;
+		ResourceCapability capability = null;
 		try {
 			SchemaFormParser parser = new SchemaFormParser();
 			List<ResourceObjectAttributeDefinition> list = parser.parseSchemaForAccount(account, accountType);
@@ -550,17 +551,15 @@ public class UserDetailsController implements Serializable {
 			}
 			object.sort();
 			defaultAccountType = parser.getDefaultAccountType();
+
+			AccountManager manager = ControllerUtil.getAccountManager(objectTypeCatalog);
+			capability = manager.getResourceCapability(account);
 		} catch (SchemaException ex) {
 			throw ex;
 		} catch (Exception ex) {
 			throw new SchemaException("Unknown error, reason: " + ex.getMessage(), ex);
 		}
 
-		// TODO
-		ResourceCapability capability = new ResourceCapability();
-		capability.setActivation(true);
-		capability.setCredentials(true);
-		
 		return new AccountFormBean(index, account, capability, defaultAccountType, object, createNew);
 	}
 

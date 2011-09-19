@@ -21,7 +21,24 @@
 package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang.StringUtils;
+
+import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
 
 /**
  * 
@@ -41,6 +58,77 @@ public class ResourceCapability implements Serializable {
 	private Date activeTo;
 	private String password1;
 	private String password2;
+
+	@SuppressWarnings("rawtypes")
+	public void setAccount(AccountShadowDto account, CapabilitiesType capabilities) {
+		for (Object capability : capabilities.getAny()) {
+			if (!(capability instanceof JAXBElement)) {
+				continue;
+			}
+			JAXBElement element = (JAXBElement) capability;
+			if (element.getDeclaredType().equals(CredentialsCapabilityType.class)) {
+				credentials = true;
+			}
+			if (element.getDeclaredType().equals(ActivationCapabilityType.class)) {
+				activation = true;
+			}
+		}
+		ActivationType activation = account.getActivation();
+		if (activation != null) {
+			enabled = activation.isEnabled() == null ? true : activation.isEnabled();
+			if (activation.getValidFrom() != null) {
+				XMLGregorianCalendar calendar = activation.getValidFrom();
+				activeFrom = calendar.toGregorianCalendar().getTime();
+			}
+			if (activation.getValidTo() != null) {
+				XMLGregorianCalendar calendar = activation.getValidTo();
+				activeTo = calendar.toGregorianCalendar().getTime();
+			}
+		}
+		CredentialsType credentials = account.getCredentials();
+		if (credentials != null) {
+
+		}
+	}
+
+	public CredentialsType getCredentialsType() {
+		if (StringUtils.isEmpty(password1)) {
+			return null;
+		}
+		CredentialsType credentials = new CredentialsType();
+		// credentials.setPassword()
+
+		return credentials;
+	}
+
+	public ActivationType getActivationType() {
+		if (enabled && !activationUsed) {
+			return null;
+		}
+
+		ActivationType activation = new ActivationType();
+		if (!enabled) {
+			activation.setEnabled(false);
+		}
+
+		if (activationUsed) {
+			try {
+				Calendar calendar = GregorianCalendar.getInstance();
+				calendar.setTimeInMillis(getActiveFrom().getTime());
+				activation.setValidFrom(DatatypeFactory.newInstance().newXMLGregorianCalendar(
+						(GregorianCalendar) calendar));
+
+				calendar = GregorianCalendar.getInstance();
+				calendar.setTimeInMillis(getActiveTo().getTime());
+				activation.setValidTo(DatatypeFactory.newInstance().newXMLGregorianCalendar(
+						(GregorianCalendar) calendar));
+			} catch (DatatypeConfigurationException ex) {
+				throw new SystemException(ex.getMessage(), ex);
+			}
+		}
+
+		return activation;
+	}
 
 	public boolean isCredentials() {
 		return credentials;

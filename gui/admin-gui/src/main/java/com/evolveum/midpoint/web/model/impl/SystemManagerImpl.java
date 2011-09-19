@@ -37,8 +37,8 @@ public class SystemManagerImpl extends ObjectManagerImpl<SystemConfigurationType
 	public Collection<SystemConfigurationDto> list(PagingType paging) {
 		SystemConfigurationType config = null;
 		try {
-			config = get(SystemObjectsType.SYSTEM_CONFIGURATION.value(), new PropertyReferenceListType(),
-					SystemConfigurationType.class);
+			config = get(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+					new PropertyReferenceListType());
 		} catch (ObjectNotFoundException ex) {
 			// TODO: error handling
 			throw new SystemException(ex);

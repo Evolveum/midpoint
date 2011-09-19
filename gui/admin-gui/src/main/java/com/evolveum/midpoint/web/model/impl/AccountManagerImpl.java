@@ -32,16 +32,22 @@ import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
+import com.evolveum.midpoint.web.model.dto.ObjectReferenceDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
+import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -54,7 +60,6 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 
 	private static final long serialVersionUID = 3793939681394774533L;
 	private static final Trace LOGGER = TraceManager.getTrace(AccountManagerImpl.class);
-	
 
 	@Override
 	public Collection<AccountShadowDto> list(PagingType paging) {
@@ -117,4 +122,27 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 		return user;
 	}
 
+	@Override
+	public ResourceCapability getResourceCapability(AccountShadowDto account) {
+		Validate.notNull(account, "Account shadow dto must not be null.");
+
+		ResourceCapability capability = new ResourceCapability();
+		try {
+			ResourceDto resource = account.getResource();
+			if (resource == null) {
+				ObjectReferenceDto ref = account.getResourceRef();
+				ResourceType resourceType = get(ResourceType.class, ref.getOid(),
+						new PropertyReferenceListType());
+				resource = new ResourceDto(resourceType);
+			}
+
+			capability
+					.setAccount(account, ResourceTypeUtil.getEffectiveCapabilities(resource.getXmlObject()));
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get resource capabilities for account {}", ex,
+					account.getName());
+		}
+
+		return capability;
+	}
 }

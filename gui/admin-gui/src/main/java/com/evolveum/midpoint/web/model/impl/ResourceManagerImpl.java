@@ -183,7 +183,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 	public ConnectorDto getConnector(String oid) {
 		ConnectorType connector = null;
 		try {
-			connector = get(oid, new PropertyReferenceListType(), ConnectorType.class);
+			connector = get(ConnectorType.class, oid, new PropertyReferenceListType());
 		} catch (Exception ex) {
 			// TODO: error handling
 			throw new SystemException(ex);

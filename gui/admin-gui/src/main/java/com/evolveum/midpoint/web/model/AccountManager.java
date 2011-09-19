@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.model;
 
+import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -35,4 +36,6 @@ public interface AccountManager extends ObjectManager<AccountShadowDto> {
 	String SUBMIT = CLASS_NAME + "submit";
 
 	UserType listOwner(String oid);
+
+	ResourceCapability getResourceCapability(AccountShadowDto account);
 }

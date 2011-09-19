@@ -51,6 +51,9 @@ public class AccountFormBean implements Serializable {
 	}
 	
 	public ResourceCapability getResourceCapability() {
+		if (resourceCapability == null) {
+			resourceCapability = new ResourceCapability();
+		}
 		return resourceCapability;
 	}
 
