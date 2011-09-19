@@ -383,8 +383,8 @@ public class UserTypeHandler extends BasicHandler {
 	private void modifyAccountsAfterUserWithExclusion(UserType user,
 			PropertyModificationType userActivationChanged, PropertyModificationType userCredentials,
 			String accountOid, OperationResult result) {
-		List<ObjectReferenceType> accountRefs = user.getAccountRef();
-		for (ObjectReferenceType accountRef : accountRefs) {
+
+		for (ObjectReferenceType accountRef : user.getAccountRef()) {
 			OperationResult subResult = result.createSubresult(ModelControllerImpl.UPDATE_ACCOUNT);
 			subResult.addParams(new String[] { "accountOid", "object", "accountRef" }, accountOid, user,
 					accountRef);
@@ -414,19 +414,11 @@ public class UserTypeHandler extends BasicHandler {
 				}
 
 				if (userActivationChanged != null) {
-					PropertyModificationType modification = new PropertyModificationType();
-					modification.setModificationType(PropertyModificationTypeType.replace);
-					modification.setPath(userActivationChanged.getPath());
-					modification.setValue(userActivationChanged.getValue());
-					accountChange.getPropertyModification().add(modification);
+					copyModification(userActivationChanged, accountChange);
 				}
 
 				if (userCredentials != null) {
-					PropertyModificationType modification = new PropertyModificationType();
-					modification.setModificationType(PropertyModificationTypeType.replace);
-					modification.setPath(userCredentials.getPath());
-					modification.setValue(userCredentials.getValue());
-					accountChange.getPropertyModification().add(modification);
+					copyModification(userCredentials, accountChange);
 				}
 
 				getModelController().modifyObjectWithExclusion(AccountShadowType.class, accountChange,
@@ -438,6 +430,14 @@ public class UserTypeHandler extends BasicHandler {
 				subResult.computeStatus("Couldn't update account '" + accountRef.getOid() + "'.");
 			}
 		}
+	}
+
+	private void copyModification(PropertyModificationType from, ObjectModificationType here) {
+		PropertyModificationType modification = new PropertyModificationType();
+		modification.setModificationType(PropertyModificationTypeType.replace);
+		modification.setPath(from.getPath());
+		modification.setValue(from.getValue());
+		here.getPropertyModification().add(modification);
 	}
 
 	private PropertyModificationType hasPropertyChanged(ObjectModificationType change, QName property) {
