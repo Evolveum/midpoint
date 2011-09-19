@@ -73,6 +73,14 @@ jQuery(document).ready(function() {
 	var x = jQuery(window).width() / 2;
 	jQuery("#preloader").css("top", y - 50);
 	jQuery("#preloader").css("left", x - 50);
+	
+	jQuery(".iceDatTblRow").mouseover(function(){
+		jQuery(this).css("background-color","#CFDEE1");
+	});
+	
+	jQuery(".iceDatTblRow").mouseout(function(){
+		jQuery(this).css("background-color", "#FFFFFF");
+	});
 
 	jQuery("#logoutUserLinkSpan").css("color", "white");
 	jQuery("#logoutUserLinkSpan").css("opacity", "0.5");
