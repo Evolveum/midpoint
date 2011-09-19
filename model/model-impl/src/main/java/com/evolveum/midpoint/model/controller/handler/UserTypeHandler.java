@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -104,7 +105,7 @@ public class UserTypeHandler extends BasicHandler {
 		// we remove account changes, then we save user object
 		change.getPropertyModification().removeAll(accountChanges);
 		getRepository().modifyObject(UserType.class, change, result);
-		
+
 		try {
 			PatchXml patchXml = new PatchXml();
 			String u = patchXml.applyDifferences(change, user);
@@ -113,15 +114,21 @@ public class UserTypeHandler extends BasicHandler {
 			LoggingUtils.logException(LOGGER, "Couldn't patch user {}", ex, user.getName());
 		}
 
-		PropertyModificationType userActivationChanged = hasUserActivationChanged(change);
+		PropertyModificationType userActivationChanged = hasPropertyChanged(change,
+				SchemaConstants.ACTIVATION);
 		if (userActivationChanged != null) {
 			LOGGER.debug("User activation status changed, enabling/disabling accounts in next step.");
 		}
-
+		PropertyModificationType userCredentialsChanged = hasPropertyChanged(change,
+				SchemaConstants.I_CREDENTIALS);
+		if (userCredentialsChanged != null) {
+			LOGGER.debug("User credentials changed, updating accounts.");
+		}
 		// from now on we have updated user, next step is processing
 		// outbound for every existing account or enable/disable account if
 		// needed
-		modifyAccountsAfterUserWithExclusion(user, userActivationChanged, accountOid, result);
+		modifyAccountsAfterUserWithExclusion(user, userActivationChanged, userCredentialsChanged, accountOid,
+				result);
 
 		// process add and delete accounts
 		List<PropertyModificationType> userChanges = processAddDeleteAccountFromChanges(accountChanges, user,
@@ -279,7 +286,6 @@ public class UserTypeHandler extends BasicHandler {
 	 */
 	private void pushPasswordFromUserToAccount(UserType user, AccountShadowType account,
 			OperationResult result) throws ObjectNotFoundException {
-
 		ResourceType resource = resolveResource(account, result);
 		// checking resource password capabilities for password push to account
 		CredentialsCapabilityType credentialsCapability = ResourceTypeUtil.getEffectiveCapability(resource,
@@ -375,7 +381,8 @@ public class UserTypeHandler extends BasicHandler {
 	}
 
 	private void modifyAccountsAfterUserWithExclusion(UserType user,
-			PropertyModificationType userActivationChanged, String accountOid, OperationResult result) {
+			PropertyModificationType userActivationChanged, PropertyModificationType userCredentials,
+			String accountOid, OperationResult result) {
 		List<ObjectReferenceType> accountRefs = user.getAccountRef();
 		for (ObjectReferenceType accountRef : accountRefs) {
 			OperationResult subResult = result.createSubresult(ModelControllerImpl.UPDATE_ACCOUNT);
@@ -414,6 +421,14 @@ public class UserTypeHandler extends BasicHandler {
 					accountChange.getPropertyModification().add(modification);
 				}
 
+				if (userCredentials != null) {
+					PropertyModificationType modification = new PropertyModificationType();
+					modification.setModificationType(PropertyModificationTypeType.replace);
+					modification.setPath(userCredentials.getPath());
+					modification.setValue(userCredentials.getValue());
+					accountChange.getPropertyModification().add(modification);
+				}
+
 				getModelController().modifyObjectWithExclusion(AccountShadowType.class, accountChange,
 						accountOid, subResult);
 			} catch (Exception ex) {
@@ -425,15 +440,15 @@ public class UserTypeHandler extends BasicHandler {
 		}
 	}
 
-	private PropertyModificationType hasUserActivationChanged(ObjectModificationType change) {
+	private PropertyModificationType hasPropertyChanged(ObjectModificationType change, QName property) {
 		for (PropertyModificationType modification : change.getPropertyModification()) {
 			XPathHolder xpath = new XPathHolder(modification.getPath());
 			List<XPathSegment> segments = xpath.toSegments();
-			if (segments == null || segments.isEmpty() || segments.size() > 1) {
+			if (segments == null || segments.isEmpty()) {
 				continue;
 			}
 
-			if (SchemaConstants.ACTIVATION.equals(segments.get(0).getQName())) {
+			if (property.equals(segments.get(0).getQName())) {
 				return modification;
 			}
 		}
@@ -444,10 +459,6 @@ public class UserTypeHandler extends BasicHandler {
 	private List<PropertyModificationType> processAddDeleteAccountFromChanges(
 			List<PropertyModificationType> accountChanges, UserType user, OperationResult result) {
 		List<PropertyModificationType> userChanges = new ArrayList<PropertyModificationType>();
-		// MID-72, MID-73 password push from user to account
-		// TODO: look for password property modification and next use it while
-		// creating account. If account schemahandling credentials
-		// outboundPassword is true, we have to push password
 		for (PropertyModificationType change : accountChanges) {
 			OperationResult subResult = result.createSubresult(ModelController.PROCESS_ACCOUNT_FROM_CHANGES);
 			Object node = change.getValue().getAny().get(0);

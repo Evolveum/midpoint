@@ -466,28 +466,37 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		List<Object> attributes = attrs.getAny();
 		int index = 0;
 		for (Object attribute : attributes) {
+			index = attributes.indexOf(attribute);
 			LOGGER.trace("attribute({}): {}", new Object[] { index, JAXBUtil.getElementQName(attribute) });
-			if (attributeName.equals(JAXBUtil.getElementQName(attribute))) {
-				Object newAttribute;
-				try {
-					newAttribute = XsdTypeConverter.toXsdElement(attributeValue, attributeName, null);
-				} catch (JAXBException e) {
-					LOGGER.error("Unexpected JAXB problem while applying value of element {}: {} ",
-							new Object[] { attributeName, e.getMessage(), e });
-					throw new SchemaException("Unexpected JAXB problem while applying value of element "
-							+ attributeName + ": " + e.getMessage(), e);
-				}
-				attributes.set(index, newAttribute);
-				LOGGER.trace("Changed account's attribute {} value to {}", new Object[] { attributeName,
-						attributeValue });
-
-				PropertyModificationType modification = ObjectTypeUtil.createPropertyModificationType(
-						PropertyModificationTypeType.replace, xpathType, newAttribute);
-				modifications.add(modification);
-
+			if (!attributeName.equals(JAXBUtil.getElementQName(attribute))) {
+				continue;
+			}
+			Element attrElement = (Element) attribute;
+			String oldValue = attrElement.getTextContent();
+			if (oldValue != null && oldValue.equals(attributeValue)) {
+				// we don't need to create property modification because values
+				// are equal
 				return modifications;
 			}
-			index++;
+
+			Object newAttribute;
+			try {
+				newAttribute = XsdTypeConverter.toXsdElement(attributeValue, attributeName, null);
+			} catch (JAXBException e) {
+				LOGGER.error("Unexpected JAXB problem while applying value of element {}: {} ", new Object[] {
+						attributeName, e.getMessage(), e });
+				throw new SchemaException("Unexpected JAXB problem while applying value of element "
+						+ attributeName + ": " + e.getMessage(), e);
+			}
+			attributes.set(index, newAttribute);
+			LOGGER.trace("Changed account's attribute {} value to {}", new Object[] { attributeName,
+					attributeValue });
+
+			PropertyModificationType modification = ObjectTypeUtil.createPropertyModificationType(
+					PropertyModificationTypeType.replace, xpathType, newAttribute);
+			modifications.add(modification);
+
+			return modifications;
 		}
 
 		// no value was set for the attribute, create new attribute with value
