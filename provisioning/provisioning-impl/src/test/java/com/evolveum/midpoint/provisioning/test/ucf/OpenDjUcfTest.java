@@ -26,7 +26,9 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
@@ -373,13 +375,44 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	}
 	
 	@Test
+	public void testCreateAccountWithPassword() throws CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, EncryptionException, DirectoryException {
+		displayTestTile("testCreateAccountWithPassword");
+		// GIVEN
+		ResourceObject resourceObject = createResourceObject("uid=lechuck,ou=people,dc=example,dc=com",
+				"Ghost Pirate LeChuck", "LeChuck");
+		
+		Set<Operation> additionalOperations = new HashSet<Operation>();
+		ProtectedStringType ps = protector.encryptString("t4k30v3rTh3W0rld");
+		PasswordChangeOperation passOp = new PasswordChangeOperation(ps);
+		additionalOperations.add(passOp);
+		
+		OperationResult addResult = new OperationResult(this.getClass().getName()+".testCreateAccountWithPassword");
+
+		// WHEN
+		cc.addObject(resourceObject, additionalOperations, addResult);
+
+		// THEN
+		
+		String entryUuid = (String) resourceObject.getIdentifier().getValue();
+		SearchResultEntry entry = openDJController.searchByEntryUuid(entryUuid);
+		display("Entry before change",entry);
+		String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
+		
+		assertNotNull(passwordAfter);
+		
+		System.out.println("Changed password: "+passwordAfter);
+		
+		// TODO
+	}
+	
+	@Test
 	public void testChangePassword() throws DirectoryException, CommunicationException, GenericFrameworkException, SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, EncryptionException {
 		displayTestTile("testChangePassword");
 		// GIVEN		
 		ResourceObject resourceObject = createResourceObject("uid=drake,ou=People,dc=example,dc=com",
 				"Sir Francis Drake", "Drake");
 
-		OperationResult addResult = new OperationResult(this.getClass().getName()+".testFetchObject");
+		OperationResult addResult = new OperationResult(this.getClass().getName()+".testChangePassword");
 
 		// Add a testing object
 		cc.addObject(resourceObject, null, addResult);
@@ -415,8 +448,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
 		assertNotNull(passwordAfter);
 		
-		System.out.println("Changed password: "+passwordAfter);
-
+		System.out.println("Account password: "+passwordAfter);
 	}
 
 	private ResourceObject createResourceObject(String dn, String sn, String cn) {

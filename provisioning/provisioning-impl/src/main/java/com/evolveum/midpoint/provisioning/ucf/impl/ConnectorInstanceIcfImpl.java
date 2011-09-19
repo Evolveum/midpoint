@@ -757,7 +757,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throws CommunicationException, GenericFrameworkException,
 			SchemaException, ObjectAlreadyExistsException {
 
-		
 		OperationResult result = parentResult
 				.createSubresult(ConnectorInstance.class.getName()
 						+ ".addObject");
@@ -798,6 +797,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new IllegalStateException("Couldn't set attributes for icf.");
 		}
 
+		// Look for a password change operation
+		if (additionalOperations != null) {
+			for (Operation op : additionalOperations) {
+				if (op instanceof PasswordChangeOperation) {
+					PasswordChangeOperation passwordChangeOperation = (PasswordChangeOperation) op;
+					// Activation change means modification of attributes
+					convertFromPassword(attributes, passwordChangeOperation);
+				}
+			}
+		}
+		
 		OperationResult icfResult = result
 				.createSubresult(ConnectorFacade.class.getName() + ".create");
 		icfResult.addParam("objectClass", objectClass);
