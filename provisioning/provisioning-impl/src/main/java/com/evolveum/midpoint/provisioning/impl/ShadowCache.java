@@ -142,8 +142,7 @@ public class ShadowCache {
 	@Autowired
 	private ResourceSchemaCache resourceSchemaCache;
 
-	private static final Trace LOGGER = TraceManager
-			.getTrace(ShadowCache.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ShadowCache.class);
 
 	public ShadowCache() {
 		repositoryService = null;

@@ -351,6 +351,10 @@
 				</c:outbound>
 			</c:attribute>
 
+			<c:credentials>
+				<c:outboundPassword>true</c:outboundPassword>
+			</c:credentials>
+
 		</c:accountType>
 	</c:schemaHandling>
 	

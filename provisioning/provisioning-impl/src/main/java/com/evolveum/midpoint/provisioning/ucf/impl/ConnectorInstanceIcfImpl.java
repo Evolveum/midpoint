@@ -46,6 +46,8 @@ import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.api.operations.APIOperation;
 import org.identityconnectors.framework.api.operations.CreateApiOp;
+import org.identityconnectors.framework.api.operations.ScriptOnConnectorApiOp;
+import org.identityconnectors.framework.api.operations.ScriptOnResourceApiOp;
 import org.identityconnectors.framework.api.operations.SyncApiOp;
 import org.identityconnectors.framework.api.operations.TestApiOp;
 import org.identityconnectors.framework.common.exceptions.ConnectorSecurityException;
@@ -124,6 +126,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType.Attributes;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptOrderType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType.EnableDisable;
@@ -131,6 +134,8 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsC
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.LiveSyncCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.PasswordCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ScriptCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ScriptCapabilityType.Host;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.TestConnectionCapabilityType;
 
 import static com.evolveum.midpoint.provisioning.ucf.impl.IcfUtil.processIcfException;
@@ -537,6 +542,23 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (supportedOperations.contains(TestApiOp.class)) {
 			TestConnectionCapabilityType capTest = new TestConnectionCapabilityType();
 			capabilities.add(capabilityObjectFactory.createTestConnection(capTest));
+		}
+		
+		if (supportedOperations.contains(ScriptOnResourceApiOp.class) || supportedOperations.contains(ScriptOnConnectorApiOp.class)) {
+			ScriptCapabilityType capScript = new ScriptCapabilityType();
+			if (supportedOperations.contains(ScriptOnResourceApiOp.class)) {
+				Host host = new Host();
+				host.setType(ScriptHostType.RESOURCE);
+				capScript.getHost().add(host);
+				// language is unknown here
+			}
+			if (supportedOperations.contains(ScriptOnConnectorApiOp.class)) {
+				Host host = new Host();
+				host.setType(ScriptHostType.CONNECTOR);
+				capScript.getHost().add(host);
+				// language is unknown here
+			}
+			capabilities.add(capabilityObjectFactory.createScript(capScript));
 		}
 		
 	}
