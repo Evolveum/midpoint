@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.forgerock.openicf.connectors</groupId>
+        <artifactId>connectors-parent</artifactId>
+        <version>1.1.0.0-SNAPSHOT</version>
+    </parent>
+    <groupId>com.evolveum.openicf</groupId>
+    <artifactId>test-connector</artifactId>
+    <version>1.1.0.0-SNAPSHOT</version>
+    <packaging>bundle</packaging>
+    <name>Test Connector</name>
+    <description>Test Connector</description>
+    <url>https://openicf.forgerock.org/connectors/csvfile</url>
+<!--    <scm>
+        <connection>scm:svn:https://svn.forgerock.org/openicf/trunk/connectors/java/csvfile</connection>
+        <developerConnection>scm:svn:https://svn.forgerock.org/openicf/trunk/connectors/java/csvfile</developerConnection>
+        <url>http://sources.forgerock.org/browse/openicf/trunk/connectors/java/csvfile</url>
+    </scm>-->
+    <properties>
+        <defaultConnectorFamily>file</defaultConnectorFamily>
+        <skipTests>false</skipTests>
+        <contracts.skip>true</contracts.skip>
+        <privateConfigPath>${user.home}/.connectors/connector-${project.artifactId}/config</privateConfigPath>
+        <connectorPackage>com.evolveum.openicf.test</connectorPackage>
+        <connectorClass>TestConnector</connectorClass>
+    </properties>
+    <repositories>
+        <repository>
+            <id>forgerock-staging-repository</id>
+            <name>ForgeRock Release Repository</name>
+            <url>http://maven.forgerock.org/repo/releases</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>forgerock-snapshots-repository</id>
+            <name>ForgeRock Snapshot Repository</name>
+            <url>http://maven.forgerock.org/repo/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
+    </repositories>
+    <profiles>
+        <profile>
+            <id>with-embedded-dependencies</id>
+            <properties>
+                <!-- Example: <embedded.dependencies>dbcommon</embedded.dependencies> -->
+            </properties>
+        </profile>
+        <profile>
+            <id>active-embedded-dependencies</id>
+            <properties>
+            </properties>
+        </profile>
+    </profiles>
+</project>
