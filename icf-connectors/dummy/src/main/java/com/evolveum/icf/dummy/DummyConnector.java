@@ -18,12 +18,12 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.icf.test;
+package com.evolveum.icf.dummy;
 
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.objects.*;
 
-import static com.evolveum.icf.test.util.Utils.*;
+import static com.evolveum.icf.dummy.util.Utils.*;
 import java.util.Set;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
@@ -58,14 +58,14 @@ import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
  * @version $Revision$ $Date$
  */
 @ConnectorClass(displayNameKey = "UI_CONNECTOR_NAME",
-configurationClass = TestConfiguration.class)
-public class TestConnector implements Connector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
+configurationClass = DummyConfiguration.class)
+public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<String>, SyncOp, TestOp, UpdateAttributeValuesOp {
 
     /**
      * Setup logging for the {@link CSVFileConnector}.
      */
-    private static final Log log = Log.getLog(TestConnector.class);
+    private static final Log log = Log.getLog(DummyConnector.class);
     private static final String ATTRIBUTE_NAME = "__NAME__";
     private static final String ATTRIBUTE_PASSWORD = "__PASSWORD__";
     private static final String ATTRIBUTE_UID = "__UID__";

@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.icf.test.util;
+package com.evolveum.icf.dummy.util;
 
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
 import org.identityconnectors.framework.common.objects.ObjectClass;

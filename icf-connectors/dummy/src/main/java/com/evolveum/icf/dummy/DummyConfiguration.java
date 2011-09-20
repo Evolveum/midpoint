@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.icf.test;
+package com.evolveum.icf.dummy;
 
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.framework.spi.AbstractConfiguration;
@@ -31,7 +31,7 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
  * @author $author$
  * @version $Revision$ $Date$
  */
-public class TestConfiguration extends AbstractConfiguration {
+public class DummyConfiguration extends AbstractConfiguration {
 
     private static final Log log = Log.getLog(TestConfiguration.class);
     // Example of exposed configuration properties.
