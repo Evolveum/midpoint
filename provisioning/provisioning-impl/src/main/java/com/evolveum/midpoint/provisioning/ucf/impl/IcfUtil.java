@@ -21,6 +21,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Set of utility methods that work around some of the ICF problems.
@@ -30,8 +32,22 @@ import com.evolveum.midpoint.schema.exception.SystemException;
  */
 class IcfUtil {
 	
+	private static final Trace LOGGER = TraceManager.getTrace(IcfUtil.class);
+	
 	/**
 	 * Transform ICF exception to something more usable.
+	 *
+	 * ICF throws exceptions that contains inner exceptions that cannot be
+	 * reached by current classloader. Such inner exceptions may cause a lot
+	 * of problems in upper layers, such as attempt to serialize/deserialize
+	 * them. Therefore we cannot pass such exceptions to the upper layers.
+	 * As Throwable is immutable and there is no good way how to copy it, we
+	 * just cannot remove the "bad" exceptions from the inner exception stack.
+	 * We need to do the brutal thing: remove all the ICF exceptions and do
+	 * not pass then to upper layers. Try to save at least some information
+	 * and "compress" the class names and messages of the inner ICF exceptions.
+	 * The full exception with a stack trace is logger here, so the details are
+	 * still in the log.
 	 * 
 	 * WARNING: This is black magic. Really. Blame ICF interface design.
 	 * 
@@ -52,8 +68,11 @@ class IcfUtil {
 		if (ex == null) {
 			throw new IllegalArgumentException("Null exception while processing ICF exception ");
 		}
+		
+		LOGGER.error("ICF Exception {}: {}",new Object[]{ex.getClass().getName(),ex.getMessage(),ex});
+		
 		if (parentResult == null) {
-			throw new IllegalArgumentException("Null parent result while processing ICF exception "+ex+": "+ex.getMessage(),ex);
+			throw new IllegalArgumentException(createMessage("Null parent result while processing ICF exception",ex));
 		}
 
 		// Introspect the inner exceptions and look for known causes
@@ -65,30 +84,33 @@ class IcfUtil {
 		// Otherwise try few obvious things
 		if (ex instanceof IllegalArgumentException) {
 			// This is most likely missing attribute or similar schema thing
-			parentResult.recordFatalError("Schema violation", ex);
-			return new SchemaException("Schema violation (most likely): "
-					+ ex.getMessage(), ex);
+			Exception newEx = new SchemaException(createMessage("Schema violation (most likely)", ex));
+			parentResult.recordFatalError("Schema violation: "+ex.getMessage(), newEx);
+			return newEx;
 
 		} else if (ex instanceof ConnectorSecurityException) {
 			// Note: connection refused is also packed inside
 			// ConnectorSecurityException. But that will get addressed by the
 			// lookForKnownCause(..) before
-			parentResult.recordFatalError(
-					"Security violation: " + ex.getMessage(), ex);
+			
 			// Maybe we need special exception for security?
-			return new SystemException(
-					"Security violation: " + ex.getMessage(), ex);
+			Exception newEx =  new SystemException(createMessage("Security violation",ex));
+			parentResult.recordFatalError(
+					"Security violation: " + ex.getMessage(), newEx);
+			return newEx;
 			
 		} else if (ex instanceof NullPointerException && ex.getMessage() != null) {
 			// NPE with a message text is in fact not a NPE but an application exception
 			// this usually means that some parameter is missing
-			parentResult.recordFatalError("Required attribute is missing: "+ex.getMessage(),ex);
-			return new SchemaException("Required attribute is missing: "+ex.getMessage(),ex);
+			Exception newEx = new SchemaException(createMessage("Required attribute is missing",ex));  
+			parentResult.recordFatalError("Required attribute is missing: "+ex.getMessage(),newEx);
+			return newEx;
 		}
 		
 		// Fallback
-		parentResult.recordFatalError(ex);
-		return new GenericFrameworkException(ex);
+		Exception newEx = new GenericFrameworkException(createMessage(null,ex)); 
+		parentResult.recordFatalError(newEx);
+		return newEx;
 	}
 
 	private static Exception lookForKnownCause(Throwable ex,
@@ -96,32 +118,32 @@ class IcfUtil {
 		if (ex instanceof NameAlreadyBoundException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			parentResult.recordFatalError("Object already exists", ex);
-			return new ObjectAlreadyExistsException(ex.getMessage(),
-					originalException);
+			Exception newEx = new ObjectAlreadyExistsException(createMessage(null, originalException));
+			parentResult.recordFatalError("Object already exists: "+ex.getMessage(), newEx);
+			return newEx;
 		} else if (ex instanceof SchemaViolationException) {
 			// This is thrown by LDAP connector and may be also throw by similar
 			// connectors
-			parentResult.recordFatalError("Schema violation", ex);
-			return new SchemaException(ex.getMessage(), originalException);
+			Exception newEx = new SchemaException(createMessage(null,originalException)); 
+			parentResult.recordFatalError("Schema violation: "+ex.getMessage(), newEx);
+			return newEx;
 		} else if (ex instanceof ConnectException) {
 			// Buried deep in many exceptions, usually connection refused or
 			// similar errors
-			parentResult.recordFatalError("Connect error: " + ex.getMessage(),
-					ex);
-			return new CommunicationException("Connect error: "
-					+ ex.getMessage(), ex);
+			Exception newEx = new CommunicationException(createMessage("Connect error", ex));
+			parentResult.recordFatalError("Connect error: " + ex.getMessage(), newEx);
+			return newEx;
 		} else if (ex instanceof SQLSyntaxErrorException) {
 			// Buried deep in many exceptions, usually DB schema problems of
 			// DB-based connectors
-			parentResult.recordFatalError("DB error: " + ex.getMessage(),
-					ex);
-			return new SchemaException("DB error: "
-					+ ex.getMessage(), ex);
+			Exception newEx = new SchemaException(createMessage("DB error", ex));
+			parentResult.recordFatalError("DB error: " + ex.getMessage(), newEx);
+			return newEx;
 		} else if (ex instanceof UnknownUidException) {
 			// Object not found
-			parentResult.recordFatalError("Object not found: "+ex.getMessage(),ex);
-			return new ObjectNotFoundException(ex.getMessage());
+			Exception newEx = new ObjectNotFoundException(createMessage(null,ex));
+			parentResult.recordFatalError("Object not found: "+ex.getMessage(), newEx);
+			return newEx;
 		}
 		if (ex.getCause() == null) {
 			// found nothing
@@ -142,6 +164,26 @@ class IcfUtil {
 		return sb.toString();
 	}
 
-
+	
+	private static String createMessage(String prefix, Throwable ex) {
+		StringBuilder sb = new StringBuilder();
+		if (prefix != null) {
+			sb.append(prefix);
+			sb.append(": ");
+		}
+		addExceptionToMessage(sb,ex);
+		return sb.toString();
+	}
+	
+	private static void addExceptionToMessage(StringBuilder sb, Throwable ex) {
+		sb.append(ex.getClass().getName());
+		sb.append("(");
+		sb.append(ex.getMessage());
+		sb.append(")");
+		if (ex.getCause() != null) {
+			sb.append("->");
+			addExceptionToMessage(sb, ex.getCause());
+		}
+	}
 
 }
