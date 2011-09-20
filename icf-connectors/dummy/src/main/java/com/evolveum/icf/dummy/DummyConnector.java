@@ -21,6 +21,7 @@
 package com.evolveum.icf.dummy;
 
 import org.identityconnectors.framework.spi.operations.*;
+import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.objects.*;
 
 import static com.evolveum.icf.dummy.util.Utils.*;
@@ -51,6 +52,8 @@ import org.identityconnectors.framework.spi.operations.SyncOp;
 import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
 
+import com.evolveum.icf.dummy.util.Utils;
+
 /**
  * Main implementation of the Test Connector
  *
@@ -61,19 +64,18 @@ import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
 configurationClass = DummyConfiguration.class)
 public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<String>, SyncOp, TestOp, UpdateAttributeValuesOp {
-
-    /**
-     * Setup logging for the {@link CSVFileConnector}.
-     */
+	
     private static final Log log = Log.getLog(DummyConnector.class);
-    private static final String ATTRIBUTE_NAME = "__NAME__";
+    
     private static final String ATTRIBUTE_PASSWORD = "__PASSWORD__";
     private static final String ATTRIBUTE_UID = "__UID__";
+    
     /**
      * Place holder for the {@link Configuration} passed into the init() method
-     * {@link CSVFileConnector#init(org.identityconnectors.framework.spi.Configuration)}.
      */
     private DummyConfiguration configuration;
+    
+	private DummyResource resource;
 
     /**
      * Gets the Configuration context for this connector.
@@ -93,7 +95,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         notNullArgument(configuration, "configuration");
         this.configuration = (DummyConfiguration) configuration;
 
-        //TODO: other connector initialization
+        resource = DummyResource.getInstance();
     }
 
     /**
@@ -135,12 +137,30 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      */
     public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
         log.info("create::begin");
-        Uid uid = null; //TODO: implement
+        
+        // Convert attributes to account
+        DummyAccount newAccount = new DummyAccount();
+        newAccount.setUsername(Utils.getMandatoryStringAttribute(createAttributes,Name.NAME));
+        
+        String id = null;
+		try {
+			
+			id = resource.addAccount(newAccount);
+			
+		} catch (ObjectAlreadyExistsException e) {
+			// we cannot throw checked exceptions. But this one looks suitable.
+			// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+			// The framework should deal with it ... somehow
+			throw new AlreadyExistsException(e);
+		}
+        
+        Uid uid = new Uid(id);
+        
         log.info("create::end");
         return uid;
     }
 
-    /**
+	/**
      * {@inheritDoc}
      */
     public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
@@ -265,4 +285,5 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("removeAttributeValues::end");
         return uid;
     }
+    
 }

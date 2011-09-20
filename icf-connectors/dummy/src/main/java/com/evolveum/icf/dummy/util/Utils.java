@@ -20,15 +20,48 @@
  */
 package com.evolveum.icf.dummy.util;
 
+import java.util.List;
+import java.util.Set;
+
 import org.identityconnectors.framework.common.exceptions.ConnectorException;
+import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 
 /**
  *
  * @author lazyman
+ * @author Radovan Semancik
  * 
  */
 public class Utils {
+	
+	public static String getMandatoryStringAttribute(Set<Attribute> attributes, String attributeName) {
+		String value = getAttributeSingleValue(attributes, attributeName, String.class);
+		if (value == null) {
+			throw new IllegalArgumentException("No value for mandatory attribute "+attributeName);
+		}
+		return value;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T> T getAttributeSingleValue(Set<Attribute> attributes, String attributeName, Class<T> type) {
+		for (Attribute attr : attributes) {
+			if (attributeName.equals(attr.getName())) {
+				List<Object> values = attr.getValue();
+				if (values == null || values.isEmpty()) {
+					return null;
+				}
+				if (values.size()>1) {
+					throw new IllegalArgumentException("Multiple values for single valued attribute "+attributeName);
+				}
+				if (!(type.isAssignableFrom(values.get(0).getClass()))) {
+					throw new IllegalArgumentException("Illegal value type "+values.get(0).getClass().getName()+" for attribute "+attributeName+", expecting type "+type.getClass().getName());
+				}
+				return (T)values.get(0);
+			}
+		}
+		return null;
+	}
 
     public static void isAccount(ObjectClass oc) {
         if (oc == null) {
