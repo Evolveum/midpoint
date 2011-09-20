@@ -249,13 +249,6 @@ public class XmlRepositoryService implements RepositoryService {
 		} catch (Exception ex) {
 			errorLogRecordAndRethrow("Error borrowing BaseX Client session from the pool", result, ex);
 		} finally {
-			if (session != null) {
-				try {
-					sessions.returnObject(session);
-				} catch (Exception ex) {
-					errorLogRecordAndRethrow("Error returning BaseX Client session to pool", result, ex);
-				}
-			}
 			if (null != cq) {
 				try {
 					cq.close();
@@ -263,7 +256,13 @@ public class XmlRepositoryService implements RepositoryService {
 					errorLogRecordAndRethrow("Reported error by XML Database", result, ex);
 				}
 			}
-
+			if (session != null) {
+				try {
+					sessions.returnObject(session);
+				} catch (Exception ex) {
+					errorLogRecordAndRethrow("Error returning BaseX Client session to pool", result, ex);
+				}
+			}
 		}
 		if (object == null) {
 			result.recordFatalError("Object not found. OID: " + oid);
@@ -664,18 +663,19 @@ public class XmlRepositoryService implements RepositoryService {
 		} catch (Exception ex) {
 			errorLogRecordAndRethrow("Error borrowing BaseX Client session from the pool", result, ex);
 		} finally {
-			if (session != null) {
-				try {
-					sessions.returnObject(session);
-				} catch (Exception ex) {
-					errorLogRecordAndRethrow("Error returning BaseX Client session to pool", result, ex);
-				}
-			}
 			if (null != cq) {
 				try {
 					cq.close();
 				} catch (BaseXException ex) {
 					errorLogRecordAndRethrow("Reported error by XML Database", result, ex);
+				}
+			}
+
+			if (session != null) {
+				try {
+					sessions.returnObject(session);
+				} catch (Exception ex) {
+					errorLogRecordAndRethrow("Error returning BaseX Client session to pool", result, ex);
 				}
 			}
 		}
