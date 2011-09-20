@@ -115,8 +115,8 @@ object.
                     <!-- Access limitation for this attribute.
                          Entry UUID is created by the directory server itelf
                          and it is immutable. We can only read it. -->
-					<c:access>create</c:access>
 					<c:access>read</c:access>
+<!--
 					<c:outbound default="true">
 						<c:valueExpression>
 							<c:code>
@@ -124,7 +124,7 @@ object.
 							$i:user/c:name
 							</c:code>
 						</c:valueExpression>
-					</c:outbound>
+					</c:outbound>-->
 				</c:attribute>
 				<c:attribute ref="icfs:name">
 
@@ -143,6 +143,33 @@ object.
 							</c:code>
 						</c:valueExpression>
 					</c:outbound>
+				</c:attribute>
+
+				<c:attribute ref="ri:firstname">
+					<c:name>First name</c:name>
+					<c:description>Definition of Firstname attribute handling.</c:description>
+					<c:outbound>
+						<c:valueExpression>
+							<c:code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:givenName
+							</c:code>
+                        			</c:valueExpression>
+					</c:outbound>
+							
+				</c:attribute>
+				<c:attribute ref="ri:lastname">
+					<c:name>Last name</c:name>
+					<c:description>Definition of Lastname attribute handling.</c:description>
+					<c:outbound>
+						<c:valueExpression>
+							<c:code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:familyName
+							</c:code>
+                        			</c:valueExpression>
+					</c:outbound>
+							
 				</c:attribute>
 
 			</c:accountType>
