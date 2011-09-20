@@ -46,6 +46,7 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
 import org.opends.server.core.AddOperation;
+import org.opends.server.extensions.SaltedSHA1PasswordStorageScheme;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
@@ -176,6 +177,7 @@ public class TestSanity extends AbstractIntegrationTest {
 	 */
 	private static ResourceType resource;
 	private static String shadowOid;
+	private String originalJacksPassword;
 
 	/**
 	 * The instance of ModelService. This is the interface that we will test.
@@ -546,18 +548,21 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertNotNull(uid);
 
 		// Check if LDAP account was updated
-		SearchResultEntry response = openDJController.searchByEntryUuid(uid);
+		SearchResultEntry entry = openDJController.searchByEntryUuid(uid);
 
-		display(response);
+		display(entry);
 
-		OpenDJController.assertAttribute(response, "uid", "jack");
-		OpenDJController.assertAttribute(response, "givenName", "Jack");
-		OpenDJController.assertAttribute(response, "sn", "Sparrow");
+		OpenDJController.assertAttribute(entry, "uid", "jack");
+		OpenDJController.assertAttribute(entry, "givenName", "Jack");
+		OpenDJController.assertAttribute(entry, "sn", "Sparrow");
 		// These two should be assigned from the User modification by
 		// schemaHandling
-		OpenDJController.assertAttribute(response, "cn", "Cpt. Jack Sparrow");
+		OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
 		// This will get translated from "somewhere" to this (outbound expression in schemeHandling)
-		OpenDJController.assertAttribute(response, "l", "There there over the corner");
+		OpenDJController.assertAttribute(entry, "l", "There there over the corner");
+		
+		originalJacksPassword = OpenDJController.getAttributeValue(entry, "userPassword");
+		System.out.println("password before change: "+originalJacksPassword);
 	}
 
 	/**
@@ -633,16 +638,23 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Check if LDAP account was updated
 
-		SearchResultEntry response = openDJController.searchByEntryUuid(uid);
-		display(response);
+		SearchResultEntry entry = openDJController.searchByEntryUuid(uid);
+		display(entry);
 
-		OpenDJController.assertAttribute(response, "uid", "jack");
-		OpenDJController.assertAttribute(response, "givenName", "Jack");
-		OpenDJController.assertAttribute(response, "sn", "Sparrow");
+		OpenDJController.assertAttribute(entry, "uid", "jack");
+		OpenDJController.assertAttribute(entry, "givenName", "Jack");
+		OpenDJController.assertAttribute(entry, "sn", "Sparrow");
 		// These two should be assigned from the User modification by
 		// schemaHandling
-		OpenDJController.assertAttribute(response, "cn", "Cpt. Jack Sparrow");
-		OpenDJController.assertAttribute(response, "l", "There there over the corner");
+		OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
+		OpenDJController.assertAttribute(entry, "l", "There there over the corner");
+		
+		String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
+		assertNotNull(passwordAfter);
+		
+		System.out.println("password after change: "+passwordAfter);
+
+		assertFalse("No change in password", passwordAfter.equals(originalJacksPassword));
 	}
 	
 	/**
