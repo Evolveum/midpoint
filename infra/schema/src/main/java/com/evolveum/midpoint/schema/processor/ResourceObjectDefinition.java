@@ -27,8 +27,6 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.schema.exception.SchemaException;
 
 /**

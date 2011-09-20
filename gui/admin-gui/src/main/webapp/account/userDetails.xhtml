@@ -130,9 +130,11 @@
 									<ice:outputText value="#{item.name}" />
 								</f:facet>
 
+								<ice:selectBooleanCheckbox value="#{item.bean.showingAllAttributes}" immediate="true" partialSubmit="true" />
+								<ice:outputLabel value="Show all attributes" />								
+								<hr />
 								<idm:autoForm bean="#{userDetails.formObjects}" index="#{status.index}"
 									editable="#{userDetails.editMode}" />
-
 								<hr />
 								<comp:resourceCapability bean="#{item.resourceCapability}" editable="#{userDetails.editMode}" />
 							</ice:panelCollapsible>

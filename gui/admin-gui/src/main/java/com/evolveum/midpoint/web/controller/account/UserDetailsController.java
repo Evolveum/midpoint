@@ -34,8 +34,6 @@ import java.util.Set;
 import javax.faces.event.ActionEvent;
 import javax.faces.model.SelectItem;
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +45,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -73,6 +72,7 @@ import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
+import com.evolveum.midpoint.web.util.SchemaFormParser2;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -236,14 +236,16 @@ public class UserDetailsController implements Serializable {
 					// every account is processed separately
 					LOGGER.debug("Start processing of modified accounts");
 					for (AccountFormBean formBean : accountList) {
-						if (!formBean.isNew()) {
-							AccountShadowDto modifiedAccountShadowDto = updateAccountAttributes(formBean);
-							LOGGER.debug("Found modified account in GUI: {}",
-									DebugUtil.prettyPrint(modifiedAccountShadowDto.getXmlObject()));
-							LOGGER.debug("Submit account modified in GUI");
-							accountManager.submit(modifiedAccountShadowDto);
-							LOGGER.debug("Modified account in GUI submitted");
+						if (formBean.isNew()) {
+							continue;
 						}
+
+						AccountShadowDto modifiedAccountShadowDto = updateAccountAttributes(formBean);
+						LOGGER.debug("Found modified account in GUI: {}",
+								DebugUtil.prettyPrint(modifiedAccountShadowDto.getXmlObject()));
+						LOGGER.debug("Submit account modified in GUI");
+						accountManager.submit(modifiedAccountShadowDto);
+						LOGGER.debug("Modified account in GUI submitted");
 					}
 					LOGGER.debug("Finished processing of modified accounts");
 				} else {
@@ -535,32 +537,43 @@ public class UserDetailsController implements Serializable {
 			throw new IllegalArgumentException("Account object can't be null.");
 		}
 
-		FormObject object = new FormObject();
-		QName defaultAccountType = null;
+//		FormObject object = new FormObject();
+//		QName defaultAccountType = null;
+//		ResourceCapability capability = null;
+//		try {
+//			SchemaFormParser parser = new SchemaFormParser();
+//			List<ResourceObjectAttributeDefinition> list = parser.parseSchemaForAccount(account, accountType);
+//			object.setDisplayName(parser.getDisplayName());
+//			Map<QName, List<Object>> formValues = parser.getAttributeValueMap();
+//			for (ResourceObjectAttributeDefinition attribute : list) {
+//				FormAttributeDefinition definition = createDefinition(attribute);
+//				List<Object> values = formValues.get(attribute.getName());
+//
+//				object.getAttributes().add(new FormAttribute(definition, values));
+//			}
+//			object.sort();
+//			defaultAccountType = parser.getDefaultAccountType();
+//
+//			AccountManager manager = ControllerUtil.getAccountManager(objectTypeCatalog);
+//			capability = manager.getResourceCapability(account);
+//		} catch (SchemaException ex) {
+//			throw ex;
+//		} catch (Exception ex) {
+//			throw new SchemaException("Unknown error, reason: " + ex.getMessage(), ex);
+//		}
+
+		FormObject object =null;
 		ResourceCapability capability = null;
 		try {
-			SchemaFormParser parser = new SchemaFormParser();
-			List<ResourceObjectAttributeDefinition> list = parser.parseSchemaForAccount(account, accountType);
-			object.setDisplayName(parser.getDisplayName());
-			Map<QName, List<Object>> formValues = parser.getAttributeValueMap();
-			for (ResourceObjectAttributeDefinition attribute : list) {
-				FormAttributeDefinition definition = createDefinition(attribute);
-				List<Object> values = formValues.get(attribute.getName());
-
-				object.getAttributes().add(new FormAttribute(definition, values));
-			}
-			object.sort();
-			defaultAccountType = parser.getDefaultAccountType();
-
+			SchemaFormParser2 parser = new SchemaFormParser2();
+			object = parser.parseSchemaForAccount(account, accountType);
 			AccountManager manager = ControllerUtil.getAccountManager(objectTypeCatalog);
 			capability = manager.getResourceCapability(account);
-		} catch (SchemaException ex) {
-			throw ex;
 		} catch (Exception ex) {
-			throw new SchemaException("Unknown error, reason: " + ex.getMessage(), ex);
+			
 		}
-
-		return new AccountFormBean(index, account, capability, defaultAccountType, object, createNew);
+		
+		return new AccountFormBean(index, account, capability, object.getTypeName(), object, createNew);
 	}
 
 	private FormAttributeDefinition createDefinition(ResourceObjectAttributeDefinition def) {
@@ -600,15 +613,11 @@ public class UserDetailsController implements Serializable {
 	private AccountShadowDto updateAccountAttributes(AccountFormBean bean) throws SchemaException {
 		LOGGER.trace("updateAccountAttributes::begin");
 		AccountShadowDto account = bean.getAccount();
-		LOGGER.trace("Account " + account);
+		LOGGER.trace("Account {}, oid '{}'", new Object[] { account.getName(), account.getOid() });
 
 		List<Element> attrList = new ArrayList<Element>();
 		try {
-			DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-			dbf.setNamespaceAware(true);
-			dbf.setValidating(false);
-			DocumentBuilder db = dbf.newDocumentBuilder();
-			Document doc = db.newDocument();
+			Document doc = DOMUtil.getDocument();
 
 			Map<String, String> prefixMap = new HashMap<String, String>();
 			List<FormAttribute> attributes = bean.getBean().getAttributes();
@@ -623,7 +632,8 @@ public class UserDetailsController implements Serializable {
 				String name = definition.getElementName().getLocalPart();
 
 				for (Object object : attribute.getValues()) {
-					LOGGER.trace("Creating element: {" + namespace + "}" + name + ": " + object.toString());
+					LOGGER.trace("Creating element: \\{{}\\}{}: {}",
+							new Object[] { namespace, name, object.toString() });
 
 					Element element = doc.createElementNS(namespace, name);
 					element.setPrefix(buildElementName(namespace, prefixMap));
@@ -640,6 +650,10 @@ public class UserDetailsController implements Serializable {
 					ex);
 		}
 		account.setAttributes(attrList);
+
+		ResourceCapability capabilities = bean.getResourceCapability();
+		account.setCredentials(capabilities.getCredentialsType());
+		account.setActivation(capabilities.getActivationType());
 
 		LOGGER.trace("updateAccountAttributes::end");
 		return account;

@@ -27,15 +27,32 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 /**
  * 
  * @author lazyman
+ * 
  */
 public class FormObject implements Serializable {
 
 	private static final long serialVersionUID = -1567990045128005309L;
+	private QName typeName;
 	private String displayName;
+	private boolean showingAllAttributes;
 	private List<FormAttribute> attributes;
+
+	@Deprecated
+	public FormObject() {
+		this(null, null);
+	}
+
+	public FormObject(QName typeName, String displayName) {
+		// Validate.notEmpty(displayName,
+		// "Display name must not be null or empty.");
+		this.typeName = typeName;
+		this.displayName = displayName;
+	}
 
 	public List<FormAttribute> getAttributes() {
 		if (attributes == null) {
@@ -44,12 +61,25 @@ public class FormObject implements Serializable {
 		return attributes;
 	}
 
+	public QName getTypeName() {
+		return typeName;
+	}
+
 	public String getDisplayName() {
 		return displayName;
 	}
 
+	@Deprecated
 	public void setDisplayName(String displayName) {
 		this.displayName = displayName;
+	}
+
+	public boolean isShowingAllAttributes() {
+		return showingAllAttributes;
+	}
+
+	public void setShowingAllAttributes(boolean showingAllAttributes) {
+		this.showingAllAttributes = showingAllAttributes;
 	}
 
 	public void sort() {

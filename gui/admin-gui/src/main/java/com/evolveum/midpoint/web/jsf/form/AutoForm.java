@@ -216,13 +216,14 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 	}
 
 	private void createChildren() {
-		List<FormAttribute> attributes = getBean().getAttributes();
+		FormObject object = getBean();
 		if (grid == null) {
 			Application application = getFacesContext().getApplication();
 			grid = (HtmlPanelGrid) application.createComponent(HtmlPanelGrid.COMPONENT_TYPE);
 			grid.setColumns(GRID_COLUMNS_COUNT);
-			grid.getChildren().addAll(createAttributeForm(attributes));
+			grid.getChildren().addAll(createAttributeForm(object));
 		} else {
+			List<FormAttribute> attributes = object.getAttributes();
 			for (FormAttribute attribute : attributes) {
 				if (!attribute.isChanged()) {
 					continue;
@@ -238,11 +239,15 @@ public class AutoForm extends UIComponentBase implements NamingContainer, Serial
 		children.add(grid);
 	}
 
-	private List<UIComponent> createAttributeForm(List<FormAttribute> list) {
+	private List<UIComponent> createAttributeForm(FormObject object) {
+		List<FormAttribute> list = object.getAttributes();
 		List<UIComponent> formList = new ArrayList<UIComponent>();
 		for (FormAttribute attribute : list) {
 			FormAttributeDefinition definition = attribute.getDefinition();
 			List<Object> values = attribute.getValues();
+			if (!object.isShowingAllAttributes() && values.isEmpty()) {
+				continue;
+			}
 			if (values.isEmpty()) {
 				values.add(null);
 			}

@@ -55,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
  * @author Vilo Repan
  * 
  */
+@Deprecated
 public class SchemaFormParser {
 
 	private static transient Trace LOGGER = TraceManager.getTrace(SchemaFormParser.class);
