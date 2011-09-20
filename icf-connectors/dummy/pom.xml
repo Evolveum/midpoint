@@ -6,27 +6,27 @@
         <artifactId>connectors-parent</artifactId>
         <version>1.1.0.0-SNAPSHOT</version>
     </parent>
-    <groupId>com.evolveum.openicf</groupId>
-    <artifactId>test-connector</artifactId>
+    <groupId>com.evolveum.icf</groupId>
+    <artifactId>dummy</artifactId>
     <version>1.1.0.0-SNAPSHOT</version>
     <packaging>bundle</packaging>
-    <name>Test Connector</name>
-    <description>Test Connector</description>
-    <url>https://openicf.forgerock.org/connectors/csvfile</url>
-<!--    <scm>
-        <connection>scm:svn:https://svn.forgerock.org/openicf/trunk/connectors/java/csvfile</connection>
-        <developerConnection>scm:svn:https://svn.forgerock.org/openicf/trunk/connectors/java/csvfile</developerConnection>
-        <url>http://sources.forgerock.org/browse/openicf/trunk/connectors/java/csvfile</url>
-    </scm>-->
+    <name>Dummy Connector</name>
+    <description>Dummy Connector</description>
+    <!-- url>TODO</url -->
     <properties>
-        <defaultConnectorFamily>file</defaultConnectorFamily>
+        <defaultConnectorFamily>misc</defaultConnectorFamily>
         <skipTests>false</skipTests>
         <contracts.skip>true</contracts.skip>
         <privateConfigPath>${user.home}/.connectors/connector-${project.artifactId}/config</privateConfigPath>
-        <connectorPackage>com.evolveum.openicf.test</connectorPackage>
-        <connectorClass>TestConnector</connectorClass>
+        <connectorPackage>com.evolveum.icf.dummy</connectorPackage>
+        <connectorClass>DummyConnector</connectorClass>
     </properties>
     <repositories>
+		<repository>
+			<id>evolveum</id>
+			<name>repo</name>
+			<url>http://repo.evolveum.com/repo</url>
+		</repository>
         <repository>
             <id>forgerock-staging-repository</id>
             <name>ForgeRock Release Repository</name>

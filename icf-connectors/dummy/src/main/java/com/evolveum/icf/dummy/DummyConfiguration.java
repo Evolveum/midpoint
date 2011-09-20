@@ -33,7 +33,7 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
  */
 public class DummyConfiguration extends AbstractConfiguration {
 
-    private static final Log log = Log.getLog(TestConfiguration.class);
+    private static final Log log = Log.getLog(DummyConfiguration.class);
     // Example of exposed configuration properties.
     private String config;
 

@@ -73,7 +73,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * Place holder for the {@link Configuration} passed into the init() method
      * {@link CSVFileConnector#init(org.identityconnectors.framework.spi.Configuration)}.
      */
-    private TestConfiguration configuration;
+    private DummyConfiguration configuration;
 
     /**
      * Gets the Configuration context for this connector.
@@ -91,7 +91,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
     @Override
     public void init(Configuration configuration) {
         notNullArgument(configuration, "configuration");
-        this.configuration = (TestConfiguration) configuration;
+        this.configuration = (DummyConfiguration) configuration;
 
         //TODO: other connector initialization
     }
@@ -156,7 +156,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("schema::begin");
         //TODO: implement
 
-        SchemaBuilder builder = new SchemaBuilder(TestConnector.class);
+        SchemaBuilder builder = new SchemaBuilder(DummyConnector.class);
         //builder.defineObjectClass(objClassBuilder.build());
 
         log.info("schema::end");
