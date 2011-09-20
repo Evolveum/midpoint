@@ -435,18 +435,22 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// check if account was created in LDAP
 
-		SearchResultEntry response = openDJController.searchByEntryUuid(uid);
+		SearchResultEntry entry = openDJController.searchByEntryUuid(uid);
 		
-		display("LDAP account", response);
+		display("LDAP account", entry);
 
-		OpenDJController.assertAttribute(response, "uid", "jack");
-		OpenDJController.assertAttribute(response, "givenName", "Jack");
-		OpenDJController.assertAttribute(response, "sn", "Sparrow");
-		OpenDJController.assertAttribute(response, "cn", "Jack Sparrow");
+		OpenDJController.assertAttribute(entry, "uid", "jack");
+		OpenDJController.assertAttribute(entry, "givenName", "Jack");
+		OpenDJController.assertAttribute(entry, "sn", "Sparrow");
+		OpenDJController.assertAttribute(entry, "cn", "Jack Sparrow");
 		// The "l" attribute is assigned indirectly through schemaHandling and
 		// config object
-		OpenDJController.assertAttribute(response, "l", "middle of nowhere");
+		OpenDJController.assertAttribute(entry, "l", "middle of nowhere");
 
+		originalJacksPassword = OpenDJController.getAttributeValue(entry, "userPassword");
+		assertNotNull("Pasword was not set on create", originalJacksPassword);
+		System.out.println("password after create: "+originalJacksPassword);
+		
 		// Use getObject to test fetch of complete shadow
 
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
@@ -472,6 +476,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertAttribute(modelShadow, resource, "sn", "Sparrow");
 		assertAttribute(modelShadow, resource, "cn", "Jack Sparrow");
 		assertAttribute(modelShadow, resource, "l", "middle of nowhere");
+
 	}
 
 	/**
@@ -560,9 +565,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
 		// This will get translated from "somewhere" to this (outbound expression in schemeHandling)
 		OpenDJController.assertAttribute(entry, "l", "There there over the corner");
-		
-		originalJacksPassword = OpenDJController.getAttributeValue(entry, "userPassword");
-		System.out.println("password before change: "+originalJacksPassword);
+
 	}
 
 	/**
