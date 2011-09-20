@@ -19,17 +19,18 @@
  * Portions Copyrighted 2011 [name of copyright owner]
  * Portions Copyrighted 2010 Forgerock
  */
-
 package com.evolveum.midpoint.schema.namespace;
 
 /**
  *
  * @author lazyman
+ * 
  */
 public enum NamespaceEnum {
         
     C("http://midpoint.evolveum.com/xml/ns/common/1#", ""),
     R("http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd", "r"),
+    CAP("http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd", "cap"),
     ENC("http://www.w3.org/2001/04/xmlenc#", "enc"),
     DS("http://www.w3.org/2000/09/xmldsig#", "ds");
     
