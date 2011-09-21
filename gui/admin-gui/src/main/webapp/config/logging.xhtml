@@ -14,7 +14,7 @@
 	<ui:define name="content">
 		<ice:form>
 			<ice:outputLabel value="Root logger" />
-			<ice:selectOneMenu id="level" value="#{logging.rootLevelString}">
+			<ice:selectOneMenu id="level" value="#{logging.rootLevelString}" style="margin-bottom: 20px;">
 				<f:selectItems value="#{logging.levels}" />
 			</ice:selectOneMenu>
 			<h3>#{msg['page.config.logging.subsystemLoggers']}</h3>
@@ -30,7 +30,7 @@
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
-						<ice:outputLabel value="#{msg['page.config.logging.table.subsystem.level']}" />
+						<ice:outputLabel value="#{msg['web.bean.basicLoggerListItem.level']}" />
 					</f:facet>
 					<ice:commandLink style="text-decoration: underline;" value="#{item.level}"
 						action="#{loggerEdit.editLogger}">
@@ -39,13 +39,13 @@
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
-						<ice:outputLabel value="#{msg['page.config.logging.table.subsystem.component']}" />
+						<ice:outputLabel value="#{msg['web.bean.subsystemLoggerListItem.component']}" />
 					</f:facet>
 					<ice:outputText value="#{item.componentString}" />
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
-						<ice:outputLabel value="#{msg['page.config.logging.table.subsystem.appender']}" />
+						<ice:outputLabel value="#{msg['web.bean.basicLoggerListItem.appender']}" />
 					</f:facet>
 					<ice:panelGroup>
 						<ui:repeat value="#{item.appenders}" var="app">
@@ -75,7 +75,7 @@
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
-						<ice:outputLabel value="#{msg['web.bean.loggerListItem.level']}" />
+						<ice:outputLabel value="#{msg['web.bean.basicLoggerListItem.level']}" />
 					</f:facet>
 					<ice:commandLink style="text-decoration: underline;" value="#{item.level}"
 						action="#{loggerEdit.editLogger}" rendered="#{not item.editing}">
@@ -94,7 +94,7 @@
 				</ice:column>
 				<ice:column>
 					<f:facet name="header">
-						<ice:outputLabel value="#{msg['web.bean.loggerListItem.appender']}" />
+						<ice:outputLabel value="#{msg['web.bean.basicLoggerListItem.appender']}" />
 					</f:facet>
 					<ice:panelGroup rendered="#{not item.editing}">
 						<ui:repeat value="#{item.appenders}" var="app">
@@ -190,6 +190,14 @@
 					img="/resources/images/printer_add.png" action="#{logging.addAppender}" />
 				<idm:button value="#{msg['page.button.deleteAppender']}" buttonType="negative"
 					img="/resources/images/printer_delete.png" action="#{logging.deleteAppenders}" />
+			</div>
+		
+			<div class="button-bar" style="margin-top: 20px;">
+				<idm:button value="#{msg['page.button.save']}" buttonType="positive" action="#{logging.savePerformed}"
+					img="/resources/images/disk.png" />
+
+				<idm:button value="#{msg['page.button.cancel']}" buttonType="negative"
+					action="#{logging.cancelPerformed}" img="/resources/images/door_in.png" />
 			</div>
 		</ice:form>
 	</ui:define>
