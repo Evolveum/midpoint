@@ -687,7 +687,7 @@ object.
 		</description>
 
 		<propertyConstruction>
-			<property>i:fullName</property>
+			<property>fullName</property>
 			<description>
 				Property construction.
 	            Defines how properties of user object are set up.
