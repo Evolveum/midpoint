@@ -39,7 +39,7 @@ dn: ou=People,dc=acme,dc=com
 objectclass: top
 objectclass: organizationalunit
 ou: People
-aci: (targetattr="*")(version 3.0; acl "IDM Access"; allow (all)
+aci: (targetattr="*||ds-pwp-account-disabled")(version 3.0; acl "IDM Access"; allow (all)
   userdn="ldap:///uid=idm,ou=Administrators,dc=acme,dc=com";)
 
 dn: ou=Administrators,dc=acme,dc=com
