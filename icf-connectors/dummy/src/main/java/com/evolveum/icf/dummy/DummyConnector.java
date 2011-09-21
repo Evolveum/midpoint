@@ -22,13 +22,17 @@ package com.evolveum.icf.dummy;
 
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
+import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
 import static com.evolveum.icf.dummy.util.Utils.*;
+
+import java.util.Collection;
 import java.util.Set;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.common.objects.Attribute;
+import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
 import org.identityconnectors.framework.common.objects.OperationOptions;
 import org.identityconnectors.framework.common.objects.ResultsHandler;
@@ -112,6 +116,116 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * Implement the following operations using the contract and
      * description found in the Javadoc for these methods.
      ******************/
+    
+    /**
+     * {@inheritDoc}
+     */    
+
+    /**
+     * {@inheritDoc}
+     */
+    public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
+        log.info("create::begin");
+        isAccount(objectClass);
+        
+        // Convert attributes to account
+        DummyAccount newAccount = new DummyAccount();
+        newAccount.setUsername(Utils.getMandatoryStringAttribute(createAttributes,Name.NAME));
+        
+        String id = null;
+		try {
+			
+			id = resource.addAccount(newAccount);
+			
+		} catch (ObjectAlreadyExistsException e) {
+			// we cannot throw checked exceptions. But this one looks suitable.
+			// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+			// The framework should deal with it ... somehow
+			throw new AlreadyExistsException(e.getMessage(),e);
+		}
+        
+        Uid uid = new Uid(id);
+        
+        log.info("create::end");
+        return uid;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
+        log.info("update::begin");
+        isAccount(objectClass);
+        
+        //TODO: implement
+        log.info("update::end");
+        return uid;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Uid addAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToAdd, OperationOptions options) {
+        log.info("addAttributeValues::begin");
+        isAccount(objectClass);
+        
+        //TODO: implement
+        log.info("addAttributeValues::end");
+        return uid;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Uid removeAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToRemove, OperationOptions options) {
+        log.info("removeAttributeValues::begin");
+        isAccount(objectClass);
+        
+        //TODO: implement
+        log.info("removeAttributeValues::end");
+        return uid;
+    }
+    
+	/**
+     * {@inheritDoc}
+     */
+    public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
+        log.info("delete::begin");
+        isAccount(objectClass);
+        
+        String id = uid.getUidValue();
+        
+        try {
+        	
+			resource.deleteAccount(id);
+			
+		} catch (ObjectDoesNotExistException e) {
+			// we cannot throw checked exceptions. But this one looks suitable.
+			// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
+			// The framework should deal with it ... somehow
+			throw new UnknownUidException(e.getMessage(),e);
+		}
+        
+        log.info("delete::end");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Schema schema() {
+        log.info("schema::begin");
+
+        SchemaBuilder builder = new SchemaBuilder(DummyConnector.class);
+        
+        ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
+//        objClassBuilder.setType(ObjectClass.ACCOUNT_NAME);
+//        objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(Name.NAME));
+        builder.defineObjectClass(objClassBuilder.build());
+
+        log.info("schema::end");
+        return builder.build();
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -131,58 +245,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("resolveUsername::end");
         return uid;
     }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
-        log.info("create::begin");
-        
-        // Convert attributes to account
-        DummyAccount newAccount = new DummyAccount();
-        newAccount.setUsername(Utils.getMandatoryStringAttribute(createAttributes,Name.NAME));
-        
-        String id = null;
-		try {
-			
-			id = resource.addAccount(newAccount);
-			
-		} catch (ObjectAlreadyExistsException e) {
-			// we cannot throw checked exceptions. But this one looks suitable.
-			// Note: let's do the bad thing and add exception loaded by this classloader as inner exception here
-			// The framework should deal with it ... somehow
-			throw new AlreadyExistsException(e);
-		}
-        
-        Uid uid = new Uid(id);
-        
-        log.info("create::end");
-        return uid;
-    }
-
-	/**
-     * {@inheritDoc}
-     */
-    public void delete(final ObjectClass objectClass, final Uid uid, final OperationOptions options) {
-        log.info("delete::begin");
-        //TODO: implement
-        log.info("delete::end");
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Schema schema() {
-        log.info("schema::begin");
-        //TODO: implement
-
-        SchemaBuilder builder = new SchemaBuilder(DummyConnector.class);
-        //builder.defineObjectClass(objClassBuilder.build());
-
-        log.info("schema::end");
-        return builder.build();
-    }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -194,7 +257,10 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public Object runScriptOnResource(ScriptContext request, OperationOptions options) {
-        throw new UnsupportedOperationException();
+        
+        resource.runScript(request.getScriptText());
+        
+        return null;
     }
 
     /**
@@ -205,7 +271,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         isAccount(objectClass);
 
         log.info("createFilterTranslator::end");
-        return new AbstractFilterTranslator<String>() {
+        return new DummyFilterTranslator() {
         };
     }
 
@@ -217,11 +283,18 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         isAccount(objectClass);
         notNull(handler, "Results handled object can't be null.");
 
-        //TODO: implement
+        // Lets be stupid now and just return everything. ICF will filter it.
+        
+        Collection<DummyAccount> accounts = resource.listAccounts();
+        for (DummyAccount account : accounts) {
+        	ConnectorObject co = convertToConnectorObject(account);
+        	handler.handle(co);
+        }
+        
         log.info("executeQuery::end");
     }
 
-    /**
+	/**
      * {@inheritDoc}
      */
     public void sync(ObjectClass objectClass, SyncToken token, SyncResultsHandler handler, final OperationOptions options) {
@@ -255,35 +328,15 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("Test configuration was successful.");
         log.info("test::end");
     }
+    
+	private ConnectorObject convertToConnectorObject(DummyAccount account) {
+		ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
 
-    /**
-     * {@inheritDoc}
-     */
-    public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
-        log.info("update::begin");
-        //TODO: implement
-        log.info("update::end");
-        return uid;
-    }
+		builder.setUid(account.getUsername());
+		builder.addAttribute(Name.NAME, account.getUsername());
 
-    /**
-     * {@inheritDoc}
-     */
-    public Uid addAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToAdd, OperationOptions options) {
-        log.info("addAttributeValues::begin");
-        //TODO: implement
-        log.info("addAttributeValues::end");
-        return uid;
-    }
+        return builder.build();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    public Uid removeAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToRemove, OperationOptions options) {
-        log.info("removeAttributeValues::begin");
-        //TODO: implement
-        log.info("removeAttributeValues::end");
-        return uid;
-    }
     
 }

@@ -212,6 +212,10 @@ public interface ConnectorInstance {
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
 	 * and what results are we not sure about.
 	 * 
+	 * Returns a set of attributes that were changed as a result of the operation. This may include attributes
+	 * that were changed as a side effect of the operations, e.g. attributes that were not originally specified
+	 * in the "changes" parameter.
+	 * 
 	 * The exception should be thrown only if the connector is sure that nothing was done on the resource.
 	 * E.g. in case of connect timeout or connection refused. Timeout during operation should not cause the
 	 * exception as something might have been done already. 
@@ -221,7 +225,7 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @throws SchemaException 
 	 */
-	public void modifyObject(QName objectClass, Set<ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
+	public Set<AttributeModificationOperation> modifyObject(QName objectClass, Set<ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
 	
 	public void deleteObject(QName objectClass, Set<Operation> additionalOperations, Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	

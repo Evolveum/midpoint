@@ -35,16 +35,16 @@ public class DummyConfiguration extends AbstractConfiguration {
 
     private static final Log log = Log.getLog(DummyConfiguration.class);
     // Example of exposed configuration properties.
-    private String config;
+    private String instanceId;
 
-    @ConfigurationProperty(displayMessageKey = "UI_CONFIG",
-    helpMessageKey = "UI_CONFIG_HELP")
-    public String getConfig() {
-        return config;
+    @ConfigurationProperty(displayMessageKey = "UI_INSTANCE_ID",
+    helpMessageKey = "UI_INSTANCE_ID_HELP")
+    public String getInstanceId() {
+        return instanceId;
     }
 
-    public void setConfig(String config) {
-        this.config = config;
+    public void setInstanceId(String config) {
+        this.instanceId = config;
     }
 
     /**
@@ -54,7 +54,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     public void validate() {
         log.info("begin");
 
-        //TODO: validate ocnfiguration
+        //TODO: validate configuration
 
         log.info("end");
     }

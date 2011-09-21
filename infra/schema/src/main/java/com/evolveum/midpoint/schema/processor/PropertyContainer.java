@@ -119,16 +119,54 @@ public class PropertyContainer extends Item implements Serializable {
 	/**
 	 * Adds an item to a property container.
 	 * @param item item to add.
+	 * @throws IllegalArgumentException an attempt to add value that already exists
 	 */
 	public void add(Item item) {
+		if (findItem(item.getName()) != null) {
+			throw new IllegalArgumentException("Item "+item.getName()+" is already present in "+this.getClass().getSimpleName());
+		}
+		items.add(item);
+	}
+
+	/**
+	 * Adds an item to a property container. Existing value will be replaced.
+	 * @param item item to add.
+	 */
+	public void addReplaceExisting(Item item) {
+		Item existingItem = findItem(item.getName());
+		if ( existingItem != null) {
+			items.remove(existingItem);
+		}
 		items.add(item);
 	}
 
 	/**
 	 * Adds a collection of items to a property container.
 	 * @param itemsToAdd items to add
+	 * @throws IllegalArgumentException an attempt to add value that already exists
 	 */
 	public void addAll(Collection<? extends Item> itemsToAdd) {
+		// Check for conflicts
+		for (Item item : itemsToAdd) {
+			if (findItem(item.getName()) != null) {
+				throw new IllegalArgumentException("Item "+item.getName()+" is already present in "+this.getClass().getSimpleName());
+			}
+		}
+		items.addAll(itemsToAdd);
+	}
+
+	/**
+	 * Adds a collection of items to a property container. Existing values will be replaced.
+	 * @param itemsToAdd items to add
+	 */
+	public void addAllReplaceExisting(Collection<? extends Item> itemsToAdd) {
+		// Check for conflicts, remove conflicting values
+		for (Item item : itemsToAdd) {
+			Item existingItem = findItem(item.getName());
+			if ( existingItem != null) {
+				items.remove(existingItem);
+			}
+		}
 		items.addAll(itemsToAdd);
 	}
 

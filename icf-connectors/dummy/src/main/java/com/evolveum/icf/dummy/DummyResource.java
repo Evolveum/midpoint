@@ -19,6 +19,7 @@
  */
 package com.evolveum.icf.dummy;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -33,11 +34,13 @@ import java.util.Set;
 public class DummyResource {
 
 	private Map<String,DummyAccount> accounts;
+	private List<String> scriptHistory;
 	
 	private static DummyResource instance = null;
 	
 	private DummyResource() {
 		accounts = new HashMap<String, DummyAccount>();
+		scriptHistory = new ArrayList<String>();
 	}
 	
 	public static DummyResource getInstance() {
@@ -58,6 +61,26 @@ public class DummyResource {
 		}
 		accounts.put(id, newAccount);
 		return id;
+	}
+	
+	public void deleteAccount(String id) throws ObjectDoesNotExistException {
+		if (accounts.containsKey(id)) {
+			accounts.remove(id);
+		} else {
+			throw new ObjectDoesNotExistException("Account with identifier "+id+" does not exist");
+		}
+	}
+
+	public List<String> getScriptHistory() {
+		return scriptHistory;
+	}
+	
+	public void purgeScriptHistory() {
+		scriptHistory.clear();
+	}
+	
+	public void runScript(String scriptCode) {
+		scriptHistory.add(scriptCode);
 	}
 	
 }

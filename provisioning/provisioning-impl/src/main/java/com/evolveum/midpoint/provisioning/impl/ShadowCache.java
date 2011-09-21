@@ -523,7 +523,7 @@ public class ShadowCache {
 					parentResult);
 
 			LOGGER.debug("Added object: {}", DebugUtil.prettyPrint(resourceAttributesAfterAdd));
-			resourceObject.addAll(resourceAttributesAfterAdd);
+			resourceObject.addAllReplaceExisting(resourceAttributesAfterAdd);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 			parentResult.recordFatalError(
 					"Error communitacing with the connector " + connector + ": " + ex.getMessage(), ex);
@@ -727,11 +727,14 @@ public class ShadowCache {
 			}
 
 			LOGGER.trace("Applying change: {}", JAXBUtil.silentMarshalWrap(objectChange));
+			
+			Set<AttributeModificationOperation> sideEffectChanges = null;
 			try {
 
 				// Invoke ICF
-				connector.modifyObject(shadow.getObjectClass(), identifiers, changes, parentResult);
-
+				sideEffectChanges = connector.modifyObject(shadow.getObjectClass(),
+						identifiers, changes, parentResult);
+				
 			} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
 				parentResult.recordFatalError("Object to modify not found. Reason: " + ex.getMessage(), ex);
 				throw new ObjectNotFoundException("Object to modify not found. " + ex.getMessage(), ex);
@@ -741,6 +744,12 @@ public class ShadowCache {
 				throw new CommunicationException("Error comminicationg with connector " + connector + ": "
 						+ ex.getMessage(), ex);
 			}
+			
+			if (!sideEffectChanges.isEmpty()) {
+				// TODO: implement
+				throw new UnsupportedOperationException("Handling of side-effect changes is not yet supported");
+			}
+			
 			parentResult.recordSuccess();
 		}
 	}

@@ -883,7 +883,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		
 		ResourceObjectAttribute attribute = setUidAttribute(uid);
-		object.add(attribute);
+		object.addReplaceExisting(attribute);
 		icfResult.recordSuccess();
 
 		
@@ -892,7 +892,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void modifyObject(QName objectClass,
+	public Set<AttributeModificationOperation> modifyObject(QName objectClass,
 			Set<ResourceObjectAttribute> identifiers, Set<Operation> changes,
 			OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException, SchemaException {
@@ -906,6 +906,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		ObjectClass objClass = objectClassToIcf(objectClass);
 		Uid uid = getUid(identifiers);
+		String originalUid = uid.getUidValue();
 
 		Set<ResourceObjectAttribute> addValues = new HashSet<ResourceObjectAttribute>();
 		Set<ResourceObjectAttribute> updateValues = new HashSet<ResourceObjectAttribute>();
@@ -989,7 +990,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult = result.createSubresult(ConnectorFacade.class
 						.getName() + ".addAttributeValues");
 				icfResult.addParam("objectClass", objectClass);
-				icfResult.addParam("uid", uid);
+				icfResult.addParam("uid", uid.getUidValue());
 				icfResult.addParam("attributes", attributes);
 				icfResult.addParam("options", options);
 				icfResult.addContext("connector", icfConnectorFacade);
@@ -999,7 +1000,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							new Object[]{objClass, uid, dumpAttributes(attributes)});
 				}
 
-				icfConnectorFacade
+				uid = icfConnectorFacade
 						.addAttributeValues(objClass, uid, attributes, options);
 
 				icfResult.recordSuccess();
@@ -1057,7 +1058,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult = result.createSubresult(ConnectorFacade.class
 					.getName() + ".update");
 			icfResult.addParam("objectClass", objectClass);
-			icfResult.addParam("uid", uid);
+			icfResult.addParam("uid", uid.getUidValue());
 			icfResult.addParam("attributes", attributes);
 			icfResult.addParam("options", options);
 			icfResult.addContext("connector", icfConnectorFacade);
@@ -1069,7 +1070,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 			try {
 				// Call ICF
-				icfConnectorFacade.update(objClass, uid, attributes, options);
+				uid = icfConnectorFacade.update(objClass, uid, attributes, options);
 				
 				icfResult.recordSuccess();
 			} catch (Exception ex) {
@@ -1091,7 +1092,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					throw new SystemException("Got unexpected exception: "
 							+ ex.getClass().getName(), ex);
 				}
-			}
+			}			
 		}
 
 		try {
@@ -1113,7 +1114,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult = result.createSubresult(ConnectorFacade.class
 						.getName() + ".update");
 				icfResult.addParam("objectClass", objectClass);
-				icfResult.addParam("uid", uid);
+				icfResult.addParam("uid", uid.getUidValue());
 				icfResult.addParam("attributes", attributes);
 				icfResult.addParam("options", options);
 				icfResult.addContext("connector", icfConnectorFacade);
@@ -1123,7 +1124,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							new Object[]{objClass, uid, dumpAttributes(attributes)});
 				}
 				
-				icfConnectorFacade.removeAttributeValues(objClass, uid, attributes,
+				uid = icfConnectorFacade.removeAttributeValues(objClass, uid, attributes,
 						options);
 				icfResult.recordSuccess();
 			}
@@ -1150,6 +1151,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		checkAndExecuteAdditionalOperation(additionalOperations,
 				ScriptOrderType.AFTER);
 		result.recordSuccess();
+		
+		Set<AttributeModificationOperation> sideEffectChanges = new HashSet<AttributeModificationOperation>();
+		if (!originalUid.equals(uid.getUidValue())) {
+			// UID was changed during the operation, this is most likely a rename
+			AttributeModificationOperation uidMod = new AttributeModificationOperation();
+			uidMod.setChangeType(PropertyModificationTypeType.replace);
+			ResourceObjectAttribute uidAttr = getUidDefinition(identifiers).instantiate();
+			uidAttr.setValue(uid.getUidValue());
+			sideEffectChanges.add(uidMod);
+		}
+		return sideEffectChanges;
 	}
 
 	private String dumpAttributes(Set<Attribute> attributes) {
@@ -1586,6 +1598,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return null;
 	}
 
+	private ResourceObjectAttributeDefinition getUidDefinition(Set<ResourceObjectAttribute> identifiers) {
+		for (ResourceObjectAttribute attr : identifiers) {
+			if (attr.getName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
+				return attr.getDefinition();
+			}
+		}
+		return null;
+	}
+	
 	private ResourceObjectAttribute setUidAttribute(Uid uid) {
 		ResourceObjectAttribute uidRoa = new ResourceObjectAttribute(
 				ConnectorFactoryIcfImpl.ICFS_UID);
