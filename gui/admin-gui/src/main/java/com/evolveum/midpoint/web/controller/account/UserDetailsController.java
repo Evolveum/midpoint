@@ -23,7 +23,6 @@ package com.evolveum.midpoint.web.controller.account;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,7 +43,6 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.schema.exception.SchemaException;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -53,11 +51,8 @@ import com.evolveum.midpoint.web.bean.AccountFormBean;
 import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
-import com.evolveum.midpoint.web.jsf.form.AttributeType;
 import com.evolveum.midpoint.web.jsf.form.FormAttribute;
 import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinition;
-import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinition.Flag;
-import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinitionBuilder;
 import com.evolveum.midpoint.web.jsf.form.FormObject;
 import com.evolveum.midpoint.web.model.AccountManager;
 import com.evolveum.midpoint.web.model.ObjectManager;
@@ -72,7 +67,6 @@ import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
-import com.evolveum.midpoint.web.util.SchemaFormParser2;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -537,77 +531,20 @@ public class UserDetailsController implements Serializable {
 			throw new IllegalArgumentException("Account object can't be null.");
 		}
 
-//		FormObject object = new FormObject();
-//		QName defaultAccountType = null;
-//		ResourceCapability capability = null;
-//		try {
-//			SchemaFormParser parser = new SchemaFormParser();
-//			List<ResourceObjectAttributeDefinition> list = parser.parseSchemaForAccount(account, accountType);
-//			object.setDisplayName(parser.getDisplayName());
-//			Map<QName, List<Object>> formValues = parser.getAttributeValueMap();
-//			for (ResourceObjectAttributeDefinition attribute : list) {
-//				FormAttributeDefinition definition = createDefinition(attribute);
-//				List<Object> values = formValues.get(attribute.getName());
-//
-//				object.getAttributes().add(new FormAttribute(definition, values));
-//			}
-//			object.sort();
-//			defaultAccountType = parser.getDefaultAccountType();
-//
-//			AccountManager manager = ControllerUtil.getAccountManager(objectTypeCatalog);
-//			capability = manager.getResourceCapability(account);
-//		} catch (SchemaException ex) {
-//			throw ex;
-//		} catch (Exception ex) {
-//			throw new SchemaException("Unknown error, reason: " + ex.getMessage(), ex);
-//		}
-
-		FormObject object =null;
+		FormObject object = null;
 		ResourceCapability capability = null;
 		try {
-			SchemaFormParser2 parser = new SchemaFormParser2();
+			SchemaFormParser parser = new SchemaFormParser();
 			object = parser.parseSchemaForAccount(account, accountType);
 			AccountManager manager = ControllerUtil.getAccountManager(objectTypeCatalog);
 			capability = manager.getResourceCapability(account);
+		} catch (SchemaException ex) {
+			throw ex;
 		} catch (Exception ex) {
-			
+			throw new SchemaException("Unknown error, reason: " + ex.getMessage(), ex);
 		}
-		
+
 		return new AccountFormBean(index, account, capability, object.getTypeName(), object, createNew);
-	}
-
-	private FormAttributeDefinition createDefinition(ResourceObjectAttributeDefinition def) {
-		FormAttributeDefinitionBuilder builder = new FormAttributeDefinitionBuilder();
-		if (def.getAllowedValues() != null) {
-			List<Object> availableValues = new ArrayList<Object>();
-			availableValues.addAll(Arrays.asList(def.getAllowedValues()));
-			builder.setAvailableValues(availableValues);
-		}
-		builder.setDescription(def.getHelp());
-
-		if (StringUtils.isEmpty(def.getDisplayName())) {
-			builder.setDisplayName(def.getName().getLocalPart());
-		} else {
-			builder.setDisplayName(def.getDisplayName());
-		}
-		builder.setElementName(def.getName());
-		if (def.canRead()) {
-			builder.addFlag(Flag.READ);
-		}
-		if (def.canUpdate()) {
-			builder.addFlag(Flag.UPDATE);
-		}
-		if (def.canCreate()) {
-			builder.addFlag(Flag.CREATE);
-		}
-
-		builder.setMaxOccurs(def.getMaxOccurs());
-		builder.setMinOccurs(def.getMinOccurs());
-		builder.setType(AttributeType.getType(def.getTypeName()));
-		// builder.setFilledWithExpression(def.isFilledWithExpression());
-		// //TODO: where can I get this?????
-
-		return builder.build();
 	}
 
 	private AccountShadowDto updateAccountAttributes(AccountFormBean bean) throws SchemaException {

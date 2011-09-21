@@ -39,13 +39,8 @@ public class FormObject implements Serializable {
 	private static final long serialVersionUID = -1567990045128005309L;
 	private QName typeName;
 	private String displayName;
-	private boolean showingAllAttributes;
+	private boolean showingAllAttributes = true;
 	private List<FormAttribute> attributes;
-
-	@Deprecated
-	public FormObject() {
-		this(null, null);
-	}
 
 	public FormObject(QName typeName, String displayName) {
 		// Validate.notEmpty(displayName,
@@ -67,11 +62,6 @@ public class FormObject implements Serializable {
 
 	public String getDisplayName() {
 		return displayName;
-	}
-
-	@Deprecated
-	public void setDisplayName(String displayName) {
-		this.displayName = displayName;
 	}
 
 	public boolean isShowingAllAttributes() {

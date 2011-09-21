@@ -26,9 +26,6 @@ import java.util.List;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import com.evolveum.midpoint.schema.processor.ItemDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.web.bean.ResourceConfigFormBean;
 import com.evolveum.midpoint.web.controller.util.WizardPage;
 import com.evolveum.midpoint.web.jsf.form.FormObject;
@@ -74,43 +71,26 @@ public class ResourceConfigurationController extends WizardPage {
 			return;
 		}
 
-		List<ResourceObjectDefinition> definitions = null;
 		try {
 			SchemaFormParser parser = new SchemaFormParser();
-			definitions = parser.parseSchemaForConnector(connector, configuration);
-		} catch (Exception ex) {
-			FacesUtils.addErrorMessage("Couldn't parse connector configuration schema.", ex);
-		}
-		
-		if (definitions == null) {
-			return;
-		}
-
-		int id = 0;
-		for (ResourceObjectDefinition objectDefinition : definitions) {
-			FormObject formObject = new FormObject();
-			// TODO: prepare form object here like in UserDetailsController line
-			// 547 to 556 (as an example), prepare also values in there (create
-			// FormAttributes based on ResourceObjectAttributeDefinition and
-			// values).
-			for (ItemDefinition attributeDefinition : objectDefinition.getDefinitions()) {
-				if (!(attributeDefinition instanceof ResourceObjectAttributeDefinition)) {
-					continue;
-				}
-
-				ResourceObjectAttributeDefinition attribute = (ResourceObjectAttributeDefinition) attributeDefinition;
+			List<FormObject> objects = parser.parseSchemaForConnector(connector, configuration);
+			int id = 0;
+			for (FormObject object : objects) {
+				getConfigurationList().add(
+						new ResourceConfigFormBean(id, connector, object.getTypeName(), object));
+				id++;
 			}
-			getConfigurationList().add(
-					new ResourceConfigFormBean(id, connector, objectDefinition.getTypeName(), formObject));
-			id++;
+		} catch (Exception ex) {
+
 		}
 	}
 
 	@Override
 	public void next() {
-		// TODO: update values in configuration object according to form object values
+		// TODO: update values in configuration object according to form object
+		// values
 	}
-	
+
 	@Override
 	public void cleanController() {
 		getConfigurationList().clear();
