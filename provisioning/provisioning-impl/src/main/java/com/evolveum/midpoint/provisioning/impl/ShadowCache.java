@@ -1137,19 +1137,11 @@ public class ShadowCache {
 			throw new SchemaException("Can't create account shadow from identifiers: "
 					+ change.getIdentifiers());
 		}
-		ObjectReferenceType ref = new ObjectReferenceType();
-		ref.setOid(resource.getOid());
-		shadow.setResourceRef(ref);
-
-		QName objectClass = new QName(resource.getNamespace(), "AccountObjectClass");
-		shadow.setObjectClass(objectClass);
-
-		// set name for new account
-		String accountName = determineShadowName(resourceObject);
-		shadow.setName(resource.getName() + "-" + accountName);
-
+	
+		
+		
 		try {
-			getRepositoryService().addObject(shadow, parentResult);
+			addShadowToRepository(shadow, resourceObject, parentResult);
 		} catch (ObjectAlreadyExistsException e) {
 			parentResult.recordFatalError("Can't add account " + DebugUtil.prettyPrint(shadow)
 					+ " to the repository. Reason: " + e.getMessage(), e);
@@ -1400,40 +1392,6 @@ public class ShadowCache {
 		return resourceObject;
 	}
 
-	/**
-	 * create resource object shadow from identifiers
-	 * 
-	 * @param identifiers
-	 *            properties of the resourceObject. This properties describes
-	 *            created resource object shadow attributes
-	 * @param resourceObjectShadow
-	 * @return resourceObjectShadow
-	 * @throws SchemaException
-	 */
-	private ResourceObjectShadowType createShadow(Set<Property> identifiers,
-			ResourceObjectShadowType resourceObjectShadow) throws SchemaException {
-
-		List<Object> identifierElements = new ArrayList<Object>();
-		Document doc = DOMUtil.getDocument();
-		for (Property p : identifiers) {
-			try {
-				List<Object> eList = p.serializeToJaxb(doc);
-				identifierElements.addAll(eList);
-			} catch (SchemaException e) {
-				throw new SchemaException("An error occured while serializing property " + p + " to DOM: "
-						+ e.getMessage(), e);
-			}
-		}
-
-		if (resourceObjectShadow.getAttributes() != null) {
-			resourceObjectShadow.getAttributes().getAny().clear();
-		} else {
-			resourceObjectShadow.setAttributes(new ResourceObjectShadowType.Attributes());
-		}
-		resourceObjectShadow.getAttributes().getAny().addAll(identifierElements);
-
-		return resourceObjectShadow;
-	}
 
 	/**
 	 * Create shadow based on the resource object that we have got
@@ -1462,7 +1420,7 @@ public class ShadowCache {
 			shadow.setObjectClass(resourceObject.getDefinition().getTypeName());
 		}
 		if (shadow.getName() == null) {
-			shadow.setName(determineShadowName(resourceObject));
+			shadow.setName(resource.getName() + "-" + determineShadowName(resourceObject));
 		}
 		if (shadow.getResource() == null) {
 			shadow.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
