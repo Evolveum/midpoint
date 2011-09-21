@@ -130,8 +130,9 @@
 									<ice:outputText value="#{item.name}" />
 								</f:facet>
 
-								<ice:selectBooleanCheckbox value="#{item.bean.showingAllAttributes}" immediate="true" partialSubmit="true" />
-								<ice:outputLabel value="Show all attributes" />								
+								<ice:selectBooleanCheckbox value="#{item.bean.showingAllAttributes}" immediate="true"
+									partialSubmit="true" disabled="true" />
+								<ice:outputLabel value="Show all attributes" />
 								<hr />
 								<idm:autoForm bean="#{userDetails.formObjects}" index="#{status.index}"
 									editable="#{userDetails.editMode}" />
