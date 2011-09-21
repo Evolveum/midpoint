@@ -28,6 +28,7 @@
     </encoder>
   </appender>
   <logger name="org.springframework" level="INFO"/>
+<logger name="PROFILING" level="TRACE" />
   <root level="TRACE">
     <appender-ref ref="X"/>
   </root>
