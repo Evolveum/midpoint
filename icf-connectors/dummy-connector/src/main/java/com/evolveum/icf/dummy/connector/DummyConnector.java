@@ -18,14 +18,14 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.icf.dummy;
+package com.evolveum.icf.dummy.connector;
 
 import org.identityconnectors.framework.spi.operations.*;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.UnknownUidException;
 import org.identityconnectors.framework.common.objects.*;
 
-import static com.evolveum.icf.dummy.util.Utils.*;
+import static com.evolveum.icf.dummy.connector.Utils.*;
 
 import java.util.Collection;
 import java.util.Set;
@@ -60,7 +60,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
-import com.evolveum.icf.dummy.util.Utils;
+import com.evolveum.icf.dummy.connector.Utils;
 
 /**
  * Main implementation of the Test Connector

@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <!-- Copyright (c) 2011 Evolveum                             -->
 <!--                                                         -->
 <!-- The contents of this file are subject to the terms      -->
@@ -17,14 +17,17 @@
 <!-- your own identifying information:                       -->
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
-<!-- Portions Copyrighted 2010 Peter Prochazka               -->
+<!-- Portions Copyrighted 2011 Peter Prochazka               -->
 <!--                                                         -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>midPoint User Interface</name>
-	<artifactId>icf-connectors</artifactId>
-	<packaging>pom</packaging>
+	<name>Dummy Resource</name>
+	<groupId>com.evolveum.icf</groupId>
+	<artifactId>dummy-resource</artifactId>
+	<version>1.1.0.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
 	<parent>
 		<artifactId>parent</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
@@ -51,9 +54,16 @@
 		<developerConnection>scm:svn:https://svn.evolveum.com/midpoint/</developerConnection>
 		<url>https://fisheye.evolveum.com/midpoint/</url>
 	</scm>
-	<modules>
-		<module>dummy-connector</module>
-		<module>dummy-resource</module>
-	</modules>
-	
+	<repositories>
+		<repository>
+			<id>evolveum</id>
+			<name>repo</name>
+			<url>http://repo.evolveum.com/repo</url>
+		</repository>
+		<repository>
+			<id>central</id>
+			<name>maven2</name>
+			<url>http://repo.maven.org/</url>
+		</repository>
+	</repositories>
 </project>

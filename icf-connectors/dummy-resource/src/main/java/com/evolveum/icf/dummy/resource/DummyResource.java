@@ -17,14 +17,13 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.icf.dummy;
+package com.evolveum.icf.dummy.resource;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 
@@ -38,7 +37,7 @@ public class DummyResource {
 	
 	private static DummyResource instance = null;
 	
-	private DummyResource() {
+	DummyResource() {
 		accounts = new HashMap<String, DummyAccount>();
 		scriptHistory = new ArrayList<String>();
 	}
@@ -52,6 +51,10 @@ public class DummyResource {
 	
 	public Collection<DummyAccount> listAccounts() {
 		return accounts.values();
+	}
+	
+	public DummyAccount getAccountByUsername(String username) {
+		return accounts.get(username);
 	}
 	
 	public String addAccount(DummyAccount newAccount) throws ObjectAlreadyExistsException {

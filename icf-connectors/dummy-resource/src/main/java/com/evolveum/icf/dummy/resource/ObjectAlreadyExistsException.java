@@ -17,7 +17,7 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.icf.dummy;
+package com.evolveum.icf.dummy.resource;
 
 /**
  * @author semancik

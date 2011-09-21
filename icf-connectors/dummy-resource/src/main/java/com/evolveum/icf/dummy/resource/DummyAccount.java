@@ -17,27 +17,22 @@
  * your own identifying information:
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.icf.dummy;
+package com.evolveum.icf.dummy.resource;
 
 /**
  * @author semancik
  *
  */
-public class ObjectDoesNotExistException extends Exception {
+public class DummyAccount {
+	
+	private String username;
 
-	public ObjectDoesNotExistException() {
+	public String getUsername() {
+		return username;
 	}
 
-	public ObjectDoesNotExistException(String message) {
-		super(message);
-	}
-
-	public ObjectDoesNotExistException(Throwable cause) {
-		super(cause);
-	}
-
-	public ObjectDoesNotExistException(String message, Throwable cause) {
-		super(message, cause);
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 }

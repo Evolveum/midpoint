@@ -21,7 +21,8 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.evolveum.icf.dummy.DummyResource;
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyResource;
 
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -57,7 +58,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	private static final String FILENAME_ACCOUNT = "src/test/resources/impl/account-dummy.xml";
 	private static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
-	private static final String DUMMY_CONNECTOR_TYPE = "com.evolveum.icf.dummy.DummyConnector";
+	private static final String DUMMY_CONNECTOR_TYPE = "com.evolveum.icf.dummy.connector.DummyConnector";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplDummyTest.class);
 
@@ -85,7 +86,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	}
 	
 	@BeforeClass
-	public static void startDb() throws Exception {
+	public static void initResource() throws Exception {
 		dummyResource = DummyResource.getInstance();
 	}
 
@@ -93,6 +94,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test000Integrity");
+		
+		display("Dummy resource instance", dummyResource.toString());
 		
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()+".test000Integrity");
 		
@@ -145,6 +148,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID,
 				new PropertyReferenceListType(), result);
 		assertEquals("will", provisioningAccountType.getName());
+		
+		// Check if the account was created in the dummy resource
+		
+		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
+		assertNotNull("No dummy account", dummyAccount);
 		
 	}
 }
