@@ -29,6 +29,7 @@
 	</appender>
 	<logger name="org.springframework" level="WARN" />
 	<logger name="com.evolveum.midpoint" level="TRACE" />
+	<logger name="PROFILING" level="TRACE" />
 	<root level="WARN">
 		<appender-ref ref="X" />
 	</root>
