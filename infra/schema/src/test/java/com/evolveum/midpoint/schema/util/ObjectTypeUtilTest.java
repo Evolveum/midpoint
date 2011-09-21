@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 
@@ -82,6 +83,25 @@ public class ObjectTypeUtilTest {
 		assertNotNull("No Password structure",newPasswordStructure);
 		assertNotNull("No protectedString in Password structure",newPasswordStructure.getProtectedString());
 		assertNotNull("No value in protectedString in Password structure",newPasswordStructure.getProtectedString().getClearValue());		
+	}
+	
+	@Test
+	public void testGetPropertyNewValue2() throws JAXBException {
+		// GIVEN
+		
+		ObjectChangeModificationType objectChange = ((JAXBElement<ObjectChangeModificationType>) JAXBUtil
+				.unmarshal(new File("src/test/resources/util/object-change-modify-activation.xml")))
+				.getValue();
+		
+		// WHEN
+		
+		ObjectModificationType objectModification = objectChange.getObjectModification();
+		Boolean enabled = ObjectTypeUtil.getPropertyNewValue(objectModification,"activation","enabled",Boolean.class);
+		
+		// THEN
+		
+		assertNotNull("returned null", enabled);
+		assertTrue("Expected true for enabled",enabled);
 	}
 
 }
