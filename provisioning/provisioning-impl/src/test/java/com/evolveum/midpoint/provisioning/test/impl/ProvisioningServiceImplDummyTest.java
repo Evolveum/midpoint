@@ -56,7 +56,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	private static final String FILENAME_RESOURCE_DUMMY = "src/test/resources/impl/resource-dummy.xml";
 	private static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	private static final String FILENAME_ACCOUNT = "src/test/resources/impl/account-dummy.xml";
-	private static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-333222123456";
+	private static final String ACCOUNT_NEW_OID = "c0c010c0-d34d-b44f-f11d-33322212dddd";
 	private static final String DUMMY_CONNECTOR_TYPE = "com.evolveum.icf.dummy.DummyConnector";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplDummyTest.class);
