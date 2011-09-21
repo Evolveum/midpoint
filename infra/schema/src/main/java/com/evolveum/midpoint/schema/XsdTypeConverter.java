@@ -258,6 +258,8 @@ public class XsdTypeConverter {
 				doc = DOMUtil.getDocument();
 			}
 			Element element = doc.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
+			//TODO: switch to global namespace prefixes map
+			element.setPrefix("temp");
 			if (type.equals(Element.class)) {
 				return val;
 			} else if (type.equals(String.class)) {
