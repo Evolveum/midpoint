@@ -62,4 +62,9 @@ public class SubsystemLoggerListItem extends BasicLoggerListItem {
 
 		this.component = LoggingComponentType.fromValue(component);
 	}
+	
+	@Override
+	public boolean isSystemComponent() {
+		return true;
+	}
 }

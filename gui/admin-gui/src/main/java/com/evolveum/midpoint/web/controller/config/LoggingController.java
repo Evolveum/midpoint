@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.FileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfigurationType;
@@ -76,11 +77,9 @@ public class LoggingController implements Serializable {
 	private LoggingLevelType rootLoggerLevel;
 	private String rootAppender;
 
-	private List<SubsystemLoggerListItem> subsystemLoggers;
-	private List<LoggerListItem> loggers;
+	private List<BasicLoggerListItem> loggers;
 	private List<AppenderListItem> appenders;
 
-	private boolean selectAllSubsystemLoggers = false;
 	private boolean selectAllLoggers = false;
 	private boolean selectAllAppenders = false;
 
@@ -93,6 +92,17 @@ public class LoggingController implements Serializable {
 		Collections.sort(levels, new SelectItemComparator());
 
 		return levels;
+	}
+
+	public List<SelectItem> getComponents() {
+		List<SelectItem> components = new ArrayList<SelectItem>();
+		for (LoggingComponentType component : LoggingComponentType.values()) {
+			components.add(new SelectItem(component.value()));
+		}
+
+		Collections.sort(components, new SelectItemComparator());
+
+		return components;
 	}
 
 	public void setRootLevelString(String rootLoggerLevel) {
@@ -123,13 +133,6 @@ public class LoggingController implements Serializable {
 		this.rootAppender = rootAppender;
 	}
 
-	public List<SubsystemLoggerListItem> getSubsystemLoggers() {
-		if (subsystemLoggers == null) {
-			subsystemLoggers = new ArrayList<SubsystemLoggerListItem>();
-		}
-		return subsystemLoggers;
-	}
-
 	public List<AppenderListItem> getAppenders() {
 		if (appenders == null) {
 			appenders = new ArrayList<AppenderListItem>();
@@ -153,31 +156,15 @@ public class LoggingController implements Serializable {
 		this.selectAllLoggers = ControllerUtil.selectPerformed(evt, getLoggers());
 	}
 
-	public void selectSubsystemLoggerPerformed(ValueChangeEvent evt) {
-		this.selectAllSubsystemLoggers = ControllerUtil.selectPerformed(evt, getSubsystemLoggers());
-	}
-
 	public void selectAllAppendersPerformed(ValueChangeEvent evt) {
 		ControllerUtil.selectAllPerformed(evt, getAppenders());
 	}
 
-	public List<LoggerListItem> getLoggers() {
+	public List<BasicLoggerListItem> getLoggers() {
 		if (loggers == null) {
-			loggers = new ArrayList<LoggerListItem>();
+			loggers = new ArrayList<BasicLoggerListItem>();
 		}
 		return loggers;
-	}
-
-	public boolean isSelectAllSubsystemLoggers() {
-		return selectAllSubsystemLoggers;
-	}
-
-	public void setSelectAllSubsystemLoggers(boolean selectAllSubsystemLoggers) {
-		this.selectAllSubsystemLoggers = selectAllSubsystemLoggers;
-	}
-
-	public void selectAllSubsystemLoggersPerformed(ValueChangeEvent evt) {
-		ControllerUtil.selectAllPerformed(evt, getSubsystemLoggers());
 	}
 
 	public boolean isSelectAllLoggers() {
@@ -250,11 +237,11 @@ public class LoggingController implements Serializable {
 	}
 
 	public void addSubsystemLogger() {
-		int id = getNewLoggerId(getSubsystemLoggers());
+		int id = getNewLoggerId(getLoggers());
 		SubsystemLoggerListItem item = new SubsystemLoggerListItem(id);
 		item.setEditing(true);
 
-		getSubsystemLoggers().add(item);
+		getLoggers().add(item);
 	}
 
 	private <T extends BasicLoggerListItem> int getNewLoggerId(List<T> loggers) {
@@ -268,49 +255,38 @@ public class LoggingController implements Serializable {
 		return id;
 	}
 
-	public void editSubsystemLogger() {
-		SubsystemLoggerListItem logger = getLogger(FacesUtils.getRequestParameter(PARAM_LOGGER_ID),
-				getSubsystemLoggers());
-		if (logger != null) {
-			logger.setEditing(true);
-		}
-	}
-
-	public void deleteSubsystemLoggers() {
-		List<SubsystemLoggerListItem> items = new ArrayList<SubsystemLoggerListItem>();
-		for (SubsystemLoggerListItem item : getSubsystemLoggers()) {
-			if (item.isSelected()) {
-				items.add(item);
-			}
-		}
-		getSubsystemLoggers().removeAll(items);
-	}
-
 	public void editLogger() {
-		LoggerListItem logger = getLogger(FacesUtils.getRequestParameter(PARAM_LOGGER_ID), getLoggers());
+		BasicLoggerListItem logger = getLogger(FacesUtils.getRequestParameter(PARAM_LOGGER_ID));
 		if (logger != null) {
 			logger.setEditing(true);
 		}
 	}
 
 	public void deleteLoggers() {
-		List<LoggerListItem> items = new ArrayList<LoggerListItem>();
-		for (LoggerListItem item : getLoggers()) {
+		Iterator<BasicLoggerListItem> iterator = getLoggers().iterator();
+		while (iterator.hasNext()) {
+			BasicLoggerListItem item = iterator.next();
 			if (item.isSelected()) {
-				items.add(item);
+				iterator.remove();
 			}
 		}
-		getLoggers().removeAll(items);
+//		List<BasicLoggerListItem> items = new ArrayList<BasicLoggerListItem>();
+//		for (BasicLoggerListItem item : getLoggers()) {
+//			if (item.isSelected()) {
+//				items.add(item);
+//			}
+//		}
+//		getLoggers().removeAll(items);
 	}
 
-	private <T extends BasicLoggerListItem> T getLogger(String loggerId, List<T> loggers) {
+	private BasicLoggerListItem getLogger(String loggerId) {
 		if (StringUtils.isEmpty(loggerId) || !loggerId.matches("[0-9]*")) {
 			FacesUtils.addErrorMessage("Logger id not defined.");
 			return null;
 		}
 
 		int id = Integer.parseInt(loggerId);
-		for (T item : loggers) {
+		for (BasicLoggerListItem item : getLoggers()) {
 			if (item.getId() == id) {
 				return item;
 			}
@@ -326,7 +302,7 @@ public class LoggingController implements Serializable {
 			return;
 		}
 
-		LoggerListItem logger = getLogger(FacesUtils.getRequestParameter(PARAM_LOGGER_ID), getLoggers());
+		BasicLoggerListItem logger = getLogger(FacesUtils.getRequestParameter(PARAM_LOGGER_ID));
 		if (logger == null) {
 			FacesUtils
 					.addWarnMessage("Couldn't remove package, because couldn't find logger by internal id.");
@@ -346,14 +322,14 @@ public class LoggingController implements Serializable {
 		if (!ControllerUtil.isEventAvailable(event)) {
 			return;
 		}
-				
-		UIParameter parameter = (UIParameter)event.getComponent().findComponent(PARAM_LOGGER_ID);
+
+		UIParameter parameter = (UIParameter) event.getComponent().findComponent(PARAM_LOGGER_ID);
 		if (parameter == null) {
 			FacesUtils.addErrorMessage("Couldn't find logger parameter by internal id.");
 			return;
 		}
 		String value = (String) event.getNewValue();
-		LoggerListItem logger = getLogger(parameter.getValue().toString(), getLoggers());
+		BasicLoggerListItem logger = getLogger(parameter.getValue().toString());
 		if (logger == null) {
 			FacesUtils.addWarnMessage("Couldn't get logger by internal id.");
 			return;
@@ -362,8 +338,7 @@ public class LoggingController implements Serializable {
 	}
 
 	public void savePerformed() {
-		LoggingConfigurationType logging = createConfiguration(getSubsystemLoggers(), getLoggers(),
-				getAppenders());
+		LoggingConfigurationType logging = createConfiguration(getLoggers(), getAppenders());
 		OperationResult result = new OperationResult("Load Logging Configuration");
 		try {
 			loggingManager.updateConfiguration(logging, result);
@@ -386,11 +361,9 @@ public class LoggingController implements Serializable {
 	public String initController() {
 		getAppenders().clear();
 		getLoggers().clear();
-		getSubsystemLoggers().clear();
 
 		selectAllAppenders = false;
 		selectAllLoggers = false;
-		selectAllSubsystemLoggers = false;
 
 		OperationResult result = new OperationResult("Load Logging Configuration");
 		try {
@@ -417,9 +390,9 @@ public class LoggingController implements Serializable {
 				id++;
 			}
 
-			id = 0;
 			for (SubSystemLoggerConfigurationType logger : logging.getSubSystemLogger()) {
-				getSubsystemLoggers().add(createSubsystemLoggerListItem(id, logger));
+				getLoggers().add(createSubsystemLoggerListItem(id, logger));
+				id++;
 			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", ex);
@@ -524,20 +497,22 @@ public class LoggingController implements Serializable {
 		return logger;
 	}
 
-	private LoggingConfigurationType createConfiguration(List<SubsystemLoggerListItem> subsystemLoggers,
-			List<LoggerListItem> loggers, List<AppenderListItem> appenders) {
+	private LoggingConfigurationType createConfiguration(List<BasicLoggerListItem> loggers,
+			List<AppenderListItem> appenders) {
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
 		for (AppenderListItem item : appenders) {
 			AppenderConfigurationType appender = createAppenderType(item);
 			configuration.getAppender().add(appender);
 		}
-		for (LoggerListItem item : loggers) {
-			ClassLoggerConfigurationType logger = createClassLogger(item, appenders);
-			configuration.getClassLogger().add(logger);
-		}
-		for (SubsystemLoggerListItem item : subsystemLoggers) {
-			SubSystemLoggerConfigurationType logger = createSubsystemLogger(item, appenders);
-			configuration.getSubSystemLogger().add(logger);
+		for (BasicLoggerListItem item : loggers) {
+			if (item instanceof LoggerListItem) {
+				ClassLoggerConfigurationType logger = createClassLogger((LoggerListItem) item, appenders);
+				configuration.getClassLogger().add(logger);
+			} else if (item instanceof SubsystemLoggerListItem) {
+				SubSystemLoggerConfigurationType logger = createSubsystemLogger(
+						(SubsystemLoggerListItem) item, appenders);
+				configuration.getSubSystemLogger().add(logger);
+			}
 		}
 
 		return configuration;

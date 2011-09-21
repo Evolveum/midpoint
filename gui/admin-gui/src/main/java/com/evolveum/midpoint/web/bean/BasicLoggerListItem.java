@@ -32,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
  * @author lazyman
  * 
  */
-public class BasicLoggerListItem extends SelectableBean {
+public  abstract class BasicLoggerListItem extends SelectableBean {
 
 	private static final long serialVersionUID = -4705525954395630905L;
 	private int id;
@@ -114,4 +114,6 @@ public class BasicLoggerListItem extends SelectableBean {
 			getAppenders().add(appender);
 		}
 	}
+	
+	public abstract boolean isSystemComponent();
 }

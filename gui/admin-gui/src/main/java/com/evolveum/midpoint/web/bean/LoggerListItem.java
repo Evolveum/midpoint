@@ -41,4 +41,9 @@ public class LoggerListItem extends BasicLoggerListItem {
 	public void setPackageName(String packageName) {
 		this.packageName = packageName;
 	}
+	
+	@Override
+	public boolean isSystemComponent() {	
+		return false;
+	}
 }
