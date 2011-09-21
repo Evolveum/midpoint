@@ -39,8 +39,7 @@ import com.evolveum.midpoint.web.util.FacesUtils;
 @Controller("appenderEdit")
 @Scope("session")
 public class AppenderEditController implements Serializable {
-/*
-	public static final String PAGE_NAVIGATION_LIST = "/config/logging?faces-redirect=true";
+
 	public static final String PAGE_NAVIGATION_EDIT = "/config/appenderEdit?faces-redirect=true";
 	public static final String PARAM_APPENDER_ID = "appenderName";
 	private static final long serialVersionUID = 636982713825573383L;
@@ -69,7 +68,7 @@ public class AppenderEditController implements Serializable {
 		String appenderName = FacesUtils.getRequestParameter(PARAM_APPENDER_ID);
 		if (StringUtils.isEmpty(appenderName)) {
 			FacesUtils.addErrorMessage("Appender id not defined.");
-			return PAGE_NAVIGATION_LIST;
+			return LoggingController.PAGE_NAVIGATION;
 		}
 
 		for (AppenderListItem item : loggingController.getAppenders()) {
@@ -81,7 +80,7 @@ public class AppenderEditController implements Serializable {
 
 		if (item == null) {
 			FacesUtils.addErrorMessage("Appender configuration not found.");
-			return PAGE_NAVIGATION_LIST;
+			return LoggingController.PAGE_NAVIGATION;
 		}
 
 		return PAGE_NAVIGATION_EDIT;
@@ -89,7 +88,7 @@ public class AppenderEditController implements Serializable {
 
 	public String backPerformed() {
 		clearController();
-		return PAGE_NAVIGATION_LIST;
+		return LoggingController.PAGE_NAVIGATION;
 	}
 
 	public String savePerformed() {
@@ -103,14 +102,15 @@ public class AppenderEditController implements Serializable {
 
 		if (oldItem != null) {
 			// LOGGERs appender name update
-			if (!oldItem.getName().equals(item.getName())) {
-				for (ClassLoggerListItem item : loggingController.getLoggers()) {
-					if (item.getAppenders().contains(oldItem.getName())) {
-						item.getAppenders().remove(oldItem.getName());
-						item.getAppenders().add(this.item.getName());
-					}
-				}
-			}
+			//TODO: update
+//			if (!oldItem.getName().equals(item.getName())) {
+//				for (ClassLoggerListItem item : loggingController.getLoggers()) {
+//					if (item.getAppenders().contains(oldItem.getName())) {
+//						item.getAppenders().remove(oldItem.getName());
+//						item.getAppenders().add(this.item.getName());
+//					}
+//				}
+//			}
 			loggingController.getAppenders().remove(oldItem);
 		}
 
@@ -118,6 +118,6 @@ public class AppenderEditController implements Serializable {
 		loggingController.saveConfiguration();
 
 		clearController();
-		return PAGE_NAVIGATION_LIST;
-	}*/
+		return LoggingController.PAGE_NAVIGATION;
+	}
 }

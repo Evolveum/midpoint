@@ -5632,7 +5632,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="package" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="package" type="xsd:string" minOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
 						TODO: packages are OR-ed
@@ -5667,7 +5667,7 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
-			<xsd:element name="component" type="c:LoggingComponentType" minOccurs="0" maxOccurs="unbounded">
+			<xsd:element name="component" type="c:LoggingComponentType" minOccurs="1">
 				<xsd:annotation>
 					<xsd:documentation>
 						TODO: components are OR-ed

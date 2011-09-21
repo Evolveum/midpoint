@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
 
 /**
@@ -32,22 +33,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
  * @author lazyman
  * 
  */
-public class LoggerListItem extends SelectableBean {
+public class SubsystemLoggerListItem extends SelectableBean {
 
 	private static final long serialVersionUID = -2575577614131038008L;
 	private int id;
 	private LoggingLevelType level;
-	private String packageName;
+	private LoggingComponentType component;
 	private List<String> appenders;
 
-	public LoggerListItem(int id) {
+	public SubsystemLoggerListItem(int id) {
 		this.id = id;
 	}
 
-	public LoggerListItem cloneItem() {
-		LoggerListItem item = new LoggerListItem(getId());
+	public SubsystemLoggerListItem cloneItem() {
+		SubsystemLoggerListItem item = new SubsystemLoggerListItem(getId());
 		item.setLevel(getLevel());
-		item.setPackageName(getPackageName());
+		item.setComponent(getComponent());
 		item.getAppenders().addAll(getAppenders());
 
 		return item;
@@ -80,12 +81,29 @@ public class LoggerListItem extends SelectableBean {
 		this.level = LoggingLevelType.fromValue(level);
 	}
 
-	public String getPackageName() {
-		return packageName;
+	public LoggingComponentType getComponent() {
+		return component;
 	}
 
-	public void setPackageName(String packageName) {
-		this.packageName = packageName;
+	public void setComponent(LoggingComponentType component) {
+		this.component = component;
+	}
+
+	public String getComponentString() {
+		if (component == null) {
+			return null;
+		}
+
+		return component.value();
+	}
+
+	public void setComponentString(String component) {
+		if (StringUtils.isEmpty(component)) {
+			this.component = null;
+			return;
+		}
+
+		this.component = LoggingComponentType.fromValue(component);
 	}
 
 	public List<String> getAppenders() {

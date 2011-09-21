@@ -21,20 +21,14 @@
 package com.evolveum.midpoint.web.controller.config;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import javax.faces.model.SelectItem;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-//import com.evolveum.midpoint.web.bean.ClassLoggerListItem;
-//import com.evolveum.midpoint.web.util.FacesUtils;
-//import com.evolveum.midpoint.web.util.SelectItemComparator;
+import com.evolveum.midpoint.web.bean.LoggerListItem;
+import com.evolveum.midpoint.web.util.FacesUtils;
 
 /**
  * 
@@ -45,75 +39,28 @@ import org.springframework.stereotype.Controller;
 @Scope("session")
 public class LoggerEditController implements Serializable {
 
-	/*public static final String PAGE_NAVIGATION_LIST = "/config/logging?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_EDIT = "/config/loggerEdit?faces-redirect=true";
 	public static final String PARAM_LOGGER_ID = "loggerId";
 	private static final long serialVersionUID = 4491151780064705480L;
 	@Autowired(required = true)
 	private LoggingController loggingController;
-	private ClassLoggerListItem item;
-	private String packageName;
-	private List<String> selectedPackages;
+	private LoggerListItem item;
 
-	public List<String> getSelectedPackages() {
-		return selectedPackages;
-	}
-
-	public void setSelectedPackages(List<String> selectedPackages) {
-		this.selectedPackages = selectedPackages;
-	}
-
-	public String getPackageName() {
-		return packageName;
-	}
-
-	public void setPackageName(String packageName) {
-		this.packageName = packageName;
-	}
-
-	public ClassLoggerListItem getItem() {
+	public LoggerListItem getItem() {
 		if (item == null) {
 			int id = 0;
-			for (ClassLoggerListItem item : loggingController.getLoggers()) {
+			for (LoggerListItem item : loggingController.getLoggers()) {
 				if (item.getId() >= id) {
 					id = item.getId() + 1;
 				}
 			}
-			item = new ClassLoggerListItem(id);
+			item = new LoggerListItem(id);
 		}
 		return item;
 	}
 
 	private void clearController() {
 		item = null;
-		packageName = null;
-		selectedPackages = null;
-	}
-
-	public List<SelectItem> getPackages() {
-		List<SelectItem> packages = new ArrayList<SelectItem>();
-		for (String packageName : getItem().getPackages()) {
-			packages.add(new SelectItem(packageName));
-		}
-
-		Collections.sort(packages, new SelectItemComparator());
-
-		return packages;
-	}
-
-	public void addPackage() {
-		item.getPackages().add(packageName);
-		packageName = null;
-	}
-
-	public void deletePackages() {
-		if (selectedPackages == null) {
-			return;
-		}
-
-		item.getPackages().removeAll(selectedPackages);
-
-		selectedPackages = null;
 	}
 
 	public String addLogger() {
@@ -127,11 +74,11 @@ public class LoggerEditController implements Serializable {
 		String argument = FacesUtils.getRequestParameter(PARAM_LOGGER_ID);
 		if (StringUtils.isEmpty(argument) || !argument.matches("[0-9]*")) {
 			FacesUtils.addErrorMessage("Logger id not defined.");
-			return PAGE_NAVIGATION_LIST;
+			return LoggingController.PAGE_NAVIGATION;
 		}
 
 		int loggerId = Integer.parseInt(argument);
-		for (ClassLoggerListItem item : loggingController.getLoggers()) {
+		for (LoggerListItem item : loggingController.getLoggers()) {
 			if (item.getId() == loggerId) {
 				this.item = item.cloneItem();
 				break;
@@ -140,7 +87,7 @@ public class LoggerEditController implements Serializable {
 
 		if (item == null) {
 			FacesUtils.addErrorMessage("Logger configuration not found.");
-			return PAGE_NAVIGATION_LIST;
+			return LoggingController.PAGE_NAVIGATION;
 		}
 
 		return PAGE_NAVIGATION_EDIT;
@@ -148,26 +95,26 @@ public class LoggerEditController implements Serializable {
 
 	public String backPerformed() {
 		clearController();
-		return PAGE_NAVIGATION_LIST;
+		return LoggingController.PAGE_NAVIGATION;
 	}
 
 	public String savePerformed() {
-		ClassLoggerListItem oldItem = null;
-		for (ClassLoggerListItem item : loggingController.getLoggers()) {
+		LoggerListItem oldItem = null;
+		for (LoggerListItem item : loggingController.getLoggers()) {
 			if (item.getId() == getItem().getId()) {
 				oldItem = item;
 				break;
 			}
 		}
-		
+
 		if (oldItem != null) {
-			loggingController.getLoggers().remove(oldItem);		
+			loggingController.getLoggers().remove(oldItem);
 		}
-		
-		loggingController.getLoggers().add(item);		
+
+		loggingController.getLoggers().add(item);
 		loggingController.saveConfiguration();
-		
+
 		clearController();
-		return PAGE_NAVIGATION_LIST;
-	}*/
+		return LoggingController.PAGE_NAVIGATION;
+	}
 }
