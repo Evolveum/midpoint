@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AppenderListItem;
 import com.evolveum.midpoint.web.bean.LoggerListItem;
+import com.evolveum.midpoint.web.bean.SubsystemLoggerListItem;
 import com.evolveum.midpoint.web.component.LoggingManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
@@ -55,6 +56,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
 public class LoggingController implements Serializable {
 
 	public static final String PAGE_NAVIGATION = "/config/logging?faces-redirect=true";
+	public static final String PARAM_APPENDER_ID = "appenderName";
+	public static final String PARAM_LOGGER_ID = "loggerId";
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingController.class);
 	private static final long serialVersionUID = -8739729766074013883L;
 	@Autowired(required = true)
@@ -62,6 +65,7 @@ public class LoggingController implements Serializable {
 
 	private LoggingLevelType rootLoggerLevel;
 
+	private List<SubsystemLoggerListItem> subsystemLoggers;
 	private List<LoggerListItem> loggers;
 	private List<AppenderListItem> appenders;
 
@@ -99,6 +103,13 @@ public class LoggingController implements Serializable {
 		return rootLoggerLevel.value();
 	}
 
+	public List<SubsystemLoggerListItem> getSubsystemLoggers() {
+		if (subsystemLoggers == null) {
+			subsystemLoggers = new ArrayList<SubsystemLoggerListItem>();
+		}
+		return subsystemLoggers;
+	}
+	
 	public List<AppenderListItem> getAppenders() {
 		if (appenders == null) {
 			appenders = new ArrayList<AppenderListItem>();
@@ -156,6 +167,77 @@ public class LoggingController implements Serializable {
 		return appenders;
 	}
 
+	public void addAppender() {
+		AppenderListItem item = new AppenderListItem();
+		item.setEditing(true);
+
+		getAppenders().add(item);
+	}
+
+	public void editAppender() {
+		String appenderName = FacesUtils.getRequestParameter(PARAM_APPENDER_ID);
+		if (StringUtils.isEmpty(appenderName)) {
+			FacesUtils.addErrorMessage("Appender id not defined.");
+			return;
+		}
+
+		for (AppenderListItem item : getAppenders()) {
+			if (item.getName().equals(appenderName)) {
+				item.setEditing(true);
+				break;
+			}
+		}
+	}
+
+	public void deleteAppenders() {
+		List<AppenderListItem> items = new ArrayList<AppenderListItem>();
+		for (AppenderListItem item : getAppenders()) {
+			if (item.isSelected()) {
+				items.add(item);
+			}
+		}
+		getAppenders().removeAll(items);
+	}
+
+	public void addLogger() {
+		int id = 0;
+		for (LoggerListItem item : getLoggers()) {
+			if (item.getId() >= id) {
+				id = item.getId() + 1;
+			}
+		}
+		LoggerListItem item = new LoggerListItem(id);
+		item.setEditing(true);
+
+		getLoggers().add(item);
+	}
+
+	public void editLogger() {
+		String loggerId = FacesUtils.getRequestParameter(PARAM_LOGGER_ID);
+		if (StringUtils.isEmpty(loggerId) || !loggerId.matches("[0-9]*")) {
+			FacesUtils.addErrorMessage("Logger id not defined.");
+			return;
+		}
+
+		int id = Integer.parseInt(loggerId);
+		for (LoggerListItem item : getLoggers()) {
+			if (item.getId() == id) {
+				item.setEditing(true);
+				break;
+			}
+		}
+	}
+
+	public void deleteLoggers() {
+		List<LoggerListItem> items = new ArrayList<LoggerListItem>();
+		for (LoggerListItem item : getLoggers()) {
+			if (item.isSelected()) {
+				items.add(item);
+			}
+		}
+		getLoggers().removeAll(items);
+	}
+
 	// private List<SubSystemLoggerConfigurationType> subSystemLoggers;
 	//
 
@@ -210,18 +292,6 @@ public class LoggingController implements Serializable {
 	// // ControllerUtil.selectAllPerformed(evt, getAppenders());
 	// }
 	//
-	// public void deleteLoggers() {
-	// // List<LoggerListItem> items = new ArrayList<LoggerListItem>();
-	// // for (LoggerListItem item : getLoggers()) {
-	// // if (item.isSelected()) {
-	// // items.add(item);
-	// // }
-	// // }
-	// //
-	// // getLoggers().removeAll(items);
-	//
-	// saveConfiguration();
-	// }
 	//
 	// public void deleteAppenders() {
 	// List<AppenderListItem> items = new ArrayList<AppenderListItem>();

@@ -39,9 +39,18 @@ public class LoggerListItem extends SelectableBean {
 	private LoggingLevelType level;
 	private String packageName;
 	private List<String> appenders;
+	private boolean editing;
 
 	public LoggerListItem(int id) {
 		this.id = id;
+	}
+
+	public boolean isEditing() {
+		return editing;
+	}
+
+	public void setEditing(boolean editing) {
+		this.editing = editing;
 	}
 
 	public LoggerListItem cloneItem() {
@@ -97,5 +106,30 @@ public class LoggerListItem extends SelectableBean {
 
 	public void setAppenders(List<String> appenders) {
 		this.appenders = appenders;
+	}
+
+	public String getAppendersText() {
+		StringBuilder builder = new StringBuilder();
+		for (String appender : getAppenders()) {
+			builder.append(appender);
+			builder.append("\n");
+		}
+
+		return builder.toString();
+	}
+
+	public void setAppendersText(String appenders) {
+		getAppenders().clear();
+		if (StringUtils.isEmpty(appenders)) {
+			return;
+		}
+
+		String[] array = appenders.split("\n");
+		for (String appender : array) {
+			if (StringUtils.isEmpty(appender)) {
+				continue;
+			}
+			getAppenders().add(appender);
+		}
 	}
 }

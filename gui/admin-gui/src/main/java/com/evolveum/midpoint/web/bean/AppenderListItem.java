@@ -38,8 +38,9 @@ public class AppenderListItem extends SelectableBean {
 	private String filePath = "${catalina.base}/logs/idm.log";
 	private String maxFileSize = "500MB";
 	private int maxHistory = 1;
-	private boolean appending = true;
-
+	private boolean appending = true;	
+	private boolean editing;
+	
 	public AppenderListItem cloneItem() {
 		AppenderListItem item = new AppenderListItem();
 		item.setName(getName());
@@ -48,8 +49,17 @@ public class AppenderListItem extends SelectableBean {
 		item.setMaxFileSize(getMaxFileSize());
 		item.setAppending(isAppending());
 		item.setFilePattern(getFilePattern());
+		item.setEditing(isEditing());
 
 		return item;
+	}
+	
+	public boolean isEditing() {
+		return editing;
+	}
+	
+	public void setEditing(boolean editing) {
+		this.editing = editing;
 	}
 
 	public int getMaxHistory() {
