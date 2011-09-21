@@ -25,45 +25,43 @@
 		<classes>
 			<class name="com.evolveum.midpoint.repo.test.SpringApplicationContextTest" />
 		</classes>
-	</test>	
+	</test>
 	<test name="Protector" parallel="false" preserve-order="false" verbose="10">
 		<classes>
-			<class name="com.evolveum.midpoint.common.crypto.ProtectorTest" />	
+			<class name="com.evolveum.midpoint.common.crypto.ProtectorTest" />
 		</classes>
-	</test>	
+	</test>
 	<test name="Repository account" parallel="false" preserve-order="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.repo.test.RepositoryAccountTest" />
 		</classes>
-	</test>	
+	</test>
 	<test name="Generic object" parallel="false" preserve-order="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.repo.test.RepositoryGenericObjectTest" />
 		</classes>
-	</test>	
+	</test>
 	<test name="Repotest" parallel="false" preserve-order="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.repo.test.RepositoryTest" />
 		</classes>
-	</test>	
+	</test>
 	<test name="Search test" parallel="false" preserve-order="false" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.repo.test.RepositorySearchTest" />
 			<class name="com.evolveum.midpoint.repo.test.RepositorySearchPagingTest" />
 		</classes>
-	</test>	
+	</test>
 	<test name="User" parallel="false" preserve-order="true" verbose="10">
 		<classes>
 			<class name="com.evolveum.midpoint.repo.test.RepositoryUserTest" />
 			<class name="com.evolveum.midpoint.repo.test.RepositoryUserTemplateTest" />
 		</classes>
-	</test>	
+	</test>
 	<test name="basex resource repository" parallel="false" preserve-order="false" verbose="10">
 		<classes>
-      
-<!--       <class name="com.evolveum.midpoint.repo.test.RepositoryResourceStateTest"/> -->
 			<class name="com.evolveum.midpoint.repo.test.RepositoryResourceTest" />
 			<class name="com.evolveum.midpoint.repo.test.RepositoryNamespaceTest" />
 		</classes>
-	</test>	
+	</test>
 </suite>
