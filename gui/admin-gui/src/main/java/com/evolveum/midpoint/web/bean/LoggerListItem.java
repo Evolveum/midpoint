@@ -20,7 +20,6 @@
  */
 package com.evolveum.midpoint.web.bean;
 
-
 /**
  * 
  * @author lazyman
@@ -33,15 +32,6 @@ public class LoggerListItem extends BasicLoggerListItem {
 
 	public LoggerListItem(int id) {
 		super(id);
-	}
-
-	public LoggerListItem cloneItem() {
-		LoggerListItem item = new LoggerListItem(getId());
-		item.setLevel(getLevel());
-		item.setPackageName(getPackageName());
-		item.getAppenders().addAll(getAppenders());
-
-		return item;
 	}
 
 	public String getPackageName() {

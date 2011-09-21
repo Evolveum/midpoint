@@ -23,7 +23,9 @@ package com.evolveum.midpoint.web.controller.config;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
@@ -34,17 +36,23 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AppenderListItem;
+import com.evolveum.midpoint.web.bean.BasicLoggerListItem;
 import com.evolveum.midpoint.web.bean.LoggerListItem;
 import com.evolveum.midpoint.web.bean.SubsystemLoggerListItem;
 import com.evolveum.midpoint.web.component.LoggingManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.FileAppenderConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfigurationType;
 
 /**
  * 
@@ -64,11 +72,13 @@ public class LoggingController implements Serializable {
 	private transient LoggingManager loggingManager;
 
 	private LoggingLevelType rootLoggerLevel;
+	private String rootAppender;
 
 	private List<SubsystemLoggerListItem> subsystemLoggers;
 	private List<LoggerListItem> loggers;
 	private List<AppenderListItem> appenders;
 
+	private boolean selectAllSubsystemLoggers = false;
 	private boolean selectAllLoggers = false;
 	private boolean selectAllAppenders = false;
 
@@ -103,13 +113,21 @@ public class LoggingController implements Serializable {
 		return rootLoggerLevel.value();
 	}
 
+	public String getRootAppender() {
+		return rootAppender;
+	}
+
+	public void setRootAppender(String rootAppender) {
+		this.rootAppender = rootAppender;
+	}
+
 	public List<SubsystemLoggerListItem> getSubsystemLoggers() {
 		if (subsystemLoggers == null) {
 			subsystemLoggers = new ArrayList<SubsystemLoggerListItem>();
 		}
 		return subsystemLoggers;
 	}
-	
+
 	public List<AppenderListItem> getAppenders() {
 		if (appenders == null) {
 			appenders = new ArrayList<AppenderListItem>();
@@ -140,16 +158,24 @@ public class LoggingController implements Serializable {
 		return loggers;
 	}
 
+	public boolean isSelectAllSubsystemLoggers() {
+		return selectAllSubsystemLoggers;
+	}
+
+	public void setSelectAllSubsystemLoggers(boolean selectAllSubsystemLoggers) {
+		this.selectAllSubsystemLoggers = selectAllSubsystemLoggers;
+	}
+
+	public void selectAllSubsystemLoggersPerformed(ValueChangeEvent evt) {
+		ControllerUtil.selectAllPerformed(evt, getSubsystemLoggers());
+	}
+
 	public boolean isSelectAllLoggers() {
 		return selectAllLoggers;
 	}
 
 	public void setSelectAllLoggers(boolean selectAllLoggers) {
 		this.selectAllLoggers = selectAllLoggers;
-	}
-
-	public void selectClassLoggerPerformed(ValueChangeEvent evt) {
-		this.selectAllLoggers = ControllerUtil.selectPerformed(evt, getLoggers());
 	}
 
 	public void selectAllLoggersPerformed(ValueChangeEvent evt) {
@@ -238,215 +264,185 @@ public class LoggingController implements Serializable {
 		getLoggers().removeAll(items);
 	}
 
-	// private List<SubSystemLoggerConfigurationType> subSystemLoggers;
-	//
+	public void savePerformed() {
+		LoggingConfigurationType logging = createConfiguration(getSubsystemLoggers(), getLoggers(),
+				getAppenders());
+		OperationResult result = new OperationResult("Load Logging Configuration");
+		try {
+			loggingManager.updateConfiguration(logging, result);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't update logging configuration", ex);
+		} finally {
+			result.computeStatus("Couldn't update logging configuration.");
+			if (!result.isSuccess()) {
+				FacesUtils.addMessage(result);
+			}
+		}
 
-	//
-	// public List<SelectItem> getComponents() {
-	// List<SelectItem> components = new ArrayList<SelectItem>();
-	// // for (LoggingComponentType type : LoggingComponentType.values()) {
-	// // components.add(new SelectItem(type.value()));
-	// // }
-	// //
-	// // Collections.sort(components, new SelectItemComparator());
-	//
-	// return components;
-	// }
+		initController();
+	}
 
-	// public List<SelectItem> getTypes() {
-	// List<SelectItem> types = new ArrayList<SelectItem>();
-	// for (AppenderType type : AppenderType.values()) {
-	// types.add(new SelectItem(type.getTitle(),
-	// FacesUtils.translateKey(type.getTitle())));
-	// }
-	//
-	// Collections.sort(types, new SelectItemComparator());
-	//
-	// return types;
-	// }
-	//
-	// public List<ClassLoggerConfigurationType> getClassLoggers() {
-	// // if (classLoggers == null) {
-	// // classLoggers = new ArrayList<ClassLoggerConfigurationType>();
-	// // }
-	// // return classLoggers;
-	// return null;
-	// }
-	//
-	// public List<SubSystemLoggerConfigurationType> getSubSystemLoggers() {
-	// // if (subSystemLoggers == null) {
-	// // subSystemLoggers = new ArrayList<SubSystemLoggerConfigurationType>();
-	// // }
-	// // return classLoggers;
-	// return null;
-	// }
-	//
-
-	//
-	// public void selectAppenderPerformed(ValueChangeEvent evt) {
-	// // this.selectAllAppenders = ControllerUtil.selectPerformed(evt,
-	// // getAppenders());
-	// }
-	//
-	// public void selectAllAppendersPerformed(ValueChangeEvent evt) {
-	// // ControllerUtil.selectAllPerformed(evt, getAppenders());
-	// }
-	//
-	//
-	// public void deleteAppenders() {
-	// List<AppenderListItem> items = new ArrayList<AppenderListItem>();
-	// for (AppenderListItem item : getAppenders()) {
-	// if (item.isSelected()) {
-	// items.add(item);
-	// }
-	// }
-	// getAppenders().removeAll(items);
-	//
-	// saveConfiguration();
-	// }
+	public void cancelPerformed() {
+		// TODO:
+	}
 
 	public String initController() {
 		getAppenders().clear();
 		getLoggers().clear();
+		getSubsystemLoggers().clear();
+
+		selectAllAppenders = false;
+		selectAllLoggers = false;
+		selectAllSubsystemLoggers = false;
 
 		OperationResult result = new OperationResult("Load Logging Configuration");
-		LoggingConfigurationType logging = loggingManager.getConfiguration(result);
-		if (logging == null) {
-			FacesUtils.addMessage(result);
-			return PAGE_NAVIGATION;
-		}
+		try {
+			LoggingConfigurationType logging = loggingManager.getConfiguration(result);
+			if (logging == null) {
+				FacesUtils.addMessage(result);
+				return PAGE_NAVIGATION;
+			}
 
-		// for (AppenderConfigurationType appender : logging.getAppender()) {
-		// getAppenders().add(createAppenderListItem(appender));
-		// }
-		//
-		// int id = 0;
-		// for (LoggerConfigurationType logger : logging.getLogger()) {
-		// getLoggers().add(createLoggerListItem(id, logger));
-		// id++;
-		// }
+			rootLoggerLevel = logging.getRootLoggerLevel();
+			rootAppender = logging.getRootLoggerAppender();
+
+			for (AppenderConfigurationType appender : logging.getAppender()) {
+				if (!(appender instanceof FileAppenderConfigurationType)) {
+					FacesUtils.addWarnMessage("Unknown appender '" + appender.getName() + "'.");
+					continue;
+				}
+				getAppenders().add(createAppenderListItem((FileAppenderConfigurationType) appender));
+			}
+
+			int id = 0;
+			for (ClassLoggerConfigurationType logger : logging.getClassLogger()) {
+				getLoggers().add(createLoggerListItem(id, logger));
+				id++;
+			}
+
+			id = 0;
+			for (SubSystemLoggerConfigurationType logger : logging.getSubSystemLogger()) {
+				getSubsystemLoggers().add(createSubsystemLoggerListItem(id, logger));
+			}
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't get logging configuration.", ex);
+			FacesUtils.addErrorMessage("Couldn't get logging configuration.", ex);
+		} finally {
+			if (!result.isSuccess()) {
+				FacesUtils.addMessage(result);
+			}
+		}
 
 		return PAGE_NAVIGATION;
 	}
 
-	void saveConfiguration() {
-		// LoggingConfigurationType logging = createConfiguration(getLoggers(),
-		// getAppenders());
-		// OperationResult result = new
-		// OperationResult("Load Logging Configuration");
-		// try {
-		// loggingManager.updateConfiguration(logging, result);
-		// } catch (Exception ex) {
-		// LoggingUtils.logException(LOGGER,
-		// "Couldn't update logging configuration", ex);
-		// }
-		// result.computeStatus("Couldn't update logging configuration.");
-		// FacesUtils.addMessage(result);
-		//
-		// initController();
+	private AppenderListItem createAppenderListItem(FileAppenderConfigurationType appender) {
+		AppenderListItem item = new AppenderListItem();
+		item.setAppending(appender.isAppend());
+		item.setFilePath(appender.getFileName());
+		item.setFilePattern(appender.getFilePattern());
+		item.setMaxFileSize(appender.getMaxFileSize());
+		item.setMaxHistory(appender.getMaxHistory());
+		item.setName(appender.getName());
+		item.setPattern(appender.getPattern());
+
+		return item;
 	}
 
-	/*
-	 * private LoggerListItem createLoggerListItem(int id,
-	 * LoggerConfigurationType logger) { LoggerListItem item = new
-	 * LoggerListItem(id); item.setAppenders(logger.getAppender());
-	 * item.setLevel(logger.getLevel()); // for (LoggingCategoryType category :
-	 * logger.getCategory()) { // item.getCategories().add(category.value()); //
-	 * } for (LoggingComponentType component : logger.getComponent()) {
-	 * item.getComponents().add(component.value()); }
-	 * item.getPackages().addAll(logger.getPackage());
-	 * 
-	 * return item; }
-	 * 
-	 * private AppenderListItem createAppenderListItem(AppenderConfigurationType
-	 * appender) { AppenderListItem item = new AppenderListItem();
-	 * item.setName(appender.getName()); item.setPattern(appender.getPattern());
-	 * item.setType(AppenderType.CONSOLE);
-	 * 
-	 * if (appender instanceof RollingFileAppenderConfigurationType) {
-	 * RollingFileAppenderConfigurationType file =
-	 * (RollingFileAppenderConfigurationType) appender;
-	 * item.setFilePath(file.getFilePath());
-	 * item.setMaxFileSize(file.getMaxFileSize());
-	 * item.setAppending(file.isAppend());
-	 * item.setType(AppenderType.ROLLING_FILE);
-	 * 
-	 * if (appender instanceof NdcRollingFileAppenderConfigurationType) {
-	 * item.setType(AppenderType.NDC_ROLLING_FILE); } } else if (appender
-	 * instanceof DailyRollingFileAppenderConfigurationType) {
-	 * DailyRollingFileAppenderConfigurationType daily =
-	 * (DailyRollingFileAppenderConfigurationType) appender;
-	 * item.setDatePattern(daily.getDatePattern());
-	 * item.setFilePath(daily.getFilePath());
-	 * item.setAppending(daily.isAppend());
-	 * item.setType(AppenderType.DAILY_ROLLING_FILE);
-	 * 
-	 * if (appender instanceof NdcDailyRollingFileAppenderConfigurationType) {
-	 * item.setType(AppenderType.NDC_DAILY_ROLLING_FILE); } }
-	 * 
-	 * return item; }
-	 * 
-	 * private LoggingConfigurationType createConfiguration(List<LoggerListItem>
-	 * loggers, List<AppenderListItem> appenders) { LoggingConfigurationType
-	 * configuration = new LoggingConfigurationType(); for (AppenderListItem
-	 * item : appenders) { AppenderConfigurationType appender =
-	 * createAppenderType(item); configuration.getAppender().add(appender); }
-	 * for (LoggerListItem item : loggers) { LoggerConfigurationType logger =
-	 * createLoggerType(item, configuration);
-	 * configuration.getLogger().add(logger); }
-	 * 
-	 * return configuration; }
-	 * 
-	 * private AppenderConfigurationType createAppenderType(AppenderListItem
-	 * item) { AppenderConfigurationType appender = null;
-	 * 
-	 * RollingFileAppenderConfigurationType fileAppender = null;
-	 * DailyRollingFileAppenderConfigurationType daily = null;
-	 * 
-	 * switch (item.getType()) { case CONSOLE: appender = new
-	 * AppenderConfigurationType(); break; case NDC_ROLLING_FILE: fileAppender =
-	 * new NdcRollingFileAppenderConfigurationType(); case ROLLING_FILE: if
-	 * (fileAppender == null) { fileAppender = new
-	 * RollingFileAppenderConfigurationType(); }
-	 * fileAppender.setFilePath(item.getFilePath());
-	 * fileAppender.setMaxFileSize(item.getMaxFileSize());
-	 * fileAppender.setAppend(item.isAppending());
-	 * 
-	 * appender = fileAppender; break; case NDC_DAILY_ROLLING_FILE: daily = new
-	 * NdcDailyRollingFileAppenderConfigurationType(); case DAILY_ROLLING_FILE:
-	 * if (daily == null) { daily = new
-	 * DailyRollingFileAppenderConfigurationType(); }
-	 * daily.setDatePattern(item.getDatePattern());
-	 * daily.setFilePath(item.getFilePath());
-	 * daily.setAppend(item.isAppending());
-	 * 
-	 * appender = daily; break; }
-	 * 
-	 * appender.setName(item.getName()); appender.setPattern(item.getPattern());
-	 * 
-	 * return appender; }
-	 * 
-	 * private LoggerConfigurationType createLoggerType(LoggerListItem item,
-	 * LoggingConfigurationType configuration) { LoggerConfigurationType logger
-	 * = new LoggerConfigurationType(); for (String category :
-	 * item.getCategories()) {
-	 * logger.getCategory().add(LoggingCategoryType.fromValue(category)); } for
-	 * (String component : item.getComponents()) {
-	 * logger.getComponent().add(LoggingComponentType.fromValue(component)); }
-	 * logger.getPackage().addAll(item.getPackages());
-	 * logger.setLevel(item.getLevel());
-	 * 
-	 * for (String appender : item.getAppenders()) { if
-	 * (!containsAppender(appender, configuration.getAppender())) { continue; }
-	 * logger.getAppender().add(appender); }
-	 * 
-	 * return logger; }
-	 * 
-	 * private boolean containsAppender(String name,
-	 * List<AppenderConfigurationType> appenders) { for
-	 * (AppenderConfigurationType appender : appenders) { if
-	 * (appender.getName().equals(name)) { return true; } }
-	 * 
-	 * return false; }
-	 */
+	private FileAppenderConfigurationType createAppenderType(AppenderListItem item) {
+		FileAppenderConfigurationType appender = new FileAppenderConfigurationType();
+		appender.setAppend(item.isAppending());
+		appender.setFileName(item.getFilePath());
+		appender.setFilePattern(item.getFilePattern());
+		appender.setMaxFileSize(item.getMaxFileSize());
+		appender.setMaxHistory(item.getMaxHistory());
+		appender.setName(item.getName());
+		appender.setPattern(item.getPattern());
+
+		return appender;
+	}
+
+	private LoggerListItem createLoggerListItem(int id, ClassLoggerConfigurationType logger) {
+		LoggerListItem item = new LoggerListItem(id);
+		item.setAppenders(logger.getAppender());
+		item.setLevel(logger.getLevel());
+		item.setPackageName(logger.getPackage());
+
+		return item;
+	}
+
+	private ClassLoggerConfigurationType createClassLogger(LoggerListItem item,
+			List<AppenderListItem> appenders) {
+		ClassLoggerConfigurationType logger = new ClassLoggerConfigurationType();
+		logger.setLevel(item.getLevel());
+		logger.setPackage(item.getPackageName());
+		logger.getAppender().addAll(createAppendersForLogger(item, appenders));
+
+		return logger;
+	}
+
+	private List<String> createAppendersForLogger(BasicLoggerListItem item, List<AppenderListItem> appenders) {
+		Set<String> existingAppenders = new HashSet<String>();
+		for (AppenderListItem appender : appenders) {
+			existingAppenders.add(appender.getName());
+		}
+
+		List<String> appenderNames = new ArrayList<String>();
+		for (String appender : item.getAppenders()) {
+			if (!existingAppenders.contains(appender)) {
+				String name = "unknown";
+				if (item instanceof LoggerListItem) {
+					name = ((LoggerListItem) item).getPackageName();
+				} else if (item instanceof SubsystemLoggerListItem) {
+					name = ((SubsystemLoggerListItem) item).getComponentString();
+				}
+
+				FacesUtils.addWarnMessage("Ignoring unknown appender '" + appender + "' for logger '" + name
+						+ "'.");
+				continue;
+			}
+			appenderNames.add(appender);
+		}
+
+		return appenderNames;
+	}
+
+	private SubsystemLoggerListItem createSubsystemLoggerListItem(int id,
+			SubSystemLoggerConfigurationType logger) {
+		SubsystemLoggerListItem item = new SubsystemLoggerListItem(id);
+		item.setLevel(logger.getLevel());
+		item.setComponent(logger.getComponent());
+		item.setAppenders(logger.getAppender());
+
+		return item;
+	}
+
+	private SubSystemLoggerConfigurationType createSubsystemLogger(SubsystemLoggerListItem item,
+			List<AppenderListItem> appenders) {
+		SubSystemLoggerConfigurationType logger = new SubSystemLoggerConfigurationType();
+		logger.setLevel(item.getLevel());
+		logger.setComponent(item.getComponent());
+		item.getAppenders().addAll(createAppendersForLogger(item, appenders));
+
+		return logger;
+	}
+
+	private LoggingConfigurationType createConfiguration(List<SubsystemLoggerListItem> subsystemLoggers,
+			List<LoggerListItem> loggers, List<AppenderListItem> appenders) {
+		LoggingConfigurationType configuration = new LoggingConfigurationType();
+		for (AppenderListItem item : appenders) {
+			AppenderConfigurationType appender = createAppenderType(item);
+			configuration.getAppender().add(appender);
+		}
+		for (LoggerListItem item : loggers) {
+			ClassLoggerConfigurationType logger = createClassLogger(item, appenders);
+			configuration.getClassLogger().add(logger);
+		}
+		for (SubsystemLoggerListItem item : subsystemLoggers) {
+			SubSystemLoggerConfigurationType logger = createSubsystemLogger(item, appenders);
+			configuration.getSubSystemLogger().add(logger);
+		}
+
+		return configuration;
+	}
 }
