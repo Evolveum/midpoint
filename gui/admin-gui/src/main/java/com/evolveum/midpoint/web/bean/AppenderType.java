@@ -29,13 +29,7 @@ public enum AppenderType {
 
 	CONSOLE("monitor.png", "web.bean.appenderType.console"),
 
-	ROLLING_FILE("page_white_edit.png", "web.bean.appenderType.rollingFile"),
-
-	DAILY_ROLLING_FILE("page_white_stack.png", "web.bean.appenderType.dailyRollingFile"),
-
-	NDC_ROLLING_FILE("page_white_star.png", "web.bean.appenderType.ndcRollingFile"),
-
-	NDC_DAILY_ROLLING_FILE("page_white_copy.png", "web.bean.appenderType.ndcDailyRollingFile");
+	ROLLING_FILE("page_white_edit.png", "web.bean.appenderType.rollingFile");
 
 	private String icon;
 	private String title;

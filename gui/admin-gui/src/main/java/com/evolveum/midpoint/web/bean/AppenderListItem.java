@@ -33,12 +33,13 @@ public class AppenderListItem extends SelectableBean {
 
 	private static final long serialVersionUID = 1965555036713631609L;
 	private String name;
-	private String pattern = "%d{HH:mm:ss,SSS} %-5p [%c] - %m%n";
+	private String pattern = "%date [%X{subsystem}] [%thread] %level \\(%logger\\): %m%n";
+	private String filePattern = "${catalina.base}/logs/idm-%{yyyy-MM-dd}.log";
 	private AppenderType type;
-	private String filePath;
+	private String filePath = "${catalina.base}/logs/idm.log";
 	private boolean appending = true;
 	private String datePattern = "'.'yyyy-MM-dd";
-	private int maxFileSize = 500;
+	private String maxFileSize = "500MB";
 
 	public AppenderListItem cloneItem() {
 		AppenderListItem item = new AppenderListItem();
@@ -49,6 +50,7 @@ public class AppenderListItem extends SelectableBean {
 		item.setMaxFileSize(getMaxFileSize());
 		item.setAppending(isAppending());
 		item.setDatePattern(getDatePattern());
+		item.setFilePattern(getFilePattern());
 
 		return item;
 	}
@@ -89,11 +91,7 @@ public class AppenderListItem extends SelectableBean {
 	}
 
 	public boolean isRollingFileType() {
-		return isType(AppenderType.ROLLING_FILE) || isType(AppenderType.NDC_ROLLING_FILE);
-	}
-
-	public boolean isDailyRollingFileType() {
-		return isType(AppenderType.DAILY_ROLLING_FILE) || isType(AppenderType.NDC_DAILY_ROLLING_FILE);
+		return isType(AppenderType.ROLLING_FILE);
 	}
 
 	private boolean isType(AppenderType type) {
@@ -138,19 +136,26 @@ public class AppenderListItem extends SelectableBean {
 		this.filePath = filePath;
 	}
 
-	public String getMaxFileSizeString() {
-		if (!AppenderType.ROLLING_FILE.equals(type) && !AppenderType.NDC_ROLLING_FILE.equals(type)) {
-			return null;
-		}
-
-		return Integer.toString(maxFileSize);
-	}
-
-	public int getMaxFileSize() {
+	public String getMaxFileSize() {
 		return maxFileSize;
 	}
 
-	public void setMaxFileSize(int maxFileSize) {
+	public void setMaxFileSize(String maxFileSize) {
 		this.maxFileSize = maxFileSize;
 	}
+
+	/**
+	 * @return the filePattern
+	 */
+	public String getFilePattern() {
+		return filePattern;
+	}
+
+	/**
+	 * @param filePattern the filePattern to set
+	 */
+	public void setFilePattern(String filePattern) {
+		this.filePattern = filePattern;
+	}
+
 }

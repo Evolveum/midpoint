@@ -5596,12 +5596,27 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
-			<xsd:element name="logger" type="tns:LoggerConfigurationType" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="subSystemLogger" type="tns:SubSystemLoggerConfigurationType" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="classLogger" type="tns:ClassLoggerConfigurationType" minOccurs="0" maxOccurs="unbounded" />
 			<xsd:element name="appender" type="tns:AppenderConfigurationType" minOccurs="0" maxOccurs="unbounded" />
+			<xsd:element name="rootLoggerAppender" type="xsd:string" />
+			<xsd:element name="rootLoggerLevel" type="tns:LoggingLevelType" />
+			<xsd:element name="advanced" type="tns:AdvancedLoggingConfigurationType" minOccurs="0" maxOccurs="1"/>
 		</xsd:sequence>
 	</xsd:complexType>
 
-	<xsd:complexType name="LoggerConfigurationType">
+	<xsd:complexType name="AdvancedLoggingConfigurationType" mixed="true">
+		<xsd:annotation>
+			<xsd:documentation>
+				Contains free form loging configuration.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:any maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="ClassLoggerConfigurationType">
 		<xsd:annotation>
 			<xsd:documentation>
 				Configuration of the logger: the facility that
@@ -5613,31 +5628,7 @@
 			<xsd:element name="level" type="tns:LoggingLevelType">
 				<xsd:annotation>
 					<xsd:documentation>
-						TODO
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="category" type="c:LoggingCategoryType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						TODO: catagories are OR-ed
-						TODO: string, but
-						there should be a way how to determine
-						list of valid
-						categories.
-						Maybe switch to enum later.
-					</xsd:documentation>
-				</xsd:annotation>
-			</xsd:element>
-			<xsd:element name="component" type="c:LoggingComponentType" minOccurs="0" maxOccurs="unbounded">
-				<xsd:annotation>
-					<xsd:documentation>
-						TODO: components are OR-ed
-						TODO: string, but
-						there should be a way how to determine
-						list of valid
-						categories.
-						Maybe switch to enum later.
+						Logger level
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
@@ -5661,6 +5652,45 @@
 		</xsd:sequence>
 	</xsd:complexType>
 
+	<xsd:complexType name="SubSystemLoggerConfigurationType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Configuration of the logger: the facility that
+				collects log messages from subsystem code.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="level" type="tns:LoggingLevelType">
+				<xsd:annotation>
+					<xsd:documentation>
+						Logger level
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="component" type="c:LoggingComponentType" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						TODO: components are OR-ed
+						TODO: string, but
+						there should be a way how to determine
+						list of valid
+						categories.
+						Maybe switch to enum later.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="appender" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+				<xsd:annotation>
+					<xsd:documentation>
+						Appender name defined in appenders section in
+						logging configuration
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+
+
 	<xsd:simpleType name="LoggingLevelType">
 		<xsd:annotation>
 			<xsd:documentation>
@@ -5678,10 +5708,10 @@
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="fatal">
+			<xsd:enumeration value="off">
 				<xsd:annotation>
 					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="FATAL" />
+						<jaxb:typesafeEnumMember name="OFF" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -5724,33 +5754,6 @@
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="ALL" />
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-		</xsd:restriction>
-	</xsd:simpleType>
-
-	<xsd:simpleType name="LoggingCategoryType">
-		<xsd:annotation>
-			<xsd:documentation>
-				TODO and create categories
-			</xsd:documentation>
-			<xsd:appinfo>
-				<jaxb:typesafeEnumClass />
-			</xsd:appinfo>
-		</xsd:annotation>
-		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="category1">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="CATEGORY1" />
-					</xsd:appinfo>
-				</xsd:annotation>
-			</xsd:enumeration>
-			<xsd:enumeration value="category2">
-				<xsd:annotation>
-					<xsd:appinfo>
-						<jaxb:typesafeEnumMember name="CATEGORY2" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
@@ -5832,46 +5835,17 @@
 		<xsd:complexContent>
 			<xsd:extension base="tns:AppenderConfigurationType">
 				<xsd:sequence>
-					<xsd:element name="filePath" type="xsd:string" />
-					<xsd:element name="append" type="xsd:boolean" />
+					<xsd:element name="fileName" type="xsd:string" />
+					<xsd:element name="filePattern" type="xsd:string" />
+					<xsd:element name="maxHistory" type="xsd:int"/>
+					<xsd:element name="maxFileSize" type="xsd:string"/>
+					<xsd:element name="append" type="xsd:boolean" />	
 				</xsd:sequence>
 			</xsd:extension>
 		</xsd:complexContent>
 	</xsd:complexType>
 
-	<xsd:complexType name="RollingFileAppenderConfigurationType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:FileAppenderConfigurationType">
-				<xsd:sequence>
-					<xsd:element name="maxFileSize" type="xsd:int" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="DailyRollingFileAppenderConfigurationType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:FileAppenderConfigurationType">
-				<xsd:sequence>
-					<xsd:element name="datePattern" type="xsd:string" />
-				</xsd:sequence>
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="NdcRollingFileAppenderConfigurationType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:RollingFileAppenderConfigurationType">
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
-
-	<xsd:complexType name="NdcDailyRollingFileAppenderConfigurationType">
-		<xsd:complexContent>
-			<xsd:extension base="tns:DailyRollingFileAppenderConfigurationType">
-			</xsd:extension>
-		</xsd:complexContent>
-	</xsd:complexType>
+	
 
 	<xsd:simpleType name="SystemObjectsType">
 		<xsd:annotation>

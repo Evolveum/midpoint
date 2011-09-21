@@ -32,9 +32,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
-import com.evolveum.midpoint.web.bean.LoggerListItem;
-import com.evolveum.midpoint.web.util.FacesUtils;
-import com.evolveum.midpoint.web.util.SelectItemComparator;
+//import com.evolveum.midpoint.web.bean.ClassLoggerListItem;
+//import com.evolveum.midpoint.web.util.FacesUtils;
+//import com.evolveum.midpoint.web.util.SelectItemComparator;
 
 /**
  * 
@@ -45,13 +45,13 @@ import com.evolveum.midpoint.web.util.SelectItemComparator;
 @Scope("session")
 public class LoggerEditController implements Serializable {
 
-	public static final String PAGE_NAVIGATION_LIST = "/config/logging?faces-redirect=true";
+	/*public static final String PAGE_NAVIGATION_LIST = "/config/logging?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_EDIT = "/config/loggerEdit?faces-redirect=true";
 	public static final String PARAM_LOGGER_ID = "loggerId";
 	private static final long serialVersionUID = 4491151780064705480L;
 	@Autowired(required = true)
 	private LoggingController loggingController;
-	private LoggerListItem item;
+	private ClassLoggerListItem item;
 	private String packageName;
 	private List<String> selectedPackages;
 
@@ -71,15 +71,15 @@ public class LoggerEditController implements Serializable {
 		this.packageName = packageName;
 	}
 
-	public LoggerListItem getItem() {
+	public ClassLoggerListItem getItem() {
 		if (item == null) {
 			int id = 0;
-			for (LoggerListItem item : loggingController.getLoggers()) {
+			for (ClassLoggerListItem item : loggingController.getLoggers()) {
 				if (item.getId() >= id) {
 					id = item.getId() + 1;
 				}
 			}
-			item = new LoggerListItem(id);
+			item = new ClassLoggerListItem(id);
 		}
 		return item;
 	}
@@ -131,7 +131,7 @@ public class LoggerEditController implements Serializable {
 		}
 
 		int loggerId = Integer.parseInt(argument);
-		for (LoggerListItem item : loggingController.getLoggers()) {
+		for (ClassLoggerListItem item : loggingController.getLoggers()) {
 			if (item.getId() == loggerId) {
 				this.item = item.cloneItem();
 				break;
@@ -152,8 +152,8 @@ public class LoggerEditController implements Serializable {
 	}
 
 	public String savePerformed() {
-		LoggerListItem oldItem = null;
-		for (LoggerListItem item : loggingController.getLoggers()) {
+		ClassLoggerListItem oldItem = null;
+		for (ClassLoggerListItem item : loggingController.getLoggers()) {
 			if (item.getId() == getItem().getId()) {
 				oldItem = item;
 				break;
@@ -169,5 +169,5 @@ public class LoggerEditController implements Serializable {
 		
 		clearController();
 		return PAGE_NAVIGATION_LIST;
-	}
+	}*/
 }

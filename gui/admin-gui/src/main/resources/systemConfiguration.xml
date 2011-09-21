@@ -18,48 +18,32 @@
 <!--                                                         -->
 <!-- Portions Copyrighted 2011 [name of copyright owner]     -->
 <!--                                                         -->
-<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
-    <name>SystemConfiguration</name>
-    <logging>
-        <logger>
-            <level>trace</level>
-            <component>model</component>
-            <component>provisioning</component>
-            <component>repository</component>
-            <component>web</component>
-            <component>taskManager</component>
-            <component>resourceObjectChangeListener</component>
-            <package>com.evolveum.midpoint</package>
-            <appender>Ndc File Appender</appender>
-        </logger>
-        <logger>
-            <level>trace</level>
-            <component>model</component>
-            <component>provisioning</component>
-            <component>repository</component>
-            <component>web</component>
-            <component>taskManager</component>
-            <component>resourceObjectChangeListener</component>
-            <package>LOGGER_PROFILING</package>
-            <appender>Ndc File Appender</appender>
-        </logger>
-        <logger>
-            <level>trace</level>
-            <component>model</component>
-            <component>provisioning</component>
-            <component>repository</component>
-            <component>web</component>
-            <component>taskManager</component>
-            <component>resourceObjectChangeListener</component>
-            <package>DEV_LOGGER_ENTRIES_PARAMS</package>
-            <!--package>DEV_LOGGER_ENTRIES</package-->
-            <appender>Ndc File Appender</appender>
-        </logger>
-        <appender xsi:type="NdcRollingFileAppenderConfigurationType" name="Ndc File Appender" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-            <pattern>%d{ISO8601} [%X{subsystem}] [%t] %p (%c): %m%n</pattern>
-            <filePath>${catalina.base}/logs/idm.log</filePath>            
-            <append>true</append>
-            <maxFileSize>10240</maxFileSize>
-        </appender>
-    </logging>
+<systemConfiguration oid="00000000-0000-0000-0000-000000000001" version="0"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
+	<name>SystemConfiguration</name>
+	<logging>
+		<subSystemLogger>
+			<component>REPOSITORY</component>
+			<level>INFO</level>
+			<appender>IDM_LOG</appender>
+		</subSystemLogger>
+		<classLogger>
+			<package>com.evolveum.midpoint.common</package>
+			<level>DEBUG</level>
+		</classLogger>
+		<classLogger>
+			<package>com.evolveum.midpoint.util</package>
+			<level>DEBUG</level>
+		</classLogger>
+		<appender xsi:type="FileAppenderConfigurationType" name="IDM_LOG" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+			<fileName>${catalina.base}/logs/idm.log</fileName>
+			<pattern>%date [%X{subsystem}] [%thread] %level \\(%logger\\): %msg%n</pattern>
+			<filePattern>${catalina.base}/logs/idm-%{yyyy-MM-dd}.log</filePattern>
+			<maxFileSize>100MB</maxFileSize>
+			<maxHistory>10</maxHistory>
+			<append>true</append>
+		</appender>
+		<rootLoggerAppender>IDM_LOG</rootLoggerAppender>
+		<rootLoggerLevel>INFO</rootLoggerLevel>
+	</logging>
 </systemConfiguration>

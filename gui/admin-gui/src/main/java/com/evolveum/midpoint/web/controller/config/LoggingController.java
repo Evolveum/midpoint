@@ -38,21 +38,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AppenderListItem;
 import com.evolveum.midpoint.web.bean.AppenderType;
-import com.evolveum.midpoint.web.bean.LoggerListItem;
 import com.evolveum.midpoint.web.component.LoggingManager;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.DailyRollingFileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingCategoryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingComponentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.NdcDailyRollingFileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.NdcRollingFileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.RollingFileAppenderConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.SubSystemLoggerConfigurationType;
 
 /**
  * 
@@ -65,10 +60,12 @@ public class LoggingController implements Serializable {
 
 	public static final String PAGE_NAVIGATION_LOGGING = "/config/logging?faces-redirect=true";
 	private static final Trace LOGGER = TraceManager.getTrace(LoggingController.class);
+
 	private static final long serialVersionUID = -8739729766074013883L;
 	@Autowired(required = true)
 	private transient LoggingManager loggingManager;
-	private List<LoggerListItem> loggers;
+//	private List<SubSystemLoggerConfigurationType> subSystemLoggers;
+//	private List<ClassLoggerConfigurationType> classLoggers;
 	private List<AppenderListItem> appenders;
 	private boolean selectAllLoggers = false;
 	private boolean selectAllAppenders = false;
@@ -84,33 +81,22 @@ public class LoggingController implements Serializable {
 		return appenders;
 	}
 
-	public List<SelectItem> getCategories() {
-		List<SelectItem> categories = new ArrayList<SelectItem>();
-		for (LoggingCategoryType type : LoggingCategoryType.values()) {
-			categories.add(new SelectItem(type.value()));
-		}
-
-		Collections.sort(categories, new SelectItemComparator());
-
-		return categories;
-	}
-
 	public List<SelectItem> getComponents() {
 		List<SelectItem> components = new ArrayList<SelectItem>();
-		for (LoggingComponentType type : LoggingComponentType.values()) {
-			components.add(new SelectItem(type.value()));
-		}
-
-		Collections.sort(components, new SelectItemComparator());
+//		for (LoggingComponentType type : LoggingComponentType.values()) {
+//			components.add(new SelectItem(type.value()));
+//		}
+//
+//		Collections.sort(components, new SelectItemComparator());
 
 		return components;
 	}
 
 	public List<SelectItem> getLevels() {
 		List<SelectItem> levels = new ArrayList<SelectItem>();
-		for (LoggingLevelType type : LoggingLevelType.values()) {
-			levels.add(new SelectItem(type.value()));
-		}
+//		for (LoggingLevelType type : LoggingLevelType.values()) {
+//			levels.add(new SelectItem(type.value()));
+//		}
 
 		Collections.sort(levels, new SelectItemComparator());
 
@@ -128,18 +114,28 @@ public class LoggingController implements Serializable {
 		return types;
 	}
 
-	public List<LoggerListItem> getLoggers() {
-		if (loggers == null) {
-			loggers = new ArrayList<LoggerListItem>();
-		}
-		return loggers;
+	public List<ClassLoggerConfigurationType> getClassLoggers() {
+//		if (classLoggers == null) {
+//			classLoggers = new ArrayList<ClassLoggerConfigurationType>();
+//		}
+//		return classLoggers;
+		return null;
 	}
 
+	public List<SubSystemLoggerConfigurationType> getSubSystemLoggers() {
+//		if (subSystemLoggers == null) {
+//			subSystemLoggers = new ArrayList<SubSystemLoggerConfigurationType>();
+//		}
+//		return classLoggers;
+		return null;
+	}
+	
 	public List<AppenderListItem> getAppenders() {
-		if (appenders == null) {
-			appenders = new ArrayList<AppenderListItem>();
-		}
-		return appenders;
+//		if (appenders == null) {
+//			appenders = new ArrayList<AppenderListItem>();
+//		}
+//		return appenders;
+		return null;
 	}
 
 	public boolean isSelectAllAppenders() {
@@ -158,31 +154,31 @@ public class LoggingController implements Serializable {
 		this.selectAllLoggers = selectAllLoggers;
 	}
 
-	public void selectLoggerPerformed(ValueChangeEvent evt) {
-		this.selectAllLoggers = ControllerUtil.selectPerformed(evt, getLoggers());
+	public void selectClassLoggerPerformed(ValueChangeEvent evt) {
+//		this.selectAllLoggers = ControllerUtil.selectPerformed(evt, getClassLoggers());
 	}
 
 	public void selectAllLoggersPerformed(ValueChangeEvent evt) {
-		ControllerUtil.selectAllPerformed(evt, getLoggers());
+//		ControllerUtil.selectAllPerformed(evt, getLoggers());
 	}
 
 	public void selectAppenderPerformed(ValueChangeEvent evt) {
-		this.selectAllAppenders = ControllerUtil.selectPerformed(evt, getAppenders());
+//		this.selectAllAppenders = ControllerUtil.selectPerformed(evt, getAppenders());
 	}
 
 	public void selectAllAppendersPerformed(ValueChangeEvent evt) {
-		ControllerUtil.selectAllPerformed(evt, getAppenders());
+//		ControllerUtil.selectAllPerformed(evt, getAppenders());
 	}
 
 	public void deleteLoggers() {
-		List<LoggerListItem> items = new ArrayList<LoggerListItem>();
-		for (LoggerListItem item : getLoggers()) {
-			if (item.isSelected()) {
-				items.add(item);
-			}
-		}
-
-		getLoggers().removeAll(items);
+//		List<LoggerListItem> items = new ArrayList<LoggerListItem>();
+//		for (LoggerListItem item : getLoggers()) {
+//			if (item.isSelected()) {
+//				items.add(item);
+//			}
+//		}
+//
+//		getLoggers().removeAll(items);
 
 		saveConfiguration();
 	}
@@ -200,8 +196,8 @@ public class LoggingController implements Serializable {
 	}
 
 	public String initController() {
-		getAppenders().clear();
-		getLoggers().clear();
+//		getAppenders().clear();
+//		getLoggers().clear();
 
 		OperationResult result = new OperationResult("Load Logging Configuration");
 		LoggingConfigurationType logging = loggingManager.getConfiguration(result);
@@ -210,40 +206,40 @@ public class LoggingController implements Serializable {
 			return PAGE_NAVIGATION_LOGGING;
 		}
 
-		for (AppenderConfigurationType appender : logging.getAppender()) {
-			getAppenders().add(createAppenderListItem(appender));
-		}
-
-		int id = 0;
-		for (LoggerConfigurationType logger : logging.getLogger()) {
-			getLoggers().add(createLoggerListItem(id, logger));
-			id++;
-		}
+//		for (AppenderConfigurationType appender : logging.getAppender()) {
+//			getAppenders().add(createAppenderListItem(appender));
+//		}
+//
+//		int id = 0;
+//		for (LoggerConfigurationType logger : logging.getLogger()) {
+//			getLoggers().add(createLoggerListItem(id, logger));
+//			id++;
+//		}
 
 		return PAGE_NAVIGATION_LOGGING;
 	}
 
 	void saveConfiguration() {
-		LoggingConfigurationType logging = createConfiguration(getLoggers(), getAppenders());
-		OperationResult result = new OperationResult("Load Logging Configuration");
-		try {
-			loggingManager.updateConfiguration(logging, result);
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't update logging configuration", ex);
-		}
-		result.computeStatus("Couldn't update logging configuration.");
-		FacesUtils.addMessage(result);
-
-		initController();
+//		LoggingConfigurationType logging = createConfiguration(getLoggers(), getAppenders());
+//		OperationResult result = new OperationResult("Load Logging Configuration");
+//		try {
+//			loggingManager.updateConfiguration(logging, result);
+//		} catch (Exception ex) {
+//			LoggingUtils.logException(LOGGER, "Couldn't update logging configuration", ex);
+//		}
+//		result.computeStatus("Couldn't update logging configuration.");
+//		FacesUtils.addMessage(result);
+//
+//		initController();
 	}
 
-	private LoggerListItem createLoggerListItem(int id, LoggerConfigurationType logger) {
+/*	private LoggerListItem createLoggerListItem(int id, LoggerConfigurationType logger) {
 		LoggerListItem item = new LoggerListItem(id);
 		item.setAppenders(logger.getAppender());
 		item.setLevel(logger.getLevel());
-		for (LoggingCategoryType category : logger.getCategory()) {
-			item.getCategories().add(category.value());
-		}
+		//		for (LoggingCategoryType category : logger.getCategory()) {
+		//			item.getCategories().add(category.value());
+		//		}
 		for (LoggingComponentType component : logger.getComponent()) {
 			item.getComponents().add(component.value());
 		}
@@ -283,8 +279,7 @@ public class LoggingController implements Serializable {
 		return item;
 	}
 
-	private LoggingConfigurationType createConfiguration(List<LoggerListItem> loggers,
-			List<AppenderListItem> appenders) {
+	private LoggingConfigurationType createConfiguration(List<LoggerListItem> loggers, List<AppenderListItem> appenders) {
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
 		for (AppenderListItem item : appenders) {
 			AppenderConfigurationType appender = createAppenderType(item);
@@ -340,8 +335,7 @@ public class LoggingController implements Serializable {
 		return appender;
 	}
 
-	private LoggerConfigurationType createLoggerType(LoggerListItem item,
-			LoggingConfigurationType configuration) {
+	private LoggerConfigurationType createLoggerType(LoggerListItem item, LoggingConfigurationType configuration) {
 		LoggerConfigurationType logger = new LoggerConfigurationType();
 		for (String category : item.getCategories()) {
 			logger.getCategory().add(LoggingCategoryType.fromValue(category));
@@ -370,5 +364,5 @@ public class LoggingController implements Serializable {
 		}
 
 		return false;
-	}
+	}*/
 }

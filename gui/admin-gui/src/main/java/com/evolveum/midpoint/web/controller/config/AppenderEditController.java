@@ -28,18 +28,18 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.web.bean.AppenderListItem;
-import com.evolveum.midpoint.web.bean.LoggerListItem;
+//import com.evolveum.midpoint.web.bean.ClassLoggerListItem;
 import com.evolveum.midpoint.web.util.FacesUtils;
 
 /**
  * 
- * @author lazyman
+ * @author lazymancd 
  * 
  */
 @Controller("appenderEdit")
 @Scope("session")
 public class AppenderEditController implements Serializable {
-
+/*
 	public static final String PAGE_NAVIGATION_LIST = "/config/logging?faces-redirect=true";
 	public static final String PAGE_NAVIGATION_EDIT = "/config/appenderEdit?faces-redirect=true";
 	public static final String PARAM_APPENDER_ID = "appenderName";
@@ -104,7 +104,7 @@ public class AppenderEditController implements Serializable {
 		if (oldItem != null) {
 			// LOGGERs appender name update
 			if (!oldItem.getName().equals(item.getName())) {
-				for (LoggerListItem item : loggingController.getLoggers()) {
+				for (ClassLoggerListItem item : loggingController.getLoggers()) {
 					if (item.getAppenders().contains(oldItem.getName())) {
 						item.getAppenders().remove(oldItem.getName());
 						item.getAppenders().add(this.item.getName());
@@ -119,5 +119,5 @@ public class AppenderEditController implements Serializable {
 
 		clearController();
 		return PAGE_NAVIGATION_LIST;
-	}
+	}*/
 }
