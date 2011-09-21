@@ -22,12 +22,13 @@
 				<f:selectItems value="#{logging.appenderNames}" />
 			</ice:selectOneMenu>
 			<h3>#{msg['page.config.logging.subsystemLoggers']}</h3>
-			<ice:dataTable rows="20" value="#{logging.subsystemLoggers}" var="item" columnWidths="auto, 70px, 280px, 150px"
-				resizable="false">
+			<ice:dataTable rows="20" value="#{logging.subsystemLoggers}" var="item"
+				columnWidths="auto, 70px, 280px, 150px" resizable="false">
 				<ice:column>
 					<f:facet name="header">
 						<ice:selectBooleanCheckbox id="selectAllCheckbox" value="#{logging.selectAllSubsystemLoggers}"
-							valueChangeListener="#{logging.selectAllSubsystemLoggersPerformed}" immediate="true" partialSubmit="true" />
+							valueChangeListener="#{logging.selectAllSubsystemLoggersPerformed}" immediate="true"
+							partialSubmit="true" />
 					</f:facet>
 					<ice:selectBooleanCheckbox id="selectCheckbox" value="#{item.selected}" partialSubmit="true"
 						immediate="true" valueChangeListener="#{logging.selectSubsystemLoggerPerformed}" />
@@ -37,7 +38,7 @@
 						<ice:outputLabel value="#{msg['web.bean.basicLoggerListItem.level']}" />
 					</f:facet>
 					<ice:commandLink style="text-decoration: underline;" value="#{item.level}"
-						action="#{loggerEdit.editLogger}">
+						action="#{loggerEdit.editSubsystemLogger}">
 						<f:param name="loggerId" value="#{item.id}" />
 					</ice:commandLink>
 				</ice:column>
@@ -60,10 +61,10 @@
 			</ice:dataTable>
 			<div class="button-bar" style="margin-bottom: 20px;">
 				<idm:button value="#{msg['page.button.addSubsystem']}" buttonType="positive"
-					action="#{loggerEdit.addLogger}" img="/resources/images/report_add.png" />
+					action="#{logging.addSubsystemLogger}" img="/resources/images/report_add.png" />
 
-				<idm:button value="#{msg['page.deleteSubsystem']}" buttonType="negative" action="#{logging.deleteLoggers}"
-					img="/resources/images/report_delete.png" />
+				<idm:button value="#{msg['page.deleteSubsystem']}" buttonType="negative"
+					action="#{logging.deleteSubsystemLoggers}" img="/resources/images/report_delete.png" />
 			</div>
 
 			<h3>#{msg['page.config.logging.loggers']}</h3>
@@ -100,16 +101,21 @@
 					<f:facet name="header">
 						<ice:outputLabel value="#{msg['web.bean.basicLoggerListItem.appender']}" />
 					</f:facet>
-					<ice:panelGroup rendered="#{not item.editing}">
+					<ice:panelGroup>
 						<ui:repeat value="#{item.appenders}" var="app">
 							<ice:outputText value="#{app}" />
+							<ice:commandLink value="x" action="#{logging.deleteLoggerAppender}" immediate="true"
+								partialSubmit="true" rendered="#{item.editing}" style="font-weight: bold;">
+								<f:param name="appenderName" value="#{app}" />
+								<f:param name="loggerId" value="#{item.id}" />
+							</ice:commandLink>
 						</ui:repeat>
 					</ice:panelGroup>
-					<ui:remove>
-						<ice:selectOneMenu value="#{item.levelString}" rendered="#{item.editing}" style="width: inherit;">
-							<f:selectItems value="#{logging.appenderNames}" />
-						</ice:selectOneMenu>
-					</ui:remove>
+					<ice:selectOneMenu valueChangeListener="#{logging.addLoggerAppender}" rendered="#{item.editing}"
+						style="width: inherit;" partialSubmit="true" immediate="true">
+						<f:param id="loggerId" name="loggerId" value="#{item.id}" />
+						<f:selectItems value="#{logging.appenderNames}" />
+					</ice:selectOneMenu>
 				</ice:column>
 			</ice:dataTable>
 			<div class="button-bar" style="margin-bottom: 20px;">
@@ -195,13 +201,13 @@
 				<idm:button value="#{msg['page.button.deleteAppender']}" buttonType="negative"
 					img="/resources/images/printer_delete.png" action="#{logging.deleteAppenders}" />
 			</div>
-		
+
 			<div class="button-bar" style="margin-top: 20px;">
 				<idm:button value="#{msg['page.button.save']}" buttonType="positive" action="#{logging.savePerformed}"
 					img="/resources/images/disk.png" />
 
-				<idm:button value="#{msg['page.button.cancel']}" buttonType="negative"
-					action="#{logging.cancelPerformed}" img="/resources/images/door_in.png" />
+				<idm:button value="#{msg['page.button.cancel']}" buttonType="negative" action="#{logging.cancelPerformed}"
+					img="/resources/images/door_in.png" />
 			</div>
 		</ice:form>
 	</ui:define>

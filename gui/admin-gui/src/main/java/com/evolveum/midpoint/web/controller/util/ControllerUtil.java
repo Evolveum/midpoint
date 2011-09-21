@@ -89,7 +89,7 @@ public class ControllerUtil {
 		return and;
 	}
 
-	private static boolean isEventAvailable(ValueChangeEvent evt) {
+	public static boolean isEventAvailable(ValueChangeEvent evt) {
 		if (evt.getPhaseId() != PhaseId.INVOKE_APPLICATION) {
 			evt.setPhaseId(PhaseId.INVOKE_APPLICATION);
 			evt.queue();

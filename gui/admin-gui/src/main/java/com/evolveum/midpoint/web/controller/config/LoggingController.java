@@ -24,9 +24,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.faces.component.UIParameter;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 
@@ -147,6 +149,14 @@ public class LoggingController implements Serializable {
 		this.selectAllAppenders = ControllerUtil.selectPerformed(evt, getAppenders());
 	}
 
+	public void selectLoggerPerformed(ValueChangeEvent evt) {
+		this.selectAllLoggers = ControllerUtil.selectPerformed(evt, getLoggers());
+	}
+
+	public void selectSubsystemLoggerPerformed(ValueChangeEvent evt) {
+		this.selectAllSubsystemLoggers = ControllerUtil.selectPerformed(evt, getSubsystemLoggers());
+	}
+
 	public void selectAllAppendersPerformed(ValueChangeEvent evt) {
 		ControllerUtil.selectAllPerformed(evt, getAppenders());
 	}
@@ -190,6 +200,12 @@ public class LoggingController implements Serializable {
 
 		Collections.sort(appenders, new SelectItemComparator());
 
+		if (appenders.isEmpty()) {
+			appenders.add(new SelectItem(""));
+		} else {
+			appenders.add(0, new SelectItem(""));
+		}
+
 		return appenders;
 	}
 
@@ -226,31 +242,54 @@ public class LoggingController implements Serializable {
 	}
 
 	public void addLogger() {
-		int id = 0;
-		for (LoggerListItem item : getLoggers()) {
-			if (item.getId() >= id) {
-				id = item.getId() + 1;
-			}
-		}
+		int id = getNewLoggerId(getLoggers());
 		LoggerListItem item = new LoggerListItem(id);
 		item.setEditing(true);
 
 		getLoggers().add(item);
 	}
 
-	public void editLogger() {
-		String loggerId = FacesUtils.getRequestParameter(PARAM_LOGGER_ID);
-		if (StringUtils.isEmpty(loggerId) || !loggerId.matches("[0-9]*")) {
-			FacesUtils.addErrorMessage("Logger id not defined.");
-			return;
+	public void addSubsystemLogger() {
+		int id = getNewLoggerId(getSubsystemLoggers());
+		SubsystemLoggerListItem item = new SubsystemLoggerListItem(id);
+		item.setEditing(true);
+
+		getSubsystemLoggers().add(item);
+	}
+
+	private <T extends BasicLoggerListItem> int getNewLoggerId(List<T> loggers) {
+		int id = 0;
+		for (T item : loggers) {
+			if (item.getId() >= id) {
+				id = item.getId() + 1;
+			}
 		}
 
-		int id = Integer.parseInt(loggerId);
-		for (LoggerListItem item : getLoggers()) {
-			if (item.getId() == id) {
-				item.setEditing(true);
-				break;
+		return id;
+	}
+
+	public void editSubsystemLogger() {
+		SubsystemLoggerListItem logger = getLogger(FacesUtils.getRequestParameter(PARAM_LOGGER_ID),
+				getSubsystemLoggers());
+		if (logger != null) {
+			logger.setEditing(true);
+		}
+	}
+
+	public void deleteSubsystemLoggers() {
+		List<SubsystemLoggerListItem> items = new ArrayList<SubsystemLoggerListItem>();
+		for (SubsystemLoggerListItem item : getSubsystemLoggers()) {
+			if (item.isSelected()) {
+				items.add(item);
 			}
+		}
+		getSubsystemLoggers().removeAll(items);
+	}
+
+	public void editLogger() {
+		LoggerListItem logger = getLogger(FacesUtils.getRequestParameter(PARAM_LOGGER_ID), getLoggers());
+		if (logger != null) {
+			logger.setEditing(true);
 		}
 	}
 
@@ -262,6 +301,64 @@ public class LoggingController implements Serializable {
 			}
 		}
 		getLoggers().removeAll(items);
+	}
+
+	private <T extends BasicLoggerListItem> T getLogger(String loggerId, List<T> loggers) {
+		if (StringUtils.isEmpty(loggerId) || !loggerId.matches("[0-9]*")) {
+			FacesUtils.addErrorMessage("Logger id not defined.");
+			return null;
+		}
+
+		int id = Integer.parseInt(loggerId);
+		for (T item : loggers) {
+			if (item.getId() == id) {
+				return item;
+			}
+		}
+
+		return null;
+	}
+
+	public void deleteLoggerAppender() {
+		String appenderName = FacesUtils.getRequestParameter(PARAM_APPENDER_ID);
+		if (StringUtils.isEmpty(appenderName)) {
+			FacesUtils.addErrorMessage("Appender id not defined.");
+			return;
+		}
+
+		LoggerListItem logger = getLogger(FacesUtils.getRequestParameter(PARAM_LOGGER_ID), getLoggers());
+		if (logger == null) {
+			FacesUtils
+					.addWarnMessage("Couldn't remove package, because couldn't find logger by internal id.");
+			return;
+		}
+
+		Iterator<String> iterator = logger.getAppenders().iterator();
+		while (iterator.hasNext()) {
+			if (iterator.next().equals(appenderName)) {
+				iterator.remove();
+				break;
+			}
+		}
+	}
+
+	public void addLoggerAppender(ValueChangeEvent event) {
+		if (!ControllerUtil.isEventAvailable(event)) {
+			return;
+		}
+				
+		UIParameter parameter = (UIParameter)event.getComponent().findComponent(PARAM_LOGGER_ID);
+		if (parameter == null) {
+			FacesUtils.addErrorMessage("Couldn't find logger parameter by internal id.");
+			return;
+		}
+		String value = (String) event.getNewValue();
+		LoggerListItem logger = getLogger(parameter.getValue().toString(), getLoggers());
+		if (logger == null) {
+			FacesUtils.addWarnMessage("Couldn't get logger by internal id.");
+			return;
+		}
+		logger.getAppenders().add(value);
 	}
 
 	public void savePerformed() {
