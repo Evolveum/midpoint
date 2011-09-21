@@ -69,6 +69,7 @@
 		<module>provisioning</module>
 		<module>model</module>
 		<module>gui</module>
+		<module>icf-connectors</module>
 	</modules>
 	<profiles>
 		<profile>
