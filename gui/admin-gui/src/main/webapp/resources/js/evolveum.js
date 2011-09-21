@@ -16,8 +16,6 @@
  * Portions Copyrighted 2011 Viliam Repan
  */
 
-jQuery.noConflict();
-
 window.onresize = function() {
 	setToCenter();
 };
@@ -66,17 +64,18 @@ function displayMessageCauseDetails(id) {
 
 /* //////////////////// jQuery ////////////////////////////// */
 jQuery(document).ready(function() {
+	jQuery.noConflict();
 
 	jQuery("#blackWindow").css("opacity", "0.7");
 	jQuery("#blackWindow").hide();
 	jQuery("#preloader").hide();
 
 	highliteTableRows();
-	
-	jQuery(".iceCmdLnk ").click(function(){
-			setTimeout("highliteTableRows()",200);
+
+	jQuery(".iceCmdLnk ").click(function() {
+		setTimeout("highliteTableRows()", 200);
 	});
-	
+
 	jQuery(".buttons").find("#admin-content:goToNext").click(function() {
 		highliteTableRows();
 	});
@@ -123,12 +122,47 @@ jQuery(document).ready(function() {
 });
 
 function highliteTableRows() {
+	jQuery.noConflict();
 	jQuery(".iceDatTblRow").mouseover(function() {
 		jQuery(this).css("background-color", "#CFDEE1");
 	});
 
 	jQuery(".iceDatTblRow").mouseout(function() {
 		jQuery(this).css("background-color", "#FFFFFF");
+	});
+
+	jQuery("#logoutUserLinkSpan").css("color", "white");
+	jQuery("#logoutUserLinkSpan").css("opacity", "0.5");
+
+	jQuery("#helpSpan").css("color", "white");
+	jQuery("#helpSpan").css("opacity", "0.5");
+
+	jQuery("#logoutUserLinkSpan").mouseover(function() {
+		jQuery(this).stop();
+		jQuery(this).animate({
+			opacity : 1
+		}, 300);
+	});
+
+	jQuery("#logoutUserLinkSpan").mouseout(function() {
+		jQuery(this).stop();
+		jQuery(this).animate({
+			opacity : 0.5
+		}, 300);
+	});
+
+	jQuery("#helpSpan").mouseover(function() {
+		jQuery(this).stop();
+		jQuery(this).animate({
+			opacity : 1
+		}, 300);
+	});
+
+	jQuery("#helpSpan").mouseout(function() {
+		jQuery(this).stop();
+		jQuery(this).animate({
+			opacity : 0.5
+		}, 300);
 	});
 }
 
