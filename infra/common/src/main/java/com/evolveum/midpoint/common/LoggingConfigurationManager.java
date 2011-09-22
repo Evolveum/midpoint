@@ -195,7 +195,7 @@ public class LoggingConfigurationManager {
 
 			//define root appender if defined
 			if (!StringUtils.isEmpty(config.getRootLoggerAppender())) {
-				sb.append("\t<root level=\">");
+				sb.append("\t<root level=\"");
 				sb.append(config.getRootLoggerLevel());
 				sb.append("\">\n");
 				sb.append("\t\t<appender-ref ref=\"");
