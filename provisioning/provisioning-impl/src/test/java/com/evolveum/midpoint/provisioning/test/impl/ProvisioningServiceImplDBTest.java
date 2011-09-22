@@ -143,6 +143,7 @@ public class ProvisioningServiceImplDBTest extends AbstractIntegrationTest {
 		String addedObjectOid = provisioningService.addObject(account, null, result);
 		
 		// THEN
+		result.computeStatus();
 		display("add object result",result);
 		assertSuccess("addObject has failed (result)",result);
 		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);

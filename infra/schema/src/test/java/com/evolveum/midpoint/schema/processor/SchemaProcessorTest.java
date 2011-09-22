@@ -21,6 +21,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import org.testng.annotations.Test;
@@ -77,6 +78,9 @@ public class SchemaProcessorTest {
 		containerDefinition.createPropertyDefinition("password", SchemaConstants.R_PROTECTED_STRING_TYPE);
 		// ... property reference
 		containerDefinition.createPropertyDefinition(SchemaConstants.I_CREDENTIALS, SchemaConstants.I_CREDENTIALS_TYPE);
+		// ... read-only int property 
+		PropertyDefinition counterProperty = containerDefinition.createPropertyDefinition("counter", DOMUtil.XSD_INTEGER);
+		counterProperty.setReadOnly();
 
 		System.out.println("Generic schema before serializing to XSD: ");
 		System.out.println(schema.dump());
@@ -112,6 +116,9 @@ public class SchemaProcessorTest {
 		PropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
 		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
+		assertTrue("Read flag is wrong",loginDef.canRead());
+		assertTrue("Create flag is wrong",loginDef.canCreate());
+		assertTrue("Update flag is wrong",loginDef.canUpdate());
 
 		PropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
 		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
@@ -121,6 +128,12 @@ public class SchemaProcessorTest {
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
 
+		PropertyDefinition countDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"counter"));
+		assertEquals(new QName(SCHEMA_NS,"counter"), countDef.getName());
+		assertEquals(DOMUtil.XSD_INTEGER, countDef.getTypeName());
+		assertTrue("Read flag is wrong",countDef.canRead());
+		assertFalse("Create flag is wrong",countDef.canCreate());
+		assertFalse("Update flag is wrong",countDef.canUpdate());
 	}
 
 	

@@ -448,6 +448,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Make it mandatory
 			uidDefinition.setMinOccurs(1);
 			uidDefinition.setMaxOccurs(1);
+			// Make it read-only
+			uidDefinition.setReadOnly();
+			// Set a default display name
 			uidDefinition.setAttributeDisplayName("ICF UID");
 			// Uid is a primary identifier of every object (this is the ICF way)
 			roDefinition.getIdentifiers().add(uidDefinition);
@@ -492,6 +495,10 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				roaDefinition.setMinOccurs(0);
 				roaDefinition.setMaxOccurs(1);
+				boolean canCreate = true;
+				boolean canUpdate = true;
+				boolean canRead = true;
+				
 				for (Flags flags : flagsSet) {
 					if (flags == Flags.REQUIRED) {
 						roaDefinition.setMinOccurs(1);
@@ -499,17 +506,30 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					if (flags == Flags.MULTIVALUED) {
 						roaDefinition.setMaxOccurs(-1);
 					}
+					if (flags == Flags.NOT_CREATABLE) {
+						canCreate = false;
+					}
+					if (flags == Flags.NOT_READABLE) {
+						canRead = false;
+					}
+					if (flags == Flags.NOT_UPDATEABLE) {
+						canUpdate = false;
+					}
+					if (flags == Flags.NOT_RETURNED_BY_DEFAULT) {
+						// TODO
+					}
 				}
-
-				// Add schema annotations
-				roDefinition.setNativeObjectClass(objectClassInfo.getType());
-				roDefinition.setDisplayNameAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
-				roDefinition.setNamingAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
-				// TODO: may need also other annotations
-
-				// TODO: process also other flags
-
+				
+				roaDefinition.setCreate(canCreate);
+				roaDefinition.setUpdate(canUpdate);
+				roaDefinition.setRead(canRead);
+				
 			}
+			
+			// Add schema annotations
+			roDefinition.setNativeObjectClass(objectClassInfo.getType());
+			roDefinition.setDisplayNameAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
+			roDefinition.setNamingAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
 
 		}
 		
@@ -1424,8 +1444,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			result.recordFatalError("Unable to detemine object class", ex);
 			throw ex;
 		}
-		// TODO: fetchSchema for resource..needed for converting connector
-		// object to the resourceObject
 
 		ResultsHandler icfHandler = new ResultsHandler() {
 			@Override

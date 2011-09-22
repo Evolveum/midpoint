@@ -47,6 +47,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccessType;
 import com.sun.xml.xsom.XSParticle;
 
 /**
@@ -356,7 +357,20 @@ class SchemaToDomProcessor {
 				addAnnotation(A_NATIVE_ATTRIBUTE_NAME, attrDefinition.getNativeAttributeName(), appinfo);
 			}
 		}
-
+		
+		if (!definition.canCreate() || !definition.canRead() || !definition.canUpdate()) {
+			// read-write-create attribute is the default. If any of this flags is missing, we must
+			// add appropriate annotations.
+			if (definition.canCreate()) {
+				addAnnotation(A_ACCESS, AccessType.CREATE.value(), appinfo);
+			}
+			if (definition.canRead()) {
+				addAnnotation(A_ACCESS, AccessType.READ.value(), appinfo);
+			}
+			if (definition.canUpdate()) {
+				addAnnotation(A_ACCESS, AccessType.UPDATE.value(), appinfo);
+			}
+		}
 		
 		if (!appinfo.hasChildNodes()) {
 			// remove unneeded <annotation> element
@@ -375,7 +389,9 @@ class SchemaToDomProcessor {
 	private Element addAnnotation(QName qname, String value, Element parent) {
 		Element annotation = createElement(qname);
 		parent.appendChild(annotation);
-		annotation.setTextContent(value);
+		if (value != null) {
+			annotation.setTextContent(value);
+		}
 		return annotation;
 	}
 

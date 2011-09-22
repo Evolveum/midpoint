@@ -134,4 +134,5 @@ public class ResourceObjectAttributeDefinition extends PropertyDefinition {
 		}
 		return sb.toString();
 	}
+
 }

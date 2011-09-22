@@ -111,6 +111,15 @@ public class PropertyDefinition extends ItemDefinition {
 	public boolean canUpdate() {
 		return update;
 	}
+	
+	/**
+	 * 
+	 */
+	public void setReadOnly() {
+		create = false;
+		read = true;
+		update = false;
+	}
 
 	/**
 	 * Returns QName of the property value type.

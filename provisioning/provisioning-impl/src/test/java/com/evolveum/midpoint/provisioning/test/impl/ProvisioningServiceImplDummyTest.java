@@ -119,13 +119,15 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	@Test
 	public void test001Connection() throws ObjectNotFoundException, SchemaException {
 		displayTestTile("test001Connection");
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()+".test001Connection");
 		
+		// WHEN
 		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID);
 		
+		// THEN
 		display("Test result",testResult);
 		assertSuccess("Test resource failed (result)", testResult);
-		
+
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()+".test001Connection");
 		resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		display("Resource after test",resource);
 		
@@ -162,6 +164,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		String addedObjectOid = provisioningService.addObject(account, null, result);
 		
 		// THEN
+		result.computeStatus();
 		display("add object result",result);
 		assertSuccess("addObject has failed (result)",result);
 		assertEquals(ACCOUNT_NEW_OID, addedObjectOid);
@@ -178,8 +181,9 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
 		assertNotNull("No dummy account", dummyAccount);
-		assertEquals("Will Turner", dummyAccount.getAttributeValue("fullname"));
-		
+		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
+		assertTrue("The account is not enabled",dummyAccount.isEnabled());
+		assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
 	}
 	
 	@Test

@@ -52,6 +52,7 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccessType;
 import com.sun.xml.xsom.XSAnnotation;
 import com.sun.xml.xsom.XSComplexType;
 import com.sun.xml.xsom.XSContentType;
@@ -480,7 +481,30 @@ class DomToSchemaProcessor {
 		if (help != null) {
 			prodDef.setHelp(help.getTextContent());
 		}
-
+		
+		List<Element> accessElements = getAnnotationElements(annotation, A_ACCESS);
+		if (accessElements == null || accessElements.isEmpty()) {
+			// Default access is read-write-create
+			prodDef.setCreate(true);
+			prodDef.setUpdate(true);
+			prodDef.setRead(true);
+		} else {
+			prodDef.setCreate(false);
+			prodDef.setUpdate(false);
+			prodDef.setRead(false);
+			for (Element e : accessElements) {
+				String access = e.getTextContent();
+				if (access.equals(AccessType.CREATE.value())) {
+					prodDef.setCreate(true);
+				}
+				if (access.equals(AccessType.UPDATE.value())) {
+					prodDef.setUpdate(true);
+				}
+				if (access.equals(AccessType.READ.value())) {
+					prodDef.setRead(true);
+				}
+			}
+		}
 		
 		return prodDef;
 	}
