@@ -29,6 +29,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.turbo.TurboFilter;
 import ch.qos.logback.core.spi.FilterReply;
+
 /**
  * This class allow output for given MDC value and given level
  * implments logback turbofilter feature
@@ -50,27 +51,28 @@ import ch.qos.logback.core.spi.FilterReply;
  */
 public class MDCLevelTurboFilter extends TurboFilter {
 
-	private FilterReply onMatch = FilterReply.NEUTRAL;
+	private FilterReply onMatch = FilterReply.ACCEPT;
 	private FilterReply onMismatch = FilterReply.NEUTRAL;
 	private String mdcKey;
 	private String mdcValue;
 	private Level level = Level.OFF;
-	
-	
+
 	@Override
 	public FilterReply decide(Marker marker, Logger logger, Level level, String format, Object[] params, Throwable t) {
-		
-		if (null == mdcKey  || null == mdcValue) {
+
+		if (null == mdcKey || null == mdcValue) {
 			return FilterReply.NEUTRAL;
 		}
-		
+		//First compare levels
 		if (level.isGreaterOrEqual(borderLevel())) {
-			String value = MDC.get(mdcKey);
-			if (mdcValue.equals(value)) {
+			//Second test MDCvalue match current MDC->key => value 
+			if (mdcValue.equals(MDC.get(mdcKey))) {
 				return onMatch;
+			} else {
+				return onMismatch;
 			}
 		}
-		return onMismatch;
+		return FilterReply.NEUTRAL;
 	}
 
 	/**
@@ -79,7 +81,7 @@ public class MDCLevelTurboFilter extends TurboFilter {
 	public void setOnMatch(String action) {
 		if ("NEUTRAL".equals(action)) {
 			this.onMatch = FilterReply.NEUTRAL;
-		}else if ("ACCEPT".equals(action)) {
+		} else if ("ACCEPT".equals(action)) {
 			this.onMatch = FilterReply.ACCEPT;
 		} else {
 			this.onMatch = FilterReply.DENY;
@@ -92,7 +94,7 @@ public class MDCLevelTurboFilter extends TurboFilter {
 	public void setOnMismatch(String action) {
 		if ("NEUTRAL".equals(action)) {
 			this.onMismatch = FilterReply.NEUTRAL;
-		}else if ("ACCEPT".equals(action)) {
+		} else if ("ACCEPT".equals(action)) {
 			this.onMismatch = FilterReply.ACCEPT;
 		} else {
 			this.onMismatch = FilterReply.DENY;
@@ -103,6 +105,7 @@ public class MDCLevelTurboFilter extends TurboFilter {
 	 * @param mdcKey the mdcKey to watch
 	 */
 	public void setMDCKey(String mdcKey) {
+		System.out.println("MDCkey = " + mdcKey);
 		this.mdcKey = mdcKey;
 	}
 
@@ -110,13 +113,15 @@ public class MDCLevelTurboFilter extends TurboFilter {
 	 * @param mdcValue the mdcValue to match with MDCkey
 	 */
 	public void setMDCValue(String mdcValue) {
+		System.out.println("MDCvalue = mdcValue");
 		this.mdcValue = mdcValue;
 	}
-	
+
 	/**
 	 * @param level the level to breach
 	 */
-	public void setLevel(String level) {
+	public void setLevel(String loggingLevel) {
+		String level = loggingLevel.toUpperCase();
 		if ("OFF".equals(level)) {
 			this.level = Level.OFF;
 		} else if ("ERROR".equals(level)) {
@@ -129,7 +134,7 @@ public class MDCLevelTurboFilter extends TurboFilter {
 			this.level = Level.DEBUG;
 		} else if ("TRACE".equals(level)) {
 			this.level = Level.TRACE;
-		} else  {
+		} else {
 			this.level = Level.ALL;
 		}
 	}
