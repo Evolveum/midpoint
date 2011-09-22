@@ -99,7 +99,6 @@ public class UserTypeHandler extends BasicHandler {
 			throws ObjectNotFoundException, SchemaException {
 		UserType user = (UserType) getObject(UserType.class, change.getOid(),
 				new PropertyReferenceListType(), result);
-
 		// ADD and DELETE account changes
 		List<PropertyModificationType> accountChanges = getAccountChanges(change);
 		// we remove account changes, then we save user object

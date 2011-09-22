@@ -93,6 +93,7 @@ public class LoggingConfigurationManager {
 		}
 		
 		if (!StringUtils.isEmpty(error)) {
+			//TODO: not good, we don't want to get stack trace as message
 			res.recordPartialError(error);
 		} else {
 			res.recordSuccess();
@@ -102,7 +103,7 @@ public class LoggingConfigurationManager {
 	}
 
 	private static String prepareConfiguration(LoggingConfigurationType config) {
-
+		//TODO: don't use stringbuilder to create XML, use DOMUtil.getDocument() and create Element(s)...
 		StringBuilder sb = new StringBuilder();
 		sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 		sb.append("<configuration scan=\"false\">");

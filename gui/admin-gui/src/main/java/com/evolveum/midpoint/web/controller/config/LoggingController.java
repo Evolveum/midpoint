@@ -490,6 +490,10 @@ public class LoggingController implements Serializable {
 		return logger;
 	}
 
+	/**
+	 * This method creates JAXB xml representation of current logging settings
+	 * which were created by user on logging page
+	 */
 	private LoggingConfigurationType createConfiguration(List<BasicLoggerListItem> loggers,
 			List<AppenderListItem> appenders) {
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
