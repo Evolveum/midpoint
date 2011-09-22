@@ -26,6 +26,32 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Resource for use with dummy ICF connector.
+ * 
+ * This is a simple Java object that pretends to be a resource. It has accounts and
+ * account schema. It has operations to manipulate accounts, execute scripts and so on
+ * almost like a real resource. The purpose is to simulate a real resource with avery 
+ * little overhead.
+ * 
+ * The resource is a singleton, therefore the resource instance can be shared by
+ * the connector and the test code. The usual story is like this:
+ * 
+ * 1) test class fetches first instance of the resource (getInstance). This will cause
+ * loading of the resource class in the test (parent) classloader.
+ * 
+ * 2) test class configures the connector (e.g. schema) usually by calling the populateWithDefaultSchema() method.
+ * 
+ * 3) test class initializes IDM. This will cause connector initialization. The connector will fetch
+ * the instance of dummy resource. As it was loaded by the parent classloader, it will get the same instance
+ * as the test class.
+ * 
+ * 4) test class invokes IDM operation. That will invoke connector and change the resource.
+ * 
+ * 5) test class will access resource directly to see if the operation went OK.
+ * 
+ * The dummy resource is a separate package (JAR) from the dummy connector. Connector has its own
+ * classloader. If the resource would be the same package as connector, it will get loaded by the
+ * connector classloader regardless whether it is already loaded by the parent classloader.
  * 
  * @author Radovan Semancik
  *
@@ -80,18 +106,36 @@ public class DummyResource {
 		}
 	}
 
+	/**
+	 * Returns script history ordered chronologically (oldest first).
+	 * @return script history
+	 */
 	public List<String> getScriptHistory() {
 		return scriptHistory;
 	}
 	
+	/**
+	 * Clears the script history.
+	 */
 	public void purgeScriptHistory() {
 		scriptHistory.clear();
 	}
 	
+	/**
+	 * Pretend to run script on the resource.
+	 * The script is actually not executed, it is only recorded in the script history
+	 * and can be fetched by getScriptHistory().
+	 * 
+	 * @param scriptCode code of the script
+	 */
 	public void runScript(String scriptCode) {
 		scriptHistory.add(scriptCode);
 	}
 	
+	/**
+	 * Populates the resource with some kind of "default" schema. This is a schema that should suit
+	 * majority of basic test cases.
+	 */
 	public void populateWithDefaultSchema() {
 		accountObjectClass.clear();
 		accountObjectClass.addAttributeDefinition("fullname", String.class, true, false);

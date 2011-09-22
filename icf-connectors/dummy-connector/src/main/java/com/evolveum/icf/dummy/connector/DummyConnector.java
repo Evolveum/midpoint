@@ -66,7 +66,14 @@ import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
 import com.evolveum.icf.dummy.connector.Utils;
 
 /**
- * Main implementation of the Test Connector
+ * Connector for the Dummy Resource.
+ * 
+ * Dummy resource is a simple Java object that pretends to be a resource. It has accounts and
+ * account schema. It has operations to manipulate accounts, execute scripts and so on
+ * almost like a real resource. The purpose is to simulate a real resource with a very 
+ * little overhead. This connector connects the Dummy resource to ICF.
+ * 
+ * @see DummyResource
  *
  * @author $author$
  * @version $Revision$ $Date$

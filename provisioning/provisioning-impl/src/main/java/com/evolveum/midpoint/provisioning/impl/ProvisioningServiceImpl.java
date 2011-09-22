@@ -262,7 +262,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			try {
 				//calling shadow cache to add object
 				oid = getShadowCache().addShadow((ResourceObjectShadowType)object, scripts, null,
-						parentResult);
+						result);
 				LOGGER.trace("**PROVISIONING: Added shadow object {}",oid);
 				result.recordSuccess();
 			} catch (GenericFrameworkException ex) {
