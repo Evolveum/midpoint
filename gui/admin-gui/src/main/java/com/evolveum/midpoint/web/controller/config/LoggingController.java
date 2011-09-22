@@ -497,6 +497,9 @@ public class LoggingController implements Serializable {
 	private LoggingConfigurationType createConfiguration(List<BasicLoggerListItem> loggers,
 			List<AppenderListItem> appenders) {
 		LoggingConfigurationType configuration = new LoggingConfigurationType();
+		configuration.setRootLoggerAppender(getRootAppender());
+		configuration.setRootLoggerLevel(rootLoggerLevel);
+		
 		for (AppenderListItem item : appenders) {
 			AppenderConfigurationType appender = createAppenderType(item);
 			configuration.getAppender().add(appender);
