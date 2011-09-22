@@ -65,7 +65,6 @@ import org.w3c.dom.Element;
 public class PropertyContainerDefinition extends ItemDefinition {
 
 	private static final long serialVersionUID = -5068923696147960699L;
-	protected String schemaNamespace;
 	protected ComplexTypeDefinition complexTypeDefinition;
 	protected Schema schema;
 

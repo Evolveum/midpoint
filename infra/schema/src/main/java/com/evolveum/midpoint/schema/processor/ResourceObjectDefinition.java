@@ -314,7 +314,7 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 	}
 	
 	public ResourceObjectAttributeDefinition findAttributeDefinition(String elementLocalname) {
-		QName elementQName = new QName(schemaNamespace,elementLocalname);
+		QName elementQName = new QName(schema.getNamespace(),elementLocalname);
 		return findItemDefinition(elementQName,ResourceObjectAttributeDefinition.class);
 	}
 	

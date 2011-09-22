@@ -3,6 +3,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -56,11 +57,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ScriptCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.TestConnectionCapabilityType;
 
 /**
  * 
@@ -275,7 +281,58 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertTrue(nameDef.canUpdate());
 		assertTrue(nameDef.canRead());
 		
+		ResourceObjectAttributeDefinition fullnameDef = accountDef.findAttributeDefinition("fullname");
+		assertEquals(1,fullnameDef.getMaxOccurs());
+		assertEquals(1,fullnameDef.getMinOccurs());
+		assertTrue(fullnameDef.canCreate());
+		assertTrue(fullnameDef.canUpdate());
+		assertTrue(fullnameDef.canRead());
+		
 	}
+	
+	@Test
+	public void test005Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException {
+		displayTestTile("test005Capabilities");
+
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test005Capabilities");
+
+		// WHEN
+		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		
+		// THEN
+		
+		// Check native capabilities
+		CapabilitiesType nativeCapabilities = resource.getNativeCapabilities();
+		List<Object> capabilities = nativeCapabilities.getAny();
+        assertFalse("Empty capabilities returned",capabilities.isEmpty());
+        CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(capabilities, CredentialsCapabilityType.class);
+        assertNotNull("password native capability not present",capCred.getPassword());
+        ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(capabilities, ActivationCapabilityType.class);
+        assertNotNull("native activation capability not present", capAct);
+        assertNotNull("native activation/enabledisable capability not present", capAct.getEnableDisable());
+        TestConnectionCapabilityType capTest = ResourceTypeUtil.getCapability(capabilities, TestConnectionCapabilityType.class);
+        assertNotNull("native test capability not present",capTest);
+        ScriptCapabilityType capScript = ResourceTypeUtil.getCapability(capabilities, ScriptCapabilityType.class);
+        assertNotNull("native script capability not present",capScript);
+        assertNotNull("No host in native script capability", capScript.getHost());
+        assertFalse("No host in native script capability", capScript.getHost().isEmpty());
+        // TODO: better look inside
+        
+        // Check effective capabilites
+        capCred = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+        assertNotNull("password capability not found",capCred.getPassword());
+        // Although connector does not support activation, the resource specifies a way how to simulate it.
+        // Therefore the following should succeed
+        capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
+        assertNotNull("activation capability not found",capCred.getPassword());
+        
+        List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
+        for (Object capability : effectiveCapabilities) {
+        	System.out.println("Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+        }
+	}
+
 	
 	@Test
 	public void test010AddAccount() throws Exception {
