@@ -37,10 +37,6 @@ public class ResourceObjectBean extends ObjectBean {
 		super(oid, name);
 		this.attributes = attributes;
 	}
-	
-	public ResourceObjectBean(Map<String, String> attributes) {
-		this.attributes = attributes;
-	}
 
 	public Map<String, String> getAttributes() {
 		if (attributes == null) {

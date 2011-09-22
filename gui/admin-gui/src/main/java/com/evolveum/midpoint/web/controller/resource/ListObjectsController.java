@@ -37,10 +37,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.schema.PagingTypeFactory;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
-import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -134,10 +132,13 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 		}
 
 		for (ObjectType objectType : objects) {
-			
 			String oid = "Unknown";
 			if (StringUtils.isNotEmpty(objectType.getOid())) {
 				oid = objectType.getOid();
+			}
+			String name = "Unknown";
+			if (StringUtils.isNotEmpty(objectType.getName())) {
+				name = objectType.getName();
 			}
 
 			Map<String, String> attributes = new HashMap<String, String>();
@@ -146,8 +147,8 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 			for (QName qname : columnHeaders) {
 				attributes.put(qname.getLocalPart(), getElementValue(elements, qname));
 			}
-				
-			getObjects().add(new ResourceObjectBean(attributes));
+
+			getObjects().add(new ResourceObjectBean(oid, name, attributes));
 		}
 
 		return PAGE_NAVIGATION;
@@ -205,13 +206,17 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 		if (this.objectClass == null) {
 			return qnames;
 		}
+
 		PropertyContainerDefinition container = schema.findContainerDefinitionByType(objectClass);
 		if (container instanceof ResourceObjectDefinition) {
 			ResourceObjectDefinition definition = (ResourceObjectDefinition) container;
 			for (ResourceObjectAttributeDefinition attribute : definition.getIdentifiers()) {
+				LOGGER.debug("Adding {} as header (identifier).", new Object[] { attribute.getName() });
 				qnames.add(attribute.getName());
 			}
 			for (ResourceObjectAttributeDefinition attribute : definition.getSecondaryIdentifiers()) {
+				LOGGER.debug("Adding {} as header (secondary identifier).",
+						new Object[] { attribute.getName() });
 				qnames.add(attribute.getName());
 			}
 
