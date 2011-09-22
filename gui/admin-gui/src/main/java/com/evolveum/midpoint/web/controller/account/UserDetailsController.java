@@ -42,7 +42,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.DebugUtil;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -51,6 +53,7 @@ import com.evolveum.midpoint.web.bean.AccountFormBean;
 import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.jsf.form.AttributeType;
 import com.evolveum.midpoint.web.jsf.form.FormAttribute;
 import com.evolveum.midpoint.web.jsf.form.FormAttributeDefinition;
 import com.evolveum.midpoint.web.jsf.form.FormObject;
@@ -68,6 +71,7 @@ import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
 /**
@@ -87,6 +91,8 @@ public class UserDetailsController implements Serializable {
 	private transient TemplateController template;
 	@Autowired(required = true)
 	private ObjectTypeCatalog objectTypeCatalog;
+	@Autowired(required = true)
+	private Protector protector;
 	private boolean editMode = false;
 	private GuiUserDto user;
 	private List<AccountFormBean> accountList;
@@ -572,9 +578,17 @@ public class UserDetailsController implements Serializable {
 					LOGGER.trace("Creating element: \\{{}\\}{}: {}",
 							new Object[] { namespace, name, object.toString() });
 
-					Element element = doc.createElementNS(namespace, name);
-					element.setPrefix(buildElementName(namespace, prefixMap));
-					element.setTextContent(object.toString());
+					Element element = null;
+
+					if (AttributeType.PASSWORD.equals(definition.getType())) {
+						ProtectedStringType protectedString = protector.encryptString(object.toString());
+						element = JAXBUtil.jaxbToDom(protectedString, definition.getElementName(), doc);
+						element.setPrefix(buildElementName(namespace, prefixMap));
+					} else {
+						element = doc.createElementNS(namespace, name);
+						element.setPrefix(buildElementName(namespace, prefixMap));
+						element.setTextContent(object.toString());
+					}
 					attrList.add(element);
 				}
 			}

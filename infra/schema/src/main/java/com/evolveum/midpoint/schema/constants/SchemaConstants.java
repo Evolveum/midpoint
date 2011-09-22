@@ -135,6 +135,7 @@ public abstract class SchemaConstants {
 	public static final QName ROLE_TYPE = new QName(NS_C, "RoleType");
 
 	public static final QName R_PROTECTED_STRING_TYPE = new QName(NS_C, "ProtectedStringType");
+	public static final QName R_PROTECTED_STRING = new QName(NS_C, "protectedString");
 	public static final QName R_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C, "ProtectedByteArrayType");
 
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_ELEMENT_LOCAL_NAME = "configuration";

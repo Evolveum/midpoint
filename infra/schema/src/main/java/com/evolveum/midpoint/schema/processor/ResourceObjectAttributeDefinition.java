@@ -43,6 +43,7 @@ import javax.xml.namespace.QName;
  */
 public class ResourceObjectAttributeDefinition extends PropertyDefinition {
 
+	private static final long serialVersionUID = 7092192397127114804L;
 	private String nativeAttributeName;
 	private String attributeDisplayName;
 

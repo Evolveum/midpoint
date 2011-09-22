@@ -90,6 +90,7 @@ public class SchemaFormParser {
 				List<Object> values = getAttributeValues(valueMap, object.getTypeName(), property.getName());
 				formObject.getAttributes().add(new FormAttribute(attrDefinition, values));
 			}
+			formObject.sort();
 			objects.add(formObject);
 		}
 
@@ -97,7 +98,7 @@ public class SchemaFormParser {
 	}
 
 	private List<Object> getAttributeValues(Map<List<QName>, List<Object>> valueMap, QName... qnames) {
-		List<QName> key = new ArrayList<QName>();		
+		List<QName> key = new ArrayList<QName>();
 		for (QName qname : qnames) {
 			key.add(qname);
 		}
@@ -238,6 +239,7 @@ public class SchemaFormParser {
 			List<Object> values = getAttributeValues(valueMap, property.getName());
 			object.getAttributes().add(new FormAttribute(attrDefinition, values));
 		}
+		object.sort();
 
 		return object;
 	}

@@ -25,6 +25,8 @@ package com.evolveum.midpoint.web.jsf.form;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 public enum AttributeType {
 
 	INT(new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "int")),
@@ -53,7 +55,7 @@ public enum AttributeType {
 
 	ELEMENT(new QName("http://midpoint.evolveum.com", "element")),
 
-	PASSWORD(new QName("http://midpoint.evolveum.com", "password"));
+	PASSWORD(SchemaConstants.R_PROTECTED_STRING_TYPE);
 
 	private QName qname;
 

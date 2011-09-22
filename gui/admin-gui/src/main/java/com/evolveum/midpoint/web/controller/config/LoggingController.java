@@ -89,7 +89,7 @@ public class LoggingController implements Serializable {
 			levels.add(new SelectItem(type.value()));
 		}
 
-		Collections.sort(levels, new SelectItemComparator());
+//		Collections.sort(levels, new SelectItemComparator());
 
 		return levels;
 	}
