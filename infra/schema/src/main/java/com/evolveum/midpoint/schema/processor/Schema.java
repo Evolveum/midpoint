@@ -377,4 +377,31 @@ public class Schema implements Dumpable, Serializable {
 		return elementName;
 	}
 
+	/**
+	 * Looks for a default account ObjectClass.
+	 */
+	public ResourceObjectDefinition findAccountDefinition() {
+		return findAccountDefinition(null);
+	}
+	
+	/**
+	 * Looks for a specific account ObjectClass.
+	 */
+	public ResourceObjectDefinition findAccountDefinition(String accountType) {
+		for (Definition def: definitions) {
+			if (def instanceof ResourceObjectDefinition) {
+				ResourceObjectDefinition rod = (ResourceObjectDefinition)def;
+				if (rod.isAccountType()) {
+					if (accountType == null && rod.isDefaultAccountType()) {
+						// Default account requested, default account found.
+						return rod;
+					}
+// TODO
+//					if (rod.getAccountType .....)
+				}
+			}
+		}
+		return null;
+	}
+
 }

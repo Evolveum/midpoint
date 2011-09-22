@@ -247,24 +247,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 			assertFalse("Empty definition",pcd.isEmpty());
 		}
 	}
-	
-	/**
-	 * Running discovery for a second time should return nothing - as nothing new was installed in the
-	 * meantime.
-	 */
-	@Test
-	public void test002ConnectorRediscovery() {
-		displayTestTile("test002ConnectorRediscovery");
 		
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
-				+ ".test002ConnectorRediscovery");
-		
-		Set<ConnectorType> discoverLocalConnectors = connectorTypeManager.discoverLocalConnectors(result);
-		result.computeStatus("test failed");
-		assertSuccess("discoverLocalConnectors failed", result);
-		AssertJUnit.assertTrue("Rediscovered something",discoverLocalConnectors.isEmpty());
-	}
-	
 	/**
 	 * This should be the very first test that works with the resource.
 	 * 
@@ -307,27 +290,6 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		Schema parsedSchema = Schema.parse(xsdElement);
 		assertNotNull("No schema after parsing",parsedSchema);
 		
-	}
-	
-	@Test
-	public void test004ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException {
-		displayTestTile("test004ParsedSchema");
-
-		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test004ParsedSchema");
-		
-		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, result);
-		
-		// The returned type should have the schema pre-parsed
-		assertTrue(resource instanceof EnhancedResourceType);
-		EnhancedResourceType enh = (EnhancedResourceType) resource;
-		assertNotNull(enh.getParsedSchema());
-		
-		// Also test if the utility method returns the same thing		
-		Schema returnedSchema = ResourceTypeUtil.getResourceSchema(resource);
-		
-		// Not equals() but == ... we want to really know if exactly the same object instance is returned
-		assertTrue(returnedSchema == enh.getParsedSchema());
-
 	}
 	
 	@Test

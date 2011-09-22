@@ -46,9 +46,12 @@
 
     <xsd:element name="uid" type="xsd:string">
         <xsd:annotation>
-            <xsd:documentation>
-                UID unique identifier
-            </xsd:documentation>
+			<xsd:documentation>
+			    UID unique identifier
+			</xsd:documentation>
+			 <xsd:appinfo>
+			    <c:access>read</c:access>
+			 </xsd:appinfo>            
         </xsd:annotation>
     </xsd:element>
 

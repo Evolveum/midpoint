@@ -12,12 +12,17 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
+import org.identityconnectors.framework.impl.api.ConnectorFacadeFactoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -29,14 +34,21 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.provisioning.impl.ConnectorTypeManager;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.EnhancedResourceType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -75,7 +87,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	
 	@Autowired
 	private ProvisioningService provisioningService;
-	
+	@Autowired
+	private ConnectorTypeManager connectorTypeManager;
 	
 	/**
 	 * @throws JAXBException
@@ -116,9 +129,81 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		display("Dummy Connector",connector);
 	}
 	
+	/**
+	 * Check whether the connectors were discovered correctly and were added to the repository.
+	 * @throws SchemaProcessorException 
+	 * 
+	 */
 	@Test
-	public void test001Connection() throws ObjectNotFoundException, SchemaException {
-		displayTestTile("test001Connection");
+	public void test001Connectors() throws SchemaException {
+		displayTestTile("test001Connectors");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test001Connectors");
+		
+		// WHEN
+		List<ConnectorType> connectors = repositoryService.listObjects(ConnectorType.class, null, result);
+		
+		// THEN
+		assertFalse("No connector found",connectors.isEmpty());
+		for (ConnectorType conn : connectors) {
+			display("Found connector",conn);
+			XmlSchemaType xmlSchemaType = conn.getSchema();
+			assertNotNull("xmlSchemaType is null",xmlSchemaType);
+			assertFalse("Empty schema",xmlSchemaType.getAny().isEmpty());
+			// Try to parse the schema
+			Schema schema = Schema.parse(xmlSchemaType.getAny().get(0));
+			assertNotNull("Cannot parse schema",schema);
+			assertFalse("Empty schema",schema.isEmpty());
+			display("Parsed connector schema",schema);
+			PropertyContainerDefinition definition = schema.findItemDefinition("configuration",PropertyContainerDefinition.class);
+			assertNotNull("Definition of <configuration> property container not found",definition);
+			PropertyContainerDefinition pcd = (PropertyContainerDefinition)definition;
+			assertFalse("Empty definition",pcd.isEmpty());
+		}
+	}
+	
+	/**
+	 * Running discovery for a second time should return nothing - as nothing new was installed in the
+	 * meantime.
+	 */
+	@Test
+	public void test002ConnectorRediscovery() {
+		displayTestTile("test002ConnectorRediscovery");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()
+				+ ".test002ConnectorRediscovery");
+		
+		// WHEN
+		Set<ConnectorType> discoverLocalConnectors = connectorTypeManager.discoverLocalConnectors(result);
+		
+		// THEN
+		result.computeStatus();
+		assertSuccess("discoverLocalConnectors failed", result);
+		assertTrue("Rediscovered something",discoverLocalConnectors.isEmpty());
+	}
+	
+	
+	/**
+	 * This should be the very first test that works with the resource.
+	 * 
+	 * The original repository object does not have resource schema. The schema should be generated from
+	 * the resource on the first use. This is the test that executes testResource and checks whether the
+	 * schema was generated.
+	 */
+	@Test
+	public void test003Connection() throws ObjectNotFoundException, SchemaException {
+		displayTestTile("test003Connection");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test003Connection");
+		// Check that there is no schema before test (pre-condition)
+		ResourceType resourceBefore = repositoryService.getObject(ResourceType.class,RESOURCE_DUMMY_OID, null, result);
+		assertNotNull("No connector ref",resourceBefore.getConnectorRef());
+		assertNotNull("No connector ref OID",resourceBefore.getConnectorRef().getOid());
+		ConnectorType connector = repositoryService.getObject(ConnectorType.class, resourceBefore.getConnectorRef().getOid(), null, result);
+		assertNotNull(connector);
+		XmlSchemaType xmlSchemaTypeBefore = resourceBefore.getSchema();
+		AssertJUnit.assertTrue("Found schema before test connection. Bad test setup?",xmlSchemaTypeBefore.getAny().isEmpty());
 		
 		// WHEN
 		OperationResult testResult = provisioningService.testResource(RESOURCE_DUMMY_OID);
@@ -127,7 +212,6 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		display("Test result",testResult);
 		assertSuccess("Test resource failed (result)", testResult);
 
-		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()+".test001Connection");
 		resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		display("Resource after test",resource);
 		
@@ -144,7 +228,53 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		Schema parsedSchema = Schema.parse(xsdElement);
 		assertNotNull("No schema after parsing",parsedSchema);
 		
-		// TODO: check schema
+		// schema will be checked in next test
+	}
+	
+	@Test
+	public void test004ParsedSchema() throws ObjectNotFoundException, CommunicationException, SchemaException {
+		displayTestTile("test004ParsedSchema");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test004ParsedSchema");
+		
+		// WHEN
+		ResourceType resource = provisioningService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		
+		// THEN
+		// The returned type should have the schema pre-parsed
+		assertTrue(resource instanceof EnhancedResourceType);
+		EnhancedResourceType enh = (EnhancedResourceType) resource;
+		assertNotNull(enh.getParsedSchema());
+		
+		// Also test if the utility method returns the same thing		
+		Schema returnedSchema = ResourceTypeUtil.getResourceSchema(resource);
+		
+		// Not equals() but == ... we want to really know if exactly the same object instance is returned
+		assertTrue(returnedSchema == enh.getParsedSchema());
+
+		ResourceObjectDefinition accountDef = returnedSchema.findAccountDefinition();
+		assertNotNull("Account definition is missing",accountDef);
+		assertNotNull("Null identifiers in account",accountDef.getIdentifiers());
+		assertFalse("Empty identifiers in account",accountDef.getIdentifiers().isEmpty());
+		assertNotNull("No naming attribute in account", accountDef.getNamingAttribute());
+		assertFalse("No nativeObjectClass in account", StringUtils.isEmpty(accountDef.getNativeObjectClass()));
+		
+		ResourceObjectAttributeDefinition uidDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		assertEquals(1,uidDef.getMaxOccurs());
+		assertEquals(1,uidDef.getMinOccurs());
+//		assertFalse(StringUtils.isEmpty(uidDef.getDisplayName()));
+		assertFalse(uidDef.canCreate());
+		assertFalse(uidDef.canUpdate());
+		assertTrue(uidDef.canRead());
+		
+		ResourceObjectAttributeDefinition nameDef = accountDef.findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		assertEquals(1,nameDef.getMaxOccurs());
+		assertEquals(1,nameDef.getMinOccurs());
+//		assertFalse(StringUtils.isEmpty(nameDef.getDisplayName()));
+		assertTrue(nameDef.canCreate());
+		assertTrue(nameDef.canUpdate());
+		assertTrue(nameDef.canRead());
+		
 	}
 	
 	@Test

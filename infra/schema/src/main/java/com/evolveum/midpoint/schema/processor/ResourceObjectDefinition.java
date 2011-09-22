@@ -313,6 +313,11 @@ public class ResourceObjectDefinition extends PropertyContainerDefinition {
 		return findItemDefinition(elementQName,ResourceObjectAttributeDefinition.class);
 	}
 	
+	public ResourceObjectAttributeDefinition findAttributeDefinition(String elementLocalname) {
+		QName elementQName = new QName(schemaNamespace,elementLocalname);
+		return findItemDefinition(elementQName,ResourceObjectAttributeDefinition.class);
+	}
+	
 	public ResourceObjectAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
 		ResourceObjectAttributeDefinition propDef = new ResourceObjectAttributeDefinition(name, typeName);
 		getDefinitions().add(propDef);
