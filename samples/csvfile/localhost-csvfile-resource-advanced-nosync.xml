@@ -171,9 +171,26 @@ object.
 					</c:outbound>
 							
 				</c:attribute>
-
+				<c:attribute ref="ri:disabled">
+					<c:name>disabled</c:name>
+					<c:description>Definition of disabled attribute handling. True = disabled, False = enabled.</c:description>
+					<c:access>read</c:access>
+					<c:outbound default="true">
+						<c:value>false</c:value>
+					</c:outbound>
+				</c:attribute>
 			</c:accountType>
 		</c:schemaHandling>
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+			<cap:activation>
+				<cap:enableDisable>
+					<cap:attribute>ri:disabled</cap:attribute>
+					<cap:enableValue>false</cap:enableValue>
+					<cap:disableValue>true</cap:disableValue>
+				</cap:enableDisable>
+			</cap:activation>
+			<cap:testConnection/>
+		</capabilities>
 	</c:resource>
 
 
