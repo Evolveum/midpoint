@@ -37,8 +37,8 @@
 		</classLogger>
 		<appender xsi:type="FileAppenderConfigurationType" name="IDM_LOG" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 			<fileName>${catalina.base}/logs/idm.log</fileName>
-			<pattern>%date [%X{subsystem}] [%thread] %level \\(%logger\\): %msg%n</pattern>
-			<filePattern>${catalina.base}/logs/idm-%{yyyy-MM-dd}.log</filePattern>
+			<pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
+			<filePattern>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.log</filePattern>
 			<maxFileSize>100MB</maxFileSize>
 			<maxHistory>10</maxHistory>
 			<append>true</append>

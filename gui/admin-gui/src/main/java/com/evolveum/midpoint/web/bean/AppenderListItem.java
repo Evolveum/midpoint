@@ -34,7 +34,7 @@ public class AppenderListItem extends SelectableBean {
 	private static final long serialVersionUID = 1965555036713631609L;
 	private String name;
 	private String pattern = "%date [%X{subsystem}] [%thread] %level \\(%logger\\): %m%n";
-	private String filePattern = "${catalina.base}/logs/idm-%{yyyy-MM-dd}.log";
+	private String filePattern = "${catalina.base}/logs/idm-%d{yyyy-MM-dd}.log";
 	private String filePath = "${catalina.base}/logs/idm.log";
 	private String maxFileSize = "500MB";
 	private int maxHistory = 1;

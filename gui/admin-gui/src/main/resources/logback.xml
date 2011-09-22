@@ -38,6 +38,7 @@
 			<maxHistory>20</maxHistory>
 		</rollingPolicy>
 	</appender>
+	<logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.controller" level="TRACE" />
 	<logger name="com.evolveum.midpoint.web.component" level="TRACE" />
 	<logger name="com.evolveum.midpoint.init" level="INFO" />
