@@ -94,7 +94,7 @@ public class LoggingManager {
 
 	private synchronized void updateLoggers(OperationResult result) {
 		LoggingConfigurationType config = getConfiguration(result);
-		//LoggingConfigurationManager.configure(config, result);
+		LoggingConfigurationManager.configure(config, result);
 	}
 
 	

@@ -27,13 +27,17 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
+import ch.qos.logback.classic.Logger;
+
 
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -70,6 +74,10 @@ public class LoggingConfigurationManager {
 		InputStream cis = new ByteArrayInputStream(configXml.getBytes());
 		LOGGER.info("Reseting current logging configuration");
 		lc.getStatusManager().clear();
+		//Set all loggers off
+		for (Logger l : lc.getLoggerList()) {
+			l.setLevel(Level.OFF);
+		}
 		lc.reset();
 		//Switch to new logging configuration
 		lc.setName("MidPoint");
@@ -132,7 +140,7 @@ public class LoggingConfigurationManager {
 			sb.append("</MDCValue>\n");
 			sb.append("\t\t<level>");
 			sb.append(ss.getLevel().name());
-			sb.append("</Level>\n");
+			sb.append("</level>\n");
 			sb.append("\t\t<OnMatch>ACCEPT</OnMatch>\n");
 			sb.append("\t</turboFilter>\n");
 		}
@@ -143,8 +151,8 @@ public class LoggingConfigurationManager {
 				FileAppenderConfigurationType a = (FileAppenderConfigurationType) appender;
 				//TODO this is hack and need to be fixed.
 				String catalinaBase = System.getProperty("catalina.base");
-				String fileName = a.getFileName().replace("${catalina.base}", catalinaBase);
-				String filePattern = a.getFilePattern().replace("${catalina.base}", catalinaBase);
+				String fileName = a.getFileName();//.replace("${catalina.base}", catalinaBase);
+				String filePattern = a.getFilePattern();//.replace("${catalina.base}", catalinaBase);
 				
 				
 				sb.append("\t<appender name=\"");

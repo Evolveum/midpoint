@@ -5701,56 +5701,56 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="all">
+			<xsd:enumeration value="ALL">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="ALL" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="off">
+			<xsd:enumeration value="OFF">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="OFF" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="error">
+			<xsd:enumeration value="ERROR">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="ERROR" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="warn">
+			<xsd:enumeration value="WARN">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="WARN" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="info">
+			<xsd:enumeration value="INFO">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="INFO" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="debug">
+			<xsd:enumeration value="DEBUG">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="DEBUG" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="trace">
+			<xsd:enumeration value="TRACE">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="TRACE" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="all">
+			<xsd:enumeration value="ALL">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="ALL" />
@@ -5770,42 +5770,42 @@
 			</xsd:appinfo>
 		</xsd:annotation>
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="model">
+			<xsd:enumeration value="MODEL">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="MODEL" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="provisioning">
+			<xsd:enumeration value="PROVISIONING">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="PROVISIONING" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="repository">
+			<xsd:enumeration value="REPOSITORY">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="REPOSITORY" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="web">
+			<xsd:enumeration value="WEB">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="GUI" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="taskManager">
+			<xsd:enumeration value="TASKMANAGER">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="TASKMANAGER" />
 					</xsd:appinfo>
 				</xsd:annotation>
 			</xsd:enumeration>
-			<xsd:enumeration value="resourceObjectChangeListener">
+			<xsd:enumeration value="RESOURCEOBJECTCHANGELISTENER">
 				<xsd:annotation>
 					<xsd:appinfo>
 						<jaxb:typesafeEnumMember name="RESOURCEOBJECTCHANGELISTENER" />
