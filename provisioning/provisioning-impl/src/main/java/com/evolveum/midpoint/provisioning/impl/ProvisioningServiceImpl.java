@@ -239,7 +239,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public String addObject(ObjectType object, ScriptsType scripts,
+	public <T extends ObjectType> String addObject(T object, ScriptsType scripts,
 			OperationResult parentResult) throws ObjectAlreadyExistsException,
 			SchemaException, CommunicationException, ObjectNotFoundException {
 		// TODO

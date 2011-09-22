@@ -176,7 +176,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public String addObject(ObjectType object, ScriptsType scripts, OperationResult parentResult)
+	public <T extends ObjectType> String addObject(T object, ScriptsType scripts, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException, CommunicationException, ObjectNotFoundException;
 
 	/**

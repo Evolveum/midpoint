@@ -180,7 +180,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	public String addObject(ObjectType object, OperationResult parentResult)
+	public <T extends ObjectType> String addObject(T object, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException;
 
 	/**

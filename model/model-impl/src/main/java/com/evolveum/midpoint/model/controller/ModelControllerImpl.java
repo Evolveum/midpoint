@@ -116,7 +116,7 @@ public class ModelControllerImpl implements ModelController {
 	private transient ObjectImporter objectImporter;
 
 	@Override
-	public String addObject(ObjectType object, OperationResult result) throws ObjectAlreadyExistsException,
+	public <T extends ObjectType> String addObject(T object, OperationResult result) throws ObjectAlreadyExistsException,
 			ObjectNotFoundException {
 		Validate.notNull(object, "Object must not be null.");
 		Validate.notNull(result, "Result type must not be null.");

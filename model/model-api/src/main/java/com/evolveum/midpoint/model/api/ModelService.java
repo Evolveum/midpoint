@@ -174,7 +174,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	String addObject(ObjectType object, OperationResult parentResult) throws ObjectAlreadyExistsException,
+	<T extends ObjectType> String addObject(T object, OperationResult parentResult) throws ObjectAlreadyExistsException,
 			ObjectNotFoundException, SchemaException;
 
 	/**

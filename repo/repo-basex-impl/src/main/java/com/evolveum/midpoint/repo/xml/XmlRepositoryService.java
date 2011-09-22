@@ -123,7 +123,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public String addObject(ObjectType object, OperationResult parentResult)
+	public <T extends ObjectType> String addObject(T object, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException {
 		String oid = null;
 		ClientQuery cq = null;
