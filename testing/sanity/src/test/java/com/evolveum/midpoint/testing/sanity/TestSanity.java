@@ -412,7 +412,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
 
 		// Check the "name" property, it should be set to DN, not entryUUID
-		assertEquals("Wrong name property", repoShadow.getName().toLowerCase(), USER_JACK_LDAP_DN.toLowerCase());
+		assertEquals("Wrong name property", USER_JACK_LDAP_DN.toLowerCase(), repoShadow.getName().toLowerCase());
 
 		// check attributes in the shadow: should be only identifiers (ICF UID)
 		String uid = null;
