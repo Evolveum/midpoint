@@ -39,6 +39,9 @@ public class ObjectBean implements Serializable {
 	public ObjectBean(String oid, String name) {
 		this(oid, name, null);
 	}
+	
+	public ObjectBean() {
+	}
 
 	public ObjectBean(String oid, String name, String description) {
 		if (StringUtils.isEmpty(oid)) {

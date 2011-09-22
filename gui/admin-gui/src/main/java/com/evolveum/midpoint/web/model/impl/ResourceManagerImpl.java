@@ -171,7 +171,7 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 			LoggingUtils.logException(LOGGER, "Couldn't get import status from resource {}", ex, resourceOid);
 			result.recordFatalError("Couldn't get import status from resource '" + resourceOid + "'.", ex);
 		} finally {
-			result.computeStatus("", "");
+			result.computeStatus("Error while listing resource objects.", "");
 		}
 
 		printResults(LOGGER, result);

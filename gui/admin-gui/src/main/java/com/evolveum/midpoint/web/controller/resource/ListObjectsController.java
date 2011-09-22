@@ -37,8 +37,10 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -127,11 +129,12 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 
 		List<ObjectType> objects = getResourceObjects();
 		if (objects == null || objects.isEmpty()) {
-			FacesUtils.addWarnMessage("No object found for objet class '" + objectClass + "'.");
+			FacesUtils.addWarnMessage("No object found for object class '" + objectClass + "'.");
 			return null;
 		}
 
 		for (ObjectType objectType : objects) {
+			
 			String oid = "Unknown";
 			if (StringUtils.isNotEmpty(objectType.getOid())) {
 				oid = objectType.getOid();
@@ -143,8 +146,8 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 			for (QName qname : columnHeaders) {
 				attributes.put(qname.getLocalPart(), getElementValue(elements, qname));
 			}
-
-			getObjects().add(new ResourceObjectBean(oid, objectType.getName(), attributes));
+				
+			getObjects().add(new ResourceObjectBean(attributes));
 		}
 
 		return PAGE_NAVIGATION;
