@@ -219,13 +219,13 @@ public class LoggingController implements Serializable {
 	}
 
 	public void deleteAppenders() {
-		List<AppenderListItem> items = new ArrayList<AppenderListItem>();
-		for (AppenderListItem item : getAppenders()) {
+		Iterator<AppenderListItem> iterator = getAppenders().iterator();
+		while (iterator.hasNext()) {
+			AppenderListItem item = iterator.next();
 			if (item.isSelected()) {
-				items.add(item);
+				iterator.remove();
 			}
 		}
-		getAppenders().removeAll(items);
 	}
 
 	public void addLogger() {
@@ -270,13 +270,6 @@ public class LoggingController implements Serializable {
 				iterator.remove();
 			}
 		}
-//		List<BasicLoggerListItem> items = new ArrayList<BasicLoggerListItem>();
-//		for (BasicLoggerListItem item : getLoggers()) {
-//			if (item.isSelected()) {
-//				items.add(item);
-//			}
-//		}
-//		getLoggers().removeAll(items);
 	}
 
 	private BasicLoggerListItem getLogger(String loggerId) {
@@ -355,7 +348,7 @@ public class LoggingController implements Serializable {
 	}
 
 	public void cancelPerformed() {
-		// TODO:
+		initController();
 	}
 
 	public String initController() {
