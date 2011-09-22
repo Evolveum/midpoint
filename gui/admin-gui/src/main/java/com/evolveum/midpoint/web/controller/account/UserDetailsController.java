@@ -384,9 +384,7 @@ public class UserDetailsController implements Serializable {
 			AccountShadowDto account = userManager.addAccount(user, resource.getOid());
 			if (account == null) {
 				continue;
-			}
-			account.setName(resource.getName() + "-" + user.getName());
-
+			}	
 			newAccounts.add(account);
 		}
 		getAccountList().addAll(createFormBeanList(newAccounts, true));
