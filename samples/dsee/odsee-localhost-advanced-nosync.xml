@@ -248,8 +248,26 @@ object.
                         </c:valueExpression>
 					</c:outbound>
 				</c:attribute>
+				<credentials>
+					<outboundPassword>true</outboundPassword>
+					<randomPasswordLength>6</randomPasswordLength>
+				</credentials>
 			</c:accountType>
 		</c:schemaHandling>
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+			<cap:activation>
+				<cap:enableDisable>
+					<cap:attribute>ri:nsAccountLock</cap:attribute>
+					<cap:enableValue/>
+					<cap:disableValue>true</cap:disableValue>
+				</cap:enableDisable>
+			</cap:activation>
+			<cap:credentials>
+				<cap:password/>
+			</cap:credentials>
+			<cap:liveSync/>
+			<cap:testConnection/>
+		</capabilities>
 	</c:resource>
 
 </c:objects>
