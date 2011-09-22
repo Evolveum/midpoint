@@ -38,7 +38,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     private String instanceId;
 
     @ConfigurationProperty(displayMessageKey = "UI_INSTANCE_ID",
-    helpMessageKey = "UI_INSTANCE_ID_HELP")
+    		helpMessageKey = "UI_INSTANCE_ID_HELP")
     public String getInstanceId() {
         return instanceId;
     }
@@ -46,7 +46,7 @@ public class DummyConfiguration extends AbstractConfiguration {
     public void setInstanceId(String config) {
         this.instanceId = config;
     }
-
+    
     /**
      * {@inheritDoc}
      */
@@ -59,3 +59,4 @@ public class DummyConfiguration extends AbstractConfiguration {
         log.info("end");
     }
 }
+ 

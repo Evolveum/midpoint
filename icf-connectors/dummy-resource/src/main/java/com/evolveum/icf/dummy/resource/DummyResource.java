@@ -34,12 +34,14 @@ public class DummyResource {
 
 	private Map<String,DummyAccount> accounts;
 	private List<String> scriptHistory;
+	private DummyObjectClass accountObjectClass;
 	
 	private static DummyResource instance = null;
 	
 	DummyResource() {
 		accounts = new HashMap<String, DummyAccount>();
 		scriptHistory = new ArrayList<String>();
+		accountObjectClass = new DummyObjectClass();
 	}
 	
 	public static DummyResource getInstance() {
@@ -49,6 +51,10 @@ public class DummyResource {
 		return instance;
 	}
 	
+	public DummyObjectClass getAccountObjectClass() {
+		return accountObjectClass;
+	}
+
 	public Collection<DummyAccount> listAccounts() {
 		return accounts.values();
 	}
@@ -84,6 +90,13 @@ public class DummyResource {
 	
 	public void runScript(String scriptCode) {
 		scriptHistory.add(scriptCode);
+	}
+	
+	public void populateWithDefaultSchema() {
+		accountObjectClass.clear();
+		accountObjectClass.addAttributeDefinition("fullname", String.class, true, false);
+		accountObjectClass.addAttributeDefinition("description", String.class, false, false);
+		accountObjectClass.addAttributeDefinition("interests", String.class, false, true);
 	}
 	
 }

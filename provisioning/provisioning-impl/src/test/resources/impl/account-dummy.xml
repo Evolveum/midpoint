@@ -19,17 +19,23 @@
 <!-- Portions Copyrighted 2011 [name of copyright owner] -->
 <!-- -->
 
-<c:account oid="c0c010c0-d34d-b44f-f11d-33322212dddd"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
+<account oid="c0c010c0-d34d-b44f-f11d-33322212dddd"
+	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
 	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd">
-	<c:name>will</c:name>
-	<c:resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
-	<c:objectClass>ri:AccountObjectClass</c:objectClass>
-	<c:attributes>
+	<name>will</name>
+	<resourceRef oid="ef2bc95b-76e0-59e2-86d6-9999dddddddd" />
+	<objectClass>ri:AccountObjectClass</objectClass>
+	<attributes>
 		<icfs:name>will</icfs:name>
-		<!-- <icfs:password><c:clearValue>3lizab3th</c:clearValue></icfs:password>
-		<ri:FULL_NAME>Will Turner</ri:FULL_NAME>  -->
-	</c:attributes>
-</c:account>
+		<ri:fullname>Will Turner</ri:fullname>
+	</attributes>
+	<credentials>
+		<password>
+			<protectedString>
+				<clearValue>3lizab3th</clearValue>
+			</protectedString>
+		</password>
+	</credentials>
+</account>

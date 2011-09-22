@@ -60,6 +60,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class XsdTypeConverter {
 
+	private static final String BOOLEAN_XML_VALUE_TRUE = "true";
+	private static final String BOOLEAN_XML_VALUE_FALSE = "false";
+
 	private static Map<Class, QName> javaToXsdTypeMap;
 	private static Map<QName, Class> xsdToJavaTypeMap;
 	private static DatatypeFactory datatypeFactory = null;
@@ -78,6 +81,7 @@ public class XsdTypeConverter {
 		addMapping(long.class, DOMUtil.XSD_INTEGER, false);
 		addMapping(Long.class, DOMUtil.XSD_INTEGER, false);
 		addMapping(boolean.class, DOMUtil.XSD_BOOLEAN, true);
+		addMapping(Boolean.class, DOMUtil.XSD_BOOLEAN, false);
 		addMapping(byte[].class, DOMUtil.XSD_BASE64BINARY, true);
 		addMapping(GregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
 		addMapping(QName.class, DOMUtil.XSD_QNAME, true);
@@ -150,6 +154,7 @@ public class XsdTypeConverter {
 				byte[] decodedData = Base64.decodeBase64(xmlElement.getTextContent());
 				return (T) decodedData;
 			} else if (type.equals(boolean.class) || Boolean.class.isAssignableFrom(type)) {
+				// TODO: maybe we will need more inteligent conversion, e.g. to trim spaces, case insensitive, etc.
 				return (T) Boolean.valueOf(stringContent);
 			} else if (type.equals(GregorianCalendar.class)) {
 				return (T) getDatatypeFactory().newXMLGregorianCalendar(stringContent).toGregorianCalendar();
@@ -158,7 +163,7 @@ public class XsdTypeConverter {
 			} else if (JAXBUtil.isJaxbClass(type)) {
 				return JAXBUtil.unmarshal(xmlElement, type).getValue();
 			} else {
-				throw new IllegalArgumentException("Unknown type for conversion: " + type);
+				throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element "+JAXBUtil.getElementQName(element)+")");
 			}
 		} else if (element instanceof JAXBElement) {
 			return ((JAXBElement<T>)element).getValue();
@@ -275,6 +280,13 @@ public class XsdTypeConverter {
 			} else if (type.equals(byte[].class)) {
 				byte[] binaryData = (byte[]) val;
 				element.setTextContent(Base64.encodeBase64String(binaryData));
+			} else if (type.equals(Boolean.class)) {
+				Boolean bool = (Boolean) val;
+				if (bool.booleanValue()) {
+					element.setTextContent(BOOLEAN_XML_VALUE_TRUE);
+				} else {
+					element.setTextContent(BOOLEAN_XML_VALUE_FALSE);
+				}
 			} else if (type.equals(GregorianCalendar.class)) {
 				XMLGregorianCalendar xmlCal = toXMLGregorianCalendar((GregorianCalendar)val);
 				element.setTextContent(xmlCal.toXMLFormat());
@@ -282,7 +294,7 @@ public class XsdTypeConverter {
 				QName qname = (QName)val;
 				DOMUtil.setQNameValue(element, qname);
 			} else {
-				throw new IllegalArgumentException("Unknown type for conversion: " + type);
+				throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element "+elementName+")");
 			}
 			if (recordType) {
 				QName xsdType = toXsdType(val.getClass());

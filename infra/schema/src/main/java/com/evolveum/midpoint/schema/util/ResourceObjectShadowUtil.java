@@ -19,6 +19,10 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import javax.xml.namespace.QName;
+
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 /**
@@ -37,6 +41,28 @@ public class ResourceObjectShadowUtil {
 		} else {
 			return null;
 		}
+	}
+	
+	public static String getSingleAttributeValue(ResourceObjectShadowType shadow, QName attrName) {
+		if (shadow.getAttributes() == null || shadow.getAttributes().getAny() == null ||
+				shadow.getAttributes().getAny().isEmpty()) {
+			return null;
+		}
+		String value = null;
+		for (Object element : shadow.getAttributes().getAny()) {
+			if (attrName.equals(JAXBUtil.getElementQName(element))) {
+				if (value != null) {
+					throw new IllegalArgumentException("Multiple values for attribute "+attrName+" in "+ObjectTypeUtil.toShortString(shadow)+" while expecting a single value");
+				}
+				if (element instanceof Element) {
+					value = ((Element)element).getTextContent();
+				} else {
+					// JAXBObject, obviously not a string attribute
+					throw new IllegalArgumentException("Found value "+element+" for attribute "+attrName+" in "+ObjectTypeUtil.toShortString(shadow)+" while expecting a string value");
+				}
+			}
+		}
+		return value;
 	}
 
 	

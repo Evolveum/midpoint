@@ -14,12 +14,14 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
@@ -28,19 +30,25 @@ import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
 
 /**
  * 
@@ -62,6 +70,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImplDummyTest.class);
 
+	private ResourceType resource;
 	private static DummyResource dummyResource;
 	
 	@Autowired
@@ -88,6 +97,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 	@BeforeClass
 	public static void initResource() throws Exception {
 		dummyResource = DummyResource.getInstance();
+		dummyResource.populateWithDefaultSchema();
 	}
 
 	
@@ -116,16 +126,31 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		display("Test result",testResult);
 		assertSuccess("Test resource failed (result)", testResult);
 		
-		ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+		resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
 		display("Resource after test",resource);
+		
+		XmlSchemaType xmlSchemaTypeAfter = resource.getSchema();
+		assertNotNull("No schema after test connection",xmlSchemaTypeAfter);
+		assertFalse("No schema after test connection",xmlSchemaTypeAfter.getAny().isEmpty());
+		
+		CachingMetadata cachingMetadata = xmlSchemaTypeAfter.getCachingMetadata();
+		assertNotNull("No caching metadata",cachingMetadata);
+		assertNotNull("No retrievalTimestamp",cachingMetadata.getRetrievalTimestamp());
+		assertNotNull("No serialNumber",cachingMetadata.getSerialNumber());
+		
+		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
+		Schema parsedSchema = Schema.parse(xsdElement);
+		assertNotNull("No schema after parsing",parsedSchema);
+		
+		// TODO: check schema
 	}
 	
 	@Test
-	public void test002AddAccount() throws Exception {
-		displayTestTile("test002AddAccount");
+	public void test010AddAccount() throws Exception {
+		displayTestTile("test010AddAccount");
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
-				+ ".test002AddAccount");
+				+ ".test010AddAccount");
 
 		AccountShadowType account = unmarshallJaxbFromFile(FILENAME_ACCOUNT, AccountShadowType.class);
 
@@ -153,6 +178,27 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername("will");
 		assertNotNull("No dummy account", dummyAccount);
+		assertEquals("Will Turner", dummyAccount.getAttributeValue("fullname"));
 		
+	}
+	
+	@Test
+	public void test011GetAccount() throws ObjectNotFoundException, CommunicationException, SchemaException {
+		displayTestTile("test011GetAccount");
+		// GIVEN
+		OperationResult result = new OperationResult(ProvisioningServiceImplDummyTest.class.getName()
+				+ ".test011GetAccount");
+		
+		// WHEN
+		AccountShadowType accountType = provisioningService.getObject(AccountShadowType.class, ACCOUNT_NEW_OID, null, result);
+		
+		// THEN
+		display("Retrieved account shadow",accountType);
+
+		assertNotNull("No dummy account", accountType);
+		assertEquals("Will Turner", ResourceObjectShadowUtil.getSingleAttributeValue(accountType, 
+				new QName(resource.getNamespace(), "fullname")));
+
+		// TODO: check
 	}
 }

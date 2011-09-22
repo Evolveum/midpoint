@@ -1660,16 +1660,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				continue;
 			}
 			QName qname = convertAttributeNameToQName(icfAttr.getName());
-
-			// QName type =
-			// XsdTypeConverter.toXsdType(icfAttr.getValue().get(0).getClass());
-			// PropertyDefinition pd = new PropertyDefinition(qname, type);
-			// Property roa = pd.instantiate();
-			// ResourceObjectAttribute roa = road.instantiate();
+			
 			ResourceObjectAttribute roa = new ResourceObjectAttribute(qname);
-			List<Object> icfValues = icfAttr.getValue();
-			if (icfValues!=null) {
-				roa.getValues().addAll(icfValues);
+			if (icfAttr.getValue()!=null) {
+				// Convert the values. While most values do not need conversions, some
+				// of them may need it (e.g. GuardedString)
+				for (Object icfValue : icfAttr.getValue()) {
+					Object value = convertValueFromIcf(icfValue, qname);
+					roa.getValues().add(value);
+				}
 			}
 			ro.add(roa);
 		}
@@ -1694,7 +1693,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 			Set<Object> convertedAttributeValues = new HashSet<Object>();
 			for (Object value : attribute.getValues()) {
-				convertedAttributeValues.add(convertValueToIcf(value, attribute.getName(), parentResult));
+				convertedAttributeValues.add(convertValueToIcf(value, attribute.getName()));
 			}
 
 			Attribute connectorAttribute = AttributeBuilder.build(attrName,
@@ -1705,7 +1704,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		return attributes;
 	}
 
-	private Object convertValueToIcf(Object value, QName propName, OperationResult parentResult) throws SchemaException {
+	private Object convertValueToIcf(Object value, QName propName) throws SchemaException {
 		if (value==null) {
 			return null;
 		}
@@ -1714,6 +1713,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return toGuardedString(ps, propName.toString());
 		}			
 		return value;
+	}
+
+	private Object convertValueFromIcf(Object icfValue, QName propName) {
+		if (icfValue==null) {
+			return null;
+		}
+		if (icfValue instanceof GuardedString) {
+			return fromGuardedString((GuardedString)icfValue);
+		}			
+		return icfValue;
 	}
 	
 	private void convertFromActivation(Set<Attribute> attributes,
@@ -2155,6 +2164,22 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			LOGGER.error("Unable to decrypt value of element {}: {}",new Object[]{propertyName, e.getMessage(), e});
 			throw new SystemException("Unable to dectypt value of element "+propertyName+": "+e.getMessage(),e);
 		}
+	}
+	
+	private ProtectedStringType fromGuardedString(GuardedString icfValue) {
+		final ProtectedStringType ps = new ProtectedStringType();
+		icfValue.access(new GuardedString.Accessor() {
+			@Override
+			public void access(char[] passwordChars) {
+				try {
+					ps.setClearValue(new String(passwordChars));
+					protector.encrypt(ps);
+				} catch (EncryptionException e) {
+					throw new IllegalStateException("Protector failed to encrypt password");
+				}
+			}
+		});
+		return ps;
 	}
 
 	/* (non-Javadoc)

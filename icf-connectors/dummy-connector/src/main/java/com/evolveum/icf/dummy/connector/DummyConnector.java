@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Set;
 import org.identityconnectors.common.logging.Log;
 import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.common.security.GuardedString.Accessor;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.ConnectorObject;
 import org.identityconnectors.framework.common.objects.ObjectClass;
@@ -57,6 +58,8 @@ import org.identityconnectors.framework.spi.operations.TestOp;
 import org.identityconnectors.framework.spi.operations.UpdateAttributeValuesOp;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
+import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.ObjectAlreadyExistsException;
 import com.evolveum.icf.dummy.resource.ObjectDoesNotExistException;
@@ -74,9 +77,6 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<String>, SyncOp, TestOp, UpdateAttributeValuesOp {
 	
     private static final Log log = Log.getLog(DummyConnector.class);
-    
-    private static final String ATTRIBUTE_PASSWORD = "__PASSWORD__";
-    private static final String ATTRIBUTE_UID = "__UID__";
     
     /**
      * Place holder for the {@link Configuration} passed into the init() method
@@ -135,8 +135,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         isAccount(objectClass);
         
         // Convert attributes to account
-        DummyAccount newAccount = new DummyAccount();
-        newAccount.setUsername(Utils.getMandatoryStringAttribute(createAttributes,Name.NAME));
+        DummyAccount newAccount = convertToAccount(createAttributes);
         
         String id = null;
 		try {
@@ -156,26 +155,64 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         return uid;
     }
 
-    /**
+	/**
      * {@inheritDoc}
      */
     public Uid update(ObjectClass objectClass, Uid uid, Set<Attribute> replaceAttributes, OperationOptions options) {
         log.info("update::begin");
         isAccount(objectClass);
         
-        //TODO: implement
+        final DummyAccount account = resource.getAccountByUsername(uid.getUidValue());
+        if (account == null) {
+        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+        }
+        
+        for (Attribute attr : replaceAttributes) {
+        	if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
+        		changePassword(account,attr);
+        	
+        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+        		account.setEnabled(getEnable(attr));
+        		
+        	} else {
+	        	String name = attr.getName();
+	        	account.replaceAttributeValues(name, attr.getValue());
+        	}
+        }
+        
         log.info("update::end");
         return uid;
     }
 
-    /**
+	/**
      * {@inheritDoc}
      */
     public Uid addAttributeValues(ObjectClass objectClass, Uid uid, Set<Attribute> valuesToAdd, OperationOptions options) {
         log.info("addAttributeValues::begin");
         isAccount(objectClass);
         
-        //TODO: implement
+        DummyAccount account = resource.getAccountByUsername(uid.getUidValue());
+        if (account == null) {
+        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+        }
+        
+        for (Attribute attr : valuesToAdd) {
+        	
+        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+        		if (account.getPassword() != null) {
+        			throw new IllegalArgumentException("Attempt to add value for password while password is already set");
+        		}
+        		changePassword(account,attr);
+        		
+        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+        		throw new IllegalArgumentException("Attempt to add value for enable attribute");
+        		
+        	} else {
+	        	String name = attr.getName();
+	        	account.addAttributeValues(name, attr.getValue());
+        	}
+        }
+        
         log.info("addAttributeValues::end");
         return uid;
     }
@@ -187,7 +224,22 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("removeAttributeValues::begin");
         isAccount(objectClass);
         
-        //TODO: implement
+        DummyAccount account = resource.getAccountByUsername(uid.getUidValue());
+        if (account == null) {
+        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
+        }
+        
+        for (Attribute attr : valuesToRemove) {
+        	if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+        		throw new UnsupportedOperationException("Removing password value is not supported");
+        	} else if (attr.is(OperationalAttributes.ENABLE_NAME)) {
+        		throw new IllegalArgumentException("Attempt to remove value from enable attribute");
+        	} else {
+	        	String name = attr.getName();
+	        	account.removeAttributeValues(name, attr.getValue());
+        	}
+        }
+
         log.info("removeAttributeValues::end");
         return uid;
     }
@@ -223,9 +275,24 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 
         SchemaBuilder builder = new SchemaBuilder(DummyConnector.class);
         
+        // __ACCOUNT__ objectclass
         ObjectClassInfoBuilder objClassBuilder = new ObjectClassInfoBuilder();
-//        objClassBuilder.setType(ObjectClass.ACCOUNT_NAME);
-//        objClassBuilder.addAttributeInfo(AttributeInfoBuilder.build(Name.NAME));
+        
+        DummyObjectClass dummyAccountObjectClass = resource.getAccountObjectClass();
+        for (DummyAttributeDefinition dummyAttrDef : dummyAccountObjectClass.getAttributeDefinitions()) {
+        	AttributeInfoBuilder attrBuilder = new AttributeInfoBuilder(dummyAttrDef.getAttributeName(), dummyAttrDef.getAttributeType());
+        	attrBuilder.setMultiValued(dummyAttrDef.isMulti());
+        	attrBuilder.setRequired(dummyAttrDef.isRequired());
+        	objClassBuilder.addAttributeInfo(attrBuilder.build());
+        }
+        
+        // __PASSWORD__ attribute
+        objClassBuilder.addAttributeInfo(OperationalAttributeInfos.PASSWORD);
+        
+        // __ENABLE__ attribute
+        objClassBuilder.addAttributeInfo(OperationalAttributeInfos.ENABLE);
+        
+        // __NAME__ will be added by default
         builder.defineObjectClass(objClassBuilder.build());
 
         log.info("schema::end");
@@ -256,6 +323,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public Object runScriptOnConnector(ScriptContext request, OperationOptions options) {
+    	
         throw new UnsupportedOperationException();
     }
 
@@ -340,9 +408,75 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 
 		builder.setUid(account.getUsername());
 		builder.addAttribute(Name.NAME, account.getUsername());
+		
+		for (String name : account.getAttributeNames()) {
+			Set<Object> values = account.getAttributeValues(name, Object.class);
+			builder.addAttribute(name, values);
+		}
+		
+		if (account.getPassword() != null) {
+			GuardedString gs = new GuardedString(account.getPassword().toCharArray());
+			builder.addAttribute(OperationalAttributes.PASSWORD_NAME,gs);
+		}
+		
+		builder.addAttribute(OperationalAttributes.ENABLE_NAME, account.isEnabled());
 
         return builder.build();
 	}
 
-    
+	private DummyAccount convertToAccount(Set<Attribute> createAttributes) {
+		String userName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
+		final DummyAccount newAccount = new DummyAccount(userName);
+
+		for (Attribute attr : createAttributes) {
+			if (attr.is(Name.NAME)) {
+				// Skip, already processed
+
+			} else if (attr.is(OperationalAttributeInfos.PASSWORD.getName())) {
+				changePassword(newAccount,attr);
+				
+			} else if (attr.is(OperationalAttributeInfos.ENABLE.getName())) {
+				boolean enabled = getEnable(attr);
+				newAccount.setEnabled(enabled);
+				
+			} else {
+				String name = attr.getName();
+				newAccount.replaceAttributeValues(name,attr.getValue());
+			}
+		}
+		
+		return newAccount;
+	}
+
+	/**
+	 * @param attr
+	 * @return
+	 */
+	private boolean getEnable(Attribute attr) {
+		if (attr.getValue() == null || attr.getValue().isEmpty()) {
+			throw new IllegalArgumentException("Empty enable attribute was provided");
+		}
+		Object object = attr.getValue().get(0);
+		if (!(object instanceof Boolean)) {
+			throw new IllegalArgumentException("Enable attribute was provided as "+object.getClass().getName()+" while expecting boolean");
+		}
+		return ((Boolean)object).booleanValue();
+	}
+
+	private void changePassword(final DummyAccount account, Attribute attr) {
+		if (attr.getValue() == null || attr.getValue().isEmpty()) {
+			throw new IllegalArgumentException("Empty password was provided");
+		}
+		Object passwdObject = attr.getValue().get(0);
+		if (!(passwdObject instanceof GuardedString)) {
+			throw new IllegalArgumentException("Password was provided as "+passwdObject.getClass().getName()+" while expecting GuardedString");
+		}
+		((GuardedString)passwdObject).access(new Accessor() {
+			@Override
+			public void access(char[] passwdChars) {
+				account.setPassword(new String(passwdChars));
+			}
+		});
+	}
+
 }
