@@ -357,6 +357,9 @@ public class TaskManagerImpl implements TaskManager, BeanFactoryAware {
 			} else {
 				LOGGER.warn("Attempt to stop a task scanner thread that is not alive");
 			}
+			// Stopped thread cannot be started again. Therefore set it to null.
+			// New thread will be created on the next start attempt.
+			scannerThread = null;
 		}
 	}
 
