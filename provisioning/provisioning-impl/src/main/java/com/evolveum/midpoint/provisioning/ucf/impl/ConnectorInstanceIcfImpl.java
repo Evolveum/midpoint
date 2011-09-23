@@ -461,12 +461,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			for (AttributeInfo attributeInfo : attributeInfoSet) {
 				
 				if (OperationalAttributes.PASSWORD_NAME.equals(attributeInfo.getName())) {
-					// This attribute will not go into the schema (TODO)
+					// This attribute will not go into the schema
 					// instead a "password" capability is used
 					capPassword = true;
-					// TODO
 					// Skip this attribute, capability is sufficient
-					// continue;
+					continue;
 				} 
 				
 				if (OperationalAttributes.ENABLE_NAME.equals(attributeInfo.getName())) {

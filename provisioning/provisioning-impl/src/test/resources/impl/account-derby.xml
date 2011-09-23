@@ -30,7 +30,13 @@
 	<c:objectClass>ri:AccountObjectClass</c:objectClass>
 	<c:attributes>
 		<icfs:name>will</icfs:name>
-		<icfs:password><c:clearValue>3lizab3th</c:clearValue></icfs:password>
 		<ri:FULL_NAME>Will Turner</ri:FULL_NAME>
 	</c:attributes>
+	<c:credentials>
+		<c:password>
+			<c:protectedString>
+				<c:clearValue>3lizab3th</c:clearValue>
+			</c:protectedString>
+		</c:password>
+	</c:credentials>
 </c:account>
