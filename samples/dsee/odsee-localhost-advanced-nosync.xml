@@ -187,6 +187,15 @@ object.
 							</c:code>
 						</c:valueExpression>
 					</c:outbound>
+					<inbound>
+						<description>It is mapped to (and also from) "name" property of
+                             user. It is essentially a login name</description>
+						<target>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:name
+                        </target>
+					</inbound>
+
 				</c:attribute>
                 <!-- Definition of cn attribute handling. -->
 				<c:attribute ref="ri:cn">
@@ -213,6 +222,20 @@ object.
 							</c:code>
                         </c:valueExpression>
 					</c:outbound>
+					<inbound>
+					    <description>
+					    	Inbound expression. It is used to synchronize changes
+	                        in the account to the user object in the IDM. This
+	                        expression specifies to copy the cn attribute value
+	                        from the account to the fullName property of the user.
+					    </description>
+						<target>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:fullName
+						</target>
+					</inbound>
+
+
 
 				</c:attribute>
 
@@ -230,6 +253,14 @@ object.
 							</c:code>
                         </c:valueExpression>
 					</c:outbound>
+					<inbound>
+						<description>sn will be synchronized to user's familyName</description>
+						<target>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:familyName
+						</target>
+					</inbound>
+	
                     <!-- sn will be synchronized to user's familyName -->
 				</c:attribute>
 
@@ -247,6 +278,14 @@ object.
 							</c:code>
                         </c:valueExpression>
 					</c:outbound>
+					<inbound>
+						<description>givenName will be synchronized to user's givenName</description>
+						<target>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:givenName
+						</target>
+					</inbound>
+	
 				</c:attribute>
 				<credentials>
 					<outboundPassword>true</outboundPassword>
@@ -268,6 +307,81 @@ object.
 			<cap:liveSync/>
 			<cap:testConnection/>
 		</capabilities>
+        <!--
+            Synchronization section describes the synchronization policy, timing,
+            reactions and similar synchronization settings.
+        -->
+		<synchronization>
+            <!--
+                The synchronization for this resource is enabled.
+                It means that the synchronization will react to changes detected by
+                the system (live sync task, discovery or reconciliation) -->
+			<enabled>true</enabled>
+
+			<correlation> 
+				<description>
+					Correlation expression is a search query.
+                	Following search queury will look for users that have "name"
+                    equal to the "uid" attribute of the account. Simply speaking,
+                    it will look for match in usernames in the IDM and the resource.
+                    The correlation rule always looks for users, so it will not match
+                    any other object type. 
+				</description>
+				<equal>
+					<path>.</path>
+					<valueExpression>
+						<ref>c:name</ref>
+						<code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							declare namespace dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2";
+							$i:account/i:attributes/dj:uid
+						</code>
+		        	</valueExpression>
+				</equal>
+			</correlation>
+
+            <!-- Confirmation rule may be here, but as the search above will
+                 always return at most one match, the confirmation rule is not needed. -->
+
+            <!-- Following section describes reactions to a situations.
+                 The setting here assumes that this resource is authoritative,
+                 therefore all accounts created on the resource should be
+                 reflected as new users in IDM.
+                 See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
+             -->
+			<reaction>
+				<situation>confirmed</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#modifyUser"/>
+			</reaction>
+			<reaction>
+				<situation>deleted</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#unlinkAccount"/>
+			</reaction>
+			<reaction>
+				<situation>missing</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addAccount"/>
+			</reaction>
+			<reaction>
+				<situation>found</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+			</reaction>
+			<reaction>
+				<situation>unassigned</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+			</reaction>
+			<reaction>
+				<situation>unmatched</situation>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#addUser">
+                    <!-- Reference to the User Template is here. If the user would be
+                         created as a result of this action, it will be created according
+                         to this template. -->
+					<userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777222222222"/>
+				</action>
+				<action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-1#linkAccount"/>
+			</reaction>
+
+		</synchronization>
+
 	</c:resource>
 
 </c:objects>
