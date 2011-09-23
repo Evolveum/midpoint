@@ -57,6 +57,7 @@ import org.identityconnectors.framework.api.operations.SyncApiOp;
 import org.identityconnectors.framework.api.operations.TestApiOp;
 import org.identityconnectors.framework.api.operations.UpdateApiOp;
 import org.identityconnectors.framework.api.operations.ValidateApiOp;
+import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -104,12 +105,12 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_LOCAL_NAME = "configurationProperties";
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_TYPE_LOCAL_NAME = "ConfigurationPropertiesType";
 	public static final String CONNECTOR_SCHEMA_CONFIGURATION_TYPE_LOCAL_NAME = "ConfigurationType";
-	
+
 	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_XML_ELEMENT_NAME = "connectorPoolConfiguration";
-	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(
-			NS_ICF_CONFIGURATION, "connectorPoolConfiguration");
-	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(
-			NS_ICF_CONFIGURATION, "ConnectorPoolConfigurationType");
+	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_ELEMENT = new QName(NS_ICF_CONFIGURATION,
+			"connectorPoolConfiguration");
+	public static final QName CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_TYPE = new QName(NS_ICF_CONFIGURATION,
+			"ConnectorPoolConfigurationType");
 	protected static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_EVICTABLE_IDLE_TIME_MILLIS = "minEvictableIdleTimeMillis";
 	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MIN_IDLE = "minIdle";
 	public static final String CONNECTOR_SCHEMA_CONNECTOR_POOL_CONFIGURATION_MAX_IDLE = "maxIdle";
@@ -120,29 +121,28 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_ELEMENT = new QName(NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_XML_ELEMENT_NAME);
 	public static final QName CONNECTOR_SCHEMA_PRODUCER_BUFFER_SIZE_TYPE = DOMUtil.XSD_INTEGER;
-	
+
 	public static final String CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME = "timeouts";
-	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(NS_ICF_CONFIGURATION, 
+	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_ELEMENT = new QName(NS_ICF_CONFIGURATION,
 			CONNECTOR_SCHEMA_TIMEOUTS_XML_ELEMENT_NAME);
 	public static final QName CONNECTOR_SCHEMA_TIMEOUTS_TYPE = new QName(NS_ICF_CONFIGURATION, "TimeoutsType");
-	
-	static final Map<String,Class<? extends APIOperation>> apiOpMap = new HashMap<String,Class<? extends APIOperation>>();
+
+	static final Map<String, Class<? extends APIOperation>> apiOpMap = new HashMap<String, Class<? extends APIOperation>>();
 
 	private static final String ICF_CONFIGURATION_NAMESPACE_PREFIX = ICF_FRAMEWORK_URI + "/bundle/";
 	private static final String CONNECTOR_IDENTIFIER_SEPARATOR = "/";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorFactoryIcfImpl.class);
-	
 
 	private ConnectorInfoManagerFactory connectorInfoManagerFactory;
 	private ConnectorInfoManager localConnectorInfoManager;
 	private Set<URL> bundleURLs;
-	private Set<ConnectorType>  localConnectorTypes = null;
+	private Set<ConnectorType> localConnectorTypes = null;
 
 	@Autowired(required = true)
 	MidpointConfiguration midpointConfiguration;
-	
-	@Autowired(required=true)
+
+	@Autowired(required = true)
 	Protector protector;
 
 	public ConnectorFactoryIcfImpl() {
@@ -179,7 +179,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		}
 
 		connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
-		
+
 	}
 
 	/**
@@ -210,7 +210,8 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 		// Create new midPoint ConnectorInstance and pass it the ICF connector
 		// facade
-		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cinfo, connectorType, namespace, protector);
+		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cinfo, connectorType, namespace,
+				protector);
 
 		return connectorImpl;
 	}
@@ -254,16 +255,16 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		if (localConnectorTypes == null) {
 			// Lazy initialize connector list
 			localConnectorTypes = new HashSet<ConnectorType>();
-			
+
 			// Fetch list of local connectors from ICF
 			List<ConnectorInfo> connectorInfos = getLocalConnectorInfoManager().getConnectorInfos();
-			
+
 			for (ConnectorInfo connectorInfo : connectorInfos) {
 				ConnectorType connectorType = convertToConnectorType(connectorInfo, null);
 				localConnectorTypes.add(connectorType);
 			}
 		}
-		
+
 		return localConnectorTypes;
 	}
 
@@ -341,8 +342,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	 */
 	private ConnectorInfoManager getLocalConnectorInfoManager() {
 		if (null == localConnectorInfoManager) {
-			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(bundleURLs
-					.toArray(new URL[0]));
+			localConnectorInfoManager = connectorInfoManagerFactory.getLocalManager(bundleURLs.toArray(new URL[0]));
 		}
 		return localConnectorInfoManager;
 	}
@@ -358,8 +358,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		int port = Integer.parseInt(hostType.getPort());
 		GuardedString key = new GuardedString(hostType.getSharedSecret().toCharArray());
 		// TODO: SSL
-		RemoteFrameworkConnectionInfo remoteFramewrorkInfo = new RemoteFrameworkConnectionInfo(hostname,
-				port, key);
+		RemoteFrameworkConnectionInfo remoteFramewrorkInfo = new RemoteFrameworkConnectionInfo(hostname, port, key);
 		return connectorInfoManagerFactory.getRemoteManager(remoteFramewrorkInfo);
 	}
 
@@ -400,13 +399,17 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			}
 
 			if (null != prop.get("ConnectorBundle-Name")) {
-				LOGGER.info("Discovered icf bundle on CLASSPATH: " + prop.get("ConnectorBundle-Name")
-						+ " version: " + prop.get("ConnectorBundle-Version"));
+				LOGGER.info("Discovered icf bundle on CLASSPATH: " + prop.get("ConnectorBundle-Name") + " version: "
+						+ prop.get("ConnectorBundle-Version"));
 
 				// hack to split MANIFEST from name
 				try {
 					URL tmp = new URL(u.getPath().split("!")[0]);
-					bundle.add(tmp);
+					if (isThisBundleCompatible(tmp)) {
+						bundle.add(tmp);
+					} else {
+						LOGGER.info("Skip loading budle {} due error occured", tmp);
+					}
 				} catch (MalformedURLException e) {
 					LOGGER.error("This never happend we hope. URL:" + u.getPath(), e);
 					throw new SystemException(e);
@@ -456,7 +459,11 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		for (int i = 0; i < dirEntries.length; i++) {
 			if (isThisJarFileBundle(dirEntries[i])) {
 				try {
-					bundle.add(dirEntries[i].toURI().toURL());
+					if (isThisBundleCompatible(dirEntries[i].toURI().toURL())) {
+						bundle.add(dirEntries[i].toURI().toURL());
+					} else {
+						LOGGER.info("Skip loading budle {} due error occured", dirEntries[i].toURI().toURL());
+					}
 				} catch (MalformedURLException e) {
 					LOGGER.error("This never happend we hope.", e);
 					throw new SystemException(e);
@@ -464,6 +471,28 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			}
 		}
 		return bundle;
+	}
+
+	/**
+	 * Test if bundle internal configuration and dependencie are OK
+	 * @param bundleUrl
+	 * 			tested bundle URL
+	 * @return true if OK
+	 */
+	private Boolean isThisBundleCompatible(URL bundleUrl) {
+		if (null == bundleUrl)
+			return false;
+		try {
+			ConnectorInfoManagerFactory.getInstance().getLocalManager(bundleUrl);
+		} catch (ConfigurationException ex) {
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.error(ex.getMessage(), ex);
+			} else {
+				LOGGER.error(ex.getMessage());
+			}
+			return false;
+		}
+		return true;
 	}
 
 	/**
@@ -501,8 +530,8 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			JarEntry entry = new JarEntry("META-INF/MANIFEST.MF");
 			is = jar.getInputStream(entry);
 		} catch (IOException ex) {
-			LOGGER.debug("Unable to fine MANIFEST.MF in jar file: " + file.getAbsolutePath() + " ["
-					+ ex.getMessage() + "]");
+			LOGGER.debug("Unable to fine MANIFEST.MF in jar file: " + file.getAbsolutePath() + " [" + ex.getMessage()
+					+ "]");
 			return false;
 		}
 
@@ -537,8 +566,8 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	 */
 	private ConnectorInfo getConnectorInfo(ConnectorType connectorType) throws ObjectNotFoundException {
 		if (!ICF_FRAMEWORK_URI.equals(connectorType.getFramework())) {
-			throw new ObjectNotFoundException("Requested connector for framework "
-					+ connectorType.getFramework() + " cannot be found in framework " + ICF_FRAMEWORK_URI);
+			throw new ObjectNotFoundException("Requested connector for framework " + connectorType.getFramework()
+					+ " cannot be found in framework " + ICF_FRAMEWORK_URI);
 		}
 		ConnectorKey key = getConnectorKey(connectorType);
 		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() == null) {
@@ -557,11 +586,11 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		return new ConnectorKey(connectorType.getConnectorBundle(), connectorType.getConnectorVersion(),
 				connectorType.getConnectorType());
 	}
-	
+
 	static Class<? extends APIOperation> resolveApiOpClass(String opName) {
 		return apiOpMap.get(opName);
 	}
-	
+
 	static {
 		apiOpMap.put("create", CreateApiOp.class);
 		apiOpMap.put("get", GetApiOp.class);
