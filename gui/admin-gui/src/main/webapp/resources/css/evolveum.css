@@ -75,9 +75,9 @@ body {
 #top-nav li a {
 	text-align: center;
 	display: inline-block;
-	font: 19px "Times New Roman";
-	height: 40px;
-	padding: 7px 20px 0 20px;
+	font: 17px Arial, Helvetica, sans-serif;
+	height: 41px;
+	padding: 6px 20px 0 20px;
 	text-decoration: none;
 	width: auto;
 	color: white;
@@ -88,9 +88,9 @@ body {
 }
 
 #top-nav a span {
-	display: block; font : 14px "Times New Roman";
+	display: block;
 	color: #a2daed;
-	font: 14px "Times New Roman";
+	font: 12px Arial, Helvetica, sans-serif;
 }
 
 #top-nav a:hover span {
@@ -174,7 +174,7 @@ body {
 }
 
 #login-box span em {
-	font: 18px Georgia, "Times New Roman", serif;
+	font: 18px Arial, Helvetica, sans-serif;
 	color: #FFFFFF;
 }
 
@@ -228,7 +228,7 @@ body {
 
 #sidebar h3 {
 	color: #363930;
-	font: 18px "Times New Roman";
+	font: 17px Arial, Helvetica, sans-serif;
 	font-style: italic;
 	font-weight: bold;
 	padding: 0 5px 5px 20px;
@@ -256,7 +256,6 @@ body {
 #sidebar ul li:hover {
 	background-color: #a7c6d0;
 	/* background: url("../images/images-selected.png") no-repeat 0 50%; */
-	cursor: pointer;
 }
 
 #sidebar ul li a:hover{
@@ -384,21 +383,21 @@ li.messages-line-error {
 }
 
 h2 {
-	font: 22px Georgia, "Times New Roman", serif;
+	font: 22px Arial, Helvetica, sans-serif;
 	font-weight: bold;
 	padding-bottom: 10px;
 	text-transform: capitalize;
 }
 
 h3 {
-	font: 17px Georgia, "Times New Roman", serif;
+	font: 17px Arial, Helvetica, sans-serif;
 	font-weight: bold;
 	padding-bottom: 5px;
 	text-transform: capitalize;
 }
 
 h4 {
-	font: 15px Georgia, "Times New Roman", serif;
+	font: 15px Arial, Helvetica, sans-serif;
 	font-weight: bold;
 	padding-top: 5px;
 	padding-bottom: 5px;
