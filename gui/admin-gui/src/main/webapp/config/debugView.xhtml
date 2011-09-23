@@ -12,6 +12,16 @@
 	</ui:define>
 
 	<ui:define name="content">
+		<ice:panelGrid columns="2" cellpadding="7" cellspacing="7" rendered="#{debugView.viewEditable}">
+			<ice:outputLabel value="#{msg['page.config.debugView.oid']}:" />
+			<ice:outputLabel value="#{debugView.object.oid}" />
+
+			<ice:outputLabel value="#{msg['page.config.debugView.name']}:" />
+			<ice:outputLabel value="#{debugView.object.name}" />
+		</ice:panelGrid>
+		
+		<hr />
+		
 		<ice:form id="debugViewForm">
 			<ice:selectBooleanCheckbox value="#{debugView.editOther}" immediate="true" partialSubmit="true"
 				style="margin-bottom: 7px;">#{msg['page.config.debugView.editOther']}
@@ -28,19 +38,7 @@
 
 		<hr />
 
-		<ice:panelGrid columns="2" cellpadding="7" cellspacing="7" rendered="#{debugView.viewEditable}">
-			<ice:outputLabel value="#{msg['page.config.debugView.oid']}" />
-			<ice:outputLabel value="#{debugView.object.oid}" />
-
-			<ice:outputLabel value="#{msg['page.config.debugView.name']}" />
-			<ice:outputLabel value="#{debugView.object.name}" />
-		</ice:panelGrid>
-
 		<ice:form rendered="#{debugView.viewEditable}">
-			<ice:selectBooleanCheckbox id="editable" value="#{debugView.editable}" immediate="true" partialSubmit="true"
-				style="margin-bottom: 7px;">
-					#{msg['page.config.debugView.edit']}
-					</ice:selectBooleanCheckbox>
 			<ui:remove>
 				<ice:inputTextarea id="textAreaDebugView" style="width: 967px; height: 350px;" value="#{debugView.xml}"
 					readonly="#{not debugView.editable}" />
@@ -49,9 +47,15 @@
 			<ui:remove>
 				<idm:inputSyntaxTextArea id="code" cols="20" rows="10" width="943" height="390" value="#{debugView.xml}" />
 			</ui:remove>
-
+					
 			<idm:xmlInput id="editor" width="978" height="600" readonly="#{not debugView.editable}"
 				value="#{debugView.xml}" />
+				
+			<div class="button-bar">
+				<idm:button action="#{debugView.editable}" value="#{msg['page.config.debugView.edit']}"
+			img="/resources/images/page_white_code.png" id="editButton" immediate="true" partialSubmit="true" />
+			</div>
+			
 			<div class="button-bar">
 				<idm:button action="#{debugView.back}" value="#{msg['page.config.debugView.button.back']}"
 					img="/resources/images/door_in.png" id="backButton" immediate="true" />

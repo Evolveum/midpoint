@@ -38,7 +38,6 @@ import org.w3c.dom.Node;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.common.validator.EventHandler;
 import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.ValidationMessage;
 import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.repo.RepositoryManager;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
@@ -110,6 +108,16 @@ public class DebugViewController implements Serializable {
 	public void setEditable(boolean editable) {
 		this.editable = editable;
 	}
+	
+	public void editable(){
+		if(this.editable){
+			editable = false;
+		} else {
+			editable = true;
+		}
+	}
+	
+	
 
 	public String getXml() {
 		return xml;
