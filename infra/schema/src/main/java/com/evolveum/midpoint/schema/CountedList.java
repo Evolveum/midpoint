@@ -18,7 +18,7 @@
  *
  * Portions Copyrighted 2011 [name of copyright owner]
  */
-package com.evolveum.midpoint.common;
+package com.evolveum.midpoint.schema;
 
 import java.util.List;
 
