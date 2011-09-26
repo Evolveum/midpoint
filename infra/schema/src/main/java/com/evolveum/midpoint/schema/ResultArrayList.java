@@ -27,26 +27,26 @@ import java.util.ArrayList;
  * @author lazyman
  * 
  */
-public class CountedArrayList<T> extends ArrayList<T> implements CountedList<T> {
+public class ResultArrayList<T> extends ArrayList<T> implements ResultList<T> {
 
 	private static final long serialVersionUID = 7475418036271204310L;
-	private int count;
+	private Integer totalResultCount;
 
-	public CountedArrayList(int count) {
-		this.count = count;
+	public ResultArrayList(int count) {
+		this.totalResultCount = count;
 	}
 
 	@Override
-	public int getCount() {
-		return count;
+	public Integer getTotalResultCount() {
+		return totalResultCount;
 	}
 
 	@Override
-	public void setCount(int count) {
+	public void setTotalResultCount(Integer count) {
 		if (count < 0) {
 			throw new IllegalArgumentException("Count must non negative integer value (" + count + ")");
 		}
 
-		this.count = count;
+		this.totalResultCount = count;
 	}
 }
