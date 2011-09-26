@@ -4,11 +4,11 @@
 CREATE DATABASE IF NOT EXISTS midpoint_tests CHARACTER SET utf8 COLLATE utf8_bin;
 
 CREATE TABLE midpoint_tests.idrepo (
-	userId	CHAR(16) NOT NULL,
-	password	CHAR(16) NOT NULL,
-	firstName	CHAR(16),
-	lastName	CHAR(16),
-	fullName	CHAR(32),
+	userId	VARCHAR(16) NOT NULL,
+	password	VARCHAR(16) NOT NULL,
+	firstName	VARCHAR(16),
+	lastName	VARCHAR(16),
+	fullName	VARCHAR(32),
 	PRIMARY KEY (userId)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
