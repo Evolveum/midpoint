@@ -12,8 +12,29 @@ ice.onLoad(function() {
 });
  */
 
+var editor = null;
+
 function loadEditor(editorId) {
-	var editor = ace.edit(editorId + "Real");
+	editor = ace.edit(editorId + "Real");
+	editor.setTheme("ace/theme/eclipse");
+
+	var XmlMode = require("ace/mode/xml").Mode; // getSession(editor);
+	editor.getSession().setMode(new XmlMode());
+	document.getElementById(editorId + "Real").style.fontSize = '13px';
+	editor.setReadOnly(window.editors[editorId]);
+	editor.getSession().on(
+			'change',
+			function() {
+				document.getElementById(editorId).value = editor.getSession()
+						.getValue();
+			});
+}
+
+function loadEditorAgain(editorId) {
+	if (editor == null) {
+		editor = ace.edit(editorId + "Real");
+	}
+
 	editor.setTheme("ace/theme/eclipse");
 
 	var XmlMode = require("ace/mode/xml").Mode;
