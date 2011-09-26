@@ -1,0 +1,2 @@
+DROP TABLE IF EXISTS midpoint_tests.idrepo;
+DROP DATABASE IF EXISTS midpoint_tests;

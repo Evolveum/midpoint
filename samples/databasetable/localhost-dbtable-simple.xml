@@ -72,8 +72,8 @@ object.
 				<icscdbtable:port>3306</icscdbtable:port>
 				<icscdbtable:quoting></icscdbtable:quoting>
 				<icscdbtable:host>localhost</icscdbtable:host>
-				<icscdbtable:user>root</icscdbtable:user>
-				<icscdbtable:password><clearValue>qwe123</clearValue></icscdbtable:password>
+				<icscdbtable:user>midpoint_tests</icscdbtable:user>
+				<icscdbtable:password><clearValue>secret</clearValue></icscdbtable:password>
 				<icscdbtable:database>midpoint_tests</icscdbtable:database>
 				<icscdbtable:table>idrepo</icscdbtable:table>
 				<icscdbtable:keyColumn>userId</icscdbtable:keyColumn>
