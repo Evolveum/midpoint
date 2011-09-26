@@ -87,15 +87,15 @@ public class AceXmlInput extends HtmlInputHidden {
 		script.append("'] = ");
 		script.append(readonly.booleanValue());
 		script.append(";\n");
-		
-//		writer.writeText(script.toString(), null);
-//		writer.endElement("script");
-//
-//		writer.startElement("script", null);
-//		writer.writeAttribute("type", "text/javascript", null);
-//		
-//		script = new StringBuilder();
-		
+
+		// writer.writeText(script.toString(), null);
+		// writer.endElement("script");
+		//
+		// writer.startElement("script", null);
+		// writer.writeAttribute("type", "text/javascript", null);
+		//
+		// script = new StringBuilder();
+
 		script.append("ice.onLoad(function() {\n");
 		// script.append("\talert(\"After load: editable: \" + !" +
 		// readonly.booleanValue() + ");\n");
@@ -103,7 +103,7 @@ public class AceXmlInput extends HtmlInputHidden {
 		script.append("\tice.onAfterUpdate(function(updates) {\n");
 		// script.append("\talert(\"After update: editable: \" + !" +
 		// readonly.booleanValue() + ");");
-		script.append("\t\tloadEditor(\"" + getClientId() + "\");\n");
+		script.append("\t\tloadEditorAgain(\"" + getClientId() + "\");\n");
 		script.append("\t});\n");
 		script.append("});\n");
 
