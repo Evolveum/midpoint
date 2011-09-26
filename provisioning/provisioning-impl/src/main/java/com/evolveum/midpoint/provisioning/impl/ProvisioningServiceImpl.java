@@ -681,6 +681,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("listResourceObjects: processing shadow: {}", DebugUtil.prettyPrint(shadow));
 				}
+				
 				objectList.getObject().add(shadow);
 				return true;
 			}

@@ -76,6 +76,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.result.OperationResult;
@@ -850,6 +851,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					// Activation change means modification of attributes
 					convertFromPassword(attributes, passwordChangeOperation);
 				}
+				
 			}
 		}
 		
@@ -1912,7 +1914,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		
 		for (Operation op : additionalOperations) {
 			if (op instanceof ExecuteScriptOperation) {
+				
 				ExecuteScriptOperation executeOp = (ExecuteScriptOperation) op;
+				LOGGER.debug("Find execute script operation: {}", DebugUtil.prettyPrint(executeOp));
 				// execute operation in the right order..
 				if (order.equals(executeOp.getScriptOrder())) {
 					executeScript(executeOp);
@@ -1930,12 +1934,16 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// check if the script should be executed on the connector or the
 		// resoruce...
 		if (executeOp.isConnectorHost()) {
+			LOGGER.debug("Start running script on connector.");
 			icfConnectorFacade.runScriptOnConnector(scriptContext,
 					new OperationOptionsBuilder().build());
+			LOGGER.debug("Finish running script on connector.");
 		}
 		if (executeOp.isResourceHost()) {
+			LOGGER.debug("Start running script on resource.");
 			icfConnectorFacade.runScriptOnResource(scriptContext,
 					new OperationOptionsBuilder().build());
+			LOGGER.debug("Finish running script on resource.");
 		}
 
 	}

@@ -447,6 +447,7 @@ public class ShadowCache {
 					// Detached shadow (without OID)
 					try {
 						shadow = assembleShadow(object, null, parentResult);
+
 					} catch (SchemaException e) {
 						// TODO: better error handling
 						LOGGER.error(
@@ -483,6 +484,8 @@ public class ShadowCache {
 			ObjectAlreadyExistsException, SchemaException, ObjectNotFoundException {
 
 		Validate.notNull(shadow, "Object to add must not be null.");
+
+		LOGGER.debug("Scripts: {}", JAXBUtil.silentMarshalWrap(scripts));
 
 		LOGGER.debug("Start adding shadow object {}.", JAXBUtil.silentMarshalWrap(shadow));
 
@@ -556,34 +559,38 @@ public class ShadowCache {
 		if (scripts == null) {
 			// No warning needed, this is quite normal
 			// result.recordWarning("Skiping creating script operation to execute. Scripts was not defined.");
+			LOGGER.debug("Skiping creating script operation to execute. Scripts was not defined.");
 			return;
 		}
+
 		for (ScriptType script : scripts.getScript()) {
-			if (type.equals(script.getOperation())) {
-				ExecuteScriptOperation scriptOperation = new ExecuteScriptOperation();
+			for (OperationTypeType operationType : script.getOperation()) {
+				if (type.equals(operationType)) {
+					ExecuteScriptOperation scriptOperation = new ExecuteScriptOperation();
 
-				for (ScriptArgumentType argument : script.getArgument()) {
-					JAXBElement<ValueConstructionType.Value> value = argument.getValue();
-					ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(), value
-							.getValue().getContent());
-					scriptOperation.getArgument().add(arg);
+					for (ScriptArgumentType argument : script.getArgument()) {
+						JAXBElement<ValueConstructionType.Value> value = argument.getValue();
+						ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(), value
+								.getValue().getContent());
+						scriptOperation.getArgument().add(arg);
+					}
+
+					scriptOperation.setLanguage(script.getLanguage());
+					scriptOperation.setTextCode(script.getCode());
+
+					scriptOperation.setScriptOrder(script.getOrder());
+
+					if (script.getHost().equals(ScriptHostType.CONNECTOR)) {
+						scriptOperation.setConnectorHost(true);
+						scriptOperation.setResourceHost(false);
+					}
+					if (script.getHost().equals(ScriptHostType.RESOURCE)) {
+						scriptOperation.setConnectorHost(false);
+						scriptOperation.setResourceHost(true);
+					}
+					LOGGER.debug("Created script operation: {}", DebugUtil.prettyPrint(scriptOperation));
+					operations.add(scriptOperation);
 				}
-
-				scriptOperation.setLanguage(script.getLanguage());
-				scriptOperation.setTextCode(script.getCode());
-
-				scriptOperation.setScriptOrder(script.getOrder());
-
-				if (script.getHost().equals(ScriptHostType.CONNECTOR)) {
-					scriptOperation.setConnectorHost(true);
-					scriptOperation.setResourceHost(false);
-				}
-				if (script.getHost().equals(ScriptHostType.RESOURCE)) {
-					scriptOperation.setConnectorHost(false);
-					scriptOperation.setResourceHost(true);
-				}
-
-				operations.add(scriptOperation);
 			}
 		}
 	}
@@ -665,7 +672,9 @@ public class ShadowCache {
 		if (objectType instanceof ResourceObjectShadowType) {
 			ResourceObjectShadowType shadow = (ResourceObjectShadowType) objectType;
 			if (resource == null) {
-				resource = getResource(ResourceObjectShadowUtil.getResourceOid(shadow), parentResult);
+				resource = getResource(ResourceObjectShadowUtil.getResourceOid(shadow),
+						parentResult);
+				
 			}
 
 			LOGGER.debug("Modifying object {} on resource with oid {}", JAXBUtil.silentMarshalWrap(shadow),
@@ -702,24 +711,37 @@ public class ShadowCache {
 				}
 
 				// TODO: look for activation change
-				Boolean enabled = ObjectTypeUtil.getPropertyNewValue(objectChange,
-						"activation", "enabled", Boolean.class);
-				
+				Boolean enabled = ObjectTypeUtil.getPropertyNewValue(objectChange, "activation", "enabled",
+						Boolean.class);
+				LOGGER.debug("Find activation change to: {}", enabled);
+
 				if (enabled != null) {
+					LOGGER.debug("enabled not null.");
 					ActivationCapabilityType activationCapability = null;
-					// check resource native capabilities. if resource cannot do activation, it sholud be null..
-					if (resource.getNativeCapabilities() != null){
-						activationCapability = ResourceTypeUtil.getCapability(resource.getNativeCapabilities().getAny(), ActivationCapabilityType.class);
+					LOGGER.debug("resource native capabilities: {}", resource.getNativeCapabilities());
+					// check resource native capabilities. if resource cannot do
+					// activation, it sholud be null..
+					if (resource.getNativeCapabilities() != null) {
+						activationCapability = ResourceTypeUtil.getCapability(resource
+								.getNativeCapabilities().getAny(), ActivationCapabilityType.class);
+						LOGGER.debug("Activation capability of resource: {}",
+								JAXBUtil.silentMarshalWrap(activationCapability));
 					}
-					if (activationCapability == null){
-						// if resource cannot do activation, resource should have specified policies to do that
-						AttributeModificationOperation activationAttribute = convertToActivationAttribute(resource, enabled);
-						changes.add(activationAttribute);			
-					} else{
-						// if resource can do activation, pass it to the connector
-					
-						ActivationChangeOperation activationOp = new ActivationChangeOperation(
-								enabled);
+					if (activationCapability == null) {
+						// if resource cannot do activation, resource should
+						// have specified policies to do that
+						AttributeModificationOperation activationAttribute = convertToActivationAttribute(
+								resource, enabled);
+						if (activationAttribute == null) {
+							throw new IllegalStateException(
+									"Resource does not have specified policies to change activation of the account.");
+						}
+						changes.add(activationAttribute);
+					} else {
+						// if resource can do activation, pass it to the
+						// connector
+
+						ActivationChangeOperation activationOp = new ActivationChangeOperation(enabled);
 						changes.add(activationOp);
 					}
 
@@ -727,14 +749,14 @@ public class ShadowCache {
 			}
 
 			LOGGER.trace("Applying change: {}", JAXBUtil.silentMarshalWrap(objectChange));
-			
+
 			Set<AttributeModificationOperation> sideEffectChanges = null;
 			try {
 
 				// Invoke ICF
-				sideEffectChanges = connector.modifyObject(shadow.getObjectClass(),
-						identifiers, changes, parentResult);
-				
+				sideEffectChanges = connector.modifyObject(shadow.getObjectClass(), identifiers, changes,
+						parentResult);
+
 			} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
 				parentResult.recordFatalError("Object to modify not found. Reason: " + ex.getMessage(), ex);
 				throw new ObjectNotFoundException("Object to modify not found. " + ex.getMessage(), ex);
@@ -744,21 +766,23 @@ public class ShadowCache {
 				throw new CommunicationException("Error comminicationg with connector " + connector + ": "
 						+ ex.getMessage(), ex);
 			}
-			
+
 			if (!sideEffectChanges.isEmpty()) {
 				// TODO: implement
-				throw new UnsupportedOperationException("Handling of side-effect changes is not yet supported");
+				throw new UnsupportedOperationException(
+						"Handling of side-effect changes is not yet supported");
 			}
-			
+
 			parentResult.recordSuccess();
 		}
 	}
 
 	private AttributeModificationOperation convertToActivationAttribute(ResourceType resource, Boolean enabled) {
-		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
+		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
+				ActivationCapabilityType.class);
 		AttributeModificationOperation attributeChange = new AttributeModificationOperation();
 		Property property = new Property(activationCapability.getEnableDisable().getAttribute());
-		property.setValue(String.valueOf(!enabled));	
+		property.setValue(String.valueOf(!enabled));
 		attributeChange.setNewAttribute(property);
 		attributeChange.setChangeType(PropertyModificationTypeType.replace);
 		return attributeChange;
@@ -1137,9 +1161,7 @@ public class ShadowCache {
 			throw new SchemaException("Can't create account shadow from identifiers: "
 					+ change.getIdentifiers());
 		}
-	
-		
-		
+
 		try {
 			addShadowToRepository(shadow, resourceObject, parentResult);
 		} catch (ObjectAlreadyExistsException e) {
@@ -1335,9 +1357,10 @@ public class ShadowCache {
 	}
 
 	private ResourceType getResource(String oid, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException {
+			throws ObjectNotFoundException, SchemaException, CommunicationException {
 		// TODO: add some caching
-		return getRepositoryService().getObject(ResourceType.class, oid, null, parentResult);
+		ResourceType resource =getRepositoryService().getObject(ResourceType.class, oid, null, parentResult);
+		return completeResource(resource, null, parentResult);
 	}
 
 	/**
@@ -1391,7 +1414,6 @@ public class ShadowCache {
 
 		return resourceObject;
 	}
-
 
 	/**
 	 * Create shadow based on the resource object that we have got
