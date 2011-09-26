@@ -32,6 +32,10 @@ public class ResultArrayList<T> extends ArrayList<T> implements ResultList<T> {
 	private static final long serialVersionUID = 7475418036271204310L;
 	private Integer totalResultCount;
 
+	public ResultArrayList() {
+		this.totalResultCount = null;
+	}
+
 	public ResultArrayList(int count) {
 		this.totalResultCount = count;
 	}
@@ -43,8 +47,8 @@ public class ResultArrayList<T> extends ArrayList<T> implements ResultList<T> {
 
 	@Override
 	public void setTotalResultCount(Integer count) {
-		if (count < 0) {
-			throw new IllegalArgumentException("Count must non negative integer value (" + count + ")");
+		if (count != null && count < 0) {
+			throw new IllegalArgumentException("Count must be non negative integer value (" + count + ")");
 		}
 
 		this.totalResultCount = count;

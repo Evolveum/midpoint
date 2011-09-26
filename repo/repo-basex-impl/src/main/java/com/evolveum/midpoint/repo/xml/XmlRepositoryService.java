@@ -49,6 +49,8 @@ import org.w3c.dom.NodeList;
 import com.evolveum.midpoint.common.patch.PatchXml;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultArrayList;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.ConcurrencyException;
@@ -273,7 +275,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging,
+	public <T extends ObjectType> ResultList<T> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult parentResult) {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".listObjects");
@@ -289,13 +291,13 @@ public class XmlRepositoryService implements RepositoryService {
 		namespaces.put("c", SchemaConstants.NS_C);
 		namespaces.put("idmdn", SchemaConstants.NS_C);
 
-		List<T> objects = searchObjects(objectType, paging, null, namespaces, result);
+		ResultList<T> objects = searchObjects(objectType, paging, null, namespaces, result);
 		result.recordSuccess();
 		return objects;
 	}
 
 	@Override
-	public <T extends ObjectType> List<T> searchObjects(Class<T> clazz, QueryType query, PagingType paging,
+	public <T extends ObjectType> ResultList<T> searchObjects(Class<T> clazz, QueryType query, PagingType paging,
 			OperationResult parentResult) throws SchemaException {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".searchObjects");
@@ -491,7 +493,7 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> List<T> listResourceObjectShadows(String resourceOid,
+	public <T extends ResourceObjectShadowType> ResultList<T> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException {
 		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
 				+ ".listResourceObjectShadows");
@@ -502,7 +504,7 @@ public class XmlRepositoryService implements RepositoryService {
 		Map<String, String> namespaces = new HashMap<String, String>();
 		namespaces.put("c", SchemaConstants.NS_C);
 		filters.put("c:resourceRef", resourceOid);
-		List<T> retrievedObjects = searchObjects(resourceObjectShadowType, null, filters, namespaces, result);
+		ResultList<T> retrievedObjects = searchObjects(resourceObjectShadowType, null, filters, namespaces, result);
 
 		result.recordSuccess();
 		return retrievedObjects;
@@ -556,7 +558,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 	}
 
-	private <T extends ObjectType> List<T> searchObjects(Class<T> clazz, PagingType paging,
+	private <T extends ObjectType> ResultList<T> searchObjects(Class<T> clazz, PagingType paging,
 			Map<String, String> filters, Map<String, String> namespaces, OperationResult result) {
 
 		// convert class object type to String representation
@@ -568,7 +570,7 @@ public class XmlRepositoryService implements RepositoryService {
 			objectType = ObjectTypes.getObjectType(clazz).getValue();
 		}
 
-		List<T> objectList = new ArrayList<T>();
+		ResultList<T> objectList = new ResultArrayList<T>();
 		// FIXME: objectList.count has to contain all elements that match search
 		// criteria, but not only from paging interval
 		StringBuilder query = new StringBuilder();

@@ -537,10 +537,12 @@ object.
                         </valueExpression>
 					</outbound>
 				</attribute>
+				
 				<credentials>
 					<outboundPassword>true</outboundPassword>
 					<randomPasswordLength>6</randomPasswordLength>
 				</credentials>
+								
 			</accountType>
 			
 		</schemaHandling>

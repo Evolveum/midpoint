@@ -40,8 +40,11 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.test.util.equal.ResourceObjectShadowTypeComparator;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultArrayList;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
@@ -105,7 +108,7 @@ public class ControllerListResourceObjectShadowsTest extends AbstractTestNGSprin
 		when(
 				repository.listResourceObjectShadows(eq(resourceOid),
 						eq((Class<T>) ObjectTypes.ACCOUNT.getClassDefinition()), any(OperationResult.class)))
-				.thenReturn((List<T>) expected.getObject());
+				.thenReturn(MiscUtil.toResultList((Class<T>) ObjectTypes.ACCOUNT.getClassDefinition(), expected.getObject()));
 
 		OperationResult result = new OperationResult("List Resource Object Shadows");
 		try {

@@ -47,6 +47,8 @@ import com.evolveum.midpoint.model.importer.ImportAccountsFromResourceTaskHandle
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultArrayList;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ConsistencyViolationException;
@@ -181,7 +183,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging,
+	public <T extends ObjectType> ResultList<T> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult result) {
 		Validate.notNull(objectType, "Object type must not be null.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -197,7 +199,7 @@ public class ModelControllerImpl implements ModelController {
 
 		OperationResult subResult = result.createSubresult(LIST_OBJECTS);
 		subResult.addParams(new String[] { "objectType", "paging" }, objectType, paging);
-		List<T> list = null;
+		ResultList<T> list = null;
 		try {
 			if (ObjectTypes.isObjectTypeManagedByProvisioning(objectType)) {
 				LOGGER.debug("Listing objects from provisioning.");
@@ -218,7 +220,8 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		if (list == null) {
-			list = new ArrayList<T>();
+			list = new ResultArrayList<T>();
+			list.setTotalResultCount(0);
 		}
 
 		LOGGER.debug("Returning {} objects.", new Object[] { list.size() });
@@ -227,7 +230,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public <T extends ObjectType> List<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
+	public <T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
 			OperationResult result) throws SchemaException, ObjectNotFoundException {
 		Validate.notNull(type, "Object type must not be null.");
 		Validate.notNull(query, "Query must not be null.");
@@ -251,7 +254,7 @@ public class ModelControllerImpl implements ModelController {
 		OperationResult subResult = result.createSubresult(operationName);
 		subResult.addParams(new String[] { "query", "paging", "searchInProvisioning" }, query, paging,
 				searchInProvisioning);
-		List<T> list = null;
+		ResultList<T> list = null;
 		try {
 			if (searchInProvisioning) {
 				list = provisioning.searchObjects(type, query, paging, subResult);
@@ -275,7 +278,8 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		if (list == null) {
-			list = new ArrayList<T>();
+			list = new ResultArrayList<T>();
+			list.setTotalResultCount(0);
 		}
 
 		return list;
@@ -430,7 +434,7 @@ public class ModelControllerImpl implements ModelController {
 	}
 
 	@Override
-	public <T extends ResourceObjectShadowType> List<T> listResourceObjectShadows(String resourceOid,
+	public <T extends ResourceObjectShadowType> ResultList<T> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult result) throws ObjectNotFoundException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(result, "Result type must not be null.");
@@ -441,7 +445,7 @@ public class ModelControllerImpl implements ModelController {
 		subResult.addParams(new String[] { "resourceOid", "resourceObjectShadowType" }, resourceOid,
 				resourceObjectShadowType);
 
-		List<T> list = null;
+		ResultList<T> list = null;
 		try {
 			list = repository.listResourceObjectShadows(resourceOid, resourceObjectShadowType, subResult);
 			subResult.recordSuccess();
@@ -461,14 +465,15 @@ public class ModelControllerImpl implements ModelController {
 		}
 
 		if (list == null) {
-			list = new ArrayList<T>();
+			list = new ResultArrayList<T>();
+			list.setTotalResultCount(0);
 		}
 
 		return list;
 	}
 
 	@Override
-	public ObjectListType listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
+	public ResultList<? extends ResourceObjectShadowType> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException {
 		Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
 		Validate.notNull(objectClass, "Object type must not be null.");
@@ -484,13 +489,13 @@ public class ModelControllerImpl implements ModelController {
 		subResult.addParams(new String[] { "resourceOid", "objectType", "paging" }, resourceOid, objectClass,
 				paging);
 
-		ObjectListType list = null;
+		ResultList<? extends ResourceObjectShadowType> list = null;
 		list = provisioning.listResourceObjects(resourceOid, objectClass, paging, subResult);
 		subResult.recordSuccess();
 
 		if (list == null) {
-			list = new ObjectListType();
-			list.setCount(0);
+			list = new ResultArrayList<ResourceObjectShadowType>();
+			list.setTotalResultCount(0);
 		}
 
 		return list;

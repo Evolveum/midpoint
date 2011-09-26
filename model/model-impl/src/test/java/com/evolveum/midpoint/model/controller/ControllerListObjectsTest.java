@@ -44,6 +44,7 @@ import com.evolveum.midpoint.model.test.util.equal.UserTypeComparator;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.MiscUtil;
@@ -97,7 +98,7 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 	@Test
 	@SuppressWarnings("unchecked")
 	public void userList() throws Exception {
-		final List<UserType> expectedUserList = MiscUtil.toList(UserType.class,
+		final ResultList<UserType> expectedUserList = MiscUtil.toResultList(UserType.class,
 				((JAXBElement<ObjectListType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "user-list.xml")))
 						.getValue());
 

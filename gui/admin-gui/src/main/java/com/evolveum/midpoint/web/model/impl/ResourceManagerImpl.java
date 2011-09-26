@@ -10,6 +10,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.task.api.Task;
@@ -159,11 +160,10 @@ public class ResourceManagerImpl extends ObjectManagerImpl<ResourceType, GuiReso
 		OperationResult result = new OperationResult(ResourceManager.LIST_RESOURCE_OBJECTS);
 		Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> collection = new ArrayList<ResourceObjectShadowDto<ResourceObjectShadowType>>();
 		try {
-			ObjectListType list = getModel().listResourceObjects(resourceOid, objectClass, paging, result);
+			ResultList<? extends ResourceObjectShadowType> list = getModel().listResourceObjects(resourceOid, objectClass, paging, result);
 			if (list != null) {
-				for (ObjectType objectType : list.getObject()) {
-					collection.add(new ResourceObjectShadowDto<ResourceObjectShadowType>(
-							(ResourceObjectShadowType) objectType));
+				for (ResourceObjectShadowType objectType : list) {
+					collection.add(new ResourceObjectShadowDto<ResourceObjectShadowType>(objectType));
 				}
 			}
 			result.recordSuccess();

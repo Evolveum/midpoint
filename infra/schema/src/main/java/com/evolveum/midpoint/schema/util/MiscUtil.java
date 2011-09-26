@@ -26,6 +26,8 @@ import java.util.Random;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.ResultArrayList;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
@@ -56,6 +58,22 @@ public class MiscUtil {
 		}
 		return list;
 	}
+
+	public static <T extends ObjectType> ResultList<T> toResultList(Class<T> type, ObjectListType listType) {
+		ResultList<T> list = toResultList(type,listType.getObject());
+		list.setTotalResultCount(listType.getCount());
+		return list;
+	}
+	
+	public static <T extends ObjectType> ResultList<T> toResultList(Class<T> type, List<? extends ObjectType> list) {
+		ResultList<T> outList = new ResultArrayList<T>();
+		for (ObjectType o : list) {
+			outList.add((T)o);
+		}
+		return outList;
+	}
+	
+	
 	
 	public static ImportOptionsType getDefaultImportOptions() {
 		ImportOptionsType options = new ImportOptionsType();

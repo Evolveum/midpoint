@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelPort;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.task.api.Task;
@@ -116,7 +117,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(LIST_OBJECTS);
 		try {
-			List<? extends ObjectType> list = model.listObjects(ObjectTypes.getObjectTypeFromUri(objectType)
+			ResultList<? extends ObjectType> list = model.listObjects(ObjectTypes.getObjectTypeFromUri(objectType)
 					.getClassDefinition(), paging, operationResult);
 			handleOperationResult(operationResult, result);
 
@@ -124,7 +125,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			for (ObjectType o : list) {
 				listType.getObject().add(o);
 			}
-			listType.setCount(list.size());
+			listType.setCount(list.getTotalResultCount());
 			objectListHolder.value = listType;
 			return;
 		} catch (Exception ex) {
@@ -140,7 +141,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(SEARCH_OBJECTS);
 		try {
-			List<? extends ObjectType> list = model.searchObjects(
+			ResultList<? extends ObjectType> list = model.searchObjects(
 					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, paging,
 					operationResult);
 			handleOperationResult(operationResult, result);
@@ -148,7 +149,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			for (ObjectType o : list) {
 				listType.getObject().add(o);
 			}
-			listType.setCount(list.size());
+			listType.setCount(list.getTotalResultCount());
 			objectListHolder.value = listType;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL searchObjects() failed", ex);
@@ -262,9 +263,14 @@ public class ModelWebService implements ModelPortType, ModelPort {
 
 		OperationResult operationResult = new OperationResult(LIST_RESOURCE_OBJECTS);
 		try {
-			ObjectListType list = model.listResourceObjects(resourceOid, objectType, paging, operationResult);
+			ResultList<? extends ResourceObjectShadowType> list = model.listResourceObjects(resourceOid, objectType, paging, operationResult);
 			handleOperationResult(operationResult, result);
-			objectListTypeHolder.value = list;
+			ObjectListType listType = new ObjectListType();
+			for (ObjectType o : list) {
+				listType.getObject().add(o);
+			}
+			listType.setCount(list.getTotalResultCount());
+			objectListTypeHolder.value = listType;
 			return;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjects() failed", ex);

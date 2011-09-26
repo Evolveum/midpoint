@@ -41,6 +41,8 @@ import com.evolveum.midpoint.provisioning.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.ResultArrayList;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
@@ -395,7 +397,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public <T extends ObjectType> List<T>  listObjects(Class<T> objectType,
+	public <T extends ObjectType> ResultList<T>  listObjects(Class<T> objectType,
 			PagingType paging, OperationResult parentResult) {
 
 		Validate.notNull(objectType, "Object type to list must not be null.");
@@ -412,7 +414,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS,
 				ProvisioningServiceImpl.class);
 
-		List<T> objListType = null;
+		ResultList<T> objListType = null;
 
 		// TODO: should listing connectors trigger rediscovery?
 		
@@ -458,11 +460,11 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public <T extends ObjectType> List<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
+	public <T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query, PagingType paging,
 			OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException {
 
-		final List<T> objListType = new ArrayList<T>();
+		final ResultList<T> objListType = new ResultArrayList<T>();
 
 		final ResultHandler handler = new ResultHandler() {
 
@@ -643,7 +645,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 	}
 
 	@Override
-	public ObjectListType listResourceObjects(String resourceOid,
+	public ResultList<? extends ResourceObjectShadowType> listResourceObjects(String resourceOid,
 			QName objectClass, PagingType paging, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException {
 		
 		final OperationResult result = parentResult
@@ -673,7 +675,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
 		
-		final ObjectListType objectList = new ObjectListType();
+		final ResultList<ResourceObjectShadowType> objectList = new ResultArrayList<ResourceObjectShadowType>();
 
 		final ShadowHandler shadowHandler = new ShadowHandler() {
 			@Override
@@ -682,7 +684,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 					LOGGER.trace("listResourceObjects: processing shadow: {}", DebugUtil.prettyPrint(shadow));
 				}
 				
-				objectList.getObject().add(shadow);
+				objectList.add(shadow);
 				return true;
 			}
 		};

@@ -20,9 +20,8 @@
  */
 package com.evolveum.midpoint.repo.api;
 
-import java.util.List;
-
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.exception.ConcurrencyException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -205,7 +204,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong object type
 	 */
-	public <T extends ObjectType> List<T> listObjects(Class<T> type, PagingType paging, OperationResult parentResult);
+	public <T extends ObjectType> ResultList<T> listObjects(Class<T> type, PagingType paging, OperationResult parentResult);
 
 	/**
 	 * <p>Search for objects in the repository.</p>
@@ -235,7 +234,7 @@ public interface RepositoryService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	public <T extends ObjectType> List<T>  searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
+	public <T extends ObjectType> ResultList<T>  searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException;
 
 	/**
@@ -378,7 +377,7 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
-	public <T extends ResourceObjectShadowType> List<T> listResourceObjectShadows(String resourceOid,
+	public <T extends ResourceObjectShadowType> ResultList<T> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException;
 	
 	/**

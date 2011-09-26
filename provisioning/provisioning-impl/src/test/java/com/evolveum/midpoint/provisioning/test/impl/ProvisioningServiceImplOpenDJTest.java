@@ -61,6 +61,7 @@ import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.EnhancedResourceType;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -86,6 +87,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
@@ -332,11 +334,11 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		// GIVEN
 		OperationResult result = new OperationResult(ProvisioningServiceImplOpenDJTest.class.getName()+".test006ListResourceObjects");
 		// WHEN
-		ObjectListType objectList = provisioningService.listResourceObjects(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
+		ResultList<? extends ResourceObjectShadowType> objectList = provisioningService.listResourceObjects(RESOURCE_OPENDJ_OID, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS, null, result);
 		// THEN
 		assertNotNull(objectList);
-		assertFalse("Empty list returned",objectList.getObject().isEmpty());
-		display("Resource object list "+RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS,objectList.getObject());
+		assertFalse("Empty list returned",objectList.isEmpty());
+		display("Resource object list "+RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS,objectList);
 	}
 
 	@Test

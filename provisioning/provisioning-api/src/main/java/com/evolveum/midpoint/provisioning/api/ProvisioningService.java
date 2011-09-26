@@ -19,12 +19,12 @@
  */
 package com.evolveum.midpoint.provisioning.api;
 
-import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
@@ -32,13 +32,13 @@ import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyAvailableValuesListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptsType;
 
 /**
@@ -226,7 +226,7 @@ public interface ProvisioningService {
 	 * @throws GenericConnectorException
 	 *             unknown connector framework error
 	 */
-	public <T extends ObjectType> List<T> listObjects(Class<T> objectType, PagingType paging,
+	public <T extends ObjectType> ResultList<T> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult parentResult);
 
 	/**
@@ -255,7 +255,7 @@ public interface ProvisioningService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	public <T extends ObjectType> List<T> searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
+	public <T extends ObjectType> ResultList<T> searchObjects(Class<T> type, QueryType query, PagingType paging, OperationResult parentResult)
 			throws SchemaException, ObjectNotFoundException, CommunicationException;
 	
 	/**
@@ -436,7 +436,7 @@ public interface ProvisioningService {
 	 * @throws SchemaException error handling resource schema
 	 * @throws CommunicationException error communicating with the resource
 	 */
-	public ObjectListType listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
+	public ResultList<? extends ResourceObjectShadowType> listResourceObjects(String resourceOid, QName objectClass, PagingType paging,
 			OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException;
 	
 	/**
