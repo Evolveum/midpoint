@@ -22,6 +22,8 @@ package com.evolveum.midpoint.web.controller.role;
 
 import java.io.Serializable;
 
+import javax.faces.event.ActionEvent;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -54,11 +56,9 @@ public class RoleEditController implements Serializable {
 	private transient ObjectTypeCatalog catalog;
 	@Autowired(required = true)
 	private transient TemplateController template;
-	@Autowired(required = true)
-	private transient RoleListController roleList;
 	private boolean newRole = true;
 	private RoleDto role;
-
+	
 	public RoleDto getRole() {
 		return role;
 	}
@@ -90,24 +90,18 @@ public class RoleEditController implements Serializable {
 		return PAGE_NAVIGATION;
 	}
 
-	public String save() {
+	public void save(ActionEvent evt) {
 		if (role == null) {
 			FacesUtils.addErrorMessage("Role must not be null.");
-			return null;
+			return;
 		}
 
-		String nextPage = null;
 		try {
 			RoleManager manager = ControllerUtil.getRoleManager(catalog);
 			manager.submit(getRole());
-
-			roleList.initController();
-			nextPage = RoleListController.PAGE_NAVIGATION_LIST;
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());
 			FacesUtils.addErrorMessage("Couldn't submit role '" + role.getName() + "'.", ex);
 		}
-
-		return nextPage;
 	}
 }

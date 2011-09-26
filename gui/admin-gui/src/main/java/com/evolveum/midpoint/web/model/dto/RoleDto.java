@@ -58,7 +58,7 @@ public class RoleDto extends ExtensibleObjectDto<RoleType> {
 		this.showActivationDate = showActivationDate;
 	}
 
-	public Date getFromActivation() {
+	public Date getFromActivation() {		
 		return new Date();
 	}
 

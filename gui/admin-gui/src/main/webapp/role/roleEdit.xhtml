@@ -53,7 +53,7 @@
 					value="#{msg['page.button.cancel']}" img="/resources/images/door_in.png"
 					id="cancelRoleCreate" immediate="true" />
 
-				<idm:button action="#{roleEdit.save}" id="createRole" buttonType="positive"
+				<idm:button actionListener="#{roleEdit.save}" action="#{roleList.initController}" id="createRole" buttonType="positive"
 					value="#{msg['page.button.save']}" img="/resources/images/user_add.png" />
 			</div>
 		</ice:form>
