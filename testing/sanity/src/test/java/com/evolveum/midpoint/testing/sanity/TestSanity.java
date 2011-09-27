@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.testing.sanity;
 
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import org.testng.annotations.AfterClass;
@@ -171,6 +172,7 @@ public class TestSanity extends AbstractIntegrationTest {
 	private static final String REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME = "src/test/resources/request/user-modify-fullname-locality.xml";
 	private static final String REQUEST_USER_MODIFY_PASSWORD_FILENAME = "src/test/resources/request/user-modify-password.xml";
 	private static final String REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME = "src/test/resources/request/user-modify-activation-disable.xml";
+	private static final String REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME = "src/test/resources/request/user-modify-activation-enable.xml";
 
 	private static final QName IMPORT_OBJECTCLASS = new QName(
 			"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
@@ -863,6 +865,93 @@ public class TestSanity extends AbstractIntegrationTest {
 		System.out.println("ds-pwp-account-disabled after change: "+pwpAccountDisabled);
 
 		assertEquals("ds-pwp-account-disabled not set to \"true\"", "true", pwpAccountDisabled);
+	}
+
+	/**
+	 * Try to enable user after it has been disabled. As the user has an account, the account should be enabled as well.
+	 */
+	@Test
+	public void test017Enable() throws FileNotFoundException, JAXBException, FaultMessage,
+			ObjectNotFoundException, SchemaException, DirectoryException {
+		displayTestTile("test017Enable");
+		// GIVEN
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME, ObjectModificationType.class);
+		
+		// WHEN
+		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+		// THEN
+		System.out.println("modifyObject result:");
+		displayJaxb(result, SchemaConstants.C_RESULT);
+		assertSuccess("modifyObject has failed", result);
+
+		// Check if user object was modified in the repo
+
+		OperationResult repoResult = new OperationResult("getObject");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		ObjectType repoObject = repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
+		UserType repoUser = (UserType) repoObject;
+		displayJaxb(repoUser, new QName("user"));
+
+		// Check if nothing else was modified
+		AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
+		AssertJUnit.assertEquals("somewhere", repoUser.getLocality());
+
+		// Check if appropriate accountRef is still there
+		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+		AssertJUnit.assertEquals(1, accountRefs.size());
+		ObjectReferenceType accountRef = accountRefs.get(0);
+		String newShadowOid = accountRef.getOid();
+		AssertJUnit.assertEquals(shadowOid, newShadowOid);
+
+		// Check if shadow is still in the repo and that it is untouched
+		repoResult = new OperationResult("getObject");
+		repoObject = repositoryService.getObject(ObjectType.class, shadowOid, resolve, repoResult);
+		repoResult.computeStatus();
+		assertSuccess("getObject(repo) has failed", repoResult);
+		AccountShadowType repoShadow = (AccountShadowType) repoObject;
+		displayJaxb(repoShadow, new QName("shadow"));
+		AssertJUnit.assertNotNull(repoShadow);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+
+		// check attributes in the shadow: should be only identifiers (ICF UID)
+		String uid = null;
+		boolean hasOthers = false;
+		List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
+		for (Object element : xmlAttributes) {
+			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
+				if (uid != null) {
+					AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
+				} else {
+					uid = ((Element)element).getTextContent();
+				}
+			} else {
+				hasOthers = true;
+			}
+		}
+
+		AssertJUnit.assertFalse(hasOthers);
+		assertNotNull(uid);
+
+		// Check if LDAP account was updated
+
+		SearchResultEntry entry = openDJController.searchByEntryUuid(uid);
+		display(entry);
+
+		OpenDJController.assertAttribute(entry, "uid", "jack");
+		OpenDJController.assertAttribute(entry, "givenName", "Jack");
+		OpenDJController.assertAttribute(entry, "sn", "Sparrow");
+		// These two should be assigned from the User modification by
+		// schemaHandling
+		OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
+		OpenDJController.assertAttribute(entry, "l", "There there over the corner");
+		
+		// The value of ds-pwp-account-disabled should have been removed
+		String pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
+		System.out.println("ds-pwp-account-disabled after change: "+pwpAccountDisabled);
+		assertTrue("LDAP account was not enabled", (pwpAccountDisabled == null) || (pwpAccountDisabled.equals("false")));
 	}
 
 	
