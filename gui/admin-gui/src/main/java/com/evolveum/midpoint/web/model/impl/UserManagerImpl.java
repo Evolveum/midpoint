@@ -47,12 +47,14 @@ import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
+import com.evolveum.midpoint.web.model.dto.ObjectReferenceDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyModificationType;
@@ -93,12 +95,76 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 	}
 
 	@Override
+	public Set<PropertyChange> submit(GuiUserDto changedObject, boolean added) {
+		Validate.notNull(changedObject, "User object must not be null.");
+
+		Set<PropertyChange> set = null;
+		UserDto oldUser = null;
+		
+		//if account was modified or deleted, we don't need resolve 
+		//old user accounts, in the case of delete, only reference to the account should be removed 
+		//in this point, accounts are deleted later
+		//if account was modified, this modification is sumbited to the account manager
+		//to detect and apply changes
+		if (!added){
+			oldUser = get(changedObject.getOid(), new PropertyReferenceListType());
+			changedObject.getXmlObject().getAccountRef().clear();
+			for (AccountShadowType accountShadow : changedObject.getXmlObject().getAccount()){
+				ObjectReferenceType ort = new ObjectReferenceType();
+				ort.setOid(accountShadow.getOid());
+				changedObject.getXmlObject().getAccountRef().add(ort);
+			}
+			changedObject.getXmlObject().getAccount().clear();
+		} else {
+			//added attribute is only true, if new account was created..
+			//we need it to propagate this as a change of a user to the model, 
+			//to appropriate link user account and create a new account
+			oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
+		}
+		OperationResult result = new OperationResult(UserManager.SUBMIT);
+		try { // Call Web Service Operation
+			changedObject.encryptCredentials(protector);
+
+			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
+					changedObject.getXmlObject());
+			if (changes != null && changes.getOid() != null && changes.getPropertyModification().size() > 0) {
+				getModel().modifyObject(UserType.class, changes, result);
+			}
+
+			if (null != changes) {
+				set = new HashSet<PropertyChange>();
+				// TODO: finish this
+				List<PropertyModificationType> modifications = changes.getPropertyModification();
+				for (PropertyModificationType modification : modifications) {
+					Set<Object> values = new HashSet<Object>();
+					if (modification.getValue() != null) {
+						values.addAll(modification.getValue().getAny());
+					}
+					set.add(new PropertyChange(createQName(modification.getPath()),
+							getChangeType(modification.getModificationType()), values));
+				}
+			}
+			result.recordSuccess();
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't submit user {}", ex,
+					new Object[] { changedObject.getName() });
+			result.recordFatalError("Couldn't submit user '" + changedObject.getName() + "'.", ex);
+		}
+
+		result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
+		printResults(LOGGER, result);
+
+		return set;
+	}
+	
+	@Override
 	public Set<PropertyChange> submit(GuiUserDto changedObject) {
 		Validate.notNull(changedObject, "User object must not be null.");
 
 		Set<PropertyChange> set = null;
-		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
-
+		
+//		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
+		UserDto oldUser = get(changedObject.getOid(), new PropertyReferenceListType());
 		OperationResult result = new OperationResult(UserManager.SUBMIT);
 		try { // Call Web Service Operation
 			changedObject.encryptCredentials(protector);
@@ -215,4 +281,6 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 				throw new IllegalArgumentException("Unknown change type '" + type + "'.");
 		}
 	}
+
+	
 }

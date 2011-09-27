@@ -45,6 +45,7 @@ import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -66,11 +67,13 @@ import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
+import com.evolveum.midpoint.web.model.dto.ObjectReferenceDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -214,12 +217,14 @@ public class UserDetailsController implements Serializable {
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 
-			processNewAccounts();
+			boolean added = processNewAccounts();
 			List<AccountShadowType> accountsToDelete = processDeletedAccounts();
 			processUnlinkedAccounts();
 
 			LOGGER.debug("Submit user modified in GUI");
-			Set<PropertyChange> userChanges = userManager.submit(user);
+			//we want submit only user changes (if the account was deleted- unlink account, if added - link and create account)
+			//modification of account attributes are submited later -> updateAccounts method
+			Set<PropertyChange> userChanges = userManager.submit(user, added);
 			LOGGER.debug("Modified user in GUI submitted ");
 
 			// now we need to delete accounts from repository and also from
@@ -229,38 +234,38 @@ public class UserDetailsController implements Serializable {
 				accountManager.delete(account.getOid());
 			}
 			LOGGER.debug("Finished processing of deleted accounts");
-
-			if (userChanges != null) {
-				if (userChanges.isEmpty()) {
-					// account changes are processed as modification of account,
-					// every account is processed separately
-					LOGGER.debug("Start processing of modified accounts");
-					for (AccountFormBean formBean : accountList) {
-						if (formBean.isNew()) {
-							continue;
-						}
-
-						AccountShadowDto modifiedAccountShadowDto = updateAccountAttributes(formBean);
-						LOGGER.debug("Found modified account in GUI: {}",
-								DebugUtil.prettyPrint(modifiedAccountShadowDto.getXmlObject()));
-						LOGGER.debug("Submit account modified in GUI");
-						accountManager.submit(modifiedAccountShadowDto);
-						LOGGER.debug("Modified account in GUI submitted");
-					}
-					LOGGER.debug("Finished processing of modified accounts");
-				} else {
+		
+//			if (userChanges != null) {
+//				if (userChanges.isEmpty()) {
+//					// account changes are processed as modification of account,
+//					// every account is processed separately
+//					LOGGER.debug("Start processing of modified accounts");
+//					for (AccountFormBean formBean : accountList) {
+//						if (formBean.isNew()) {
+//							continue;
+//						}
+//
+//						AccountShadowDto modifiedAccountShadowDto = updateAccountAttributes(formBean);
+//						LOGGER.debug("Found modified account in GUI: {}",
+//								DebugUtil.prettyPrint(modifiedAccountShadowDto.getXmlObject()));
+//						LOGGER.debug("Submit account modified in GUI");
+//						accountManager.submit(modifiedAccountShadowDto);
+//						LOGGER.debug("Modified account in GUI submitted");
+//					}
+//					LOGGER.debug("Finished processing of modified accounts");
+//				} else {
 					updateAccounts(accountList);
-				}
+//				}
 
 				// action is done in clearController
 				// accountListDeleted.clear();
 				clearController();
 
 				FacesUtils.addSuccessMessage("Changes saved successfully.");
-			} else {
-				clearController();
-				FacesUtils.addWarnMessage("Errors occured during save operation.");
-			}
+//			} else {
+//				clearController();
+//				FacesUtils.addWarnMessage("Errors occured during save operation.");
+//			}
 		} catch (SchemaException ex) {
 			LOGGER.error("Dynamic form generator error", ex);
 			// TODO: What action should we fire in GUI if error occurs ???
@@ -273,21 +278,26 @@ public class UserDetailsController implements Serializable {
 		}
 	}
 
-	private void processNewAccounts() throws SchemaException {
+	private boolean processNewAccounts() throws SchemaException {
 		// new accounts are processed as modification of user in one operation
 		LOGGER.debug("Start processing of new accounts");
+		boolean added = false;
 		for (AccountFormBean formBean : accountList) {
 			if (formBean.isNew()) {
 				// Note: we have to add new account directly to xmlObject
 				// add and delete of accounts will be process later by call
 				// to userManager.submit(user);
+				added= true;
 				AccountShadowType newAccountShadowType = updateAccountAttributes(formBean).getXmlObject();
 				LOGGER.debug("Found new account in GUI: {}", DebugUtil.prettyPrint(newAccountShadowType));
 				((UserType) user.getXmlObject()).getAccount().add(newAccountShadowType);
+				
 				// user.getXmlObject().getAccountRef().add(ObjectTypeUtil.createObjectRef(newAccountShadowType));
 			}
 		}
+		
 		LOGGER.debug("Finished processing of new accounts");
+		return added;
 	}
 
 	private List<AccountShadowType> processDeletedAccounts() {

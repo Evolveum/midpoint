@@ -32,6 +32,7 @@ import com.evolveum.midpoint.common.diff.DiffException;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -86,7 +87,10 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),
 					changedObject.getXmlObject());
 			if (changes != null && changes.getOid() != null) {
+				LOGGER.debug("Modifying account submited in gui. {}", ObjectTypeUtil.toShortString(changedObject.getXmlObject()));
 				getModel().modifyObject(AccountShadowType.class, changes, result);
+			} else{
+				LOGGER.debug("No account changes detected.");
 			}
 		} catch (DiffException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update account {}, error while diffing", ex,

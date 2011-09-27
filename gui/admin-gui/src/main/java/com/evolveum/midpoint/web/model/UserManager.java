@@ -21,9 +21,11 @@
 package com.evolveum.midpoint.web.model;
 
 import java.util.List;
+import java.util.Set;
 
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
+import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.UserDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.PagingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
@@ -42,4 +44,13 @@ public interface UserManager extends ObjectManager<GuiUserDto> {
 	AccountShadowDto addAccount(UserDto userDto, String resourceOid);
 
 	List<UserDto> search(QueryType search, PagingType paging);
+	
+	/**
+	 * same as the submit function, but contain also boolean attribute to make difference between add, delete and modify operation
+	 * if new account to user was created, boolean attribute is true, otherwise it is false 
+	 * @param changedObject
+	 * @param added
+	 * @return
+	 */
+	public Set<PropertyChange> submit(GuiUserDto changedObject, boolean added);
 }

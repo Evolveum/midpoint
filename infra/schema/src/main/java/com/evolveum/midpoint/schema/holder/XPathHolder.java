@@ -455,6 +455,9 @@ public class XPathHolder {
 	 * Returns true if this path is below a specified path.
 	 */
 	public boolean isBelow(XPathHolder path) {
+		if (this.segments.size() < 1){
+			return false;
+		}
 		for(int i = 0; i < path.segments.size(); i++) {
 			if (i > this.segments.size()) {
 				// We have run beyond all of local segments, therefore

@@ -183,4 +183,10 @@ public class UserManagerImplMock implements UserManager {
 		// TODO Auto-generated method stub
 		return null;
 	}
+
+	@Override
+	public Set<PropertyChange> submit(GuiUserDto changedObject, boolean added) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }
