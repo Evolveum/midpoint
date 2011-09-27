@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.testing.sanity;
 
+import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
@@ -46,7 +47,6 @@ import javax.xml.namespace.QName;
 import javax.xml.ws.Holder;
 
 import org.opends.server.core.AddOperation;
-import org.opends.server.extensions.SaltedSHA1PasswordStorageScheme;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
@@ -72,15 +72,18 @@ import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainer;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.MiscUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExclusivityStatus;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
@@ -92,6 +95,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
@@ -107,6 +111,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
 
 /**
  * Sanity test suite.
@@ -164,6 +170,7 @@ public class TestSanity extends AbstractIntegrationTest {
 	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
 	private static final String REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME = "src/test/resources/request/user-modify-fullname-locality.xml";
 	private static final String REQUEST_USER_MODIFY_PASSWORD_FILENAME = "src/test/resources/request/user-modify-password.xml";
+	private static final String REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME = "src/test/resources/request/user-modify-activation-disable.xml";
 
 	private static final QName IMPORT_OBJECTCLASS = new QName(
 			"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
@@ -186,6 +193,8 @@ public class TestSanity extends AbstractIntegrationTest {
 	private ModelPortType modelWeb;
 	@Autowired(required = true)
 	private ModelService modelService;
+	@Autowired(required = true)
+	private ProvisioningService provisioningService;
 
 	public TestSanity() throws JAXBException {
 		super();
@@ -239,9 +248,10 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * 
 	 * @throws SchemaException
 	 * @throws ObjectNotFoundException
+	 * @throws CommunicationException 
 	 */
 	@Test
-	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
+	public void test000Integrity() throws ObjectNotFoundException, SchemaException, CommunicationException {
 		displayTestTile(this, "test000Integrity");
 		AssertJUnit.assertNotNull(modelWeb);
 		AssertJUnit.assertNotNull(modelService);
@@ -255,13 +265,13 @@ public class TestSanity extends AbstractIntegrationTest {
 		
 		ResourceType openDjResource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
 				result);
-		display("Imported resource",openDjResource);
+		display("Imported OpenDJ resource (repository)",openDjResource);
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, openDjResource.getOid());
 		
 		String ldapConnectorOid = openDjResource.getConnectorRef().getOid();
 		ConnectorType ldapConnector = repositoryService.getObject(ConnectorType.class, ldapConnectorOid, null, result);
 		display("LDAP Connector: ", ldapConnector);
-		
+				
 		// Check if Derby resource was imported correctly
 		
 		ResourceType derbyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
@@ -271,12 +281,13 @@ public class TestSanity extends AbstractIntegrationTest {
 		String dbConnectorOid = derbyResource.getConnectorRef().getOid();
 		ConnectorType dbConnector = repositoryService.getObject(ConnectorType.class, dbConnectorOid, null, result);
 		display("DB Connector: ", dbConnector);
-		
+
 		// Check if password was encrypted during import
 		Object configurationPropertiesElement = JAXBUtil.findElement(derbyResource.getConfiguration().getAny(),new QName(dbConnector.getNamespace(),"configurationProperties"));
 		Object passwordElement = JAXBUtil.findElement(JAXBUtil.listChildElements(configurationPropertiesElement),new QName(dbConnector.getNamespace(),"password"));
 		System.out.println("Password element: "+passwordElement);
 
+		
 		// TODO: test if OpenDJ and Derby are running
 	}
 
@@ -290,10 +301,11 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * @throws JAXBException
 	 * @throws SchemaException
 	 * @throws ObjectNotFoundException
+	 * @throws CommunicationException 
 	 */
 	@Test
 	public void test001TestConnection() throws FaultMessage, JAXBException, ObjectNotFoundException,
-			SchemaException {
+			SchemaException, CommunicationException {
 		displayTestTile("test001TestConnection");
 
 		// GIVEN
@@ -309,11 +321,99 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertSuccess("testResource has failed", result.getPartialResults().get(0));
 
 		OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnection");
+		
 		resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
+		
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, resource.getOid());
-		display("Initialized resource", resource);
+		display("Initialized OpenDJ resource (respository)", resource);
 		AssertJUnit.assertNotNull("Resource schema was not generated", resource.getSchema());
 		AssertJUnit.assertFalse("Resource schema was not generated", resource.getSchema().getAny().isEmpty());
+		
+		ResourceType openDjResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
+				opResult);
+		display("Initialized OpenDJ resource resource (provisioning)",openDjResourceProvisioninig);
+
+		ResourceType openDjResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
+				opResult);
+		display("Initialized OpenDJ resource OpenDJ resource (model)",openDjResourceModel);
+
+		checkOpenDjResource(resource,"repository");
+		checkOpenDjResource(openDjResourceProvisioninig,"provisioning");
+		checkOpenDjResource(openDjResourceModel,"model");
+		// TODO: model web
+
+	}
+	
+	/**
+	 * Checks if the resource is internally consistent, if it has everything it should have.
+	 */
+	private void checkOpenDjResource(ResourceType resource, String source) {
+		assertNotNull("Resource from "+source+" is null",resource);
+		assertNotNull("Resource from "+source+" has null configuration",resource.getConfiguration());
+		assertNotNull("Resource from "+source+" has null schema",resource.getSchema());
+		assertNotNull("Resource from "+source+" has null schemahandling",resource.getSchemaHandling());
+		if (!source.equals("repository")) {
+			// This is generated on the fly in provisioning
+			assertNotNull("Resource from "+source+" has null nativeCapabilities",resource.getNativeCapabilities());
+			assertFalse("Resource from "+source+" has empty nativeCapabilities",resource.getNativeCapabilities().getAny().isEmpty());
+		}
+		assertNotNull("Resource from "+source+" has null capabilities",resource.getCapabilities());
+		assertFalse("Resource from "+source+" has empty capabilities",resource.getCapabilities().getAny().isEmpty());
+		assertNotNull("Resource from "+source+" has null synchronization",resource.getSynchronization());
+	}
+	
+	@Test
+	public void test002Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException, FaultMessage {
+		displayTestTile("test002Capabilities");
+
+		// GIVEN
+
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+
+		// WHEN
+		modelWeb.getObject(ObjectTypes.RESOURCE.getObjectTypeUri(), RESOURCE_OPENDJ_OID,
+				resolve, objectHolder, resultHolder);
+		
+		// WHEN
+		ResourceType resource = (ResourceType) objectHolder.value;
+		
+		// THEN
+		display("Resource",resource);
+		
+		CapabilitiesType nativeCapabilities = resource.getNativeCapabilities();
+		List<Object> capabilities = nativeCapabilities.getAny();
+        assertFalse("Empty capabilities returned",capabilities.isEmpty());
+        
+        for (Object capability : nativeCapabilities.getAny()) {
+        	System.out.println("Native Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+        }
+
+        if (resource.getCapabilities() != null) {
+	        for (Object capability : resource.getCapabilities().getAny()) {
+	        	System.out.println("Configured Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+	        }
+        }
+        
+        List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
+        for (Object capability : effectiveCapabilities) {
+        	System.out.println("Efective Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+        }
+        
+        CredentialsCapabilityType capCred = ResourceTypeUtil.getCapability(capabilities, CredentialsCapabilityType.class);
+        assertNotNull("password capability not present",capCred.getPassword());
+        // Connector cannot do activation, this should be null
+        ActivationCapabilityType capAct = ResourceTypeUtil.getCapability(capabilities, ActivationCapabilityType.class);
+        assertNull("Found activation capability while not expecting it",capAct);
+        
+        capCred = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+        assertNotNull("password capability not found",capCred.getPassword());
+        // Although connector does not support activation, the resource specifies a way how to simulate it.
+        // Therefore the following should succeed
+        capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
+        assertNotNull("activation capability not found",capAct);
+        
 	}
 
 	/**
@@ -321,9 +421,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * it is in the repository after the operation.
 	 */
 	@Test
-	public void test002AddUser() throws FileNotFoundException, JAXBException, FaultMessage,
+	public void test010AddUser() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, EncryptionException {
-		displayTestTile("test002AddUser");
+		displayTestTile("test012AddUser");
 
 		// GIVEN
 		UserType user = unmarshallJaxbFromFile(USER_JACK_FILENAME, UserType.class);
@@ -367,9 +467,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * that happens in repo and in LDAP.
 	 */
 	@Test
-	public void test003AddAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage,
+	public void test013AddAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException {
-		displayTestTile("test003AddAccountToUser");
+		displayTestTile("test013AddAccountToUser");
 
 		// GIVEN
 
@@ -486,9 +586,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * @throws DirectoryException
 	 */
 	@Test
-	public void test004ModifyUser() throws FileNotFoundException, JAXBException, FaultMessage,
+	public void test014ModifyUser() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException {
-		displayTestTile("test004ModifyUser");
+		displayTestTile("test014ModifyUser");
 		// GIVEN
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
@@ -573,9 +673,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * should be also applied to the account (by schemaHandling).
 	 */
 	@Test
-	public void test005ChangePassword() throws FileNotFoundException, JAXBException, FaultMessage,
+	public void test015ChangePassword() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException {
-		displayTestTile("test005ChangePassword");
+		displayTestTile("test015ChangePassword");
 		// GIVEN
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
@@ -659,6 +759,112 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		assertFalse("No change in password", passwordAfter.equals(originalJacksPassword));
 	}
+
+	/**
+	 * Try to disable user. As the user has an account, the account should be disabled as well.
+	 */
+	@Test
+	public void test016Disable() throws FileNotFoundException, JAXBException, FaultMessage,
+			ObjectNotFoundException, SchemaException, DirectoryException {
+		displayTestTile("test016Disable");
+		// GIVEN
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME, ObjectModificationType.class);
+		
+		SearchResultEntry entry = openDJController.searchByUid("jack");
+		display(entry);
+
+		OpenDJController.assertAttribute(entry, "uid", "jack");
+		OpenDJController.assertAttribute(entry, "givenName", "Jack");
+		OpenDJController.assertAttribute(entry, "sn", "Sparrow");
+		// These two should be assigned from the User modification by
+		// schemaHandling
+		OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
+		OpenDJController.assertAttribute(entry, "l", "There there over the corner");
+		
+		String pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
+		System.out.println("ds-pwp-account-disabled before change: "+pwpAccountDisabled);
+		System.out.println();
+		assertNull(pwpAccountDisabled);
+
+		// WHEN
+		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+		// THEN
+		System.out.println("modifyObject result:");
+		displayJaxb(result, SchemaConstants.C_RESULT);
+		assertSuccess("modifyObject has failed", result);
+
+		// Check if user object was modified in the repo
+
+		OperationResult repoResult = new OperationResult("getObject");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+		ObjectType repoObject = repositoryService.getObject(ObjectType.class, USER_JACK_OID, resolve, repoResult);
+		UserType repoUser = (UserType) repoObject;
+		displayJaxb(repoUser, new QName("user"));
+
+		// Check if nothing else was modified
+		AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
+		AssertJUnit.assertEquals("somewhere", repoUser.getLocality());
+
+		// Check if appropriate accountRef is still there
+		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+		AssertJUnit.assertEquals(1, accountRefs.size());
+		ObjectReferenceType accountRef = accountRefs.get(0);
+		String newShadowOid = accountRef.getOid();
+		AssertJUnit.assertEquals(shadowOid, newShadowOid);
+
+		// Check if shadow is still in the repo and that it is untouched
+		repoResult = new OperationResult("getObject");
+		repoObject = repositoryService.getObject(ObjectType.class, shadowOid, resolve, repoResult);
+		repoResult.computeStatus();
+		assertSuccess("getObject(repo) has failed", repoResult);
+		AccountShadowType repoShadow = (AccountShadowType) repoObject;
+		displayJaxb(repoShadow, new QName("shadow"));
+		AssertJUnit.assertNotNull(repoShadow);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, repoShadow.getResourceRef().getOid());
+
+		// check attributes in the shadow: should be only identifiers (ICF UID)
+		String uid = null;
+		boolean hasOthers = false;
+		List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
+		for (Object element : xmlAttributes) {
+			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
+				if (uid != null) {
+					AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
+				} else {
+					uid = ((Element)element).getTextContent();
+				}
+			} else {
+				hasOthers = true;
+			}
+		}
+
+		AssertJUnit.assertFalse(hasOthers);
+		assertNotNull(uid);
+
+		// Check if LDAP account was updated
+
+		entry = openDJController.searchByEntryUuid(uid);
+		display(entry);
+
+		OpenDJController.assertAttribute(entry, "uid", "jack");
+		OpenDJController.assertAttribute(entry, "givenName", "Jack");
+		OpenDJController.assertAttribute(entry, "sn", "Sparrow");
+		// These two should be assigned from the User modification by
+		// schemaHandling
+		OpenDJController.assertAttribute(entry, "cn", "Cpt. Jack Sparrow");
+		OpenDJController.assertAttribute(entry, "l", "There there over the corner");
+		
+		pwpAccountDisabled = OpenDJController.getAttributeValue(entry, "ds-pwp-account-disabled");
+		assertNotNull(pwpAccountDisabled);
+		
+		System.out.println("ds-pwp-account-disabled after change: "+pwpAccountDisabled);
+
+		assertEquals("ds-pwp-account-disabled not set to \"true\"", "true", pwpAccountDisabled);
+	}
+
 	
 	/**
 	 * The user should have an account now. Let's try to delete the user. The
@@ -667,8 +873,8 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * @throws JAXBException
 	 */
 	@Test
-	public void test006DeleteUser() throws SchemaException, FaultMessage, DirectoryException, JAXBException {
-		displayTestTile("test005DeleteUser");
+	public void test090DeleteUser() throws SchemaException, FaultMessage, DirectoryException, JAXBException {
+		displayTestTile("test009DeleteUser");
 		// GIVEN
 
 		// WHEN

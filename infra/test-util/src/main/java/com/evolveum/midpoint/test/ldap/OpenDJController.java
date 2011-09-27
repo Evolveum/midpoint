@@ -457,6 +457,15 @@ public class OpenDJController {
 		return op.getSearchEntries().get(0);
 	}
 	
+	public SearchResultEntry searchByUid(String string) throws DirectoryException {
+		InternalSearchOperation op = getInternalConnection().processSearch(
+				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
+				100, false, "(uid=" + string + ")", getSearchAttributes());
+
+		assertEquals("Entry with uid "+string+" not found",1, op.getEntriesSent());
+		return op.getSearchEntries().get(0);
+	}
+
 	private LinkedHashSet<String> getSearchAttributes() {
 		LinkedHashSet<String> attrs = new LinkedHashSet<String>();
 		attrs.add("*");
@@ -488,4 +497,5 @@ public class OpenDJController {
 		assertNotNull("No attribute "+name+" in LDAP response", attrValue);
 		assertEquals("Attribute "+name+" does not match: ",value, attrValue);
 	}
+
 }

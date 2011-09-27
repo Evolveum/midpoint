@@ -492,6 +492,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				.createSubresult(ProvisioningService.class.getName()
 						+ ".modifyObject");
 		result.addParam("objectChange", objectChange);
+		result.addParam(OperationResult.PARAM_OID, objectChange.getOid());
 		result.addParam("scripts", scripts);
 		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS,
 				ProvisioningServiceImpl.class);
@@ -521,22 +522,26 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 		
 		try {
+			
 			//calling shadow cache to modify object
 			getShadowCache().modifyShadow(objectType, null, objectChange,
 					scripts, parentResult);
 			result.recordSuccess();
+			
 		} catch (CommunicationException e) {
-			// TODO Auto-generated catch block
-			result.recordFatalError("Can't modify object with oid "
-					+ objectChange.getOid() + ". Reason: " + e.getMessage(), e);
-			throw new CommunicationException(e.getMessage(), e);
+			result.recordFatalError(e);
+			throw e;
 		} catch (GenericFrameworkException e) {
-			// TODO Auto-generated catch block
-			result.recordFatalError("Can't modify object with oid "
-					+ objectChange.getOid() + ". Reason: " + e.getMessage(), e);
+			result.recordFatalError(e);
 			throw new CommunicationException(e.getMessage(), e);
+		} catch (SchemaException e) {
+			result.recordFatalError(e);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			result.recordFatalError(e);
+			throw e;
 		}
-
+		
 		LOGGER.debug("Finished modifying of object with oid {}",
 				objectType.getOid());
 		// TODO Auto-generated method stub

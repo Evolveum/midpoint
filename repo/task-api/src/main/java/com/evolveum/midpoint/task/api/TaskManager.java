@@ -35,13 +35,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
  * <p>Task Manager Interface.</p>
  * <p>
  * Status: public
- * Stability: DRAFT, work in progress
+ * Stability: DRAFT
  * @version 0.1
  * @author Radovan Semancik
  * </p>
  * <p>
  * Task manager provides controls task execution, coordination, distribution and failover between nodes, etc.
- * TODO
+ * </p><p>
+ * This interface is just a basic framework for task management now. Although we hope that this is roughly almost final
+ * shape of the interface, the implementation is not complete and some changes may happen.  
  * </p>
  * <p>
  * This definition specifies interface of Task Manager - a component that controls (asynchronous) task execution.
@@ -49,6 +51,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.TaskType;
  * The task manager can store the task for later execution, switch them to background
  * resume execution of a task from a different node, etc. Generally speaking, task
  * manager provides operation to manage tasks in the whole midPoint cluster of IDM nodes.
+ * </p><p>
+ * This interface partially adheres to [Common Interface Concepts], but the goals are slightly
+ * different. This interface should be conveniently used also for tasks that are not persistent
+ * (synchronous short tasks). Therefore some methods are made much more user-friendly while
+ * tolerating some redundancy in the interface.
  * </p>
  */
 public interface TaskManager {

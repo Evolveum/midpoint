@@ -47,6 +47,8 @@ public class EnhancedResourceType extends ResourceType {
 		setOid(resourceType.getOid());
 		setSchema(resourceType.getSchema());
 		setSchemaHandling(resourceType.getSchemaHandling());
+		setNativeCapabilities(resourceType.getNativeCapabilities());
+		setCapabilities(resourceType.getCapabilities());
 		setScripts(resourceType.getScripts());
 		setSynchronization(resourceType.getSynchronization());
 		setVersion(resourceType.getVersion());

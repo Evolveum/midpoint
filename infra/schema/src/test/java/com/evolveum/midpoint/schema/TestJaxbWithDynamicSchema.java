@@ -19,8 +19,13 @@
  */
 package com.evolveum.midpoint.schema;
 
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
+
+import java.io.File;
+import java.util.List;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -39,6 +44,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
@@ -126,6 +132,39 @@ public class TestJaxbWithDynamicSchema {
 		PropertyContainerDefinition credDef = newContainerDef.findPropertyContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
+	}
+	
+	@Test
+	public void testUnmarshallResource() throws JAXBException {
+		// WHEN
+		Object element = JAXBUtil.unmarshal(new File("src/test/resources/schema/resource-opendj.xml"));
+		
+		// THEN
+		assertTrue(element instanceof JAXBElement);
+		Object object = ((JAXBElement)element).getValue();
+		assertTrue(object instanceof ResourceType);
+		ResourceType resource = (ResourceType)object;
+		
+		if (resource.getNativeCapabilities() != null) {
+			for (Object capability : resource.getNativeCapabilities().getAny()) {
+	        	System.out.println("Native Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+	        }
+		}
+
+        if (resource.getCapabilities() != null) {
+	        for (Object capability : resource.getCapabilities().getAny()) {
+	        	System.out.println("Configured Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+	        }
+        }
+        
+        List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
+        for (Object capability : effectiveCapabilities) {
+        	System.out.println("Efective Capability: "+ResourceTypeUtil.getCapabilityDisplayName(capability)+" : "+capability);
+        }
+
+        assertNotNull(resource.getCapabilities());
+        assertFalse(resource.getCapabilities().getAny().isEmpty());
+        
 	}
 	
 }

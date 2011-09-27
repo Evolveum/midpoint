@@ -36,15 +36,15 @@ public class LoggingUtils {
 	public static void logException(Trace LOGGER, String message, Exception ex, Object... objects) {
 		Validate.notNull(LOGGER, "Logger can't be null.");
 		Validate.notNull(ex, "Exception can't be null.");
-
+		
 		List<Object> args = new ArrayList<Object>();
 		args.addAll(Arrays.asList(objects));
 		args.add(ex.getMessage());
 
 		LOGGER.error(message + ", reason: {}", args.toArray());
-		// Note: messages could contain {}, however these are not replaced with
-		// actual arguments, because logging API does not have support to log
-		// stack trace and format the message
-		LOGGER.debug(message + ".", ex);
+		// Add exception to the list. It will be the last argument without {} in the message,
+		// therefore the stack trace will get logged
+		args.add(ex);
+		LOGGER.debug(message + ".", args.toArray());
 	}
 }

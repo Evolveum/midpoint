@@ -731,11 +731,7 @@ public class ShadowCache {
 						// if resource cannot do activation, resource should
 						// have specified policies to do that
 						AttributeModificationOperation activationAttribute = convertToActivationAttribute(
-								resource, enabled);
-						if (activationAttribute == null) {
-							throw new IllegalStateException(
-									"Resource does not have specified policies to change activation of the account.");
-						}
+							resource, enabled);
 						changes.add(activationAttribute);
 					} else {
 						// if resource can do activation, pass it to the
@@ -777,9 +773,21 @@ public class ShadowCache {
 		}
 	}
 
-	private AttributeModificationOperation convertToActivationAttribute(ResourceType resource, Boolean enabled) {
+	private AttributeModificationOperation convertToActivationAttribute(ResourceType resource, Boolean enabled) throws SchemaException {
 		ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
 				ActivationCapabilityType.class);
+		if (activationCapability == null) {
+			throw new SchemaException(
+				"Resource "+ObjectTypeUtil.toShortString(resource)+" does not have native or simulated activation capability");
+		}
+		if (activationCapability.getEnableDisable() == null) {
+			throw new SchemaException(
+					"Resource "+ObjectTypeUtil.toShortString(resource)+" does not have native or simulated activation/enableDisable capability");
+		}
+		if (activationCapability.getEnableDisable().getAttribute() == null) {
+			throw new SchemaException(
+					"Resource "+ObjectTypeUtil.toShortString(resource)+" does not have attribute specification for simulated activation/enableDisable capability");
+		}
 		AttributeModificationOperation attributeChange = new AttributeModificationOperation();
 		Property property = new Property(activationCapability.getEnableDisable().getAttribute());
 		property.setValue(String.valueOf(!enabled));

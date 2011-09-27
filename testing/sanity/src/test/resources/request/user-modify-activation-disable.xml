@@ -24,15 +24,11 @@
 <objectModification xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation='http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../../../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd'>
 	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
-	<!-- Change jack's password -->
+	<!-- Disable jack -->
 	<propertyModification modificationType="replace">
-		<path>credentials</path>
+		<path>activation</path>
 		<value>
-			<password>
-				<protectedString>
-					<clearValue>butUnd3dM4yT4lkAL0t</clearValue>
-				</protectedString>
-			</password>
+			<enabled>false</enabled>
 		</value>
 	</propertyModification>
 </objectModification>

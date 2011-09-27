@@ -319,7 +319,7 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
         // Although connector does not support activation, the resource specifies a way how to simulate it.
         // Therefore the following should succeed
         capAct = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
-        assertNotNull("activation capability not found",capCred.getPassword());
+        assertNotNull("activation capability not found",capAct);
         
         List<Object> effectiveCapabilities = ResourceTypeUtil.listEffectiveCapabilities(resource);
         for (Object capability : effectiveCapabilities) {

@@ -168,34 +168,13 @@ public class ResourceTypeUtil {
 	}
 
 	public static CapabilitiesType getEffectiveCapabilities(ResourceType resource) {
-		CapabilitiesType capabilities = new CapabilitiesType();
-
-		CapabilitiesType natives = resource.getNativeCapabilities();
-		if (natives == null) {
-			return capabilities;
+		if (resource.getCapabilities() != null) {
+			return resource.getCapabilities();
 		}
-
-		CapabilitiesType existing = resource.getCapabilities();
-		if (existing == null) {
-			capabilities.getAny().addAll(natives.getAny());
-			return capabilities;
+		if (resource.getNativeCapabilities() != null) {
+			return resource.getNativeCapabilities();
 		}
-
-		boolean found;
-		for (Object capability : natives.getAny()) {
-			found = false;
-			for (Object existingCapability : existing.getAny()) {
-				if (capability.getClass().equals(existingCapability.getClass())) {
-					capabilities.getAny().add(existingCapability);
-					found = true;
-					break;
-				}
-			}
-			if (!found) {
-				capabilities.getAny().add(capability);
-			}
-		}
-
-		return capabilities;
+		
+		return new CapabilitiesType();
 	}
 }
