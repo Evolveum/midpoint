@@ -40,6 +40,9 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.HashSet;
 import java.util.List;
 
@@ -92,6 +95,7 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
+import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -161,19 +165,23 @@ public class TestSanity extends AbstractIntegrationTest {
 
 	private static final String USER_JACK_FILENAME = "src/test/resources/repo/user-jack.xml";
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
+	
+	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
 	private static final String USER_JACK_LDAP_UID = "jack";
 	private static final String USER_JACK_LDAP_DN = "uid=" + USER_JACK_LDAP_UID
 			+ ",ou=people,dc=example,dc=com";
 
-	private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
-	private static final String WILL_NAME = "wturner";
-
-	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_FILENAME = "src/test/resources/request/user-modify-add-account.xml";
+	private static final String REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME = "src/test/resources/request/user-modify-add-account-derby.xml";
+	private static final String USER_JACK_DERBY_LOGIN = "jsparrow";
+	
 	private static final String REQUEST_USER_MODIFY_FULLNAME_LOCALITY_FILENAME = "src/test/resources/request/user-modify-fullname-locality.xml";
 	private static final String REQUEST_USER_MODIFY_PASSWORD_FILENAME = "src/test/resources/request/user-modify-password.xml";
 	private static final String REQUEST_USER_MODIFY_ACTIVATION_DISABLE_FILENAME = "src/test/resources/request/user-modify-activation-disable.xml";
 	private static final String REQUEST_USER_MODIFY_ACTIVATION_ENABLE_FILENAME = "src/test/resources/request/user-modify-activation-enable.xml";
 
+	private static final String LDIF_WILL_FILENAME = "src/test/resources/request/will.ldif";
+	private static final String WILL_NAME = "wturner";
+	
 	private static final QName IMPORT_OBJECTCLASS = new QName(
 			"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
 			"AccountObjectClass");
@@ -184,8 +192,10 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * Unmarshalled resource definition to reach the embedded OpenDJ instance.
 	 * Used for convenience - the tests method may find it handy.
 	 */
-	private static ResourceType resource;
-	private static String shadowOid;
+	private static ResourceType resourceOpenDj;
+	private static ResourceType resourceDerby;
+	private static String accountShadowOidOpendj;
+	private static String accountShadowOidDerby;
 	private String originalJacksPassword;
 
 	/**
@@ -295,20 +305,11 @@ public class TestSanity extends AbstractIntegrationTest {
 
 	/**
 	 * Test the testResource method. Expect a complete success for now.
-	 * 
-	 * TODO: better check for the returned result. Look inside and check if all
-	 * the expected tests were run.
-	 * 
-	 * @throws FaultMessage
-	 * @throws JAXBException
-	 * @throws SchemaException
-	 * @throws ObjectNotFoundException
-	 * @throws CommunicationException 
 	 */
 	@Test
-	public void test001TestConnection() throws FaultMessage, JAXBException, ObjectNotFoundException,
+	public void test001TestConnectionOpenDJ() throws FaultMessage, JAXBException, ObjectNotFoundException,
 			SchemaException, CommunicationException {
-		displayTestTile("test001TestConnection");
+		displayTestTile("test001TestConnectionOpenDJ");
 
 		// GIVEN
 
@@ -322,14 +323,14 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		assertSuccess("testResource has failed", result.getPartialResults().get(0));
 
-		OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnection");
+		OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnectionOpenDJ");
 		
-		resource = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
+		resourceOpenDj = repositoryService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null, opResult);
 		
-		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, resource.getOid());
-		display("Initialized OpenDJ resource (respository)", resource);
-		AssertJUnit.assertNotNull("Resource schema was not generated", resource.getSchema());
-		AssertJUnit.assertFalse("Resource schema was not generated", resource.getSchema().getAny().isEmpty());
+		assertEquals(RESOURCE_OPENDJ_OID, resourceOpenDj.getOid());
+		display("Initialized OpenDJ resource (respository)", resourceOpenDj);
+		assertNotNull("Resource schema was not generated", resourceOpenDj.getSchema());
+		assertFalse("Resource schema was not generated", resourceOpenDj.getSchema().getAny().isEmpty());
 		
 		ResourceType openDjResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_OPENDJ_OID, null,
 				opResult);
@@ -339,7 +340,7 @@ public class TestSanity extends AbstractIntegrationTest {
 				opResult);
 		display("Initialized OpenDJ resource OpenDJ resource (model)",openDjResourceModel);
 
-		checkOpenDjResource(resource,"repository");
+		checkOpenDjResource(resourceOpenDj,"repository");
 		checkOpenDjResource(openDjResourceProvisioninig,"provisioning");
 		checkOpenDjResource(openDjResourceModel,"model");
 		// TODO: model web
@@ -363,10 +364,56 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertFalse("Resource from "+source+" has empty capabilities",resource.getCapabilities().getAny().isEmpty());
 		assertNotNull("Resource from "+source+" has null synchronization",resource.getSynchronization());
 	}
+
+	/**
+	 * Test the testResource method. Expect a complete success for now.
+	 */
+	@Test
+	public void test002TestConnectionDerby() throws FaultMessage, JAXBException, ObjectNotFoundException,
+			SchemaException, CommunicationException {
+		displayTestTile("test002TestConnectionDerby");
+
+		// GIVEN
+
+		// WHEN
+		OperationResultType result = modelWeb.testResource(RESOURCE_DERBY_OID);
+
+		// THEN
+
+		System.out.println("testResource result:");
+		displayJaxb(result, SchemaConstants.C_RESULT);
+
+		assertSuccess("testResource has failed", result.getPartialResults().get(0));
+
+		OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test002TestConnectionDerby");
+		
+		resourceDerby = repositoryService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null, opResult);
+		
+		assertEquals(RESOURCE_DERBY_OID, resourceDerby.getOid());
+		display("Initialized Derby resource (respository)", resourceDerby);
+		assertNotNull("Resource schema was not generated", resourceDerby.getSchema());
+		assertFalse("Resource schema was not generated", resourceDerby.getSchema().getAny().isEmpty());
+		
+		ResourceType derbyResourceProvisioninig = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
+				opResult);
+		display("Initialized Derby resource (provisioning)", derbyResourceProvisioninig);
+
+		ResourceType derbyResourceModel = provisioningService.getObject(ResourceType.class, RESOURCE_DERBY_OID, null,
+				opResult);
+		display("Initialized Derby resource (model)", derbyResourceModel);
+
+		// TODO: check
+//		checkOpenDjResource(resourceOpenDj,"repository");
+//		checkOpenDjResource(openDjResourceProvisioninig,"provisioning");
+//		checkOpenDjResource(openDjResourceModel,"model");
+		// TODO: model web
+
+	}
+
 	
 	@Test
-	public void test002Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException, FaultMessage {
-		displayTestTile("test002Capabilities");
+	public void test004Capabilities() throws ObjectNotFoundException, CommunicationException, SchemaException, FaultMessage {
+		displayTestTile("test004Capabilities");
 
 		// GIVEN
 
@@ -469,14 +516,14 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * that happens in repo and in LDAP.
 	 */
 	@Test
-	public void test013AddAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage,
+	public void test013AddOpenDjAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException {
-		displayTestTile("test013AddAccountToUser");
+		displayTestTile("test013AddOpenDjAccountToUser");
 
 		// GIVEN
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
-				REQUEST_USER_MODIFY_ADD_ACCOUNT_FILENAME, ObjectModificationType.class);
+				REQUEST_USER_MODIFY_ADD_ACCOUNT_OPENDJ_FILENAME, ObjectModificationType.class);
 
 		// WHEN
 		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
@@ -498,14 +545,14 @@ public class TestSanity extends AbstractIntegrationTest {
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
 		assertEquals(1, accountRefs.size());
 		ObjectReferenceType accountRef = accountRefs.get(0);
-		shadowOid = accountRef.getOid();
-		assertFalse(shadowOid.isEmpty());
+		accountShadowOidOpendj = accountRef.getOid();
+		assertFalse(accountShadowOidOpendj.isEmpty());
 
 		// Check if shadow was created in the repo
 
 		repoResult = new OperationResult("getObject");
 
-		AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, shadowOid,
+		AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidOpendj,
 				resolve, repoResult);
 		repoResult.computeStatus();
 		assertSuccess("addObject has failed", repoResult);
@@ -559,7 +606,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
 
 		// WHEN
-		modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), shadowOid,
+		modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
 				resolve, objectHolder, resultHolder);
 
 		// THEN
@@ -573,14 +620,136 @@ public class TestSanity extends AbstractIntegrationTest {
 		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
 
 		assertAttributeNotNull(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID);
-		assertAttribute(modelShadow, resource, "uid", "jack");
-		assertAttribute(modelShadow, resource, "givenName", "Jack");
-		assertAttribute(modelShadow, resource, "sn", "Sparrow");
-		assertAttribute(modelShadow, resource, "cn", "Jack Sparrow");
-		assertAttribute(modelShadow, resource, "l", "middle of nowhere");
+		assertAttribute(modelShadow, resourceOpenDj, "uid", "jack");
+		assertAttribute(modelShadow, resourceOpenDj, "givenName", "Jack");
+		assertAttribute(modelShadow, resourceOpenDj, "sn", "Sparrow");
+		assertAttribute(modelShadow, resourceOpenDj, "cn", "Jack Sparrow");
+		assertAttribute(modelShadow, resourceOpenDj, "l", "middle of nowhere");
 
 	}
 
+	/**
+	 * Add Derby account to user. This should result in account provisioning. Check if
+	 * that happens in repo and in Derby.
+	 */
+	@Test
+	public void test014AddDerbyAccountToUser() throws FileNotFoundException, JAXBException, FaultMessage,
+			ObjectNotFoundException, SchemaException, DirectoryException, SQLException {
+		displayTestTile("test014AddDerbyAccountToUser");
+
+		// GIVEN
+
+		ObjectModificationType objectChange = unmarshallJaxbFromFile(
+				REQUEST_USER_MODIFY_ADD_ACCOUNT_DERBY_FILENAME, ObjectModificationType.class);
+
+		// WHEN
+		OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
+
+		// THEN
+		displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);
+		assertSuccess("modifyObject has failed", result);
+
+		// Check if user object was modified in the repo
+
+		OperationResult repoResult = new OperationResult("getObject");
+		PropertyReferenceListType resolve = new PropertyReferenceListType();
+
+		UserType repoUser = repositoryService.getObject(UserType.class, USER_JACK_OID, resolve, repoResult);
+
+		repoResult.computeStatus();
+		displayJaxb("User (repository)", repoUser, new QName("user"));
+
+		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
+		// OpenDJ account was added in previous test, hence 2 accounts
+		assertEquals(2, accountRefs.size());
+		
+		ObjectReferenceType accountRef = null;
+		for (ObjectReferenceType ref : accountRefs) {
+			if (!ref.getOid().equals(accountShadowOidOpendj)) {
+				accountRef = ref;
+			}
+		}
+		
+		accountShadowOidDerby = accountRef.getOid();
+		assertFalse(accountShadowOidDerby.isEmpty());
+
+		// Check if shadow was created in the repo
+		repoResult = new OperationResult("getObject");
+
+		AccountShadowType repoShadow = repositoryService.getObject(AccountShadowType.class, accountShadowOidDerby,
+				resolve, repoResult);
+		repoResult.computeStatus();
+		assertSuccess("addObject has failed", repoResult);
+		displayJaxb("Shadow (repository)", repoShadow, new QName("shadow"));
+		assertNotNull(repoShadow);
+		assertEquals(RESOURCE_DERBY_OID, repoShadow.getResourceRef().getOid());
+
+		// Check the "name" property, it should be set to DN, not entryUUID
+		assertEquals("Wrong name property", USER_JACK_DERBY_LOGIN, repoShadow.getName());
+
+		// check attributes in the shadow: should be only identifiers (ICF UID)
+		String uid = null;
+		boolean hasOthers = false;
+		List<Object> xmlAttributes = repoShadow.getAttributes().getAny();
+		for (Object element : xmlAttributes) {
+			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(JAXBUtil.getElementQName(element))) {
+				if (uid != null) {
+					AssertJUnit.fail("Multiple values for ICF UID in shadow attributes");
+				} else {
+					uid = ((Element)element).getTextContent();
+				}
+			} else {
+				hasOthers = true;
+			}
+		}
+
+		assertFalse(hasOthers);
+		assertNotNull(uid);
+
+		// check if account was created in DB Table
+		
+		Statement stmt = derbyController.getExecutedStatementWhereLoginName(uid);
+		ResultSet rs = stmt.getResultSet();
+		
+		System.out.println("RS: "+rs);
+
+		assertTrue("No records found for login name "+uid,rs.next());
+		assertEquals(USER_JACK_DERBY_LOGIN, rs.getString(DerbyController.COLUMN_LOGIN));
+		assertEquals("Cpt. Jack Sparrow",rs.getString(DerbyController.COLUMN_FULL_NAME));
+		// TODO: check password
+		//assertEquals("3lizab3th",rs.getString(DerbyController.COLUMN_PASSWORD));
+		System.out.println("Password: "+rs.getString(DerbyController.COLUMN_PASSWORD));
+		
+		assertFalse("Too many records found for login name "+uid,rs.next());
+		rs.close();
+		stmt.close();
+		
+		// Use getObject to test fetch of complete shadow
+
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+
+		// WHEN
+		modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidDerby,
+				resolve, objectHolder, resultHolder);
+
+		// THEN
+		displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
+		assertSuccess("getObject has failed", resultHolder.value);
+
+		AccountShadowType modelShadow = (AccountShadowType) objectHolder.value;
+		displayJaxb("Shadow (model)", modelShadow, new QName("shadow"));
+
+		AssertJUnit.assertNotNull(modelShadow);
+		AssertJUnit.assertEquals(RESOURCE_DERBY_OID, modelShadow.getResourceRef().getOid());
+
+		assertAttribute(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID , USER_JACK_DERBY_LOGIN);
+		assertAttribute(modelShadow, ConnectorFactoryIcfImpl.ICFS_NAME , USER_JACK_DERBY_LOGIN);
+		assertAttribute(modelShadow, resourceDerby, "FULL_NAME", "Cpt. Jack Sparrow");
+
+	}
+
+	
 	/**
 	 * We are going to modify the user. As the user has an account, the user
 	 * changes should be also applied to the account (by schemaHandling).
@@ -588,9 +757,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * @throws DirectoryException
 	 */
 	@Test
-	public void test014ModifyUser() throws FileNotFoundException, JAXBException, FaultMessage,
+	public void test020ModifyUser() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException {
-		displayTestTile("test014ModifyUser");
+		displayTestTile("test020ModifyUser");
 		// GIVEN
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
@@ -612,21 +781,24 @@ public class TestSanity extends AbstractIntegrationTest {
 		UserType repoUser = (UserType) repoObject;
 		displayJaxb(repoUser, new QName("user"));
 
-		AssertJUnit.assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
-		AssertJUnit.assertEquals("somewhere", repoUser.getLocality());
+		assertEquals("Cpt. Jack Sparrow", repoUser.getFullName());
+		assertEquals("somewhere", repoUser.getLocality());
 
 		// Check if appropriate accountRef is still there
 
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
-		AssertJUnit.assertEquals(1, accountRefs.size());
-		ObjectReferenceType accountRef = accountRefs.get(0);
-		String newShadowOid = accountRef.getOid();
-		AssertJUnit.assertEquals(shadowOid, newShadowOid);
+		assertEquals(2, accountRefs.size());
+		for (ObjectReferenceType accountRef : accountRefs) {
+			assertTrue(
+					accountRef.getOid().equals(accountShadowOidOpendj) ||
+					accountRef.getOid().equals(accountShadowOidDerby));
+			
+		}
 
 		// Check if shadow is still in the repo and that it is untouched
 
 		repoResult = new OperationResult("getObject");
-		repoObject = repositoryService.getObject(ObjectType.class, shadowOid, resolve, repoResult);
+		repoObject = repositoryService.getObject(ObjectType.class, accountShadowOidOpendj, resolve, repoResult);
 		repoResult.computeStatus();
 		assertSuccess("getObject(repo) has failed", repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
@@ -675,9 +847,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * should be also applied to the account (by schemaHandling).
 	 */
 	@Test
-	public void test015ChangePassword() throws FileNotFoundException, JAXBException, FaultMessage,
+	public void test022ChangePassword() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException {
-		displayTestTile("test015ChangePassword");
+		displayTestTile("test022ChangePassword");
 		// GIVEN
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
@@ -707,14 +879,17 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Check if appropriate accountRef is still there
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
-		AssertJUnit.assertEquals(1, accountRefs.size());
-		ObjectReferenceType accountRef = accountRefs.get(0);
-		String newShadowOid = accountRef.getOid();
-		AssertJUnit.assertEquals(shadowOid, newShadowOid);
+		assertEquals(2, accountRefs.size());
+		for (ObjectReferenceType accountRef : accountRefs) {
+			assertTrue(
+					accountRef.getOid().equals(accountShadowOidOpendj) ||
+					accountRef.getOid().equals(accountShadowOidDerby));
+			
+		}
 
 		// Check if shadow is still in the repo and that it is untouched
 		repoResult = new OperationResult("getObject");
-		repoObject = repositoryService.getObject(ObjectType.class, shadowOid, resolve, repoResult);
+		repoObject = repositoryService.getObject(ObjectType.class, accountShadowOidOpendj, resolve, repoResult);
 		repoResult.computeStatus();
 		assertSuccess("getObject(repo) has failed", repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
@@ -766,9 +941,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * Try to disable user. As the user has an account, the account should be disabled as well.
 	 */
 	@Test
-	public void test016Disable() throws FileNotFoundException, JAXBException, FaultMessage,
+	public void test030Disable() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException {
-		displayTestTile("test016Disable");
+		displayTestTile("test030Disable");
 		// GIVEN
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
@@ -812,14 +987,16 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Check if appropriate accountRef is still there
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
-		AssertJUnit.assertEquals(1, accountRefs.size());
-		ObjectReferenceType accountRef = accountRefs.get(0);
-		String newShadowOid = accountRef.getOid();
-		AssertJUnit.assertEquals(shadowOid, newShadowOid);
+		assertEquals(2, accountRefs.size());
+		for (ObjectReferenceType accountRef : accountRefs) {
+			assertTrue(
+					accountRef.getOid().equals(accountShadowOidOpendj) ||
+					accountRef.getOid().equals(accountShadowOidDerby));
+		}
 
 		// Check if shadow is still in the repo and that it is untouched
 		repoResult = new OperationResult("getObject");
-		repoObject = repositoryService.getObject(ObjectType.class, shadowOid, resolve, repoResult);
+		repoObject = repositoryService.getObject(ObjectType.class, accountShadowOidOpendj, resolve, repoResult);
 		repoResult.computeStatus();
 		assertSuccess("getObject(repo) has failed", repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
@@ -871,9 +1048,9 @@ public class TestSanity extends AbstractIntegrationTest {
 	 * Try to enable user after it has been disabled. As the user has an account, the account should be enabled as well.
 	 */
 	@Test
-	public void test017Enable() throws FileNotFoundException, JAXBException, FaultMessage,
+	public void test031Enable() throws FileNotFoundException, JAXBException, FaultMessage,
 			ObjectNotFoundException, SchemaException, DirectoryException {
-		displayTestTile("test017Enable");
+		displayTestTile("test031Enable");
 		// GIVEN
 
 		ObjectModificationType objectChange = unmarshallJaxbFromFile(
@@ -901,14 +1078,16 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Check if appropriate accountRef is still there
 		List<ObjectReferenceType> accountRefs = repoUser.getAccountRef();
-		AssertJUnit.assertEquals(1, accountRefs.size());
-		ObjectReferenceType accountRef = accountRefs.get(0);
-		String newShadowOid = accountRef.getOid();
-		AssertJUnit.assertEquals(shadowOid, newShadowOid);
+		assertEquals(2, accountRefs.size());
+		for (ObjectReferenceType accountRef : accountRefs) {
+			assertTrue(
+					accountRef.getOid().equals(accountShadowOidOpendj) ||
+					accountRef.getOid().equals(accountShadowOidDerby));
+		}
 
 		// Check if shadow is still in the repo and that it is untouched
 		repoResult = new OperationResult("getObject");
-		repoObject = repositoryService.getObject(ObjectType.class, shadowOid, resolve, repoResult);
+		repoObject = repositoryService.getObject(ObjectType.class, accountShadowOidOpendj, resolve, repoResult);
 		repoResult.computeStatus();
 		assertSuccess("getObject(repo) has failed", repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
@@ -987,7 +1166,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		// Account shadow should be gone from the repository
 		repoResult = new OperationResult("getObject");
 		try {
-			repositoryService.getObject(ObjectType.class, shadowOid, resolve, repoResult);
+			repositoryService.getObject(ObjectType.class, accountShadowOidOpendj, resolve, repoResult);
 			AssertJUnit.fail("Shadow still exists in repo after delete");
 		} catch (ObjectNotFoundException e) {
 			// This is expected, but check also the result

@@ -46,6 +46,7 @@ import org.w3c.dom.NodeList;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.XmlUtil;
 import com.evolveum.midpoint.common.result.OperationResult;
+import com.evolveum.midpoint.common.result.OperationResultStatus;
 import com.evolveum.midpoint.common.xpath.XPathUtil;
 import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.model.expr.ExpressionHandlerImpl;
@@ -132,8 +133,12 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		ResourceType resource = resolveResource(resourceObjectShadow, subResult);
 		AccountType accountType = ModelUtils.getAccountTypeFromHandling(resourceObjectShadow, resource);
 		if (accountType == null) {
-			subResult.recordWarning("Account type in schema handling was not found for shadow type '"
-					+ resourceObjectShadow.getObjectClass() + "'.");
+			// Account type in schema handling was not found for shadow type
+			// this may be normal if no inbound expressions are to be executed
+			LOGGER.debug("Account type in schema handling was not found for shadow type '{}', inbound processing skipped",
+					resourceObjectShadow.getObjectClass());
+			subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Account type in schema handling was not found for shadow type '"
+					+ resourceObjectShadow.getObjectClass() + "', inbound processing skipped");
 			return user;
 		}
 		ResourceObjectDefinition objectDefinition = getResourceObjectDefinition(resource,
@@ -193,8 +198,12 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		ResourceType resource = resolveResource(resourceObjectShadow, subResult);
 		AccountType accountType = ModelUtils.getAccountTypeFromHandling(resourceObjectShadow, resource);
 		if (accountType == null) {
-			subResult.recordWarning("Account type in schema handling was not found for shadow type '"
-					+ resourceObjectShadow.getObjectClass() + "'.");
+			// Account type in schema handling was not found for shadow type
+			// this may be normal if no outbound expressions are to be executed
+			LOGGER.debug("Account type in schema handling was not found for shadow type '{}', outbound processing skipped",
+					resourceObjectShadow.getObjectClass());
+			subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Account type in schema handling was not found for shadow type '"
+					+ resourceObjectShadow.getObjectClass() + "', outbound processing skipped");
 			return changes;
 		}
 

@@ -86,8 +86,9 @@ public class IntegrationTestTools {
 			if (result.getStatus() == null || result.getStatus() == OperationResultStatusType.UNKNOWN) {
 				fail(message + ": undefined status ("+result.getStatus()+") on operation "+result.getOperation());
 			}
-			assertEquals(message + ": " + result.getMessage(), OperationResultStatusType.SUCCESS,
-					result.getStatus());
+			if (result.getStatus() != OperationResultStatusType.SUCCESS && result.getStatus() != OperationResultStatusType.NOT_APPLICABLE) {
+				fail(message + ": " + result.getMessage() + " ("+result.getStatus()+")");
+			}
 		}
 		List<OperationResultType> partialResults = result.getPartialResults();
 		for (OperationResultType subResult : partialResults) {

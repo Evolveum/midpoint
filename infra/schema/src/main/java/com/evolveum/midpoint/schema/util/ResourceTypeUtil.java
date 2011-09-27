@@ -36,6 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.CapabilitiesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_1.CredentialsCapabilityType;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -177,4 +179,13 @@ public class ResourceTypeUtil {
 		
 		return new CapabilitiesType();
 	}
+
+	public static boolean hasActivationCapability(ResourceType resource) {
+		return (getEffectiveCapability(resource, ActivationCapabilityType.class)!=null);
+	}
+	
+	public static boolean hasCredentialsCapability(ResourceType resource) {
+		return (getEffectiveCapability(resource, CredentialsCapabilityType.class)!=null);
+	}
+
 }

@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceObjectShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -400,6 +401,8 @@ public class UserTypeHandler extends BasicHandler {
 				AccountShadowType account = getModelController().getObject(AccountShadowType.class,
 						accountRef.getOid(), ModelUtils.createPropertyReferenceListType("Resource"),
 						subResult);
+				
+				ResourceType resource = getProvisioning().getObject(ResourceType.class, ResourceObjectShadowUtil.getResourceOid(account), null, subResult);
 
 				ObjectModificationType accountChange = null;
 				try {
@@ -416,15 +419,29 @@ public class UserTypeHandler extends BasicHandler {
 				}
 
 				if (userActivationChanged != null) {
-					copyModification(userActivationChanged, accountChange);
+					if (ResourceTypeUtil.hasActivationCapability(resource)) {
+						copyModification(userActivationChanged, accountChange);
+					} else {
+						LOGGER.debug("User {} activation changed, but resource {} does not have activation capability, skipping",
+								ObjectTypeUtil.toShortString(user), ObjectTypeUtil.toShortString(resource));  
+					}
 				}
 
 				if (userCredentials != null) {
-					copyModification(userCredentials, accountChange);
+					if (ResourceTypeUtil.hasCredentialsCapability(resource)) {
+						copyModification(userCredentials, accountChange);
+					} else {
+						LOGGER.debug("User {} credentials changed, but resource {} does not have credentials capability, skipping",
+								ObjectTypeUtil.toShortString(user), ObjectTypeUtil.toShortString(resource));  
+					}
 				}
-
-				getModelController().modifyObjectWithExclusion(AccountShadowType.class, accountChange,
-						accountOid, subResult);
+				
+				if (!ObjectTypeUtil.isEmpty(accountChange)) {
+					
+					getModelController().modifyObjectWithExclusion(AccountShadowType.class, accountChange,
+							accountOid, subResult);
+				}
+				
 			} catch (Exception ex) {
 				LoggingUtils.logException(LOGGER, "Couldn't update account {}", ex, accountRef.getOid());
 				subResult.recordFatalError(ex);

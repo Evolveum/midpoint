@@ -3,9 +3,14 @@
  */
 package com.evolveum.midpoint.test.util;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertTrue;
+
 import java.net.InetAddress;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
@@ -112,6 +117,14 @@ public class DerbyController {
 	public void stop() throws Exception {
 		LOGGER.info("Stopping Derby embedded network server");
 		server.shutdown();
+	}
+	
+	public Statement getExecutedStatementWhereLoginName(String loginName) throws SQLException {
+		Connection conn = getConnection();
+		// Check if it empty
+		Statement stmt = conn.createStatement();
+		stmt.execute("select * from users where "+COLUMN_LOGIN+"='"+loginName+"'");
+		return stmt;
 	}
 	
 }

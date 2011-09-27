@@ -376,4 +376,9 @@ public class ObjectTypeUtil {
 		return JAXBUtil.getElementQName(propertyModification.getValue().getAny().get(0));
 	}
 
+	public static boolean isEmpty(ObjectModificationType objectModification) {
+		return (objectModification.getPropertyModification() == null) || 
+				objectModification.getPropertyModification().isEmpty();
+	}
+
 }
