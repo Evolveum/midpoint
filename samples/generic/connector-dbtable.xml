@@ -35,7 +35,7 @@
    <connectorType>org.identityconnectors.databasetable.DatabaseTableConnector</connectorType>
    <connectorVersion>1.1.4958</connectorVersion>
    <connectorBundle>org.identityconnectors.databasetable</connectorBundle>
-   <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector</namespace>
+   <namespace>http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector</namespace>
    <schema>
       <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                   xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"
@@ -44,7 +44,7 @@
                   xmlns:a="http://midpoint.evolveum.com/xml/ns/public/common/annotation-1.xsd"
                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                   elementFormDefault="qualified"
-                  targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
+                  targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector">
          <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-1.xsd"/>
          <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd"/>
          <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/resource-schema-1.xsd"/>

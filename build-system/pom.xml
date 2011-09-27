@@ -264,50 +264,36 @@
 			</dependency>
 			<!--  Identity conectors  -->
 			<dependency>
-				<groupId>org.identityconnectors</groupId>
+				<groupId>org.forgerock.openicf.framework</groupId>
 				<artifactId>connector-framework</artifactId>
-				<version>1.1.5559</version>
+				<version>1.1.0.0.6162</version>
 			</dependency>
 			<dependency>
-				<groupId>org.identityconnectors</groupId>
+				<groupId>org.forgerock.openicf.framework</groupId>
 				<artifactId>connector-framework-internal</artifactId>
-				<version>1.1.5559</version>
+				<version>1.1.0.0.6162</version>
 			</dependency>
 			<dependency>
-				<groupId>org.identityconnectors</groupId>
-				<artifactId>org.identityconnectors.db2</artifactId>
-				<version>1.0.4828</version>
+				<groupId>org.forgerock.openicf.framework</groupId>
+				<artifactId>icfl-over-slf4j</artifactId>
+				<version>1.0.0.0.6162</version>
 			</dependency>
 			<dependency>
-				<groupId>org.identityconnectors</groupId>
-				<artifactId>org.identityconnectors.databasetable</artifactId>
-				<version>1.1.4958</version>
+				<groupId>org.forgerock.openicf.connectors.db</groupId>
+				<artifactId>databasetable</artifactId>
+				<version>1.1.0.0.6162</version>
 			</dependency>
 			<dependency>
-				<groupId>org.identityconnectors</groupId>
-				<artifactId>org.identityconnectors.flat</artifactId>
-				<version>1.1.1503</version>
+				<groupId>org.forgerock.openicf.connectors.file</groupId>
+				<artifactId>csvfile</artifactId>
+				<version>1.1.0.0.6162</version>
 			</dependency>
 			<dependency>
-				<groupId>org.identityconnectors</groupId>
-				<artifactId>org.identityconnectors.flatfile</artifactId>
-				<version>1.0.2838</version>
+				<groupId>org.forgerock.openicf.connectors.ldap</groupId>
+				<artifactId>ldap</artifactId>
+				<version>1.1.0.0.6162</version>
 			</dependency>
-			<dependency>
-				<groupId>org.identityconnectors</groupId>
-				<artifactId>org.identityconnectors.ldap</artifactId>
-				<version>1.0.5531</version>
-			</dependency>
-			<dependency>
-				<groupId>org.identityconnectors</groupId>
-				<artifactId>org.identityconnectors.mysqluser</artifactId>
-				<version>1.1.4900</version>
-			</dependency>
-			<dependency>
-				<groupId>org.identityconnectors</groupId>
-				<artifactId>org.identityconnectors.spml</artifactId>
-				<version>1.0.4828</version>
-			</dependency>
+			<!-- End connectors -->
 			<dependency>
 				<groupId>com.evolveum.icf</groupId>
 				<artifactId>dummy</artifactId>
@@ -339,13 +325,8 @@
 				<artifactId>slf4j-api</artifactId>
 				<version>${slf4j.version}</version>
 			</dependency>
+
 			
-<!-- 			<dependency> -->
-<!-- 				<groupId>org.slf4j</groupId> -->
-<!-- 				<artifactId>slf4j-log4j12</artifactId> -->
-<!-- 				<version>${slf4j.version}</version> -->
-<!-- 			</dependency> -->
-			<!--  Spring dependencies  -->
 			<dependency>
 				<groupId>org.springframework</groupId>
 				<artifactId>spring-aspects</artifactId>
@@ -564,12 +545,8 @@
 							<suiteXmlFiles>
 								<suiteXmlFile>testng.xml</suiteXmlFile>
 							</suiteXmlFiles>
-
 							<systemPropertyVariables>
-								<property>
-									<name>log4j.configuration</name>
-									<value>file:src/test/resources/log4j.properties</value>
-								</property>
+<!-- 								<midpoint.home>target/midPointHome/</midpoint.home> -->
 							</systemPropertyVariables>
 						</configuration>
 						<dependencies>

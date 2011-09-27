@@ -195,53 +195,38 @@
 
         <!-- Dependencies to connectors, just to add to good place in WAR -->
 		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.ldap</artifactId>
+			<groupId>org.forgerock.openicf.connectors.ldap</groupId>
+			<artifactId>ldap</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.databasetable</artifactId>
+			<groupId>org.forgerock.openicf.connectors.db</groupId>
+			<artifactId>databasetable</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.db2</artifactId>
+			<groupId>org.forgerock.openicf.connectors.file</groupId>
+			<artifactId>csvfile</artifactId>
 			<scope>runtime</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.flat</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.flatfile</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.mysqluser</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.spml</artifactId>
-			<scope>runtime</scope>
-		</dependency>
+		<!-- end connectors -->
+		<!-- logging bridges to slf4j -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
 			<scope>runtime</scope>
-
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>log4j-over-slf4j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.forgerock.openicf.framework</groupId>
+			<artifactId>icfl-over-slf4j</artifactId>
+			<scope>runtime</scope>
+		</dependency>
 	</dependencies>
-
 	<profiles>
 		<profile>
 			<id>aspectj</id>

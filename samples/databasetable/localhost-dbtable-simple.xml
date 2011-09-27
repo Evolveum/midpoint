@@ -64,7 +64,7 @@ object.
         <!-- Configuration section contains configuration of the connector,
              such as hostnames and passwords -->
 		<c:configuration
-			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.identityconnectors.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
+			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
 			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf-1/connector-schema-1.xsd">
 
             <!-- Configuration specific for the DBTable connector -->

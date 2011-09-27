@@ -175,7 +175,7 @@ public class StartupConfiguration implements MidpointConfiguration {
 
 					ApplicationHomeSetup ah = new ApplicationHomeSetup();
 					ah.init(MIDPOINT_HOME);
-					ClassPathUtil.extractFileFromClassPath("config.xml", path);
+					ClassPathUtil.extractFileFromClassPath(this.getConfigFilename(), path);
 
 				}
 				this.setConfigFilename(path);

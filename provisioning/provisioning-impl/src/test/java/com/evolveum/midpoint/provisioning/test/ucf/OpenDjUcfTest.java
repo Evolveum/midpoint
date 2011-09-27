@@ -133,6 +133,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	protected static OpenDJController openDJController = new OpenDJController();
 
 	public OpenDjUcfTest() throws JAXBException {
+		System.setProperty("midpoint.home", "target/midPointHome/");
 		jaxbctx = JAXBContext.newInstance(ObjectFactory.class.getPackage().getName());
 	}
 

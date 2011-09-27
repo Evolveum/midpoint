@@ -32,6 +32,8 @@ import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.crypto.AESProtector;
 import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author mamut
@@ -39,15 +41,17 @@ import com.evolveum.midpoint.util.ClassPathUtil;
  */
 @Component("protector")
 public class KeyStoreConfigurator extends AESProtector implements RuntimeConfiguration, Protector {
-	
+
 	private String keyStorePath;
 	private String keyStorePassword;
 	private String encryptionKeyAlias;
-		
-	@Autowired(required=true)
+
+	@Autowired(required = true)
 	private MidpointConfiguration midpointConfiguration;
+
+	private static final String COMPONENT_NAME = "midpoint.keystore";
 	
-	private static final String COMPONENT_NAME="midpoint.keystore";
+	private static final Trace LOGGER = TraceManager.getTrace(KeyStoreConfigurator.class);
 
 	public KeyStoreConfigurator() {
 		super();
@@ -59,19 +63,30 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 		this.setKeyStorePath(c.getString("keyStorePath"));
 		this.setKeyStorePassword(c.getString("keyStorePassword"));
 		this.setEncryptionKeyAlias(c.getString("encryptionKeyAlias"));
+
 		//Extract file if not exists
 		if (c.getString("midpoint.home") != null) {
 			File ks = new File(this.getKeyStorePath());
 			if (!ks.exists()) {
-				//hack to try 2 class paths
-				if ( !ClassPathUtil.extractFileFromClassPath("com/../../keystore.jceks", this.getKeyStorePath())) {
-					ClassPathUtil.extractFileFromClassPath("keystore.jceks", this.getKeyStorePath());
+				if (c.getString("keyStorePath").endsWith("keystore.jceks")) {
+					//hack to try 2 class paths
+					if (!ClassPathUtil.extractFileFromClassPath("com/../../keystore.jceks", this.getKeyStorePath())) {
+						ClassPathUtil.extractFileFromClassPath("keystore.jceks", this.getKeyStorePath());
+					}
+				} else if (c.getString("keyStorePath").endsWith("test-keystore.jceks")) {
+					if (!ClassPathUtil
+							.extractFileFromClassPath("com/../../test-keystore.jceks", this.getKeyStorePath())) {
+						ClassPathUtil.extractFileFromClassPath("test-keystore.jceks", this.getKeyStorePath());
+					}
+				} else {
+					LOGGER.error("Unable to find/extract keystore file {} from classpath", c.getString("keyStorePath"));
 				}
 			}
 		}
-		
+
 		super.init();
 	}
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration#getComponentId()
 	 */
@@ -85,11 +100,11 @@ public class KeyStoreConfigurator extends AESProtector implements RuntimeConfigu
 	 */
 	@Override
 	public Configuration getCurrentConfiguration() {
-		Configuration config =  new BaseConfiguration(); 
-		 config.setProperty("keyStorePath", this.getKeyStorePath());
-		 config.setProperty("keyStorePassword" , this.getKeyStorePassword());
-		 config.setProperty("defaultKeyAlias", this.getEncryptionKeyAlias());
-		 return config;
+		Configuration config = new BaseConfiguration();
+		config.setProperty("keyStorePath", this.getKeyStorePath());
+		config.setProperty("keyStorePassword", this.getKeyStorePassword());
+		config.setProperty("defaultKeyAlias", this.getEncryptionKeyAlias());
+		return config;
 	}
 
 	/**

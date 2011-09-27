@@ -76,96 +76,102 @@ public class ConnectorTypeManager {
 	private RepositoryService repositoryService;
 	@Autowired
 	private ConnectorFactory connectorFactory;
-	
-	private static final Trace LOGGER = TraceManager.getTrace(ProvisioningServiceImpl.class);
-	
-	private Map<String,ConfiguredConnectorInstanceEntry> connectorInstanceCache = new HashMap<String, ConnectorTypeManager.ConfiguredConnectorInstanceEntry>();
 
-	public ConnectorInstance getConfiguredConnectorInstance(ResourceType resource, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
+	private static final Trace LOGGER = TraceManager.getTrace(ConnectorTypeManager.class);
+
+	private Map<String, ConfiguredConnectorInstanceEntry> connectorInstanceCache = new HashMap<String, ConnectorTypeManager.ConfiguredConnectorInstanceEntry>();
+
+	public ConnectorInstance getConfiguredConnectorInstance(ResourceType resource, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, CommunicationException {
 		String resourceOid = resource.getOid();
 		String connectorOid = ResourceTypeUtil.getConnectorOid(resource);
-		if (connectorInstanceCache.containsKey(resourceOid)) { 
+		if (connectorInstanceCache.containsKey(resourceOid)) {
 			// Check if the instance can be reused
 			ConfiguredConnectorInstanceEntry configuredConnectorInstanceEntry = connectorInstanceCache.get(resourceOid);
-			
-			if (configuredConnectorInstanceEntry.connectorOid.equals(connectorOid) &&
-					ResourceTypeUtil.compareConfiguration(configuredConnectorInstanceEntry.configuration,resource.getConfiguration())) {
-				
+
+			if (configuredConnectorInstanceEntry.connectorOid.equals(connectorOid)
+					&& ResourceTypeUtil.compareConfiguration(configuredConnectorInstanceEntry.configuration,
+							resource.getConfiguration())) {
+
 				// We found entry that matches
 				return configuredConnectorInstanceEntry.connectorInstance;
-				
+
 			} else {
 				// There is an entry but it does not match. We assume that the resource configuration has changed
 				// and the old entry is useless now. So remove it.
 				connectorInstanceCache.remove(resourceOid);
 			}
-			
+
 		}
-		
+
 		// No usable connector in cache. Let's create it.
-		ConnectorInstance configuredConnectorInstance = createConfiguredConnectorInstance(resource,result);
-		
+		ConnectorInstance configuredConnectorInstance = createConfiguredConnectorInstance(resource, result);
+
 		// .. and cache it
 		ConfiguredConnectorInstanceEntry cacheEntry = new ConfiguredConnectorInstanceEntry();
 		cacheEntry.connectorOid = connectorOid;
 		cacheEntry.configuration = resource.getConfiguration();
 		cacheEntry.connectorInstance = configuredConnectorInstance;
-		connectorInstanceCache.put(resourceOid,cacheEntry);
-		
+		connectorInstanceCache.put(resourceOid, cacheEntry);
+
 		return configuredConnectorInstance;
 	}
-	
-	private ConnectorInstance createConfiguredConnectorInstance(ResourceType resource, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException {
+
+	private ConnectorInstance createConfiguredConnectorInstance(ResourceType resource, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, CommunicationException {
 		// This log message should be INFO level. It happens only occasionally. If it happens often, it may be an
 		// indication of a problem. Therefore it is good for admin to see it. 
-		LOGGER.info("Creating new connector instance for {}",ObjectTypeUtil.toShortString(resource));
+		LOGGER.info("Creating new connector instance for {}", ObjectTypeUtil.toShortString(resource));
 		ConnectorType connectorType = getConnectorType(resource, result);
 		ConnectorInstance connector = null;
 		try {
-			
-			connector = connectorFactory.createConnectorInstance(connectorType,resource.getNamespace());
-			
+
+			connector = connectorFactory.createConnectorInstance(connectorType, resource.getNamespace());
+
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
 			result.recordFatalError(e.getMessage(), e);
 			throw new ObjectNotFoundException(e.getMessage(), e);
 		}
 		try {
-			connector.configure(resource.getConfiguration(),result);
+			connector.configure(resource.getConfiguration(), result);
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception
-			result.recordFatalError("Generic provisioning framework error",e);
-			throw new SystemException("Generic provisioning framework error: "+e.getMessage(),e);
+			result.recordFatalError("Generic provisioning framework error", e);
+			throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
-			throw new CommunicationException(e.getMessage(),e);
+			throw new CommunicationException(e.getMessage(), e);
 		}
-		
+
 		return connector;
 	}
-	
-	public ConnectorType getConnectorType(ResourceType resource, OperationResult result) throws ObjectNotFoundException, SchemaException {
-		if (resource.getConnector()!=null) {
+
+	public ConnectorType getConnectorType(ResourceType resource, OperationResult result)
+			throws ObjectNotFoundException, SchemaException {
+		if (resource.getConnector() != null) {
 			return resource.getConnector();
 		}
-		if (resource.getConnectorRef()==null || resource.getConnectorRef().getOid()==null) {
-			result.recordFatalError("Connector reference missing in the resource "+ObjectTypeUtil.toShortString(resource));
-			throw new ObjectNotFoundException("Connector reference missing in the resource "+ObjectTypeUtil.toShortString(resource));
+		if (resource.getConnectorRef() == null || resource.getConnectorRef().getOid() == null) {
+			result.recordFatalError("Connector reference missing in the resource "
+					+ ObjectTypeUtil.toShortString(resource));
+			throw new ObjectNotFoundException("Connector reference missing in the resource "
+					+ ObjectTypeUtil.toShortString(resource));
 		}
 		String connOid = resource.getConnectorRef().getOid();
 		ConnectorType connectorType = repositoryService.getObject(ConnectorType.class, connOid, null, result);
 		return connectorType;
 	}
-	
+
 	public Set<ConnectorType> discoverLocalConnectors(OperationResult parentResult) {
 		try {
-			return discoverConnectors(null,parentResult);
+			return discoverConnectors(null, parentResult);
 		} catch (CommunicationException e) {
 			// This should never happen as no remote operation is executed
 			// convert to runtime exception and record in result.
-			parentResult.recordFatalError("Unexpected error: "+e.getMessage(), e);
-			throw new SystemException("Unexpected error: "+e.getMessage(), e);
+			parentResult.recordFatalError("Unexpected error: " + e.getMessage(), e);
+			throw new SystemException("Unexpected error: " + e.getMessage(), e);
 		}
 	}
-	
+
 	/**
 	 * Lists local connectors and makes sure that appropriate ConnectorType objects for them exist in repository.
 	 * 
@@ -175,89 +181,102 @@ public class ConnectorTypeManager {
 	 * @return set of discovered connectors (new connectors found)
 	 * @throws CommunicationException 
 	 */
-	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult) throws CommunicationException {
-		
-		OperationResult result = parentResult.createSubresult(ConnectorTypeManager.class.getName()+".discoverConnectors");
+	public Set<ConnectorType> discoverConnectors(ConnectorHostType hostType, OperationResult parentResult)
+			throws CommunicationException {
+
+		OperationResult result = parentResult.createSubresult(ConnectorTypeManager.class.getName()
+				+ ".discoverConnectors");
 		result.addParam("host", hostType);
-		
+
 		// Make sure that the provided host has an OID.
 		// We need the host to have OID, so we can properly link connectors to it
-		if (hostType!=null && hostType.getOid()==null) {
-			throw new SystemException("Discovery attempt with non-persistent "+ObjectTypeUtil.toShortString(hostType));
+		if (hostType != null && hostType.getOid() == null) {
+			throw new SystemException("Discovery attempt with non-persistent " + ObjectTypeUtil.toShortString(hostType));
 		}
-		
+
 		Set<ConnectorType> discoveredConnectors = new HashSet<ConnectorType>();
 		Set<ConnectorType> foundConnectors;
 		try {
-			foundConnectors = connectorFactory.listConnectors(hostType,result);
+			foundConnectors = connectorFactory.listConnectors(hostType, result);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
-			result.recordFatalError("Discovery failed: "+ex.getMessage(), ex);
-			throw new CommunicationException("Discovery failed: "+ex.getMessage(), ex);
+			result.recordFatalError("Discovery failed: " + ex.getMessage(), ex);
+			throw new CommunicationException("Discovery failed: " + ex.getMessage(), ex);
 		}
-		
+
 		for (ConnectorType foundConnector : foundConnectors) {
-			
-			LOGGER.trace("Found connector "+ObjectTypeUtil.toShortString(foundConnector));
-		
+
+			LOGGER.trace("Found connector " + ObjectTypeUtil.toShortString(foundConnector));
+
 			boolean inRepo = true;
 			try {
-				inRepo = isInRepo(foundConnector,result);
+				inRepo = isInRepo(foundConnector, result);
 			} catch (SchemaException e1) {
-				LOGGER.error("Unexpected schema problem while checking existence of "+ObjectTypeUtil.toShortString(foundConnector),e1);
-				result.recordPartialError("Unexpected schema problem while checking existence of "+ObjectTypeUtil.toShortString(foundConnector),e1);
+				LOGGER.error(
+						"Unexpected schema problem while checking existence of "
+								+ ObjectTypeUtil.toShortString(foundConnector), e1);
+				result.recordPartialError(
+						"Unexpected schema problem while checking existence of "
+								+ ObjectTypeUtil.toShortString(foundConnector), e1);
 				// But continue otherwise ...
 			}
 			if (!inRepo) {
-				
-				LOGGER.trace("Connector "+ObjectTypeUtil.toShortString(foundConnector)+" not in the repository, \"dicovering\" it");
-				
+
+				LOGGER.trace("Connector " + ObjectTypeUtil.toShortString(foundConnector)
+						+ " not in the repository, \"dicovering\" it");
+
 				// First of all we need to "embed" connectorHost to the connectorType. The UCF does not
 				// have access to repository, therefore it cannot resolve it for itself
-				if (hostType!=null && foundConnector.getConnectorHost()==null) {
+				if (hostType != null && foundConnector.getConnectorHost() == null) {
 					foundConnector.setConnectorHost(hostType);
 				}
-				
+
 				// Connector schema is normally not generated.
 				// Let's instantiate the connector and generate the schema
 				ConnectorInstance connectorInstance = null;
 				try {
 					connectorInstance = connectorFactory.createConnectorInstance(foundConnector, null);
 					Schema connectorSchema = connectorInstance.generateConnectorSchema();
-					if (connectorSchema==null) {
-						LOGGER.warn("Connector {} haven't provided configuration schema",ObjectTypeUtil.toShortString(foundConnector));
+					if (connectorSchema == null) {
+						LOGGER.warn("Connector {} haven't provided configuration schema",
+								ObjectTypeUtil.toShortString(foundConnector));
 					} else {
-						LOGGER.trace("Generated connector schema for {}: {} definitions",ObjectTypeUtil.toShortString(foundConnector),connectorSchema.getDefinitions().size());
+						LOGGER.trace("Generated connector schema for {}: {} definitions",
+								ObjectTypeUtil.toShortString(foundConnector), connectorSchema.getDefinitions().size());
 						Document xsdDoc = null;
 						// Convert to XSD
 						xsdDoc = connectorSchema.serializeToXsd();
 						Element xsdElement = DOMUtil.getFirstChildElement(xsdDoc);
-						LOGGER.trace("Generated XSD connector schema: {}",DOMUtil.serializeDOMToString(xsdElement));
-						if (foundConnector.getSchema()==null) {
+						LOGGER.trace("Generated XSD connector schema: {}", DOMUtil.serializeDOMToString(xsdElement));
+						if (foundConnector.getSchema() == null) {
 							foundConnector.setSchema(new XmlSchemaType());
 						}
 						foundConnector.getSchema().getAny().add(xsdElement);
 					}
 				} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
-					LOGGER.error("Cannot instantiate discovered connector "+ObjectTypeUtil.toShortString(foundConnector), ex);
-					result.recordPartialError("Cannot instantiate discovered connector "+ObjectTypeUtil.toShortString(foundConnector),ex);
+					LOGGER.error(
+							"Cannot instantiate discovered connector " + ObjectTypeUtil.toShortString(foundConnector),
+							ex);
+					result.recordPartialError(
+							"Cannot instantiate discovered connector " + ObjectTypeUtil.toShortString(foundConnector),
+							ex);
 					// Skipping schema generation, but otherwise going on
 				} catch (SchemaException e) {
-					LOGGER.error("Error processing connector schema for "
-							+ ObjectTypeUtil.toShortString(foundConnector) + ": "
-							+ e.getMessage(), e);
+					LOGGER.error(
+							"Error processing connector schema for " + ObjectTypeUtil.toShortString(foundConnector)
+									+ ": " + e.getMessage(), e);
 					result.recordPartialError(
-							"Error processing connector schema for "
-									+ ObjectTypeUtil.toShortString(foundConnector) + ": "
-									+ e.getMessage(), e);
+							"Error processing connector schema for " + ObjectTypeUtil.toShortString(foundConnector)
+									+ ": " + e.getMessage(), e);
 					// Skipping schema generation, but otherwise going on
 				}
-				
+
 				// Sanitize framework-supplied OID
 				if (StringUtils.isNotEmpty(foundConnector.getOid())) {
-					LOGGER.warn("Provisioning framework "+foundConnector.getFramework()+" supplied OID for connector "+ObjectTypeUtil.toShortString(foundConnector));
+					LOGGER.warn("Provisioning framework " + foundConnector.getFramework()
+							+ " supplied OID for connector " + ObjectTypeUtil.toShortString(foundConnector));
 					foundConnector.setOid(null);
 				}
-				
+
 				// Store the connector object
 				String oid;
 				try {
@@ -265,21 +284,23 @@ public class ConnectorTypeManager {
 				} catch (ObjectAlreadyExistsException e) {
 					// We don't specify the OID, therefore this should never happen
 					// Convert to runtime exception
-					LOGGER.error("Got ObjectAlreadyExistsException while not expecting it: "+e.getMessage(),e);
-					result.recordFatalError("Got ObjectAlreadyExistsException while not expecting it: "+e.getMessage(),e);
-					throw new SystemException("Got ObjectAlreadyExistsException while not expecting it: "+e.getMessage(),e);
+					LOGGER.error("Got ObjectAlreadyExistsException while not expecting it: " + e.getMessage(), e);
+					result.recordFatalError(
+							"Got ObjectAlreadyExistsException while not expecting it: " + e.getMessage(), e);
+					throw new SystemException("Got ObjectAlreadyExistsException while not expecting it: "
+							+ e.getMessage(), e);
 				} catch (SchemaException e) {
 					// If there is a schema error it must be a bug. Convert to runtime exception
-					LOGGER.error("Got SchemaException while not expecting it: "+e.getMessage(),e);
-					result.recordFatalError("Got SchemaException while not expecting it: "+e.getMessage(),e);
-					throw new SystemException("Got SchemaException while not expecting it: "+e.getMessage(),e);
+					LOGGER.error("Got SchemaException while not expecting it: " + e.getMessage(), e);
+					result.recordFatalError("Got SchemaException while not expecting it: " + e.getMessage(), e);
+					throw new SystemException("Got SchemaException while not expecting it: " + e.getMessage(), e);
 				}
 				foundConnector.setOid(oid);
 				discoveredConnectors.add(foundConnector);
 			}
-			
+
 		}
-		
+
 		result.recordSuccess();
 		return discoveredConnectors;
 	}
@@ -291,45 +312,51 @@ public class ConnectorTypeManager {
 	 */
 	private boolean isInRepo(ConnectorType connector, OperationResult result) throws SchemaException {
 		Document doc = DOMUtil.getDocument();
-        Element filter =
-                QueryUtil.createAndFilter(doc,
-	                QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_FRAMEWORK,connector.getFramework()),
-	                QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE,connector.getConnectorType())
-                );
-		
+		Element filter = QueryUtil
+				.createAndFilter(
+						doc,
+						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_FRAMEWORK,
+								connector.getFramework()),
+						QueryUtil.createEqualFilter(doc, null, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE,
+								connector.getConnectorType()));
+
 		QueryType query = new QueryType();
-        query.setFilter(filter);
-		
-        List<ConnectorType> foundConnectors;
+		query.setFilter(filter);
+
+		List<ConnectorType> foundConnectors;
 		try {
 			foundConnectors = repositoryService.searchObjects(ConnectorType.class, query, null, result);
 		} catch (SchemaException e) {
 			// If there is a schema error it must be a bug. Convert to runtime exception
-			LOGGER.error("Got SchemaException while not expecting it: "+e.getMessage(),e);
-			result.recordFatalError("Got SchemaException while not expecting it: "+e.getMessage(),e);
-			throw new SystemException("Got SchemaException while not expecting it: "+e.getMessage(),e);
+			LOGGER.error("Got SchemaException while not expecting it: " + e.getMessage(), e);
+			result.recordFatalError("Got SchemaException while not expecting it: " + e.getMessage(), e);
+			throw new SystemException("Got SchemaException while not expecting it: " + e.getMessage(), e);
 		}
-		
-		if (foundConnectors.size()==0) {
+
+		if (foundConnectors.size() == 0) {
 			// Nothing found, the connector is not in the repo
 			return false;
 		}
-		
+
 		String foundOid = null;
 		for (ConnectorType foundConnector : foundConnectors) {
-			if (compareConnectors(connector,foundConnector)) {
-				if (foundOid!=null) {
+			if (compareConnectors(connector, foundConnector)) {
+				if (foundOid != null) {
 					// More than one connector matches. Inconsistent repo state. Log error.
-					result.recordPartialError("Found more than one connector that matches "+connector.getFramework()+" : "+connector.getConnectorType()+" : "+connector.getVersion()+". OIDs "+foundConnector.getOid()+" and "+foundOid+". Inconsistent database state.");
-					LOGGER.error("Found more than one connector that matches "+connector.getFramework()+" : "+connector.getConnectorType()+" : "+connector.getVersion()+". OIDs "+foundConnector.getOid()+" and "+foundOid+". Inconsistent database state.");
+					result.recordPartialError("Found more than one connector that matches " + connector.getFramework()
+							+ " : " + connector.getConnectorType() + " : " + connector.getVersion() + ". OIDs "
+							+ foundConnector.getOid() + " and " + foundOid + ". Inconsistent database state.");
+					LOGGER.error("Found more than one connector that matches " + connector.getFramework() + " : "
+							+ connector.getConnectorType() + " : " + connector.getVersion() + ". OIDs "
+							+ foundConnector.getOid() + " and " + foundOid + ". Inconsistent database state.");
 					// But continue working otherwise. This is probably not critical.
 					return true;
 				}
-				foundOid=foundConnector.getOid();
+				foundOid = foundConnector.getOid();
 			}
 		}
-		
-		return (foundOid!=null);
+
+		return (foundOid != null);
 	}
 
 	/**
@@ -344,34 +371,34 @@ public class ConnectorTypeManager {
 		if (!a.getConnectorType().equals(b.getConnectorType())) {
 			return false;
 		}
-		if (a.getConnectorHostRef()!=null) {
+		if (a.getConnectorHostRef() != null) {
 			if (!a.getConnectorHostRef().equals(b.getConnectorHostRef())) {
 				return false;
 			}
 		} else {
-			if (b.getConnectorHostRef()!=null) {
+			if (b.getConnectorHostRef() != null) {
 				return false;
 			}
 		}
-		if (a.getVersion()==null && b.getVersion()==null) {
+		if (a.getVersion() == null && b.getVersion() == null) {
 			// Both connectors without version. This is OK.
 			return true;
 		}
-		if (a.getVersion()!=null && b.getVersion()!=null) {
+		if (a.getVersion() != null && b.getVersion() != null) {
 			// Both connectors with version. This is OK.
 			return a.getVersion().equals(b.getVersion());
 		}
 		// One connector has version and other does not. This is inconsistency
-		LOGGER.error("Inconsistent representation of ConnectorType, one has version and other does not. OIDs: "+a.getOid()+" and "+b.getOid());
+		LOGGER.error("Inconsistent representation of ConnectorType, one has version and other does not. OIDs: "
+				+ a.getOid() + " and " + b.getOid());
 		// Obviously they don't match
 		return false;
 	}
-	
+
 	private class ConfiguredConnectorInstanceEntry {
 		public String connectorOid;
 		public Configuration configuration;
 		public ConnectorInstance connectorInstance;
 	}
 
-	
 }

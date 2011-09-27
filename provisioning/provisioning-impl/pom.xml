@@ -99,11 +99,11 @@
 			<artifactId>scannotation</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.identityconnectors</groupId>
+			<groupId>org.forgerock.openicf.framework</groupId>
 			<artifactId>connector-framework</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.identityconnectors</groupId>
+			<groupId>org.forgerock.openicf.framework</groupId>
 			<artifactId>connector-framework-internal</artifactId>
 		</dependency>
 		<dependency>
@@ -141,23 +141,18 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.ldap</artifactId>
+			<groupId>org.forgerock.openicf.connectors.ldap</groupId>
+			<artifactId>ldap</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.ldap</artifactId>
+			<groupId>org.forgerock.openicf.connectors.db</groupId>
+			<artifactId>databasetable</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.databasetable</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.flatfile</artifactId>
+			<groupId>org.forgerock.openicf.connectors.file</groupId>
+			<artifactId>csvfile</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

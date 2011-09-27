@@ -84,6 +84,7 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 	private static Trace LOGGER = TraceManager.getTrace(SimpleUcfTest.class);
 
 	public SimpleUcfTest() {
+		System.setProperty("midpoint.home", "target/midPointHome/");
 	}
 
 	@BeforeClass
@@ -91,6 +92,7 @@ public class SimpleUcfTest extends AbstractTestNGSpringContextTests {
 		LOGGER.info("------------------------------------------------------------------------------");
 		LOGGER.info("START:  SimpleUcfTest  ");
 		LOGGER.info("------------------------------------------------------------------------------");
+		
 	}
 
 	@AfterClass

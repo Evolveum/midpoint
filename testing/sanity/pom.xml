@@ -26,7 +26,6 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.evolveum.midpoint.testing</groupId>
 	<artifactId>sanity</artifactId>
-	<version>1.9-SNAPSHOT</version>
 	<parent>
 		<artifactId>parent</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
@@ -105,13 +104,13 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.ldap</artifactId>
+			<groupId>org.forgerock.openicf.connectors.ldap</groupId>
+			<artifactId>ldap</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.identityconnectors</groupId>
-			<artifactId>org.identityconnectors.databasetable</artifactId>
+			<groupId>org.forgerock.openicf.connectors.db</groupId>
+			<artifactId>databasetable</artifactId>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
