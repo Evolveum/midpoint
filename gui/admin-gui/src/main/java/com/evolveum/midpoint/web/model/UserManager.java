@@ -45,12 +45,4 @@ public interface UserManager extends ObjectManager<GuiUserDto> {
 
 	List<UserDto> search(QueryType search, PagingType paging);
 	
-	/**
-	 * same as the submit function, but contain also boolean attribute to make difference between add, delete and modify operation
-	 * if new account to user was created, boolean attribute is true, otherwise it is false 
-	 * @param changedObject
-	 * @param added
-	 * @return
-	 */
-	public Set<PropertyChange> submit(GuiUserDto changedObject, boolean added);
 }

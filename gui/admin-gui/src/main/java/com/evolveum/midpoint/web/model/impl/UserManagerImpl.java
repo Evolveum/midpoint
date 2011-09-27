@@ -23,11 +23,13 @@ package com.evolveum.midpoint.web.model.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
@@ -94,77 +96,20 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 		return list(paging, ObjectTypes.USER);
 	}
 
-	@Override
-	public Set<PropertyChange> submit(GuiUserDto changedObject, boolean added) {
-		Validate.notNull(changedObject, "User object must not be null.");
-
-		Set<PropertyChange> set = null;
-		UserDto oldUser = null;
-		
-		//if account was modified or deleted, we don't need resolve 
-		//old user accounts, in the case of delete, only reference to the account should be removed 
-		//in this point, accounts are deleted later
-		//if account was modified, this modification is sumbited to the account manager
-		//to detect and apply changes
-		if (!added){
-			oldUser = get(changedObject.getOid(), new PropertyReferenceListType());
-			changedObject.getXmlObject().getAccountRef().clear();
-			for (AccountShadowType accountShadow : changedObject.getXmlObject().getAccount()){
-				ObjectReferenceType ort = new ObjectReferenceType();
-				ort.setOid(accountShadow.getOid());
-				changedObject.getXmlObject().getAccountRef().add(ort);
-			}
-			changedObject.getXmlObject().getAccount().clear();
-		} else {
-			//added attribute is only true, if new account was created..
-			//we need it to propagate this as a change of a user to the model, 
-			//to appropriate link user account and create a new account
-			oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
-		}
-		OperationResult result = new OperationResult(UserManager.SUBMIT);
-		try { // Call Web Service Operation
-			changedObject.encryptCredentials(protector);
-
-			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldUser.getXmlObject(),
-					changedObject.getXmlObject());
-			if (changes != null && changes.getOid() != null && changes.getPropertyModification().size() > 0) {
-				getModel().modifyObject(UserType.class, changes, result);
-			}
-
-			if (null != changes) {
-				set = new HashSet<PropertyChange>();
-				// TODO: finish this
-				List<PropertyModificationType> modifications = changes.getPropertyModification();
-				for (PropertyModificationType modification : modifications) {
-					Set<Object> values = new HashSet<Object>();
-					if (modification.getValue() != null) {
-						values.addAll(modification.getValue().getAny());
-					}
-					set.add(new PropertyChange(createQName(modification.getPath()),
-							getChangeType(modification.getModificationType()), values));
-				}
-			}
-			result.recordSuccess();
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't submit user {}", ex,
-					new Object[] { changedObject.getName() });
-			result.recordFatalError("Couldn't submit user '" + changedObject.getName() + "'.", ex);
-		}
-
-		result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
-		printResults(LOGGER, result);
-
-		return set;
-	}
 	
 	@Override
 	public Set<PropertyChange> submit(GuiUserDto changedObject) {
 		Validate.notNull(changedObject, "User object must not be null.");
 
 		Set<PropertyChange> set = null;
-		
-//		UserDto oldUser = get(changedObject.getOid(), Utils.getResolveResourceList());
 		UserDto oldUser = get(changedObject.getOid(), new PropertyReferenceListType());
+		
+		//we don't want user to have resolved all account
+		//only those which were added are needed to create appropriate link between user and account and to add account to the resource and repository
+		//in the case of delete account, in this step only unlink should be made..accounts are deleted in UserDetailsController using account manager
+		//in the case of modifying account, it is not needed to detect changes using user, this is also made in UserDetailsController using account manager
+		changedObject = unresolveNotAddedAccounts(changedObject);
+		
 		OperationResult result = new OperationResult(UserManager.SUBMIT);
 		try { // Call Web Service Operation
 			changedObject.encryptCredentials(protector);
@@ -280,6 +225,23 @@ public class UserManagerImpl extends ObjectManagerImpl<UserType, GuiUserDto> imp
 			default:
 				throw new IllegalArgumentException("Unknown change type '" + type + "'.");
 		}
+	}
+	
+	private GuiUserDto unresolveNotAddedAccounts(GuiUserDto changedObject){
+		changedObject.getXmlObject().getAccountRef().clear();
+		
+		for (Iterator<AccountShadowDto> i = changedObject.getAccount().iterator(); i.hasNext();) {
+			AccountShadowDto account = i.next();
+			if (account.isAdded()){
+				changedObject.getXmlObject().getAccount().add(account.getXmlObject());
+			} else{
+				changedObject.getXmlObject().getAccount().remove(account.getXmlObject());
+				ObjectReferenceType ort = new ObjectReferenceType();
+				ort.setOid(account.getOid());
+				changedObject.getXmlObject().getAccountRef().add(ort);
+			}
+		}
+		return changedObject;
 	}
 
 	

@@ -22,6 +22,8 @@
 
 package com.evolveum.midpoint.web.model.dto;
 
+import java.util.List;
+
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
@@ -160,4 +162,11 @@ public class GuiUserDto extends UserDto implements Selectable {
 
 		return credentials.isAllowedIdmGuiAccess();
 	}
+	
+	@Override
+	public List<AccountShadowDto> getAccount() {
+		// TODO Auto-generated method stub
+		return super.getAccount();
+	}
+	
 }

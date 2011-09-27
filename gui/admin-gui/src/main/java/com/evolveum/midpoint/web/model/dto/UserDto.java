@@ -36,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class UserDto extends ExtensibleObjectDto<UserType> {
 
 	private static final long serialVersionUID = 2178456879571587946L;
+	private List<AccountShadowDto> accountDtos;
 
 	public UserDto() {
 	}
@@ -99,12 +100,15 @@ public class UserDto extends ExtensibleObjectDto<UserType> {
 	}
 
 	public List<AccountShadowDto> getAccount() {
-		List<AccountShadowType> accounts = getXmlObject().getAccount();
-		List<AccountShadowDto> accountDtos = new ArrayList<AccountShadowDto>();
 
-		for (AccountShadowType account : accounts) {
-			accountDtos.add(new AccountShadowDto(account));
+		// List<AccountShadowType> accounts = getXmlObject().getAccount();
+		if (accountDtos == null) {
+			accountDtos = new ArrayList<AccountShadowDto>();
+			for (AccountShadowType account : getXmlObject().getAccount()) {
+				accountDtos.add(new AccountShadowDto(account));
+			}
 		}
+		
 		return accountDtos;
 	}
 

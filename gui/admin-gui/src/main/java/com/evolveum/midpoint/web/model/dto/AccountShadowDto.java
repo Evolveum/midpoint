@@ -32,6 +32,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
  */
 public class AccountShadowDto extends ResourceObjectShadowDto<AccountShadowType> {
 
+	private boolean added;
+	
 	private static final long serialVersionUID = -7908853369766852050L;
 
 	public AccountShadowDto(AccountShadowType object) {
@@ -55,5 +57,13 @@ public class AccountShadowDto extends ResourceObjectShadowDto<AccountShadowType>
 
 	public void setActivation(ActivationType activation) {
 		getXmlObject().setActivation(activation);
+	}
+	
+	public boolean isAdded() {
+		return added;
+	}
+	
+	public void setAdded(boolean added) {
+		this.added = added;
 	}
 }

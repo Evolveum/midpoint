@@ -217,14 +217,14 @@ public class UserDetailsController implements Serializable {
 			UserManager userManager = ControllerUtil.getUserManager(objectTypeCatalog);
 			AccountManager accountManager = ControllerUtil.getAccountManager(objectTypeCatalog);
 
-			boolean added = processNewAccounts();
+			processNewAccounts();
 			List<AccountShadowType> accountsToDelete = processDeletedAccounts();
 			processUnlinkedAccounts();
 
 			LOGGER.debug("Submit user modified in GUI");
 			//we want submit only user changes (if the account was deleted- unlink account, if added - link and create account)
 			//modification of account attributes are submited later -> updateAccounts method
-			Set<PropertyChange> userChanges = userManager.submit(user, added);
+			Set<PropertyChange> userChanges = userManager.submit(user);
 			LOGGER.debug("Modified user in GUI submitted ");
 
 			// now we need to delete accounts from repository and also from
@@ -278,26 +278,26 @@ public class UserDetailsController implements Serializable {
 		}
 	}
 
-	private boolean processNewAccounts() throws SchemaException {
+	private void processNewAccounts() throws SchemaException {
 		// new accounts are processed as modification of user in one operation
 		LOGGER.debug("Start processing of new accounts");
-		boolean added = false;
 		for (AccountFormBean formBean : accountList) {
 			if (formBean.isNew()) {
 				// Note: we have to add new account directly to xmlObject
 				// add and delete of accounts will be process later by call
 				// to userManager.submit(user);
-				added= true;
-				AccountShadowType newAccountShadowType = updateAccountAttributes(formBean).getXmlObject();
-				LOGGER.debug("Found new account in GUI: {}", DebugUtil.prettyPrint(newAccountShadowType));
-				((UserType) user.getXmlObject()).getAccount().add(newAccountShadowType);
+				AccountShadowDto newAccountShadow = updateAccountAttributes(formBean);
+				newAccountShadow.setAdded(true);
+				user.getAccount().add(newAccountShadow);
+//				AccountShadowType newAccountShadowType = updateAccountAttributes(formBean).getXmlObject();
+//				LOGGER.debug("Found new account in GUI: {}", DebugUtil.prettyPrint(newAccountShadowType));
+//				((UserType) user.getXmlObject()).getAccount().add(newAccountShadowType);
 				
 				// user.getXmlObject().getAccountRef().add(ObjectTypeUtil.createObjectRef(newAccountShadowType));
 			}
 		}
 		
 		LOGGER.debug("Finished processing of new accounts");
-		return added;
 	}
 
 	private List<AccountShadowType> processDeletedAccounts() {
@@ -310,12 +310,14 @@ public class UserDetailsController implements Serializable {
 			String oidToDelete = formBean.getAccount().getOid();
 			LOGGER.debug("Following account is marked as candidate for delete in GUI: {}",
 					DebugUtil.prettyPrint(formBean.getAccount().getXmlObject()));
-			List<AccountShadowType> accounts = user.getXmlObject().getAccount();
-			for (Iterator<AccountShadowType> i = accounts.iterator(); i.hasNext();) {
-				AccountShadowType account = i.next();
+			
+			List<AccountShadowDto> accountsDto = user.getAccount();
+			for (Iterator<AccountShadowDto> i = accountsDto.iterator(); i.hasNext();) {
+				AccountShadowDto account = i.next();
 				if (StringUtils.equals(oidToDelete, account.getOid())) {
 					i.remove();
-					accountsToDelete.add(account);
+					user.getXmlObject().getAccount().remove(account.getXmlObject());
+					accountsToDelete.add(account.getXmlObject());
 					break;
 				}
 			}
