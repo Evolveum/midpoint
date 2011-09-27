@@ -690,6 +690,20 @@
 	</xsd:simpleType>
 
 	<xsd:element name="access" type="tns:AccessType" />
+	
+	<xsd:element name="ignore" type="xsd:boolean" default="true">
+		<xsd:annotation>
+			<xsd:documentation>
+				Presence of this element signifies that the strcture that it contains should
+				be ignored. If this element is present in the attribute definition, the attribute
+				should be ignored. If it appears in the object class definition, the entire object
+				class should be ignored. "Ignored" means that the system should pretend that the
+				structure does not exist at all.
+				
+				This element may also be used as XSD annotation in the dynamic schemas.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
 
 	<!-- Object changes -->
 
@@ -3150,6 +3164,7 @@
 				</xsd:annotation>
 			</xsd:element>
 			<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+			<xsd:element ref="tns:ignore" minOccurs="0"/>
 			<xsd:element ref="c:access" minOccurs="0" maxOccurs="unbounded">
 				<xsd:annotation>
 					<xsd:documentation>

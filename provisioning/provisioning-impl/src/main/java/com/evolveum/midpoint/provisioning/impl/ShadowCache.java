@@ -1614,6 +1614,9 @@ public class ShadowCache {
 			}
 			LOGGER.debug("Generated resource schema for " + ObjectTypeUtil.toShortString(resource) + ": "
 					+ resourceSchema.getDefinitions().size() + " definitions");
+			
+			adjustSchemaForCapabilities(resource,resourceSchema);
+			
 			Document xsdDoc = null;
 			try {
 				// Convert to XSD
@@ -1648,6 +1651,40 @@ public class ShadowCache {
 		addNativeCapabilities(newResource, connector, result);
 
 		return newResource;
+	}
+
+	/**
+	 * Adjust scheme with respect to capabilities. E.g. disable attributes that are used
+	 * for special purpose (such as account activation simulation).
+	 */
+	private void adjustSchemaForCapabilities(ResourceType resource, Schema resourceSchema) {
+		if (resource.getCapabilities() == null) {
+			return;
+		}
+		ActivationCapabilityType activationCapability = ResourceTypeUtil.getCapability(resource.getCapabilities().getAny(), ActivationCapabilityType.class);
+		if (activationCapability.getEnableDisable() != null) {
+			QName attributeName = activationCapability.getEnableDisable().getAttribute();
+			if (attributeName != null) {
+				// The attribute used for enable/disable simulation should be ignored in the schema
+				// otherwise strange things may happen, such as changing the same attribute both from
+				// activation/enable and from the attribute using its native name.
+				ResourceObjectDefinition accountDefinition = resourceSchema.findAccountDefinition();
+				ResourceObjectAttributeDefinition attributeDefinition = accountDefinition.findAttributeDefinition(attributeName);
+				if (attributeDefinition != null) {
+					attributeDefinition.setIgnored(true);
+				} else {
+					// simulated activation attribute points to something that is not in the schema
+					// technically, this is an error. But it looks to be quite common in connectors.
+					// The enable/disable is using operational attributes that are not exposed in the
+					// schema, but they work if passed to the connector.
+					// Therefore we don't want to break anything. We could log an warning here, but the
+					// warning would be quite frequent. Maybe a better place to warn user would be import
+					// of the object.
+					LOGGER.debug("Simulated activation attribute "+attributeName+" in "+ObjectTypeUtil.toShortString(resource)
+							+ " does not exist in the resource schema. This may work well, but it is not clean. Connector exposing such schema should be fixed.");
+				}
+			}
+		}
 	}
 
 	private void addNativeCapabilities(ResourceType resource, ConnectorInstance connector, OperationResult result)

@@ -309,6 +309,10 @@ class SchemaToDomProcessor {
 		if (!StringUtils.isEmpty(definition.getNativeObjectClass())) {
 			addAnnotation(A_NATIVE_OBJECT_CLASS, definition.getNativeObjectClass(), appinfo);
 		}
+		
+		if (definition.isIgnored()) {
+			addAnnotation(A_IGNORE, "true", appinfo);
+		}
 
 		// container
 		// appinfo.appendChild(createAnnotation(A_CONTAINER, null, document));
@@ -356,6 +360,10 @@ class SchemaToDomProcessor {
 			if (!StringUtils.isEmpty(attrDefinition.getNativeAttributeName())) {
 				addAnnotation(A_NATIVE_ATTRIBUTE_NAME, attrDefinition.getNativeAttributeName(), appinfo);
 			}
+		}
+		
+		if (definition.isIgnored()) {
+			addAnnotation(A_IGNORE, "true", appinfo);
 		}
 		
 		if (!definition.canCreate() || !definition.canRead() || !definition.canUpdate()) {

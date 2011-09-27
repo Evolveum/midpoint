@@ -423,7 +423,23 @@ class DomToSchemaProcessor {
 			pcd = new PropertyContainerDefinition(elementName, complexTypeDefinition);
 		}
 		
-		// TODO: parse generi
+		// TODO: parse generic annotations
+		
+		// ignore		
+		List<Element> ignore = getAnnotationElements(annotation, A_IGNORE);
+		if (ignore != null && !ignore.isEmpty()) {
+			if (ignore.size() != 1) {
+				// TODO: error!
+			}
+			String ignoreString = ignore.get(0).getTextContent();
+			if (StringUtils.isEmpty(ignoreString)) {
+				// Element is present but no content: defaults to "true"
+				pcd.setIgnored(true);
+			} else {
+				pcd.setIgnored(Boolean.parseBoolean(ignoreString));
+			}
+		}
+		
 		return pcd;
 	}
 	
@@ -450,15 +466,7 @@ class DomToSchemaProcessor {
 			if (!StringUtils.isEmpty(nativeAttributeName)) {
 				attrDef.setNativeAttributeName(nativeAttributeName);
 			}
-			
-			// access
-			List<Element> accessList = getAnnotationElements(annotation, A_ACCESS);
-			if (accessList != null && !accessList.isEmpty()) {
-				attrDef.setCreate(containsAccessFlag("create", accessList));
-				attrDef.setRead(containsAccessFlag("read", accessList));
-				attrDef.setUpdate(containsAccessFlag("update", accessList));
-			}
-			
+						
 			prodDef = attrDef;
 		} else {
 			prodDef = new PropertyDefinition(elementName, typeName);
@@ -468,6 +476,29 @@ class DomToSchemaProcessor {
 		
 		if (annotation == null || annotation.getAnnotation() == null) {
 			return prodDef;
+		}
+		
+		// ignore		
+		List<Element> ignore = getAnnotationElements(annotation, A_IGNORE);
+		if (ignore != null && !ignore.isEmpty()) {
+			if (ignore.size() != 1) {
+				// TODO: error!
+			}
+			String ignoreString = ignore.get(0).getTextContent();
+			if (StringUtils.isEmpty(ignoreString)) {
+				// Element is present but no content: defaults to "true"
+				prodDef.setIgnored(true);
+			} else {
+				prodDef.setIgnored(Boolean.parseBoolean(ignoreString));
+			}
+		}
+		
+		// access
+		List<Element> accessList = getAnnotationElements(annotation, A_ACCESS);
+		if (accessList != null && !accessList.isEmpty()) {
+			prodDef.setCreate(containsAccessFlag("create", accessList));
+			prodDef.setRead(containsAccessFlag("read", accessList));
+			prodDef.setUpdate(containsAccessFlag("update", accessList));
 		}
 		
 		// attributeDisplayName

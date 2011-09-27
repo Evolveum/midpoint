@@ -157,6 +157,9 @@ public class SchemaProcessorTest {
 		xpasswdDef.setNativeAttributeName("PASSWORD");
 		// ... property reference
 		containerDefinition.createAttributeDefinition(SchemaConstants.I_CREDENTIALS, SchemaConstants.I_CREDENTIALS_TYPE);
+		// ... ignored attribute
+		ResourceObjectAttributeDefinition xSepDef = containerDefinition.createAttributeDefinition("sep", DOMUtil.XSD_STRING);
+		xSepDef.setIgnored(true);
 
 		System.out.println("Resource schema before serializing to XSD: ");
 		System.out.println(schema.dump());
@@ -192,14 +195,22 @@ public class SchemaProcessorTest {
 		PropertyDefinition loginDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"login"));
 		assertEquals(new QName(SCHEMA_NS,"login"), loginDef.getName());
 		assertEquals(DOMUtil.XSD_STRING, loginDef.getTypeName());
+		assertFalse(loginDef.isIgnored());
 
 		PropertyDefinition passwdDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"password"));
 		assertEquals(new QName(SCHEMA_NS,"password"), passwdDef.getName());
 		assertEquals(SchemaConstants.R_PROTECTED_STRING_TYPE, passwdDef.getTypeName());
+		assertFalse(passwdDef.isIgnored());
 
 		PropertyContainerDefinition credDef = newContainerDef.findPropertyContainerDefinition(new QName(SchemaConstants.NS_C,"credentials"));
 		assertEquals(new QName(SchemaConstants.NS_C,"credentials"), credDef.getName());
 		assertEquals(new QName(SchemaConstants.NS_C,"CredentialsType"), credDef.getTypeName());
+		assertFalse(credDef.isIgnored());
+		
+		PropertyDefinition sepDef = newContainerDef.findPropertyDefinition(new QName(SCHEMA_NS,"sep"));
+		assertEquals(new QName(SCHEMA_NS,"sep"), sepDef.getName());
+		assertEquals(DOMUtil.XSD_STRING, sepDef.getTypeName());
+		assertTrue(sepDef.isIgnored());
 		
 	}
 

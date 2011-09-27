@@ -60,15 +60,18 @@ public abstract class Definition implements Serializable, Dumpable {
 	private static final long serialVersionUID = -2643332934312107274L;
 	protected QName defaultName;
 	protected QName typeName;
+	protected boolean ignored;
 	protected String displayName;
 	protected String help;
 
 	// TODO: annotations
 	
 	Definition() {
+		ignored = false;
 	}
 
 	Definition(QName defaultName, QName typeName) {
+		ignored = false;
 		if (typeName == null) {
 			throw new IllegalArgumentException("Type name can't be null.");
 		}
@@ -110,6 +113,14 @@ public abstract class Definition implements Serializable, Dumpable {
 		return typeName;
 	}
 	
+	public boolean isIgnored() {
+		return ignored;
+	}
+
+	public void setIgnored(boolean ignored) {
+		this.ignored = ignored;
+	}
+
 	/**
 	 * Returns display name.
 	 * 
