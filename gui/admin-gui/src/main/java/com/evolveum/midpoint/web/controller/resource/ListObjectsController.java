@@ -24,6 +24,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Controller;
 import com.evolveum.midpoint.schema.PagingTypeFactory;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+import com.evolveum.midpoint.schema.processor.PropertyDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
@@ -74,11 +76,14 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 	public static final String PAGE_NAVIGATION = "/resource/listObjects?faces-redirect=true";
 	private static final long serialVersionUID = -3538520581983462635L;
 	private static final Trace LOGGER = TraceManager.getTrace(ListObjectsController.class);
+	private static final int MAX_COLUMNS = 6;
 	@Autowired(required = true)
 	private ObjectTypeCatalog objectTypeCatalog;
 	private ResourceListItem resource;
 	private QName objectClass;
 	private List<String> columns;
+	private DataModel<ResourceObjectBean> rowModel;
+	private DataModel<String> columnModel;
 
 	public void setObjectClass(QName objectClass) {
 		this.objectClass = objectClass;
@@ -93,8 +98,11 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 	}
 
 	public DataModel<ResourceObjectBean> getRowModel() {
-		return new ArrayDataModel<ResourceObjectBean>(getObjects().toArray(
-				new ResourceObjectBean[getObjects().size()]));
+		if (rowModel == null) {
+			rowModel = new ArrayDataModel<ResourceObjectBean>(getObjects().toArray(
+					new ResourceObjectBean[getObjects().size()]));
+		}
+		return rowModel;
 	}
 
 	public DataModel<String> getColumnModel() {
@@ -102,7 +110,16 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 			columns = new ArrayList<String>();
 		}
 
-		return new ArrayDataModel<String>(columns.toArray(new String[columns.size()]));
+		if (columnModel == null) {
+			columnModel = new ArrayDataModel<String>(columns.toArray(new String[columns.size()]));
+		}
+		return columnModel;
+	}
+
+	public String backPerformed() {
+		rowModel = null;
+		columnModel = null;
+		return ResourceDetailsController.PAGE_NAVIGATION;
 	}
 
 	@Override
@@ -121,14 +138,25 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 
 		List<QName> columnHeaders = prepareHeader(resource.getOid());
 		columns = new ArrayList<String>();
-		for (QName qname : columnHeaders) {
-			columns.add(qname.getLocalPart());
-		}
+		
+
 
 		List<ObjectType> objects = getResourceObjects();
 		if (objects == null || objects.isEmpty()) {
 			FacesUtils.addWarnMessage("No object found for object class '" + objectClass + "'.");
 			return null;
+		}
+		ResourceObjectShadowType account = (ResourceObjectShadowType) objects.get(0);
+		List<Object> accountElements = account.getAttributes().getAny();
+		for (Iterator<QName> i = columnHeaders.iterator(); i.hasNext();){
+			QName qname = i.next();
+			String elementValue = getElementValue(accountElements, qname);
+			if (StringUtils.isNotEmpty(elementValue) && columns.size() < MAX_COLUMNS) {
+				columns.add(qname.getLocalPart());
+			} else{
+				i.remove();
+			}
+
 		}
 
 		for (ObjectType objectType : objects) {
@@ -142,14 +170,25 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 			}
 
 			Map<String, String> attributes = new HashMap<String, String>();
-			ResourceObjectShadowType account = (ResourceObjectShadowType) objectType;
+			account = (ResourceObjectShadowType) objectType;
 			List<Object> elements = account.getAttributes().getAny();
 			for (QName qname : columnHeaders) {
-				attributes.put(qname.getLocalPart(), getElementValue(elements, qname));
+				String elementValue = getElementValue(elements, qname);
+				if (StringUtils.isNotEmpty(elementValue) && attributes.size() < MAX_COLUMNS) {
+					attributes.put(qname.getLocalPart(), elementValue);
+				}
+
 			}
 
 			getObjects().add(new ResourceObjectBean(oid, name, attributes));
 		}
+//
+//		if (!getObjects().isEmpty()) {
+//			for (String qname : getObjects().get(0).getAttributes().keySet()) {
+//				columns.add(qname);
+//			}
+//		}
+		setRowsCount(getObjects().size());
 
 		return PAGE_NAVIGATION;
 	}
@@ -159,8 +198,8 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 		try {
 			ResourceManager manager = ControllerUtil.getResourceManager(objectTypeCatalog);
 			Collection<ResourceObjectShadowDto<ResourceObjectShadowType>> collection = manager
-					.listResourceObjects(resource.getOid(), objectClass,
-							PagingTypeFactory.createPaging(0, 30, OrderDirectionType.ASCENDING, "name"));
+					.listResourceObjects(resource.getOid(), objectClass, PagingTypeFactory.createPaging(
+							getOffset(), getRowsCount(), OrderDirectionType.ASCENDING, "name"));
 			for (ResourceObjectShadowDto<ResourceObjectShadowType> shadow : collection) {
 				objects.add(shadow.getXmlObject());
 			}
@@ -210,22 +249,44 @@ public class ListObjectsController extends ListController<ResourceObjectBean> im
 		PropertyContainerDefinition container = schema.findContainerDefinitionByType(objectClass);
 		if (container instanceof ResourceObjectDefinition) {
 			ResourceObjectDefinition definition = (ResourceObjectDefinition) container;
-			for (ResourceObjectAttributeDefinition attribute : definition.getIdentifiers()) {
-				LOGGER.debug("Adding {} as header (identifier).", new Object[] { attribute.getName() });
-				qnames.add(attribute.getName());
-			}
-			for (ResourceObjectAttributeDefinition attribute : definition.getSecondaryIdentifiers()) {
-				LOGGER.debug("Adding {} as header (secondary identifier).",
-						new Object[] { attribute.getName() });
-				qnames.add(attribute.getName());
-			}
 
-			if (definition.getDisplayNameAttribute() != null) {
-				qnames.add(definition.getDisplayNameAttribute().getName());
+			for (PropertyDefinition attribute : definition.getPropertyDefinitions()) {
+				LOGGER.debug("Adding {} as header (property).", new Object[] { attribute.getName() });
+				if (isPropertyAccetable(attribute.getName(), resource)) {
+					qnames.add(attribute.getName());
+				}
 			}
+			// for (ResourceObjectAttributeDefinition attribute :
+			// definition.getIdentifiers()) {
+			// LOGGER.debug("Adding {} as header (identifier).", new Object[] {
+			// attribute.getName() });
+			// qnames.add(attribute.getName());
+			// }
+			// for (ResourceObjectAttributeDefinition attribute :
+			// definition.getSecondaryIdentifiers()) {
+			// LOGGER.debug("Adding {} as header (secondary identifier).",
+			// new Object[] { attribute.getName() });
+			// qnames.add(attribute.getName());
+			// }
+//
+//			if (definition.getDisplayNameAttribute() != null) {
+//				qnames.add(definition.getDisplayNameAttribute().getName());
+//			}
 		}
 
 		return qnames;
+	}
+
+	private boolean isPropertyAccetable(QName attributeName, ResourceType resource) {
+		if (attributeName.equals(new QName(resource.getNamespace(), "userPassword"))) {
+			return false;
+		} else if (attributeName.equals(new QName(resource.getNamespace(), "description"))) {
+			return false;
+		} else if (attributeName.equals(new QName(resource.getNamespace(), "ou"))) {
+			return false;
+		} else {
+			return true;
+		}
 	}
 
 	private String getElementValue(List<Object> elements, QName qname) {
