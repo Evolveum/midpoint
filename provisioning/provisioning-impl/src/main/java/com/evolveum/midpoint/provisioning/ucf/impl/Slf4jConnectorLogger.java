@@ -22,6 +22,8 @@ package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import org.identityconnectors.common.logging.Log.Level;
 import org.identityconnectors.common.logging.LogSpi;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -37,29 +39,47 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class Slf4jConnectorLogger implements LogSpi {
 
-
 	@Override
-	public void log(Class<?> clazz, String method, Level level, String message,
-			Throwable ex) {
-		Trace trace = TraceManager.getTrace(clazz);
-
+	public void log(Class<?> clazz, String method, Level level, String message, Throwable ex) {
+		Trace LOGGER = TraceManager.getTrace(clazz);
+		//Mark all messages from ICF as ICF
+		Marker m = MarkerFactory.getMarker("ICF");
+		
+		//Translate ICF logging into slf4j
+		// OK    -> trace
+		// INFO  -> debug
+		// WARN  -> warn
+		// ERROR -> error
 		if (Level.OK.equals(level)) {
-			trace.trace("method: {} \t{}", new Object[]{method, message}, ex);
+			if (null == ex) {
+				LOGGER.trace(m, "method: {} msg:{}", method, message);
+			} else {
+				LOGGER.trace(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+			}
 		} else if (Level.INFO.equals(level)) {
-			trace.info("method: {} \t{}", new Object[]{method, message}, ex);
+			if (null == ex) {
+				LOGGER.info(m, "method: {} msg:{}", method, message);
+			} else {
+				LOGGER.info(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+			}
 		} else if (Level.WARN.equals(level)) {
-			trace.warn("method: {} \t{}", new Object[]{method, message}, ex);
+			if (null == ex) {
+				LOGGER.warn(m, "method: {} msg:{}", method, message);
+			} else {
+				LOGGER.warn(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+			}
 		} else if (Level.ERROR.equals(level)) {
-			trace.error("method: {} \t{}", new Object[]{method, message}, ex);
+			if (null == ex) {
+				LOGGER.error(m, "method: {} msg:{}", method, message);
+			} else {
+				LOGGER.error(m, "method: {} msg:{}", new Object[] { method, message }, ex);
+			}
 		}
-
 	}
 
 	@Override
 	public boolean isLoggable(Class<?> clazz, Level level) {
 		return true;
 	}
-
-	
 
 }
