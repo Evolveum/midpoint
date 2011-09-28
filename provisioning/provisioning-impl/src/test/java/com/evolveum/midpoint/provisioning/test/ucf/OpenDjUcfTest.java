@@ -256,13 +256,13 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 			}
 		}
 
-		QName objectClass = new QName(resource.getNamespace(), "AccountObjectClass");
+		ResourceObjectDefinition accountDefinition = schema.findAccountDefinition();
 
-		cc.deleteObject(objectClass, null, identifiers, result);
+		cc.deleteObject(accountDefinition, null, identifiers, result);
 
 		ResourceObject resObj = null;
 		try {
-			resObj = cc.fetchObject(objectClass, identifiers, result);
+			resObj = cc.fetchObject(accountDefinition, identifiers, true, null, result);
 			Assert.fail();
 		} catch (ObjectNotFoundException ex) {
 			AssertJUnit.assertNull(resObj);
@@ -285,10 +285,11 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		changes.add(createAddChange("street", "Wall Street"));
 		changes.add(createDeleteChange("givenName", "John"));
 
-		QName objectClass = new QName(resource.getNamespace(), "AccountObjectClass");
-		cc.modifyObject(objectClass, identifiers, changes, result);
+		ResourceObjectDefinition accountDefinition = schema.findAccountDefinition();
+		
+		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
-		ResourceObject resObj = cc.fetchObject(objectClass, identifiers, result);
+		ResourceObject resObj = cc.fetchObject(accountDefinition, identifiers, true, null, result);
 
 		AssertJUnit.assertNull(resObj.findAttribute(new QName(resource.getNamespace(), "givenName")));
 
@@ -314,14 +315,14 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		displayTestTile(this, "testFetchChanges");
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchChanges");
-		QName objectClass = new QName(resource.getNamespace(), "AccountObjectClass");
-		Property lastToken = cc.fetchCurrentToken(objectClass, result);
+		ResourceObjectDefinition accountDefinition = schema.findAccountDefinition();
+		Property lastToken = cc.fetchCurrentToken(accountDefinition, result);
 
 		System.out.println("Property:");
 		System.out.println(DebugUtil.prettyPrint(lastToken));
 
 		System.out.println("token " + lastToken.toString());
-		List<Change> changes = cc.fetchChanges(objectClass, lastToken, result);
+		List<Change> changes = cc.fetchChanges(accountDefinition, lastToken, result);
 		AssertJUnit.assertEquals(0, changes.size());
 	}
 
@@ -346,9 +347,9 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		ActivationChangeOperation act = new ActivationChangeOperation(false);
 		changes.add(act);
 
-		QName objectClass = new QName(resource.getNamespace(), "AccountObjectClass");
+		ResourceObjectDefinition accountDefinition = schema.findAccountDefinition();
 
-		cc.modifyObject(objectClass, identifiers, changes, result);
+		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
 		// THEN
 
@@ -566,12 +567,11 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 		Set<ResourceObjectAttribute> identifiers = resourceObject.getIdentifiers();
 		// Determine object class from the schema
-		QName objectClass = accountDefinition.getTypeName();
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchObject");
 
 		// WHEN
-		ResourceObject ro = cc.fetchObject(objectClass, identifiers, result);
+		ResourceObject ro = cc.fetchObject(accountDefinition, identifiers, true, null, result);
 
 		// THEN
 
@@ -587,11 +587,8 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		displayTestTile("testSearch");
 		// GIVEN
 
-		// Account type is hardcoded now
-		ResourceObjectDefinition accountDefinition = (ResourceObjectDefinition) schema
-				.findContainerDefinitionByType(new QName(resource.getNamespace(), "AccountObjectClass"));
+		ResourceObjectDefinition accountDefinition = schema.findAccountDefinition();
 		// Determine object class from the schema
-		QName objectClass = accountDefinition.getTypeName();
 
 		ResultHandler handler = new ResultHandler() {
 
@@ -605,7 +602,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testSearch");
 
 		// WHEN
-		cc.search(objectClass, accountDefinition, handler, result);
+		cc.search(accountDefinition, handler, result);
 
 		// THEN
 
@@ -670,7 +667,6 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 
 		Set<ResourceObjectAttribute> identifiers = resourceObject.getIdentifiers();
 		// Determine object class from the schema
-		QName objectClass = accountDefinition.getTypeName();
 
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testFetchObject");
 
@@ -680,7 +676,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 		ProtectedStringType passPs = protector.encryptString("x-m4rx-da-sp0t");
 		PasswordChangeOperation passwordChange = new PasswordChangeOperation(passPs);
 		changes.add(passwordChange);
-		cc.modifyObject(objectClass, identifiers, changes, result);
+		cc.modifyObject(accountDefinition, identifiers, changes, result);
 
 		// THEN
 

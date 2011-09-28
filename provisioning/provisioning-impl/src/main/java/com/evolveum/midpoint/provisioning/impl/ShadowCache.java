@@ -268,7 +268,7 @@ public class ShadowCache {
 						DebugUtil.debugDump(identifiers)});
 			}
 			
-			ro = connector.fetchObject(rod, identifiers, parentResult);
+			ro = connector.fetchObject(rod, identifiers, true, null, parentResult);
 
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.debug("Connector FETCH successful, returned object:\n{}", ro.debugDump());
@@ -450,7 +450,7 @@ public class ShadowCache {
 		};
 
 		try {
-			connector.search(objectClass, resourceDef, resultHandler, parentResult);
+			connector.search(resourceDef, resultHandler, parentResult);
 			LOGGER.trace("Finished listing obejcts.");
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
 			parentResult.recordFatalError(
@@ -634,7 +634,7 @@ public class ShadowCache {
 							DebugUtil.debugDump(additionalOperations)});
 				}
 
-				connector.deleteObject(accountShadow.getObjectClass(), additionalOperations, identifiers, parentResult);
+				connector.deleteObject(rod, additionalOperations, identifiers, parentResult);
 				
 				LOGGER.debug("Connector DELETE successful");
 				
@@ -761,7 +761,7 @@ public class ShadowCache {
 				}
 				
 				// Invoke ICF
-				sideEffectChanges = connector.modifyObject(shadow.getObjectClass(), identifiers, changes, parentResult);
+				sideEffectChanges = connector.modifyObject(rod, identifiers, changes, parentResult);
 
 				LOGGER.debug("Connector MODIFY successful, side-effect changes {}", DebugUtil.debugDump(sideEffectChanges));
 				
@@ -998,7 +998,7 @@ public class ShadowCache {
 
 		try {
 
-			connector.search(objectClass, resourceDef, resultHandler, parentResult);
+			connector.search(resourceDef, resultHandler, parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new CommunicationException("Generic error in the connector: " + e.getMessage(), e);
@@ -1022,7 +1022,8 @@ public class ShadowCache {
 
 		LOGGER.trace("Getting last token");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
-		QName objectClass = new QName(resourceType.getNamespace(), "AccountObjectClass");
+		Schema resourceSchema = ResourceTypeUtil.getResourceSchema(resourceType);
+		ResourceObjectDefinition objectClass = resourceSchema.findAccountDefinition();
 		Property lastToken = null;
 		try {
 			lastToken = connector.fetchCurrentToken(objectClass, parentResult);
@@ -1052,7 +1053,8 @@ public class ShadowCache {
 		LOGGER.trace("Shadow cache, fetch changes");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 
-		QName objectClass = new QName(resourceType.getNamespace(), "AccountObjectClass");
+		Schema resourceSchema = ResourceTypeUtil.getResourceSchema(resourceType);
+		ResourceObjectDefinition objectClass = resourceSchema.findAccountDefinition();
 
 		// get changes from the connector
 		List<Change> changes = null;
@@ -1197,7 +1199,7 @@ public class ShadowCache {
 			Schema schema = getResourceSchema(resource, connector, parentResult);
 			ResourceObjectDefinition rod = (ResourceObjectDefinition) schema.findContainerDefinitionByType(new QName(
 					resource.getNamespace(), "AccountObjectClass"));
-			ResourceObject resourceObject = connector.fetchObject(rod, roIdentifiers, parentResult);
+			ResourceObject resourceObject = connector.fetchObject(rod, roIdentifiers, true, null, parentResult);
 			return resourceObject;
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException e) {
 			parentResult.recordFatalError(

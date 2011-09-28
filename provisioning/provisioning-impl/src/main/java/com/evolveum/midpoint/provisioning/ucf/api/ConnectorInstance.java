@@ -26,6 +26,7 @@ import com.evolveum.midpoint.schema.processor.Property;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObject;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Configuration;
@@ -145,9 +146,10 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException error in communication to the resource 
 	 *				- nothing was fetched.
 	 */
-	public ResourceObject fetchObject(QName objectClass, Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
-
-	public ResourceObject fetchObject(ResourceObjectDefinition resourceObjectDefinition, Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+	public ResourceObject fetchObject(ResourceObjectDefinition objectClass,
+			Set<ResourceObjectAttribute> identifiers, boolean returnDefaultAttributes,
+			Set<ResourceObjectAttributeDefinition> attributesToReturn, OperationResult parentResult)
+		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Schema aware-version of the fetchObject.
@@ -180,7 +182,7 @@ public interface ConnectorInstance {
 	 * @param handler
 	 * @throws CommunicationException 
 	 */
-	public void search(QName objectClass, final ResourceObjectDefinition definition, ResultHandler handler, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public void search(ResourceObjectDefinition objectClass, ResultHandler handler, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not
@@ -225,9 +227,9 @@ public interface ConnectorInstance {
 	 * @throws CommunicationException
 	 * @throws SchemaException 
 	 */
-	public Set<AttributeModificationOperation> modifyObject(QName objectClass, Set<ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
+	public Set<AttributeModificationOperation> modifyObject(ResourceObjectDefinition objectClass, Set<ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
 	
-	public void deleteObject(QName objectClass, Set<Operation> additionalOperations, Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+	public void deleteObject(ResourceObjectDefinition objectClass, Set<Operation> additionalOperations, Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Creates a live Java object from a token previously serialized to string.
@@ -250,7 +252,7 @@ public interface ConnectorInstance {
 	 * @return
 	 * @throws CommunicationException
 	 */
-	public Property fetchCurrentToken(QName objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public Property fetchCurrentToken(ResourceObjectDefinition objectClass, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
 	
 	/**
 	 * Token may be null. That means "from the beginning of history".
@@ -258,7 +260,7 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public List<Change> fetchChanges(QName objectClass, Property lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
+	public List<Change> fetchChanges(ResourceObjectDefinition objectClass, Property lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	

@@ -590,7 +590,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public ResourceObject fetchObject(ResourceObjectDefinition resourceObjectDefinition,
-			Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException,
+			Set<ResourceObjectAttribute> identifiers, boolean returnDefaultAttributes,
+			Set<ResourceObjectAttributeDefinition> attributesToReturn, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException {
 
 		// Result type for this operation
@@ -615,7 +616,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							+ identifiers + " from " + ObjectTypeUtil.toShortString(connectorType));
 		}
 
-		ObjectClass icfObjectClass = objectClassToIcf(resourceObjectDefinition.getTypeName());
+		ObjectClass icfObjectClass = objectClassToIcf(resourceObjectDefinition);
 		if (icfObjectClass == null) {
 			result.recordFatalError("Unable to detemine object class from QName "
 					+ resourceObjectDefinition.getTypeName() + " while attempting to fetch object identified by "
@@ -629,7 +630,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		try {
 
 			// Invoke the ICF connector
-			co = fetchConnectorObject(icfObjectClass, uid, result);
+			co = fetchConnectorObject(icfObjectClass, uid, returnDefaultAttributes,
+					attributesToReturn, result);
 
 		} catch (CommunicationException ex) {
 			result.recordFatalError("ICF invocation failed due to communication problem");
@@ -656,99 +658,33 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	}
 
-	@Override
-	public ResourceObject fetchObject(QName objectClass, Set<ResourceObjectAttribute> identifiers,
-			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException,
-			GenericFrameworkException {
-
-		// Result type for this operation
-		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".fetchObject");
-		result.addParam("objectClass", objectClass);
-		result.addParam("identifiers", identifiers);
-		result.addContext("connector", connectorType);
-
-		if (icfConnectorFacade == null) {
-			result.recordFatalError("Attempt to use unconfigured connector");
-			throw new IllegalStateException("Attempt to use unconfigured connector "
-					+ ObjectTypeUtil.toShortString(connectorType));
-		}
-
-		// Get UID from the set of identifiers
-		Uid uid = getUid(identifiers);
-		if (uid == null) {
-			result.recordFatalError("Required attribute UID not found in identification set while attempting to fetch object identified by "
-					+ identifiers + " from " + ObjectTypeUtil.toShortString(connectorType));
-			throw new IllegalArgumentException(
-					"Required attribute UID not found in identification set while attempting to fetch object identified by "
-							+ identifiers + " from " + ObjectTypeUtil.toShortString(connectorType));
-		}
-
-		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
-		if (icfObjectClass == null) {
-			result.recordFatalError("Unable to detemine object class from QName " + objectClass
-					+ " while attempting to fetch object identified by " + identifiers + " from "
-					+ ObjectTypeUtil.toShortString(connectorType));
-			throw new IllegalArgumentException("Unable to detemine object class from QName " + objectClass
-					+ " while attempting to fetch object identified by " + identifiers + " from "
-					+ ObjectTypeUtil.toShortString(connectorType));
-		}
-
-		ConnectorObject co = null;
-		try {
-
-			// Invoke the ICF connector
-			co = fetchConnectorObject(icfObjectClass, uid, result);
-
-		} catch (CommunicationException ex) {
-			result.recordFatalError("ICF invocation failed due to communication problem");
-			// This is fatal. No point in continuing. Just re-throw the
-			// exception.
-			throw ex;
-		} catch (GenericFrameworkException ex) {
-			result.recordFatalError("ICF invocation failed due to a generic ICF framework problem");
-			// This is fatal. No point in continuing. Just re-throw the
-			// exception.
-			throw ex;
-		}
-
-		if (co == null) {
-			result.recordFatalError("Object not found");
-			throw new ObjectNotFoundException("Object identified by " + identifiers + " was not found by "
-					+ ObjectTypeUtil.toShortString(connectorType));
-		}
-
-		ResourceObject ro = convertToResourceObject(co, null);
-
-		result.recordSuccess();
-		return ro;
-	}
-
 	/**
 	 * Returns null if nothing is found.
 	 */
-	private ConnectorObject fetchConnectorObject(ObjectClass icfObjectClass, Uid uid, OperationResult parentResult)
+	private ConnectorObject fetchConnectorObject(ObjectClass icfObjectClass, Uid uid, boolean returnDefaultAttributes,
+			Set<ResourceObjectAttributeDefinition> attributesToReturn, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException {
-
+		
 		// Connector operation cannot create result for itself, so we need to
 		// create result for it
 		OperationResult icfResult = parentResult.createSubresult(ConnectorFacade.class.getName() + ".getObject");
-		icfResult.addParam("objectClass", icfObjectClass);
+		icfResult.addParam("objectClass", icfObjectClass.toString());
 		icfResult.addParam("uid", uid.getUidValue());
-		icfResult.addParam("options", null);
 		icfResult.addContext("connector", icfConnectorFacade.getClass());
 
 		ConnectorObject co = null;
 		try {
-
+			OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+			
 			// Invoke the ICF connector
-			co = icfConnectorFacade.getObject(icfObjectClass, uid, null);
+			co = icfConnectorFacade.getObject(icfObjectClass, uid, optionsBuilder.build());
 
 			icfResult.recordSuccess();
 			icfResult.setReturnValue(co);
 		} catch (Exception ex) {
 			// ICF interface does not specify exceptions or other error
 			// conditions.
-			// Therefore this kind of heavy artilery is necessary.
+			// Therefore this kind of heavy artillery is necessary.
 			// TODO maybe we can try to catch at least some specific exceptions
 			icfResult.recordFatalError(ex);
 			// This is fatal. No point in continuing.
@@ -768,7 +704,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		result.addParam("additionalOperations", additionalOperations);
 
 		// getting icf object class from resource object class
-		ObjectClass objectClass = objectClassToIcf(object.getDefinition().getTypeName());
+		ObjectClass objectClass = objectClassToIcf(object.getDefinition());
 
 		if (objectClass == null) {
 			result.recordFatalError("Couldn't get icf object class from resource definition.");
@@ -859,7 +795,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Set<AttributeModificationOperation> modifyObject(QName objectClass,
+	public Set<AttributeModificationOperation> modifyObject(ResourceObjectDefinition objectClass,
 			Set<ResourceObjectAttribute> identifiers, Set<Operation> changes, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException {
 
@@ -1119,7 +1055,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void deleteObject(QName objectClass, Set<Operation> additionalOperations,
+	public void deleteObject(ResourceObjectDefinition objectClass, Set<Operation> additionalOperations,
 			Set<ResourceObjectAttribute> identifiers, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, GenericFrameworkException {
 
@@ -1173,7 +1109,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public Property fetchCurrentToken(QName objectClass, OperationResult parentResult) throws CommunicationException,
+	public Property fetchCurrentToken(ResourceObjectDefinition objectClass, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".deleteObject");
@@ -1194,7 +1130,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public List<Change> fetchChanges(QName objectClass, Property lastToken, OperationResult parentResult)
+	public List<Change> fetchChanges(ResourceObjectDefinition objectClass, Property lastToken, OperationResult parentResult)
 			throws CommunicationException, GenericFrameworkException, SchemaException {
 
 		OperationResult subresult = parentResult.createSubresult(ConnectorInstance.class.getName() + ".fetchChanges");
@@ -1318,7 +1254,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	@Override
-	public void search(QName objectClass, final ResourceObjectDefinition definition, final ResultHandler handler,
+	public void search(final ResourceObjectDefinition objectClass, final ResultHandler handler,
 			OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
 
 		// Result type for this operation
@@ -1340,7 +1276,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			public boolean handle(ConnectorObject connectorObject) {
 				// Convert ICF-specific connector object to a generic
 				// ResourceObject
-				ResourceObject resourceObject = convertToResourceObject(connectorObject, definition);
+				ResourceObject resourceObject = convertToResourceObject(connectorObject, objectClass);
 
 				// .. and pass it to the handler
 				boolean cont = handler.handle(resourceObject);
@@ -1456,7 +1392,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * 
 	 * TODO: mind the special characters in the ICF objectclass names.
 	 */
-	private ObjectClass objectClassToIcf(QName qnameObjectClass) {
+	private ObjectClass objectClassToIcf(ResourceObjectDefinition objectClass) {
+		QName qnameObjectClass = objectClass.getTypeName();
 		if (!getSchemaNamespace().equals(qnameObjectClass.getNamespaceURI())) {
 			throw new IllegalArgumentException("ObjectClass QName " + qnameObjectClass
 					+ " is not in the appropriate namespace for " + ObjectTypeUtil.toShortString(connectorType)
