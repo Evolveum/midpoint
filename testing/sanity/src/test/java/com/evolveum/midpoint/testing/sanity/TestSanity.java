@@ -625,6 +625,9 @@ public class TestSanity extends AbstractIntegrationTest {
 		assertAttribute(modelShadow, resourceOpenDj, "sn", "Sparrow");
 		assertAttribute(modelShadow, resourceOpenDj, "cn", "Jack Sparrow");
 		assertAttribute(modelShadow, resourceOpenDj, "l", "middle of nowhere");
+		
+		assertNotNull("Activation is null", modelShadow.getActivation());
+		assertTrue("The account is not enabled in the shadow", modelShadow.getActivation().isEnabled());
 
 	}
 
@@ -996,7 +999,9 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Check if shadow is still in the repo and that it is untouched
 		repoResult = new OperationResult("getObject");
+		
 		repoObject = repositoryService.getObject(ObjectType.class, accountShadowOidOpendj, resolve, repoResult);
+		
 		repoResult.computeStatus();
 		assertSuccess("getObject(repo) has failed", repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
@@ -1022,6 +1027,35 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		AssertJUnit.assertFalse(hasOthers);
 		assertNotNull(uid);
+		
+		// Use getObject to test fetch of complete shadow
+
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+
+		// WHEN
+		modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
+				resolve, objectHolder, resultHolder);
+
+		// THEN
+		displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
+		assertSuccess("getObject has failed", resultHolder.value);
+
+		AccountShadowType modelShadow = (AccountShadowType) objectHolder.value;
+		displayJaxb("Shadow (model)", modelShadow, new QName("shadow"));
+
+		AssertJUnit.assertNotNull(modelShadow);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
+
+		assertAttributeNotNull(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID);
+		assertAttribute(modelShadow, resourceOpenDj, "uid", "jack");
+		assertAttribute(modelShadow, resourceOpenDj, "givenName", "Jack");
+		assertAttribute(modelShadow, resourceOpenDj, "sn", "Sparrow");
+		assertAttribute(modelShadow, resourceOpenDj, "cn", "Cpt. Jack Sparrow");
+		assertAttribute(modelShadow, resourceOpenDj, "l", "There there over the corner");
+		
+		assertNotNull("The account activation is null in the shadow", modelShadow.getActivation());
+		assertTrue("The account was not enabled in the shadow", modelShadow.getActivation().isEnabled());
 
 		// Check if LDAP account was updated
 
@@ -1087,7 +1121,9 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		// Check if shadow is still in the repo and that it is untouched
 		repoResult = new OperationResult("getObject");
+		
 		repoObject = repositoryService.getObject(ObjectType.class, accountShadowOidOpendj, resolve, repoResult);
+		
 		repoResult.computeStatus();
 		assertSuccess("getObject(repo) has failed", repoResult);
 		AccountShadowType repoShadow = (AccountShadowType) repoObject;
@@ -1113,6 +1149,35 @@ public class TestSanity extends AbstractIntegrationTest {
 
 		AssertJUnit.assertFalse(hasOthers);
 		assertNotNull(uid);
+
+		// Use getObject to test fetch of complete shadow
+
+		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
+		Holder<ObjectType> objectHolder = new Holder<ObjectType>();
+
+		// WHEN
+		modelWeb.getObject(ObjectTypes.ACCOUNT.getObjectTypeUri(), accountShadowOidOpendj,
+				resolve, objectHolder, resultHolder);
+
+		// THEN
+		displayJaxb("getObject result", resultHolder.value, SchemaConstants.C_RESULT);
+		assertSuccess("getObject has failed", resultHolder.value);
+
+		AccountShadowType modelShadow = (AccountShadowType) objectHolder.value;
+		displayJaxb("Shadow (model)", modelShadow, new QName("shadow"));
+
+		AssertJUnit.assertNotNull(modelShadow);
+		AssertJUnit.assertEquals(RESOURCE_OPENDJ_OID, modelShadow.getResourceRef().getOid());
+
+		assertAttributeNotNull(modelShadow, ConnectorFactoryIcfImpl.ICFS_UID);
+		assertAttribute(modelShadow, resourceOpenDj, "uid", "jack");
+		assertAttribute(modelShadow, resourceOpenDj, "givenName", "Jack");
+		assertAttribute(modelShadow, resourceOpenDj, "sn", "Sparrow");
+		assertAttribute(modelShadow, resourceOpenDj, "cn", "Cpt. Jack Sparrow");
+		assertAttribute(modelShadow, resourceOpenDj, "l", "There there over the corner");
+		
+		assertNotNull("The account activation is null in the shadow", modelShadow.getActivation());
+		assertFalse("The account was not enabled in the shadow", modelShadow.getActivation().isEnabled());
 
 		// Check if LDAP account was updated
 
