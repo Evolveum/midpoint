@@ -233,6 +233,10 @@ public class SchemaFormParser {
 			if (!(property instanceof ResourceObjectAttributeDefinition)) {
 				continue;
 			}
+			if (property.isIgnored()) {
+				LOGGER.trace("Attr. definition: " + property.getName()+ " ignored. Skipping.");
+				continue;
+			}
 			LOGGER.trace("Attr. definition: " + property.getName());
 
 			FormAttributeDefinition attrDefinition = createFormAttributeDefinition((ResourceObjectAttributeDefinition) property);
