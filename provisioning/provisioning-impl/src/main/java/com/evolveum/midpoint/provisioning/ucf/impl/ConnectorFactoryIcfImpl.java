@@ -399,7 +399,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 			}
 
 			if (null != prop.get("ConnectorBundle-Name")) {
-				LOGGER.info("Discovered icf bundle on CLASSPATH: " + prop.get("ConnectorBundle-Name") + " version: "
+				LOGGER.info("Discovered ICF bundle on CLASSPATH: " + prop.get("ConnectorBundle-Name") + " version: "
 						+ prop.get("ConnectorBundle-Version"));
 
 				// hack to split MANIFEST from name
@@ -408,7 +408,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 					if (isThisBundleCompatible(tmp)) {
 						bundle.add(tmp);
 					} else {
-						LOGGER.info("Skip loading budle {} due error occured", tmp);
+						LOGGER.info("Skip loading ICF bundle {} due error occured", tmp);
 					}
 				} catch (MalformedURLException e) {
 					LOGGER.error("This never happend we hope. URL:" + u.getPath(), e);
@@ -548,7 +548,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 
 		// Test if it is a connector
 		if (null != prop.get("ConnectorBundle-Name")) {
-			LOGGER.info("Discovered icf bundle in JAR: " + prop.get("ConnectorBundle-Name") + " version: "
+			LOGGER.info("Discovered ICF bundle in JAR: " + prop.get("ConnectorBundle-Name") + " version: "
 					+ prop.get("ConnectorBundle-Version"));
 			return true;
 		}
