@@ -21,24 +21,23 @@
  */
 package com.evolveum.midpoint.schema.namespace;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 /**
  * 
  * @author lazyman
- *
+ * @author sleepwalker
+ * 
  */
 public class PrefixMapper extends NamespacePrefixMapper {
 
 	@Override
 	public String getPreferredPrefix(String namespaceUri, String suggestion, boolean requirePrefix) {
-		NamespaceEnum[] values = NamespaceEnum.values();
-		for (NamespaceEnum namespaceEnum : values) {
-			if (namespaceEnum.getNamespace().equals(namespaceUri)) {
-				return namespaceEnum.getPrefix();
-			}
-		}
-
-		return suggestion;
+		//for JAXB we are mapping midpoint common namespace to default namespace
+		if (SchemaConstants.NS_C.equals(namespaceUri)) {
+			return "";
+		} 
+		return MidPointNamespacePrefixMapper.getPreferredPrefix(namespaceUri, suggestion);
 	}
 }

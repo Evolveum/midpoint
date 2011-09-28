@@ -21,9 +21,9 @@
 <object xsi:type="PropertyReferenceListType" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">
 	<property>
-		<property xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">idmdn:resource</property>
+		<property xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">c:resource</property>
 	</property>
 	<property>
-		<property xmlns:idmdn="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">idmdn:account</property>
+		<property xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd">c:account</property>
 	</property>
 </object>

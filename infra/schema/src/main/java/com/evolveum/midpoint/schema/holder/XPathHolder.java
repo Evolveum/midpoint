@@ -43,6 +43,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -57,12 +58,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class XPathHolder {
 
-	public static final String REPLACE_PREFIX_FOR_DEFAULT_NAMESPACE = "idmdn";
 	private static final Trace LOGGER = TraceManager.getTrace(XPathHolder.class);
 	private boolean absolute;
 	private List<XPathSegment> segments;
 	Map<String, String> explicitNamespaceDeclarations;
-	static Random rnd = new Random();
 
 	/**
 	 * Sets "current node" Xpath.
@@ -91,7 +90,7 @@ public class XPathHolder {
 			if (StringUtils.isEmpty(segment.getQName().getPrefix())) {
 				QName qname = segment.getQName();
 				this.segments.add(new XPathSegment(new QName(qname.getNamespaceURI(), qname.getLocalPart(),
-						REPLACE_PREFIX_FOR_DEFAULT_NAMESPACE)));
+						SchemaConstants.NS_C_PREFIX)));
 			} else {
 				this.segments.add(segment);
 			}
@@ -182,7 +181,7 @@ public class XPathHolder {
 			if (qnameArray.length == 1 || qnameArray[1] == null || qnameArray[1].isEmpty()) {
 				// default namespace <= empty prefix
 				String namespace = findNamespace(null, domNode, namespaceMap);
-				qname = new QName(namespace, qnameArray[0], REPLACE_PREFIX_FOR_DEFAULT_NAMESPACE);
+				qname = new QName(namespace, qnameArray[0], SchemaConstants.NS_C_PREFIX);
 			} else {
 				String namespace = findNamespace(qnameArray[0], domNode, namespaceMap);
 				qname = new QName(namespace, qnameArray[1], qnameArray[0]);
@@ -238,7 +237,7 @@ public class XPathHolder {
 		// Note: this check is needed if some calls XPathType constructor with
 		// parameter xpath as a String.
 		if (ns == null) {
-			if (REPLACE_PREFIX_FOR_DEFAULT_NAMESPACE.equals(prefix) || (null == prefix)) {
+			if (SchemaConstants.NS_C_PREFIX.equals(prefix) || (null == prefix)) {
 				return SchemaConstants.NS_C;
 			}
 		}
@@ -292,7 +291,7 @@ public class XPathHolder {
 				// broken:
 				// http://stackoverflow.com/questions/1730710/xpath-is-there-a-way-to-set-a-default-namespace-for-queries
 				// Jaxen and Saxon are treating xpath with "./:" differently
-				sb.append(REPLACE_PREFIX_FOR_DEFAULT_NAMESPACE + ":" + qname.getLocalPart());
+				sb.append(SchemaConstants.NS_C_PREFIX + ":" + qname.getLocalPart());
 				// sb.append(qname.getLocalPart());
 			}
 
@@ -339,12 +338,11 @@ public class XPathHolder {
 
 	public Element toElement(String elementNamespace, String localElementName, Document document) {
 		Element e = document.createElementNS(elementNamespace, localElementName);
-		// Random prefix to avoid collision with nsXX provided by JAXB
-		e.setPrefix("xp" + rnd.nextInt(10000));
+		e.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(elementNamespace));
 		e.setTextContent(getXPath());
 		Map<String, String> namespaceMap = getNamespaceMap();
 		if (namespaceMap != null) {
-			NamedNodeMap attributes = e.getAttributes();
+			//NamedNodeMap attributes = e.getAttributes();
 			for (Entry<String, String> entry : namespaceMap.entrySet()) {
 				DOMUtil.setNamespaceDeclaration(e, entry.getKey(), entry.getValue());
 			}
@@ -404,7 +402,7 @@ public class XPathHolder {
 				sb.append("'; ");
 				// TODO: workaround is described in method: addPureXpath()
 				sb.append("declare namespace ");
-				sb.append(REPLACE_PREFIX_FOR_DEFAULT_NAMESPACE);
+				sb.append(SchemaConstants.NS_C_PREFIX);
 				sb.append("='");
 				sb.append(explicitNamespaceDeclarations.get(prefix));
 				sb.append("'; ");

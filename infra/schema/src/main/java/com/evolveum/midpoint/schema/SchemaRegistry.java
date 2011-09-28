@@ -41,7 +41,6 @@ import javax.xml.validation.SchemaFactory;
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.ls.LSInput;
 import org.w3c.dom.ls.LSResourceResolver;
@@ -50,6 +49,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -76,13 +76,21 @@ public class SchemaRegistry implements LSResourceResolver {
 	}
 	
 	private void registerBuiltinSchemas() {
-		registerSchema("xml/ns/public/common/common-1.xsd","c",SchemaConstants.NS_C);
-		registerSchema("xml/ns/public/common/annotation-1.xsd","a",SchemaConstants.NS_ANNOTATION);
-		registerSchema("xml/ns/public/resource/resource-schema-1.xsd","r",SchemaConstants.NS_RESOURCE);
-		registerSchema("xml/ns/public/resource/capabilities-1.xsd","cap",SchemaConstants.NS_CAPABILITIES);
-		registerSchema("xml/ns/public/connector/icf-1/connector-schema-1.xsd","icfc",SchemaConstants.NS_ICF_CONFIGURATION);
-		registerSchema("xml/ns/public/connector/icf-1/resource-schema-1.xsd","icfs",SchemaConstants.NS_ICF_SCHEMA);
-		registerSchema("xml/ns/standard/XMLSchema.xsd","xsd",W3C_XML_SCHEMA_NS_URI);
+		String prefix;
+		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_C);
+		registerSchema("xml/ns/public/common/common-1.xsd",prefix,SchemaConstants.NS_C);
+		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ANNOTATION);
+		registerSchema("xml/ns/public/common/annotation-1.xsd",prefix,SchemaConstants.NS_ANNOTATION);
+		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_RESOURCE);
+		registerSchema("xml/ns/public/resource/resource-schema-1.xsd",prefix,SchemaConstants.NS_RESOURCE);
+		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_CAPABILITIES);
+		registerSchema("xml/ns/public/resource/capabilities-1.xsd",prefix,SchemaConstants.NS_CAPABILITIES);
+		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ICF_CONFIGURATION);
+		registerSchema("xml/ns/public/connector/icf-1/connector-schema-1.xsd",prefix,SchemaConstants.NS_ICF_CONFIGURATION);
+		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(SchemaConstants.NS_ICF_SCHEMA);
+		registerSchema("xml/ns/public/connector/icf-1/resource-schema-1.xsd",prefix,SchemaConstants.NS_ICF_SCHEMA);
+		prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(W3C_XML_SCHEMA_NS_URI);
+		registerSchema("xml/ns/standard/XMLSchema.xsd",prefix,W3C_XML_SCHEMA_NS_URI);
 	}
 	
 	/**

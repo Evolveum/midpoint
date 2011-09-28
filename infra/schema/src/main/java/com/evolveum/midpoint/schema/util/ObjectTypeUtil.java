@@ -24,7 +24,6 @@ package com.evolveum.midpoint.schema.util;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
@@ -38,9 +37,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
+import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType.Password;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.Extension;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
@@ -61,8 +60,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.XmlSchemaType;
  * @author Radovan Semancik
  */
 public class ObjectTypeUtil {
-
-	static Random rnd = new Random();
 
 	public static List<String> extractOids(List<? extends ObjectType> objects,
 			List<? extends ObjectReferenceType> refs) {
@@ -129,7 +126,7 @@ public class ObjectTypeUtil {
 		if (property.getPrefix() == null) {
 			// If the prefix was not specified, generate a random prefix
 			// to avoid collisions with standard "nsXX" prefixes
-			String prefix = "ch" + rnd.nextInt(10000);
+			String prefix = MidPointNamespacePrefixMapper.getPreferredPrefix(property.getNamespaceURI());
 			property = new QName(property.getNamespaceURI(), property.getLocalPart(), prefix);
 		}
 

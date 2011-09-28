@@ -40,6 +40,7 @@ import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.test.util.ModelTUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -78,6 +79,8 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void simpleRoleAssignment() throws Exception {
+		MidPointNamespacePrefixMapper.initialize();
+
 		ModelTUtil.mockGetSystemConfiguration(repository, new File(
 				"./src/test/resources/controller/addObject/system-configuration.xml"));
 		final UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER, "user.xml")))
@@ -133,6 +136,8 @@ public class UserTypeHandlerTest extends AbstractTestNGSpringContextTests {
 	@Test
 	public void accountAssignment() throws Exception {
 		try {
+			MidPointNamespacePrefixMapper.initialize();
+			
 			ModelTUtil.mockGetSystemConfiguration(repository, new File(
 					"./src/test/resources/controller/addObject/system-configuration.xml"));
 			final UserType user = ((JAXBElement<UserType>) JAXBUtil.unmarshal(new File(TEST_FOLDER,

@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.holder.ExpressionCodeHolder;
 import com.evolveum.midpoint.schema.holder.ValueAssignmentHolder;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
+import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
@@ -719,12 +720,10 @@ public class SchemaHandlerImpl implements SchemaHandler {
 		for (Object element : nodes) {
 			Element transformedElement = doc.createElementNS(propertyQName.getNamespaceURI(),
 					propertyQName.getLocalPart());
-			// transformedElement.setPrefix("attr" + (new
-			// Random()).nextInt(Integer.MAX_VALUE));
 			if (StringUtils.isNotEmpty(propertyQName.getPrefix())) {
 				transformedElement.setPrefix(propertyQName.getPrefix());
 			} else {
-				transformedElement.setPrefix(propertyQName.getLocalPart());
+				transformedElement.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(propertyQName.getNamespaceURI()));
 			}
 
 			Node valueNode;
@@ -935,6 +934,8 @@ public class SchemaHandlerImpl implements SchemaHandler {
 					qname.getLocalPart());
 			if (StringUtils.isNotEmpty(prefix)) {
 				element.setPrefix(prefix);
+			} else {
+				element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(qname.getNamespaceURI()));
 			}
 			if (value != null && StringUtils.isNotEmpty(value.toString())) {
 				element.setTextContent(value.toString());

@@ -178,7 +178,7 @@ public class XPathTest {
 
         Map<String, String> namespaceMap = xpath.getNamespaceMap();
 
-        AssertJUnit.assertEquals("http://default.com/", namespaceMap.get("idmdn"));
+        AssertJUnit.assertEquals("http://default.com/", namespaceMap.get("c"));
 
         List<XPathSegment> segments = xpath.toSegments();
 
@@ -289,7 +289,7 @@ public class XPathTest {
         AssertJUnit.assertEquals("foo:foofoo/x:bar", xpath.getXPath());
 
         System.out.println("ROUND TRIP: "+xpath.getXPathWithDeclarations());
-        AssertJUnit.assertEquals("declare default namespace 'http://default.com/'; declare namespace idmdn='http://default.com/'; declare namespace foo='http://ff.com/'; declare namespace bar='http://www.b.com'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar",
+        AssertJUnit.assertEquals("declare default namespace 'http://default.com/'; declare namespace c='http://default.com/'; declare namespace foo='http://ff.com/'; declare namespace bar='http://www.b.com'; declare namespace x='http://xxx.com/'; foo:foofoo/x:bar",
                 xpath.getXPathWithDeclarations());
         
     }

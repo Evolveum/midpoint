@@ -40,6 +40,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -264,7 +265,7 @@ public class XsdTypeConverter {
 			}
 			Element element = doc.createElementNS(elementName.getNamespaceURI(), elementName.getLocalPart());
 			//TODO: switch to global namespace prefixes map
-			element.setPrefix("temp");
+			element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(elementName.getNamespaceURI()));
 			if (type.equals(Element.class)) {
 				return val;
 			} else if (type.equals(String.class)) {

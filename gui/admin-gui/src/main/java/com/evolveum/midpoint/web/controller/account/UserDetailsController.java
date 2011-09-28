@@ -24,10 +24,8 @@ package com.evolveum.midpoint.web.controller.account;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.faces.event.ActionEvent;
@@ -44,8 +42,8 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.schema.namespace.MidPointNamespacePrefixMapper;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -67,13 +65,11 @@ import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
-import com.evolveum.midpoint.web.model.dto.ObjectReferenceDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
 import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -572,7 +568,6 @@ public class UserDetailsController implements Serializable {
 		try {
 			Document doc = DOMUtil.getDocument();
 
-			Map<String, String> prefixMap = new HashMap<String, String>();
 			List<FormAttribute> attributes = bean.getBean().getAttributes();
 			for (FormAttribute attribute : attributes) {
 				attribute.clearEmptyValues();
@@ -593,10 +588,10 @@ public class UserDetailsController implements Serializable {
 					if (AttributeType.PASSWORD.equals(definition.getType())) {
 						ProtectedStringType protectedString = protector.encryptString(object.toString());
 						element = JAXBUtil.jaxbToDom(protectedString, definition.getElementName(), doc);
-						element.setPrefix(buildElementName(namespace, prefixMap));
+						element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(namespace));
 					} else {
 						element = doc.createElementNS(namespace, name);
-						element.setPrefix(buildElementName(namespace, prefixMap));
+						element.setPrefix(MidPointNamespacePrefixMapper.getPreferredPrefix(namespace));
 						element.setTextContent(object.toString());
 					}
 					attrList.add(element);
@@ -618,16 +613,6 @@ public class UserDetailsController implements Serializable {
 
 		LOGGER.trace("updateAccountAttributes::end");
 		return account;
-	}
-
-	private String buildElementName(String namespace, Map<String, String> prefixMap) {
-		String prefix = prefixMap.get(namespace);
-		if (prefix == null) {
-			prefix = "af" + prefixMap.size();
-			prefixMap.put(namespace, prefix);
-		}
-
-		return prefix;
 	}
 
 	public void unlinkResourcePerformed(ActionEvent evt) {

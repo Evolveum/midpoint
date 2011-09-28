@@ -25,7 +25,7 @@
 <c:object xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="c:AccountShadowType" oid="12345">
     <c:name>jdoe</c:name>
     <c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2"/>
-    <c:objectClass xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">dj:Account</c:objectClass>
+    <c:objectClass xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instances/ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2">ri:Account</c:objectClass>
     <c:attributes>
         <__UID__:__UID__  xmlns:__UID__="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">e341e691-0b89-4245-9ec8-c20f63b69714</__UID__:__UID__>
         <__NAME__:__NAME__ xmlns:__NAME__="http://midpoint.evolveum.com/xml/ns/public/resource/idconnector/resource-schema-1.xsd">uid=jdoe,ou=people,dc=example,dc=com</__NAME__:__NAME__>
