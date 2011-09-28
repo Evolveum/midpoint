@@ -24,18 +24,22 @@ package com.evolveum.midpoint.util;
  * @author Radovan Semancik
  *
  */
-public interface Dumpable {
+public interface DebugDumpable {
+	
+	public static final Object INDENT_STRING = "  ";
 	
 	/**
-	 * Show the content of the object intended for diagnostics by developer.
+	 * Show the content of the object intended for diagnostics by system administrator. The out
+	 * put should be suitable to use in system logs at "debug" level. It may be multi-line, but in
+	 * that case it should be well indented and quite terse.
 	 * 
-	 * The content may be multi-line, in case of hierarchical objects it may be intended.
+	 * As it is intended to be used by system administrator, it should not use any developer terms
+	 * such as class names, exceptions or stack traces.
 	 * 
-	 * The use of this method may not be efficient. It is not supposed to be used in normal operation.
-	 * However, it is very useful in tests or in case of dumping objects in severe error situations.
-	 * 
-	 * @return content of the object intended for diagnostics.
+	 * @return content of the object intended for diagnostics by system administrator.
 	 */
-	public String dump();
+	public String debugDump();
+	
+	public String debugDump(int indent);
 
 }

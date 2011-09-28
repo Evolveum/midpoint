@@ -19,12 +19,24 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+
 /**
- * TODO
+ * Abstract operation for a connector. Subclasses of this class
+ * represent specific operations such as attribute modification,
+ * script execution and so on.
+ * 
+ * This class is created primarily for type safety, but it may be
+ * extended later on.
  * 
  * @author Radovan Semancik
  *
  */
-public abstract class Operation {
+public abstract class Operation implements DebugDumpable {
 
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+	
 }

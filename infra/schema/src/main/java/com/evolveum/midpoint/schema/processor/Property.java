@@ -364,5 +364,32 @@ public class Property extends Item {
 	public String toString() {
 		return getClass().getSimpleName()+"("+getName()+"):"+getValues();
 	}
+	
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < indent; i++) {
+			sb.append(INDENT_STRING);
+		}
+		sb.append(getDebugDumpClassName()).append(": ").append(getName()).append(" = ");
+		if (getValues() == null) {
+			sb.append("null");
+		} else {
+			sb.append("[ ");
+			for (Object value : getValues()) {
+				sb.append(value);
+				sb.append(", ");
+			}
+			sb.append(" ]");
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Return a human readable name of this class suitable for logs.
+	 */
+	protected String getDebugDumpClassName() {
+		return "Property";
+	}
+
 
 }

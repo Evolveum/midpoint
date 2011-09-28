@@ -30,6 +30,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.schema.exception.SchemaException;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 
 
@@ -44,8 +45,8 @@ import com.evolveum.midpoint.util.Dumpable;
  * @author Radovan Semancik
  * 
  */
-public abstract class Item implements Dumpable {
-
+public abstract class Item implements Dumpable, DebugDumpable {
+	
 	protected QName name;
 	protected Definition definition;
 	// Original element from which the item was parsed
@@ -211,5 +212,29 @@ public abstract class Item implements Dumpable {
 	public String dump() {
 		return toString();
 	}
+	
+	/**
+	 * Provide terse and readable dump of the object suitable for log (at debug level). 
+	 */
+	public String debugDump() {
+		return debugDump(0);
+	}
+	
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < indent; i++) {
+			sb.append(INDENT_STRING);
+		}
+		sb.append(getDebugDumpClassName()).append(": ").append(getName());
+		return sb.toString();
+	}
+
+	/**
+	 * Return a human readable name of this class suitable for logs.
+	 */
+	protected String getDebugDumpClassName() {
+		return "Item";
+	}
+
 
 }

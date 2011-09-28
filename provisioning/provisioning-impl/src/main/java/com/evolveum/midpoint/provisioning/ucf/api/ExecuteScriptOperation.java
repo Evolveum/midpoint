@@ -22,6 +22,7 @@ package com.evolveum.midpoint.provisioning.ucf.api;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptOrderType;
 
 /**
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.ScriptOrderType;
  */
 public class ExecuteScriptOperation extends Operation {
 
+	private static final int DEBUG_MAX_CODE_LENGTH = 32;
 
 	private List<ExecuteScriptArgument> argument;
 
@@ -44,8 +46,6 @@ public class ExecuteScriptOperation extends Operation {
 	public ExecuteScriptOperation() {
 
 	}
-	
-	
 
 	public List<ExecuteScriptArgument> getArgument() {
 		if (argument == null){
@@ -86,17 +86,33 @@ public class ExecuteScriptOperation extends Operation {
 		this.language = language;
 	}
 
-
-
 	public ScriptOrderType getScriptOrder() {
 		return scriptOrder;
 	}
-
-
 
 	public void setScriptOrder(ScriptOrderType scriptOrder) {
 		this.scriptOrder = scriptOrder;
 	}
 
-	
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("Script execution ");
+		if (connectorHost) {
+			sb.append("on connector ");
+		}
+		if (resourceHost) {
+			sb.append("on resource ");
+		}
+		sb.append(scriptOrder);
+		sb.append(" : ");
+		if (textCode.length() <= DEBUG_MAX_CODE_LENGTH) {
+			sb.append(textCode);
+		} else {
+			sb.append(textCode.substring(0, DEBUG_MAX_CODE_LENGTH));
+			sb.append(" ...(truncated)...");
+		}
+		return sb.toString();
+	}
 }

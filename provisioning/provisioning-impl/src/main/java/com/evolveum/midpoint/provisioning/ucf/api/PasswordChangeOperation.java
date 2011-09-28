@@ -19,6 +19,7 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.api;
 
+import com.evolveum.midpoint.common.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 
 /**
@@ -55,6 +56,34 @@ public class PasswordChangeOperation extends Operation {
 	
 	public void setOldPassword(ProtectedStringType oldPassword) {
 		this.oldPassword = oldPassword;
+	}
+	
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("Password change: new password ");
+		appendPasswordDescription(sb,newPassword);
+		sb.append("; old password ");
+		appendPasswordDescription(sb,oldPassword);
+		return sb.toString();
+	}
+
+	private void appendPasswordDescription(StringBuilder sb, ProtectedStringType passwd) {
+		if (passwd != null) {
+			sb.append("present");
+			if (passwd.getClearValue() != null) {
+				sb.append(" in clear");
+				if (passwd.getClearValue().isEmpty()) {
+					sb.append(" and empty");
+				}
+			}
+			if (passwd.getEncryptedData()!=null) {
+				sb.append(" encrypted");
+			}
+		} else {
+			sb.append("null");
+		}
 	}
 	
 }

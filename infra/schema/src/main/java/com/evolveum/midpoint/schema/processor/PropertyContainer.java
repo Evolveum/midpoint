@@ -311,10 +311,30 @@ public class PropertyContainer extends Item implements Serializable {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getClass().getSimpleName()).append("(").append(getName()).append(")\n");
 		for (Item item : getItems()) {
-			sb.append("  ");
+			sb.append(INDENT_STRING);
 			sb.append(item.dump());
 		}
 		return sb.toString();
+	}
+	
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < indent; i++) {
+			sb.append(INDENT_STRING);
+		}
+		sb.append(getDebugDumpClassName()).append(": ").append(getName()).append("\n");
+		for (Item item : getItems()) {
+			sb.append(item.debugDump(indent+1));
+			sb.append("\n");
+		}
+		return sb.toString();
+	}
+
+	/**
+	 * Return a human readable name of this class suitable for logs.
+	 */
+	protected String getDebugDumpClassName() {
+		return "Property container";
 	}
 
 	public boolean isEmpty() {

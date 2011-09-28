@@ -201,7 +201,7 @@ public class ShadowCache {
 
 		Validate.notNull(oid, "Object id must not be null.");
 
-		LOGGER.debug("Start getting object with oid {}", oid);
+		LOGGER.trace("Start getting object with oid {}", oid);
 
 		// We are using parent result directly, not creating subresult.
 		// We want to hide the existence of shadow cache from the user.
@@ -212,7 +212,7 @@ public class ShadowCache {
 		if (repositoryShadow == null) {
 			repositoryShadow = getRepositoryService()
 					.getObject(ResourceObjectShadowType.class, oid, null, parentResult);
-			LOGGER.debug("Found shadow object: {}", JAXBUtil.silentMarshalWrap(repositoryShadow));
+			LOGGER.trace("Found shadow object: {}", JAXBUtil.silentMarshalWrap(repositoryShadow));
 		}
 
 		// Sanity check
@@ -223,7 +223,7 @@ public class ShadowCache {
 
 		ResourceType resource = getResource(ResourceObjectShadowUtil.getResourceOid(repositoryShadow), parentResult);
 
-		LOGGER.debug("Getting fresh object from ucf.");
+		LOGGER.trace("Getting fresh object from ucf.");
 		// Get the fresh object from UCF
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
 		Schema schema = getResourceSchema(resource, connector, parentResult);
@@ -261,7 +261,18 @@ public class ShadowCache {
 			// Passing ResourceObjectDefinition instead object class. The
 			// returned
 			// ResourceObject will have a proper links to the schema.
+			
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Connector for resource {}\n FETCH object identified by:\n{}", 
+						new Object[] {ObjectTypeUtil.toShortString(resource),
+						DebugUtil.debugDump(identifiers)});
+			}
+			
 			ro = connector.fetchObject(rod, identifiers, parentResult);
+
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Connector FETCH successful, returned object:\n{}", ro.debugDump());
+			}
 
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
 			// TODO: Discovery
@@ -378,7 +389,7 @@ public class ShadowCache {
 			throw new IllegalArgumentException("Resource must not be null.");
 		}
 
-		LOGGER.debug("Start listing objects on resource with oid {} with object class {} ", resource.getOid(),
+		LOGGER.trace("Start listing objects on resource with oid {} with object class {} ", resource.getOid(),
 				objectClass);
 
 		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
@@ -440,7 +451,7 @@ public class ShadowCache {
 
 		try {
 			connector.search(objectClass, resourceDef, resultHandler, parentResult);
-			LOGGER.debug("Finished listing obejcts.");
+			LOGGER.trace("Finished listing obejcts.");
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException e) {
 			parentResult.recordFatalError(
 					"Error communicationg with the connector " + connector + ". Reason: " + e.getMessage(), e);
@@ -459,9 +470,9 @@ public class ShadowCache {
 
 		Validate.notNull(shadow, "Object to add must not be null.");
 
-		LOGGER.debug("Scripts: {}", JAXBUtil.silentMarshalWrap(scripts));
+		LOGGER.trace("Scripts: {}", JAXBUtil.silentMarshalWrap(scripts));
 
-		LOGGER.debug("Start adding shadow object {}.", JAXBUtil.silentMarshalWrap(shadow));
+		LOGGER.trace("Start adding shadow object {}.", JAXBUtil.silentMarshalWrap(shadow));
 
 		if (resource == null) {
 			resource = getResource(ResourceObjectShadowUtil.getResourceOid(shadow), parentResult);
@@ -496,9 +507,23 @@ public class ShadowCache {
 
 			addExecuteScriptOperation(additionalOperations, OperationTypeType.ADD, scripts, parentResult);
 
+			if (LOGGER.isDebugEnabled()) {
+				LOGGER.debug("Connector for resource {}\n ADD object:\n{}\n additional operations:\n{}", 
+						new Object[] {ObjectTypeUtil.toShortString(resource),
+						resourceObject.debugDump(),
+						DebugUtil.debugDump(additionalOperations)});
+			}
+			
 			resourceAttributesAfterAdd = connector.addObject(resourceObject, additionalOperations, parentResult);
 
-			LOGGER.debug("Added object: {}", DebugUtil.prettyPrint(resourceAttributesAfterAdd));
+			if (LOGGER.isDebugEnabled()) {
+				// TODO: reduce only to new/different attributes. Dump all attributes on trace level only 
+				LOGGER.debug("Connector ADD successful, returned attributes:\n{}",DebugUtil.prettyPrint(resourceAttributesAfterAdd));
+			}
+//			if (LOGGER.isTraceEnabled()) {
+//				LOGGER.trace("Added object: {}", DebugUtil.prettyPrint(resourceAttributesAfterAdd));
+//			}
+			
 			resourceObject.addAllReplaceExisting(resourceAttributesAfterAdd);
 		} catch (com.evolveum.midpoint.provisioning.ucf.api.CommunicationException ex) {
 			parentResult.recordFatalError(
@@ -518,7 +543,7 @@ public class ShadowCache {
 			throw new IllegalStateException(
 					"Error while creating account shadow object to save in the reposiotory. AccountShadow is null.");
 		}
-		LOGGER.debug("Adding object with identifiers to the repository.");
+		LOGGER.trace("Adding object with identifiers to the repository.");
 
 		addShadowToRepository(shadow, resourceObject, parentResult);
 
@@ -532,7 +557,7 @@ public class ShadowCache {
 		if (scripts == null) {
 			// No warning needed, this is quite normal
 			// result.recordWarning("Skiping creating script operation to execute. Scripts was not defined.");
-			LOGGER.debug("Skiping creating script operation to execute. Scripts was not defined.");
+			LOGGER.trace("Skiping creating script operation to execute. Scripts was not defined.");
 			return;
 		}
 
@@ -561,7 +586,7 @@ public class ShadowCache {
 						scriptOperation.setConnectorHost(false);
 						scriptOperation.setResourceHost(true);
 					}
-					LOGGER.debug("Created script operation: {}", DebugUtil.prettyPrint(scriptOperation));
+					LOGGER.trace("Created script operation: {}", DebugUtil.prettyPrint(scriptOperation));
 					operations.add(scriptOperation);
 				}
 			}
@@ -583,7 +608,7 @@ public class ShadowCache {
 				resource = getResource(ResourceObjectShadowUtil.getResourceOid(accountShadow), parentResult);
 			}
 
-			LOGGER.debug("Deleting obejct  {} from the resource {}.", ObjectTypeUtil.toShortString(objectType),
+			LOGGER.debug("Deleting obejct {} from the resource {}.", ObjectTypeUtil.toShortString(objectType),
 					ObjectTypeUtil.toShortString(resource));
 
 			ConnectorInstance connector = getConnectorInstance(resource, parentResult);
@@ -600,7 +625,19 @@ public class ShadowCache {
 			addExecuteScriptOperation(additionalOperations, OperationTypeType.DELETE, scripts, parentResult);
 
 			try {
+				
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Connector for resource {}\n DELETE object, object class {}, identified by:\n{}\n additional operations:\n{}", 
+							new Object[] {ObjectTypeUtil.toShortString(resource),
+							accountShadow.getObjectClass(),
+							DebugUtil.debugDump(identifiers),
+							DebugUtil.debugDump(additionalOperations)});
+				}
+
 				connector.deleteObject(accountShadow.getObjectClass(), additionalOperations, identifiers, parentResult);
+				
+				LOGGER.debug("Connector DELETE successful");
+				
 			} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
 				parentResult.recordFatalError("Can't delete object " + ObjectTypeUtil.toShortString(accountShadow)
 						+ ". Reason: " + ex.getMessage(), ex);
@@ -616,7 +653,7 @@ public class ShadowCache {
 				throw new GenericConnectorException("Generic error in connector: " + ex.getMessage(), ex);
 			}
 
-			LOGGER.debug("Detele object with oid {} form repository.", accountShadow.getOid());
+			LOGGER.trace("Detele object with oid {} form repository.", accountShadow.getOid());
 			try {
 				getRepositoryService().deleteObject(AccountShadowType.class, accountShadow.getOid(), parentResult);
 			} catch (ObjectNotFoundException ex) {
@@ -643,7 +680,7 @@ public class ShadowCache {
 
 			}
 
-			LOGGER.debug("Modifying object {} on resource with oid {}", JAXBUtil.silentMarshalWrap(shadow),
+			LOGGER.trace("Modifying object {} on resource with oid {}", JAXBUtil.silentMarshalWrap(shadow),
 					resource.getOid());
 
 			ConnectorInstance connector = getConnectorInstance(resource, parentResult);
@@ -679,18 +716,18 @@ public class ShadowCache {
 				// TODO: look for activation change
 				Boolean enabled = ObjectTypeUtil.getPropertyNewValue(objectChange, "activation", "enabled",
 						Boolean.class);
-				LOGGER.debug("Find activation change to: {}", enabled);
+				LOGGER.trace("Find activation change to: {}", enabled);
 
 				if (enabled != null) {
-					LOGGER.debug("enabled not null.");
+					LOGGER.trace("enabled not null.");
 					ActivationCapabilityType activationCapability = null;
-					LOGGER.debug("resource native capabilities: {}", resource.getNativeCapabilities());
+					LOGGER.trace("resource native capabilities: {}", resource.getNativeCapabilities());
 					// check resource native capabilities. if resource cannot do
 					// activation, it sholud be null..
 					if (resource.getNativeCapabilities() != null) {
 						activationCapability = ResourceTypeUtil.getCapability(
 								resource.getNativeCapabilities().getAny(), ActivationCapabilityType.class);
-						LOGGER.debug("Activation capability of resource: {}",
+						LOGGER.trace("Activation capability of resource: {}",
 								JAXBUtil.silentMarshalWrap(activationCapability));
 					}
 					if (activationCapability == null) {
@@ -715,9 +752,19 @@ public class ShadowCache {
 			Set<AttributeModificationOperation> sideEffectChanges = null;
 			try {
 
+				if (LOGGER.isDebugEnabled()) {
+					LOGGER.debug("Connector for resource {}\n MODIFY object, object class {}, identified by:\n{}\n changes:\n{}", 
+							new Object[] {ObjectTypeUtil.toShortString(resource),
+							shadow.getObjectClass(),
+							DebugUtil.debugDump(identifiers),
+							DebugUtil.debugDump(changes)});
+				}
+				
 				// Invoke ICF
 				sideEffectChanges = connector.modifyObject(shadow.getObjectClass(), identifiers, changes, parentResult);
 
+				LOGGER.debug("Connector MODIFY successful, side-effect changes {}", DebugUtil.debugDump(sideEffectChanges));
+				
 			} catch (com.evolveum.midpoint.provisioning.ucf.api.ObjectNotFoundException ex) {
 				parentResult.recordFatalError("Object to modify not found. Reason: " + ex.getMessage(), ex);
 				throw new ObjectNotFoundException("Object to modify not found. " + ex.getMessage(), ex);
@@ -895,7 +942,7 @@ public class ShadowCache {
 			@Override
 			public boolean handle(ResourceObject object) {
 				ResourceObjectShadowType shadow;
-				LOGGER.debug("Found resource object {}", DebugUtil.prettyPrint(object));
+				LOGGER.trace("Found resource object {}", DebugUtil.prettyPrint(object));
 				try {
 
 					// Try to find shadow that corresponds to the resource
@@ -973,7 +1020,7 @@ public class ShadowCache {
 		Validate.notNull(resourceType, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.debug("Getting last token");
+		LOGGER.trace("Getting last token");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 		QName objectClass = new QName(resourceType.getNamespace(), "AccountObjectClass");
 		Property lastToken = null;
@@ -990,7 +1037,7 @@ public class ShadowCache {
 					+ ex.getMessage(), ex);
 		}
 
-		LOGGER.debug("Got last token: {}", DebugUtil.prettyPrint(lastToken));
+		LOGGER.trace("Got last token: {}", DebugUtil.prettyPrint(lastToken));
 		parentResult.recordSuccess();
 		return lastToken;
 	}
@@ -1002,7 +1049,7 @@ public class ShadowCache {
 		Validate.notNull(parentResult, "Operation result must not be null.");
 		Validate.notNull(lastToken, "Token property must not be null.");
 
-		LOGGER.debug("Shadow cache, fetch changes");
+		LOGGER.trace("Shadow cache, fetch changes");
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 
 		QName objectClass = new QName(resourceType.getNamespace(), "AccountObjectClass");
@@ -1054,7 +1101,7 @@ public class ShadowCache {
 
 			if (!(change.getChange() instanceof ObjectChangeDeletionType)) {
 				newShadow = createNewAccountFromChange(change, resource, connector, parentResult);
-				LOGGER.debug("Create account shadow object: {}", ObjectTypeUtil.toShortString(newShadow));
+				LOGGER.trace("Create account shadow object: {}", ObjectTypeUtil.toShortString(newShadow));
 			}
 			// if exist, set the old shadow to the change
 		} else {

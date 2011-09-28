@@ -113,5 +113,12 @@ public class ResourceObjectAttribute extends Property {
 		return getDefinition() == null ? null : getDefinition()
 				.getNativeAttributeName();
 	}
+	
+	/**
+	 * Return a human readable name of this class suitable for logs.
+	 */
+	protected String getDebugDumpClassName() {
+		return "Attribute";
+	}
 		
 }

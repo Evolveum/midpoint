@@ -358,5 +358,12 @@ public final class ResourceObject extends PropertyContainer {
 	private ResourceObjectAttribute findAttribute(ResourceObjectAttributeDefinition attributeDefinition) {
 		return (ResourceObjectAttribute) super.findProperty(attributeDefinition);
 	}
+	
+	/**
+	 * Return a human readable name of this class suitable for logs.
+	 */
+	protected String getDebugDumpClassName() {
+		return "Resource object";
+	}
 
 }

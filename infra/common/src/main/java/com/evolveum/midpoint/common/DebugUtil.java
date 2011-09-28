@@ -26,10 +26,14 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -73,6 +77,48 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 public class DebugUtil implements ObjectFormatter {
 
 	private static int SHOW_LIST_MEMBERS = 3;
+	
+	public static String debugDump(Collection<? extends DebugDumpable> dumpables) {
+		return debugDump(dumpables,0);
+	}
+	
+	public static String debugDump(Collection<? extends DebugDumpable> dumpables, int indent) {
+		StringBuilder sb = new StringBuilder();
+		sb.append(getCollectionOpeningSymbol(dumpables));
+		sb.append("\n");
+		for (DebugDumpable dd : dumpables) {
+			sb.append(dd.debugDump(indent + 1));
+		}
+		sb.append(getCollectionClosingSymbol(dumpables));
+		sb.append("\n");
+		return sb.toString();
+	}
+
+	private static String getCollectionClosingSymbol(Collection<?> col) {
+		if (col instanceof List) {
+			return "[";
+		}
+		if (col instanceof Set) {
+			return "{";
+		}
+		return col.getClass().getSimpleName()+"(";
+	}
+
+	private static String getCollectionOpeningSymbol(Collection<?> col) {
+		if (col instanceof List) {
+			return "]";
+		}
+		if (col instanceof Set) {
+			return "}";
+		}
+		return ")";
+	}
+	
+	public static void indentDebugDump(StringBuilder sb, int indent) {
+		for(int i = 0; i < indent; i++) {
+			sb.append(DebugDumpable.INDENT_STRING);
+		}
+	}
 
 	public static String prettyPrint(PropertyReferenceListType reflist) {
 		if (reflist == null) {
