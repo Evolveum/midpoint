@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2011 Evolveum                             -->
+<!--                                                         -->
+<!-- The contents of this file are subject to the terms      -->
+<!-- of the Common Development and Distribution License      -->
+<!-- (the License). You may not use this file except in      -->
+<!-- compliance with the License.                            -->
+<!--                                                         -->
+<!-- You can obtain a copy of the License at                 -->
+<!-- http://www.opensource.org/licenses/cddl1 or             -->
+<!-- CDDLv1.0.txt file in the source code distribution.      -->
+<!-- See the License for the specific language governing     -->
+<!-- permission and limitations under the License.           -->
+<!--                                                         -->
+<!-- If applicable, add the following below the CDDL Header, -->
+<!-- with the fields enclosed by brackets [] replaced by     -->
+<!-- your own identifying information:                       -->
+<!--                                                         -->
+<!-- Portions Copyrighted 2011 [name of copyright owner]     -->
+<!-- Portions Copyrighted 2010 Forgerock                     -->
+<!--                                                         -->
+
+
+<!--
+
+This file is an example of Resource definition. It defines an Solaris resource
+using an Identity Connector Framework Solaris connector.
+
+This resource definition contains also definition to enable synchronization and
+especially an expression that is using a lookup of value from an configuration
+object.
+
+-->
+
+<c:objects xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee"
+	xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-1.xsd"
+	xmlns:my="http://myself.me/schemas/whatever"
+	xsi:schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd ../../infra/schema/src/main/resources/xml/ns/public/common/common-1.xsd">
+
+	<c:resource>
+    
+    	<!-- Resource name. It will be displayed in GUI.  -->
+		<c:name>Localhost DBTable</c:name>
+     
+     	<!-- Reference to the ICF DatabaseTable connector. OID is "virtual" for now. -->
+		<connectorRef type="ConnectorType">
+			<and>
+		        <type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd#ConnectorType"/>
+		        <equal>
+		          <value>
+		              <connectorType>org.identityconnectors.databasetable.DatabaseTableConnector</connectorType>
+		          </value>
+		        </equal>
+		      </and>
+		</connectorRef>
+
+        <!-- Resource namespace. This is important. All resource schema elements should be in this namespace. -->
+		<c:namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-48e2-86d6-3d4f02d3eeee</c:namespace>
+
+        <!-- Configuration section contains configuration of the connector,
+             such as hostnames and passwords -->
+		<c:configuration
+			xmlns:icscdbtable="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/org.forgerock.openicf.connectors.db.databasetable/org.identityconnectors.databasetable.DatabaseTableConnector"
+			xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/resource/icf-1/connector-schema-1.xsd">
+
+            <!-- Configuration specific for the DBTable connector -->
+			<icscdbtable:configurationProperties>
+				<icscdbtable:port>3306</icscdbtable:port>
+				<icscdbtable:quoting></icscdbtable:quoting>
+				<icscdbtable:host>localhost</icscdbtable:host>
+				<icscdbtable:user>midpoint_tests</icscdbtable:user>
+				<icscdbtable:password><clearValue>secret</clearValue></icscdbtable:password>
+				<icscdbtable:database>midpoint_tests</icscdbtable:database>
+				<icscdbtable:table>idrepo</icscdbtable:table>
+				<icscdbtable:keyColumn>userId</icscdbtable:keyColumn>
+				<icscdbtable:passwordColumn>password</icscdbtable:passwordColumn>
+				<icscdbtable:jdbcDriver>com.mysql.jdbc.Driver</icscdbtable:jdbcDriver>
+				<icscdbtable:jdbcUrlTemplate>jdbc:mysql://%h:%p/%d</icscdbtable:jdbcUrlTemplate>
+				<icscdbtable:enableEmptyString>false</icscdbtable:enableEmptyString>
+				<icscdbtable:rethrowAllSQLExceptions>true</icscdbtable:rethrowAllSQLExceptions>
+				<icscdbtable:nativeTimestamps>false</icscdbtable:nativeTimestamps>
+				<icscdbtable:allNative>false</icscdbtable:allNative>
+				<icscdbtable:changeLogColumn></icscdbtable:changeLogColumn>
+				<icscdbtable:datasource></icscdbtable:datasource>
+			</icscdbtable:configurationProperties>
+		
+			<!-- Generic ICF configuration -->
+
+
+		</c:configuration>
+
+        <!-- Resource Schema Handling definition.
+             This part defines how the schema defined above will be used by
+             midPoint. It defines expressions and limitations for individual
+             schema attributes.
+
+             The expressions that describe both inbound and outbound flow of
+             the attributes are defined in this section.
+
+             This is the part where most of the customization takes place.
+        -->
+		<c:schemaHandling>
+
+            <!-- Definition of default account type.
+                 This is now the only account type that midPoint can work with. -->
+			<c:accountType default="true">
+
+                <!-- Readable name for the account type -->
+				<c:name>Default Account</c:name>
+
+                <!-- Reference to the Resource Schema (see above) specifying
+                     object class for this account type -->
+				<c:objectClass>ri:AccountObjectClass</c:objectClass>
+				<c:attribute ref="icfs:uid">
+
+                    <!-- Readable name for the attribute. This will be used in GUI -->
+					<c:name>Entry UUID</c:name>
+
+                    <!-- Access limitation for this attribute.
+                         Entry UUID is created by the directory server itelf
+                         and it is immutable. We can only read it. -->
+					<c:access>read</c:access>
+<!--
+					<c:outbound default="true">
+						<c:valueExpression>
+							<c:code>
+                                                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/c:name
+							</c:code>
+						</c:valueExpression>
+					</c:outbound>-->
+				</c:attribute>
+				<c:attribute ref="icfs:name">
+
+                    <!-- Readable name for the attribute. This will be used in GUI -->
+					<c:name>Name</c:name>
+
+                    <!-- Access limitation for this attribute.
+                          -->
+					<c:access>create</c:access>
+					<c:access>read</c:access>
+					<c:outbound default="true">
+						<c:valueExpression>
+							<c:code>
+                                                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/c:name
+							</c:code>
+						</c:valueExpression>
+					</c:outbound>
+				</c:attribute>
+
+				<c:attribute ref="ri:firstName">
+					<c:name>First name</c:name>
+					<c:description>Definition of Firstname attribute handling.</c:description>
+					<c:outbound>
+						<c:valueExpression>
+							<c:code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:givenName
+							</c:code>
+                        			</c:valueExpression>
+					</c:outbound>
+							
+				</c:attribute>
+				<c:attribute ref="ri:lastName">
+					<c:name>Last name</c:name>
+					<c:description>Definition of Lastname attribute handling.</c:description>
+					<c:outbound>
+						<c:valueExpression>
+							<c:code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:familyName
+							</c:code>
+                        			</c:valueExpression>
+					</c:outbound>
+							
+				</c:attribute>
+				<c:attribute ref="ri:fullName">
+					<c:name>Full name</c:name>
+					<c:description>Definition of Fullname attribute handling.</c:description>
+					<c:outbound>
+						<c:valueExpression>
+							<c:code>
+							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
+							$i:user/i:fullName
+							</c:code>
+                        			</c:valueExpression>
+					</c:outbound>
+				</c:attribute>
+  				<credentials>
+                                        <outboundPassword>true</outboundPassword>
+                                        <randomPasswordLength>6</randomPasswordLength>
+                                </credentials>
+			</c:accountType>
+		</c:schemaHandling>
+		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
+			<cap:activation>
+				<cap:enableDisable>
+					<cap:attribute>ri:disabled</cap:attribute>
+					<cap:enableValue>false</cap:enableValue>
+					<cap:disableValue>true</cap:disableValue>
+				</cap:enableDisable>
+			</cap:activation>
+			<cap:credentials>
+				<cap:password/>
+			</cap:credentials>
+			<cap:testConnection/>
+		</capabilities>
+
+	</c:resource>
+
+
+</c:objects>
