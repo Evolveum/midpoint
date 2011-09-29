@@ -70,7 +70,7 @@ object.
 	
             <!-- Configuration specific for the CSVfile connector -->
 			<icfccsvfile:configurationProperties>
-				<icfccsvfile:filePath>D:/midpoint-flatfile.csv</icfccsvfile:filePath>
+				<icfccsvfile:filePath>/var/tmp/midpoint-flatfile.csv</icfccsvfile:filePath>
 				<icfccsvfile:encoding>utf-8</icfccsvfile:encoding>
 				<icfccsvfile:valueQualifier>"</icfccsvfile:valueQualifier>
 				<icfccsvfile:fieldDelimiter>,</icfccsvfile:fieldDelimiter>
@@ -78,7 +78,7 @@ object.
 				<icfccsvfile:usingMultivalue>false</icfccsvfile:usingMultivalue>
 				<icfccsvfile:uniqueAttribute>id</icfccsvfile:uniqueAttribute>
 	<!--			<icfccsvfile:nameAttribute>id</icfccsvfile:nameAttribute> -->
-<!--				<icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>-->
+				<icfccsvfile:passwordAttribute>password</icfccsvfile:passwordAttribute>
 			</icfccsvfile:configurationProperties>
 		
 			<!-- Generic ICF configuration -->
@@ -148,7 +148,7 @@ object.
 				<c:attribute ref="ri:firstname">
 					<c:name>First name</c:name>
 					<c:description>Definition of Firstname attribute handling.</c:description>
-					<c:outbound>
+					<c:outbound default="true">
 						<c:valueExpression>
 							<c:code>
 							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
@@ -161,7 +161,7 @@ object.
 				<c:attribute ref="ri:lastname">
 					<c:name>Last name</c:name>
 					<c:description>Definition of Lastname attribute handling.</c:description>
-					<c:outbound>
+					<c:outbound default="true">
 						<c:valueExpression>
 							<c:code>
 							declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-1.xsd";
@@ -171,6 +171,7 @@ object.
 					</c:outbound>
 							
 				</c:attribute>
+<!--
 				<c:attribute ref="ri:disabled">
 					<c:name>disabled</c:name>
 					<c:description>Definition of disabled attribute handling. True = disabled, False = enabled.</c:description>
@@ -178,7 +179,11 @@ object.
 					<c:outbound default="true">
 						<c:value>false</c:value>
 					</c:outbound>
-				</c:attribute>
+				</c:attribute>-->
+				<credentials>
+					<outboundPassword>true</outboundPassword>
+					<randomPasswordLength>6</randomPasswordLength>
+				</credentials>
 			</c:accountType>
 		</c:schemaHandling>
 		<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-1.xsd">
@@ -189,6 +194,9 @@ object.
 					<cap:disableValue>true</cap:disableValue>
 				</cap:enableDisable>
 			</cap:activation>
+			<cap:credentials>
+				<cap:password/>
+			</cap:credentials>
 			<cap:testConnection/>
 		</capabilities>
 	</c:resource>
