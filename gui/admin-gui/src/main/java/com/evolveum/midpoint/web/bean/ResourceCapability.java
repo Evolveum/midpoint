@@ -54,7 +54,7 @@ public class ResourceCapability implements Serializable {
 	private static final long serialVersionUID = -3013453566132560637L;
 	// flags for available capabilities
 	private boolean credentials;
-	private boolean activation;
+	private boolean activation = true;
 	// activation
 	private boolean enabled = true;
 	private boolean activationUsed = false;
@@ -114,15 +114,17 @@ public class ResourceCapability implements Serializable {
 		return credentials;
 	}
 
-	public ActivationType getActivationType() {
-		if (enabled && !activationUsed) {
-			return null;
-		}
+	public ActivationType getActivationType() {	
+		//TODO: now wse do not support activation date...only simple enable/disable account is supported
+//		if (enabled && !activationUsed) {
+//			return null;
+//		}
 
 		ActivationType activation = new ActivationType();
-		if (!enabled) {
-			activation.setEnabled(false);
-		}
+		activation.setEnabled(enabled);
+//		if (!enabled) {
+//			activation.setEnabled(false);
+//		}
 
 		if (activationUsed) {
 			try {

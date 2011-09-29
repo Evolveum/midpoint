@@ -93,7 +93,8 @@
 
 						<ice:outputLabel value="#{msg['page.account.detail.tab.user.enabled']}" />
 						<ice:panelGroup>
-							<ice:selectBooleanCheckbox id="enabled" value="#{userDetails.user.enabled}" required="true"
+							<ice:selectBooleanCheckbox id="enabled" valueChangeListener="#{userDetails.changeActivationOfUserAccounts}" 
+							immediate="true" partialSubmit="true" value="#{userDetails.user.enabled}" required="true"
 								requiredMessage="#{msg['field.required']}" readonly="#{not userDetails.editMode}"
 								disabled="#{not userDetails.editMode}" />
 							<ice:message for="enabled" errorClass="error" />

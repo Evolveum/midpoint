@@ -82,14 +82,19 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 		Validate.notNull(changedObject, "Changed account must not be null.");
 
 		AccountShadowDto oldObject = get(changedObject.getOid(), Utils.getResolveResourceList());
+
+		if (changedObject.getActivation() != null) {
+			changedObject.getXmlObject().setActivation(changedObject.getActivation());
+		} 
 		OperationResult result = new OperationResult(AccountManager.SUBMIT);
 		try {
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),
 					changedObject.getXmlObject());
 			if (changes != null && changes.getOid() != null) {
-				LOGGER.debug("Modifying account submited in gui. {}", ObjectTypeUtil.toShortString(changedObject.getXmlObject()));
+				LOGGER.debug("Modifying account submited in gui. {}",
+						ObjectTypeUtil.toShortString(changedObject.getXmlObject()));
 				getModel().modifyObject(AccountShadowType.class, changes, result);
-			} else{
+			} else {
 				LOGGER.debug("No account changes detected.");
 			}
 		} catch (DiffException ex) {

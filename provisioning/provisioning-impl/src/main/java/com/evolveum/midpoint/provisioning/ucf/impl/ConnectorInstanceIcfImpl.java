@@ -1332,6 +1332,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// TODO: fix this
 			attrXsdName = ConnectorFactoryIcfImpl.ICFS_PASSWORD;
 		}
+		if (OperationalAttributes.ENABLE_NAME.equals(icfAttrName)){
+			attrXsdName = ConnectorFactoryIcfImpl.ICFS_ACTIVATION_DISABLE;
+		}
 		return attrXsdName;
 	}
 

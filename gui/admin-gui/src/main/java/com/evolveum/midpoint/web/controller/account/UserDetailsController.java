@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.faces.event.ActionEvent;
+import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 import javax.xml.namespace.QName;
 
@@ -70,6 +71,8 @@ import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -250,6 +253,7 @@ public class UserDetailsController implements Serializable {
 //					}
 //					LOGGER.debug("Finished processing of modified accounts");
 //				} else {
+			
 					updateAccounts(accountList);
 //				}
 
@@ -359,6 +363,14 @@ public class UserDetailsController implements Serializable {
 			accountManager.submit(account);
 		}
 		LOGGER.debug("Finished processing accounts with outbound schema handling");
+	}
+	
+	public void changeActivationOfUserAccounts(ValueChangeEvent evt){
+		Boolean newValue = (Boolean) evt.getNewValue();
+//		System.out.println("new value: "+ newValue);
+		for (AccountFormBean account : accountList){
+			account.getResourceCapability().setEnabled(newValue);
+		}
 	}
 
 	public void addResourcePerformed(ActionEvent evt) {
@@ -550,6 +562,7 @@ public class UserDetailsController implements Serializable {
 			object = parser.parseSchemaForAccount(account, accountType);
 			AccountManager manager = ControllerUtil.getAccountManager(objectTypeCatalog);
 			capability = manager.getResourceCapability(account);
+//			capability.setActivation(account.getActivation().isEnabled());
 		} catch (SchemaException ex) {
 			throw ex;
 		} catch (Exception ex) {
@@ -610,6 +623,7 @@ public class UserDetailsController implements Serializable {
 		ResourceCapability capabilities = bean.getResourceCapability();
 		account.setCredentials(capabilities.getCredentialsType());
 		account.setActivation(capabilities.getActivationType());
+	
 
 		LOGGER.trace("updateAccountAttributes::end");
 		return account;

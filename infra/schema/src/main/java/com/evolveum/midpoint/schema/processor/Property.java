@@ -313,6 +313,11 @@ public class Property extends Item {
 			QName xsdType = null;
 			if (propDef!=null) {
 				xsdType = propDef.getTypeName();
+				//FIXME: we do not want to send ignored attribute to the other layers..
+				//but this place is maybe not suitable to skip the ignored property..
+				if (propDef.isIgnored()){
+					continue;
+				}
 			}
 			
 				try {
