@@ -165,10 +165,12 @@ public class ControllerUtil {
 
 	public static void updateResourceState(ResourceState state, OperationResult result) {
 		Validate.notNull(result, "Operation result must not be null.");
+
 		List<OperationResult> subResults = result.getSubresults();
 
-		state.setExtraName("Unknown (todo: fix)");
-		state.setExtra(getStatusFromResultType(ConnectorTestOperation.EXTRA_TEST, subResults));
+		// state.setExtraName("Unknown (todo: fix)");
+		// state.setExtra(getStatusFromResultType(ConnectorTestOperation.EXTRA_TEST,
+		// subResults));
 		state.setConConnection(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_CONNECTION,
 				subResults));
 		state.setConfValidation(getStatusFromResultType(ConnectorTestOperation.CONFIGURATION_VALIDATION,
@@ -195,11 +197,11 @@ public class ControllerUtil {
 						new Object[] { result.getOperation(), ConnectorTestOperation.class });
 			}
 		}
-
+		
 		if (resultFound == null) {
 			return status;
 		}
-
+		
 		switch (resultFound.getStatus()) {
 			case SUCCESS:
 				status = ResourceStatus.SUCCESS;
@@ -215,7 +217,7 @@ public class ControllerUtil {
 		if (!resultFound.isSuccess() && !resultFound.isUnknown()) {
 			FacesUtils.addErrorMessage(resultFound.getMessage());
 		}
-
+		
 		return status;
 	}
 }
