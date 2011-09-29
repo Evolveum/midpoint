@@ -39,6 +39,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.ResourceCapability;
 import com.evolveum.midpoint.web.model.AccountManager;
+import com.evolveum.midpoint.web.model.WebModelException;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.ObjectReferenceDto;
 import com.evolveum.midpoint.web.model.dto.PropertyChange;
@@ -85,7 +86,7 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 
 		if (changedObject.getActivation() != null) {
 			changedObject.getXmlObject().setActivation(changedObject.getActivation());
-		} 
+		}
 		OperationResult result = new OperationResult(AccountManager.SUBMIT);
 		try {
 			ObjectModificationType changes = CalculateXmlDiff.calculateChanges(oldObject.getXmlObject(),
@@ -102,15 +103,21 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 					changedObject.getName());
 			result.recordFatalError("Couldn't update account '" + changedObject.getName()
 					+ "', error while diffing.", ex);
+
 		} catch (ObjectNotFoundException ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't update account {}, because it doesn't exists", ex,
 					changedObject.getName());
 			result.recordFatalError("Couldn't update account '" + changedObject.getName()
 					+ "', because it doesn't exists.", ex);
 		} catch (Exception ex) {
-
+			LoggingUtils.logException(LOGGER, "Couldn't update account {}, because it doesn't exists", ex,
+					changedObject.getName());
+			result.recordFatalError("Couldn't update account '" + changedObject.getName()
+					+ "', because it doesn't exists.", ex);
 		}
 
+		result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
+		printResults(LOGGER, result);
 		return new HashSet<PropertyChange>();
 	}
 
