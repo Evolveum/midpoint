@@ -21,8 +21,13 @@
 package com.evolveum.midpoint.web.controller.role;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.faces.event.ActionEvent;
+import javax.faces.event.ValueChangeEvent;
+import javax.faces.model.SelectItem;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,12 +37,14 @@ import org.springframework.stereotype.Controller;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.bean.AssignmentBeanType;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.RoleManager;
 import com.evolveum.midpoint.web.model.dto.RoleDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 
 /**
@@ -50,6 +57,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 public class RoleEditController implements Serializable {
 
 	public static final String PAGE_NAVIGATION = "/role/roleEdit?faces-redirect=true";
+	public static final String PARAM_ASSIGNMENT_ID = "assignmentId";
 	private static final long serialVersionUID = 6390559677870495118L;
 	private static final Trace LOGGER = TraceManager.getTrace(RoleEditController.class);
 	@Autowired(required = true)
@@ -58,9 +66,23 @@ public class RoleEditController implements Serializable {
 	private transient TemplateController template;
 	private boolean newRole = true;
 	private RoleDto role;
-	
+	private boolean selectAll;
+
 	public RoleDto getRole() {
+		if (role == null) {
+			role = new RoleDto(new RoleType());
+		}
 		return role;
+	}
+
+	public List<SelectItem> getAssignmentTypes() {
+		List<SelectItem> items = new ArrayList<SelectItem>();
+		for (AssignmentBeanType type : AssignmentBeanType.values()) {
+			items.add(new SelectItem(type.name(), FacesUtils.translateKey(type.getLocalizationKey())));
+		}
+		Collections.sort(items, new SelectItemComparator());
+
+		return items;
 	}
 
 	/**
@@ -103,5 +125,33 @@ public class RoleEditController implements Serializable {
 			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());
 			FacesUtils.addErrorMessage("Couldn't submit role '" + role.getName() + "'.", ex);
 		}
+	}
+
+	public boolean isSelectAll() {
+		return selectAll;
+	}
+
+	public void setSelectAll(boolean selectAll) {
+		this.selectAll = selectAll;
+	}
+
+	public void selectAllPerformed(ValueChangeEvent event) {
+		ControllerUtil.selectAllPerformed(event, role.getAssignments());
+	}
+
+	public void selectPerformed(ValueChangeEvent evt) {
+		this.selectAll = ControllerUtil.selectPerformed(evt, role.getAssignments());
+	}
+
+	public void addAssignment() {
+
+	}
+
+	public void deleteAssignments() {
+
+	}
+
+	public void editAssignment() {
+
 	}
 }

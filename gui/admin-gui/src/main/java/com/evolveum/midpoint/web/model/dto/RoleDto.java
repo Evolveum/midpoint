@@ -20,8 +20,11 @@
  */
 package com.evolveum.midpoint.web.model.dto;
 
-import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.evolveum.midpoint.web.bean.AssignmentBean;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 
 /**
@@ -32,37 +35,41 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 public class RoleDto extends ExtensibleObjectDto<RoleType> {
 
 	private static final long serialVersionUID = -6609121465638251441L;
-	private boolean enabled = true;
-	private boolean showActivationDate = false;
+	private List<AssignmentBean> assignments;
 
 	public RoleDto() {
 	}
 
 	public RoleDto(RoleType role) {
 		super(role);
-	}	
-
-	public boolean isEnabled() {
-		return enabled;
+		if (role != null) {
+			createAssignments(role);
+		}
 	}
 
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
+	@Override
+	public void setXmlObject(RoleType xmlObject) {
+		super.setXmlObject(xmlObject);
+
+		if (xmlObject != null) {
+			createAssignments(xmlObject);
+		}
 	}
 
-	public boolean isShowActivationDate() {
-		return showActivationDate;
+	public List<AssignmentBean> getAssignments() {
+		if (assignments == null) {
+			assignments = new ArrayList<AssignmentBean>();
+		}
+
+		return assignments;
 	}
 
-	public void setShowActivationDate(boolean showActivationDate) {
-		this.showActivationDate = showActivationDate;
-	}
-
-	public Date getFromActivation() {		
-		return new Date();
-	}
-
-	public Date getToActivation() {
-		return new Date();
+	private void createAssignments(RoleType role) {
+		getAssignments().clear();
+		int id = 0;
+		for (AssignmentType assignment : role.getAssignment()) {
+			getAssignments().add(new AssignmentBean(id, assignment));
+			id++;
+		}
 	}
 }

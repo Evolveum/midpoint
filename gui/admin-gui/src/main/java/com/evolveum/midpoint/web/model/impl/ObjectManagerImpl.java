@@ -213,6 +213,9 @@ public abstract class ObjectManagerImpl<C extends ObjectType, T extends ObjectDt
 	}
 
 	protected void printResults(Trace logger, OperationResult result) {
+		if (result == null) {
+			return;
+		}
 		if (!result.isSuccess()) {
 			FacesUtils.addMessage(result);
 		}
