@@ -330,9 +330,6 @@ public class ShadowCache {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Shadow when assembled:\n", ObjectTypeUtil.dump(resultShadow));
 		}
-		System.out.println("resource: "+ resource.getName());
-		System.out.println("assembed shadowe: "+ JAXBUtil.silentMarshalWrap(resultShadow));
-
 		parentResult.recordSuccess();
 		return resultShadow;
 	}

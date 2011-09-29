@@ -110,10 +110,10 @@ public class AccountManagerImpl extends ObjectManagerImpl<AccountShadowType, Acc
 			result.recordFatalError("Couldn't update account '" + changedObject.getName()
 					+ "', because it doesn't exists.", ex);
 		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't update account {}, because it doesn't exists", ex,
-					changedObject.getName());
+			LoggingUtils.logException(LOGGER, "Couldn't update account {}, reason: {}", ex,
+					new Object[] { changedObject.getName(), ex.getMessage() });
 			result.recordFatalError("Couldn't update account '" + changedObject.getName()
-					+ "', because it doesn't exists.", ex);
+					+ "', reason: " + ex.getMessage() + ".", ex);
 		}
 
 		result.computeStatus("Couldn't submit user '" + changedObject.getName() + "'.");
