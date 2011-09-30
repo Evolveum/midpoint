@@ -129,6 +129,7 @@ public class UserListController extends SearchableListController<GuiUserDto> {
 
 		}
 		listFirst();
+		selectAll = false;
 	}
 
 	public void searchUser(ActionEvent evt) {

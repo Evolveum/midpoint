@@ -58,7 +58,7 @@
 								<ice:selectBooleanCheckbox id="deleteAllCheckbox" value="#{userList.selectAll}"
 									valueChangeListener="#{userList.selectAllPerformed}" immediate="true" partialSubmit="true" />
 							</f:facet>
-							<ice:selectBooleanCheckbox id="deleteCheckbox" value="#{user.selected}" immediate="true"
+							<ice:selectBooleanCheckbox id="deleteCheckbox" value="#{user.selected}" valueChangeListener="#{userList.selectPerformed}" immediate="true"
 								partialSubmit="true" />
 						</ice:column>
 						<ice:column>
