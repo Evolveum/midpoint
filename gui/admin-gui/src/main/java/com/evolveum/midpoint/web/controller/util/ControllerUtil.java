@@ -20,10 +20,15 @@
  */
 package com.evolveum.midpoint.web.controller.util;
 
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.faces.event.PhaseId;
 import javax.faces.event.ValueChangeEvent;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -33,6 +38,7 @@ import com.evolveum.midpoint.common.result.OperationResult;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.exception.SystemException;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -197,11 +203,11 @@ public class ControllerUtil {
 						new Object[] { result.getOperation(), ConnectorTestOperation.class });
 			}
 		}
-		
+
 		if (resultFound == null) {
 			return status;
 		}
-		
+
 		switch (resultFound.getStatus()) {
 			case SUCCESS:
 				status = ResourceStatus.SUCCESS;
@@ -217,7 +223,23 @@ public class ControllerUtil {
 		if (!resultFound.isSuccess() && !resultFound.isUnknown()) {
 			FacesUtils.addErrorMessage(resultFound.getMessage());
 		}
-		
+
 		return status;
+	}
+
+	public static XMLGregorianCalendar parseDateToCalendar(Date date) {
+		try {
+			GregorianCalendar calendar = (GregorianCalendar) GregorianCalendar.getInstance();
+			calendar.setTime(date);
+			XMLGregorianCalendar xmlCalendar = DatatypeFactory.newInstance()
+					.newXMLGregorianCalendar(calendar);
+			return xmlCalendar;
+		} catch (DatatypeConfigurationException ex) {
+			throw new SystemException(ex.getMessage(), ex);
+		}
+	}
+
+	public static Date parseCalendarToDate(XMLGregorianCalendar calendar) {
+		return calendar.toGregorianCalendar().getTime();
 	}
 }

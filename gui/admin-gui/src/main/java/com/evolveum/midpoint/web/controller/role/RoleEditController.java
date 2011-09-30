@@ -123,8 +123,13 @@ public class RoleEditController implements Serializable {
 		}
 
 		try {
+			role.pushAssigmentBeansToRole();
 			RoleManager manager = ControllerUtil.getRoleManager(catalog);
-			manager.submit(getRole());
+			if (isNewRole()) {
+				manager.add(role);
+			} else {
+				manager.submit(getRole());				
+			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());
 			FacesUtils.addErrorMessage("Couldn't submit role '" + role.getName() + "'.", ex);
@@ -160,6 +165,7 @@ public class RoleEditController implements Serializable {
 
 	public void addAssignment() {
 		getRole().getAssignments().add(new AssignmentBean(getNewId(), new AssignmentType()));
+		selectAll = false;
 	}
 
 	public void deleteAssignments() {

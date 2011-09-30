@@ -23,13 +23,9 @@ package com.evolveum.midpoint.web.bean;
 import java.io.Serializable;
 import java.util.Date;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
 import org.apache.commons.lang.Validate;
 
-import ch.qos.logback.core.pattern.util.AsIsEscapeUtil;
-
-import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
@@ -48,7 +44,7 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 	private boolean editing;
 	private AssignmentBeanType type;
 	private boolean enabled = true;
-	private boolean showActivationDate = false;
+	private boolean useActivationDate = false;
 	private AssignmentType assignment;
 
 	public int getId() {
@@ -69,7 +65,7 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 	public void setEditing(boolean editing) {
 		this.editing = editing;
 	}
-	
+
 	private AssignmentBeanType getType() {
 		AssignmentBeanType type = AssignmentBeanType.TARGET_REF;
 		if (assignment.getAccountConstruction() != null) {
@@ -77,25 +73,24 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 		} else if (assignment.getTarget() != null) {
 			type = AssignmentBeanType.TARGET;
 		}
-		
+
 		return type;
 	}
 
 	public String getTypeString() {
-//		return FacesUtils.translateKey(type.getLocalizationKey());
 		return type.name();
 	}
-	
+
 	public void setTypeString(String typeString) {
-		type = AssignmentBeanType.valueOf(typeString);		
+		type = AssignmentBeanType.valueOf(typeString);
 	}
 
-	public boolean isShowActivationDate() {
-		return showActivationDate;
+	public boolean isUseActivationDate() {
+		return useActivationDate;
 	}
 
-	public void setShowActivationDate(boolean showActivationDate) {
-		this.showActivationDate = showActivationDate;
+	public void setUseActivationDate(boolean useActivationDate) {
+		this.useActivationDate = useActivationDate;
 	}
 
 	public Date getFromActivation() {
@@ -104,63 +99,90 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 		}
 
 		ActivationType activation = assignment.getActivation();
-		XMLGregorianCalendar calendar = activation.getValidFrom();
-		return calendar.toGregorianCalendar().getTime();
+		return ControllerUtil.parseCalendarToDate(activation.getValidFrom());
 	}
-	
+
 	public String getFromActivationString() {
 		String date = null;
-		
+
 		return date;
 	}
-	
+
 	public String getToActivationString() {
 		String date = null;
-		
+
 		return date;
 	}
-	
+
 	public void setFromActivation(Date date) {
-		
+		if (!useActivationDate || date == null) {
+			return;
+		}
+
+		ActivationType activation = getActivation();
+		activation.setValidFrom(ControllerUtil.parseDateToCalendar(date));
 	}
 
 	public void setToActivation(Date date) {
-		
+		if (!useActivationDate || date == null) {
+			return;
+		}
+
+		ActivationType activation = getActivation();
+		activation.setValidTo(ControllerUtil.parseDateToCalendar(date));
 	}
-	
+
+	private ActivationType getActivation() {
+		ActivationType activation = assignment.getActivation();
+		if (activation == null) {
+			activation = new ActivationType();
+			assignment.setActivation(activation);
+		}
+		return activation;
+	}
+
 	public String getObjectString() {
 		StringBuilder builder = new StringBuilder();
-		if (assignment.getTarget() != null) {
-			ObjectType object = assignment.getTarget();
-			builder.append(object.getName());
-			builder.append(", oid: ");
-			builder.append(object.getOid());
-		} else if (assignment.getTargetRef() != null) {
-			ObjectReferenceType objectRef = assignment.getTargetRef();
-			builder.append(objectRef.getType().getLocalPart());
-			builder.append(", oid: ");
-			builder.append(objectRef.getOid());
-		} else if (assignment.getAccountConstruction() != null) {
-			AccountConstructionType construction = assignment.getAccountConstruction();
-			builder.append("type: ");
-			builder.append(construction.getType());			
+		switch (type) {
+			case ACCOUNT_CONSTRUCTION:
+				AccountConstructionType construction = assignment.getAccountConstruction();
+				if (construction != null) {
+					builder.append("type: ");
+					builder.append(construction.getType());
+				}
+				break;
+			case TARGET:
+				ObjectType object = assignment.getTarget();
+				if (object != null) {
+					builder.append(object.getName());
+					builder.append(", oid: ");
+					builder.append(object.getOid());
+				}
+				break;
+			case TARGET_REF:
+				ObjectReferenceType objectRef = assignment.getTargetRef();
+				if (objectRef != null) {
+					builder.append(objectRef.getType().getLocalPart());
+					builder.append(", oid: ");
+					builder.append(objectRef.getOid());
+				}
+				break;
 		}
-		
+
 		if (builder.length() == 0) {
 			builder.append("Undefined");
 		}
-		
+
 		return builder.toString();
 	}
-	
+
 	public Date getToActivation() {
 		if (assignment.getActivation() == null) {
 			return new Date();
 		}
 
 		ActivationType activation = assignment.getActivation();
-		XMLGregorianCalendar calendar = activation.getValidTo();
-		return calendar.toGregorianCalendar().getTime();
+		return ControllerUtil.parseCalendarToDate(activation.getValidTo());
 	}
 
 	public boolean isEnabled() {
@@ -169,5 +191,38 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 
 	public void setEnabled(boolean enabled) {
 		this.enabled = enabled;
+	}
+
+	public AssignmentType getAssignment() {
+		normalize();
+
+		return assignment;
+	}
+
+	private void normalize() {
+		if (!useActivationDate && isEnabled()) {
+			assignment.setActivation(null);
+		}
+
+		ActivationType activation = getActivation();
+		if (!useActivationDate) {
+			activation.setValidFrom(null);
+			activation.setValidTo(null);
+		}
+		activation.setEnabled(isEnabled());
+
+		switch (type) {
+			case ACCOUNT_CONSTRUCTION:
+				assignment.setTarget(null);
+				assignment.setTargetRef(null);
+				break;
+			case TARGET:
+				assignment.setAccountConstruction(null);
+				assignment.setTargetRef(null);
+				break;
+			case TARGET_REF:
+				assignment.setAccountConstruction(null);
+				assignment.setTarget(null);
+		}
 	}
 }
