@@ -1216,40 +1216,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			connectionResult.recordStatus(OperationResultStatus.NOT_APPLICABLE,
 					"Operation not supported by the connector", ex);
 			// Do not rethrow. Recording the status is just OK.
-		} catch (ConnectorSecurityException ex) {
-			// Looks like this happens for a wide variety of cases. It has inner
-			// exception that tells more
-			// about the cause
-			Throwable cause = ex.getCause();
-			if (cause != null) {
-				if (cause instanceof javax.naming.CommunicationException) {
-					// This seems to be the usual error. However, it also does
-					// not describe the case directly
-					// We need to go even deeper
-					Throwable subCause = cause.getCause();
-					if (subCause != null) {
-						if (subCause instanceof UnknownHostException) {
-							// Looks like the host is not known.
-							connectionResult.recordFatalError("The hostname is not known: " + cause.getMessage(), ex);
-						} else {
-							connectionResult.recordFatalError(
-									"Error communicating with the resource: " + cause.getMessage(), ex);
-						}
-					} else {
-						// No subCase
-						connectionResult.recordFatalError(
-								"Error communicating with the resource: " + cause.getMessage(), ex);
-					}
-				} else {
-					// Cause is not CommunicationException
-					connectionResult.recordFatalError("General error: " + cause.getMessage(), ex);
-				}
-			} else {
-				// No cause
-				connectionResult.recordFatalError("General error: " + ex.getMessage(), ex);
-			}
 		} catch (Exception ex) {
-			connectionResult.recordFatalError(ex);
+			processIcfException(ex, connectionResult);
 		}
 	}
 

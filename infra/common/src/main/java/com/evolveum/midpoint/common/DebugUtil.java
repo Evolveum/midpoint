@@ -89,12 +89,12 @@ public class DebugUtil implements ObjectFormatter {
 		for (DebugDumpable dd : dumpables) {
 			sb.append(dd.debugDump(indent + 1));
 		}
-		sb.append(getCollectionClosingSymbol(dumpables));
 		sb.append("\n");
+		sb.append(getCollectionClosingSymbol(dumpables));
 		return sb.toString();
 	}
 
-	private static String getCollectionClosingSymbol(Collection<?> col) {
+	private static String getCollectionOpeningSymbol(Collection<?> col) {
 		if (col instanceof List) {
 			return "[";
 		}
@@ -104,7 +104,7 @@ public class DebugUtil implements ObjectFormatter {
 		return col.getClass().getSimpleName()+"(";
 	}
 
-	private static String getCollectionOpeningSymbol(Collection<?> col) {
+	private static String getCollectionClosingSymbol(Collection<?> col) {
 		if (col instanceof List) {
 			return "]";
 		}

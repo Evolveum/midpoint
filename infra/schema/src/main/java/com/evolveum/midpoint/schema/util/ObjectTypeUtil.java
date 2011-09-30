@@ -177,7 +177,12 @@ public class ObjectTypeUtil {
 			return "null";
 		}
 		StringBuilder builder = new StringBuilder();
-		builder.append(object.getClass().getSimpleName());
+		ObjectTypes objectTypeType = ObjectTypes.getObjectType(object.getClass());
+		if (objectTypeType != null) {
+			objectTypeType.getQName().getLocalPart();
+		} else {
+			builder.append(object.getClass().getSimpleName());
+		}
 		builder.append(": ");
 		builder.append(object.getName());
 		builder.append("(OID:");

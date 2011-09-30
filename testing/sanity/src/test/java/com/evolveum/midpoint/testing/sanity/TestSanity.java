@@ -321,7 +321,7 @@ public class TestSanity extends AbstractIntegrationTest {
 		System.out.println("testResource result:");
 		displayJaxb(result, SchemaConstants.C_RESULT);
 
-		assertSuccess("testResource has failed", result.getPartialResults().get(0));
+		assertSuccess("testResource has failed", result);
 
 		OperationResult opResult = new OperationResult(TestSanity.class.getName() + ".test001TestConnectionOpenDJ");
 		

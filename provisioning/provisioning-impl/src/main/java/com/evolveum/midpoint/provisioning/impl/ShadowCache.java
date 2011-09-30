@@ -265,7 +265,7 @@ public class ShadowCache {
 			// ResourceObject will have a proper links to the schema.
 
 			if (LOGGER.isDebugEnabled()) {
-				LOGGER.debug("Connector for resource {}\n FETCH object identified by:\n{}", new Object[] {
+				LOGGER.debug("Connector for {}\n FETCH object identified by:\n{}", new Object[] {
 						ObjectTypeUtil.toShortString(resource), DebugUtil.debugDump(identifiers) });
 			}
 
@@ -279,7 +279,7 @@ public class ShadowCache {
 			// TODO: Discovery
 			parentResult
 					.recordFatalError(
-							"Object " + identifiers + "not found on the Resource "
+							"Object " + identifiers + "not found on the "
 									+ ObjectTypeUtil.toShortString(resource), ex);
 			throw new ObjectNotFoundException("Object " + identifiers + " not found on the Resource "
 					+ ObjectTypeUtil.toShortString(resource), ex);
@@ -296,34 +296,13 @@ public class ShadowCache {
 			LOGGER.trace("Resource object fetched from resource:\n{}", ro.dump());
 		}
 
-		// convert resource activation attribute to the <activation> attribute
-		// of shadow
-		ActivationType activationType = null;
-	
 		if (repositoryShadow instanceof AccountShadowType) {
-			Property activationProperty = null;
-			if (hasResourceNativeCapability(resource)) {
-				// resource have native capability
-				activationProperty = ro.findProperty(ConnectorFactoryIcfImpl.ICFS_ACTIVATION_DISABLE);
-			} else {
-				//Simulate via effective capability
-				ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(resource,
-						ActivationCapabilityType.class);
-				if (null != activationCapability ) {
-					activationProperty = ro.findProperty(activationCapability.getEnableDisable().getAttribute());
-				} //else  resource not have any capability => activationProperty = null	
-			}
-
-			//TODO: activation property should not be null, but now
-			//we have not support for get activation property from external resource(e.g. LDAP)
-			if (activationProperty != null) {
-				activationType = convertFromActivationAttribute(activationProperty);
-				ro.getProperties().remove(activationProperty);
-				((AccountShadowType) repositoryShadow).setActivation(activationType);
-			}
-
+			// convert resource activation attribute to the <activation> attribute
+			// of shadow
+			ActivationType activationType = determineActivation(resource, ro, parentResult);
+			((AccountShadowType) repositoryShadow).setActivation(activationType);
 		}
-
+	
 		// Complete the shadow by adding attributes from the resource object
 		ResourceObjectShadowType resultShadow = assembleShadow(ro, repositoryShadow, parentResult);
 
@@ -332,6 +311,64 @@ public class ShadowCache {
 		}
 		parentResult.recordSuccess();
 		return resultShadow;
+	}
+
+	/**
+	 * Get account activation state from the resource object.
+	 */
+	private ActivationType determineActivation(ResourceType resource, ResourceObject ro, OperationResult parentResult) {
+		if (hasResourceNativeActivationCapability(resource)) {
+			return convertFromNativeActivationAttributes(resource,ro,parentResult);
+		} else if (ResourceTypeUtil.hasActivationCapability(resource)) {
+			return convertFromSimulatedActivationAttributes(resource,ro,parentResult);
+		} else {
+			// No activation capability, nothing to do
+			return null;
+		}
+	}
+	
+	private ActivationType convertFromNativeActivationAttributes(ResourceType resource, ResourceObject ro,
+			OperationResult parentResult) {
+		ActivationType activationType = null;
+		Property activationProperty = ro.findProperty(ConnectorFactoryIcfImpl.ICFS_ACTIVATION_DISABLE);
+		// this has to be boolean
+		Set<Object> disableValues = activationProperty.getValues();
+		if (disableValues == null || disableValues.isEmpty() || disableValues.iterator().next() == null) {
+			// No activation information. Strange. The connector has the capability but does not provide information
+			// log a warning but otherwise ignore
+			LOGGER.warn("The {} has native activation capability but noes not provide value for DISABLE attribute",
+					ObjectTypeUtil.toShortString(resource));
+			parentResult.recordPartialError("The "+ObjectTypeUtil.toShortString(resource)+" has native activation capability but noes not provide value for DISABLE attribute");
+		} else {
+			if (disableValues.size()>1) {
+				LOGGER.warn("The {} provides {} values for DISABLE attribute, expecting just one value",
+						disableValues.size(),
+						ObjectTypeUtil.toShortString(resource));
+				parentResult.recordPartialError("The "+ObjectTypeUtil.toShortString(resource)+" provides " + disableValues.size() 
+						+ " values for DISABLE attribute, expecting just one value");
+			}
+			Object disableObj = disableValues.iterator().next();
+			// The value has to be Boolean
+			if (disableObj instanceof Boolean) {
+				Boolean disable = (Boolean) disableObj;
+				activationType = new ActivationType();
+				activationType.setEnabled(!disable);
+			} else {
+				LOGGER.warn("The {} has native activation capability but value for DISABLE is not boolean, it is {}",
+						ObjectTypeUtil.toShortString(resource),disableObj.getClass().getName());
+				parentResult.recordPartialError("The " + ObjectTypeUtil.toShortString(resource)
+						+ " has native activation capability but value for DISABLE is not boolean, it is " + disableObj.getClass().getName());
+			}
+		}
+		return activationType;
+	}
+
+	private ActivationType convertFromSimulatedActivationAttributes(ResourceType resource, ResourceObject ro,
+			OperationResult parentResult) {
+		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+		// Katka has to add the code
+		// TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
+		return null;
 	}
 
 	/**
@@ -752,7 +789,7 @@ public class ShadowCache {
 				if (enabled != null) {
 
 					LOGGER.trace("enabled not null.");
-					if (!hasResourceNativeCapability(resource)) {
+					if (!hasResourceNativeActivationCapability(resource)) {
 						// if resource cannot do activation, resource should
 						// have specified policies to do that
 						AttributeModificationOperation activationAttribute = convertToActivationAttribute(resource,
@@ -806,7 +843,7 @@ public class ShadowCache {
 		}
 	}
 
-	private boolean hasResourceNativeCapability(ResourceType resource) {
+	private boolean hasResourceNativeActivationCapability(ResourceType resource) {
 		ActivationCapabilityType activationCapability = null;
 		LOGGER.trace("resource native capabilities: {}", resource.getNativeCapabilities());
 		// check resource native capabilities. if resource cannot do
@@ -844,26 +881,6 @@ public class ShadowCache {
 		attributeChange.setNewAttribute(property);
 		attributeChange.setChangeType(PropertyModificationTypeType.replace);
 		return attributeChange;
-	}
-
-	private ActivationType convertFromActivationAttribute(Property property) throws SchemaException {
-		ActivationType activationType = new ActivationType();
-		Set<Object> values = property.getValues();
-		if (values == null || values.isEmpty()) {
-			activationType.setEnabled(true);
-			return activationType;
-		}
-		if (values.size() > 1) {
-			throw new IllegalStateException("Found more than one value for activation attribute.");
-		}
-
-		// icf store disabled value for an account, therefor we set to
-		// activation type negative value of icf value
-		for (Object value : values) {
-			activationType.setEnabled(!Boolean.valueOf(String.valueOf(value)));
-		}
-
-		return activationType;
 	}
 
 	public void testConnection(ResourceType resourceType, OperationResult parentResult) {

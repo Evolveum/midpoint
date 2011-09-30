@@ -64,6 +64,7 @@
 			<icfcldap:principal>cn=directory manager</icfcldap:principal>
 			<icfcldap:credentials><clearValue>secret</clearValue></icfcldap:credentials>
 			<icfcldap:vlvSortAttribute>uid</icfcldap:vlvSortAttribute>
+			<icfcldap:accountOperationalAttributes>ds-pwp-account-disabled</icfcldap:accountOperationalAttributes>
 		</icfcldap:configurationProperties>
 		
 		<!-- Generic ICF configuration -->
