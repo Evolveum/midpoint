@@ -28,6 +28,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -110,11 +111,11 @@ public class ObjectImporter {
 				}
 				
 				PropertyContainer dynamicPart = null;
-				if (options.isValidateDynamicSchema() && objectResult.isAcceptable()) {
+				if (BooleanUtils.isTrue(options.isValidateDynamicSchema()) && objectResult.isAcceptable()) {
 					dynamicPart = validateWithDynamicSchemas(object, objectElement, repository, objectResult);
 				}
 				
-				if (options.isEncryptProtectedValues() && objectResult.isAcceptable()) {
+				if (BooleanUtils.isTrue(options.isEncryptProtectedValues()) && objectResult.isAcceptable()) {
 					encryptValuesInStaticPart(object, objectResult);
 					if (dynamicPart!=null) {
 						encryptValuesInDynamicPart(dynamicPart, object, objectResult);
@@ -162,7 +163,7 @@ public class ObjectImporter {
 
 		Validator validator = new Validator(handler);
 		validator.setVerbose(true);
-		validator.setValidateSchema(options.isValidateStaticSchema());
+		validator.setValidateSchema(BooleanUtils.isTrue(options.isValidateStaticSchema()));
 		if (options.getStopAfterErrors()!=null) {
 			validator.setStopAfterErrors(options.getStopAfterErrors().longValue());
 		}
@@ -182,10 +183,13 @@ public class ObjectImporter {
 			result.recordSuccess();
 			
 		} catch (ObjectAlreadyExistsException e) {
-			if (options.isOverwrite()) {
+			if (BooleanUtils.isTrue(options.isOverwrite())) {
 				// Try to delete conflicting object 
-				boolean deleted = deleteObject(object, repository, result);
-				if (deleted) {
+				String deletedOid = deleteObject(object, repository, result);
+				if (deletedOid != null) {
+					if (BooleanUtils.isTrue(options.isKeepOid())) {
+						object.setOid(deletedOid);
+					}
 					repository.addObject(object, result);
 					result.recordSuccess();
 				} else {
@@ -199,17 +203,20 @@ public class ObjectImporter {
 	}
 
 
-	private boolean deleteObject(ObjectType object, RepositoryService repository, OperationResult objectResult) throws SchemaException {
+	/** 
+	 * @return OID of the deleted object or null (if nothing was deleted)
+	 */
+	private String deleteObject(ObjectType object, RepositoryService repository, OperationResult objectResult) throws SchemaException {
 		if (object.getOid()!=null) {
 			// The conflict is either UID or we should not proceed as we could delete wrong object
 			try {
 				repository.deleteObject(object.getClass(), object.getOid(), objectResult);
 			} catch (ObjectNotFoundException e) {
 				// Cannot delete. The conflicting thing was obviously not OID. Just throw the original exception
-				return false;
+				return null;
 			}
 			// deleted
-			return true;
+			return object.getOid();
 		} else {
 			// The conflict was obviously name. As we have no explicit OID in the object to import
 			// it is pretty safe to try to delete the conflicting object
@@ -218,16 +225,16 @@ public class ObjectImporter {
 			List<? extends ObjectType> objects = repository.searchObjects(object.getClass(), query, null, objectResult);
 			if (objects.size()!=1) {
 				// too few or too much results, not safe to delete
-				return false;
+				return null;
 			}
 			String oidToDelete = objects.get(0).getOid();
 			try {
 				repository.deleteObject(object.getClass(), oidToDelete, objectResult);
 			} catch (ObjectNotFoundException e) {
 				// Cannot delete. Some strange conflict ...
-				return false;
+				return null;
 			}
-			return true;
+			return oidToDelete;
 		}
 	}
 	

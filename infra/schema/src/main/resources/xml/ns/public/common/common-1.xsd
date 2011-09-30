@@ -1453,6 +1453,15 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:element>
+			<xsd:element name="keepOid" type="xsd:boolean" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						If set to a true value it will cause that objects that overwritten objects will reuse the same OID
+						as previous objects.
+						May be potentially dangerous. USE WITH CARE.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
 			<xsd:element name="stopAfterErrors" type="xsd:int" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
