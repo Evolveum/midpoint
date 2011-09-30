@@ -21,7 +21,6 @@
  */
 package com.evolveum.midpoint.repo.xml;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +61,8 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.EscapeStringBuilder;
+import com.evolveum.midpoint.util.XQueryEscapeStringBuilder;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -109,8 +110,8 @@ public class XmlRepositoryService implements RepositoryService {
 		Config poolConfig = new Config();
 		poolConfig.lifo = false;
 		poolConfig.maxActive = 20;
-		PoolableObjectFactory factory = new BaseXClientSessionPoolableObjectFactory(host, port, username,
-				password, dbName);
+		PoolableObjectFactory factory = new BaseXClientSessionPoolableObjectFactory(host, port, username, password,
+				dbName);
 		sessions = new GenericObjectPool(factory, poolConfig);
 	}
 
@@ -129,11 +130,10 @@ public class XmlRepositoryService implements RepositoryService {
 			throws ObjectAlreadyExistsException, SchemaException {
 		String oid = null;
 		ClientQuery cq = null;
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
-				+ ".addObject");
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".addObject");
 		result.addParam("object", object);
 
-		StringBuilder query = new StringBuilder();
+		EscapeStringBuilder query = new XQueryEscapeStringBuilder();
 		String origOid = null;
 		try {
 			// generate new oid, if necessary
@@ -144,26 +144,24 @@ public class XmlRepositoryService implements RepositoryService {
 			Map<String, Object> properties = new HashMap<String, Object>();
 			properties.put(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
 			String serializedObject = JAXBUtil.marshalWrap(properties, object, SchemaConstants.C_OBJECT);
-			serializedObject = escapeXQuerySpecialChars(serializedObject);
 
 			if (object instanceof ResourceObjectShadowType) {
-				query.append(DECLARE_NAMESPACE_C).append("let $x := ").append(serializedObject).append("\n")
+				query.append(DECLARE_NAMESPACE_C).append("let $x := ").eappend(serializedObject).append("\n")
 						.append("return insert node $x into //c:objects");
 			} else {
 				ObjectTypes objType = ObjectTypes.getObjectType(object.getClass());
 				String oType = objType.getValue();
 
 				query.append(DECLARE_NAMESPACE_C).append("if (every $object in //c:objects/c:object[")
-						.append("@xsi:type='").append(oType).append("']")
-						.append(" satisfies $object/c:name !='").append(object.getName()).append("' and ")
-						.append("$object[@oid!='").append(oid).append("']").append(" )").append(" then ")
-						.append(" let $x := ").append(serializedObject).append("\n")
-						.append("return insert node $x into //c:objects ").append(" else (fn:error(null,'")
+						.append("@xsi:type='").append(oType).append("'] satisfies $object/c:name !='")
+						.eappend(object.getName()).append("' and $object[@oid!='").eappend(oid).append("']")
+						.append(" ) then  let $x := ").eappend(serializedObject).append("\n")
+						.append("return insert node $x into //c:objects else (fn:error(null,'")
 						.append(OBJECT_ALREADY_EXISTS).append("'))");
 			}
 			LOGGER.trace("generated query: " + query);
 
-			executeQuery(query, result);
+			executeQuery(query.toStringBuilder(), result);
 
 			result.recordSuccess();
 			return oid;
@@ -200,8 +198,7 @@ public class XmlRepositoryService implements RepositoryService {
 	public <T extends ObjectType> T getObject(Class<T> type, String oid, PropertyReferenceListType resolve,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
-				+ ".getObject");
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".getObject");
 		result.addParam("oid", oid);
 		result.addParam("resolve", resolve);
 
@@ -210,9 +207,9 @@ public class XmlRepositoryService implements RepositoryService {
 		T object = null;
 		ClientQuery cq = null;
 
-		StringBuilder query = new StringBuilder();
+		EscapeStringBuilder query = new XQueryEscapeStringBuilder();
 		query.append(DECLARE_NAMESPACE_C);
-		query.append("for $x in //c:object where $x/@oid=\"").append(oid).append("\" return $x");
+		query.append("for $x in //c:object where $x/@oid=\"").eappend(oid).append("\" return $x");
 
 		LOGGER.trace("generated query: " + query);
 
@@ -246,8 +243,8 @@ public class XmlRepositoryService implements RepositoryService {
 		} catch (NoSuchElementException ex) {
 			errorLogRecordAndRethrow("No BaseX Client session in the pool", result, ex);
 		} catch (IllegalStateException ex) {
-			errorLogRecordAndRethrow(
-					"Illegal state of BaseX Client session pool while borrowing client session", result, ex);
+			errorLogRecordAndRethrow("Illegal state of BaseX Client session pool while borrowing client session",
+					result, ex);
 		} catch (Exception ex) {
 			errorLogRecordAndRethrow("Error borrowing BaseX Client session from the pool", result, ex);
 		} finally {
@@ -277,8 +274,7 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public <T extends ObjectType> ResultList<T> listObjects(Class<T> objectType, PagingType paging,
 			OperationResult parentResult) {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
-				+ ".listObjects");
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".listObjects");
 		result.addParam("objectType", objectType);
 		result.addParam("paging", paging);
 
@@ -299,8 +295,7 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public <T extends ObjectType> ResultList<T> searchObjects(Class<T> clazz, QueryType query, PagingType paging,
 			OperationResult parentResult) throws SchemaException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
-				+ ".searchObjects");
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".searchObjects");
 		result.addParam("query", query);
 		result.addParam("paging", paging);
 
@@ -327,9 +322,7 @@ public class XmlRepositoryService implements RepositoryService {
 				}
 
 				if (!StringUtils.equals(SchemaConstants.NS_C, child.getNamespaceURI())) {
-					LOGGER.warn(
-							"Found query's filter element from unsupported namespace. Ignoring filter {}",
-							child);
+					LOGGER.warn("Found query's filter element from unsupported namespace. Ignoring filter {}", child);
 					continue;
 				}
 
@@ -367,8 +360,7 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public <T extends ObjectType> void modifyObject(Class<T> type, ObjectModificationType objectChange,
 			OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
-				+ ".modifyObject");
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".modifyObject");
 		result.addParam("objectChange", objectChange);
 
 		validateObjectChange(objectChange);
@@ -384,26 +376,24 @@ public class XmlRepositoryService implements RepositoryService {
 			// modify the object
 			PatchXml xmlPatchTool = new PatchXml();
 			serializedObject = xmlPatchTool.applyDifferences(objectChange, objectType);
-			serializedObject = escapeXQuerySpecialChars(serializedObject);
 
 		} catch (PatchException ex) {
 			errorLogRecordAndRethrow("Failed to modify object", result, ex);
 		}
 
 		// store modified object in repo
-		StringBuilder query = new StringBuilder();
-		query.append(DECLARE_NAMESPACE_C).append("replace node //c:object[@oid=\"")
-				.append(objectChange.getOid()).append("\"] with ").append(serializedObject);
+		EscapeStringBuilder query = new XQueryEscapeStringBuilder();
+		query.append(DECLARE_NAMESPACE_C).append("replace node //c:object[@oid=\"").eappend(objectChange.getOid())
+				.append("\"] with ").eappend(serializedObject);
 
 		LOGGER.trace("generated query: " + query);
 
 		try {
-			executeQuery(query, result);
+			executeQuery(query.toStringBuilder(), result);
 		} catch (ObjectAlreadyExistsException ex) {
 			// modify query will not generate this type of exception, yet!
 			errorLogRecordAndRethrow(
-					"Thrown unexpected exception - modify query should not generate this type of exception",
-					result, ex);
+					"Thrown unexpected exception - modify query should not generate this type of exception", result, ex);
 		}
 
 		result.recordSuccess();
@@ -412,8 +402,7 @@ public class XmlRepositoryService implements RepositoryService {
 	@Override
 	public <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult parentResult)
 			throws ObjectNotFoundException {
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
-				+ ".deleteObject");
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".deleteObject");
 		result.addParam("oid", oid);
 
 		validateOid(oid);
@@ -422,44 +411,37 @@ public class XmlRepositoryService implements RepositoryService {
 		try {
 			ObjectType retrievedObject = getObject(ObjectType.class, oid, null, result);
 		} catch (SchemaException ex) {
-			LoggingUtils
-					.logException(
-							LOGGER,
-							"Schema validation problem occured while checking existence of the object before its deletion",
-							ex);
+			LoggingUtils.logException(LOGGER,
+					"Schema validation problem occured while checking existence of the object before its deletion", ex);
 			result.recordFatalError(
-					"Schema validation problem occured while checking existence of the object before its deletion",
-					ex);
+					"Schema validation problem occured while checking existence of the object before its deletion", ex);
 			throw new SystemException(
-					"Schema validation problem occured while checking existence of the object before its deletion",
-					ex);
+					"Schema validation problem occured while checking existence of the object before its deletion", ex);
 		} catch (ObjectNotFoundException ex) {
 			result.computeStatus("Trying to delete not existing object");
 			throw ex;
 		}
 
-		StringBuilder query = new StringBuilder();
+		EscapeStringBuilder query = new XQueryEscapeStringBuilder();
 		query.append(DECLARE_NAMESPACE_C);
-		query.append("delete nodes //c:object[@oid=\"").append(oid).append("\"]");
+		query.append("delete nodes //c:object[@oid=\"").eappend(oid).append("\"]");
 
 		LOGGER.trace("generated query: " + query);
 
 		try {
-			executeQuery(query, result);
+			executeQuery(query.toStringBuilder(), result);
 		} catch (ObjectAlreadyExistsException ex) {
 			// delete query will not generate this type of exception
 			errorLogRecordAndRethrow(
-					"Thrown unexpected exception - delete query should not generate this type of exception",
-					result, ex);
+					"Thrown unexpected exception - delete query should not generate this type of exception", result, ex);
 		}
 
 		result.recordSuccess();
 	}
 
 	@Override
-	public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type,
-			String oid, PropertyReferenceListType properties, OperationResult parentResult)
-			throws ObjectNotFoundException {
+	public <T extends ObjectType> PropertyAvailableValuesListType getPropertyAvailableValues(Class<T> type, String oid,
+			PropertyReferenceListType properties, OperationResult parentResult) throws ObjectNotFoundException {
 		throw new UnsupportedOperationException("Not implemented yet.");
 	}
 
@@ -516,8 +498,7 @@ public class XmlRepositoryService implements RepositoryService {
 
 		// TODO: atomicity
 
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
-				+ ".claimTask");
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".claimTask");
 		result.addParam(OperationResult.PARAM_OID, oid);
 
 		// Check whether the task is claimed
@@ -542,11 +523,9 @@ public class XmlRepositoryService implements RepositoryService {
 	}
 
 	@Override
-	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException,
-			SchemaException {
+	public void releaseTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 
-		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName()
-				+ ".releaseTask");
+		OperationResult result = parentResult.createSubresult(XmlRepositoryService.class.getName() + ".releaseTask");
 		result.addParam(OperationResult.PARAM_OID, oid);
 
 		// Modify the status to claim the task.
@@ -573,7 +552,7 @@ public class XmlRepositoryService implements RepositoryService {
 		ResultList<T> objectList = new ResultArrayList<T>();
 		// FIXME: objectList.count has to contain all elements that match search
 		// criteria, but not only from paging interval
-		StringBuilder query = new StringBuilder();
+		EscapeStringBuilder query = new XQueryEscapeStringBuilder();
 
 		if (namespaces != null) {
 			for (Entry<String, String> namespaceEntry : namespaces.entrySet()) {
@@ -586,8 +565,7 @@ public class XmlRepositoryService implements RepositoryService {
 			query.append("subsequence(");
 		}
 		query.append("for $x in //c:object ");
-		if (objectType != null
-				|| (null != paging && null != paging.getOffset() && null != paging.getMaxSize())
+		if (objectType != null || (null != paging && null != paging.getOffset() && null != paging.getMaxSize())
 				|| (filters != null && !filters.isEmpty())) {
 			query.append("where ");
 		}
@@ -606,12 +584,12 @@ public class XmlRepositoryService implements RepositoryService {
 				// FIXME: now only refs are searched by attributes values
 				if (StringUtils.contains(filterEntry.getKey(), "Ref")) {
 					// search based on attribute value
-					query.append("$x/").append(filterEntry.getKey()).append("/@oid='")
-							.append(filterEntry.getValue()).append("'");
+					query.append("$x/").append(filterEntry.getKey()).append("/@oid='").eappend(filterEntry.getValue())
+							.append("'");
 				} else {
 					// search based on element value
-					query.append("$x/").append(filterEntry.getKey()).append("='")
-							.append(filterEntry.getValue()).append("'");
+					query.append("$x/").append(filterEntry.getKey()).append("='").eappend(filterEntry.getValue())
+							.append("'");
 				}
 
 				pos++;
@@ -660,8 +638,8 @@ public class XmlRepositoryService implements RepositoryService {
 		} catch (NoSuchElementException ex) {
 			errorLogRecordAndRethrow("No BaseX Client session in the pool", result, ex);
 		} catch (IllegalStateException ex) {
-			errorLogRecordAndRethrow(
-					"Illegal state of BaseX Client session pool while borrowing client session", result, ex);
+			errorLogRecordAndRethrow("Illegal state of BaseX Client session pool while borrowing client session",
+					result, ex);
 		} catch (Exception ex) {
 			errorLogRecordAndRethrow("Error borrowing BaseX Client session from the pool", result, ex);
 		} finally {
@@ -686,8 +664,8 @@ public class XmlRepositoryService implements RepositoryService {
 		return objectList;
 	}
 
-	private void processValueNode(Node criteriaValueNode, Map<String, String> filters,
-			Map<String, String> namespaces, String parentPath) {
+	private void processValueNode(Node criteriaValueNode, Map<String, String> filters, Map<String, String> namespaces,
+			String parentPath) {
 		if (null == criteriaValueNode) {
 			throw new IllegalArgumentException("Query filter does not contain any values to search by");
 		}
@@ -727,9 +705,8 @@ public class XmlRepositoryService implements RepositoryService {
 				if (firstChild.getAttributes().getLength() == 1) {
 					criteriaValue = StringUtils.trim(firstChild.getAttributes().item(0).getNodeValue());
 				} else {
-					throw new IllegalArgumentException("Incorrect number of attributes in query filter "
-							+ firstChild + ", expected was 1, but actual size was "
-							+ criteriaValueNode.getAttributes().getLength());
+					throw new IllegalArgumentException("Incorrect number of attributes in query filter " + firstChild
+							+ ", expected was 1, but actual size was " + criteriaValueNode.getAttributes().getLength());
 				}
 			}
 			if (StringUtils.isEmpty(criteriaValue)) {
@@ -745,8 +722,7 @@ public class XmlRepositoryService implements RepositoryService {
 			namespaces.put(prefix, namespace);
 
 		} else {
-			throw new IllegalArgumentException("Found unexpected element in query filter "
-					+ criteriaValueNode);
+			throw new IllegalArgumentException("Found unexpected element in query filter " + criteriaValueNode);
 		}
 	}
 
@@ -776,8 +752,7 @@ public class XmlRepositoryService implements RepositoryService {
 		}
 		validateOid(objectChange.getOid());
 
-		if (null == objectChange.getPropertyModification()
-				|| objectChange.getPropertyModification().size() == 0) {
+		if (null == objectChange.getPropertyModification() || objectChange.getPropertyModification().size() == 0) {
 			throw new IllegalArgumentException("No property modifications provided");
 		}
 	}
@@ -798,19 +773,7 @@ public class XmlRepositoryService implements RepositoryService {
 		throw new SystemException(message, ex);
 	}
 
-	private String escapeXQuerySpecialChars(String serializedObject) {
-		if (serializedObject != null) {
-			// FIXME: try to find another solution how to escape XQuery
-			// special characters in XMLs
-			serializedObject = StringUtils.replace(serializedObject, "{", "{{");
-			serializedObject = StringUtils.replace(serializedObject, "}", "}}");
-		}
-
-		return serializedObject;
-	}
-
-	private void executeQuery(StringBuilder query, OperationResult result)
-			throws ObjectAlreadyExistsException {
+	private void executeQuery(StringBuilder query, OperationResult result) throws ObjectAlreadyExistsException {
 		ClientQuery cq;
 		ClientSession session = null;
 		try {
@@ -827,8 +790,8 @@ public class XmlRepositoryService implements RepositoryService {
 		} catch (NoSuchElementException ex) {
 			errorLogRecordAndRethrow("No BaseX Client session in the pool", result, ex);
 		} catch (IllegalStateException ex) {
-			errorLogRecordAndRethrow(
-					"Illegal state of BaseX Client session pool while borrowing client session", result, ex);
+			errorLogRecordAndRethrow("Illegal state of BaseX Client session pool while borrowing client session",
+					result, ex);
 		} catch (Exception ex) {
 			errorLogRecordAndRethrow("Error borrowing BaseX Client session from the pool", result, ex);
 		} finally {
