@@ -27,6 +27,8 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
 
 /**
  * Resource Object.
@@ -41,6 +43,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
  * 
  */
 public final class ResourceObject extends PropertyContainer {
+	
+	protected ActivationType activation;
+	protected CredentialsType credentials;
 
 	/**
 	 * Default constructor.
@@ -48,6 +53,8 @@ public final class ResourceObject extends PropertyContainer {
 	 * Use the factory methods in the ResourceObjectDefintion instead.
 	 */
 	public ResourceObject() {
+		activation = null;
+		credentials = null;
 	}
 
 	/**
@@ -57,6 +64,8 @@ public final class ResourceObject extends PropertyContainer {
 	 */
 	public ResourceObject(QName name) {
 		super(name);
+		activation = null;
+		credentials = null;
 	}
 
 	/**
@@ -67,6 +76,8 @@ public final class ResourceObject extends PropertyContainer {
 	 */
 	public ResourceObject(QName name, ResourceObjectDefinition definition) {
 		super(name, definition);
+		activation = null;
+		credentials = null;
 	}
 
 	/**
@@ -75,6 +86,8 @@ public final class ResourceObject extends PropertyContainer {
 	 */
 	public ResourceObject(QName name, ResourceObjectDefinition definition, Object element) {
 		super(name, definition, element);
+		activation = null;
+		credentials = null;
 	}
 
 	@Override
@@ -359,6 +372,36 @@ public final class ResourceObject extends PropertyContainer {
 		return (ResourceObjectAttribute) super.findProperty(attributeDefinition);
 	}
 	
+	public ActivationType getActivation() {
+		return activation;
+	}
+	
+	public ActivationType createOrGetActivation() {
+		if (activation == null) {
+			activation = new ActivationType();
+		}
+		return activation;
+	}
+
+	public void setActivation(ActivationType activation) {
+		this.activation = activation;
+	}
+
+	public CredentialsType getCredentials() {
+		return credentials;
+	}
+	
+	public CredentialsType createOrGetCredentials() {
+		if (credentials == null) {
+			credentials = new CredentialsType();
+		}
+		return credentials;
+	}
+
+	public void setCredentials(CredentialsType credentials) {
+		this.credentials = credentials;
+	}
+
 	/**
 	 * Return a human readable name of this class suitable for logs.
 	 */

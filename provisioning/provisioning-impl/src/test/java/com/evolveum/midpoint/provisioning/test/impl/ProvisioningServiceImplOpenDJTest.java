@@ -67,6 +67,7 @@ import com.evolveum.midpoint.schema.exception.CommunicationException;
 import com.evolveum.midpoint.schema.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.schema.exception.SchemaException;
 import com.evolveum.midpoint.schema.processor.PropertyContainerDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -291,6 +292,10 @@ public class ProvisioningServiceImplOpenDJTest extends AbstractIntegrationTest {
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
 		Schema parsedSchema = Schema.parse(xsdElement);
 		assertNotNull("No schema after parsing",parsedSchema);
+		
+		ResourceObjectDefinition accountDefinition = parsedSchema.findAccountDefinition();
+		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDefinition.findAttributeDefinition(
+				new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 		
 	}
 	

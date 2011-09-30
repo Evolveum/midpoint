@@ -329,38 +329,7 @@ public class ShadowCache {
 	
 	private ActivationType convertFromNativeActivationAttributes(ResourceType resource, ResourceObject ro,
 			OperationResult parentResult) {
-		ActivationType activationType = null;
-		Property activationProperty = ro.findProperty(ConnectorFactoryIcfImpl.ICFS_ACTIVATION_DISABLE);
-		// this has to be boolean
-		Set<Object> disableValues = activationProperty.getValues();
-		if (disableValues == null || disableValues.isEmpty() || disableValues.iterator().next() == null) {
-			// No activation information. Strange. The connector has the capability but does not provide information
-			// log a warning but otherwise ignore
-			LOGGER.warn("The {} has native activation capability but noes not provide value for DISABLE attribute",
-					ObjectTypeUtil.toShortString(resource));
-			parentResult.recordPartialError("The "+ObjectTypeUtil.toShortString(resource)+" has native activation capability but noes not provide value for DISABLE attribute");
-		} else {
-			if (disableValues.size()>1) {
-				LOGGER.warn("The {} provides {} values for DISABLE attribute, expecting just one value",
-						disableValues.size(),
-						ObjectTypeUtil.toShortString(resource));
-				parentResult.recordPartialError("The "+ObjectTypeUtil.toShortString(resource)+" provides " + disableValues.size() 
-						+ " values for DISABLE attribute, expecting just one value");
-			}
-			Object disableObj = disableValues.iterator().next();
-			// The value has to be Boolean
-			if (disableObj instanceof Boolean) {
-				Boolean disable = (Boolean) disableObj;
-				activationType = new ActivationType();
-				activationType.setEnabled(!disable);
-			} else {
-				LOGGER.warn("The {} has native activation capability but value for DISABLE is not boolean, it is {}",
-						ObjectTypeUtil.toShortString(resource),disableObj.getClass().getName());
-				parentResult.recordPartialError("The " + ObjectTypeUtil.toShortString(resource)
-						+ " has native activation capability but value for DISABLE is not boolean, it is " + disableObj.getClass().getName());
-			}
-		}
-		return activationType;
+		return ro.getActivation();
 	}
 
 	private ActivationType convertFromSimulatedActivationAttributes(ResourceType resource, ResourceObject ro,

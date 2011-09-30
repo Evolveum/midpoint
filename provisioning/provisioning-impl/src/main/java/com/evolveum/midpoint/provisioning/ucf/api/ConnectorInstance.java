@@ -145,11 +145,12 @@ public interface ConnectorInstance {
 	 * @return object fetched from the resource (no schema)
 	 * @throws CommunicationException error in communication to the resource 
 	 *				- nothing was fetched.
+	 * @throws SchemaException error converting object from native (connector) format
 	 */
 	public ResourceObject fetchObject(ResourceObjectDefinition objectClass,
 			Set<ResourceObjectAttribute> identifiers, boolean returnDefaultAttributes,
 			Set<ResourceObjectAttributeDefinition> attributesToReturn, OperationResult parentResult)
-		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException;
+		throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException;
 	
 	/**
 	 * Schema aware-version of the fetchObject.
@@ -181,8 +182,9 @@ public interface ConnectorInstance {
 	 * @param objectClass
 	 * @param handler
 	 * @throws CommunicationException 
+	 * @throws SchemaException error converting object from the native (connector) format
 	 */
-	public void search(ResourceObjectDefinition objectClass, ResultHandler handler, OperationResult parentResult) throws CommunicationException, GenericFrameworkException;
+	public void search(ResourceObjectDefinition objectClass, ResultHandler handler, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException;
 
 	/**
 	 * TODO: This should return indication how the operation went, e.g. what changes were applied, what were not

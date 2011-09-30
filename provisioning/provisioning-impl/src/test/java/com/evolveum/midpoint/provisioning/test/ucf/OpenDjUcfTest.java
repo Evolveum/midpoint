@@ -583,7 +583,7 @@ public class OpenDjUcfTest extends AbstractTestNGSpringContextTests {
 	}
 
 	@Test
-	public void testSearch() throws UcfException {
+	public void testSearch() throws UcfException, SchemaException {
 		displayTestTile("testSearch");
 		// GIVEN
 

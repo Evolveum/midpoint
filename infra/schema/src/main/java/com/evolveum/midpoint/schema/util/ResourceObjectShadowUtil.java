@@ -19,10 +19,14 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceObjectShadowType;
 
 /**
@@ -43,7 +47,7 @@ public class ResourceObjectShadowUtil {
 		}
 	}
 	
-	public static String getSingleAttributeValue(ResourceObjectShadowType shadow, QName attrName) {
+	public static String getSingleStringAttributeValue(ResourceObjectShadowType shadow, QName attrName) {
 		if (shadow.getAttributes() == null || shadow.getAttributes().getAny() == null ||
 				shadow.getAttributes().getAny().isEmpty()) {
 			return null;
@@ -63,6 +67,23 @@ public class ResourceObjectShadowUtil {
 			}
 		}
 		return value;
+	}
+
+	public static List<Object> getAttributeValues(AccountShadowType shadow, QName attrName) {
+		if (shadow.getAttributes() == null || shadow.getAttributes().getAny() == null ||
+				shadow.getAttributes().getAny().isEmpty()) {
+			return null;
+		}
+		List<Object> values = new ArrayList<Object>();
+		for (Object element : shadow.getAttributes().getAny()) {
+			if (attrName.equals(JAXBUtil.getElementQName(element))) {
+				values.add(element);
+			}
+		}
+		if (values.isEmpty()) {
+			return null;
+		}
+		return values;
 	}
 
 	

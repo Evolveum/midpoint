@@ -3,6 +3,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import static org.testng.AssertJUnit.assertNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static com.evolveum.midpoint.test.IntegrationTestTools.displayTestTile;
@@ -303,6 +304,8 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertTrue(fullnameDef.canCreate());
 		assertTrue(fullnameDef.canUpdate());
 		assertTrue(fullnameDef.canRead());
+		
+		assertNull("The _PASSSWORD_ attribute sneaked into schema", accountDef.findAttributeDefinition(new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 
 	}
 
@@ -387,7 +390,11 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 
 		AccountShadowType provisioningAccountType = provisioningService.getObject(AccountShadowType.class,
 				ACCOUNT_NEW_OID, new PropertyReferenceListType(), result);
+		display("account from provisioning",provisioningAccountType);
 		assertEquals("will", provisioningAccountType.getName());
+		
+		assertNull("The _PASSSWORD_ attribute sneaked into shadow",
+				ResourceObjectShadowUtil.getAttributeValues(provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA,"password")));
 
 		// Check if the account was created in the dummy resource
 
@@ -415,7 +422,7 @@ public class ProvisioningServiceImplDummyTest extends AbstractIntegrationTest {
 		assertNotNull("No dummy account", accountType);
 		assertEquals(
 				"Will Turner",
-				ResourceObjectShadowUtil.getSingleAttributeValue(accountType,
+				ResourceObjectShadowUtil.getSingleStringAttributeValue(accountType,
 						new QName(resource.getNamespace(), "fullname")));
 
 		// TODO: check

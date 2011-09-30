@@ -106,6 +106,7 @@ import com.evolveum.midpoint.schema.processor.ResourceObjectAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceObjectDefinition;
 import com.evolveum.midpoint.schema.processor.Schema;
 import com.evolveum.midpoint.schema.util.JAXBUtil;
+import com.evolveum.midpoint.schema.util.MiscUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -592,7 +593,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	public ResourceObject fetchObject(ResourceObjectDefinition resourceObjectDefinition,
 			Set<ResourceObjectAttribute> identifiers, boolean returnDefaultAttributes,
 			Set<ResourceObjectAttributeDefinition> attributesToReturn, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, GenericFrameworkException {
+			CommunicationException, GenericFrameworkException, SchemaException {
 
 		// Result type for this operation
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".fetchObject");
@@ -1223,7 +1224,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public void search(final ResourceObjectDefinition objectClass, final ResultHandler handler,
-			OperationResult parentResult) throws CommunicationException, GenericFrameworkException {
+			OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException {
 
 		// Result type for this operation
 		final OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName() + ".search");
@@ -1244,7 +1245,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			public boolean handle(ConnectorObject connectorObject) {
 				// Convert ICF-specific connector object to a generic
 				// ResourceObject
-				ResourceObject resourceObject = convertToResourceObject(connectorObject, objectClass);
+				ResourceObject resourceObject;
+				try {
+					resourceObject = convertToResourceObject(connectorObject, objectClass);
+				} catch (SchemaException e) {
+					throw new IntermediateException(e);
+				}
 
 				// .. and pass it to the handler
 				boolean cont = handler.handle(resourceObject);
@@ -1266,6 +1272,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfConnectorFacade.search(icfObjectClass, null, icfHandler, null);
 
 			icfResult.recordSuccess();
+		} catch (IntermediateException inex) {
+			SchemaException ex = (SchemaException)inex.getCause();
+			throw ex;
 		} catch (Exception ex) {
 			// ICF interface does not specify exceptions or other error
 			// conditions.
@@ -1294,15 +1303,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// so convert to something more friendly such as icfs:name
 			attrXsdName = ConnectorFactoryIcfImpl.ICFS_NAME;
 		}
-		if (OperationalAttributes.PASSWORD_NAME.equals(icfAttrName)) {
-			// Temporary hack. Password should go into credentials, not
-			// attributes
-			// TODO: fix this
-			attrXsdName = ConnectorFactoryIcfImpl.ICFS_PASSWORD;
-		}
-		if (OperationalAttributes.ENABLE_NAME.equals(icfAttrName)){
-			attrXsdName = ConnectorFactoryIcfImpl.ICFS_ACTIVATION_DISABLE;
-		}
 		return attrXsdName;
 	}
 
@@ -1317,10 +1317,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		if (ConnectorFactoryIcfImpl.ICFS_NAME.equals(attrQName)) {
 			return Name.NAME;
-		}
-
-		if (ConnectorFactoryIcfImpl.ICFS_PASSWORD.equals(attrQName)) {
-			return OperationalAttributes.PASSWORD_NAME;
 		}
 
 		if (ConnectorFactoryIcfImpl.ICFS_UID.equals(attrQName)) {
@@ -1434,8 +1430,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * @param def
 	 *            ResourceObjectDefinition (from the schema) or null
 	 * @return new mapped ResourceObject instance.
+	 * @throws SchemaException 
 	 */
-	private ResourceObject convertToResourceObject(ConnectorObject co, ResourceObjectDefinition def) {
+	private ResourceObject convertToResourceObject(ConnectorObject co, ResourceObjectDefinition def) throws SchemaException {
 
 		ResourceObject ro = null;
 		if (def != null) {
@@ -1462,6 +1459,17 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				// UID is handled specially (see above)
 				continue;
 			}
+			if (icfAttr.getName().equals(OperationalAttributes.PASSWORD_NAME)) {
+				// password has to go to the credentials section
+				ProtectedStringType password = getSingleValue(icfAttr, ProtectedStringType.class);
+				MiscUtil.setPassword(ro.createOrGetCredentials(),(ProtectedStringType) password);
+				continue;
+			}
+			if (icfAttr.getName().equals(OperationalAttributes.ENABLE_NAME)) {
+				Boolean enabled = getSingleValue(icfAttr, Boolean.class);
+				ro.createOrGetActivation().setEnabled(enabled);
+				continue;
+			}
 			QName qname = convertAttributeNameToQName(icfAttr.getName());
 
 			ResourceObjectAttribute roa = new ResourceObjectAttribute(qname);
@@ -1475,10 +1483,29 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 			ro.add(roa);
 		}
-
+		
 		return ro;
 	}
 
+	private <T> T getSingleValue(Attribute icfAttr, Class<T> type) throws SchemaException {
+		List<Object> values = icfAttr.getValue();
+		if (values != null && !values.isEmpty()) {
+			if (values.size() > 1) {
+				throw new SchemaException("Expected single value for "+icfAttr.getName());
+			}
+			Object val = convertValueFromIcf(values.get(0), null);
+			if (type.isAssignableFrom(val.getClass())) {
+				return (T) val;
+			} else {
+				throw new SchemaException("Expected type " + type.getName() + " for " + icfAttr.getName()
+						+ " but got " + val.getClass().getName());
+			}
+		} else {
+			throw new SchemaException("Empty value for "+icfAttr.getName());
+		}
+
+	}
+	
 	private Set<Attribute> convertFromResourceObject(Set<ResourceObjectAttribute> resourceAttributes,
 			OperationResult parentResult) throws SchemaException {
 

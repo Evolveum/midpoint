@@ -30,6 +30,8 @@ import com.evolveum.midpoint.schema.ResultArrayList;
 import com.evolveum.midpoint.schema.ResultList;
 import com.evolveum.midpoint.schema.XsdTypeConverter;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.CachingMetadata;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.CredentialsType.Password;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -99,6 +101,15 @@ public class MiscUtil {
 
 	public static boolean isNullOrEmpty(ProtectedStringType ps) {
 		return (ps == null || (ps.getClearValue() == null && ps.getEncryptedData() == null));
+	}
+
+	public static void setPassword(CredentialsType credentials, ProtectedStringType password) {
+		Password credPass = credentials.getPassword();
+		if (credPass == null) {
+			credPass = new Password();
+			credentials.setPassword(credPass);
+		}
+		credPass.setProtectedString(password);
 	}
 
 }
