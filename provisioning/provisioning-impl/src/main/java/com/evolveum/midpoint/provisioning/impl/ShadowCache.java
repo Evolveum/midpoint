@@ -310,6 +310,13 @@ public class ShadowCache {
 			} else {
 				ActivationCapabilityType activationCapability = ResourceTypeUtil.getEffectiveCapability(
 						resource, ActivationCapabilityType.class);
+				if  ( null == activationCapability  ) {
+					parentResult.recordFatalError("Unable to get activation capabilities");
+					throw new SchemaException("Unable to get actiovation capabilities for resource " + resource.getName());
+				} else if  ( null == activationCapability.getEnableDisable() ){
+					parentResult.recordFatalError("Unable to get enable/disable capability");
+					throw new SchemaException("Unable to get enable/disable capability for resource " + resource.getName());
+				}
 				activationAttributeQname = activationCapability.getEnableDisable().getAttribute();
 			}
 			Property activationProperty = ro.findProperty(activationAttributeQname);
