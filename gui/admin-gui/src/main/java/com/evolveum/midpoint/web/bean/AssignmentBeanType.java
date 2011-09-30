@@ -27,11 +27,11 @@ package com.evolveum.midpoint.web.bean;
  */
 public enum AssignmentBeanType {
 
-	ACCOUNT("web.bean.assignmentBeanType.account"),
+	TARGET_REF("web.bean.assignmentBeanType.targetRef"),
 
 	ACCOUNT_CONSTRUCTION("web.bean.assignmentBeanType.accountConstruction"),
 
-	ROLE("web.bean.assignmentBeanType.role");
+	TARGET("web.bean.assignmentBeanType.target");
 
 	private String localizationKey;
 

@@ -27,9 +27,14 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang.Validate;
 
+import ch.qos.logback.core.pattern.util.AsIsEscapeUtil;
+
 import com.evolveum.midpoint.web.util.FacesUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 
 /**
  * 
@@ -40,9 +45,8 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 
 	private static final long serialVersionUID = 1018852396117899734L;
 	private int id;
-	private AssignmentBeanType type;
 	private boolean editing;
-
+	private AssignmentBeanType type;
 	private boolean enabled = true;
 	private boolean showActivationDate = false;
 	private AssignmentType assignment;
@@ -55,6 +59,7 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 		Validate.notNull(assignment, "Assignment must not be null.");
 		this.id = id;
 		this.assignment = assignment;
+		type = getType();
 	}
 
 	public boolean isEditing() {
@@ -64,12 +69,25 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 	public void setEditing(boolean editing) {
 		this.editing = editing;
 	}
+	
+	private AssignmentBeanType getType() {
+		AssignmentBeanType type = AssignmentBeanType.TARGET_REF;
+		if (assignment.getAccountConstruction() != null) {
+			type = AssignmentBeanType.ACCOUNT_CONSTRUCTION;
+		} else if (assignment.getTarget() != null) {
+			type = AssignmentBeanType.TARGET;
+		}
+		
+		return type;
+	}
 
 	public String getTypeString() {
-		if (type == null) {
-			return null;
-		}
-		return FacesUtils.translateKey(type.getLocalizationKey());
+//		return FacesUtils.translateKey(type.getLocalizationKey());
+		return type.name();
+	}
+	
+	public void setTypeString(String typeString) {
+		type = AssignmentBeanType.valueOf(typeString);		
 	}
 
 	public boolean isShowActivationDate() {
@@ -89,7 +107,52 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 		XMLGregorianCalendar calendar = activation.getValidFrom();
 		return calendar.toGregorianCalendar().getTime();
 	}
+	
+	public String getFromActivationString() {
+		String date = null;
+		
+		return date;
+	}
+	
+	public String getToActivationString() {
+		String date = null;
+		
+		return date;
+	}
+	
+	public void setFromActivation(Date date) {
+		
+	}
 
+	public void setToActivation(Date date) {
+		
+	}
+	
+	public String getObjectString() {
+		StringBuilder builder = new StringBuilder();
+		if (assignment.getTarget() != null) {
+			ObjectType object = assignment.getTarget();
+			builder.append(object.getName());
+			builder.append(", oid: ");
+			builder.append(object.getOid());
+		} else if (assignment.getTargetRef() != null) {
+			ObjectReferenceType objectRef = assignment.getTargetRef();
+			builder.append(objectRef.getType().getLocalPart());
+			builder.append(", oid: ");
+			builder.append(objectRef.getOid());
+		} else if (assignment.getAccountConstruction() != null) {
+			AccountConstructionType construction = assignment.getAccountConstruction();
+			builder.append("type: ");
+			builder.append(construction.getType());			
+		}
+		
+		if (builder.length() == 0) {
+			builder.append("Undefined");
+		}
+		
+		return builder.toString();
+	}
+	
 	public Date getToActivation() {
 		if (assignment.getActivation() == null) {
 			return new Date();

@@ -23,12 +23,14 @@ package com.evolveum.midpoint.web.controller.role;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
@@ -37,6 +39,7 @@ import org.springframework.stereotype.Controller;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.bean.AssignmentBean;
 import com.evolveum.midpoint.web.bean.AssignmentBeanType;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
@@ -45,6 +48,7 @@ import com.evolveum.midpoint.web.model.RoleManager;
 import com.evolveum.midpoint.web.model.dto.RoleDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 
 /**
@@ -143,15 +147,57 @@ public class RoleEditController implements Serializable {
 		this.selectAll = ControllerUtil.selectPerformed(evt, role.getAssignments());
 	}
 
-	public void addAssignment() {
+	private int getNewId() {
+		int id = 0;
+		for (AssignmentBean bean : role.getAssignments()) {
+			if (bean.getId() > id) {
+				id = bean.getId();
+			}
+		}
 
+		return ++id;
+	}
+
+	public void addAssignment() {
+		getRole().getAssignments().add(new AssignmentBean(getNewId(), new AssignmentType()));
 	}
 
 	public void deleteAssignments() {
+		Iterator<AssignmentBean> iterator = role.getAssignments().iterator();
+		while (iterator.hasNext()) {
+			AssignmentBean bean = iterator.next();
+			if (bean.isSelected()) {
+				iterator.remove();
+			}
+		}
 
+		selectAll = false;
+	}
+
+	public void editAssignmentObject() {
+		// TODO: show object browser or xml editor
 	}
 
 	public void editAssignment() {
+		String id = FacesUtils.getRequestParameter(PARAM_ASSIGNMENT_ID);
+		if (StringUtils.isEmpty(id) || !id.matches("[0-9]+")) {
+			FacesUtils.addErrorMessage("Couldn't get internal assignment bean id.");
+			return;
+		}
+		int beanId = Integer.parseInt(id);
+		AssignmentBean bean = null;
+		for (AssignmentBean assignmentBean : role.getAssignments()) {
+			if (assignmentBean.getId() == beanId) {
+				bean = assignmentBean;
+				break;
+			}
+		}
 
+		if (bean == null) {
+			FacesUtils.addErrorMessage("Couldn't find assignment bean with selected internal id.");
+			return;
+		}
+
+		bean.setEditing(true);
 	}
 }

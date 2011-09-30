@@ -23,17 +23,11 @@
 
 				<ice:outputLabel value="Description" />
 				<ice:inputTextarea id="description" value="#{roleEdit.role.description}" />
-				<ice:message for="description" />
-
-<ui:remove>
-				<ice:outputLabel value="Enabled" />
-				<ice:selectBooleanCheckbox id="enabled" value="#{roleEdit.role.enabled}" />
-				<ice:message for="enabled" />
-</ui:remove>				
+				<ice:message for="description" />			
 			</ice:panelGrid>
 			<h3 style="margin-top: 10px;">Assignments</h3>
 			<ice:dataTable rows="20" value="#{roleEdit.role.assignments}" var="item"
-				columnWidths="auto, auto, 280px, 150px" resizable="false">
+				columnWidths="auto, auto, auto, auto, auto, auto" resizable="false">
 				<ice:column>
 					<f:facet name="header">
 						<ice:selectBooleanCheckbox id="selectAllCheckbox" value="#{roleEdit.selectAll}"
@@ -47,21 +41,56 @@
 						<ice:outputLabel value="#{msg['page.role.roleEdit.table.assignmentType']}" />
 					</f:facet>
 					<ice:commandLink style="text-decoration: underline;" value="#{item.typeString}" action="#{roleEdit.editAssignment}"
-						rendered="#{not item.editing}">
+						rendered="#{not item.editing}" immediate="true">
 						<f:param name="assignmentId" value="#{item.id}" />
 					</ice:commandLink>
-					<ice:selectOneMenu value="#{item.typeString}" rendered="#{item.editing}">
+					<ice:selectOneMenu value="#{item.typeString}" rendered="#{item.editing}" immediate="true" partialSubmit="true">
 						<f:selectItems value="#{roleEdit.assignmentTypes}" />
 					</ice:selectOneMenu>
 				</ice:column>
-				
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputLabel value="#{msg['page.role.roleEdit.table.active']}" />
+					</f:facet>
+					<ice:selectBooleanCheckbox value="#{item.enabled}" disabled="#{not item.editing}"/>
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputLabel value="#{msg['page.role.roleEdit.table.object']}" />
+					</f:facet>
+					<ice:outputLabel value="#{item.objectString}" rendered="#{not item.editing}"/>
+					<ice:commandLink style="text-decoration: underline;" value="#{item.objectString}" action="#{roleEdit.editAssignmentObject}"
+						rendered="#{item.editing}" immediate="true">
+						<f:param name="assignmentId" value="#{item.id}" />
+					</ice:commandLink>
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputLabel value="#{msg['page.role.roleEdit.table.activeFrom']}" />
+					</f:facet>
+					<ice:outputLabel value="#{item.fromActivationString}" rendered="#{not item.editing}"/>
+					<ace:dateTimeEntry value="#{item.fromActivation}" renderAsPopup="true" rendered="#{item.editing}"
+						renderInputField="true" singleSubmit="false">
+						<f:convertDateTime pattern="MMM/dd/yyyy hh:mm a" />
+					</ace:dateTimeEntry>
+				</ice:column>
+				<ice:column>
+					<f:facet name="header">
+						<ice:outputLabel value="#{msg['page.role.roleEdit.table.activeTo']}" />
+					</f:facet>
+					<ice:outputLabel value="#{item.toActivationString}" rendered="#{not item.editing}"/>
+					<ace:dateTimeEntry value="#{item.fromActivation}" renderAsPopup="true" rendered="#{item.editing}"
+						renderInputField="true" singleSubmit="false">
+						<f:convertDateTime pattern="MMM/dd/yyyy hh:mm a" />
+					</ace:dateTimeEntry>
+				</ice:column>
 			</ice:dataTable>
 			
-			<div class="button-bar">
+			<div style="margin-bottom: 5px;">
 				<idm:button action="#{roleEdit.addAssignment}" value="#{msg['page.button.addAssignment']}"
 					img="/resources/images/door_in.png" immediate="true" buttonType="positive" />
 
-				<idm:button action="#{roleEdit.deleteAssignments}" buttonType="negative" 
+				<idm:button action="#{roleEdit.deleteAssignments}" buttonType="negative" immediate="true"
 					value="#{msg['page.button.deleteAssignments']}" img="/resources/images/user_add.png" />
 			</div>
 			
@@ -72,28 +101,6 @@
 				<idm:button actionListener="#{roleEdit.save}" action="#{roleList.initController}" id="createRole"
 					buttonType="positive" value="#{msg['page.button.save']}" img="/resources/images/user_add.png" />
 			</div>
-<ui:remove>			
-			<hr />
-
-			<ice:outputLabel value="Activation date" />
-			<ice:selectBooleanCheckbox id="activationDate" value="#{roleEdit.role.showActivationDate}" immediate="true"
-				partialSubmit="true" />
-			<ice:message for="activationDate" />
-
-			<ice:outputLabel value="Active from" rendered="#{roleEdit.role.showActivationDate}" />
-			<ace:dateTimeEntry id="calendarFrom" value="#{roleEdit.role.fromActivation}" renderAsPopup="true"
-				renderInputField="true" singleSubmit="false" rendered="#{roleEdit.role.showActivationDate}">
-				<f:convertDateTime pattern="MMM/dd/yyyy hh:mm a" />
-			</ace:dateTimeEntry>
-			<ice:message for="calendarFrom" rendered="#{roleEdit.role.showActivationDate}" />
-
-			<ice:outputLabel value="Active to" rendered="#{roleEdit.role.showActivationDate}" />
-			<ace:dateTimeEntry id="calendarTo" value="#{roleEdit.role.toActivation}" renderAsPopup="true"
-				renderInputField="true" singleSubmit="false" rendered="#{roleEdit.role.showActivationDate}">
-				<f:convertDateTime pattern="MMM/dd/yyyy hh:mm a" />
-			</ace:dateTimeEntry>
-			<ice:message for="calendarTo" rendered="#{roleEdit.role.showActivationDate}" />
-</ui:remove>
 		</ice:form>
 	</ui:define>
 </ui:composition>
