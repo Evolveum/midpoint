@@ -114,6 +114,7 @@ public class BrowserBean<T extends Serializable> extends ListController<BrowserI
 	 * 
 	 * @param model
 	 */
+	@Deprecated
 	public void setModel(ModelService model) {
 		this.model = model;
 	}
@@ -141,6 +142,7 @@ public class BrowserBean<T extends Serializable> extends ListController<BrowserI
 		super.cleanup();
 		type = null;
 		name = null;
+		object = null;
 	}
 
 	@Override

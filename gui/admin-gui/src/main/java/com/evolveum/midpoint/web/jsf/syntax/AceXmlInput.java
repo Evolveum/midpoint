@@ -36,7 +36,7 @@ public class AceXmlInput extends HtmlInputHidden {
 		writer.startElement("div", null);
 
 		StringBuilder style = new StringBuilder();
-		style.append("display: block; width: ");
+		style.append("background: #fff; display: block; width: ");
 		style.append(width);
 		style.append("px; height: ");
 		style.append(height);

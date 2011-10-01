@@ -29,6 +29,7 @@ import java.util.List;
 import javax.faces.event.ActionEvent;
 import javax.faces.event.ValueChangeEvent;
 import javax.faces.model.SelectItem;
+import javax.xml.bind.JAXBElement;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -38,12 +39,14 @@ import org.springframework.stereotype.Controller;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.JAXBUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AssignmentBean;
 import com.evolveum.midpoint.web.bean.AssignmentBeanType;
 import com.evolveum.midpoint.web.bean.BrowserBean;
+import com.evolveum.midpoint.web.bean.XmlEditorBean;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
 import com.evolveum.midpoint.web.model.ObjectManager;
@@ -53,6 +56,7 @@ import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.model.dto.RoleDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
@@ -80,7 +84,9 @@ public class RoleEditController implements Serializable {
 	@Autowired(required = true)
 	private transient ModelService model;
 	private BrowserBean<AssignmentBean> browser;
+	private XmlEditorBean<AssignmentBean> editor;
 	private boolean showBrowser;
+	private boolean showEditor;
 	private boolean newRole = true;
 	private RoleDto role;
 	private boolean selectAll;
@@ -90,6 +96,14 @@ public class RoleEditController implements Serializable {
 			role = new RoleDto(new RoleType());
 		}
 		return role;
+	}
+
+	public boolean isShowEditor() {
+		return showEditor;
+	}
+
+	public void setShowEditor(boolean showEditor) {
+		this.showEditor = showEditor;
 	}
 
 	public boolean isShowBrowser() {
@@ -106,6 +120,13 @@ public class RoleEditController implements Serializable {
 			browser.setModel(model);
 		}
 		return browser;
+	}
+
+	public XmlEditorBean<AssignmentBean> getEditor() {
+		if (editor == null) {
+			editor = new XmlEditorBean<AssignmentBean>();
+		}
+		return editor;
 	}
 
 	public List<SelectItem> getAssignmentTypes() {
@@ -222,7 +243,8 @@ public class RoleEditController implements Serializable {
 				setShowBrowser(true);
 				break;
 			case ACCOUNT_CONSTRUCTION:
-				// TODO: show object browser or xml editor
+				editor.setObject(bean);
+				setShowEditor(true);
 		}
 	}
 
@@ -230,22 +252,15 @@ public class RoleEditController implements Serializable {
 	 * called when user clicks on CANCEL button in object browser
 	 */
 	public void cancelBrowseAction() {
-		switch (browser.getObject().getType()) {
-			case TARGET:
-			case TARGET_REF:
-				browser.setObject(null);
-				setShowBrowser(false);
-				break;
-			case ACCOUNT_CONSTRUCTION:
-				// TODO: show object browser or xml editor
-		}
+		browser.cleanup();
+		setShowBrowser(false);
 	}
 
 	/**
 	 * called when user clicks on OK button in object browser
 	 */
 	public void okBrowseAction() {
-		//we get selected object oid from object browser 
+		// we get selected object oid from object browser
 		String objectOid = FacesUtils.getRequestParameter(BrowserBean.PARAM_OBJECT_OID);
 		if (StringUtils.isEmpty(objectOid)) {
 			FacesUtils.addErrorMessage("Object oid from browser was not defined.");
@@ -263,16 +278,13 @@ public class RoleEditController implements Serializable {
 		switch (bean.getType()) {
 			case TARGET:
 				bean.setTarget(object);
-				browser.setObject(null);
+				browser.cleanup();
 				setShowBrowser(false);
 				break;
 			case TARGET_REF:
 				bean.setTargetRef(createObjectReference(object));
-				browser.setObject(null);
+				browser.cleanup();
 				setShowBrowser(false);
-				break;
-			case ACCOUNT_CONSTRUCTION:
-				// TODO:
 		}
 	}
 
@@ -313,5 +325,40 @@ public class RoleEditController implements Serializable {
 		}
 
 		bean.setEditing(true);
+	}
+
+	/**
+	 * called when user clicks on OK button in xml editor
+	 */
+	@SuppressWarnings("unchecked")
+	public void okEditAction() {
+		String text = editor.getText();
+		if (StringUtils.isEmpty(text)) {
+			return;
+		}
+
+		AccountConstructionType construction = null;
+		try {
+			JAXBElement<AccountConstructionType> element = (JAXBElement<AccountConstructionType>) JAXBUtil
+					.unmarshal(text);
+			construction = element.getValue();
+		} catch (Exception ex) {
+			FacesUtils.addErrorMessage("Coulnd't parse account construction.", ex);
+		}
+
+		if (construction == null) {
+			return;
+		}
+
+		AssignmentBean bean = browser.getObject();
+		bean.setAccountConstruction(construction);
+	}
+
+	/**
+	 * called when user clicks on CANCEL button in xml editor
+	 */
+	public void cancelEditAction() {
+		editor.cleanup();
+		setShowEditor(false);
 	}
 }

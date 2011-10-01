@@ -55,7 +55,18 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 		Validate.notNull(assignment, "Assignment must not be null.");
 		this.id = id;
 		this.assignment = assignment;
-		type = getType();
+		type = getType(assignment);
+	}
+
+	private AssignmentBeanType getType(AssignmentType assignment) {
+		AssignmentBeanType type = AssignmentBeanType.TARGET_REF;
+		if (assignment.getAccountConstruction() != null) {
+			type = AssignmentBeanType.ACCOUNT_CONSTRUCTION;
+		} else if (assignment.getTarget() != null) {
+			type = AssignmentBeanType.TARGET;
+		}
+
+		return type;
 	}
 
 	public boolean isEditing() {
@@ -67,11 +78,14 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 	}
 
 	public AssignmentBeanType getType() {
-				return type;
+		if (type == null) {
+			type = AssignmentBeanType.TARGET_REF;
+		}
+		return type;
 	}
 
 	public String getTypeString() {
-		return type.name();
+		return getType().name();
 	}
 
 	public void setTypeString(String typeString) {
@@ -136,7 +150,7 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 
 	public String getObjectString() {
 		StringBuilder builder = new StringBuilder();
-		switch (type) {
+		switch (getType()) {
 			case ACCOUNT_CONSTRUCTION:
 				AccountConstructionType construction = assignment.getAccountConstruction();
 				if (construction != null) {
@@ -191,15 +205,20 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 
 		return assignment;
 	}
-	
+
 	public void setTargetRef(ObjectReferenceType objectRef) {
 		Validate.notNull(objectRef, "Object reference must not be null.");
 		assignment.setTargetRef(objectRef);
 	}
-	
+
 	public void setTarget(ObjectType object) {
 		Validate.notNull(object, "Object must not be null.");
 		assignment.setTarget(object);
+	}
+
+	public void setAccountConstruction(AccountConstructionType construction) {
+		Validate.notNull(construction, "Account construction must not be null.");
+		assignment.setAccountConstruction(construction);
 	}
 
 	private void normalize() {
@@ -214,7 +233,7 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 		}
 		activation.setEnabled(isEnabled());
 
-		switch (type) {
+		switch (getType()) {
 			case ACCOUNT_CONSTRUCTION:
 				assignment.setTarget(null);
 				assignment.setTargetRef(null);
