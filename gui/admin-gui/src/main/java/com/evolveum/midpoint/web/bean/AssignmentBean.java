@@ -66,7 +66,7 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 		this.editing = editing;
 	}
 
-	private AssignmentBeanType getType() {
+	public AssignmentBeanType getType() {
 		AssignmentBeanType type = AssignmentBeanType.TARGET_REF;
 		if (assignment.getAccountConstruction() != null) {
 			type = AssignmentBeanType.ACCOUNT_CONSTRUCTION;
@@ -197,6 +197,16 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 		normalize();
 
 		return assignment;
+	}
+	
+	public void setTargetRef(ObjectReferenceType objectRef) {
+		Validate.notNull(objectRef, "Object reference must not be null.");
+		assignment.setTargetRef(objectRef);
+	}
+	
+	public void setTarget(ObjectType object) {
+		Validate.notNull(object, "Object must not be null.");
+		assignment.setTarget(object);
 	}
 
 	private void normalize() {

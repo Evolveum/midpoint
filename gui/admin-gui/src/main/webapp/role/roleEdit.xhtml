@@ -15,6 +15,8 @@
 	</ui:define>
 
 	<ui:define name="content">
+		<comp:browser okAction="#{roleEdit.okBrowseAction}" cancelAction="#{roleEdit.cancelBrowseAction}" bean="#{roleEdit.browser}"
+			show="#{roleEdit.showBrowser}" />
 		<ice:form>
 			<ice:panelGrid columns="3" cellpadding="3" cellspacing="3">
 				<ice:outputLabel value="Name" />

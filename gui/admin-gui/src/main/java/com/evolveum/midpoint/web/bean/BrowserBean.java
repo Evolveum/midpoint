@@ -20,6 +20,7 @@
  */
 package com.evolveum.midpoint.web.bean;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,8 +49,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.QueryType;
  * @author lazyman
  * 
  */
-public class BrowserBean extends ListController<BrowserItem> {
+public class BrowserBean<T extends Serializable> extends ListController<BrowserItem> {
 
+	/**
+	 * This constant is used when returning selected object as request parameter
+	 */
+	public static final String PARAM_OBJECT_OID = "objectOid";
 	private static final long serialVersionUID = 8414430107567167458L;
 	private static final Trace LOGGER = TraceManager.getTrace(BrowserBean.class);
 	private static final List<SelectItem> types = new ArrayList<SelectItem>();
@@ -61,12 +66,26 @@ public class BrowserBean extends ListController<BrowserItem> {
 		Collections.sort(types, new SelectItemComparator());
 	}
 	private transient ModelService model;
+	private T object;
 	private String type;
 	private String name;
 	private boolean listByName = true;
 
 	public List<SelectItem> getTypes() {
 		return types;
+	}
+
+	public void setObject(T object) {
+		this.object = object;
+	}
+
+	/**
+	 * 
+	 * @return object for which we are choosing object (so we don't need to save
+	 *         auxiliary objects in controllers where browser bean is used)
+	 */
+	public T getObject() {
+		return object;
 	}
 
 	public String getName() {
@@ -88,6 +107,13 @@ public class BrowserBean extends ListController<BrowserItem> {
 		this.type = type;
 	}
 
+	/**
+	 * {@link ModelService} used for obtaining object from
+	 * repository/provisioning. Will be replaced for some object type manager
+	 * implementation later.
+	 * 
+	 * @param model
+	 */
 	public void setModel(ModelService model) {
 		this.model = model;
 	}

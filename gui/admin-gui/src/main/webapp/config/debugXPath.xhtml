@@ -12,7 +12,8 @@
 	</ui:define>
 
 	<ui:define name="content">
-		<comp:browser okAction="#{debugXPath.okAction}" cancelAction="#{debugXPath.cancelAction}" bean="#{debugXPath.browser}" />
+		<comp:browser okAction="#{debugXPath.okAction}" cancelAction="#{debugXPath.cancelAction}"
+			bean="#{debugXPath.browser}" show="#{debugXPath.showBrowser}" />
 		<ice:form id="debugXpathForm">
 			<ice:outputText value="#{msg['page.config.debugXPath.expression']}" />
 			<br />
@@ -35,11 +36,12 @@
 				<ice:outputLabel />
 
 				<c:forEach items="#{debugXPath.variables}" var="item" varStatus="status">
-					<ice:selectBooleanCheckbox id="selected#{status.index}" value="#{item.selected}" partialSubmit="true" immediate="true"
-						valueChangeListener="#{debugXPath.selectPerformed}" />
+					<ice:selectBooleanCheckbox id="selected#{status.index}" value="#{item.selected}" partialSubmit="true"
+						immediate="true" valueChangeListener="#{debugXPath.selectPerformed}" />
 					<ice:inputText id="variableName#{status.index}" value="#{item.variableName}" size="25" />
-					<ice:selectOneMenu id="type#{status.index}" style="width: auto;" partialSubmit="true" immediate="true" value="#{item.type}">
-						<f:selectItems  value="#{debugXPath.types}" />
+					<ice:selectOneMenu id="type#{status.index}" style="width: auto;" partialSubmit="true" immediate="true"
+						value="#{item.type}">
+						<f:selectItems value="#{debugXPath.types}" />
 					</ice:selectOneMenu>
 					<ice:inputText id="value#{status.index}" value="#{item.value}" size="35" />
 					<idm:button id="button#{status.index}" value="#{msg['page.config.debugXPath.button.browse']}"
@@ -50,8 +52,7 @@
 				</c:forEach>
 			</ice:panelGrid>
 
-			<ice:outputText value="#{msg['page.config.debugXPath.result']}"
-				style="margin-top: 10px; display: block;" />
+			<ice:outputText value="#{msg['page.config.debugXPath.result']}" style="margin-top: 10px; display: block;" />
 			<ice:panelGroup style="min-height: 20px; width: 978px; display: block; border: 1px solid #aaa;">
 				<ice:outputText value="#{debugXPath.result}" />
 			</ice:panelGroup>
@@ -66,8 +67,7 @@
 				<div style="width: 50px; display: inline-block;" />
 
 				<idm:button action="#{debugXPath.cleanupController}" id="clearButton" buttonType="negative"
-					value="#{msg['page.config.debugXPath.button.clear']}"
-					img="/resources/images/calculator_delete.png" />
+					value="#{msg['page.config.debugXPath.button.clear']}" img="/resources/images/calculator_delete.png" />
 				<idm:button action="#{debugXPath.evaluate}" id="evaluateButton"
 					value="#{msg['page.config.debugXPath.button.evaluate']}" img="/resources/images/calculator.png" />
 			</div>

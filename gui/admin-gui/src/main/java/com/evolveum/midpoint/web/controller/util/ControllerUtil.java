@@ -55,10 +55,12 @@ import com.evolveum.midpoint.web.model.UserManager;
 import com.evolveum.midpoint.web.model.dto.AccountShadowDto;
 import com.evolveum.midpoint.web.model.dto.GuiResourceDto;
 import com.evolveum.midpoint.web.model.dto.GuiUserDto;
+import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.model.dto.RoleDto;
 import com.evolveum.midpoint.web.model.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.SystemConfigurationType;
@@ -133,6 +135,13 @@ public class ControllerUtil {
 				item.setSelected(selectAll);
 			}
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static ObjectManager<ObjectDto<ObjectType>> getObjectManager(ObjectTypeCatalog catalog) {
+		Validate.notNull(catalog, "Object type catalog must not be null.");
+		return (ObjectManager<ObjectDto<ObjectType>>) catalog.getObjectManager(ObjectType.class,
+				new ObjectDto<ObjectType>(null).getClass());
 	}
 
 	public static UserManager getUserManager(ObjectTypeCatalog catalog) {

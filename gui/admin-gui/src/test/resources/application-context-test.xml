@@ -57,6 +57,7 @@
 	<bean id="guiResourceDtoManager" class="com.evolveum.midpoint.web.test.ResourceManagerImplMock" scope="singleton" />
 	<bean id="guiAccountShadowDtoManager" class="com.evolveum.midpoint.web.test.AccountManagerImplMock" scope="singleton" />
 	<bean id="guiRoleDtoManager" class="com.evolveum.midpoint.web.test.RoleManagerImplMock" scope="singleton" />
+	<bean id="guiObjectManager" class="com.evolveum.midpoint.web.test.BasicObjectManagerImplMock" scope="singleton" />
 
 	<bean id="objectTypeCatalog" class="com.evolveum.midpoint.web.model.impl.ObjectTypeCatalogImpl" scope="singleton">
 		<property name="supportedObjectManagers">
@@ -84,6 +85,12 @@
 						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType</value>
 					</key>
 					<ref bean="guiRoleDtoManager" />
+				</entry>
+				<entry>
+					<key>
+						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType</value>
+					</key>
+					<ref bean="guiObjectManager" />
 				</entry>
 			</map>
 		</property>

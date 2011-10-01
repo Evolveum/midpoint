@@ -96,6 +96,12 @@
 					</key>
 					<bean class="com.evolveum.midpoint.web.model.impl.RoleManagerImpl" scope="singleton" />
 				</entry>
+				<entry>
+					<key>
+						<value>com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType</value>
+					</key>
+					<bean class="com.evolveum.midpoint.web.model.impl.BasicObjectManagerImpl" scope="singleton" />
+				</entry>
 			</map>
 		</property>
 	</bean>

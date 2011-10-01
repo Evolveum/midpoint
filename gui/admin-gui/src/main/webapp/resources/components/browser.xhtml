@@ -8,12 +8,13 @@
 
 <composite:interface>
 	<composite:attribute name="bean" type="com.evolveum.midpoint.web.bean.BrowserBean" required="true" />
+	<composite:attribute name="show" type="java.lang.Boolean" required="true" />
 	<composite:attribute name="okAction" method-signature="java.lang.String action()" required="true" />
-	<composite:attribute name="cancelAction" method-signature="java.lang.String action()" required="true" />
+	<composite:attribute name="cancelAction" method-signature="java.lang.String action()" required="true" />	
 </composite:interface>
 
 <composite:implementation>
-	<ice:panelPopup modal="true" autoCentre="true" visible="#{debugXPath.showBrowser}">
+	<ice:panelPopup modal="true" autoCentre="true" visible="#{cc.attrs.show}">
 		<f:facet name="header">
 			<ice:outputText value="#{msg['page.composite.browser.title']}" />
 		</f:facet>

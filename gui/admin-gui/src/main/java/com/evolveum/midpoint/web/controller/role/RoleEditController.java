@@ -36,19 +36,27 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.bean.AssignmentBean;
 import com.evolveum.midpoint.web.bean.AssignmentBeanType;
+import com.evolveum.midpoint.web.bean.BrowserBean;
 import com.evolveum.midpoint.web.controller.TemplateController;
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
+import com.evolveum.midpoint.web.model.ObjectManager;
 import com.evolveum.midpoint.web.model.ObjectTypeCatalog;
 import com.evolveum.midpoint.web.model.RoleManager;
+import com.evolveum.midpoint.web.model.dto.ObjectDto;
 import com.evolveum.midpoint.web.model.dto.RoleDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SelectItemComparator;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.RoleType;
 
 /**
@@ -68,6 +76,11 @@ public class RoleEditController implements Serializable {
 	private transient ObjectTypeCatalog catalog;
 	@Autowired(required = true)
 	private transient TemplateController template;
+	@Deprecated
+	@Autowired(required = true)
+	private transient ModelService model;
+	private BrowserBean<AssignmentBean> browser;
+	private boolean showBrowser;
 	private boolean newRole = true;
 	private RoleDto role;
 	private boolean selectAll;
@@ -77,6 +90,22 @@ public class RoleEditController implements Serializable {
 			role = new RoleDto(new RoleType());
 		}
 		return role;
+	}
+
+	public boolean isShowBrowser() {
+		return showBrowser;
+	}
+
+	public void setShowBrowser(boolean showBrowser) {
+		this.showBrowser = showBrowser;
+	}
+
+	public BrowserBean<AssignmentBean> getBrowser() {
+		if (browser == null) {
+			browser = new BrowserBean<AssignmentBean>();
+			browser.setModel(model);
+		}
+		return browser;
 	}
 
 	public List<SelectItem> getAssignmentTypes() {
@@ -128,7 +157,7 @@ public class RoleEditController implements Serializable {
 			if (isNewRole()) {
 				manager.add(role);
 			} else {
-				manager.submit(getRole());				
+				manager.submit(getRole());
 			}
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "Couldn't submit role {}", ex, role.getName());
@@ -181,15 +210,79 @@ public class RoleEditController implements Serializable {
 	}
 
 	public void editAssignmentObject() {
-		// TODO: show object browser or xml editor
-	}
-
-	public void editAssignment() {
-		String id = FacesUtils.getRequestParameter(PARAM_ASSIGNMENT_ID);
-		if (StringUtils.isEmpty(id) || !id.matches("[0-9]+")) {
-			FacesUtils.addErrorMessage("Couldn't get internal assignment bean id.");
+		AssignmentBean bean = getBean(FacesUtils.getRequestParameter(PARAM_ASSIGNMENT_ID));
+		if (bean == null) {
 			return;
 		}
+
+		switch (bean.getType()) {
+			case TARGET:
+			case TARGET_REF:
+				browser.setObject(bean);
+				setShowBrowser(true);
+				break;
+			case ACCOUNT_CONSTRUCTION:
+				// TODO: show object browser or xml editor
+		}
+	}
+
+	public void cancelBrowseAction() {
+		switch (browser.getObject().getType()) {
+			case TARGET:
+			case TARGET_REF:
+				browser.setObject(null);
+				setShowBrowser(false);
+				break;
+			case ACCOUNT_CONSTRUCTION:
+				// TODO: show object browser or xml editor
+		}
+	}
+
+	public void okBrowseAction() {
+		String objectOid = FacesUtils.getRequestParameter(BrowserBean.PARAM_OBJECT_OID);
+		if (StringUtils.isEmpty(objectOid)) {
+			FacesUtils.addErrorMessage("Object oid from browser was not defined.");
+			return;
+		}
+
+		ObjectManager<ObjectDto<ObjectType>> manager = ControllerUtil.getObjectManager(catalog);
+		ObjectDto<ObjectType> objectDto = manager.get(objectOid, new PropertyReferenceListType());
+		if (objectDto == null || objectDto.getXmlObject() == null) {
+			return;
+		}
+
+		ObjectType object = objectDto.getXmlObject();
+		AssignmentBean bean = browser.getObject();
+		switch (bean.getType()) {
+			case TARGET:
+				bean.setTarget(object);
+				browser.setObject(null);
+				setShowBrowser(false);
+				break;
+			case TARGET_REF:
+				bean.setTargetRef(createObjectReference(object));
+				browser.setObject(null);
+				setShowBrowser(false);
+				break;
+			case ACCOUNT_CONSTRUCTION:
+				// TODO:
+		}
+	}
+
+	private ObjectReferenceType createObjectReference(ObjectType object) {
+		ObjectReferenceType reference = new ObjectReferenceType();
+		reference.setOid(object.getOid());
+		reference.setType(ObjectTypes.getObjectType(object.getClass()).getTypeQName());
+
+		return reference;
+	}
+
+	private AssignmentBean getBean(String id) {
+		if (StringUtils.isEmpty(id) || !id.matches("[0-9]+")) {
+			FacesUtils.addErrorMessage("Couldn't get internal assignment bean id.");
+			return null;
+		}
+
 		int beanId = Integer.parseInt(id);
 		AssignmentBean bean = null;
 		for (AssignmentBean assignmentBean : role.getAssignments()) {
@@ -201,6 +294,14 @@ public class RoleEditController implements Serializable {
 
 		if (bean == null) {
 			FacesUtils.addErrorMessage("Couldn't find assignment bean with selected internal id.");
+		}
+
+		return bean;
+	}
+
+	public void editAssignment() {
+		AssignmentBean bean = getBean(FacesUtils.getRequestParameter(PARAM_ASSIGNMENT_ID));
+		if (bean == null) {
 			return;
 		}
 

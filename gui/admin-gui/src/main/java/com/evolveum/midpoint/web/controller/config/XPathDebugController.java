@@ -71,7 +71,6 @@ public class XPathDebugController implements Serializable {
 	public static final String PAGE_NAVIGATION_XPATH_DEBUG = "/config/debugXPath?faces-redirect=true";
 	private static final long serialVersionUID = 7295076387943631763L;
 	private static final String PARAM_VARIABLE_NAME = "variableName";
-	private static final String PARAM_OBJECT_OID = "objectOid";
 	private static final Trace LOGGER = TraceManager.getTrace(XPathDebugController.class);
 	private static final List<SelectItem> returnTypes = new ArrayList<SelectItem>();
 	private static final List<SelectItem> types = new ArrayList<SelectItem>();
@@ -96,7 +95,7 @@ public class XPathDebugController implements Serializable {
 	// browsing
 	private String variableName;
 	private boolean showBrowser;
-	private BrowserBean browser;
+	private BrowserBean<XPathVariableBean> browser;
 
 	public String cleanupController() {
 		expression = null;
@@ -288,9 +287,9 @@ public class XPathDebugController implements Serializable {
 		ControllerUtil.selectAllPerformed(evt, getVariables());
 	}
 
-	public BrowserBean getBrowser() {
+	public BrowserBean<XPathVariableBean> getBrowser() {
 		if (browser == null) {
-			browser = new BrowserBean();
+			browser = new BrowserBean<XPathVariableBean>();
 			browser.setModel(modelService);
 		}
 		return browser;
@@ -316,7 +315,7 @@ public class XPathDebugController implements Serializable {
 			FacesUtils.addErrorMessage("Variable name not defined.");
 			return null;
 		}
-		String objectOid = FacesUtils.getRequestParameter(PARAM_OBJECT_OID);
+		String objectOid = FacesUtils.getRequestParameter(BrowserBean.PARAM_OBJECT_OID);
 		if (StringUtils.isEmpty(objectOid)) {
 			FacesUtils.addErrorMessage("Object oid not defined.");
 			return null;
