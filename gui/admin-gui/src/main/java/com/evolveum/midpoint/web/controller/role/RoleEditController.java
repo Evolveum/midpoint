@@ -243,8 +243,16 @@ public class RoleEditController implements Serializable {
 				setShowBrowser(true);
 				break;
 			case ACCOUNT_CONSTRUCTION:
-				editor.setObject(bean);
-				setShowEditor(true);
+				try {
+					AccountConstructionType construction = bean.getAccountConstruction();
+					String xml = JAXBUtil.marshalWrap(construction);
+					editor.setText(xml);
+					editor.setObject(bean);
+					setShowEditor(true);
+				} catch (Exception ex) {
+					LoggingUtils.logException(LOGGER, "Couldn't parse account construction", ex);
+					FacesUtils.addErrorMessage("Couldn't parse account construction.", ex);
+				}
 		}
 	}
 
@@ -351,7 +359,7 @@ public class RoleEditController implements Serializable {
 			return;
 		}
 
-		AssignmentBean bean = editor.getObject();		
+		AssignmentBean bean = editor.getObject();
 		bean.setAccountConstruction(construction);
 		editor.cleanup();
 		setShowEditor(false);

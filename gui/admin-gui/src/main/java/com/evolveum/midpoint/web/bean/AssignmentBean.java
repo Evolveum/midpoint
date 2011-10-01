@@ -21,8 +21,11 @@
 package com.evolveum.midpoint.web.bean;
 
 import java.io.Serializable;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.web.controller.util.ControllerUtil;
@@ -89,6 +92,9 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 	}
 
 	public void setTypeString(String typeString) {
+		if (StringUtils.isEmpty(typeString)) {
+			type = null;
+		}
 		type = AssignmentBeanType.valueOf(typeString);
 	}
 
@@ -106,19 +112,34 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 		}
 
 		ActivationType activation = assignment.getActivation();
+		if (activation.getValidFrom() == null) {
+			return new Date();
+		}
+
 		return ControllerUtil.parseCalendarToDate(activation.getValidFrom());
 	}
 
 	public String getFromActivationString() {
-		String date = null;
+		ActivationType activation = assignment.getActivation();
+		if (activation != null && activation.getValidFrom() != null) {
+			return formatDate(ControllerUtil.parseCalendarToDate(activation.getValidFrom()));
+		}
 
-		return date;
+		return null;
+	}
+
+	private String formatDate(Date date) {
+		DateFormat dateFormat = new SimpleDateFormat("MMM/dd/yyyy hh:mm a");
+		return dateFormat.format(date);
 	}
 
 	public String getToActivationString() {
-		String date = null;
+		ActivationType activation = assignment.getActivation();
+		if (activation != null && activation.getValidTo() != null) {
+			return formatDate(ControllerUtil.parseCalendarToDate(activation.getValidTo()));
+		}
 
-		return date;
+		return null;
 	}
 
 	public void setFromActivation(Date date) {
@@ -189,6 +210,10 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 		}
 
 		ActivationType activation = assignment.getActivation();
+		if (activation.getValidTo() == null) {
+			return new Date();
+		}
+
 		return ControllerUtil.parseCalendarToDate(activation.getValidTo());
 	}
 
@@ -220,18 +245,22 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 		Validate.notNull(construction, "Account construction must not be null.");
 		assignment.setAccountConstruction(construction);
 	}
+	
+	public AccountConstructionType getAccountConstruction() {
+		return assignment.getAccountConstruction();
+	}
 
 	private void normalize() {
 		if (!useActivationDate && isEnabled()) {
 			assignment.setActivation(null);
+		} else {
+			ActivationType activation = getActivation();
+			if (!useActivationDate) {
+				activation.setValidFrom(null);
+				activation.setValidTo(null);
+			}
+			activation.setEnabled(isEnabled());
 		}
-
-		ActivationType activation = getActivation();
-		if (!useActivationDate) {
-			activation.setValidFrom(null);
-			activation.setValidTo(null);
-		}
-		activation.setEnabled(isEnabled());
 
 		switch (getType()) {
 			case ACCOUNT_CONSTRUCTION:
