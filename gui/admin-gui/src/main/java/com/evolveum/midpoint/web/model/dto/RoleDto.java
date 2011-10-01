@@ -74,8 +74,10 @@ public class RoleDto extends ExtensibleObjectDto<RoleType> {
 	}
 	
 	public void pushAssigmentBeansToRole() {
+		List<AssignmentType> assignmentTypes = getXmlObject().getAssignment();
+		assignmentTypes.clear();
 		for (AssignmentBean bean : getAssignments()) {
-			getXmlObject().getAssignment().add(bean.getAssignment());
+			assignmentTypes.add(bean.getAssignment());
 		}
 	}
 }

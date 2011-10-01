@@ -83,7 +83,7 @@ public class RoleManagerImpl extends ObjectManagerImpl<RoleType, RoleDto> implem
 						newRole.getXmlObject());
 				if (changes != null && changes.getOid() != null
 						&& changes.getPropertyModification().size() > 0) {
-					getModel().modifyObject(UserType.class, changes, result);
+					getModel().modifyObject(RoleType.class, changes, result);
 				}
 				result.recordSuccess();
 			} else {
