@@ -71,8 +71,6 @@ import com.evolveum.midpoint.web.model.dto.ResourceDto;
 import com.evolveum.midpoint.web.util.FacesUtils;
 import com.evolveum.midpoint.web.util.SchemaFormParser;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.AccountShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_1.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_1.UserType;
 
@@ -221,8 +219,10 @@ public class UserDetailsController implements Serializable {
 			processUnlinkedAccounts();
 
 			LOGGER.debug("Submit user modified in GUI");
-			//we want submit only user changes (if the account was deleted- unlink account, if added - link and create account)
-			//modification of account attributes are submited later -> updateAccounts method
+			// we want submit only user changes (if the account was deleted-
+			// unlink account, if added - link and create account)
+			// modification of account attributes are submited later ->
+			// updateAccounts method
 			Set<PropertyChange> userChanges = userManager.submit(user);
 			LOGGER.debug("Modified user in GUI submitted ");
 
@@ -233,39 +233,40 @@ public class UserDetailsController implements Serializable {
 				accountManager.delete(account.getOid());
 			}
 			LOGGER.debug("Finished processing of deleted accounts");
-		
-//			if (userChanges != null) {
-//				if (userChanges.isEmpty()) {
-//					// account changes are processed as modification of account,
-//					// every account is processed separately
-//					LOGGER.debug("Start processing of modified accounts");
-//					for (AccountFormBean formBean : accountList) {
-//						if (formBean.isNew()) {
-//							continue;
-//						}
-//
-//						AccountShadowDto modifiedAccountShadowDto = updateAccountAttributes(formBean);
-//						LOGGER.debug("Found modified account in GUI: {}",
-//								DebugUtil.prettyPrint(modifiedAccountShadowDto.getXmlObject()));
-//						LOGGER.debug("Submit account modified in GUI");
-//						accountManager.submit(modifiedAccountShadowDto);
-//						LOGGER.debug("Modified account in GUI submitted");
-//					}
-//					LOGGER.debug("Finished processing of modified accounts");
-//				} else {
-			
-					updateAccounts(accountList);
-//				}
 
-				// action is done in clearController
-				// accountListDeleted.clear();
-				clearController();
+			// if (userChanges != null) {
+			// if (userChanges.isEmpty()) {
+			// // account changes are processed as modification of account,
+			// // every account is processed separately
+			// LOGGER.debug("Start processing of modified accounts");
+			// for (AccountFormBean formBean : accountList) {
+			// if (formBean.isNew()) {
+			// continue;
+			// }
+			//
+			// AccountShadowDto modifiedAccountShadowDto =
+			// updateAccountAttributes(formBean);
+			// LOGGER.debug("Found modified account in GUI: {}",
+			// DebugUtil.prettyPrint(modifiedAccountShadowDto.getXmlObject()));
+			// LOGGER.debug("Submit account modified in GUI");
+			// accountManager.submit(modifiedAccountShadowDto);
+			// LOGGER.debug("Modified account in GUI submitted");
+			// }
+			// LOGGER.debug("Finished processing of modified accounts");
+			// } else {
 
-				FacesUtils.addSuccessMessage("Changes saved successfully.");
-//			} else {
-//				clearController();
-//				FacesUtils.addWarnMessage("Errors occured during save operation.");
-//			}
+			updateAccounts(accountList);
+			// }
+
+			// action is done in clearController
+			// accountListDeleted.clear();
+			clearController();
+
+			FacesUtils.addSuccessMessage("Changes saved successfully.");
+			// } else {
+			// clearController();
+			// FacesUtils.addWarnMessage("Errors occured during save operation.");
+			// }
 		} catch (SchemaException ex) {
 			LOGGER.error("Dynamic form generator error", ex);
 			// TODO: What action should we fire in GUI if error occurs ???
@@ -289,14 +290,17 @@ public class UserDetailsController implements Serializable {
 				AccountShadowDto newAccountShadow = updateAccountAttributes(formBean);
 				newAccountShadow.setAdded(true);
 				user.getAccount().add(newAccountShadow);
-//				AccountShadowType newAccountShadowType = updateAccountAttributes(formBean).getXmlObject();
-//				LOGGER.debug("Found new account in GUI: {}", DebugUtil.prettyPrint(newAccountShadowType));
-//				((UserType) user.getXmlObject()).getAccount().add(newAccountShadowType);
-				
+				// AccountShadowType newAccountShadowType =
+				// updateAccountAttributes(formBean).getXmlObject();
+				// LOGGER.debug("Found new account in GUI: {}",
+				// DebugUtil.prettyPrint(newAccountShadowType));
+				// ((UserType)
+				// user.getXmlObject()).getAccount().add(newAccountShadowType);
+
 				// user.getXmlObject().getAccountRef().add(ObjectTypeUtil.createObjectRef(newAccountShadowType));
 			}
 		}
-		
+
 		LOGGER.debug("Finished processing of new accounts");
 	}
 
@@ -310,7 +314,7 @@ public class UserDetailsController implements Serializable {
 			String oidToDelete = formBean.getAccount().getOid();
 			LOGGER.debug("Following account is marked as candidate for delete in GUI: {}",
 					DebugUtil.prettyPrint(formBean.getAccount().getXmlObject()));
-			
+
 			List<AccountShadowDto> accountsDto = user.getAccount();
 			for (Iterator<AccountShadowDto> i = accountsDto.iterator(); i.hasNext();) {
 				AccountShadowDto account = i.next();
@@ -364,11 +368,11 @@ public class UserDetailsController implements Serializable {
 		}
 		LOGGER.debug("Finished processing accounts with outbound schema handling");
 	}
-	
-	public void changeActivationOfUserAccounts(ValueChangeEvent evt){
+
+	public void changeActivationOfUserAccounts(ValueChangeEvent evt) {
 		Boolean newValue = (Boolean) evt.getNewValue();
-//		System.out.println("new value: "+ newValue);
-		for (AccountFormBean account : accountList){
+		// System.out.println("new value: "+ newValue);
+		for (AccountFormBean account : accountList) {
 			account.getResourceCapability().setEnabled(newValue);
 		}
 	}
@@ -378,45 +382,50 @@ public class UserDetailsController implements Serializable {
 			return;
 		}
 
-		List<ResourceDto> selectedResources = new ArrayList<ResourceDto>();
+		try {
+			List<ResourceDto> selectedResources = new ArrayList<ResourceDto>();
 
-		// TODO: handle exception
-		List<ResourceDto> resources = listResources();
-		for (String resName : selectedResourceList) {
-			for (ResourceDto resource : resources) {
-				if (resource.getName().equals(resName)) {
-					selectedResources.add(resource);
-					break;
+			// TODO: handle exception
+			List<ResourceDto> resources = listResources();
+			for (String resName : selectedResourceList) {
+				for (ResourceDto resource : resources) {
+					if (resource.getName().equals(resName)) {
+						selectedResources.add(resource);
+						break;
+					}
 				}
 			}
-		}
-		selectedResourceList.clear();
+			selectedResourceList.clear();
 
-		if (selectedResources.isEmpty()) {
-			return;
-		}
+			if (selectedResources.isEmpty()) {
+				return;
+			}
 
-		List<AccountShadowDto> newAccounts = new ArrayList<AccountShadowDto>();
-		for (ResourceDto resource : selectedResources) {
-			ObjectManager<GuiUserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
-					GuiUserDto.class);
-			UserManager userManager = (UserManager) (objectManager);
-			AccountShadowDto account = userManager.addAccount(user, resource.getOid());
-			if (account == null) {
-				continue;
-			}				
-			newAccounts.add(account);
-		}
-		getAccountList().addAll(createFormBeanList(newAccounts, true));
+			List<AccountShadowDto> newAccounts = new ArrayList<AccountShadowDto>();
+			for (ResourceDto resource : selectedResources) {
+				ObjectManager<GuiUserDto> objectManager = objectTypeCatalog.getObjectManager(UserType.class,
+						GuiUserDto.class);
+				UserManager userManager = (UserManager) (objectManager);
+				AccountShadowDto account = userManager.addAccount(user, resource.getOid());
+				if (account == null) {
+					continue;
+				}
+				newAccounts.add(account);
+			}
+			getAccountList().addAll(createFormBeanList(newAccounts, true));
 
-		// update available resource list
-		getAvailableResourceList().clear();
-		List<AccountShadowDto> existingAccounts = new ArrayList<AccountShadowDto>();
-		for (AccountFormBean form : accountList) {
-			existingAccounts.add(form.getAccount());
-		}
+			// update available resource list
+			getAvailableResourceList().clear();
+			List<AccountShadowDto> existingAccounts = new ArrayList<AccountShadowDto>();
+			for (AccountFormBean form : accountList) {
+				existingAccounts.add(form.getAccount());
+			}
 
-		availableResourceList = createResourceList(existingAccounts);
+			availableResourceList = createResourceList(existingAccounts);
+		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't add account", ex);
+			FacesUtils.addErrorMessage("Couldn't add account.", ex);
+		}
 	}
 
 	private AccountFormBean getAccountFormBean(ActionEvent evt) {
@@ -562,7 +571,7 @@ public class UserDetailsController implements Serializable {
 			object = parser.parseSchemaForAccount(account, accountType);
 			AccountManager manager = ControllerUtil.getAccountManager(objectTypeCatalog);
 			capability = manager.getResourceCapability(account);
-//			capability.setActivation(account.getActivation().isEnabled());
+			// capability.setActivation(account.getActivation().isEnabled());
 		} catch (SchemaException ex) {
 			throw ex;
 		} catch (Exception ex) {
@@ -623,7 +632,6 @@ public class UserDetailsController implements Serializable {
 		ResourceCapability capabilities = bean.getResourceCapability();
 		account.setCredentials(capabilities.getCredentialsType());
 		account.setActivation(capabilities.getActivationType());
-	
 
 		LOGGER.trace("updateAccountAttributes::end");
 		return account;

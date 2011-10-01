@@ -15,13 +15,13 @@
 		<ice:form>
 			<ice:panelPopup modal="true" autoCentre="true" visible="#{resourceList.showPopup}">
 				<f:facet name="header">
-					<ice:outputText value="#{msg['Confirm delete']}" />
+					<ice:outputText value="#{msg['page.resource.index.popup.title']}" />
 				</f:facet>
 				<f:facet id="confirm" name="body">
-					<ice:outputText value="#{msg['Delete selected resources?']}" />
+					<ice:outputText value="#{msg['page.resource.index.popup.message']}" />
 					<div class="button-bar">
-						<ice:commandButton id="deleteResourceYes" value="#{msg['Yes']}" action="#{resourceList.deleteResources}" />
-						<ice:commandButton id="deleteResourceNo" value="#{msg['No']}" action="#{resourceList.hideConfirmDelete}" />
+						<ice:commandButton id="deleteResourceYes" value="#{msg['page.button.yes']}" action="#{resourceList.deleteResources}" />
+						<ice:commandButton id="deleteResourceNo" value="#{msg['page.button.no']}" action="#{resourceList.hideConfirmDelete}" />
 					</div>
 				</f:facet>
 			</ice:panelPopup>
