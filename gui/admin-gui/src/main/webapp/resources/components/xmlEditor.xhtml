@@ -30,7 +30,7 @@
 	<composite:attribute name="bean" type="com.evolveum.midpoint.web.bean.XmlEditorBean" required="true" />
 	<composite:attribute name="show" type="java.lang.Boolean" required="true" />	
 	<composite:attribute name="okAction" method-signature="java.lang.String action()" required="true" />
-	<composite:attribute name="cancelAction" method-signature="java.lang.String action()" required="true" />	
+	<composite:attribute name="cancelAction" method-signature="java.lang.String action()" required="true" />		
 </composite:interface>
 
 <composite:implementation>
@@ -40,7 +40,7 @@
 		</f:facet>
 		<f:facet name="body">
 			<ice:form>
-				<idm:xmlInput id="editor" width="700" height="450" value="#{cc.attrs.bean.text}" />			
+				<idm:xmlInput width="700" height="450" value="#{cc.attrs.bean.text}" />			
 
 				<div class="button-bar">
 					<idm:button value="#{msg['page.button.save']}" buttonType="positive"

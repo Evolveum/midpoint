@@ -331,7 +331,7 @@ public class RoleEditController implements Serializable {
 	 * called when user clicks on OK button in xml editor
 	 */
 	@SuppressWarnings("unchecked")
-	public void okEditAction() {
+	public void okEditorAction() {
 		String text = editor.getText();
 		if (StringUtils.isEmpty(text)) {
 			return;
@@ -343,6 +343,7 @@ public class RoleEditController implements Serializable {
 					.unmarshal(text);
 			construction = element.getValue();
 		} catch (Exception ex) {
+			LoggingUtils.logException(LOGGER, "Couldn't parser account construction", ex);
 			FacesUtils.addErrorMessage("Coulnd't parse account construction.", ex);
 		}
 
@@ -350,8 +351,10 @@ public class RoleEditController implements Serializable {
 			return;
 		}
 
-		AssignmentBean bean = browser.getObject();
+		AssignmentBean bean = editor.getObject();		
 		bean.setAccountConstruction(construction);
+		editor.cleanup();
+		setShowEditor(false);
 	}
 
 	/**
