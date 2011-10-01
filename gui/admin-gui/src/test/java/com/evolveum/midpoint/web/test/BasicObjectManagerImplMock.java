@@ -36,7 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_1.PropertyReferenceLis
  * @author lazyman
  * 
  */
-public class BasicManagerImplMock implements ObjectManager<ObjectType> {
+public class BasicObjectManagerImplMock implements ObjectManager<ObjectType> {
 
 	@Override
 	public Collection<ObjectType> list(PagingType paging) {

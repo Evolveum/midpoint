@@ -67,14 +67,7 @@ public class AssignmentBean extends SelectableBean implements Serializable {
 	}
 
 	public AssignmentBeanType getType() {
-		AssignmentBeanType type = AssignmentBeanType.TARGET_REF;
-		if (assignment.getAccountConstruction() != null) {
-			type = AssignmentBeanType.ACCOUNT_CONSTRUCTION;
-		} else if (assignment.getTarget() != null) {
-			type = AssignmentBeanType.TARGET;
-		}
-
-		return type;
+				return type;
 	}
 
 	public String getTypeString() {

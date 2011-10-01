@@ -226,6 +226,9 @@ public class RoleEditController implements Serializable {
 		}
 	}
 
+	/**
+	 * called when user clicks on CANCEL button in object browser
+	 */
 	public void cancelBrowseAction() {
 		switch (browser.getObject().getType()) {
 			case TARGET:
@@ -238,7 +241,11 @@ public class RoleEditController implements Serializable {
 		}
 	}
 
+	/**
+	 * called when user clicks on OK button in object browser
+	 */
 	public void okBrowseAction() {
+		//we get selected object oid from object browser 
 		String objectOid = FacesUtils.getRequestParameter(BrowserBean.PARAM_OBJECT_OID);
 		if (StringUtils.isEmpty(objectOid)) {
 			FacesUtils.addErrorMessage("Object oid from browser was not defined.");
